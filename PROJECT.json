@@ -1,0 +1,60 @@
+{
+  "schema": "project-constellation.project/1",
+  "projectId": "PRJ-CONSTELLATION",
+  "name": "Project Constellation",
+  "aliases": [
+    "Project Constellation PWA",
+    "Project Constellation Quick View",
+    "Project Constellation Second Brain"
+  ],
+  "status": "ACTIVE",
+  "operatingMode": "NORMAL_OPERATION",
+  "recoveryMode": false,
+  "recoveryIsFallbackOnly": true,
+  "purpose": "Human-facing cross-project control surface and resume brain over durable project evidence.",
+  "canonicalRepository": "Herbertofury/ProjectDump",
+  "canonicalPath": "project-constellation/",
+  "canonicalBranch": "main",
+  "durableArtifactStore": "Google Drive",
+  "catalogInvariants": {
+    "projectCount": 63,
+    "sportsGroupHubAbsent": true,
+    "legacy25ProjectDatabaseIsCanonical": false
+  },
+  "currentPresentation": {
+    "version": "0.5.0",
+    "projectCount": 63,
+    "artifactBytesCanonical": true,
+    "features": [
+      "persistent Review Queue with reviewed/defer controls",
+      "Continuity Lenses including explicit Today planning",
+      "Changed Since Last Visit journal",
+      "Copy resume capsule",
+      "Save stop point / Quick checkpoint",
+      "Ideas & Research with keep/dismiss/promote",
+      "snapshot export/import",
+      "legacy v0.4.x local-state migration",
+      "63 standalone wiki pages",
+      "zero-setup permanent Quick View HTML",
+      "self-contained master continuity command center"
+    ],
+    "artifactNames": [
+      "Bert_Project_Second_Brain_Website.zip",
+      "Bert_Project_Constellation_Quick_View.html",
+      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html",
+      "Bert_Project_Wiki_Pack.zip",
+      "Project-Constellation-Automation-State.json"
+    ],
+    "predecessor": "0.4.2"
+  },
+  "catalogFile": "Project-Constellation-Project-Catalog.json",
+  "catalogDriveFileId": "1Ve41emEQKGeOCckJ3Mjh4iqmhzTOz5Re",
+  "authorityOrder": [
+    "current explicit user correction",
+    "current canonical repository/runtime evidence",
+    "project-owned durable memory",
+    "current Project Constellation active state",
+    "older exports and historical evidence"
+  ],
+  "updatedAt": "2026-08-15T21:21:30Z"
+}
