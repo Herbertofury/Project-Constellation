@@ -3,9 +3,9 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-15T21:21:30Z",
+  "updatedAt": "2026-08-15T22:03:00Z",
   "catalogProjectCount": 63,
-  "sportsGroupHubAbsent": true,
+  "removedProjectAbsent": true,
   "mergeBase": {
     "presentationArtifactsFoundBeforeBuild": false,
     "userEditedArtifactDetected": false,
@@ -37,7 +37,7 @@
     "63 standalone wiki pages regenerated",
     "Misleading LATEST recovery marker demoted to HISTORICAL_ONLY",
     "Dedicated durable Project Constellation Drive folder established",
-    "Active Project Constellation startup state committed to ProjectDump"
+    "Root and project-specific ProjectDump state now classify Project Constellation as ACTIVE / NORMAL_OPERATION"
   ],
   "validation": {
     "projectCount63": "pass",
@@ -48,20 +48,21 @@
     "jsonParse": "pass",
     "localLinks": "pass",
     "zipIntegrity": "pass",
+    "artifactHashAgreement": "pass",
     "driveRemoteHashRoundTrip": "pass: four presentation artifacts re-downloaded and SHA-256 matched"
   },
   "browserRuntime": "attempted Chromium /usr/bin/chromium against canonical Quick View; timed out rc=124 with 0 DOM bytes after D-Bus initialization failures; interaction success not claimed",
-  "drivePublication": {
-    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-    "artifactFileIds": {
-      "Bert_Project_Second_Brain_Website.zip": "1iLgF74Nrgw7EnTfmVjE_pqrTIREhj8XT",
-      "Bert_Project_Constellation_Quick_View.html": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77",
-      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO",
-      "Bert_Project_Wiki_Pack.zip": "1fXYsifwbkc2CIj3dKdgOXB8i3XsN5CZL"
-    },
-    "catalogFileId": "1Ve41emEQKGeOCckJ3Mjh4iqmhzTOz5Re",
-    "automationStateFileId": "1ywyinT4nBGizc89_V0KspjcB3iKs7And",
-    "historicalRecoveryChecksumFileId": "1tf5m4cr2RplQLXFNkN6U7GtHZX4YLbz0",
-    "historicalRecoveryChecksumClassification": "HISTORICAL_ONLY"
+  "sportsGroupHubAbsent": true,
+  "githubCheckpoint": {
+    "repository": "Herbertofury/ProjectDump",
+    "branch": "main",
+    "rootAgentsCommit": "667e8f16ac06b7011e14b1789953f5327711a017",
+    "projectAgentsCommit": "7e98344d15bb2d03f4cb4fcd3d309b06665fa121",
+    "activeCheckpointCommit": "7f985d81fdd287bc99c3d99397ce504d6b515fea",
+    "handoffCommit": "dd223a483efa2fe573e651bb7b9755a75bc4c11f",
+    "projectIdentityCommit": "297f94f6b1063d7b263185c328ad35069e1a9c1e",
+    "automationStateCommit": "6723df20660d830c618fd67c59777bdb33df4960",
+    "statusCommit": "fa344121c4638730aec449ce81c2c4e842b37ef1",
+    "readmeCommit": "256a7c8dc0b3d6183dcfed2676407ea74563671b"
   }
 }
