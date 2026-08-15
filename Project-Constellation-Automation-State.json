@@ -1,0 +1,67 @@
+{
+  "schema": "project-constellation.automation-state/3",
+  "version": "0.5.0",
+  "operatingMode": "NORMAL_OPERATION",
+  "recoveryMode": false,
+  "updatedAt": "2026-08-15T21:21:30Z",
+  "catalogProjectCount": 63,
+  "sportsGroupHubAbsent": true,
+  "mergeBase": {
+    "presentationArtifactsFoundBeforeBuild": false,
+    "userEditedArtifactDetected": false,
+    "historical25ProjectDatabase": "preserved as source detail, not promoted as complete catalog",
+    "lastVerifiedPresentationLineage": "0.4.2"
+  },
+  "lastAutomationHash": {
+    "Bert_Project_Second_Brain_Website.zip": "ba8e2c553652b0c332fcdb8f2744c1c56f04676a7b949b5302bfce481face7ff",
+    "Bert_Project_Constellation_Quick_View.html": "1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57",
+    "Bert_Project_Wiki_Pack.zip": "650a8becfe2b5e461b7bcb309cceede8717ab0d3d27c0724c738b8830f3b7366"
+  },
+  "researchCursor": [
+    "PRJ-014",
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-019",
+    "PRJ-020"
+  ],
+  "appResearch": "Continuity Lenses / Changed Since Last Visit inspired by persistent GitHub Projects views",
+  "changes": [
+    "Active normal-operation continuity reset",
+    "Persistent Continuity Lenses",
+    "Changed Since Last Visit journal",
+    "Quick checkpoint and resume capsule retained",
+    "Legacy v0.4.x local state migration preserves checkpoints/research decisions when storage origin is shared",
+    "Snapshot export/import",
+    "Research facts separated from proposals; promote sets exact next action",
+    "63 standalone wiki pages regenerated",
+    "Misleading LATEST recovery marker demoted to HISTORICAL_ONLY",
+    "Dedicated durable Project Constellation Drive folder established",
+    "Active Project Constellation startup state committed to ProjectDump"
+  ],
+  "validation": {
+    "projectCount63": "pass",
+    "sportsGroupHubAbsent": "pass",
+    "goalsRequirementsRecoveryHistory": "pass",
+    "researchContract": "pass: 5 project + 1 app suggestions",
+    "javascriptSyntax": "pass",
+    "jsonParse": "pass",
+    "localLinks": "pass",
+    "zipIntegrity": "pass",
+    "driveRemoteHashRoundTrip": "pass: four presentation artifacts re-downloaded and SHA-256 matched"
+  },
+  "browserRuntime": "attempted Chromium /usr/bin/chromium against canonical Quick View; timed out rc=124 with 0 DOM bytes after D-Bus initialization failures; interaction success not claimed",
+  "drivePublication": {
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "artifactFileIds": {
+      "Bert_Project_Second_Brain_Website.zip": "1iLgF74Nrgw7EnTfmVjE_pqrTIREhj8XT",
+      "Bert_Project_Constellation_Quick_View.html": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77",
+      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO",
+      "Bert_Project_Wiki_Pack.zip": "1fXYsifwbkc2CIj3dKdgOXB8i3XsN5CZL"
+    },
+    "catalogFileId": "1Ve41emEQKGeOCckJ3Mjh4iqmhzTOz5Re",
+    "automationStateFileId": "1ywyinT4nBGizc89_V0KspjcB3iKs7And",
+    "historicalRecoveryChecksumFileId": "1tf5m4cr2RplQLXFNkN6U7GtHZX4YLbz0",
+    "historicalRecoveryChecksumClassification": "HISTORICAL_ONLY"
+  }
+}
