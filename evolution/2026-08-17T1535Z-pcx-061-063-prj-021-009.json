@@ -1,0 +1,35 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-17T15:35:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCountInvariant": 63,
+  "sportsGroupHubAbsent": true,
+  "reviewedProjects": ["PCX-061", "PCX-062", "PCX-063", "PRJ-021", "PRJ-009"],
+  "findings": {
+    "PCX-061": "Current GameSync Next main 9e337c720f0180cffa577f140b181c699f0a1650 contains petz-engine, petz-compat, petz-formats and petz-bridge 0.1.0 TypeScript packages. PetzEngine is platform-agnostic and owns Petz state/simulation while PetzMascotBridge is a host adapter. Require deterministic cross-host parity/restart proof before claiming shipping/Next/desktop equivalence.",
+    "PCX-062": "QA Cockpit lineage remains preserved but canonical current archive/repository is not exposed by connected GitHub/Drive searches. Current official RuneLite Plugin Hub guidance remains the recovery/build target: Java 11, Gradle run workflow, commit-pinned manifests, latest.release client tracking, and dependency-verification hashes for added third-party dependencies.",
+    "PCX-063": "Current ProjectDump wiki resolves a real GameSync Next Inspiration Vault implementation; Drive also exposes V2-254 Aesthetic Vault Complete Test Build plus V2-253 foundation/hot-drop/Visual-DNA deltas. Preserve both lineages. sqlite-vec v0.1.9 is an optional local similarity-index experiment only; pre-release 0.1.10 ANN/DiskANN must not replace provenance-first storage.",
+    "PRJ-021": "GX Slim remains artifact-only: GX-Slim-1.0.0-FULL.zip SHA-256 5ad8aa6d13a898af1ead4d50b7922829ec94d427199475f17522b2ed1a4a9717 is preserved, but purpose/source/README/runtime remain unresolved. Block speculative stack work until hash-matching or stronger project-owned evidence is recovered.",
+    "PRJ-009": "Skill Atlas lineage through QA Cockpit remains preserved; canonical current source is unresolved. Treat PRJ-009 as the family/content lineage and PCX-062 as the QA surface over one eventual canonical source, not two drifting implementations."
+  },
+  "research": {
+    "runelite": ["https://github.com/runelite/plugin-hub", "https://github.com/runelite/runelite/wiki/Developer-Guide"],
+    "propertyBasedTestingReference": "fast-check v4.9.0; use the strategy only, implemented with a Java-native tool after Gradle source recovery",
+    "aestheticVaultVectorReference": "sqlite-vec stable v0.1.9; 0.1.10-alpha.4 is pre-release and experiment-only"
+  },
+  "projectConstellationImprovement": {
+    "name": "Identity Resolution Lens",
+    "status": "PROPOSE_READ_ONLY",
+    "goal": "Group projects as SOURCE_RESOLVED, ARTIFACT_ONLY, HISTORICAL_ONLY, or CONFLICTING_EVIDENCE and link each unresolved record to one exact evidence-acquisition step.",
+    "acceptance": "Derived only, non-mutating, all 63 projects remain available, user edits remain authoritative."
+  },
+  "antiRegression": {
+    "projectCountChanged": false,
+    "sportsGroupHubReadded": false,
+    "presentationArtifactsChanged": false,
+    "lastAutomationHashChanged": false,
+    "runtimeCodeChanged": false
+  },
+  "wikiCoverageAfterPass": 51,
+  "nextResearchCursor": ["PRJ-001", "PRJ-011", "PRJ-012", "PRJ-013", "PRJ-014"]
+}

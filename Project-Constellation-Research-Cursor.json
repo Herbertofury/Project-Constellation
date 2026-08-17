@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-17T07:51:50Z",
-  "completedCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"],
-  "nextCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-021", "PRJ-009"],
-  "selectionReason": "Complete the remaining PCX sequence, then rotate into two unresolved/high-value continuity gaps instead of restarting from already-fresh projects.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T0751Z-pcx-056-060.json",
+  "updatedAt": "2026-08-17T15:35:00Z",
+  "completedCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-021", "PRJ-009"],
+  "nextCursor": ["PRJ-001", "PRJ-011", "PRJ-012", "PRJ-013", "PRJ-014"],
+  "selectionReason": "PCX-061 through PCX-063 and the two unresolved RuneLite/GX gaps are refreshed. Concurrent wiki maintenance also refreshed PRJ-004, PRJ-005, PRJ-007 and PRJ-008, so rotate into still-uncovered PRJ-001 and PRJ-011 through PRJ-014 rather than repeating fresh work.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T1535Z-pcx-061-063-prj-021-009.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only the researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, or user edits."
 }
