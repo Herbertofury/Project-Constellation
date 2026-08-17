@@ -1,0 +1,34 @@
+{
+  "schema": "project-constellation.publication-debt/1",
+  "updatedAt": "2026-08-17T01:40:28Z",
+  "status": "PENDING_REMOTE_BYTE_PUBLICATION",
+  "reason": "Google Drive connector cannot currently accept regenerated local file bytes from this runtime; prior byte-verified canonical Drive artifacts remain authoritative until a complete remote round-trip succeeds.",
+  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0140Z",
+  "targets": [
+    {
+      "name": "Bert_Project_Second_Brain_Website.zip",
+      "driveFileId": "10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"
+    },
+    {
+      "name": "Bert_Project_Constellation_Quick_View.html",
+      "driveFileId": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"
+    },
+    {
+      "name": "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html",
+      "driveFileId": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO"
+    },
+    {
+      "name": "Bert_Project_Wiki_Pack.zip",
+      "driveFileId": "1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ"
+    },
+    {
+      "name": "Project-Constellation-Project-Catalog.json",
+      "driveFileId": null
+    },
+    {
+      "name": "Project-Constellation-Research-Suggestions.json",
+      "driveFileId": null
+    }
+  ],
+  "retryContract": "Re-check for newer user edits and canonical hashes first; upload/replace as one coherent candidate line; re-read or re-download every remote object and verify digest/size or full SHA-256 before promoting lastAutomationHash."
+}
