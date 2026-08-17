@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.publication-debt/1",
-  "updatedAt": "2026-08-17T03:41:12Z",
+  "updatedAt": "2026-08-17T03:58:00Z",
   "status": "PENDING_REMOTE_BYTE_PUBLICATION",
-  "reason": "A coherent current six-artifact candidate was generated from the current 63-record machine catalog, with all recoveryHistory preserved. Static/package checks passed. Chromium runtime could not initialize in this environment, and raw connector egress blocks generated local files from Drive replacement, so lastAutomationHash must remain unchanged.",
-  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0341Z",
+  "reason": "A coherent current six-artifact candidate was generated from the current 63-record machine catalog, with all recoveryHistory preserved. Static/package checks passed. This hourly pass added source-controlled project documentation and research evidence but did not change the 63-record presentation catalog, so the exact candidate bytes remain valid and were not ceremonially regenerated. Chromium runtime could not initialize in the prior candidate-validation environment, and raw connector egress blocks generated local files from Drive replacement, so lastAutomationHash must remain unchanged.",
+  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0358Z",
   "targets": [
     {"name":"Bert_Project_Second_Brain_Website.zip","driveFileId":"10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"},
     {"name":"Bert_Project_Constellation_Quick_View.html","driveFileId":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"},
@@ -13,14 +13,14 @@
     {"name":"Project-Constellation-Research-Suggestions.json","driveFileId":null}
   ],
   "latestEvidenceChanges": [
-    "PCX-036 current control-plane state documented and a current 63-record machine catalog materialized from the byte-verified Quick View plus additive current evidence overlays.",
-    "PCX-037 current active JDK 25 Shimeji benchmark resolved; archived Shijima-Qt explicitly rejected as a new base.",
-    "PCX-038 GameSync-integrated browser Shimeji implementation reconfirmed at current Gamesync main commit a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928.",
-    "PCX-039 external Webmeji reference and current GameSync Webmeji contract resolved; user-owned standalone source still unresolved.",
-    "PCX-040 v1.9.0 remains latest-good; scheduler.yield recorded only as a feature-detected experiment and web-vitals 6.0.0 rejected as a production dependency.",
-    "Project-Constellation-Technology-Radar.json and Project-Constellation-Research-Suggestions.json added as durable current technology decision state."
+    "PCX-041 ChatGPT Ultimate Optimizer: v1.0.1 release manifest, canonical commit, exact artifact hashes and validation boundary resolved; current ChatGPT surface drift documented.",
+    "PCX-042 GameSync Next: main revalidated at 9e337c720f0180cffa577f140b181c699f0a1650; existing detailed parity/runtime wiki remains current.",
+    "PCX-043 Feature Foundry Production App: V33 FINAL_READY promoted as strongest verified runnable lineage while the minimal GitHub repository remains explicitly non-authoritative for production source.",
+    "PCX-044 Feature Foundry Living Ecology: V33 content-parity/no-cap ecology contract documented with a fixed cross-tier replay fixture as the next experiment.",
+    "PCX-045 Feature Foundry Object Intelligence: KHR_interactivity recorded as a release-candidate interchange experiment; internal Object Atlas remains canonical.",
+    "Detailed source-controlled wiki coverage advanced from 23 to 27 tracked projects."
   ],
-  "retryContract": "Upload/replace the exact candidate bytes recorded here without regeneration, re-read or re-download all six remote objects, verify SHA-256/size, exercise the Quick View in a functioning browser environment, then promote lastAutomationHash. If the bytes become unavailable before publication, regenerate only from the current machine catalog and verify hashes again.",
+  "retryContract": "Upload/replace the exact candidate bytes recorded here without regeneration, re-read or re-download all six remote objects, verify SHA-256/size, exercise the Quick View in a functioning browser environment, then promote lastAutomationHash. If the bytes become unavailable before publication, regenerate only from the current machine catalog and verify hashes again. If the presentation catalog changes before publication, invalidate these candidate hashes and regenerate a complete coherent six-artifact set first.",
   "candidate": {
     "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
     "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddcece93c2e3cbfe438e6c5e9e8a28d26","size":133622},
