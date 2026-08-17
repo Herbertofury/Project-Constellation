@@ -1,0 +1,55 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-17T23:38:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCountInvariant": 63,
+  "sportsGroupHubAbsent": true,
+  "reviewedProjects": ["PRJ-020", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"],
+  "findings": {
+    "PRJ-020": "Added qingchenyouforcc/NeurolingsCE as a fresh architecture/parity benchmark only. The Rust + Flutter rewrite exposes engine/pack/platform/runtime/CLI/store/common crates, 22 Shimeji action types, QuickJS conditions, native transparent-window backends, .mascot/legacy ZIP handling, and CLI/HTTP/IPC compatibility goals. Preserve the canonical research master and require differential corpus proof before borrowing implementation ideas.",
+    "PRJ-022": "Refreshed current package evidence: Vite is 8.2.2 rather than the prior 8.2.0 note; TypeScript 7.0.2, Vitest 4.1.10 and React 19.2.8 remain current candidates. Keep the generated v0.1.0 base non-shippable until clean Foundry baseline/rehearsal/rollback proof, and sequence Vite before independent TypeScript/Vitest major migrations.",
+    "PRJ-023": "Refreshed current starter evidence to Vite 8.2.2, Tauri CLI 2.11.4, Biome 2.5.6, TypeScript 7.0.2, Vitest 4.1.10 and Vue stable 3.5.40. The real priority remains correcting tauri-react versus Vue metadata and floating latest declarations, then proving reproducible clean generation and native Foundry/capsule lifecycle before major migrations.",
+    "PRJ-024": "No stack change is justified. The coordinated Image Column 1.4.12 / Bethesda Plugin Info 1.5.3 / Version Tracker 2.4.3 pack still needs exact real Windows MO2 v2.5.2 semantic drag/column/theme-DPI/restart proof. Preserving the current baseline is more valuable than dependency churn.",
+    "PRJ-025": "Canonical Herbertofury/UltraDeck now records v8.5.0 at release commit 2b697933ff46513282cc8f0ef38df6e70dc79aab, superseding the stale v8.1/incomplete-v8.2 Project Constellation wiki state. v8.5 adds first-class TikTok identity/actions, targeted bounded playback recovery, per-site runtime boot gates and deterministic release packaging while preserving Interaction Capsules, persistent post context and the no-culling contract."
+  },
+  "projectConstellationImprovement": {
+    "name": "Concurrent Change Intake Lens",
+    "status": "PROPOSE_READ_ONLY",
+    "goal": "Before project selection, derive the canonical commit/path delta since the research-cursor source checkpoint and re-read only project/control-plane records touched by another job or user edit.",
+    "evidence": "After the prior 22:45Z cursor checkpoint, ProjectDump received PRJ-020/wiki-coverage changes plus Scheduled-Task-Supervisor state before this run began.",
+    "benefit": "Reduces stale overwrites and duplicate research across recurring jobs while keeping retrieval delta-based instead of broad-scanning every connected source.",
+    "smallestExperiment": "Replay the 22:45Z-to-23:15Z ProjectDump commit delta and require exact path-to-project/control-plane classification before any write.",
+    "acceptance": "All detected changes link to exact commits/paths; user edits remain authoritative; unchanged project records are untouched; no project list, presentation state or verification authority is mutated by the lens."
+  },
+  "researchDelta": "project-constellation/research/2026-08-17T2338Z-prj-020-025.json",
+  "publication": {
+    "github": {
+      "repository": "Herbertofury/ProjectDump",
+      "branch": "main",
+      "updatedWikiSources": [
+        "wikis/PRJ-020-master-desktop-pet-research.md",
+        "wikis/PRJ-022-feral-unified-native-base.md",
+        "wikis/PRJ-023-feature-foundry-portable-feature-starter.md",
+        "wikis/PRJ-025-ultradeck.md"
+      ],
+      "reviewedUnchangedWiki": "wikis/PRJ-024-mo2-drag-column-compatibility-pack.md"
+    },
+    "drive": {
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "status": "PENDING_THIS_RUN_DUAL_PUBLICATION_VERIFICATION"
+    }
+  },
+  "antiRegression": {
+    "projectCountChanged": false,
+    "sportsGroupHubReadded": false,
+    "runtimeCodeChanged": false,
+    "presentationArtifactsChanged": false,
+    "lastAutomationHashChanged": false,
+    "viewportOrDatasetCapsAdded": false,
+    "testsWeakened": false,
+    "workingFeaturesRemoved": false
+  },
+  "presentationPublicationDebt": "Existing six-artifact byte-publication debt remains open and unchanged. No presentation artifact was regenerated or promoted from documentation/research-only changes in this pass.",
+  "wikiCoverageAfterPass": 62,
+  "nextResearchCursor": ["PCX-026", "PCX-027", "PCX-028", "PCX-029", "PCX-030"]
+}
