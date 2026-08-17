@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.evolution-verification/1",
-  "verifiedAt": "2026-08-17T06:52:00Z",
+  "verifiedAt": "2026-08-17T06:55:47Z",
   "operatingMode": "NORMAL_OPERATION",
   "catalogProjectCount": 63,
   "sportsGroupHubAbsent": true,
@@ -17,19 +17,31 @@
     },
     "evolutionCheckpoint": {
       "path": "project-constellation/evolution/2026-08-17T0648Z-pcx-051-055.json",
-      "blobSha": "bf687225d3607e7e3a4b304b345e30eb0261aed6",
-      "result": "pass: remotely fetched all five project research decisions and next cursor"
+      "blobSha": "1408e8f9dfa1109e6e4673cd5373d9ff2592dd18",
+      "result": "pass: remotely fetched corrected all-five-project research checkpoint; Meilisearch current release corrected to v1.53.1 after direct connected GitHub Releases API verification"
     },
     "automationState": {
       "path": "project-constellation/Project-Constellation-Automation-State.json",
-      "blobSha": "39c370c945b62c1acec81315820fd8402b8a91da",
-      "result": "pass: NORMAL_OPERATION, 63 projects, Sports Group Hub absent, researchCursor PCX-051..055, nextResearchCursor PCX-056..060, lastAutomationHash preserved"
+      "blobSha": "2717cf36cb7db04b9d5d2ff65bfd6fa12807c7f4",
+      "result": "pass: NORMAL_OPERATION, 63 projects, Sports Group Hub absent, researchCursor PCX-051..055, nextResearchCursor PCX-056..060, Meilisearch corrected to v1.53.1, lastAutomationHash preserved"
+    },
+    "externalCurrentReleaseChecks": {
+      "typesense": {
+        "api": "https://api.github.com/repos/typesense/typesense/releases/latest",
+        "version": "v30.2",
+        "publishedAt": "2026-04-19T16:00:09Z"
+      },
+      "meilisearch": {
+        "api": "https://api.github.com/repos/meilisearch/meilisearch/releases/latest",
+        "version": "v1.53.1",
+        "publishedAt": "2026-08-13T13:03:58Z"
+      }
     }
   },
   "driveRemoteReadback": {
     "documentId": "1cGHmUG-iMUnDoncLSWsZL9ZudZ80fltnYRn-Ogwd4rU",
-    "modifiedTime": "2026-08-17T06:51:35.264Z",
-    "result": "pass: ACTIVE CHECKPOINT remotely fetched with the complete 06:48:36Z evolution entry and next cursor PCX-056..060"
+    "modifiedTime": "2026-08-17T06:55:47.367Z",
+    "result": "pass: ACTIVE CHECKPOINT remotely fetched with the corrected 06:48:36Z evolution entry, explicit 06:54Z Meilisearch correction, and next cursor PCX-056..060"
   },
   "presentationPublicationDebt": {
     "status": "UNCHANGED_PENDING_REMOTE_BYTE_PUBLICATION",
