@@ -20,6 +20,14 @@ This pass refreshed PRJ-014, PRJ-015, PRJ-016, PRJ-019, and PRJ-020, plus the gl
 
 Static validation passed for 63 records, Sports Group Hub absence, JavaScript syntax, JSON parsing, goal/requirements/history presence, research contract rendering data, local wiki links, hash agreement, and both ZIP integrity checks. All four presentation artifacts were re-downloaded from Drive and SHA-256 matched. Chromium was attempted but timed out with D-Bus runtime errors before producing a DOM, so browser interaction is not claimed.
 
+## Tracked-project wiki maintenance checkpoint
+
+ProjectDump now maintains source-controlled Markdown wikis under `wikis/` for projects tracked inside Project Constellation rather than documenting Project Constellation itself. The current indexed detailed-wiki coverage is 10 tracked projects.
+
+Latest verified addition: `PCX-038 - Shimeji Browser Extension`. Its wiki is grounded in the current GameSync `0.6.3` repository implementation, including the embedded Shimeji Browser Engine distribution, `shimeji-browser-bridge.js`, `shimeji-popup-shim.js`, modular mascot-pack runtime, ShimejiEE parser, Manifest V3 wiring, persistence, message flow, install/configuration behavior, modification paths, and verification guidance. The wiki explicitly records that a separate standalone Shimeji Browser Extension GitHub repository is still unresolved and must supersede the embedded GameSync evidence if a newer canonical source is found.
+
+Wiki index: `wikis/README.md`.
+
 ## Next pass
 
 Continue normal Project Constellation operation from this checkpoint. Do not begin with a broad restoration sweep.
