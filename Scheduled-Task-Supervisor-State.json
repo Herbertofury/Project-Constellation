@@ -1,0 +1,39 @@
+{
+  "schema": "scheduled-task-supervisor.state/1",
+  "updatedAt": "2026-08-17T23:15:28Z",
+  "taskCount": 8,
+  "enabledCount": 8,
+  "pausedCount": 0,
+  "repairs": [
+    {
+      "task": "Constellation Wiki Maintainer",
+      "action": "re-enabled and changed timing mode from condition_watch to exact_schedule",
+      "reason": "Recurring maintenance task had disabled after its prior run despite having no verified completion condition; exact hourly scheduling better matches its indefinite maintenance contract."
+    },
+    {
+      "task": "Pinterest GitHub Publish Retry",
+      "action": "re-enabled and changed timing mode from condition_watch to exact_schedule",
+      "reason": "The Pinterest Nocturne 2.0.0 publication is not verified complete. GitHub Actions workflow run 32068119456, attempt 2, is completed/failure; publish job 95527294532 failed with zero executed steps. The retry must therefore remain active instead of self-disabling."
+    },
+    {
+      "task": "Scheduled Task Supervisor",
+      "action": "changed timing mode from condition_watch to exact_schedule",
+      "reason": "The recurring supervisor must remain continuously scheduled. Exact hourly execution avoids the observed disable-after-run pattern affecting condition-watch tasks while preserving the same health-audit behavior."
+    }
+  ],
+  "health": {
+    "otherRecurringTasks": "enabled and running within their intended hourly cadence",
+    "pinterestPublication": "UNRESOLVED_EXTERNAL_EXECUTION_BLOCKER",
+    "pinterestEvidence": {
+      "workflowRunId": 32068119456,
+      "workflowAttempt": 2,
+      "workflowConclusion": "failure",
+      "jobId": 95527294532,
+      "jobConclusion": "failure",
+      "executedStepCount": 0,
+      "workflowUrl": "https://github.com/Herbertofury/Pinterest-Nocturne/actions/runs/32068119456"
+    },
+    "userEscalationRequired": false,
+    "userEscalationReason": "No new user-only action was proven necessary in this pass; the retry remains enabled and should continue checking the external GitHub Actions/account state without spamming identical reruns."
+  }
+}
