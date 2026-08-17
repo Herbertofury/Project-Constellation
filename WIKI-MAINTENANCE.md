@@ -4,17 +4,18 @@ This is the durable documentation-maintenance checkpoint for the **projects trac
 
 ## Current checkpoint
 
-- Detailed target-project wiki coverage: **46 tracked projects**.
-- Latest material wiki addition: **PRJ-010 - RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD Family**.
-- Wiki path: `wikis/PRJ-010-runelite-flipforge-family.md`.
-- Current connected GitHub publication point: `Herbertofury/FlipForge`, `main`.
-- Verified repository boundary: the connected FlipForge repository currently contains only an 11-byte `README.md` with `# FlipForge`, repository size `0`, no detected language, and only the initial commit `03cb2057c480929831852fed8fd866954e3ad5c0`. It is a project identity/publication placeholder, not the recovered implementation source.
-- Durable PRJ-010 evidence preserves the family components: FlipForge (`flipfore-osrs` historical naming), Farm Material Ranker, Rust dashboard/bridge, No-Hitch RuneLite launcher/runtime, and 117HD/RLHD integration.
-- Latest recovered Farm Material Ranker identity: **v1.1.0**, with searchable sidebar, OSRS/GE pricing, item icons, sorting, monster metadata and shortest-path routing; artifact name `farm-material-ranker.zip`.
-- Known-good No-Hitch reference identity: `hitchless-runelite-main.jar`, SHA-256 `80d99e72d82ad28a5fe7779d7325450b487edb2c9c1f617b2e75acfa39f61d89`, size `57,842,944` bytes, main class `com.bertsplugins.hitchless.HitchlessRuneLiteMain`, embedded RuneLite `1.12.29.1`, recorded source commit `68ff80e`.
-- Material blocker: current connected Drive search resolves these artifacts only through durable Project Constellation continuity references; the implementation source, Farm Material Ranker ZIP, Rust bridge source, and 117HD wiring were not independently recovered during this documentation pass.
-- Hard release gate preserved: both external plugins must be visible, enabled, functional, and persistent after restart in the actual Jagex-launched RuneLite client. Compilation, JAR inspection, or developer-mode loading alone is insufficient.
-- Highest-value next PRJ-010 documentation step: recover the latest FlipForge/Farm Material Ranker/No-Hitch implementation artifacts, reconcile hashes and manifests without overwriting the known-good reference, restore canonical source, then replace recovery-only wiki sections with exact project-owned build/install/configuration/API/module instructions and perform the real-client restart-persistence qualification.
+- Detailed target-project wiki coverage: **47 tracked projects**.
+- Latest material wiki addition: **PCX-063 - Feature Foundry Aesthetic Vault**.
+- Wiki path: `wikis/PCX-063-feature-foundry-aesthetic-vault.md`.
+- Current verified implementation name: **Inspiration Vault**.
+- Current implementation source: `Herbertofury/GameSync-Next`, `main`, primarily `apps/feature-foundry/src/ui/editors/InspirationVaultEditor.tsx`, with the typed capture contract in `packages/shared/src/featureFoundryCapture.ts` and GameSync Extension V2 bridge/runtime code under `apps/extension-v2/`.
+- The separate connected `Herbertofury/Feature-Foundry` repository currently reports repository size `0`, so it is not the strongest implementation source for this track.
+- Newly verified behavior: the vault persists structured reference records locally, exposes Inbox / Theme Objects / Sticker Tray / Mystery Games / World Thesis / Collector Cabinet boards, preserves capture/source/provider metadata, and includes browser-side cleanup, palette extraction, styling, and PNG export.
+- Newly verified browser integration: GameSync Extension V2 registers Page/Image/Link/Selection context-menu captures under `Save to Feature Foundry`, stages a versioned capture envelope in `chrome.storage.local`, hands it through `feature-foundry-bridge.html`, and routes Feature Foundry directly to `ff-workspace=inspiration-vault`.
+- Verified development/build commands: `npm ci`, `npm run dev:feature-foundry`, `npm run build:feature-foundry`; Feature Foundry dev URL is `http://127.0.0.1:5175/`.
+- Material verification boundary: this pass verified current source and wire contracts but did not freshly exercise all four capture kinds in a real Opera/Chromium runtime, did not perform deterministic pixel-fixture validation of the cleanup bench, and found no dedicated Inspiration Vault automated test command. The Feature Foundry workspace `lint` script is currently a TODO echo.
+- Highest-value next PCX-063 verification step: clean-build Feature Foundry and Extension V2 from one checkout, exercise all four context-menu capture paths in the real browser, verify bridge cleanup/duplicate suppression and restart persistence, then add focused capture/storage/cleanup regression coverage.
+- Next uncovered tracked-project documentation candidates remain PRJ-001, PRJ-007, PRJ-009, PRJ-011 through PRJ-021, and PCX-062. Prefer the candidate with the strongest current project-owned source evidence rather than creating another recovery-only page when a live implementation can be documented.
 
 ## Maintenance rule
 
