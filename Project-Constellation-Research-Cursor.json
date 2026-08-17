@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-17T22:45:00Z",
-  "completedCursor": ["PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018", "PRJ-019"],
-  "nextCursor": ["PRJ-020", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"],
-  "selectionReason": "PRJ-015 through PRJ-019 now have current MO2 host contracts and detailed continuity wikis, including the remaining PRJ-017 through PRJ-019 documentation gaps. Rotate next into Master Desktop Pet Research, Feral Unified Native Base, Feature Foundry Portable Feature Starter, the MO2 compatibility pack, and UltraDeck. PRJ-021 is skipped this cycle because it was recently reviewed and remains artifact-only pending stronger source evidence.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T2245Z-prj-015-019.json",
-  "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only the researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, or user edits."
+  "updatedAt": "2026-08-17T23:38:00Z",
+  "completedCursor": ["PRJ-020", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"],
+  "nextCursor": ["PCX-026", "PCX-027", "PCX-028", "PCX-029", "PCX-030"],
+  "selectionReason": "PRJ-020/022/023/024/025 were re-read from current canonical evidence. PRJ-020 gained a fresh NeurolingsCE Rust/Flutter parity benchmark; PRJ-022/023 toolchain evidence was corrected to current package lines; PRJ-024 remains intentionally unchanged pending real MO2 qualification; PRJ-025 advanced to canonical UltraDeck v8.5.0. Rotate next into Project Governance, GameSync Archive Doctor, DirectoryMonitor, PC Bridge/MCP Bridge, and Reliable Artifact Publisher.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T2338Z-prj-020-025.json",
+  "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
