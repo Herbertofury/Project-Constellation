@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.evidence-coverage/1",
-  "updatedAt": "2026-08-17T02:56:47Z",
+  "updatedAt": "2026-08-17T03:41:12Z",
   "purpose": "Track source-resolution and stale-summary debt before stack migration or completion claims.",
   "rules": [
     "Current explicit user edits win.",
@@ -10,51 +10,16 @@
     "Resolve source identity before adopting stack upgrades that could overwrite or mis-target existing work."
   ],
   "records": [
-    {
-      "projectId": "PCX-031",
-      "project": "Auralis",
-      "status": "SOURCE_UNRESOLVED_SPEC_RECOVERED",
-      "highestAuthorityResolved": "direct durable project artifacts",
-      "evidence": ["MASTER_BUILD_PROMPT.md", "IMPLEMENTATION.md", "Auralis-Interactive-Preview.html"],
-      "currentFinding": "Production contract and current Rust/Slint/windows-rs/Rubato baseline are recovered; canonical executable source repository/worktree is unresolved.",
-      "nextResolution": "Locate canonical Rust application source and verify manifests/lockfile before any dependency migration."
-    },
-    {
-      "projectId": "PCX-032",
-      "project": "Profit Nova",
-      "status": "SOURCE_UNRESOLVED_STRICT_SPEC_RECOVERED",
-      "highestAuthorityResolved": "direct durable project artifact",
-      "evidence": ["money_app_plan_v39_strict_master_spec.md", "money_app_plan_v36_hermes_agent_full_use.md"],
-      "currentFinding": "Strict product contract and donor architecture are recovered; canonical production source is unresolved.",
-      "nextResolution": "Locate the production repo/worktree, then reconcile actual Tauri/Bevy/Hermes versions before evaluating migration candidates."
-    },
-    {
-      "projectId": "PCX-033",
-      "project": "Sims4CreatorStudio",
-      "status": "PARTIAL_SOURCE_TRANSFER",
-      "highestAuthorityResolved": "project-owned GitHub transfer checkpoint",
-      "evidence": [".s4cs-payload-v5/CHUNK-STATUS-08.txt", ".s4cs-payload-v5/PAYLOAD-CHECKPOINT-08.txt"],
-      "currentFinding": "Small-commit source transfer is still active and the next required fragment is part08.b64.",
-      "nextResolution": "Continue from part08, reconstruct all expected parts, and verify the recorded decoded payload SHA-256 before documenting or migrating the application stack."
-    },
-    {
-      "projectId": "PCX-034",
-      "project": "Ferrum Browser",
-      "status": "CANONICAL_RUNTIME_VERIFIED",
-      "highestAuthorityResolved": "project-owned GitHub source and .agents-memory runtime evidence",
-      "evidence": ["Herbertofury/Ferrum-Browser@536bbc23dfee068e26eda8b32574f06ce19a43f1", "workflow 31987413168"],
-      "currentFinding": "Linux/Windows Chromium web, MV3, Workbench, real Electron, service-worker diagnostics and restart proof are verified; only Appium remains unqualified.",
-      "nextResolution": "Maintain this runtime evidence as the authority and evaluate Electron 43.4.0 only on a proposal branch with equivalent Linux/Windows proof."
-    },
-    {
-      "projectId": "PCX-035",
-      "project": "MO2R",
-      "status": "SOURCE_UNRESOLVED_IMPLEMENTATION_CONTRACT_RECOVERED",
-      "highestAuthorityResolved": "direct durable implementation directive plus placeholder GitHub identity",
-      "evidence": ["MO2R_FINISH_CHANGELOG_THEN_UPGRADE_RELATIONSHIPS.md", "Herbertofury/MO2R README"],
-      "currentFinding": "Changelog and automatic Relationship contracts are recovered, but the connected repository exposes only a placeholder README and does not identify the real build tree.",
-      "nextResolution": "Locate canonical MO2R source/worktree and baseline it against upstream MO2 v2.5.2 before implementation."
-    }
+    {"projectId":"PCX-031","project":"Auralis","status":"SOURCE_UNRESOLVED_SPEC_RECOVERED","highestAuthorityResolved":"direct durable project artifacts","evidence":["MASTER_BUILD_PROMPT.md","IMPLEMENTATION.md","Auralis-Interactive-Preview.html"],"currentFinding":"Production contract and current Rust/Slint/windows-rs/Rubato baseline are recovered; canonical executable source repository/worktree is unresolved.","nextResolution":"Locate canonical Rust application source and verify manifests/lockfile before any dependency migration."},
+    {"projectId":"PCX-032","project":"Profit Nova","status":"SOURCE_UNRESOLVED_STRICT_SPEC_RECOVERED","highestAuthorityResolved":"direct durable project artifact","evidence":["money_app_plan_v39_strict_master_spec.md","money_app_plan_v36_hermes_agent_full_use.md"],"currentFinding":"Strict product contract and donor architecture are recovered; canonical production source is unresolved.","nextResolution":"Locate the production repo/worktree, then reconcile actual Tauri/Bevy/Hermes versions before evaluating migration candidates."},
+    {"projectId":"PCX-033","project":"Sims4CreatorStudio","status":"PARTIAL_SOURCE_TRANSFER","highestAuthorityResolved":"project-owned GitHub transfer checkpoint","evidence":[".s4cs-payload-v5/CHUNK-STATUS-08.txt",".s4cs-payload-v5/PAYLOAD-CHECKPOINT-08.txt"],"currentFinding":"Small-commit source transfer is still active and the next required fragment is part08.b64.","nextResolution":"Continue from part08, reconstruct all expected parts, and verify the recorded decoded payload SHA-256 before documenting or migrating the application stack."},
+    {"projectId":"PCX-034","project":"Ferrum Browser","status":"CANONICAL_RUNTIME_VERIFIED","highestAuthorityResolved":"project-owned GitHub source and .agents-memory runtime evidence","evidence":["Herbertofury/Ferrum-Browser@536bbc23dfee068e26eda8b32574f06ce19a43f1","workflow 31987413168"],"currentFinding":"Linux/Windows Chromium web, MV3, Workbench, real Electron, service-worker diagnostics and restart proof are verified; only Appium remains unqualified.","nextResolution":"Maintain this runtime evidence as the authority and evaluate Electron 43.4.0 only on a proposal branch with equivalent Linux/Windows proof."},
+    {"projectId":"PCX-035","project":"MO2R","status":"SOURCE_UNRESOLVED_IMPLEMENTATION_CONTRACT_RECOVERED","highestAuthorityResolved":"direct durable implementation directive plus placeholder GitHub identity","evidence":["MO2R_FINISH_CHANGELOG_THEN_UPGRADE_RELATIONSHIPS.md","Herbertofury/MO2R README"],"currentFinding":"Changelog and automatic Relationship contracts are recovered, but the connected repository exposes only a placeholder README and does not identify the real build tree.","nextResolution":"Locate canonical MO2R source/worktree and baseline it against upstream MO2 v2.5.2 before implementation."},
+    {"projectId":"PCX-036","project":"Project Constellation","status":"CANONICAL_CONTROL_PLANE_RESOLVED","highestAuthorityResolved":"ProjectDump main plus Drive ACTIVE CHECKPOINT and byte-verified Drive presentation lineage","evidence":["project-constellation/Project-Constellation-Automation-State.json","Drive ACTIVE CHECKPOINT 1cGHmUG-iMUnDoncLSWsZL9ZudZ80fltnYRn-Ogwd4rU","Drive Quick View 1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"],"currentFinding":"Project Constellation is ACTIVE / NORMAL_OPERATION with exactly 63 projects and Sports Group Hub absent. A coherent six-artifact presentation candidate and current machine state were regenerated without dropping recoveryHistory; remote byte publication remains pending.","nextResolution":"Publish the exact coherent candidate bytes to GitHub/Drive presentation storage, verify remote SHA-256/size, exercise browser runtime in a working environment, then promote lastAutomationHash."},
+    {"projectId":"PCX-037","project":"Shimeji Desktop","status":"USER_SOURCE_UNRESOLVED_UPSTREAM_BENCHMARK_RESOLVED","highestAuthorityResolved":"current external upstream compatibility benchmark plus current Project Constellation continuity","evidence":["DalekCraft2/Shimeji-Desktop@dea89528c10c066626a09609f0e742cbe6405a8d","pixelomer/Shijima-Qt archived"],"currentFinding":"The user-owned standalone source remains unresolved. DalekCraft2/Shimeji-Desktop is an active JDK 25/Maven/DPI/backward-compatibility benchmark; Shijima-Qt is archived and rejected as a new base.","nextResolution":"Resolve canonical user source, establish runnable pack/XML/window/DPI baseline, and differential-test against the active benchmark before migration."},
+    {"projectId":"PCX-038","project":"Shimeji Browser Extension","status":"CURRENT_INTEGRATION_RUNTIME_RESOLVED_STANDALONE_SOURCE_UNRESOLVED","highestAuthorityResolved":"current Herbertofury/Gamesync source and ProjectDump Shimeji Browser Extension wiki","evidence":["Herbertofury/Gamesync@a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928","wikis/PCX-038-shimeji-browser-extension.md"],"currentFinding":"The verified browser Shimeji implementation remains embedded/integrated in GameSync 0.6.3 and the documented commit is still current. Standalone source identity is unresolved.","nextResolution":"Resolve standalone project identity while preserving the current bridge/parser/storage/page-runtime contract; compare experimental web implementations only as references."},
+    {"projectId":"PCX-039","project":"Webmeji","status":"USER_SOURCE_UNRESOLVED_REFERENCE_AND_INTEGRATION_CONTRACT_RESOLVED","highestAuthorityResolved":"current external Webmeji source plus current GameSync mascot contract","evidence":["lars-rooij/webmeji source updated 2026-01-27","Herbertofury/Gamesync app/modules/mascot-pack/background/mascot-contract.js"],"currentFinding":"The user-owned standalone source is unresolved. The direct external Webmeji source and GameSync Webmeji settings/allowances provide concrete current behavior contracts.","nextResolution":"Resolve canonical user source, reconcile with both references, then prototype optional momentum/element-edge attachment with host-page safety gates."},
+    {"projectId":"PCX-040","project":"Pinterest Nocturne","status":"VERIFIED_1_9_SOURCE_AND_ARTIFACT_LINE","highestAuthorityResolved":"current ProjectDump wiki plus verified Drive 1.9.0 source/release artifacts","evidence":["Pinterest-Nocturne-1.9.0-Source.zip SHA-256 e2fa38831c8969fc4a8b1919f92a69e1e50dec607a5c6425ee2e3b5a6734a8d7","wikis/PCX-040-pinterest-nocturne.md"],"currentFinding":"v1.9.0 remains latest-good. Build/static/package were verified; the interaction lane previously timed out and remains unclaimed. scheduler.yield is recorded only as a feature-detected experiment because browser support is incomplete.","nextResolution":"Rerun exact interaction/live Pinterest gates, then experiment with scheduler.yield only behind the existing fallback and keep it only if latency improves without Firefox/fidelity regressions."}
   ],
-  "nextBatch": ["PCX-036", "PCX-037", "PCX-038", "PCX-039", "PCX-040"]
+  "nextBatch": ["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"]
 }
