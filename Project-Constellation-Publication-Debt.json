@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.publication-debt/1",
-  "updatedAt": "2026-08-17T01:40:28Z",
-  "status": "PENDING_REMOTE_BYTE_PUBLICATION",
-  "reason": "Google Drive connector cannot currently accept regenerated local file bytes from this runtime; prior byte-verified canonical Drive artifacts remain authoritative until a complete remote round-trip succeeds.",
-  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0140Z",
+  "updatedAt": "2026-08-17T02:56:47Z",
+  "status": "PENDING_COHERENT_REGENERATION_AND_REMOTE_BYTE_PUBLICATION",
+  "reason": "The byte-verified Drive v0.5.0 presentation artifacts are older than the latest evidence merges. The previous regenerated 0140Z candidate hashes are preserved, but those exact complete candidate bytes are not available in this runtime. Rebuilding from the older Drive presentation base would drop prior hourly evolution content, so the anti-degradation gate blocks partial promotion.",
+  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0256Z",
   "targets": [
     {
       "name": "Bert_Project_Second_Brain_Website.zip",
@@ -30,5 +30,13 @@
       "driveFileId": null
     }
   ],
-  "retryContract": "Re-check for newer user edits and canonical hashes first; upload/replace as one coherent candidate line; re-read or re-download every remote object and verify digest/size or full SHA-256 before promoting lastAutomationHash."
+  "latestEvidenceChanges": [
+    "PCX-031 Auralis direct production contract resolved from durable project artifacts.",
+    "PCX-032 Profit Nova v39 strict spec and current Hermes/Bevy/Tauri research resolved.",
+    "PCX-033 Sims4CreatorStudio checkpoint reconfirmed at part08.b64.",
+    "PCX-034 Ferrum project-owned runtime status superseded stale wiki state.",
+    "PCX-035 MO2R Changelog/Relationship implementation contract recovered and current MO2 host baseline resolved.",
+    "Project-Constellation-Evidence-Coverage.json added as current machine-readable source-resolution state."
+  ],
+  "retryContract": "First resolve the newest complete candidate/source bytes or reconstruct from the full current machine-readable catalog without dropping any prior evolution records. Then regenerate all six presentation/catalog artifacts as one coherent line, re-check user edits, upload/replace every target, re-read or re-download every remote object, and verify digest/size or full SHA-256 before promoting lastAutomationHash."
 }
