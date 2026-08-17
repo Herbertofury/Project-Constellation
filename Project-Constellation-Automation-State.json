@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-17T03:41:12Z",
+  "updatedAt": "2026-08-17T03:58:00Z",
   "catalogProjectCount": 63,
   "sportsGroupHubAbsent": true,
   "removedProjectAbsent": true,
@@ -23,9 +23,9 @@
     "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"id":"1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO","sha256":"e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57","size":142242,"verification":"full remote fetch hash matched prior lastAutomationHash"},
     "Bert_Project_Wiki_Pack.zip":{"id":"1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ","sha256":"657bc89f23e960e2ed5341c72eddcd83abc8dcb1fa7dbc7ef8f9e6fb0f3248f9","size":146408,"verification":"full remote re-download hash matched"}
   },
-  "researchCursor": ["PCX-036","PCX-037","PCX-038","PCX-039","PCX-040"],
-  "nextResearchCursor": ["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"],
-  "appResearch": "Technology Radar plus optional PWA-only SQLite WASM/OPFS durable mirror experiment. The permanent single-file Quick View remains dependency-free and authoritative as a recovery surface.",
+  "researchCursor": ["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"],
+  "nextResearchCursor": ["PCX-046","PCX-047","PCX-048","PCX-049","PCX-050"],
+  "appResearch": "Keep the current Technology Radar and publication-debt gates; add project-specific capability/interchange matrices only when they expose stale host assumptions without changing the dependency-free permanent Quick View recovery contract.",
   "changes": [
     "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects and Sports Group Hub absent.",
     "PCX-036 Project Constellation: added a detailed control-plane wiki and materialized Project-Constellation-Project-Catalog.json as a current 63-record machine source using the byte-verified v0.5.0 Quick View plus additive current evidence overlays; old recoveryHistory fields were preserved.",
@@ -34,12 +34,25 @@
     "PCX-038 Shimeji Browser Extension: reconfirmed the documented GameSync implementation against current Gamesync main a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928; standalone source remains unresolved and the current detailed wiki stays valid.",
     "PCX-039 Webmeji: resolved lars-rooij/webmeji as the current direct behavior reference and current Gamesync mascot-contract Webmeji settings as integration evidence; published a detailed Webmeji wiki; user-owned standalone source remains unresolved.",
     "PCX-040 Pinterest Nocturne: v1.9.0 remains latest-good. scheduler.yield is recorded only as a feature-detected proposal because it is not Baseline; web-vitals 6.0.0 is rejected as a production dependency because targeted project fixtures already provide stronger correctness evidence.",
-    "Published new detailed wikis for PCX-036, PCX-037 and PCX-039 and updated the wiki index to 23 tracked projects."
+    "Published new detailed wikis for PCX-036, PCX-037 and PCX-039 and updated the wiki index to 23 tracked projects.",
+    "PCX-041 ChatGPT Ultimate Optimizer: resolved Drive release manifest v1.0.1 at commit 78a92c68a07b49e152723457fcfb80fb03baf564 with exact artifact hashes and test evidence; published a detailed wiki and recorded current ChatGPT Work/Projects/Search/desktop UI drift as the next runtime-compatibility target.",
+    "PCX-042 GameSync Next: revalidated current main at 9e337c720f0180cffa577f140b181c699f0a1650 and preserved the existing detailed parity/runtime wiki; no unverified stack churn was applied.",
+    "PCX-043 Feature Foundry Production App: promoted the durable V33 FINAL_READY checkpoint as the strongest verified runnable lineage while keeping the minimal GitHub repository explicitly non-authoritative for production source; published a detailed production-app wiki.",
+    "PCX-044 Feature Foundry Living Ecology: documented V33 ecology/runtime guarantees, presentation-tier content parity, causal signal/replay behavior, and a deterministic replay-fixture next experiment; published a detailed wiki.",
+    "PCX-045 Feature Foundry Object Intelligence: documented the Object Atlas/object-semantics contract and recorded Khronos KHR_interactivity as a release-candidate interchange experiment rather than a replacement for the internal model; published a detailed wiki.",
+    "Detailed source-controlled wiki coverage increased from 23 to 27 tracked projects."
+  ],
+  "researchDecisions": [
+    {"project":"PCX-041","decision":"PROPOSE","source":"OpenAI ChatGPT release notes","checked":"2026-08-17","finding":"ChatGPT now exposes Work, desktop Projects, unified Recents, broader cross-content search and a changed desktop information architecture.","nextExperiment":"Build a surface capability matrix and run real current-browser drift tests before selector changes."},
+    {"project":"PCX-042","decision":"OBSERVE","source":"Herbertofury/GameSync-Next main","checked":"2026-08-17","finding":"Current main remains 9e337c720f0180cffa577f140b181c699f0a1650; existing parity/runtime documentation remains current.","nextExperiment":"Preserve current main and revisit only when repository or upstream dependency evidence changes."},
+    {"project":"PCX-043","decision":"OBSERVE","source":"Feature Foundry V33 FINAL_READY Drive checkpoint","checked":"2026-08-17","finding":"V33 is remotely byte-verified and passes 101/101 V33 runtime, 117/117 legacy runtime and 22/22 static assertions with zero missing legacy handlers.","nextExperiment":"Resolve maintainable V33-equivalent source/worktree before migration work."},
+    {"project":"PCX-044","decision":"PROPOSE","source":"PixiJS releases + Rapier repositories/npm","checked":"2026-08-17","finding":"PixiJS 8.18.1 is current stable; rapier.js is archived while the Rust core remains active and npm JS bindings remain 0.19.3.","nextExperiment":"Keep physics behind an adapter and add a fixed cross-tier ecology replay fixture before any physics-stack change."},
+    {"project":"PCX-045","decision":"PROPOSE","source":"Khronos glTF KHR_interactivity","checked":"2026-08-17","finding":"KHR_interactivity is a Release Candidate submitted for ratification and supports portable behavior graphs; related physics/collision extensions are less mature.","nextExperiment":"Prototype a three-object import/export round trip without changing the canonical Object Atlas model."}
   ],
   "candidatePresentationRefresh": {
     "status":"COHERENT_CANDIDATE_GENERATED_STATIC_VALIDATION_PASS_REMOTE_PUBLICATION_PENDING",
     "requiresRegeneration":false,
-    "reason":"A coherent six-artifact candidate line was regenerated from the current 63-record machine catalog while preserving every record recoveryHistory. JSON, JavaScript syntax, local links and ZIP integrity passed. Chromium runtime execution was attempted but the environment again timed out during D-Bus/zygote initialization with zero DOM bytes, so browser interaction success is not claimed. Raw connector egress for generated local files is blocked, so remote Drive byte publication remains pending.",
+    "reason":"A coherent six-artifact candidate line was regenerated from the current 63-record machine catalog while preserving every record recoveryHistory. JSON, JavaScript syntax, local links and ZIP integrity passed. Chromium runtime execution was attempted but the environment again timed out during D-Bus/zygote initialization with zero DOM bytes, so browser interaction success is not claimed. Raw connector egress for generated local files is blocked, so remote Drive byte publication remains pending. This run added source-controlled detailed Markdown wikis and research evidence without changing the 63-record presentation catalog, so the candidate presentation bytes were not ceremonially regenerated.",
     "candidate": {
       "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
       "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddcece93c2e3cbfe438e6c5e9e8a28d26","size":133622},
@@ -49,24 +62,24 @@
       "Project-Constellation-Research-Suggestions.json":{"sha256":"29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f","size":12583}
     }
   },
-  "publicationDebt": {"status":"PENDING_REMOTE_BYTE_PUBLICATION","reason":"The coherent current candidate set now exists and passed static/package integrity gates. Connector egress blocks generated local files from Drive upload/replace in this runtime, so the older byte-verified Drive artifacts remain canonical until the new six-file set can be uploaded and remotely hashed.","sourceCheckpoint":"EVOLUTION-CHECKPOINT-2026-08-17-0341Z","nextAction":"Publish the exact candidate bytes recorded here to Drive and GitHub presentation storage, re-read or re-download all six remote objects, verify SHA-256/size, exercise browser runtime in a functioning graphical/headless environment, then promote lastAutomationHash."},
+  "publicationDebt": {"status":"PENDING_REMOTE_BYTE_PUBLICATION","reason":"The coherent current candidate set exists and passed static/package integrity gates. Connector egress blocks generated local files from Drive upload/replace in this runtime, so the older byte-verified Drive artifacts remain canonical until the new six-file set can be uploaded and remotely hashed.","sourceCheckpoint":"EVOLUTION-CHECKPOINT-2026-08-17-0341Z","nextAction":"Publish the exact candidate bytes recorded here to Drive and GitHub presentation storage, re-read or re-download all six remote objects, verify SHA-256/size, exercise browser runtime in a functioning graphical/headless environment, then promote lastAutomationHash."},
   "validation": {
     "projectCount63":"pass: Quick View and machine catalog contain exactly 63 records",
     "sportsGroupHubAbsent":"pass: Quick View and machine catalog exclude Sports Group Hub",
-    "sourceAuthorityReview":"pass: PCX-036 through PCX-040 compared against current GitHub/Drive/project-owned and current primary research evidence",
-    "wikiPublication":"pass: PCX-036, PCX-037 and PCX-039 published; PCX-038 and PCX-040 existing detailed wikis revalidated",
-    "machineCatalogJson":"pass: JSON parsed, 63 records, existing recoveryHistory preserved",
-    "researchSuggestionsJson":"pass: current source-backed project/app suggestions generated and published to GitHub",
-    "technologyRadarJson":"pass: explicit decision/status/source/date/fit/benefit/cost/risks/migration/experiment/acceptance fields published to GitHub",
-    "presentationRegeneration":"pass: coherent six-artifact candidate generated from current 63-record machine catalog with recoveryHistory preserved",
+    "sourceAuthorityReview":"pass: PCX-041 through PCX-045 compared against current GitHub/Drive/project-owned and current primary research evidence",
+    "wikiPublication":"pass: PCX-041, PCX-043, PCX-044 and PCX-045 published and fetched back; PCX-042 existing detailed wiki revalidated; index now lists 27 tracked projects",
+    "machineCatalogJson":"pass from prior candidate: JSON parsed, 63 records, existing recoveryHistory preserved",
+    "researchSuggestionsJson":"pass from prior candidate; not overwritten this run because the presentation candidate remains publication-pending",
+    "technologyRadarJson":"pass from prior run; current research decisions are also preserved in this automation state and project wikis",
+    "presentationRegeneration":"not required this run: source-controlled detailed wiki/research evidence changed without changing the 63-record presentation catalog; existing coherent candidate remains publication-pending",
     "driveRemoteHashRoundTrip":"pending: generated local candidate egress blocked by connector; older canonical Drive bytes remain previously verified",
-    "javascriptSyntax":"pass: regenerated Quick View inline JavaScript and PWA service worker passed node --check",
-    "jsonParse":"pass: current catalog/research/evidence/state/technology JSON parsed",
-    "localLinks":"pass: generated 63-project Wiki Pack local links resolved",
-    "wikiPages63":"pass: Wiki Pack contains 63 project pages plus index",
-    "zipIntegrity":"pass: website ZIP and Wiki Pack ZIP testzip returned no errors",
-    "browserRuntime":"attempted Chromium against regenerated Quick View; timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success not claimed"
+    "javascriptSyntax":"pass from prior regenerated candidate",
+    "jsonParse":"pass for current automation-state structure",
+    "localLinks":"pass for published Markdown wiki index links",
+    "wikiPages63":"pass from prior generated Wiki Pack candidate",
+    "zipIntegrity":"pass from prior candidate",
+    "browserRuntime":"not rerun because no presentation/runtime bytes changed this pass; prior Chromium attempt remains failed-environment evidence only"
   },
-  "browserRuntime":"attempted Chromium against regenerated Quick View; timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success not claimed",
-  "nextRunContract": {"classifyProjectConstellationAs":"ACTIVE","operatingMode":"NORMAL_OPERATION","performBroadRecoverySweep":false,"locateAndHashCanonicalArtifactsFirst":true,"preserveNewerUserEdits":true,"preserveAll63Projects":true,"sportsGroupHubExcluded":true,"rotateResearchBatchAboutFive":true,"nextResearchCursor":["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"],"researchAppQolWhenFresh":true,"onlyWriteArtifactsForMeaningfulChange":true,"resolveEvidenceCoverageBeforeStackMigration":true,"retryPublicationDebtWhenCapable":true,"publishMeaningfulCheckpointToDrive":true,"verifyRemoteCheckpointBytes":true}
+  "browserRuntime":"prior regenerated Quick View Chromium attempt timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success is not claimed and no runtime bytes changed this pass",
+  "nextRunContract": {"classifyProjectConstellationAs":"ACTIVE","operatingMode":"NORMAL_OPERATION","performBroadRecoverySweep":false,"locateAndHashCanonicalArtifactsFirst":true,"preserveNewerUserEdits":true,"preserveAll63Projects":true,"sportsGroupHubExcluded":true,"rotateResearchBatchAboutFive":true,"nextResearchCursor":["PCX-046","PCX-047","PCX-048","PCX-049","PCX-050"],"researchAppQolWhenFresh":true,"onlyWriteArtifactsForMeaningfulChange":true,"resolveEvidenceCoverageBeforeStackMigration":true,"retryPublicationDebtWhenCapable":true,"publishMeaningfulCheckpointToDrive":true,"verifyRemoteCheckpointBytes":true}
 }
