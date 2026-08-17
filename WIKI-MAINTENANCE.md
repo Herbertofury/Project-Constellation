@@ -4,15 +4,16 @@ This is the durable documentation-maintenance checkpoint for the **projects trac
 
 ## Current checkpoint
 
-- Detailed target-project wiki coverage: **44 tracked projects**.
-- Latest material wiki addition: **PRJ-004 - Aesthetic Media Companion / Living Room Platform**.
-- Wiki path: `wikis/PRJ-004-aesthetic-media-companion-living-room.md`.
-- Historical Project Constellation status remains `PRECURSOR / MERGED`, but newer project-owned evidence proves a substantial current Living Room implementation in `Herbertofury/Gamesync` plus the cross-host schema/ownership contract in `Herbertofury/GameSync-Next`.
-- Verified shipping baseline: GameSync `0.6.3`, `main` observed at commit `a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928`.
-- Verified current implementation includes the Room tab, persistent room state and manual snapshots, Pixi-rendered scene source, Rapier-compatible physics with fallback, Asset Vault, aesthetic catalogue/explorer/media companion, mascot/loot integration, Mystery Engine, world time/weather/season orchestration, AI assistant, export/import, bounded backups, onboarding, and accessibility helpers.
-- Verified shared contract: `GameSync-Next/packages/shared/src/livingRoom.ts`, contract version 1, with Opera Extension -> Extension V2 -> desktop rollout order and a real Extension V2 host bridge.
-- Material unresolved boundary: shipping GameSync loads a checked-in `living-room-tab.bundle.js`, while the current root package/scripts inspected in this pass do not expose a verified reproducible command/dependency path that rebuilds that bundle from the modular Living Room source. `npm run build` is verified for packaging the extension, not for regenerating the Living Room bundle.
-- Highest-value next Living Room proof: recover or establish the canonical bundle-generation command/dependency graph, regenerate the bundle from current modular source, then exercise the Room tab end-to-end in the real Opera GX extension with persistence/restart and Extension V2 parity checks.
+- Detailed target-project wiki coverage: **45 tracked projects**.
+- Latest material wiki addition: **PRJ-008 - Mascot Games / Sports and Golf Flagship**.
+- Wiki path: `wikis/PRJ-008-mascot-games-sports-golf.md`.
+- Historical Project Constellation evidence describes Golf as the flagship and requires real playable sports loops across mascot hosts.
+- Verified current implementation baseline: `Herbertofury/Gamesync` `0.6.3`, `main` observed at commit `a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928`.
+- Current shipping source proves a broad mascot-game framework with **23 accepted `GS_START_GAME` IDs**, strict allowlisted dynamic script injection, shared dt-based game rendering/physics, authentic Shimeji-pack mascot drawing, daily/weekly challenges, game modifiers, unlock/loadout progression, loot/social state, skins and Mascot Studio integration.
+- Current source includes substantial real sports/game implementations such as Bowling and Tennis. Tennis includes ball spin/curve, seven shot types, deuce/advantage/game/set/match scoring, adaptive AI and match-point effects; Bowling includes a fixed physics loop, ten-frame structure, live mascot pins and collision/fling behavior.
+- Material correction: **Golf is not in the current verified shipping game-launch registry, the inspected shared mascot-game tree has no Golf module, and the script-injection allowlist has no Golf path.** Golf therefore remains a preserved historical requirement, not verified current behavior.
+- Material verification boundary: the root package exposes no dedicated Mascot Games automated test suite, and this pass does not claim that all 23 accepted game paths were exercised end-to-end in Opera GX.
+- Highest-value next PRJ-008 proof: run the built `dist/` extension in real Opera GX and qualify all accepted game IDs, prioritizing Bowling, Tennis, Racing, Air Hockey, Volleyball, Pinball and Fishing, including launch, controls, authored mascot rendering, progression, cleanup, persistence and restart behavior. Then establish GameSync Next parity and decide the disposition of the Golf flagship requirement.
 
 ## Maintenance rule
 
