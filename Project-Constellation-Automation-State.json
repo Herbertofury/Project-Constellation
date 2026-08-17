@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-16T03:59:00Z",
+  "updatedAt": "2026-08-17T00:08:42Z",
   "catalogProjectCount": 63,
   "sportsGroupHubAbsent": true,
   "removedProjectAbsent": true,
@@ -71,7 +71,8 @@
     "Verified v0.5.0 Quick View and master command center preserved byte-for-byte as the authoritative merge base.",
     "Rebuilt missing PWA ZIP and Wiki Pack from the verified v0.5.0 Quick View/master data and published them to Drive.",
     "Materialized the current 63-record catalogue and research suggestions as machine-readable durable state for future passes.",
-    "Continuity Lenses, Today/Review queues, Changed Since Last Visit, Quick Checkpoint, Resume Capsule, snapshot import/export, and research promotion remain active v0.5.0 features."
+    "Continuity Lenses, Today/Review queues, Changed Since Last Visit, Quick Checkpoint, Resume Capsule, snapshot import/export, and research promotion remain active v0.5.0 features.",
+    "Source-controlled tracked-project wiki coverage expanded with a repository-grounded Ferrum Browser 0.2.0 wiki and verified ProjectDump publication."
   ],
   "validation": {
     "projectCount63": "pass",
