@@ -4,18 +4,17 @@ This is the durable documentation-maintenance checkpoint for the **projects trac
 
 ## Current checkpoint
 
-- Detailed target-project wiki coverage: **47 tracked projects**.
-- Latest material wiki addition: **PCX-063 - Feature Foundry Aesthetic Vault**.
-- Wiki path: `wikis/PCX-063-feature-foundry-aesthetic-vault.md`.
-- Current verified implementation name: **Inspiration Vault**.
-- Current implementation source: `Herbertofury/GameSync-Next`, `main`, primarily `apps/feature-foundry/src/ui/editors/InspirationVaultEditor.tsx`, with the typed capture contract in `packages/shared/src/featureFoundryCapture.ts` and GameSync Extension V2 bridge/runtime code under `apps/extension-v2/`.
-- The separate connected `Herbertofury/Feature-Foundry` repository currently reports repository size `0`, so it is not the strongest implementation source for this track.
-- Newly verified behavior: the vault persists structured reference records locally, exposes Inbox / Theme Objects / Sticker Tray / Mystery Games / World Thesis / Collector Cabinet boards, preserves capture/source/provider metadata, and includes browser-side cleanup, palette extraction, styling, and PNG export.
-- Newly verified browser integration: GameSync Extension V2 registers Page/Image/Link/Selection context-menu captures under `Save to Feature Foundry`, stages a versioned capture envelope in `chrome.storage.local`, hands it through `feature-foundry-bridge.html`, and routes Feature Foundry directly to `ff-workspace=inspiration-vault`.
-- Verified development/build commands: `npm ci`, `npm run dev:feature-foundry`, `npm run build:feature-foundry`; Feature Foundry dev URL is `http://127.0.0.1:5175/`.
-- Material verification boundary: this pass verified current source and wire contracts but did not freshly exercise all four capture kinds in a real Opera/Chromium runtime, did not perform deterministic pixel-fixture validation of the cleanup bench, and found no dedicated Inspiration Vault automated test command. The Feature Foundry workspace `lint` script is currently a TODO echo.
-- Highest-value next PCX-063 verification step: clean-build Feature Foundry and Extension V2 from one checkout, exercise all four context-menu capture paths in the real browser, verify bridge cleanup/duplicate suppression and restart persistence, then add focused capture/storage/cleanup regression coverage.
-- Next uncovered tracked-project documentation candidates remain PRJ-001, PRJ-007, PRJ-009, PRJ-011 through PRJ-021, and PCX-062. Prefer the candidate with the strongest current project-owned source evidence rather than creating another recovery-only page when a live implementation can be documented.
+- Detailed target-project wiki coverage: **48 tracked projects**.
+- Latest material wiki addition: **PRJ-007 - PF Magic Petz Runtime Integration**.
+- Wiki path: `wikis/PRJ-007-pf-magic-petz-runtime-integration.md`.
+- Strongest current implementation source: `Herbertofury/GameSync-Next`, `main`, with dedicated `packages/petz-engine`, `packages/petz-compat`, `packages/petz-formats`, and `packages/petz-bridge` workspaces. The current JavaScript `Herbertofury/Gamesync` extension remains the user-facing parity baseline.
+- Newly verified architecture: the typed Petz engine is platform-agnostic; compatibility packs cover Dogz 1, Catz 1, Oddballz, Petz 2, Petz 3, Petz 4, Babyz and Petz 5; the formats package contains breed/LNZ/pet/toy/clothing/scene readers; and the mascot bridge maps the shared engine into the GameSync mascot contract for shipping Opera GameSync and Extension V2.
+- Newly verified domain behavior: six motives, a 22-trait PF Magic-style personality model, semantic Petz actions, physics, pack/content registration, serialize/restore helpers, custom content bundles and per-family compatibility settings are present in current typed source.
+- Material implementation boundaries: `petz-bridge` currently contains a TODO for restoring loaded save data during spawn; its inspected tick environment still supplies placeholder cursor/toy proximity data; the Petz workspace manifests expose build/typecheck but no dedicated Petz test scripts; and the root `build:packages` command does not currently include the Petz workspaces.
+- Historical source continuity still records `C:\Users\Owner\Desktop\GameSync\PF Magic`, but that local source tree was not directly readable through the connected source evidence in this pass and has not been byte-reconciled against the GitHub packages.
+- Documentation synchronization debt discovered: `wikis/PCX-061-petz-shared-core.md` still says GameSync Next / desktop parity is unverified and treats shipping GameSync as the only verified implementation host. Current GameSync Next source materially supersedes that statement. Preserve the page's existing detailed shipping-runtime material, but refresh its source-resolution, shared-core architecture, host-adapter and verification-boundary sections on the next Petz-focused pass.
+- Highest-value PRJ-007 engineering proof: add Petz-specific engine/compat/formats/bridge tests, finish bridge restore, feed real cursor/toy environment data, explicitly integrate Petz workspaces into the intended aggregate build/test lane, then run representative Catz/Dogz/Oddballz scenarios across shipping GameSync, Extension V2 and desktop with restart persistence evidence.
+- Remaining uncovered tracked-project documentation candidates include PRJ-001, PRJ-009, PRJ-011 through PRJ-021, and PCX-062. Prefer current project-owned source evidence over recovery-only summaries.
 
 ## Maintenance rule
 
