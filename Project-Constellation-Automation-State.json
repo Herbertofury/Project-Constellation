@@ -3,156 +3,70 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-17T02:56:47Z",
+  "updatedAt": "2026-08-17T03:41:12Z",
   "catalogProjectCount": 63,
   "sportsGroupHubAbsent": true,
   "removedProjectAbsent": true,
-  "canonical": {
-    "repository": "Herbertofury/ProjectDump",
-    "branch": "main",
-    "path": "project-constellation/",
-    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-    "startup": "Read GitHub project-constellation state and Drive active artifacts; recovery is fallback-only after verified integrity failure."
-  },
-  "mergeBase": {
-    "quickViewDriveFileId": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77",
-    "masterCommandCenterDriveFileId": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO",
-    "quickViewMatchedPriorLastAutomationHash": true,
-    "masterMatchedPriorLastAutomationHash": true,
-    "userEditedArtifactDetected": false,
-    "historical25ProjectDatabase": "historical source detail only; never promote over current 63-record catalogue",
-    "lastVerifiedPresentationLineage": "0.5.0"
-  },
+  "canonical": {"repository":"Herbertofury/ProjectDump","branch":"main","path":"project-constellation/","driveFolderId":"1mUSeFlumpIOBtVCmlwbhN11kChRsdblV","startup":"Read GitHub project-constellation state and Drive active artifacts; recovery is fallback-only after verified integrity failure."},
+  "mergeBase": {"quickViewDriveFileId":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77","masterCommandCenterDriveFileId":"1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO","quickViewMatchedPriorLastAutomationHash":true,"masterMatchedPriorLastAutomationHash":true,"userEditedArtifactDetected":false,"historical25ProjectDatabase":"historical source detail only; never promote over current 63-record catalogue","lastVerifiedPresentationLineage":"0.5.0"},
   "lastAutomationHash": {
-    "Bert_Project_Second_Brain_Website.zip": "84658e154cf6f8b1b3b8e4004394443fb837ed8cbadd8191a60aeaea3ae7c30b",
-    "Bert_Project_Constellation_Quick_View.html": "1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57",
-    "Bert_Project_Wiki_Pack.zip": "657bc89f23e960e2ed5341c72eddcd83abc8dcb1fa7dbc7ef8f9e6fb0f3248f9",
-    "Project-Constellation-Project-Catalog.json": "79c8dd524b866ab1fe2dc011820f010d7ab5c8f4b0f42d31ad3e6ca8db82e8be",
-    "Project-Constellation-Research-Suggestions.json": "a5f8b5b8aa139dd439589dbe57b59975fe454c4df3df1e1e9b959eda6a0ca5b8"
+    "Bert_Project_Second_Brain_Website.zip":"84658e154cf6f8b1b3b8e4004394443fb837ed8cbadd8191a60aeaea3ae7c30b",
+    "Bert_Project_Constellation_Quick_View.html":"1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":"e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57",
+    "Bert_Project_Wiki_Pack.zip":"657bc89f23e960e2ed5341c72eddcd83abc8dcb1fa7dbc7ef8f9e6fb0f3248f9",
+    "Project-Constellation-Project-Catalog.json":"79c8dd524b866ab1fe2dc011820f010d7ab5c8f4b0f42d31ad3e6ca8db82e8be",
+    "Project-Constellation-Research-Suggestions.json":"a5f8b5b8aa139dd439589dbe57b59975fe454c4df3df1e1e9b959eda6a0ca5b8"
   },
   "driveArtifacts": {
-    "Bert_Project_Second_Brain_Website.zip": {
-      "id": "10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC",
-      "sha256": "84658e154cf6f8b1b3b8e4004394443fb837ed8cbadd8191a60aeaea3ae7c30b",
-      "size": 114413,
-      "verification": "full remote re-download hash matched"
-    },
-    "Bert_Project_Constellation_Quick_View.html": {
-      "id": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77",
-      "sha256": "1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
-      "size": 127946,
-      "verification": "full remote fetch hash matched prior lastAutomationHash"
-    },
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
-      "id": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO",
-      "sha256": "e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57",
-      "size": 142242,
-      "verification": "full remote fetch hash matched prior lastAutomationHash"
-    },
-    "Bert_Project_Wiki_Pack.zip": {
-      "id": "1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ",
-      "sha256": "657bc89f23e960e2ed5341c72eddcd83abc8dcb1fa7dbc7ef8f9e6fb0f3248f9",
-      "size": 146408,
-      "verification": "full remote re-download hash matched"
-    }
+    "Bert_Project_Second_Brain_Website.zip":{"id":"10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC","sha256":"84658e154cf6f8b1b3b8e4004394443fb837ed8cbadd8191a60aeaea3ae7c30b","size":114413,"verification":"full remote re-download hash matched"},
+    "Bert_Project_Constellation_Quick_View.html":{"id":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77","sha256":"1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654","size":127946,"verification":"full remote fetch hash matched prior lastAutomationHash"},
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"id":"1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO","sha256":"e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57","size":142242,"verification":"full remote fetch hash matched prior lastAutomationHash"},
+    "Bert_Project_Wiki_Pack.zip":{"id":"1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ","sha256":"657bc89f23e960e2ed5341c72eddcd83abc8dcb1fa7dbc7ef8f9e6fb0f3248f9","size":146408,"verification":"full remote re-download hash matched"}
   },
-  "researchCursor": [
-    "PCX-031",
-    "PCX-032",
-    "PCX-033",
-    "PCX-034",
-    "PCX-035"
-  ],
-  "nextResearchCursor": [
-    "PCX-036",
-    "PCX-037",
-    "PCX-038",
-    "PCX-039",
-    "PCX-040"
-  ],
-  "appResearch": "Canonical Evidence Coverage Queue: track the highest resolved evidence authority for each reviewed project so stale catalogue summaries are superseded before stack migration or completion claims.",
+  "researchCursor": ["PCX-036","PCX-037","PCX-038","PCX-039","PCX-040"],
+  "nextResearchCursor": ["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"],
+  "appResearch": "Technology Radar plus optional PWA-only SQLite WASM/OPFS durable mirror experiment. The permanent single-file Quick View remains dependency-free and authoritative as a recovery surface.",
   "changes": [
     "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects and Sports Group Hub absent.",
-    "PCX-031 Auralis: recovered direct MASTER_BUILD_PROMPT.md and IMPLEMENTATION.md authority; current Rust 1.97.1 / Slint 1.17 / windows-rs 0.62.2 / Rubato 4.0 baseline is already current enough that no dependency churn is justified before source recovery.",
-    "Published and remotely re-read the new detailed Auralis wiki; canonical executable source repository/worktree remains unresolved.",
-    "PCX-032 Profit Nova: recovered money_app_plan_v39_strict_master_spec.md as current strict plan authority, recorded current Hermes Agent v0.20.2, Bevy 0.19, and Tauri 2.11.5 as evidence-backed migration inputs rather than automatic upgrades.",
-    "Published and remotely re-read the new detailed Profit Nova wiki; canonical production source remains unresolved.",
-    "PCX-033 Sims4CreatorStudio: verified project-owned transfer markers still place the durable checkpoint at part08.b64; no newer complete payload was promoted.",
-    "PCX-034 Ferrum Browser: corrected stale Project Constellation documentation to current project-owned verified commit 536bbc23dfee068e26eda8b32574f06ce19a43f1 and workflow 31987413168; real Electron smoke is now verified on Linux and Windows and only Appium remains unqualified.",
-    "Ferrum currently pins Playwright 1.62.1, which matches the current official release, while Electron 43.4.0 is newer than the project's 43.2.0 pin and is recorded only as a proposal-branch candidate requiring equivalent Linux/Windows real-Electron proof.",
-    "PCX-035 MO2R: recovered the direct Changelog + automatic Relationship implementation contract, confirmed the connected GitHub repository is only a placeholder README, and set upstream MO2 v2.5.2 as the current live compatibility baseline.",
-    "Published and remotely re-read the new MO2R wiki and updated the ProjectDump wiki index.",
-    "Added Project-Constellation-Evidence-Coverage.json so source-resolution debt and stale-summary supersession are durable machine-readable state rather than implicit operator knowledge."
+    "PCX-036 Project Constellation: added a detailed control-plane wiki and materialized Project-Constellation-Project-Catalog.json as a current 63-record machine source using the byte-verified v0.5.0 Quick View plus additive current evidence overlays; old recoveryHistory fields were preserved.",
+    "Added Project-Constellation-Technology-Radar.json and a current Project-Constellation-Research-Suggestions.json with explicit propose/observe/reject decisions rather than blind upgrades.",
+    "PCX-037 Shimeji Desktop: resolved DalekCraft2/Shimeji-Desktop as an active JDK 25/Maven/DPI/backward-compatibility benchmark at dea89528c10c066626a09609f0e742cbe6405a8d; user-owned canonical source remains unresolved; archived Shijima-Qt is rejected as a new base.",
+    "PCX-038 Shimeji Browser Extension: reconfirmed the documented GameSync implementation against current Gamesync main a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928; standalone source remains unresolved and the current detailed wiki stays valid.",
+    "PCX-039 Webmeji: resolved lars-rooij/webmeji as the current direct behavior reference and current Gamesync mascot-contract Webmeji settings as integration evidence; published a detailed Webmeji wiki; user-owned standalone source remains unresolved.",
+    "PCX-040 Pinterest Nocturne: v1.9.0 remains latest-good. scheduler.yield is recorded only as a feature-detected proposal because it is not Baseline; web-vitals 6.0.0 is rejected as a production dependency because targeted project fixtures already provide stronger correctness evidence.",
+    "Published new detailed wikis for PCX-036, PCX-037 and PCX-039 and updated the wiki index to 23 tracked projects."
   ],
   "candidatePresentationRefresh": {
-    "status": "STALE_AFTER_CURRENT_EVIDENCE_MERGE",
-    "requiresRegeneration": true,
-    "reason": "The prior 0140Z candidate bytes were not durably available to this runtime, while the byte-verified Drive presentation base predates several later evidence merges. Rebuilding from the older Drive base would drop prior evolution content, so anti-degradation rules prohibit promoting a partial reconstruction.",
-    "priorCandidate": {
-      "Bert_Project_Second_Brain_Website.zip": {
-        "sha256": "d97374edb369fbb38122a38911a6e0daa43ba40329e3f4cc23d9ec0c5dde79de",
-        "size": 98563
-      },
-      "Bert_Project_Constellation_Quick_View.html": {
-        "sha256": "35af5bba11cf32e2b1714695e94203d15f92f80f76ebca4cf25eb22e09121291",
-        "size": 138949
-      },
-      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
-        "sha256": "db417e280c160a120707d3080ed70526e349dbcbff05216acbbab554c537c621",
-        "size": 134477
-      },
-      "Bert_Project_Wiki_Pack.zip": {
-        "sha256": "6e4bfa10d0095a00f466743891b0ca9510edb9acccb10d9ad9da719cff81c993",
-        "size": 110838
-      },
-      "Project-Constellation-Project-Catalog.json": {
-        "sha256": "58ee13b7844ce5a19e9ac2c462c0c905faf1e479dc0484085e7c9349b5ce9473",
-        "size": 125830
-      },
-      "Project-Constellation-Research-Suggestions.json": {
-        "sha256": "a68110089166d243ab89e8af0216013da358f110c4a56d01027603269da9df17",
-        "size": 19840
-      }
+    "status":"COHERENT_CANDIDATE_GENERATED_STATIC_VALIDATION_PASS_REMOTE_PUBLICATION_PENDING",
+    "requiresRegeneration":false,
+    "reason":"A coherent six-artifact candidate line was regenerated from the current 63-record machine catalog while preserving every record recoveryHistory. JSON, JavaScript syntax, local links and ZIP integrity passed. Chromium runtime execution was attempted but the environment again timed out during D-Bus/zygote initialization with zero DOM bytes, so browser interaction success is not claimed. Raw connector egress for generated local files is blocked, so remote Drive byte publication remains pending.",
+    "candidate": {
+      "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
+      "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddcece93c2e3cbfe438e6c5e9e8a28d26","size":133622},
+      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"sha256":"d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa","size":147441},
+      "Bert_Project_Wiki_Pack.zip":{"sha256":"c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd","size":127507},
+      "Project-Constellation-Project-Catalog.json":{"sha256":"9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f","size":123738},
+      "Project-Constellation-Research-Suggestions.json":{"sha256":"29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f","size":12583}
     }
   },
-  "publicationDebt": {
-    "status": "PENDING_COHERENT_REGENERATION_AND_REMOTE_BYTE_PUBLICATION",
-    "reason": "The verified Drive presentation artifacts remain the last trustworthy byte-complete publication. The prior regenerated candidate is now stale after this evidence merge, and recreating from the older Drive base would lose prior hourly evolution content. Regeneration must start from the newest complete candidate/source state, then publish as one coherent set and full-hash-round-trip it.",
-    "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0256Z",
-    "nextAction": "Resolve the newest complete candidate/source bytes or reconstruct from the full current machine catalog without dropping any prior evolution records; regenerate all six presentation/catalog artifacts coherently; then upload and remote SHA-256 verify before changing lastAutomationHash."
-  },
+  "publicationDebt": {"status":"PENDING_REMOTE_BYTE_PUBLICATION","reason":"The coherent current candidate set now exists and passed static/package integrity gates. Connector egress blocks generated local files from Drive upload/replace in this runtime, so the older byte-verified Drive artifacts remain canonical until the new six-file set can be uploaded and remotely hashed.","sourceCheckpoint":"EVOLUTION-CHECKPOINT-2026-08-17-0341Z","nextAction":"Publish the exact candidate bytes recorded here to Drive and GitHub presentation storage, re-read or re-download all six remote objects, verify SHA-256/size, exercise browser runtime in a functioning graphical/headless environment, then promote lastAutomationHash."},
   "validation": {
-    "projectCount63": "pass: invariant preserved in canonical state",
-    "sportsGroupHubAbsent": "pass: invariant preserved in canonical state",
-    "sourceAuthorityReview": "pass: PCX-031 through PCX-035 compared against project-owned GitHub/File Library evidence",
-    "wikiPublication": "pass: PCX-031, PCX-032, PCX-034, PCX-035 published and remotely re-read; PCX-033 unchanged because project-owned checkpoint did not advance",
-    "evidenceCoverageJson": "pass: published as additive machine-readable continuity state",
-    "presentationRegeneration": "blocked by anti-degradation gate: newest complete prior candidate bytes are unavailable in this runtime and canonical Drive base is older; partial regeneration was not promoted",
-    "driveRemoteHashRoundTrip": "unchanged canonical Drive bytes remain previously verified; no stale/partial candidate was promoted"
+    "projectCount63":"pass: Quick View and machine catalog contain exactly 63 records",
+    "sportsGroupHubAbsent":"pass: Quick View and machine catalog exclude Sports Group Hub",
+    "sourceAuthorityReview":"pass: PCX-036 through PCX-040 compared against current GitHub/Drive/project-owned and current primary research evidence",
+    "wikiPublication":"pass: PCX-036, PCX-037 and PCX-039 published; PCX-038 and PCX-040 existing detailed wikis revalidated",
+    "machineCatalogJson":"pass: JSON parsed, 63 records, existing recoveryHistory preserved",
+    "researchSuggestionsJson":"pass: current source-backed project/app suggestions generated and published to GitHub",
+    "technologyRadarJson":"pass: explicit decision/status/source/date/fit/benefit/cost/risks/migration/experiment/acceptance fields published to GitHub",
+    "presentationRegeneration":"pass: coherent six-artifact candidate generated from current 63-record machine catalog with recoveryHistory preserved",
+    "driveRemoteHashRoundTrip":"pending: generated local candidate egress blocked by connector; older canonical Drive bytes remain previously verified",
+    "javascriptSyntax":"pass: regenerated Quick View inline JavaScript and PWA service worker passed node --check",
+    "jsonParse":"pass: current catalog/research/evidence/state/technology JSON parsed",
+    "localLinks":"pass: generated 63-project Wiki Pack local links resolved",
+    "wikiPages63":"pass: Wiki Pack contains 63 project pages plus index",
+    "zipIntegrity":"pass: website ZIP and Wiki Pack ZIP testzip returned no errors",
+    "browserRuntime":"attempted Chromium against regenerated Quick View; timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success not claimed"
   },
-  "browserRuntime": "No Project Constellation presentation candidate was promoted this run because a coherent no-data-loss regeneration base was not available; browser success is not claimed.",
-  "nextRunContract": {
-    "classifyProjectConstellationAs": "ACTIVE",
-    "operatingMode": "NORMAL_OPERATION",
-    "performBroadRecoverySweep": false,
-    "locateAndHashCanonicalArtifactsFirst": true,
-    "preserveNewerUserEdits": true,
-    "preserveAll63Projects": true,
-    "sportsGroupHubExcluded": true,
-    "rotateResearchBatchAboutFive": true,
-    "nextResearchCursor": [
-      "PCX-036",
-      "PCX-037",
-      "PCX-038",
-      "PCX-039",
-      "PCX-040"
-    ],
-    "researchAppQolWhenFresh": true,
-    "onlyWriteArtifactsForMeaningfulChange": true,
-    "resolveEvidenceCoverageBeforeStackMigration": true,
-    "retryPublicationDebtWhenCapable": true,
-    "publishMeaningfulCheckpointToDrive": true,
-    "verifyRemoteCheckpointBytes": true
-  }
+  "browserRuntime":"attempted Chromium against regenerated Quick View; timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success not claimed",
+  "nextRunContract": {"classifyProjectConstellationAs":"ACTIVE","operatingMode":"NORMAL_OPERATION","performBroadRecoverySweep":false,"locateAndHashCanonicalArtifactsFirst":true,"preserveNewerUserEdits":true,"preserveAll63Projects":true,"sportsGroupHubExcluded":true,"rotateResearchBatchAboutFive":true,"nextResearchCursor":["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"],"researchAppQolWhenFresh":true,"onlyWriteArtifactsForMeaningfulChange":true,"resolveEvidenceCoverageBeforeStackMigration":true,"retryPublicationDebtWhenCapable":true,"publishMeaningfulCheckpointToDrive":true,"verifyRemoteCheckpointBytes":true}
 }
