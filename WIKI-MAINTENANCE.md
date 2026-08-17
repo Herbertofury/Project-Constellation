@@ -4,18 +4,29 @@ This is the durable documentation-maintenance checkpoint for the **projects trac
 
 ## Current checkpoint
 
-- Detailed target-project wiki coverage: **48 tracked projects**.
-- Latest material wiki addition: **PRJ-007 - PF Magic Petz Runtime Integration**.
-- Wiki path: `wikis/PRJ-007-pf-magic-petz-runtime-integration.md`.
-- Strongest current implementation source: `Herbertofury/GameSync-Next`, `main`, with dedicated `packages/petz-engine`, `packages/petz-compat`, `packages/petz-formats`, and `packages/petz-bridge` workspaces. The current JavaScript `Herbertofury/Gamesync` extension remains the user-facing parity baseline.
-- Newly verified architecture: the typed Petz engine is platform-agnostic; compatibility packs cover Dogz 1, Catz 1, Oddballz, Petz 2, Petz 3, Petz 4, Babyz and Petz 5; the formats package contains breed/LNZ/pet/toy/clothing/scene readers; and the mascot bridge maps the shared engine into the GameSync mascot contract for shipping Opera GameSync and Extension V2.
-- Newly verified domain behavior: six motives, a 22-trait PF Magic-style personality model, semantic Petz actions, physics, pack/content registration, serialize/restore helpers, custom content bundles and per-family compatibility settings are present in current typed source.
-- Material implementation boundaries: `petz-bridge` currently contains a TODO for restoring loaded save data during spawn; its inspected tick environment still supplies placeholder cursor/toy proximity data; the Petz workspace manifests expose build/typecheck but no dedicated Petz test scripts; and the root `build:packages` command does not currently include the Petz workspaces.
-- Historical source continuity still records `C:\Users\Owner\Desktop\GameSync\PF Magic`, but that local source tree was not directly readable through the connected source evidence in this pass and has not been byte-reconciled against the GitHub packages.
-- Documentation synchronization debt discovered: `wikis/PCX-061-petz-shared-core.md` still says GameSync Next / desktop parity is unverified and treats shipping GameSync as the only verified implementation host. Current GameSync Next source materially supersedes that statement. Preserve the page's existing detailed shipping-runtime material, but refresh its source-resolution, shared-core architecture, host-adapter and verification-boundary sections on the next Petz-focused pass.
-- Highest-value PRJ-007 engineering proof: add Petz-specific engine/compat/formats/bridge tests, finish bridge restore, feed real cursor/toy environment data, explicitly integrate Petz workspaces into the intended aggregate build/test lane, then run representative Catz/Dogz/Oddballz scenarios across shipping GameSync, Extension V2 and desktop with restart persistence evidence.
-- Remaining uncovered tracked-project documentation candidates include PRJ-001, PRJ-009, PRJ-011 through PRJ-021, and PCX-062. Prefer current project-owned source evidence over recovery-only summaries.
+- Detailed target-project wiki coverage: **56 tracked projects**.
+- Reader-facing documentation surface: **https://github.com/Herbertofury/ProjectDump/wiki**.
+- Canonical version-controlled Wiki source: `Herbertofury/ProjectDump`, `main`, directory `wikis/`.
+- Real GitHub Wiki repository: `Herbertofury/ProjectDump.wiki.git`.
+- Publication workflow: `.github/workflows/sync-github-wiki.yml` calling `tools/github-wiki/wiki-sync.sh`.
+- Latest Wiki-structure source commit verified for this checkpoint: `cc5d0395f483e968fd7b439306652f67b2a26de0` (`docs: make GitHub Wiki the published project documentation surface`).
+- Verified GitHub Actions run: `32057181995`, conclusion `success`.
+- Verified published Wiki master commit: `757c64f982600522cb05b648a678ff0b7173dfca`.
+- The publisher pushed the source changes into `ProjectDump.wiki.git`, fresh-cloned the Wiki after publication, and byte-compared the complete remote page set against `wikis/`; the comparison passed.
+- `Home.md` now identifies the GitHub Wiki as the live project-documentation surface and directs readers to the complete project index.
+- `_Sidebar.md` now provides real GitHub Wiki navigation grouped across core products, GameSync systems, mascot/Shimeji/Petz, Feature Foundry, RuneLite, Sims, MO2, project tooling, and other tracked projects.
+- `README.md` now states explicitly that `wikis/` is the source tree rather than the final documentation destination and requires successful `.wiki.git` publication plus fresh-clone verification before a wiki update is complete.
+- `PCX-036 - Project Constellation` remains only a preserved legacy control-plane reference and is excluded from the 56-project target coverage count.
+- Remaining tracked projects without detailed target-project Wiki pages are **PRJ-015 through PRJ-020**. The current research cursor already prioritizes PRJ-015 through PRJ-019 next, with PRJ-020 remaining after that pass.
 
 ## Maintenance rule
 
-Update this same file after future material tracked-project wiki work. Keep it concise: coverage count, latest project(s), source baseline, important newly verified facts, material unresolved boundaries, and the next documentation/verification target. Do not create one checkpoint file per project and do not use this log as a substitute for the detailed project wiki itself.
+For every future material project-wiki update:
+
+1. edit or create the project page under `wikis/` on the canonical ProjectDump `main` branch;
+2. preserve verified project detail and avoid cosmetic churn;
+3. require the `Sync GitHub Wiki` workflow to complete successfully;
+4. require the publisher's fresh-clone byte comparison against `ProjectDump.wiki.git` to pass;
+5. treat the **actual GitHub Wiki page** as the published documentation result, not merely the Markdown source file in the normal repository;
+6. point user-facing documentation links to `https://github.com/Herbertofury/ProjectDump/wiki/...` whenever the corresponding Wiki page is published;
+7. update this same checkpoint only after material documentation or publication-state changes.
