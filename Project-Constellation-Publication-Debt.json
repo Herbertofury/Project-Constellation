@@ -1,42 +1,32 @@
 {
   "schema": "project-constellation.publication-debt/1",
-  "updatedAt": "2026-08-17T02:56:47Z",
-  "status": "PENDING_COHERENT_REGENERATION_AND_REMOTE_BYTE_PUBLICATION",
-  "reason": "The byte-verified Drive v0.5.0 presentation artifacts are older than the latest evidence merges. The previous regenerated 0140Z candidate hashes are preserved, but those exact complete candidate bytes are not available in this runtime. Rebuilding from the older Drive presentation base would drop prior hourly evolution content, so the anti-degradation gate blocks partial promotion.",
-  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0256Z",
+  "updatedAt": "2026-08-17T03:41:12Z",
+  "status": "PENDING_REMOTE_BYTE_PUBLICATION",
+  "reason": "A coherent current six-artifact candidate was generated from the current 63-record machine catalog, with all recoveryHistory preserved. Static/package checks passed. Chromium runtime could not initialize in this environment, and raw connector egress blocks generated local files from Drive replacement, so lastAutomationHash must remain unchanged.",
+  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0341Z",
   "targets": [
-    {
-      "name": "Bert_Project_Second_Brain_Website.zip",
-      "driveFileId": "10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"
-    },
-    {
-      "name": "Bert_Project_Constellation_Quick_View.html",
-      "driveFileId": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"
-    },
-    {
-      "name": "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html",
-      "driveFileId": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO"
-    },
-    {
-      "name": "Bert_Project_Wiki_Pack.zip",
-      "driveFileId": "1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ"
-    },
-    {
-      "name": "Project-Constellation-Project-Catalog.json",
-      "driveFileId": null
-    },
-    {
-      "name": "Project-Constellation-Research-Suggestions.json",
-      "driveFileId": null
-    }
+    {"name":"Bert_Project_Second_Brain_Website.zip","driveFileId":"10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"},
+    {"name":"Bert_Project_Constellation_Quick_View.html","driveFileId":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"},
+    {"name":"Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html","driveFileId":"1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO"},
+    {"name":"Bert_Project_Wiki_Pack.zip","driveFileId":"1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ"},
+    {"name":"Project-Constellation-Project-Catalog.json","driveFileId":null},
+    {"name":"Project-Constellation-Research-Suggestions.json","driveFileId":null}
   ],
   "latestEvidenceChanges": [
-    "PCX-031 Auralis direct production contract resolved from durable project artifacts.",
-    "PCX-032 Profit Nova v39 strict spec and current Hermes/Bevy/Tauri research resolved.",
-    "PCX-033 Sims4CreatorStudio checkpoint reconfirmed at part08.b64.",
-    "PCX-034 Ferrum project-owned runtime status superseded stale wiki state.",
-    "PCX-035 MO2R Changelog/Relationship implementation contract recovered and current MO2 host baseline resolved.",
-    "Project-Constellation-Evidence-Coverage.json added as current machine-readable source-resolution state."
+    "PCX-036 current control-plane state documented and a current 63-record machine catalog materialized from the byte-verified Quick View plus additive current evidence overlays.",
+    "PCX-037 current active JDK 25 Shimeji benchmark resolved; archived Shijima-Qt explicitly rejected as a new base.",
+    "PCX-038 GameSync-integrated browser Shimeji implementation reconfirmed at current Gamesync main commit a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928.",
+    "PCX-039 external Webmeji reference and current GameSync Webmeji contract resolved; user-owned standalone source still unresolved.",
+    "PCX-040 v1.9.0 remains latest-good; scheduler.yield recorded only as a feature-detected experiment and web-vitals 6.0.0 rejected as a production dependency.",
+    "Project-Constellation-Technology-Radar.json and Project-Constellation-Research-Suggestions.json added as durable current technology decision state."
   ],
-  "retryContract": "First resolve the newest complete candidate/source bytes or reconstruct from the full current machine-readable catalog without dropping any prior evolution records. Then regenerate all six presentation/catalog artifacts as one coherent line, re-check user edits, upload/replace every target, re-read or re-download every remote object, and verify digest/size or full SHA-256 before promoting lastAutomationHash."
+  "retryContract": "Upload/replace the exact candidate bytes recorded here without regeneration, re-read or re-download all six remote objects, verify SHA-256/size, exercise the Quick View in a functioning browser environment, then promote lastAutomationHash. If the bytes become unavailable before publication, regenerate only from the current machine catalog and verify hashes again.",
+  "candidate": {
+    "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
+    "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddcece93c2e3cbfe438e6c5e9e8a28d26","size":133622},
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"sha256":"d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa","size":147441},
+    "Bert_Project_Wiki_Pack.zip":{"sha256":"c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd","size":127507},
+    "Project-Constellation-Project-Catalog.json":{"sha256":"9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f","size":123738},
+    "Project-Constellation-Research-Suggestions.json":{"sha256":"29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f","size":12583}
+  }
 }
