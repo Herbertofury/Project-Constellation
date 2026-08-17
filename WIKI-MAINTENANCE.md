@@ -4,14 +4,15 @@ This is the durable documentation-maintenance checkpoint for the **projects trac
 
 ## Current checkpoint
 
-- Detailed target-project wiki coverage: **43 tracked projects**.
-- Latest material wiki addition: **PCX-061 - Petz Shared Core**.
-- Wiki path: `wikis/PCX-061-petz-shared-core.md`.
-- Verified current source host: `Herbertofury/Gamesync`.
+- Detailed target-project wiki coverage: **44 tracked projects**.
+- Latest material wiki addition: **PRJ-004 - Aesthetic Media Companion / Living Room Platform**.
+- Wiki path: `wikis/PRJ-004-aesthetic-media-companion-living-room.md`.
+- Historical Project Constellation status remains `PRECURSOR / MERGED`, but newer project-owned evidence proves a substantial current Living Room implementation in `Herbertofury/Gamesync` plus the cross-host schema/ownership contract in `Herbertofury/GameSync-Next`.
 - Verified shipping baseline: GameSync `0.6.3`, `main` observed at commit `a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928`.
-- Current source proves a dedicated reimplementation-first PF Magic Petz engine, Petz-specific engine routing, motive-driven autonomous behavior, physics/drag/throw/petting, Ballz/geometry rendering support, Petz 1/2/3/4/5 and Oddballz pack modules, packaged Petz resource trees, and an original-resource inventory.
-- The wiki explicitly does not claim perfect original-game behavioral parity, implementation of every inventoried toy/clothing/environment/resource, a fresh real-Opera qualification in this documentation pass, a dedicated automated Petz test suite, or verified GameSync Next/desktop Petz parity.
-- Highest-value next Petz proof: real Opera GX qualification of representative Catz, Dogz, and Oddballz instances with routing, Ballz geometry, motives, autonomous actions, pet/drag/throw, sound, persistence/reload, and engine hot-swap; then inspect V2/desktop source and build a host parity ledger.
+- Verified current implementation includes the Room tab, persistent room state and manual snapshots, Pixi-rendered scene source, Rapier-compatible physics with fallback, Asset Vault, aesthetic catalogue/explorer/media companion, mascot/loot integration, Mystery Engine, world time/weather/season orchestration, AI assistant, export/import, bounded backups, onboarding, and accessibility helpers.
+- Verified shared contract: `GameSync-Next/packages/shared/src/livingRoom.ts`, contract version 1, with Opera Extension -> Extension V2 -> desktop rollout order and a real Extension V2 host bridge.
+- Material unresolved boundary: shipping GameSync loads a checked-in `living-room-tab.bundle.js`, while the current root package/scripts inspected in this pass do not expose a verified reproducible command/dependency path that rebuilds that bundle from the modular Living Room source. `npm run build` is verified for packaging the extension, not for regenerating the Living Room bundle.
+- Highest-value next Living Room proof: recover or establish the canonical bundle-generation command/dependency graph, regenerate the bundle from current modular source, then exercise the Room tab end-to-end in the real Opera GX extension with persistence/restart and Extension V2 parity checks.
 
 ## Maintenance rule
 
