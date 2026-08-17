@@ -23,6 +23,7 @@
   },
   "researchDelta": "project-constellation/research/2026-08-17T2338Z-prj-020-025.json",
   "publication": {
+    "status": "DUAL_PUBLISHED_RE_READ_VERIFIED",
     "github": {
       "repository": "Herbertofury/ProjectDump",
       "branch": "main",
@@ -32,11 +33,22 @@
         "wikis/PRJ-023-feature-foundry-portable-feature-starter.md",
         "wikis/PRJ-025-ultradeck.md"
       ],
-      "reviewedUnchangedWiki": "wikis/PRJ-024-mo2-drag-column-compatibility-pack.md"
+      "reviewedUnchangedWiki": "wikis/PRJ-024-mo2-drag-column-compatibility-pack.md",
+      "verification": "All updated wiki sources, research delta and checkpoint were fetched back from GitHub main after write; returned content and blob SHA values were present."
     },
     "drive": {
       "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-      "status": "PENDING_THIS_RUN_DUAL_PUBLICATION_VERIFICATION"
+      "projectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "documents": {
+        "PRJ-020": "1n8HYbENodTeFyf0WksAJYvXd0BghzwiRatEraW74hO0",
+        "PRJ-022": "1fhjyrOHlAAS_KW8o4jE9UbwCeQDoum6F7I60_3C37MY",
+        "PRJ-023": "17sISQkxtUUIE9oTzyL6vra6RlTaOYjuX3zgOyztEjpU",
+        "PRJ-025": "1DqCCTuM3Ax8rjmNYN09xd5zuY1NDE8oztateaOmPN3M",
+        "researchDelta": "128Ag7FPMBd-haPtRNt73C7fq_gOEZncqTmCRLaXpVvA",
+        "checkpoint": "1GCncJPul2SThzgApV24DPsPlLfg8KLRKuWGvTg7EsOg",
+        "researchCursor": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc"
+      },
+      "verification": "All listed Drive documents were moved into the intended Project Constellation or Project Wikis folder and re-fetched as non-empty text after publication."
     }
   },
   "antiRegression": {
