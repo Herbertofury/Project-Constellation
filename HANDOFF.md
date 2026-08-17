@@ -22,9 +22,11 @@ Static validation passed for 63 records, Sports Group Hub absence, JavaScript sy
 
 ## Tracked-project wiki maintenance checkpoint
 
-ProjectDump now maintains source-controlled Markdown wikis under `wikis/` for projects tracked inside Project Constellation rather than documenting Project Constellation itself. The current indexed detailed-wiki coverage is 10 tracked projects.
+ProjectDump maintains source-controlled Markdown wikis under `wikis/` for projects tracked inside Project Constellation rather than documenting Project Constellation itself. The current indexed detailed-wiki coverage is **16 tracked projects**.
 
-Latest verified addition: `PCX-038 - Shimeji Browser Extension`. Its wiki is grounded in the current GameSync `0.6.3` repository implementation, including the embedded Shimeji Browser Engine distribution, `shimeji-browser-bridge.js`, `shimeji-popup-shim.js`, modular mascot-pack runtime, ShimejiEE parser, Manifest V3 wiring, persistence, message flow, install/configuration behavior, modification paths, and verification guidance. The wiki explicitly records that a separate standalone Shimeji Browser Extension GitHub repository is still unresolved and must supersede the embedded GameSync evidence if a newer canonical source is found.
+Latest verified addition: `PCX-040 - Pinterest Nocturne`. The wiki is grounded in the exact Drive-published v1.9.0 source archive plus the project-owned UltraDeck recovery repository. The documentation pass downloaded the 400,272-byte source ZIP, recorded SHA-256 `e2fa38831c8969fc4a8b1919f92a69e1e50dec607a5c6425ee2e3b5a6734a8d7`, verified ZIP integrity, passed `npm run build`, `npm run test:static`, and `npm run package`, and documented the manifest, popup/settings, MAIN-world page engine, Lean Browsing, Deep Horizon, media-gated idle runway, Interaction Priority behavior, build/package/test commands, browser installation, modification map, correctness invariants, and troubleshooting. The current-run `test:interaction` lane exceeded the execution window, so fresh runtime interaction success is not claimed.
+
+`PRJ-025 - UltraDeck` also received a material freshness update after the canonical repository began staging a v8.2.0 multi-part source bootstrap. Commit `32a9ce530622ea3d64ebc0f120cc4df64ec72e15` identifies the current transfer as `001/018`; v8.2 is therefore recorded as an in-progress successor and is not promoted over the fully described v8.1.0 line until all parts are reconstructed and verified.
 
 Wiki index: `wikis/README.md`.
 
