@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-17T18:36:45Z",
-  "completedCursor": ["PRJ-001", "PRJ-011", "PRJ-012", "PRJ-013", "PRJ-014"],
-  "nextCursor": ["PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018", "PRJ-019"],
-  "selectionReason": "PRJ-001 and PRJ-011 through PRJ-014 now have refreshed continuity wikis. Rotate next into the five MO2 projects with validated artifacts or corrected builds whose remaining gates are exact live Windows MO2 integration, restart, drag/drop, column, and performance verification.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T1836Z-prj-001-011-014.json",
+  "updatedAt": "2026-08-17T22:45:00Z",
+  "completedCursor": ["PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018", "PRJ-019"],
+  "nextCursor": ["PRJ-020", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"],
+  "selectionReason": "PRJ-015 through PRJ-019 now have current MO2 host contracts and detailed continuity wikis, including the remaining PRJ-017 through PRJ-019 documentation gaps. Rotate next into Master Desktop Pet Research, Feral Unified Native Base, Feature Foundry Portable Feature Starter, the MO2 compatibility pack, and UltraDeck. PRJ-021 is skipped this cycle because it was recently reviewed and remains artifact-only pending stronger source evidence.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T2245Z-prj-015-019.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only the researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, or user edits."
 }
