@@ -66,11 +66,11 @@
       "decision": "PROPOSE",
       "sourceAuthority": [
         "https://github.com/typesense/typesense/releases/tag/v30.2",
-        "https://github.com/meilisearch/meilisearch/releases/tag/v1.45.1",
+        "https://github.com/meilisearch/meilisearch/releases/tag/v1.53.1",
         "https://www.sqlite.org/fts5.html"
       ],
-      "fact": "Current candidate remote search engines include Typesense 30.2 and Meilisearch 1.45.1, while SQLite FTS5 remains a capable local full-text primitive. Shipping GameSync already isolates remote search behind a normalized Typesense/Meilisearch client and uses FlexSearch locally.",
-      "proposal": "Run a backend-neutral Search Backend Arena on the existing labeled game/mod/entity corpus instead of migrating because one backend is newer. Compare current local behavior, SQLite FTS5, Typesense 30.2, and Meilisearch 1.45.1.",
+      "fact": "Current candidate remote search engines include Typesense 30.2 and Meilisearch 1.53.1, while SQLite FTS5 remains a capable local full-text primitive. Shipping GameSync already isolates remote search behind a normalized Typesense/Meilisearch client and uses FlexSearch locally.",
+      "proposal": "Run a backend-neutral Search Backend Arena on the existing labeled game/mod/entity corpus instead of migrating because one backend is newer. Compare current local behavior, SQLite FTS5, Typesense 30.2, and Meilisearch 1.53.1.",
       "benefit": "Selects search technology by real entity-resolution accuracy, source provenance, latency, and offline behavior while preserving backend portability.",
       "integrationCost": "medium",
       "risk": "Semantic/vector improvements can increase false merges, which is worse than a missed match for project identity.",
@@ -113,9 +113,13 @@
     ]
   },
   "publication": {
-    "github": "checkpoint and documentation published to ProjectDump/main; remote reread required before closeout",
-    "drive": "ACTIVE CHECKPOINT update required after GitHub reread",
+    "github": "checkpoint and documentation published to ProjectDump/main; remote reread verified",
+    "drive": "ACTIVE CHECKPOINT updated and remote reread verified",
     "presentationArtifacts": "unchanged publication debt; do not modify lastAutomationHash until the exact coherent candidate bytes are remotely uploaded and byte-verified"
+  },
+  "correction": {
+    "reason": "A lower-recall web search initially surfaced stale Meilisearch v1.45.1 release data. The connected GitHub Releases API was then queried directly and proved v1.53.1, published 2026-08-13, is the current latest release. The stale version was corrected before closeout.",
+    "verifiedSource": "https://api.github.com/repos/meilisearch/meilisearch/releases/latest"
   },
   "nextResearchCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"]
 }
