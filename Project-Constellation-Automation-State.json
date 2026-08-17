@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-17T00:39:15Z",
+  "updatedAt": "2026-08-17T01:40:28Z",
   "catalogProjectCount": 63,
   "sportsGroupHubAbsent": true,
   "removedProjectAbsent": true,
@@ -36,77 +36,99 @@
       "id": "10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC",
       "sha256": "84658e154cf6f8b1b3b8e4004394443fb837ed8cbadd8191a60aeaea3ae7c30b",
       "size": 114413,
-      "verification": "previous full remote re-download hash matched; unchanged this pass because replacement bytes could not egress through connector"
+      "verification": "full remote re-download hash matched"
     },
     "Bert_Project_Constellation_Quick_View.html": {
       "id": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77",
       "sha256": "1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
       "size": 127946,
-      "verification": "re-fetched at start of pass and SHA-256 matched prior lastAutomationHash; intentionally left unchanged after connector blocked local-file egress"
+      "verification": "full remote fetch hash matched prior lastAutomationHash"
     },
     "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
       "id": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO",
       "sha256": "e4cefa6a6063c8bd5a5b02e17c33eb324cc0cf473082dccb12502ab4abd21e57",
       "size": 142242,
-      "verification": "previous full remote fetch hash matched; unchanged this pass because replacement bytes could not egress through connector"
+      "verification": "full remote fetch hash matched prior lastAutomationHash"
     },
     "Bert_Project_Wiki_Pack.zip": {
       "id": "1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ",
       "sha256": "657bc89f23e960e2ed5341c72eddcd83abc8dcb1fa7dbc7ef8f9e6fb0f3248f9",
       "size": 146408,
-      "verification": "previous full remote re-download hash matched; unchanged this pass because replacement bytes could not egress through connector"
+      "verification": "full remote re-download hash matched"
     }
   },
   "researchCursor": [
-    "PRJ-002",
-    "PRJ-022",
-    "PRJ-023",
-    "PRJ-024",
-    "PRJ-025"
+    "PCX-026",
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030"
   ],
-  "appResearch": "Evidence Supersession Radar using project-owned repository/blob/tree SHA watermarks to flag stale continuity fields before they misdirect work.",
+  "nextResearchCursor": [
+    "PCX-031",
+    "PCX-032",
+    "PCX-033",
+    "PCX-034",
+    "PCX-035"
+  ],
+  "appResearch": "Publication Debt Queue: durable verified-but-unpublished candidate records surfaced in Today/Review until remote byte verification closes them.",
   "changes": [
-    "Project Constellation classified durably as ACTIVE / NORMAL_OPERATION; missing sandbox artifacts no longer trigger recovery.",
-    "Misleading LATEST recovery checksum renamed HISTORICAL and moved into dedicated Project Constellation Drive folder.",
-    "Verified v0.5.0 Quick View and master command center preserved byte-for-byte as the authoritative merge base.",
-    "Rebuilt missing PWA ZIP and Wiki Pack from the verified v0.5.0 Quick View/master data and published them to Drive.",
-    "Materialized the current 63-record catalogue and research suggestions as machine-readable durable state for future passes.",
-    "Continuity Lenses, Today/Review queues, Changed Since Last Visit, Quick Checkpoint, Resume Capsule, snapshot import/export, and research promotion remain active v0.5.0 features.",
-    "Source-controlled tracked-project wiki coverage expanded with a repository-grounded Ferrum Browser 0.2.0 wiki and verified ProjectDump publication.",
-    "Feature Foundry continuity corrected from stale V11-latest state to verified V24 executable-reference lineage while preserving V23/V11 evidence and the unresolved production-repository boundary.",
-    "Feral Unified Native Base identity resolved from direct archive evidence as a generated Feature Foundry 2.0 React/Vite desktop-app foundation, package 0.1.0, not shippable.",
-    "Feature Foundry Portable Feature Starter directly inspected as a Feature Foundry 2.6 Tauri/Vue/Rust/SQLite foundation; tauri-react metadata mismatch and floating latest dependency/package-manager declarations recorded as reproducibility blockers.",
-    "MO2 Drag/Column Compatibility Pack next live gate refreshed to current MO2 v2.5.2 while preserving older beta evidence as regression history.",
-    "UltraDeck stale v7.5 catalogue latest reconciled in this pass against canonical v8.1.0 project evidence; complete v8.1.0 source/release tree remains unresolved.",
-    "Added Evidence Supersession Radar research so source SHA changes create review items rather than allowing stale latest/next-action fields to persist silently."
+    "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects and Sports Group Hub absent.",
+    "Published detailed source-controlled wikis for PCX-026 Project Governance, PCX-027 GameSync Archive Doctor, PCX-028 DirectoryMonitor, PCX-029 PC Bridge / MCP Bridge, and PCX-030 Reliable Artifact Publisher.",
+    "PCX-026 now anchors to current ProjectDump AGENTS governance evidence and records OPA v1.19.0 only as a read-only policy-audit experiment candidate.",
+    "PCX-027 now records the verified browser fallback plus v0.25.9 multipart/hash lineage and a libarchive 3.8.9 fixture-backed native verification proposal.",
+    "PCX-028 now explicitly records unresolved canonical source and compares notify 9.0.0-rc.4 / Watchman behind a lossless reconciliation contract rather than auto-adopting a watcher.",
+    "PCX-029 now records MCP 2026-07-28 as the migration target with a versioned transport-adapter/conformance experiment while preserving unknown legacy-client requirements.",
+    "PCX-030 now preserves Reliable Artifact Publisher hash evidence and proposes optional GitHub/Sigstore provenance only after byte-level remote verification.",
+    "Added Publication Debt Queue as the Project Constellation app-level continuity improvement so validated candidates blocked from remote publication cannot silently disappear."
   ],
   "candidatePresentationRefresh": {
-    "generatedAt": "2026-08-17T00:39:15Z",
-    "Bert_Project_Second_Brain_Website.zip": "bc6afd192b2a6527f9bb6868159aaa515bf434ba39cae8b6e56de7ff3135a010",
-    "Bert_Project_Constellation_Quick_View.html": "0d9661467fa8b7ecb93fffa2d9924b48e4d2dc7cd3624a506d1cf8dcf833af5c",
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "f509f84827f8c9a4525c9b50657db57a0b2d55fe32e3be85c5a434ae56c28102",
-    "Bert_Project_Wiki_Pack.zip": "a80e674fae9aa8dc9fe94c3be4ee041f9a40d44b441bf1b6ae3728e03b38a305",
-    "Project-Constellation-Project-Catalog.json": "64bdba83c8e9c0a43987d81f40f36dd42b6e9d4eab179ab7560e4632c2b4de00",
-    "Project-Constellation-Research-Suggestions.json": "3aa3d6ff15bd1fa139fe9470b08fb9daf966765424672a8570b2c7533a4e18dc",
-    "validation": "63 projects pass; Sports Group Hub absent; JSON parse pass; JavaScript syntax pass; 63 wiki pages pass; ZIP integrity pass",
-    "publicationStatus": "NOT PROMOTED: Drive connector rejected local regenerated files with BLOCKED_FILE_REFERENCE. Existing verified canonical presentation bytes were preserved to prevent partial/degrading publication."
+    "Bert_Project_Second_Brain_Website.zip": {
+      "sha256": "d97374edb369fbb38122a38911a6e0daa43ba40329e3f4cc23d9ec0c5dde79de",
+      "size": 98563
+    },
+    "Bert_Project_Constellation_Quick_View.html": {
+      "sha256": "35af5bba11cf32e2b1714695e94203d15f92f80f76ebca4cf25eb22e09121291",
+      "size": 138949
+    },
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+      "sha256": "db417e280c160a120707d3080ed70526e349dbcbff05216acbbab554c537c621",
+      "size": 134477
+    },
+    "Bert_Project_Wiki_Pack.zip": {
+      "sha256": "6e4bfa10d0095a00f466743891b0ca9510edb9acccb10d9ad9da719cff81c993",
+      "size": 110838
+    },
+    "Project-Constellation-Project-Catalog.json": {
+      "sha256": "58ee13b7844ce5a19e9ac2c462c0c905faf1e479dc0484085e7c9349b5ce9473",
+      "size": 125830
+    },
+    "Project-Constellation-Research-Suggestions.json": {
+      "sha256": "a68110089166d243ab89e8af0216013da358f110c4a56d01027603269da9df17",
+      "size": 19840
+    }
+  },
+  "publicationDebt": {
+    "status": "PENDING_REMOTE_BYTE_PUBLICATION",
+    "manifestSha256": "f3349f01fbd4b445234c2b1fdb26f08a8840a4aa5137b4b60f466bbac3e48930",
+    "reason": "Drive connector cannot accept regenerated local file bytes from this runtime; prior verified canonical Drive artifacts intentionally remain authoritative.",
+    "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0140Z",
+    "nextAction": "On next capable run, re-check user edits/hashes first, publish the coherent candidate set, then full remote re-read/re-download and SHA-256 verification before promoting lastAutomationHash."
   },
   "validation": {
     "projectCount63": "pass",
     "sportsGroupHubAbsent": "pass",
     "goalsRequirementsRecoveryHistory": "pass",
-    "researchContract": "pass: reviewed five projects plus app-level evidence-supersession research",
-    "javascriptSyntax": "pass: regenerated Quick View inline JavaScript passed node --check",
+    "researchContract": "pass: 5 project research records + Publication Debt Queue app research, with fact/proposal/fit/experiment/risks/acceptance",
+    "javascriptSyntax": "pass",
     "jsonParse": "pass",
-    "localLinks": "pass on unchanged presentation structure; five updated project pages regenerated in candidate Wiki Pack",
+    "localLinks": "pass",
     "wikiPages63": "pass",
-    "zipIntegrity": "pass for both regenerated candidate ZIPs",
-    "artifactHashAgreement": "canonical Drive artifacts still match prior lastAutomationHash; candidate hashes recorded separately and not promoted",
-    "githubPublication": "pass: source-controlled Feature Foundry/Feral/Portable Starter wiki updates plus real HTML/JSON evolution checkpoint published to main",
-    "driveRemoteHashRoundTrip": "canonical prior pass remains verified; no new raw artifact hash promoted because connector blocked file egress"
+    "zipIntegrity": "pass",
+    "artifactHashAgreement": "pass: candidate hashes recomputed after current data merge",
+    "driveRemoteHashRoundTrip": "unchanged canonical Drive bytes remain previously verified; candidate refresh is pending, not promoted"
   },
-  "browserRuntime": "attempted Chromium against regenerated candidate Quick View; timed out with 0 DOM bytes after D-Bus/zygote initialization errors. JavaScript syntax passed independently; interaction success is not claimed.",
-  "publicationBlocker": "Google Drive update_file rejected regenerated local artifacts with BLOCKED_FILE_REFERENCE. Continue using the verified existing Drive bytes until a connector path can egress and full remote hash round-trip the candidates.",
+  "browserRuntime": "attempted Chromium against regenerated Quick View; rc=124 with 0 DOM bytes after D-Bus/zygote failures; interaction success not claimed",
   "nextRunContract": {
     "classifyProjectConstellationAs": "ACTIVE",
     "operatingMode": "NORMAL_OPERATION",
@@ -116,10 +138,17 @@
     "preserveAll63Projects": true,
     "sportsGroupHubExcluded": true,
     "rotateResearchBatchAboutFive": true,
+    "nextResearchCursor": [
+      "PCX-031",
+      "PCX-032",
+      "PCX-033",
+      "PCX-034",
+      "PCX-035"
+    ],
     "researchAppQolWhenFresh": true,
     "onlyWriteArtifactsForMeaningfulChange": true,
+    "retryPublicationDebtWhenCapable": true,
     "publishMeaningfulCheckpointToDrive": true,
-    "verifyRemoteCheckpointBytes": true,
-    "retryPendingPresentationRefreshWithoutOverwritingNewerUserEdits": true
+    "verifyRemoteCheckpointBytes": true
   }
 }
