@@ -52,8 +52,8 @@
     "browserRuntime": "attempted Chromium against regenerated Quick View; rc=124 with 0 DOM bytes after D-Bus/zygote failures; interaction success not claimed"
   },
   "publication": {
-    "githubMain": "five new detailed project wikis plus wiki index and hourly HTML/JSON checkpoint published to main",
-    "driveCheckpoint": "native ACTIVE CHECKPOINT append and reread required for this pass",
+    "githubMain": "five new detailed project wikis plus wiki index and hourly HTML/JSON checkpoint published and reread on main",
+    "driveCheckpoint": "native ACTIVE CHECKPOINT appended and reread successfully at Drive modified time 2026-08-17T01:46:37.786Z",
     "driveRawArtifactRefresh": "still blocked by connector local-file egress; existing byte-verified canonical Drive artifacts preserved unchanged",
     "lastAutomationHashPromoted": false
   },
