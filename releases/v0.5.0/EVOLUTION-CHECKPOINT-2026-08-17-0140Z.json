@@ -1,0 +1,67 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkedAt": "2026-08-17T01:40:28Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recoveryMode": false,
+  "projectCount": 63,
+  "sportsGroupHubAbsent": true,
+  "reviewedProjects": [
+    "PCX-026",
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030"
+  ],
+  "materialChanges": {
+    "PCX-026": "Governance continuity anchored to current ProjectDump AGENTS contract; OPA v1.19.0 recorded only as a read-only policy-audit experiment candidate.",
+    "PCX-027": "Verified browser fallback and v0.25.9 multipart/hash recovery lineage; libarchive 3.8.9 recorded as a fixture-gated native verification candidate.",
+    "PCX-028": "Canonical source remains unresolved; notify 9.0.0-rc.4 and active Watchman are research candidates behind a lossless overflow/reconciliation contract.",
+    "PCX-029": "MCP 2026-07-28 is now the explicit migration research target; proposal is a versioned transport adapter with real-tool conformance rather than handshake-only proof.",
+    "PCX-030": "Recovered publisher hash identities preserved; optional GitHub/Sigstore provenance proposed only after remote byte verification."
+  },
+  "currentTechnologyEvidence": {
+    "openPolicyAgent": "1.19.0",
+    "libarchive": "3.8.9",
+    "notifyMain": "9.0.0-rc.4",
+    "watchman": "active main pushed 2026-08-16",
+    "mcpSpecification": "2026-07-28",
+    "sigstoreCosign": "3.1.3"
+  },
+  "appResearch": "Publication Debt Queue for verified-but-unpublished candidate artifacts with stable IDs, hashes, target remote objects, blockers, retry evidence and close-on-remote-verification semantics.",
+  "candidateArtifacts": {
+    "Bert_Project_Second_Brain_Website.zip": "d97374edb369fbb38122a38911a6e0daa43ba40329e3f4cc23d9ec0c5dde79de",
+    "Bert_Project_Constellation_Quick_View.html": "35af5bba11cf32e2b1714695e94203d15f92f80f76ebca4cf25eb22e09121291",
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "db417e280c160a120707d3080ed70526e349dbcbff05216acbbab554c537c621",
+    "Bert_Project_Wiki_Pack.zip": "6e4bfa10d0095a00f466743891b0ca9510edb9acccb10d9ad9da719cff81c993",
+    "Project-Constellation-Project-Catalog.json": "58ee13b7844ce5a19e9ac2c462c0c905faf1e479dc0484085e7c9349b5ce9473",
+    "Project-Constellation-Research-Suggestions.json": "a68110089166d243ab89e8af0216013da358f110c4a56d01027603269da9df17"
+  },
+  "publicationDebtManifest": "f3349f01fbd4b445234c2b1fdb26f08a8840a4aa5137b4b60f466bbac3e48930",
+  "validation": {
+    "projectCount63": "pass",
+    "sportsGroupHubAbsent": "pass",
+    "goalsRequirementsRecoveryHistory": "pass",
+    "researchContract": "pass: 5 project research records + Publication Debt Queue app research, with fact/proposal/fit/experiment/risks/acceptance",
+    "javascriptSyntax": "pass",
+    "jsonParse": "pass",
+    "localLinks": "pass",
+    "wikiPages63": "pass",
+    "zipIntegrity": "pass",
+    "artifactHashAgreement": "pass: candidate hashes recomputed after current data merge",
+    "driveRemoteHashRoundTrip": "unchanged canonical Drive bytes remain previously verified; candidate refresh is pending, not promoted",
+    "browserRuntime": "attempted Chromium against regenerated Quick View; rc=124 with 0 DOM bytes after D-Bus/zygote failures; interaction success not claimed"
+  },
+  "publication": {
+    "githubMain": "five new detailed project wikis plus wiki index and hourly HTML/JSON checkpoint published to main",
+    "driveCheckpoint": "native ACTIVE CHECKPOINT append and reread required for this pass",
+    "driveRawArtifactRefresh": "still blocked by connector local-file egress; existing byte-verified canonical Drive artifacts preserved unchanged",
+    "lastAutomationHashPromoted": false
+  },
+  "nextResearchCursor": [
+    "PCX-031",
+    "PCX-032",
+    "PCX-033",
+    "PCX-034",
+    "PCX-035"
+  ]
+}
