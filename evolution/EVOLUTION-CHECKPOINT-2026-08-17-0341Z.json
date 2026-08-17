@@ -1,0 +1,29 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-17T03:41:12Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCount": 63,
+  "sportsGroupHubAbsent": true,
+  "reviewedProjects": ["PCX-036","PCX-037","PCX-038","PCX-039","PCX-040"],
+  "materialChanges": ["Current 63-record machine catalog materialized","Technology Radar and current Research Suggestions materialized","PCX-036/037/039 detailed wikis added","Evidence Coverage and Publication Debt advanced"],
+  "researchDecisions": [
+    {"projectId":"PCX-036","decision":"PROPOSE_ISOLATED_PWA_EXPERIMENT","candidate":"@sqlite.org/sqlite-wasm 3.53.0-build1"},
+    {"projectId":"PCX-037","decision":"ADOPT_AS_COMPATIBILITY_BENCHMARK_ONLY","candidate":"DalekCraft2/Shimeji-Desktop JDK 25 line"},
+    {"projectId":"PCX-037","decision":"REJECT_AS_NEW_BASE","candidate":"pixelomer/Shijima-Qt archived"},
+    {"projectId":"PCX-038","decision":"OBSERVE_AS_REFERENCE","candidate":"pixelomer/Shijima-Web"},
+    {"projectId":"PCX-039","decision":"ADOPT_AS_BEHAVIOR_REFERENCE","candidate":"lars-rooij/webmeji"},
+    {"projectId":"PCX-040","decision":"PROPOSE_FEATURE_DETECTED_EXPERIMENT","candidate":"scheduler.yield()"},
+    {"projectId":"PCX-040","decision":"REJECT_FOR_RUNTIME_DEPENDENCY","candidate":"web-vitals 6.0.0"}
+  ],
+  "publication": {"github":"machine state, wikis, evidence coverage, technology radar, research suggestions and checkpoint published","drive":"ACTIVE CHECKPOINT update follows GitHub verification","presentationArtifacts":"coherent candidate generated and validated statically; remote byte publication pending"},
+  "nextResearchCursor": ["PCX-041","PCX-042","PCX-043","PCX-044","PCX-045"],
+  "candidateArtifacts": {
+    "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
+    "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddcece93c2e3cbfe438e6c5e9e8a28d26","size":133622},
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"sha256":"d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa","size":147441},
+    "Bert_Project_Wiki_Pack.zip":{"sha256":"c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd","size":127507},
+    "Project-Constellation-Project-Catalog.json":{"sha256":"9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f","size":123738},
+    "Project-Constellation-Research-Suggestions.json":{"sha256":"29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f","size":12583}
+  },
+  "validation": {"projectCount63":"pass","sportsGroupHubAbsent":"pass","recoveryHistoryPreserved":"pass","jsonParse":"pass","javascriptSyntax":"pass","localLinks":"pass","wikiPages63":"pass","zipIntegrity":"pass","browserRuntime":"blocked by Chromium D-Bus/zygote timeout; success not claimed","drivePublication":"blocked by connector local-file egress"}
+}
