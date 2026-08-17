@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-17T01:40:28Z",
+  "updatedAt": "2026-08-17T02:56:47Z",
   "catalogProjectCount": 63,
   "sportsGroupHubAbsent": true,
   "removedProjectAbsent": true,
@@ -58,77 +58,80 @@
     }
   },
   "researchCursor": [
-    "PCX-026",
-    "PCX-027",
-    "PCX-028",
-    "PCX-029",
-    "PCX-030"
-  ],
-  "nextResearchCursor": [
     "PCX-031",
     "PCX-032",
     "PCX-033",
     "PCX-034",
     "PCX-035"
   ],
-  "appResearch": "Publication Debt Queue: durable verified-but-unpublished candidate records surfaced in Today/Review until remote byte verification closes them.",
+  "nextResearchCursor": [
+    "PCX-036",
+    "PCX-037",
+    "PCX-038",
+    "PCX-039",
+    "PCX-040"
+  ],
+  "appResearch": "Canonical Evidence Coverage Queue: track the highest resolved evidence authority for each reviewed project so stale catalogue summaries are superseded before stack migration or completion claims.",
   "changes": [
     "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects and Sports Group Hub absent.",
-    "Published detailed source-controlled wikis for PCX-026 Project Governance, PCX-027 GameSync Archive Doctor, PCX-028 DirectoryMonitor, PCX-029 PC Bridge / MCP Bridge, and PCX-030 Reliable Artifact Publisher.",
-    "PCX-026 now anchors to current ProjectDump AGENTS governance evidence and records OPA v1.19.0 only as a read-only policy-audit experiment candidate.",
-    "PCX-027 now records the verified browser fallback plus v0.25.9 multipart/hash lineage and a libarchive 3.8.9 fixture-backed native verification proposal.",
-    "PCX-028 now explicitly records unresolved canonical source and compares notify 9.0.0-rc.4 / Watchman behind a lossless reconciliation contract rather than auto-adopting a watcher.",
-    "PCX-029 now records MCP 2026-07-28 as the migration target with a versioned transport-adapter/conformance experiment while preserving unknown legacy-client requirements.",
-    "PCX-030 now preserves Reliable Artifact Publisher hash evidence and proposes optional GitHub/Sigstore provenance only after byte-level remote verification.",
-    "Added Publication Debt Queue as the Project Constellation app-level continuity improvement so validated candidates blocked from remote publication cannot silently disappear."
+    "PCX-031 Auralis: recovered direct MASTER_BUILD_PROMPT.md and IMPLEMENTATION.md authority; current Rust 1.97.1 / Slint 1.17 / windows-rs 0.62.2 / Rubato 4.0 baseline is already current enough that no dependency churn is justified before source recovery.",
+    "Published and remotely re-read the new detailed Auralis wiki; canonical executable source repository/worktree remains unresolved.",
+    "PCX-032 Profit Nova: recovered money_app_plan_v39_strict_master_spec.md as current strict plan authority, recorded current Hermes Agent v0.20.2, Bevy 0.19, and Tauri 2.11.5 as evidence-backed migration inputs rather than automatic upgrades.",
+    "Published and remotely re-read the new detailed Profit Nova wiki; canonical production source remains unresolved.",
+    "PCX-033 Sims4CreatorStudio: verified project-owned transfer markers still place the durable checkpoint at part08.b64; no newer complete payload was promoted.",
+    "PCX-034 Ferrum Browser: corrected stale Project Constellation documentation to current project-owned verified commit 536bbc23dfee068e26eda8b32574f06ce19a43f1 and workflow 31987413168; real Electron smoke is now verified on Linux and Windows and only Appium remains unqualified.",
+    "Ferrum currently pins Playwright 1.62.1, which matches the current official release, while Electron 43.4.0 is newer than the project's 43.2.0 pin and is recorded only as a proposal-branch candidate requiring equivalent Linux/Windows real-Electron proof.",
+    "PCX-035 MO2R: recovered the direct Changelog + automatic Relationship implementation contract, confirmed the connected GitHub repository is only a placeholder README, and set upstream MO2 v2.5.2 as the current live compatibility baseline.",
+    "Published and remotely re-read the new MO2R wiki and updated the ProjectDump wiki index.",
+    "Added Project-Constellation-Evidence-Coverage.json so source-resolution debt and stale-summary supersession are durable machine-readable state rather than implicit operator knowledge."
   ],
   "candidatePresentationRefresh": {
-    "Bert_Project_Second_Brain_Website.zip": {
-      "sha256": "d97374edb369fbb38122a38911a6e0daa43ba40329e3f4cc23d9ec0c5dde79de",
-      "size": 98563
-    },
-    "Bert_Project_Constellation_Quick_View.html": {
-      "sha256": "35af5bba11cf32e2b1714695e94203d15f92f80f76ebca4cf25eb22e09121291",
-      "size": 138949
-    },
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
-      "sha256": "db417e280c160a120707d3080ed70526e349dbcbff05216acbbab554c537c621",
-      "size": 134477
-    },
-    "Bert_Project_Wiki_Pack.zip": {
-      "sha256": "6e4bfa10d0095a00f466743891b0ca9510edb9acccb10d9ad9da719cff81c993",
-      "size": 110838
-    },
-    "Project-Constellation-Project-Catalog.json": {
-      "sha256": "58ee13b7844ce5a19e9ac2c462c0c905faf1e479dc0484085e7c9349b5ce9473",
-      "size": 125830
-    },
-    "Project-Constellation-Research-Suggestions.json": {
-      "sha256": "a68110089166d243ab89e8af0216013da358f110c4a56d01027603269da9df17",
-      "size": 19840
+    "status": "STALE_AFTER_CURRENT_EVIDENCE_MERGE",
+    "requiresRegeneration": true,
+    "reason": "The prior 0140Z candidate bytes were not durably available to this runtime, while the byte-verified Drive presentation base predates several later evidence merges. Rebuilding from the older Drive base would drop prior evolution content, so anti-degradation rules prohibit promoting a partial reconstruction.",
+    "priorCandidate": {
+      "Bert_Project_Second_Brain_Website.zip": {
+        "sha256": "d97374edb369fbb38122a38911a6e0daa43ba40329e3f4cc23d9ec0c5dde79de",
+        "size": 98563
+      },
+      "Bert_Project_Constellation_Quick_View.html": {
+        "sha256": "35af5bba11cf32e2b1714695e94203d15f92f80f76ebca4cf25eb22e09121291",
+        "size": 138949
+      },
+      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+        "sha256": "db417e280c160a120707d3080ed70526e349dbcbff05216acbbab554c537c621",
+        "size": 134477
+      },
+      "Bert_Project_Wiki_Pack.zip": {
+        "sha256": "6e4bfa10d0095a00f466743891b0ca9510edb9acccb10d9ad9da719cff81c993",
+        "size": 110838
+      },
+      "Project-Constellation-Project-Catalog.json": {
+        "sha256": "58ee13b7844ce5a19e9ac2c462c0c905faf1e479dc0484085e7c9349b5ce9473",
+        "size": 125830
+      },
+      "Project-Constellation-Research-Suggestions.json": {
+        "sha256": "a68110089166d243ab89e8af0216013da358f110c4a56d01027603269da9df17",
+        "size": 19840
+      }
     }
   },
   "publicationDebt": {
-    "status": "PENDING_REMOTE_BYTE_PUBLICATION",
-    "manifestSha256": "f3349f01fbd4b445234c2b1fdb26f08a8840a4aa5137b4b60f466bbac3e48930",
-    "reason": "Drive connector cannot accept regenerated local file bytes from this runtime; prior verified canonical Drive artifacts intentionally remain authoritative.",
-    "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0140Z",
-    "nextAction": "On next capable run, re-check user edits/hashes first, publish the coherent candidate set, then full remote re-read/re-download and SHA-256 verification before promoting lastAutomationHash."
+    "status": "PENDING_COHERENT_REGENERATION_AND_REMOTE_BYTE_PUBLICATION",
+    "reason": "The verified Drive presentation artifacts remain the last trustworthy byte-complete publication. The prior regenerated candidate is now stale after this evidence merge, and recreating from the older Drive base would lose prior hourly evolution content. Regeneration must start from the newest complete candidate/source state, then publish as one coherent set and full-hash-round-trip it.",
+    "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0256Z",
+    "nextAction": "Resolve the newest complete candidate/source bytes or reconstruct from the full current machine catalog without dropping any prior evolution records; regenerate all six presentation/catalog artifacts coherently; then upload and remote SHA-256 verify before changing lastAutomationHash."
   },
   "validation": {
-    "projectCount63": "pass",
-    "sportsGroupHubAbsent": "pass",
-    "goalsRequirementsRecoveryHistory": "pass",
-    "researchContract": "pass: 5 project research records + Publication Debt Queue app research, with fact/proposal/fit/experiment/risks/acceptance",
-    "javascriptSyntax": "pass",
-    "jsonParse": "pass",
-    "localLinks": "pass",
-    "wikiPages63": "pass",
-    "zipIntegrity": "pass",
-    "artifactHashAgreement": "pass: candidate hashes recomputed after current data merge",
-    "driveRemoteHashRoundTrip": "unchanged canonical Drive bytes remain previously verified; candidate refresh is pending, not promoted"
+    "projectCount63": "pass: invariant preserved in canonical state",
+    "sportsGroupHubAbsent": "pass: invariant preserved in canonical state",
+    "sourceAuthorityReview": "pass: PCX-031 through PCX-035 compared against project-owned GitHub/File Library evidence",
+    "wikiPublication": "pass: PCX-031, PCX-032, PCX-034, PCX-035 published and remotely re-read; PCX-033 unchanged because project-owned checkpoint did not advance",
+    "evidenceCoverageJson": "pass: published as additive machine-readable continuity state",
+    "presentationRegeneration": "blocked by anti-degradation gate: newest complete prior candidate bytes are unavailable in this runtime and canonical Drive base is older; partial regeneration was not promoted",
+    "driveRemoteHashRoundTrip": "unchanged canonical Drive bytes remain previously verified; no stale/partial candidate was promoted"
   },
-  "browserRuntime": "attempted Chromium against regenerated Quick View; rc=124 with 0 DOM bytes after D-Bus/zygote failures; interaction success not claimed",
+  "browserRuntime": "No Project Constellation presentation candidate was promoted this run because a coherent no-data-loss regeneration base was not available; browser success is not claimed.",
   "nextRunContract": {
     "classifyProjectConstellationAs": "ACTIVE",
     "operatingMode": "NORMAL_OPERATION",
@@ -139,14 +142,15 @@
     "sportsGroupHubExcluded": true,
     "rotateResearchBatchAboutFive": true,
     "nextResearchCursor": [
-      "PCX-031",
-      "PCX-032",
-      "PCX-033",
-      "PCX-034",
-      "PCX-035"
+      "PCX-036",
+      "PCX-037",
+      "PCX-038",
+      "PCX-039",
+      "PCX-040"
     ],
     "researchAppQolWhenFresh": true,
     "onlyWriteArtifactsForMeaningfulChange": true,
+    "resolveEvidenceCoverageBeforeStackMigration": true,
     "retryPublicationDebtWhenCapable": true,
     "publishMeaningfulCheckpointToDrive": true,
     "verifyRemoteCheckpointBytes": true
