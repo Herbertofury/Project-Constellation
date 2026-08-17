@@ -4,16 +4,17 @@ This is the durable documentation-maintenance checkpoint for the **projects trac
 
 ## Current checkpoint
 
-- Detailed target-project wiki coverage: **45 tracked projects**.
-- Latest material wiki addition: **PRJ-008 - Mascot Games / Sports and Golf Flagship**.
-- Wiki path: `wikis/PRJ-008-mascot-games-sports-golf.md`.
-- Historical Project Constellation evidence describes Golf as the flagship and requires real playable sports loops across mascot hosts.
-- Verified current implementation baseline: `Herbertofury/Gamesync` `0.6.3`, `main` observed at commit `a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928`.
-- Current shipping source proves a broad mascot-game framework with **23 accepted `GS_START_GAME` IDs**, strict allowlisted dynamic script injection, shared dt-based game rendering/physics, authentic Shimeji-pack mascot drawing, daily/weekly challenges, game modifiers, unlock/loadout progression, loot/social state, skins and Mascot Studio integration.
-- Current source includes substantial real sports/game implementations such as Bowling and Tennis. Tennis includes ball spin/curve, seven shot types, deuce/advantage/game/set/match scoring, adaptive AI and match-point effects; Bowling includes a fixed physics loop, ten-frame structure, live mascot pins and collision/fling behavior.
-- Material correction: **Golf is not in the current verified shipping game-launch registry, the inspected shared mascot-game tree has no Golf module, and the script-injection allowlist has no Golf path.** Golf therefore remains a preserved historical requirement, not verified current behavior.
-- Material verification boundary: the root package exposes no dedicated Mascot Games automated test suite, and this pass does not claim that all 23 accepted game paths were exercised end-to-end in Opera GX.
-- Highest-value next PRJ-008 proof: run the built `dist/` extension in real Opera GX and qualify all accepted game IDs, prioritizing Bowling, Tennis, Racing, Air Hockey, Volleyball, Pinball and Fishing, including launch, controls, authored mascot rendering, progression, cleanup, persistence and restart behavior. Then establish GameSync Next parity and decide the disposition of the Golf flagship requirement.
+- Detailed target-project wiki coverage: **46 tracked projects**.
+- Latest material wiki addition: **PRJ-010 - RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD Family**.
+- Wiki path: `wikis/PRJ-010-runelite-flipforge-family.md`.
+- Current connected GitHub publication point: `Herbertofury/FlipForge`, `main`.
+- Verified repository boundary: the connected FlipForge repository currently contains only an 11-byte `README.md` with `# FlipForge`, repository size `0`, no detected language, and only the initial commit `03cb2057c480929831852fed8fd866954e3ad5c0`. It is a project identity/publication placeholder, not the recovered implementation source.
+- Durable PRJ-010 evidence preserves the family components: FlipForge (`flipfore-osrs` historical naming), Farm Material Ranker, Rust dashboard/bridge, No-Hitch RuneLite launcher/runtime, and 117HD/RLHD integration.
+- Latest recovered Farm Material Ranker identity: **v1.1.0**, with searchable sidebar, OSRS/GE pricing, item icons, sorting, monster metadata and shortest-path routing; artifact name `farm-material-ranker.zip`.
+- Known-good No-Hitch reference identity: `hitchless-runelite-main.jar`, SHA-256 `80d99e72d82ad28a5fe7779d7325450b487edb2c9c1f617b2e75acfa39f61d89`, size `57,842,944` bytes, main class `com.bertsplugins.hitchless.HitchlessRuneLiteMain`, embedded RuneLite `1.12.29.1`, recorded source commit `68ff80e`.
+- Material blocker: current connected Drive search resolves these artifacts only through durable Project Constellation continuity references; the implementation source, Farm Material Ranker ZIP, Rust bridge source, and 117HD wiring were not independently recovered during this documentation pass.
+- Hard release gate preserved: both external plugins must be visible, enabled, functional, and persistent after restart in the actual Jagex-launched RuneLite client. Compilation, JAR inspection, or developer-mode loading alone is insufficient.
+- Highest-value next PRJ-010 documentation step: recover the latest FlipForge/Farm Material Ranker/No-Hitch implementation artifacts, reconcile hashes and manifests without overwriting the known-good reference, restore canonical source, then replace recovery-only wiki sections with exact project-owned build/install/configuration/API/module instructions and perform the real-client restart-persistence qualification.
 
 ## Maintenance rule
 
