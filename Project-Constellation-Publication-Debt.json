@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.publication-debt/1",
-  "updatedAt": "2026-08-17T03:58:00Z",
+  "updatedAt": "2026-08-17T05:45:00Z",
   "status": "PENDING_REMOTE_BYTE_PUBLICATION",
-  "reason": "A coherent current six-artifact candidate was generated from the current 63-record machine catalog, with all recoveryHistory preserved. Static/package checks passed. This hourly pass added source-controlled project documentation and research evidence but did not change the 63-record presentation catalog, so the exact candidate bytes remain valid and were not ceremonially regenerated. Chromium runtime could not initialize in the prior candidate-validation environment, and raw connector egress blocks generated local files from Drive replacement, so lastAutomationHash must remain unchanged.",
-  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0358Z",
+  "reason": "A coherent current six-artifact candidate was generated from the current 63-record machine catalog, with all recoveryHistory preserved. Static/package checks passed. The 05:45Z hourly pass added source-controlled project documentation and technology research but did not change the 63-record presentation catalog, so the exact candidate bytes remain valid and were not ceremonially regenerated. Chromium runtime could not initialize in the prior candidate-validation environment, and raw connector egress blocks generated local files from Drive replacement, so lastAutomationHash must remain unchanged.",
+  "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0545Z",
   "targets": [
     {"name":"Bert_Project_Second_Brain_Website.zip","driveFileId":"10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"},
     {"name":"Bert_Project_Constellation_Quick_View.html","driveFileId":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"},
@@ -13,17 +13,17 @@
     {"name":"Project-Constellation-Research-Suggestions.json","driveFileId":null}
   ],
   "latestEvidenceChanges": [
-    "PCX-041 ChatGPT Ultimate Optimizer: v1.0.1 release manifest, canonical commit, exact artifact hashes and validation boundary resolved; current ChatGPT surface drift documented.",
-    "PCX-042 GameSync Next: main revalidated at 9e337c720f0180cffa577f140b181c699f0a1650; existing detailed parity/runtime wiki remains current.",
-    "PCX-043 Feature Foundry Production App: V33 FINAL_READY promoted as strongest verified runnable lineage while the minimal GitHub repository remains explicitly non-authoritative for production source.",
-    "PCX-044 Feature Foundry Living Ecology: V33 content-parity/no-cap ecology contract documented with a fixed cross-tier replay fixture as the next experiment.",
-    "PCX-045 Feature Foundry Object Intelligence: KHR_interactivity recorded as a release-candidate interchange experiment; internal Object Atlas remains canonical.",
-    "Detailed source-controlled wiki coverage advanced from 23 to 27 tracked projects."
+    "PCX-046 Feature Foundry Source Hubs: verified the V33 six-provider soundtrack hub and added a provider capability/auth matrix proposal grounded in current Spotify PKCE, Apple MusicKit and OAuth BCP 240 behavior.",
+    "PCX-047 Favorite Artist Worlds Database: resolved v4.0.1 as the verified current data line and added a SQLite 3.53.4 validation/query-plan benchmark proposal without changing curated data.",
+    "PCX-048 GameSync Theme Foundry: recovered the 0.25.9 Feature Foundry theme/workspace checkpoint and North Star complete-data/no-cap validation; added a Design Tokens 2025.10 interchange-adapter experiment.",
+    "PCX-049 GameSync Live Mascot Tavern: recovered the verified Moonwake Rest House native-engine checkpoint, exact archive hash, 14.45% bundle reduction and blocked browser-runtime boundary; added a cross-engine room capability/restart fixture.",
+    "PCX-050 GameSync Real Library Performance: recovered the O(n) Steam merge/portrait cover/full-library telemetry pass, revalidated current shipping sqlite-wasm ^3.53.0-build1, and added a SQLite 3.53.4 OPFS VFS A/B plan after real RESYNC_STEAM baseline.",
+    "Detailed source-controlled target-project wiki coverage advanced from 28 to 33 tracked projects."
   ],
   "retryContract": "Upload/replace the exact candidate bytes recorded here without regeneration, re-read or re-download all six remote objects, verify SHA-256/size, exercise the Quick View in a functioning browser environment, then promote lastAutomationHash. If the bytes become unavailable before publication, regenerate only from the current machine catalog and verify hashes again. If the presentation catalog changes before publication, invalidate these candidate hashes and regenerate a complete coherent six-artifact set first.",
   "candidate": {
     "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
-    "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddcece93c2e3cbfe438e6c5e9e8a28d26","size":133622},
+    "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddce93c2e3cbfe438e6c5e9e8a28d26","size":133622},
     "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"sha256":"d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa","size":147441},
     "Bert_Project_Wiki_Pack.zip":{"sha256":"c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd","size":127507},
     "Project-Constellation-Project-Catalog.json":{"sha256":"9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f","size":123738},
