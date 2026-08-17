@@ -1,0 +1,47 @@
+{
+  "schema": "project-constellation.evolution-verification/1",
+  "verifiedAt": "2026-08-17T07:53:56Z",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T0751Z-pcx-056-060.json",
+  "github": {
+    "projectDumpMainBeforeVerificationReceipt": "ee88b1c013d2a1df331087ee24dd51006a21036a",
+    "remoteReread": "pass",
+    "verifiedFiles": [
+      {"path":"wikis/PCX-057-project-catalog-cross-chat-database.md","blobSha":"27cf5ad9b3f85edfd1ee2296e110aa621f3e8c17"},
+      {"path":"wikis/PCX-058-project-compass-northpoints.md","blobSha":"ff7fe72c4193560f7b89666c45059a93b2f78877"},
+      {"path":"wikis/PCX-059-feature-foundry-project-brain-bridge.md","blobSha":"cd4ecadaf4e52a8a89198186d600f5ab1a7cbd22"},
+      {"path":"wikis/PCX-060-acs-voice-speech-runtime.md","blobSha":"9be1870c12d516377b262b7b8532d77b8c2a81df"},
+      {"path":"wikis/README.md","blobSha":"769373b49071ed1a46468451f71dd737c99e6b01","observed":"40 detailed target-project wikis"},
+      {"path":"project-constellation/Project-Constellation-Research-Cursor.json","blobSha":"fc55890dba1991ae8da524bf6cd9292698dfad00"},
+      {"path":"project-constellation/evolution/2026-08-17T0751Z-pcx-056-060.json","blobSha":"887022a5353bf73178469c87d77c68b1ab615ed2"}
+    ]
+  },
+  "drive": {
+    "activeCheckpointId": "1cGHmUG-iMUnDoncLSWsZL9ZudZ80fltnYRn-Ogwd4rU",
+    "remoteReread": "pass",
+    "modifiedTimeObserved": "2026-08-17T07:53:03.377Z",
+    "observed": "07:51Z PCX-056 through PCX-060 checkpoint, Evidence Availability Lens proposal, 40-wiki coverage, next cursor, 63-project invariant and unchanged presentation hash boundary are present."
+  },
+  "researchVerification": {
+    "nexusModsApi": "v3 confirmed current actively developed API by Nexus-Mods official GitHub organization; v3 exposes mod/file/version/dependency resources",
+    "jsonSchema": "official specification page reports current version 2020-12",
+    "jsonCanonicalization": "RFC 8785 provides deterministic JCS canonical JSON suitable for repeatable hashing/signing",
+    "mcp": "2026-07-28 final specification confirmed with stateless core, discovery/routing/cache/authorization/extensions changes",
+    "piper": "OHF-Voice/piper1-gpl v1.7.0 confirmed by GitHub latest-release API; published 2026-08-15",
+    "whisperCpp": "ggml-org/whisper.cpp v1.9.2 confirmed by GitHub latest-release API; published 2026-08-04"
+  },
+  "antiRegression": {
+    "projectCount": 63,
+    "sportsGroupHubAbsent": true,
+    "catalogListMutated": false,
+    "runtimeCodeMutated": false,
+    "presentationBytesMutated": false,
+    "lastAutomationHashPromoted": false,
+    "historical25ProjectDatabasePromoted": false
+  },
+  "publication": {
+    "githubSourceControlledCheckpoint": "verified",
+    "driveActiveCheckpoint": "verified",
+    "presentationArtifacts": "unchanged; prior byte-verified Drive line remains canonical; existing coherent candidate publication debt remains open"
+  },
+  "nextResearchCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-021", "PRJ-009"]
+}
