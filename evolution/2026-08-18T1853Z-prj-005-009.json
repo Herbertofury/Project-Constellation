@@ -1,0 +1,90 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T18:53:28Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "reviewedProjects": [
+    {
+      "id": "PRJ-005",
+      "name": "Mascot / Screenmate Platform",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "The verified shipping browser host remains Herbertofury/Gamesync 0.6.3 at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928. Current source and wiki already preserve ACS, Shimeji, Webmeji, Petz, pack, persistence, deterministic-testing and browser-host boundaries. No newer project-owned source commit or safely adoptable framework change justified churn."
+    },
+    {
+      "id": "PRJ-006",
+      "name": "ACS Agent Parity Runtime",
+      "decision": "RESEARCH_REFRESH_NO_CODE_CHANGE",
+      "reason": "The verified ACS parser/converter/mascot host remains Gamesync 0.6.3 at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928. Current local speech candidates were refreshed: OHF-Voice/piper1-gpl remains a live local-TTS candidate at release v1.4.2, while ggml-org/whisper.cpp identifies v1.9.1 as its stable release. The current Project Constellation speech wiki already requires these to remain provider adapters behind request, queue, balloon, interruption and cancellation semantics, so no migration was made without runtime integration evidence.",
+      "research": [
+        "https://github.com/OHF-Voice/piper1-gpl/releases",
+        "https://github.com/ggml-org/whisper.cpp/releases/tag/v1.9.1"
+      ]
+    },
+    {
+      "id": "PRJ-007",
+      "name": "PF Magic Petz Runtime Integration",
+      "decision": "MATERIAL_SOURCE_DELTA_NO_MERGE",
+      "reason": "GameSync Next issue #9 remains open, but its root persistence repair is now implemented on draft PR #10. The current exact PR head is f916e1a445b4bc6b9d174c5b90169b7803e2f01c, directly based on main 9e337c720f0180cffa577f140b181c699f0a1650 and verified 10 commits ahead / 0 behind. Patch inspection confirms stable host-owned persistence IDs with historical breed-key fallback, additive single-pet restore, per-pet serialization, host-visible persistence diagnostics, same-key load/save behavior, and awaited asynchronous destroy-time saves. Main remains unchanged, so the existing wiki description of the shipping blocker remains truthful and was not rewritten prematurely.",
+      "evidence": {
+        "issue": "https://github.com/Herbertofury/GameSync-Next/issues/9",
+        "draftPr": "https://github.com/Herbertofury/GameSync-Next/pull/10",
+        "baseSha": "9e337c720f0180cffa577f140b181c699f0a1650",
+        "headSha": "f916e1a445b4bc6b9d174c5b90169b7803e2f01c",
+        "aheadBy": 10,
+        "behindBy": 0,
+        "petzVerifyRun": 32168143964,
+        "petzVerifyJob": 95812566007,
+        "petzVerifyObserved": "completed failure with no workflow step payload",
+        "ferrumJob": 95812591596,
+        "ferrumObserved": "skipped because the prerequisite Petz job did not execute",
+        "secretScanRun": 32168143809,
+        "verificationStatus": "EXTERNAL_RUNNER_BLOCKED_NOT_PRODUCT_FAILED"
+      },
+      "nextAction": "Keep PR #10 draft and issue #9 open. Resolve the hosted-runner execution blocker, then execute the exact current head through Petz engine/bridge typecheck and build, the exact-source persistence regression including awaited teardown, Extension V2 build/parity, Ferrum exact-build runtime/restart/identity/diagnostics, secret scan and patch-integrity gates. Promote only after those gates run and pass; do not infer success from source inspection."
+    },
+    {
+      "id": "PRJ-008",
+      "name": "Mascot Games / Sports and Golf Flagship",
+      "decision": "RESEARCH_REFRESH_NO_CODE_CHANGE",
+      "reason": "The verified shipping implementation remains Gamesync 0.6.3 at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928, with the current wiki already separating real playable modes from the unresolved Golf requirement. WXT is currently at v0.21.2, but code search found no WXT dependency in the verified Gamesync or GameSync-Next hosts, so migrating merely to match the historical WXT-oriented plan would be architecture churn. The former dimforge/rapier.js repository was archived after its TypeScript bindings moved into dimforge/rapier; current Gamesync code search returned no Rapier dependency, so no physics replacement was proposed without a measured project-specific benefit.",
+      "research": [
+        "https://github.com/wxt-dev/wxt/releases",
+        "https://wxt.dev/guide/resources/upgrading",
+        "https://github.com/dimforge/rapier.js",
+        "https://github.com/dimforge/rapier/tree/master/typescript"
+      ]
+    },
+    {
+      "id": "PRJ-009",
+      "name": "Bert's Skill Atlas / Skill Guide",
+      "decision": "SOURCE_RECOVERY_BLOCKER_UNCHANGED",
+      "reason": "A fresh connected-Drive search for bert-skill-atlas-qa-cockpit still surfaced continuity/index material but not the canonical QA Cockpit ZIP or repository, so the project cannot be honestly rebuilt or migrated yet. RuneLite Plugin Hub guidance still recommends Java 11 for external plugin development and current-client tracking through runeLiteVersion = 'latest.release'; the RuneLite launcher has advanced to 2.8.0, but that does not resolve the missing Skill Atlas source identity. The exact next action therefore remains source recovery, hashing, build/test and real development-client verification rather than framework churn.",
+      "research": [
+        "https://github.com/runelite/plugin-hub",
+        "https://github.com/runelite/launcher/releases/tag/2.8.0"
+      ]
+    }
+  ],
+  "antiRegressionGate": {
+    "projectCount": 63,
+    "projectCountStatus": "PRESERVED",
+    "userEdits": "PRESERVED",
+    "canonicalPresentationArtifacts": "UNCHANGED",
+    "projectCatalog": "UNCHANGED",
+    "researchSuggestions": "UNCHANGED",
+    "reason": "Only scheduling/provenance state was advanced. The one material code delta is still an unverified draft proposal and does not justify promoting or repackaging the canonical recovery surfaces."
+  },
+  "publicationPlan": {
+    "github": "checkpoint plus research cursor on main",
+    "drive": "matching checkpoint plus updated research cursor in the dedicated Project Constellation folder",
+    "verificationRequired": "re-read both remote copies before durable status is claimed"
+  },
+  "nextCursor": [
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012",
+    "PRJ-013",
+    "PRJ-014"
+  ]
+}
