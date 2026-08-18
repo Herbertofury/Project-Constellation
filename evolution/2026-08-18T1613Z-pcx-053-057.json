@@ -64,6 +64,19 @@
     "githubWikiCurrent": true,
     "githubWikiVerifiedByFreshCloneByteCompare": true,
     "driveWikiCurrent": true,
+    "driveCheckpoint": {
+      "fileId": "151EBqNzXlmFiyNGojJhjwQASDxTYHkb2IpEHfmBZ5l8",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownBytes": 4478,
+      "markdownSha256": "6d267a6e1a27787573d05e7c24383e0ed612ef3143f609df84ca26308d955e91",
+      "reread": "pass"
+    },
+    "researchCursorDriveMirror": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "textBytes": 1866,
+      "textSha256": "147e1ba9bc6b19488a30c86e24c8d3248fb7e4b5f62da787bb32d9b0fb100efc",
+      "reread": "pass"
+    },
     "dualPublication": "VERIFIED"
   },
   "nextCursor": ["PCX-058", "PCX-059", "PCX-060", "PCX-061", "PCX-062"],
