@@ -1,0 +1,69 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-18T13:12:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "reviewed": [
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-036",
+    "PCX-037"
+  ],
+  "normalDocumentationTargets": [
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-037"
+  ],
+  "excludedControlPlaneReference": "PCX-036",
+  "materialUpdates": [
+    {
+      "projectId": "PCX-034",
+      "name": "Ferrum Browser",
+      "reason": "Ferrum evolved materially after the prior wiki checkpoint. Current verified source added complete uncapped snapshots, stable page-session snapshot refs across DOM mutation/replacement, bounded-parallel complete evidence-history scans, monotonic evidence timing, fail-fast process lifecycle diagnostics, direct process HTTP requests with retained response evidence and child-exit attribution, and a zero-additional-dependency local/Docker disposable-service parity fixture with image/runtime identity and cleanup proof.",
+      "projectVerifiedCommit": "71f85c8c7e10f6098dc5d49a501b07e9c4c4d21f",
+      "projectVerifiedWorkflow": 32134811799,
+      "projectLatestAdditiveCommit": "09c8334ef5b744afd8ca94732cd9c458744058fb",
+      "projectLatestAdditiveWorkflows": [32139957979, 32139957988],
+      "wikiSourceCommit": "1eac0fe0e0240574dde4432c15160217d299d073",
+      "wikiSourceBlob": "33572afe3013ea3caa3efb41e8891dac800ee2c8",
+      "wikiWorkflowRun": 32140886458,
+      "wikiMasterCommit": "0d4f6e7bef6be8293f05484bb298b61426902145",
+      "wikiPublicationVerification": "passed: ProjectDump.wiki.git push plus fresh-clone complete byte comparison",
+      "readerFacingUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-034-ferrum-browser",
+      "driveWikiDocumentId": "11IOk6ZB78lOXoAUIa0vhZD9wioQ0QtG_Pq2cs7B0fD8",
+      "driveMarkdownExportBytes": 10908,
+      "driveMarkdownExportSha256": "bece0205117c3811ecdf0aaefb00d044d5dbc8f293779c8a4bebdd35748e1518",
+      "driveReread": "passed: new product/workflow identities, snapshot completeness/ref semantics, process HTTP behavior, disposable service parity and next actions present"
+    }
+  ],
+  "noChurn": [
+    {
+      "projectId": "PCX-033",
+      "reason": "Sims4CreatorStudio was already refreshed from the current Alpha11 recovery path and no newer verified project-owned delta was found in this pass that justified cosmetic rewrite."
+    },
+    {
+      "projectId": "PCX-035",
+      "reason": "MO2R remains accurately bounded by its current project-owned evidence and no newer verified source delta in this pass justified documentation churn."
+    },
+    {
+      "projectId": "PCX-037",
+      "reason": "Shimeji Desktop already contains the recent NeurolingsCE Rust + Flutter architecture/parity benchmark and no newer verified source delta in this pass justified another rewrite."
+    }
+  ],
+  "controlPlaneRule": "PCX-036 Project Constellation remains a preserved legacy control-plane reference only and is excluded from normal recurring project-wiki coverage.",
+  "nextCursor": [
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042"
+  ],
+  "publication": {
+    "githubSource": "verified",
+    "githubWiki": "verified",
+    "googleDrive": "verified",
+    "dualPublicationComplete": true
+  }
+}
