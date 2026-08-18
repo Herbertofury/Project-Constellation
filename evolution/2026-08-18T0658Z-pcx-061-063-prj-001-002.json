@@ -1,0 +1,79 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/2",
+  "checkedAt": "2026-08-18T06:58:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCount": 63,
+  "sportsGroupHubAbsent": true,
+  "reviewed": [
+    {
+      "projectId": "PCX-061",
+      "name": "Petz Shared Core",
+      "decision": "MATERIAL_DEFECT_RECORDED",
+      "source": "Herbertofury/GameSync-Next main@9e337c720f0180cffa577f140b181c699f0a1650",
+      "finding": "packages/petz-bridge/src/mascot-bridge.ts loads persistence by breedId, does not restore the loaded object, and destroy() saves full engine serialization under generated pet.id keys. The inspected bridge therefore cannot prove restart restore and has a load/save identity mismatch in addition to the explicit restore TODO.",
+      "action": "Opened GameSync-Next issue #9 with a preservation-first repair contract: explicit stable persistence identity, non-destructive single-pet restore, multi-pet/same-breed coverage, corrupt-save fallback, host build/typecheck, and real restart proof.",
+      "issue": "https://github.com/Herbertofury/GameSync-Next/issues/9",
+      "acceptance": "A saved pet restores exact Petz-owned state after restart; two same-breed pets persist independently; restoring one pet never clears another; affected hosts load the changed build and pass restart/runtime verification."
+    },
+    {
+      "projectId": "PCX-062",
+      "name": "RuneLite QA Cockpit",
+      "decision": "RESEARCH_DIRECTION_REFINED",
+      "finding": "Current RuneLite Plugin Hub guidance still recommends Java 11, commit-pinned hub manifests, latest.release, and dependency verification. Current jqwik upstream is now in pure maintenance mode and version 1.10 adds an Anti-AI Usage Clause, making it a weaker fit for an agent-driven QA cockpit. JQF remains active through July 2026, supports JUnit 5 fuzz tests, and provides coverage-guided semantic fuzzing via Zest.",
+      "sources": [
+        "https://github.com/runelite/plugin-hub",
+        "https://github.com/jqwik-team/jqwik",
+        "https://github.com/rohanpadhye/JQF"
+      ],
+      "proposal": "After the canonical QA Cockpit source is recovered and its existing tests are green, evaluate JQF as an isolated generated-content QA lane for route/step/content invariants rather than adding a stale or agent-hostile property-testing dependency blindly.",
+      "acceptance": "The recovered plugin remains Plugin-Hub compatible; bounded normal tests replay saved fuzz regressions; fuzzing finds malformed/orphan/identity failures without changing shipping content or runtime behavior."
+    },
+    {
+      "projectId": "PCX-063",
+      "name": "Feature Foundry Aesthetic Vault",
+      "decision": "OBSERVE",
+      "source": "Herbertofury/GameSync-Next main@9e337c720f0180cffa577f140b181c699f0a1650",
+      "finding": "Current ProjectDump documentation already resolves the implemented Inspiration Vault in apps/feature-foundry plus the Extension V2 capture bridge and shared capture contract. No stronger newer source change justified churn this pass."
+    },
+    {
+      "projectId": "PRJ-001",
+      "name": "Project Compass Orchestrator / project second brain",
+      "decision": "OBSERVE",
+      "finding": "Current GitHub + Drive control-plane evidence remains stronger than the historical v3.3.0 skill snapshot, but no canonical current installable AGENTS/Project Brain bundle bytes were resolved in Drive searches. Preserve the historical version boundary and current dual-publication control plane."
+    },
+    {
+      "projectId": "PRJ-002",
+      "name": "Feature Foundry",
+      "decision": "MATERIAL_CONTINUITY_DRIFT_FOUND",
+      "finding": "wikis/PRJ-002-feature-foundry.md still names V24 as the newest verified standalone lineage, while the durable Feature Foundry V33 FINAL_READY checkpoint is newer and stronger project-owned evidence.",
+      "v33Evidence": {
+        "driveDocumentId": "1oqlGYPim02s9yEwIssS4Z855gLYICvr8A2kF2jPrlTc",
+        "status": "FINAL_READY",
+        "v33Runtime": "101/101",
+        "legacyRuntime": "117/117",
+        "v33Static": "22/22",
+        "legacyControls": "59 audited / 0 missing handlers",
+        "consoleErrors": 0,
+        "pageErrors": 0,
+        "zipSha256": "680978a3aa8f16b47e767720ebfdc3b89fda5c148c5f3d4d3f308390b09385d9",
+        "htmlSha256": "83aac630afa4e6522d28452bb6a7c0ebe183eee6812b89b6d742662876af06ec"
+      },
+      "action": "Opened ProjectDump issue #2 to refresh PRJ-002 additively from V24 to V33 without erasing V11/V23/V24 history or pretending V33 is already the maintainable canonical production source.",
+      "issue": "https://github.com/Herbertofury/ProjectDump/issues/2",
+      "nextGate": "Resolve a maintainable V33-equivalent source/worktree and prove the real build/workspace/runtime matrix before migration work."
+    }
+  ],
+  "projectConstellationResearch": {
+    "decision": "PROPOSE_READ_ONLY_CONTINUITY_FRESHNESS_GATE",
+    "problem": "PRJ-002 demonstrates that a detailed project wiki can remain internally coherent yet lag stronger project-owned evidence by several verified generations.",
+    "proposal": "Add a read-only freshness auditor that compares each project catalog/wiki latest-verified claim against newer project-owned checkpoints, repository heads/releases, research cursor evidence, and Drive artifacts. It should surface stale-latest claims, evidence date/hash, stronger candidate authority, and the exact reconciliation action without mutating project content.",
+    "acceptance": "Detects the V24-vs-V33 PRJ-002 drift; never promotes by timestamp alone; user edits remain authoritative; exactly 63 projects remain; Sports Group Hub remains absent; no presentation artifact is rewritten merely because a warning exists."
+  },
+  "publication": {
+    "github": "checkpoint source committed on ProjectDump main",
+    "drive": "paired Drive checkpoint required and verified before durable closeout",
+    "presentationArtifactsChanged": false,
+    "presentationPublicationDebt": "unchanged presentation bytes were not regenerated solely for research/checkpoint churn"
+  },
+  "nextCursor": ["PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007"]
+}
