@@ -1,79 +1,85 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T03:15:00Z",
-  "taskCount": 9,
+  "updatedAt": "2026-08-18T04:15:50Z",
+  "taskCount": 10,
   "enabledCount": 9,
-  "pausedCount": 0,
+  "pausedIncompleteCount": 0,
+  "retiredDuplicateCount": 1,
   "repairs": [
     {
       "task": "Recover Stale Chats",
-      "action": "re-enabled",
-      "reason": "Permanent recurring recovery watch had disabled despite an explicit persistence directive."
+      "action": "re-enabled canonical worker",
+      "reason": "Permanent recurring recovery watch had disabled despite its persistence directive."
     },
     {
       "task": "GameSync Performance Pass",
-      "action": "re-enabled and prompt persistence hardened",
-      "reason": "Recurring performance service had disabled after a run. The prompt now explicitly treats no-gain, completed-proposal, blocker, and healthy no-op runs as non-terminal."
+      "action": "re-enabled",
+      "reason": "Permanent recurring performance service had disabled despite its persistence directive."
     },
     {
-      "task": "Project Constellation Evolution",
-      "action": "re-enabled and prompt persistence hardened",
-      "reason": "Permanent hourly evolution service had disabled despite its indefinite contract. The prompt now explicitly forbids self-stop on no-op, blocker, or completed-pass outcomes."
+      "task": "Superseded Recover Stale Chats",
+      "action": "explicitly retired duplicate",
+      "reason": "A second stale-chat watcher was created with the same scope. It is intentionally disabled and exempted because canonical worker 6a83ac23d99081919160b3ad7c758d03 fully owns that recurring responsibility."
     }
   ],
   "health": {
-    "scheduledTasks": "HEALTHY_ENABLED_STATE_AFTER_REPAIR",
-    "allRecurringTasksEnabled": true,
+    "scheduledTasks": "HEALTHY_AFTER_REPAIR",
+    "activeRecurringTasksEnabled": true,
+    "incompletePausedTasks": 0,
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition. This remains the common blocker preventing Pinterest publication and GameSync exact-head acceptance jobs from starting."
   },
   "publicationLedger": {
     "projectDump": {
-      "status": "SOURCE_DRIVE_AND_ACTUAL_WIKI_PUBLICATION_VERIFIED_FOR_LATEST_MATERIAL_WIKI_PASS",
-      "latestObservedCommit": "9013042d1a61fc512c2c9c178b55d6acea9d9f9f",
-      "latestObservedMessage": "state: verify Drive durability for PCX-037-040 pass",
-      "materialWikiSourceCommit": "2193bffe1142513178ca0d36bf4d4f1d6c1adda7",
-      "syncWorkflowRunId": 32094305954,
-      "verifiedWikiMasterCommit": "b6a0d4d8f7432b00e20e138d66185e867c1d974b",
-      "verification": "Drive checkpoint 1HG8kYJWV7e_VqVVGjdaRlmRQ1RI4s1EWQNRNlOqcagk records successful ProjectDump.wiki.git push followed by a fresh clone and byte comparison against wikis/. Drive copies were re-read after publication.",
-      "nextWikiSlice": "PCX-041 through PCX-045"
+      "status": "LATEST_WIKI_PASS_SOURCE_DRIVE_AND_ACTUAL_WIKI_VERIFIED",
+      "latestObservedMainCommit": "086ef28fc205a6956779e566a8120b5a18bf6c1f",
+      "latestObservedMessage": "state: advance wiki cursor after PCX-041-045 pass",
+      "materialWikiProject": "PCX-042 GameSync Next",
+      "wikiSourceCommit": "31b6a8ab75545b684dfb956fa02750466c29f27a",
+      "wikiPublicationRun": 32098112158,
+      "wikiPublicationConclusion": "success",
+      "verifiedWikiMasterCommit": "349f92caa7914263d415a69778c5b862d1f920f4",
+      "driveWikiDocumentId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+      "driveVerification": "Drive wiki document was independently re-read and contains the current GameSync Next main head, current PR heads, operational architecture, parity state, and current blocker boundaries recorded by the PCX-041-045 checkpoint.",
+      "nextWikiSlice": "PCX-046 through PCX-050"
     },
     "ferrum": {
-      "status": "LATEST_VERIFIED_PRODUCT_MERGED_AND_CURRENT_CHECKPOINT_ADVANCED",
-      "latestObservedCheckpointCommit": "e812a954cddbea918d33f6e107c998a5c1424773",
-      "verifiedProductCommit": "06e2c52a1c64a773f11f9983ef33aff9c503f547",
-      "testedProposalHead": "20edadd40bbed4e2ae188bbcd4cde291a0fb84c6",
-      "workflowRunId": 32089801167,
+      "status": "LATEST_VERIFIED_PRODUCT_MERGED_AND_CHECKPOINT_CURRENT",
+      "latestObservedCheckpointCommit": "4d80d9b08ddd15e823c4aff4d80870c71372657e",
+      "verifiedProductCommit": "ab04d8d05850214973c435ee817c4f4c06ef80d9",
+      "testedProposalHead": "593ffb908efe74681ce9f67de02a8744db0dff75",
+      "testedTree": "88613e1fc1b676730447e8c6a99156ba2c5851dc",
+      "workflowRunId": 32094446338,
       "workflowConclusion": "success",
-      "verification": "Observed unit, Linux, Windows, WebDriver Grid, Lightpanda, Android/Appium, browser/MV3, Electron, desktop shell, and packaged-desktop jobs all completed successfully."
+      "verification": "Ferrum CI completed successfully for the exact proposal head and the checkpoint records the merged product tree as exactly equal to the tested tree."
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
-      "head": "986f189cdbc50147f73d310b0b42f7acdb969eed",
+      "head": "468c7ff2022bc7fa88a648a15a035a843c9335fa",
       "base": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
-      "latestSecretScanRunId": 32093433161,
-      "latestJobId": 95580050233,
+      "latestSecretScanRunId": 32097214447,
+      "latestJobId": 95590783215,
       "executedStepCount": 0,
       "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun while the hosted-runner billing/spending blocker persists."
     },
     "gameSyncStackNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 8,
-      "head": "3d96626651b2143df0b4911ab601cf1fc39077de",
+      "head": "ad76818499e02cb8fb3164c60d414954e1d9491c",
       "base": "9e337c720f0180cffa577f140b181c699f0a1650",
-      "latestSecretScanRunId": 32093447123,
-      "latestJobId": 95580091080,
+      "latestSecretScanRunId": 32097234950,
+      "latestJobId": 95590841462,
       "executedStepCount": 0,
       "repairPolicy": "Keep paired Vite 8.2.1 proposal current and require exact-head private acceptance before lead merge."
     },
     "gameSyncPerformanceNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 7,
-      "head": "8dca8af564ded92b9e7dd7799c3de261ab917277",
+      "head": "b4f840bb01a77551382588ffe8c8dc01bcada892",
       "base": "9e337c720f0180cffa577f140b181c699f0a1650",
-      "latestSecretScanRunId": 32086302922,
-      "latestJobId": 95559444304,
+      "latestSecretScanRunId": 32097200735,
+      "latestJobId": 95590747581,
       "executedStepCount": 0,
       "verifiedHistoricalGain": "warm package build median 39.65% faster; p95 39.63% faster",
       "repairPolicy": "Preserve the optimization proposal and require exact-current-head acceptance before lead merge."
