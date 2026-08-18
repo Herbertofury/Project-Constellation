@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T21:13:30Z",
+  "updatedAt": "2026-08-18T22:16:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -9,7 +9,7 @@
     {
       "task": "Project Constellation Evolution",
       "action": "re-enabled",
-      "reason": "The indefinite recurring task disabled again immediately after a run even though its prompt explicitly forbids self-disable. It was restored without changing its publication-debt-first acceptance contract."
+      "reason": "The indefinite recurring task disabled again after its prior run despite explicit persistence instructions. It was restored before its next scheduled execution. The supervisor continues treating this repeated self-disable as a task-health defect rather than completion."
     }
   ],
   "health": {
@@ -18,7 +18,7 @@
     "incompletePausedTasks": 0,
     "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired because the canonical Recover Stale Chats task covers the same scope.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Pinterest attempt 13 and the new GameSync-Next TypeScript 7 exact-head workflows completed failure with zero workflow steps, matching the established private hosted-runner non-allocation pattern.",
+    "privateHostedRunnerEvidence": "Pinterest attempt 14 completed failure with no workflow steps, and current GameSync-Next TypeScript 7 exact-head workflow jobs likewise report pre-execution zero-step failures. This remains infrastructure/account execution evidence rather than product-test evidence.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -29,14 +29,15 @@
       "currentCatalogProjectCount": 63,
       "currentCatalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
       "staleCandidateCatalogSha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
-      "requiredRepair": "Regenerate and validate one coherent current six-artifact presentation set, real-browser exercise Quick View, dual-publish exact bytes to GitHub and Drive, re-read/re-download all six and verify size/SHA-256, then clear debt and promote lastAutomationHash."
+      "requiredRepair": "Regenerate and validate one coherent current six-artifact presentation set, exercise Quick View in a functioning real browser, dual-publish exact bytes to GitHub and Drive, re-read/re-download all six and verify size/SHA-256, then clear debt and promote lastAutomationHash.",
+      "currentDebtEvidence": "Project-Constellation-Publication-Debt.json remains open and unchanged at REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED; stale candidate publication is prohibited."
     },
     "pinterestNocturne200": {
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
-      "workflowAttempt": 13,
-      "latestObservedJobId": 95867168115,
+      "workflowAttempt": 14,
+      "latestObservedJobId": 95882616475,
       "latestObservedJobConclusion": "failure",
       "executedStepCount": 0,
       "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES"
@@ -61,12 +62,11 @@
       "uiRuntimePr": 12,
       "uiRuntimeHead": "faa45be1cebe6881afeaa5cf6780155f5e471bac",
       "typescript7Pr": 13,
-      "typescript7Head": "a62e75f662e144b7663a8339749aeb9a11cbcfa2",
-      "typescript7SecretScanRun": 32186417793,
-      "typescript7VerifyRun": 32186417796,
-      "typescript7LinuxJob": 95870969274,
-      "typescript7LinuxExecutedStepCount": 0,
-      "status": "MULTIPLE_ACTIVE_PROPOSALS_BLOCKED_BY_PRIVATE_ACTIONS_PRE_EXECUTION_AND_LOCKFILE_REGENERATION"
+      "typescript7Head": "ccc5392253c9f918fa5b0ea0a3c94c2d5c5a315a",
+      "typescript7VerifyRun": 32188061382,
+      "typescript7SecretScanRun": 32188061408,
+      "typescript7Status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER_LOCKFILE_REGENERATION_AND_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "status": "MULTIPLE_ACTIVE_PROPOSALS_BLOCKED_BY_PRIVATE_ACTIONS_PRE_EXECUTION_WITH_ADDITIONAL_PROPOSAL_SPECIFIC_REPAIRS"
     }
   }
 }
