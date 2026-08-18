@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T18:10:00Z",
+  "updatedAt": "2026-08-18T18:53:28Z",
   "completedCursor": [
-    "PCX-063",
-    "PRJ-001",
-    "PRJ-002",
-    "PRJ-003",
-    "PRJ-004"
-  ],
-  "nextCursor": [
     "PRJ-005",
     "PRJ-006",
     "PRJ-007",
     "PRJ-008",
     "PRJ-009"
   ],
-  "selectionReason": "PCX-063 and PRJ-001 through PRJ-004 were rechecked against current ProjectDump wiki source, current project-owned repositories, and connected Drive continuity. PCX-063 Feature Foundry Aesthetic Vault, PRJ-001 Project Compass Orchestrator, PRJ-003 GameSync Platform, and PRJ-004 Aesthetic Media Companion / Living Room Platform remain accurately documented and did not justify cosmetic churn. PRJ-002 Feature Foundry received a material source-authority correction: V33 FINAL_READY remains the strongest verified runnable/user-facing lineage, while the durable Feature Foundry Recovery Checkpoint Ledger now proves GameSync / Feature Foundry V2-253 as the newest remotely byte-verified maintainable source lineage. The wiki now documents exact V2-253 hashes/recovery, restored React workspace and Project Vault/Radar/agent operations, launch readiness BLOCKED at 6/13 hard gates, strict-parity counts, exact source toolchain floors, and the explicit 16-world V2 versus durable 17-theme reconciliation gap. Source commit e1fa36f82dc562a745eb0f51e8d2e5674854807d published through workflow 32169064081; ProjectDump.wiki.git was pushed, fresh-cloned, and byte-verified at master d0c776c7f8fec7e373e473e2d95ce62ea82dfb52. The updated PRJ-002 wiki was also published to Drive Project Wikis, re-read, and exported as 33699 bytes with SHA-256 7e6988ead0a2a6c22ce454311f83109faa10e8b94f5897c4dd6653aefc61e523.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1808Z-pcx-063-prj-004.json",
+  "nextCursor": [
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012",
+    "PRJ-013",
+    "PRJ-014"
+  ],
+  "selectionReason": "PRJ-005 through PRJ-009 were rechecked against current ProjectDump wiki source, current project-owned repositories, connected Drive continuity, and current primary-source research. PRJ-005 Mascot / Screenmate remains accurately documented on shipping Gamesync 0.6.3. PRJ-006 ACS Agent Parity retains the same verified host; Piper v1.4.2 and whisper.cpp v1.9.1 remain current local speech-provider candidates behind the existing queue/request adapter boundary, so no runtime migration was applied. PRJ-007 PF Magic Petz has a material but unverified repair delta: issue #9 remains open, while draft PR #10 at exact head f916e1a445b4bc6b9d174c5b90169b7803e2f01c is 10 commits ahead / 0 behind current main and source inspection confirms stable persistence IDs, additive single-pet restore, per-pet serialization, diagnostics and awaited async shutdown saves. Exact-head Petz verify run 32168143964 still failed before any steps executed and Ferrum was skipped; this is recorded as an external-runner block, not a product pass or failure. PRJ-008 Mascot Games remains aligned with the current shipping runtime; WXT v0.21.2 and the migrated Rapier TypeScript maintenance line were evaluated but not adopted because the verified hosts do not currently depend on them and no measured migration benefit exists. PRJ-009 Skill Atlas / QA Cockpit source recovery remains blocked: current Drive search still finds continuity/index material rather than the canonical archive/repository; RuneLite Plugin Hub guidance and launcher 2.8.0 are compatibility context only until the source is recovered.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1853Z-prj-005-009.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
