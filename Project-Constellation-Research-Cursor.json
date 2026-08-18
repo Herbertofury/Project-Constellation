@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T06:59:00Z",
-  "completedCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-001", "PRJ-002"],
-  "nextCursor": ["PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007"],
-  "selectionReason": "PCX-061 produced a material source-proven persistence defect in the typed GameSync Next Petz bridge: load and save identities differ and the loaded save is ignored. GameSync-Next issue #9 now carries a preservation-first repair and restart acceptance contract. PCX-062 current RuneLite guidance remains Java 11/Plugin-Hub aligned; current jqwik is in pure maintenance mode with an Anti-AI clause while JQF remains active and supports JUnit 5 coverage-guided semantic fuzzing, so JQF is the stronger isolated post-recovery QA experiment candidate. PCX-063 and PRJ-001 were rechecked without a stronger canonical delta. PRJ-002 has a material continuity drift: its wiki still calls V24 newest while the durable V33 FINAL_READY checkpoint is stronger verified evidence; ProjectDump issue #2 records the additive correction contract. The pass also proposes a read-only Continuity Freshness Gate so stronger project-owned evidence can flag stale latest-version claims without mutating user state or promoting by timestamp alone.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0658Z-pcx-061-063-prj-001-002.json",
+  "updatedAt": "2026-08-18T07:12:00Z",
+  "completedCursor": ["PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007"],
+  "nextCursor": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
+  "selectionReason": "PRJ-003 through PRJ-006 were rechecked against their current canonical GameSync/GameSync Next source baselines and their detailed wikis remain aligned without meaningful churn. PRJ-007 required a material correction because the typed GameSync Next Petz bridge has a source-proven persistence identity defect beyond its restore TODO: loadPetData reads by breedId, destroy() writes by generated pet.id, the loaded object is ignored, and whole-engine serialization is written per pet. The PRJ-007 wiki now links GameSync-Next issue #9 and records stable-key, non-destructive single-pet, same-breed multi-pet, corrupt-save fallback, restart, build/typecheck, and loaded-artifact acceptance. GitHub Wiki fresh-clone byte verification and a durable Drive wiki copy both passed.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0712Z-prj-003-007.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
