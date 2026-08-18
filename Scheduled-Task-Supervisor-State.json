@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T18:15:30Z",
+  "updatedAt": "2026-08-18T19:18:40Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -9,16 +9,7 @@
     {
       "task": "Project Constellation Evolution",
       "action": "re-enabled",
-      "reason": "Permanent recurring evolution service was disabled after its latest run even though its recurring obligation and current-catalog presentation publication debt remain open."
-    },
-    {
-      "target": "Herbertofury/GameSync-Next#10",
-      "action": "reconciled stale PR metadata to actual remote head and current zero-step workflow evidence",
-      "head": "f916e1a445b4bc6b9d174c5b90169b7803e2f01c",
-      "petzVerifyRunId": 32168143964,
-      "petzVerifyJobId": 95812566007,
-      "secretScanRunId": 32168143809,
-      "secretScanJobId": 95812566691
+      "reason": "Permanent recurring evolution service was disabled after its latest run while its recurring obligation and current-catalog presentation publication debt remain open."
     }
   ],
   "health": {
@@ -27,45 +18,42 @@
     "incompletePausedTasks": 0,
     "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired as an explicit duplicate.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Current private Gamesync, GameSync-Next and Pinterest jobs independently return failed jobs with null/empty workflow steps, while ProjectDump public Wiki publication continues to obtain hosted execution and complete fresh-clone byte verification.",
+    "privateHostedRunnerEvidence": "Current private Gamesync and Pinterest jobs independently return failed jobs with null workflow steps, while ProjectDump public Wiki publication obtained a hosted runner and completed a fresh-clone byte verification.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
     "projectDump": {
       "status": "VERIFIED_CURRENT_WIKI_PUBLICATION",
-      "mainObservedBeforeSupervisorWrite": "a5f3e397edc0b3f740120ff963a9909155ce7c57",
-      "latestMaterialWikiProject": "PRJ-002 Feature Foundry",
-      "wikiSourceCommit": "e1fa36f82dc562a745eb0f51e8d2e5674854807d",
-      "wikiSyncRunId": 32169064081,
+      "main": "2ec07cc0dc23a234c600add39860c5eecc1534ac",
+      "latestMaterialWikiProject": "PRJ-005 Mascot / Screenmate Platform",
+      "wikiSourceCommit": "5716c6c14d3f811421e1a8518aeb12e9bb852e85",
+      "wikiSyncRunId": 32174885398,
+      "wikiSyncJobId": 95834380253,
       "wikiSyncConclusion": "success",
-      "wikiSyncJobId": 95815531848,
-      "wikiMaster": "d0c776c7f8fec7e373e473e2d95ce62ea82dfb52",
-      "wikiVerification": "Supervisor independently fetched the successful sync job and logs: ProjectDump.wiki.git was pushed, then fresh-cloned and verified; the workflow recorded wiki-publication success for the source commit.",
-      "driveWikiVerification": "Evolution cursor checkpoint records the updated PRJ-002 Drive wiki copy was re-read and exported as 33699 bytes with SHA-256 7e6988ead0a2a6c22ce454311f83109faa10e8b94f5897c4dd6653aefc61e523."
+      "wikiMaster": "322d4266ee6c7cebeba2b0c49aaea01e7e393d85",
+      "wikiVerification": "Supervisor independently fetched the workflow job and logs: ProjectDump.wiki.git was pushed, fresh-cloned, verified, and the source commit received wiki-publication success status.",
+      "driveVerification": "PRJ-005 wiki, evolution checkpoint and research cursor were recorded as Drive round-trip verified by the current dual-publication checkpoint."
     },
     "projectConstellationPresentationDebt": {
       "status": "REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED",
-      "debtRepairCommit": "d20f8f252374bc2b505a469dd4eda3a4423190b9",
-      "staleCandidateCatalogSha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
-      "currentPromotedCatalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
-      "requiredRepair": "Regenerate a coherent current six-artifact presentation set, validate and browser-exercise it, publish the exact bytes to required GitHub/Drive destinations, re-read/re-download and verify size/SHA-256, then promote lastAutomationHash."
+      "currentCatalogProjectCount": 63,
+      "currentCatalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "requiredRepair": "Regenerate a coherent current six-artifact presentation set, validate and browser-exercise it, publish the exact bytes to required GitHub and Drive destinations, re-read/re-download and verify size/SHA-256, then promote lastAutomationHash."
     },
     "ferrum": {
       "status": "VERIFIED_PRODUCT_WITH_NEWER_RESEARCH_CHECKPOINT",
       "verifiedProductCommit": "0e212da9effebdc7db1d09a7faea03679bd11cc3",
-      "verifiedProposalHead": "53a8e8b11229c08aab95e06cda7d699cf2caed6b",
       "verifiedTree": "95f135263ed7f6c4961699c101f25fb319ef7572",
       "verifiedWorkflowRun": 32164953344,
-      "latestEvolutionCheckpointCommit": "98ad9b559c22f9463329fba13867dfade01407ec",
-      "latestEvolutionRun": 27,
+      "latestEvolutionCheckpointCommit": "1fa556b86ebf4b5ce6f7edba1052259f58e418b2",
+      "latestEvolutionRun": 28,
       "latestEvolutionDecision": "NO PROVEN IMPROVEMENT THIS RUN",
-      "statusFileNote": "STATUS.json still names the older run-25 product; run-26 checkpoint/product evidence is the newer verified product authority, and run 27 made no product-code change."
+      "productCodeChangedLatestRun": false
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
-      "base": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
       "head": "057775f40756d22080e9efcd3cd6e94f45012fda",
       "secretScanRunId": 32167809840,
       "jobId": 95811428610,
@@ -74,7 +62,6 @@
     "gameSyncStackNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 8,
-      "base": "9e337c720f0180cffa577f140b181c699f0a1650",
       "head": "e3685d3303a5246893b01b41a20d901f35e78cfe",
       "secretScanRunId": 32167826776,
       "jobId": 95811485730,
@@ -83,9 +70,7 @@
     "gameSyncPerformanceNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 7,
-      "base": "9e337c720f0180cffa577f140b181c699f0a1650",
       "head": "5767339466db03579578ca6b8f8ee9e8e24d3abd",
-      "aheadBy": 37,
       "secretScanRunId": 32168000581,
       "jobId": 95812067548,
       "executedStepCount": 0
@@ -97,8 +82,6 @@
       "petzVerifyRunId": 32168143964,
       "petzVerifyJobId": 95812566007,
       "petzVerifyExecutedStepCount": 0,
-      "ferrumDependentJobId": 95812591596,
-      "ferrumDependentConclusion": "skipped",
       "secretScanRunId": 32168143809,
       "secretScanJobId": 95812566691,
       "secretScanExecutedStepCount": 0
@@ -106,58 +89,35 @@
     "gameSyncAdvisoryMigrations": {
       "standaloneWebVitals": {
         "pullRequest": 3,
-        "head": "45437119242cd652945695e090597ac571c88154",
-        "status": "WORKING_REPAIR_IN_PROGRESS",
-        "secretScanRunId": 32167959089,
-        "jobId": 95811928948,
+        "head": "662e82a5c57041c6c17c4225aeb6bf32ed3b174f",
+        "status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER",
+        "secretScanRunId": 32173521845,
+        "jobId": 95830022645,
         "executedStepCount": 0,
-        "blockers": [
-          "authoritative package-lock regeneration",
-          "private hosted-runner execution",
-          "npm registry access in available worker environment"
-        ]
+        "remaining": ["authoritative package-lock regeneration", "private hosted-runner execution"]
       },
       "nextTestToolchain": {
         "pullRequest": 11,
         "head": "49043c3b5bdb0e7139ece1ad63a40d57fab449d7",
-        "status": "WORKING_REPAIR_IN_PROGRESS",
-        "secretScanRunId": 32167997918,
-        "jobId": 95812058783,
-        "executedStepCount": 0,
-        "blockers": [
-          "authoritative workspace lockfile regeneration",
-          "private hosted-runner execution",
-          "npm registry access in available worker environment"
-        ]
+        "status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER",
+        "remaining": ["authoritative workspace lockfile regeneration", "private hosted-runner execution"]
       },
       "nextUiRuntime": {
         "pullRequest": 12,
         "head": "e086598ea5c53fde9cb6bdb9d5b3b7633332f3c4",
-        "status": "WORKING_REPAIR_IN_PROGRESS",
-        "stackUiRuntimeRunId": 32167843183,
-        "linuxVerifyJobId": 95811542541,
-        "operaRuntimeJobId": 95811542646,
-        "ferrumAcceptanceJobId": 95811542689,
-        "secretScanRunId": 32167842961,
-        "secretScanJobId": 95811541514,
-        "executedStepCount": 0,
-        "blockers": [
-          "authoritative workspace lockfile regeneration",
-          "private hosted-runner execution",
-          "npm registry access in available worker environment"
-        ]
+        "status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER",
+        "remaining": ["authoritative workspace lockfile regeneration", "private hosted-runner execution"]
       }
     },
     "pinterestNocturne200": {
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
-      "workflowAttempt": 10,
-      "latestObservedJobId": 95813924401,
+      "workflowAttempt": 11,
+      "latestObservedJobId": 95830270927,
       "latestObservedJobConclusion": "failure",
       "executedStepCount": 0,
       "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES",
-      "driveChecksumManifestFileId": "1X5AhqaaVQUlAk6EvSJiGs0HIoceKaLDD",
       "directReleaseFallback": "No connected GitHub release-asset upload action is exposed; complete release publication remains gated on executable publication infrastructure."
     }
   }
