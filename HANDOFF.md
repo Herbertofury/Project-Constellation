@@ -8,7 +8,7 @@ Read the root `AGENTS.md`, then this directory's `AGENTS.md`, `PROJECT.json`, `S
 
 ## Current product
 
-The v0.5.0 line contains exactly 63 tracked records and keeps It retains quick checkpoints, resume capsules, Ideas & Research decisions, snapshot export/import, and the permanent zero-setup Quick View. This pass adds persistent Continuity Lenses, an explicit Today queue, the Review Queue with reviewed/defer controls, Changed Since Last Visit, legacy v0.4.x local-state migration, research promotion that sets the exact next action, 63 standalone wiki pages, and a self-contained master continuity command center.
+The v0.5.0 line contains exactly 63 tracked records. It retains quick checkpoints, resume capsules, Ideas & Research decisions, snapshot export/import, and the permanent zero-setup Quick View. This pass adds persistent Continuity Lenses, an explicit Today queue, the Review Queue with reviewed/defer controls, Changed Since Last Visit, legacy v0.4.x local-state migration, research promotion that sets the exact next action, 63 standalone wiki pages, and a self-contained master continuity command center.
 
 The first 25 records preserve the durable 2026-08-09 project database detail. The remaining 38 current continuity records are evidence-backed project tracks assembled from durable artifacts and previously verified Project Constellation continuity because the exact prior v0.4.2 63-entry catalog bytes were not found. Their metadata can be refined by newer project-owned evidence without dropping user state or silently changing the 63-record list.
 
