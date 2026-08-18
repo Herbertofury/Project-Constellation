@@ -40,6 +40,13 @@
       "documentationBoundary": "The all-site GameSync Next parity proof covers the lightweight ordinary-page mascot host and SPA/full-runtime coordination. It does not yet prove parity for every historical standalone Shimeji Browser Extension surface such as the shimejis.xyz external install protocol or the embedded GameSync context-menu contract."
     }
   ],
+  "checkpointDrivePublication": {
+    "documentId": "1dpVX5N1mYESJ5mm7Zjg1FyocyJS5iczI-f2gcOy4kY8",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownExportBytes": 3877,
+    "markdownSha256": "d45794827921d5696d527fd287135b4a107ae281a979cef605601f77de664f34",
+    "reread": "pass"
+  },
   "recheckedWithoutChurn": [
     "PCX-039 Webmeji",
     "PCX-040 Pinterest Nocturne",
