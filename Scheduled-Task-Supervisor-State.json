@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T10:15:00Z",
+  "updatedAt": "2026-08-18T11:14:55Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -20,47 +20,57 @@
   },
   "publicationLedger": {
     "projectDump": {
-      "status":"LATEST_REVIEW_NO_MATERIAL_WIKI_DELTA",
-      "latestReviewSlice":"PRJ-018 through PRJ-022",
-      "latestReviewCheckpoint":"project-constellation/evolution/2026-08-18T1006Z-prj-018-022.json",
-      "driveCheckpointFileId":"11UXJOc3TfjupRyphawShI76JdrxryTCJaMSum7k8Bi4",
-      "driveVerification":"re-read passed; checkpoint records export SHA-256 1be6448f7e831a3e9e49c1520e3659973aaa8a6a51d95cbc21009598ea7de57c",
-      "githubWikiSyncRequired":false,
-      "nextWikiReviewSlice":"PRJ-023, PRJ-024, PRJ-025, PCX-026, PCX-027"
+      "status":"MATERIAL_WIKI_DELTA_VERIFIED",
+      "latestMain":"d93cfaaec3e0f4a73b92689f43c6735351ffe165",
+      "latestReviewSlice":"PRJ-023, PRJ-024, PRJ-025, PCX-026, PCX-027",
+      "latestReviewCheckpoint":"project-constellation/evolution/2026-08-18T1108Z-prj-023-pcx-027.json",
+      "driveCheckpointFileId":"1B5FqKxLti3-4nZhNjvPcK3ZLgNbffGqE5gJToQmqaj8",
+      "materialWikiProject":"PRJ-025 UltraDeck",
+      "wikiSourceCommit":"4495b34d0d44ae4b9fe92387751ee54dc0c61124",
+      "wikiSyncRunId":32130161996,
+      "wikiSyncConclusion":"success",
+      "wikiMaster":"58f62221836b6101c62e5a6650ac5ddd52bfefe1",
+      "wikiVerification":"fresh-clone complete-page-set byte comparison passed",
+      "driveWikiFileId":"1DqCCTuM3Ax8rjmNYN09xd5zuY1NDE8oztateaOmPN3M",
+      "driveWikiMarkdownBytes":18502,
+      "driveWikiMarkdownSha256":"9cf732dfc9b2474ccd3023c43d363da9f322664215812bf5eac23e0bcecbe4da",
+      "nextWikiReviewSlice":"PCX-028, PCX-029, PCX-030, PCX-031, PCX-032"
     },
     "ferrum": {
-      "status":"VERIFIED_MERGED_PRODUCT_NEWER_THAN_STATUS_JSON",
-      "pullRequest":33,
-      "verifiedProposalHead":"30f131939086c96ee0274583f4b07e2036d37878",
-      "mergedCommit":"c43c3d6be08ccf58253a56904289d0ee490b880d",
-      "verifiedTree":"3421b002eadd3c9124bbcf57452768325fadb924",
-      "workflowRunId":32124761222,
+      "status":"VERIFIED_MERGED_PRODUCT_AND_CHECKPOINT",
+      "pullRequest":35,
+      "verifiedProposalHead":"b0ac44b1b252d6c6fb563dd9fe60132162717b4e",
+      "workflowRunId":32129110712,
       "workflowConclusion":"success",
-      "note":"PR #33 removed Ferrum's implicit 400-element snapshot cap while preserving explicit caller limits; full CI passed across unit, Linux, Windows, WebDriver, Lightpanda, Electron/packaging, MV3 workloads, and Android/Appium. Ferrum STATUS.json still reports the older verified checkpoint and should be refreshed by Ferrum's own evolution authority."
+      "mergedProductCommit":"0c363058d7507fb259de9e718a65e48d73fc269f",
+      "verifiedTree":"c24411ac0ee1b63ea7b212627d1d75fe1c6c21c0",
+      "currentMainCheckpoint":"e517af4d6e21cd60ea5679c0809f96df7052cfd2",
+      "note":"Run 21 checkpoint records the verified process-readiness terminal-state fix after full Ferrum CI across unit/MCP/evidence integrity, Linux, Windows browser matrix/MV3/workloads, Selenium Grid, Electron/source+packaged desktop, Lightpanda, and real Android/Appium."
     },
     "gameSyncStackStandalone": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":2,
-      "head":"e587bfa0a620d2bcfc1cf398c0e1465dba750246",
-      "latestSecretScanRunId":32125384416,
-      "latestJobId":95674686503,
+      "head":"8de05699cba0230c9eede689b5e1b5b3d011b624",
+      "latestSecretScanRunId":32129020612,
+      "latestJobId":95685818519,
       "executedStepCount":0
     },
     "gameSyncStackNext": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":8,
-      "head":"9587a113062ff6b59a62980af866d5a748a4c078",
-      "latestSecretScanRunId":32125406795,
-      "latestJobId":95674756083,
+      "head":"f48ddd662fc3d815322a7e598af8622f0bd976a9",
+      "latestSecretScanRunId":32129047159,
+      "latestJobId":95685900379,
       "executedStepCount":0
     },
     "gameSyncPerformanceNext": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":7,
-      "head":"c14642cacdfe51d7e21c3aaf457ec667ee6aa949",
-      "latestSecretScanRunId":32125440227,
-      "latestJobId":95674856406,
-      "executedStepCount":0
+      "head":"7a0f2a18502be4d3445273c31ae29ac0927b3264",
+      "latestSecretScanRunId":32128800992,
+      "latestJobId":95685163529,
+      "executedStepCount":0,
+      "leadReview":"HOLD pending exact-head benchmark/build/parity/Ferrum/Opera/Secret gates"
     },
     "pinterestNocturne200": {
       "status":"GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
