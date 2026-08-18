@@ -1,7 +1,13 @@
 {
   "schema": "project-constellation.evolution-checkpoint/1",
   "checkpointAt": "2026-08-18T14:10:00Z",
-  "scope": ["PCX-038", "PCX-039", "PCX-040", "PCX-041", "PCX-042"],
+  "scope": [
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042"
+  ],
   "materialUpdates": [
     {
       "projectId": "PCX-038",
@@ -53,6 +59,12 @@
     "PCX-041 ChatGPT Ultimate Optimizer",
     "PCX-042 GameSync Next"
   ],
-  "nextCursor": ["PCX-043", "PCX-044", "PCX-045", "PCX-046", "PCX-047"],
+  "nextCursor": [
+    "PCX-043",
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047"
+  ],
   "recurringObligation": "OPEN_ONGOING"
 }

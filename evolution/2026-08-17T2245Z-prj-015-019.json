@@ -3,11 +3,16 @@
   "timestamp": "2026-08-17T22:45:00Z",
   "operatingMode": "NORMAL_OPERATION",
   "projectCountInvariant": 63,
-  "sportsGroupHubAbsent": true,
-  "reviewedProjects": ["PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018", "PRJ-019"],
+  "reviewedProjects": [
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019"
+  ],
   "findings": {
     "PRJ-015": "Bethesda Plugin Info 1.5.3 remains the coordinated compatibility target. Its current-host gate is real Windows MO2 v2.5.2 with exact column, tooltip, warning/category, drag/drop, theme/DPI, and restart proof; no runtime promotion was made without that evidence.",
-    "PRJ-016": "Bethesda Creations Version Tracker 2.4.3 remains the current target. Preserve the v2.3.1 migration away from per-mod .bethesda-creation-sorter.json sidecars, corrupt-marker quarantine, and user metadata while qualifying current Starfield/Creation behavior and the coordinated drag/column stack.",
+    "PRJ-016": "Bethesda Creations Version Tracker 2.4.3 remains the current target. Preserve the v2.3.1 migration away from per-mod.bethesda-creation-sorter.json sidecars, corrupt-marker quarantine, and user metadata while qualifying current Starfield/Creation behavior and the coordinated drag/column stack.",
     "PRJ-017": "Current MO2 master installs a host ModListStyledItemDelegate that preserves separator indentation, background/marker painting, and readable text colors. Image Column 1.4.12 should compose with that delegate rather than replace the full list delegate. Preserve all multi-source media providers, stable mod identity, compact rows, complete off-screen availability, and no viewport caps. Add QAbstractItemModelTester only as a matching-version development harness when available, not a shipping dependency.",
     "PRJ-018": "Current MO2 dragMoveEvent delegates semantic drag handling to QAbstractItemView after host-specific state handling, and ModList item flags define valid drop locations. Line Restorer 1.1.0 must remain rendering-only. Proposed a Host Drag Contract Recorder that compares accepted/proposed/drop action, drop indicator position, target index, item flags, and final mod order with the plugin disabled versus enabled.",
     "PRJ-019": "Current MO2 ModListSortProxy uses dynamic sorting and invalidateFilter/filterInvalidated paths, while ModListView already coalesces one marker/plugin refresh burst with a single-shot timer. These are the exact host hot paths to instrument. Newer Qt beginFilterChange/endFilterChange APIs require Qt 6.9/6.10 and are forward-only candidates because MO2 v2.5.2 ships Qt 6.7.1. Preserve 4.0.1 exact-modList binding, reversible hooks, circuit breaker, full-list semantics, and no worker/polling shortcuts."
@@ -71,7 +76,6 @@
   },
   "antiRegression": {
     "projectCountChanged": false,
-    "sportsGroupHubReadded": false,
     "runtimeCodeChanged": false,
     "presentationArtifactsChanged": false,
     "lastAutomationHashChanged": false,
@@ -79,5 +83,11 @@
     "testsWeakened": false
   },
   "wikiCoverageAfterPass": 61,
-  "nextResearchCursor": ["PRJ-020", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"]
+  "nextResearchCursor": [
+    "PRJ-020",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ]
 }

@@ -1,7 +1,13 @@
 {
   "schema": "project-constellation.evolution-checkpoint/1",
   "checkpointAt": "2026-08-18T10:06:24Z",
-  "scope": ["PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022"],
+  "scope": [
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022"
+  ],
   "result": "NO_MATERIAL_WIKI_DELTA",
   "projects": [
     {
@@ -44,6 +50,12 @@
     "exportBytes": 2868,
     "exportSha256": "1be6448f7e831a3e9e49c1520e3659973aaa8a6a51d95cbc21009598ea7de57c"
   },
-  "nextCursor": ["PRJ-023", "PRJ-024", "PRJ-025", "PCX-026", "PCX-027"],
+  "nextCursor": [
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026",
+    "PCX-027"
+  ],
   "automationObligation": "OPEN_AND_ONGOING"
 }

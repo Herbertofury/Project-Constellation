@@ -5,12 +5,30 @@
   "reason": "A coherent current six-artifact candidate was generated from the current 63-record machine catalog, with all recoveryHistory preserved. Static/package checks passed. The 05:45Z hourly pass added source-controlled project documentation and technology research but did not change the 63-record presentation catalog, so the exact candidate bytes remain valid and were not ceremonially regenerated. Chromium runtime could not initialize in the prior candidate-validation environment, and raw connector egress blocks generated local files from Drive replacement, so lastAutomationHash must remain unchanged.",
   "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0545Z",
   "targets": [
-    {"name":"Bert_Project_Second_Brain_Website.zip","driveFileId":"10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"},
-    {"name":"Bert_Project_Constellation_Quick_View.html","driveFileId":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"},
-    {"name":"Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html","driveFileId":"1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO"},
-    {"name":"Bert_Project_Wiki_Pack.zip","driveFileId":"1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ"},
-    {"name":"Project-Constellation-Project-Catalog.json","driveFileId":null},
-    {"name":"Project-Constellation-Research-Suggestions.json","driveFileId":null}
+    {
+      "name": "Bert_Project_Second_Brain_Website.zip",
+      "driveFileId": "10mkzVaIjkHhDP5e93-UFqzjS57XEHiHC"
+    },
+    {
+      "name": "Bert_Project_Constellation_Quick_View.html",
+      "driveFileId": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"
+    },
+    {
+      "name": "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html",
+      "driveFileId": "1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO"
+    },
+    {
+      "name": "Bert_Project_Wiki_Pack.zip",
+      "driveFileId": "1AUEcHVMLFNePTXu2I_ZYDxccCqawAhSZ"
+    },
+    {
+      "name": "Project-Constellation-Project-Catalog.json",
+      "driveFileId": null
+    },
+    {
+      "name": "Project-Constellation-Research-Suggestions.json",
+      "driveFileId": null
+    }
   ],
   "latestEvidenceChanges": [
     "PCX-046 Feature Foundry Source Hubs: verified the V33 six-provider soundtrack hub and added a provider capability/auth matrix proposal grounded in current Spotify PKCE, Apple MusicKit and OAuth BCP 240 behavior.",
@@ -22,11 +40,29 @@
   ],
   "retryContract": "Upload/replace the exact candidate bytes recorded here without regeneration, re-read or re-download all six remote objects, verify SHA-256/size, exercise the Quick View in a functioning browser environment, then promote lastAutomationHash. If the bytes become unavailable before publication, regenerate only from the current machine catalog and verify hashes again. If the presentation catalog changes before publication, invalidate these candidate hashes and regenerate a complete coherent six-artifact set first.",
   "candidate": {
-    "Bert_Project_Second_Brain_Website.zip":{"sha256":"da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594","size":63670},
-    "Bert_Project_Constellation_Quick_View.html":{"sha256":"0cbd6c1f606c9f327138317dc8a3e98ddce93c2e3cbfe438e6c5e9e8a28d26","size":133622},
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html":{"sha256":"d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa","size":147441},
-    "Bert_Project_Wiki_Pack.zip":{"sha256":"c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd","size":127507},
-    "Project-Constellation-Project-Catalog.json":{"sha256":"9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f","size":123738},
-    "Project-Constellation-Research-Suggestions.json":{"sha256":"29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f","size":12583}
+    "Bert_Project_Second_Brain_Website.zip": {
+      "sha256": "da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594",
+      "size": 63670
+    },
+    "Bert_Project_Constellation_Quick_View.html": {
+      "sha256": "0cbd6c1f606c9f327138317dc8a3e98ddce93c2e3cbfe438e6c5e9e8a28d26",
+      "size": 133622
+    },
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+      "sha256": "d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa",
+      "size": 147441
+    },
+    "Bert_Project_Wiki_Pack.zip": {
+      "sha256": "c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd",
+      "size": 127507
+    },
+    "Project-Constellation-Project-Catalog.json": {
+      "sha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
+      "size": 123738
+    },
+    "Project-Constellation-Research-Suggestions.json": {
+      "sha256": "29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f",
+      "size": 12583
+    }
   }
 }

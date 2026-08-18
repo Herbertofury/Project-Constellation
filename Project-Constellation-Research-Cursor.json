@@ -1,8 +1,20 @@
 {
   "schema": "project-constellation.research-cursor/1",
   "updatedAt": "2026-08-18T15:59:00Z",
-  "completedCursor": ["PCX-048", "PCX-049", "PCX-050", "PCX-051", "PCX-052"],
-  "nextCursor": ["PCX-053", "PCX-054", "PCX-055", "PCX-056", "PCX-057"],
+  "completedCursor": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
+  "nextCursor": [
+    "PCX-053",
+    "PCX-054",
+    "PCX-055",
+    "PCX-056",
+    "PCX-057"
+  ],
   "selectionReason": "PCX-048 through PCX-052 were rechecked against current ProjectDump wiki source, current GameSync/GameSync Next evidence, and recent Project Constellation checkpoints. PCX-048 Theme Foundry, PCX-049 Live Mascot Tavern, PCX-050 Real Library Performance, and PCX-051 Capability Truth remain accurately documented and did not justify cosmetic churn. PCX-052 Release Factory received a material research/documentation extension: GitHub artifact attestations are now modeled as additive signed build provenance for the exact final artifact bytes, with optional SPDX/CycloneDX SBOM attestation, fresh-environment consumer verification, attestation-subject digest matching, and final GitHub/Drive re-download hash verification. Existing build, parity, same-ID upgrade, Opera/runtime, regression, SHA-256, and remote-byte gates remain mandatory. The same pass also repaired the previously empty PCX-046 Source Hubs Drive wiki object with non-empty current Spotify credential-lifecycle/quota research and moved it into Project Wikis. Concurrent Project Constellation cleanup commits were preserved.",
   "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1559Z-pcx-048-052.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."

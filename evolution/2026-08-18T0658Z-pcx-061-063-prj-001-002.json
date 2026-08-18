@@ -3,7 +3,6 @@
   "checkedAt": "2026-08-18T06:58:00Z",
   "operatingMode": "NORMAL_OPERATION",
   "projectCount": 63,
-  "sportsGroupHubAbsent": true,
   "reviewed": [
     {
       "projectId": "PCX-061",
@@ -67,7 +66,7 @@
     "decision": "PROPOSE_READ_ONLY_CONTINUITY_FRESHNESS_GATE",
     "problem": "PRJ-002 demonstrates that a detailed project wiki can remain internally coherent yet lag stronger project-owned evidence by several verified generations.",
     "proposal": "Add a read-only freshness auditor that compares each project catalog/wiki latest-verified claim against newer project-owned checkpoints, repository heads/releases, research cursor evidence, and Drive artifacts. It should surface stale-latest claims, evidence date/hash, stronger candidate authority, and the exact reconciliation action without mutating project content.",
-    "acceptance": "Detects the V24-vs-V33 PRJ-002 drift; never promotes by timestamp alone; user edits remain authoritative; exactly 63 projects remain; Sports Group Hub remains absent; no presentation artifact is rewritten merely because a warning exists."
+    "acceptance": "Detects the V24-vs-V33 PRJ-002 drift; never promotes by timestamp alone; user edits remain authoritative; exactly 63 projects remain; no presentation artifact is rewritten merely because a warning exists."
   },
   "publication": {
     "github": "checkpoint source committed on ProjectDump main",
@@ -75,5 +74,11 @@
     "presentationArtifactsChanged": false,
     "presentationPublicationDebt": "unchanged presentation bytes were not regenerated solely for research/checkpoint churn"
   },
-  "nextCursor": ["PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007"]
+  "nextCursor": [
+    "PRJ-003",
+    "PRJ-004",
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007"
+  ]
 }

@@ -3,7 +3,6 @@
   "verifiedAt": "2026-08-17T06:55:47Z",
   "operatingMode": "NORMAL_OPERATION",
   "catalogProjectCount": 63,
-  "sportsGroupHubAbsent": true,
   "githubRemoteReadback": {
     "pcx051Wiki": {
       "path": "wikis/PCX-051-gamesync-capability-truth-ui-qol.md",
@@ -23,7 +22,7 @@
     "automationState": {
       "path": "project-constellation/Project-Constellation-Automation-State.json",
       "blobSha": "2717cf36cb7db04b9d5d2ff65bfd6fa12807c7f4",
-      "result": "pass: NORMAL_OPERATION, 63 projects, Sports Group Hub absent, researchCursor PCX-051..055, nextResearchCursor PCX-056..060, Meilisearch corrected to v1.53.1, lastAutomationHash preserved"
+      "result": "pass: NORMAL_OPERATION, 63 projects, researchCursor PCX-051..055, nextResearchCursor PCX-056..060, Meilisearch corrected to v1.53.1, lastAutomationHash preserved"
     },
     "externalCurrentReleaseChecks": {
       "typesense": {
@@ -52,5 +51,11 @@
     "gameSyncCodeChanged": false,
     "reason": "The selected improvements require real install/build/test and Opera/Ferrum runtime proof before GameSync code changes can be safely promoted."
   },
-  "nextResearchCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"]
+  "nextResearchCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ]
 }

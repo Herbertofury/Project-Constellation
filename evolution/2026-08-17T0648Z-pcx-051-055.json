@@ -3,7 +3,6 @@
   "checkedAt": "2026-08-17T06:48:36Z",
   "operatingMode": "NORMAL_OPERATION",
   "catalogProjectCount": 63,
-  "sportsGroupHubAbsent": true,
   "sourceWatermarks": {
     "projectDumpMainBeforeWrites": "8c8211288f3e7ac57da37adbdec657efc59c7c17",
     "shippingGameSyncMain": "d84c2389b9e01dc47b7ba094c2d23a7b4cbbf9f4",
@@ -121,5 +120,11 @@
     "reason": "A lower-recall web search initially surfaced stale Meilisearch v1.45.1 release data. The connected GitHub Releases API was then queried directly and proved v1.53.1, published 2026-08-13, is the current latest release. The stale version was corrected before closeout.",
     "verifiedSource": "https://api.github.com/repos/meilisearch/meilisearch/releases/latest"
   },
-  "nextResearchCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"]
+  "nextResearchCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ]
 }

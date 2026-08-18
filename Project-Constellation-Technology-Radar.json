@@ -4,7 +4,9 @@
   "purpose": "Durable current-technology candidates with explicit adopt/experiment/observe/reject decisions so Project Constellation stays current without blind upgrades.",
   "records": [
     {
-      "projectIds": ["PCX-036"],
+      "projectIds": [
+        "PCX-036"
+      ],
       "candidate": "@sqlite.org/sqlite-wasm",
       "currentVersion": "3.53.0-build1",
       "maturity": "stable/current",
@@ -21,7 +23,9 @@
       "acceptance": "All 63 project records and user state round-trip; two-tab behavior is explicitly tested; unavailable OPFS falls back cleanly; Quick View remains dependency-free and unchanged; no canonical data is deleted or rewritten silently."
     },
     {
-      "projectIds": ["PCX-037"],
+      "projectIds": [
+        "PCX-037"
+      ],
       "candidate": "DalekCraft2/Shimeji-Desktop",
       "currentVersion": "main@dea89528c10c066626a09609f0e742cbe6405a8d",
       "maturity": "active upstream benchmark",
@@ -38,7 +42,9 @@
       "acceptance": "Canonical runtime retains all existing packs and behavior; any borrowed change improves a measured problem; no pack semantic regression; Windows behavior remains correct and cross-platform additions stay optional."
     },
     {
-      "projectIds": ["PCX-037"],
+      "projectIds": [
+        "PCX-037"
+      ],
       "candidate": "pixelomer/Shijima-Qt",
       "currentVersion": "archived repository",
       "maturity": "discontinued/archived",
@@ -55,7 +61,9 @@
       "acceptance": "No canonical dependency is introduced from the archived base."
     },
     {
-      "projectIds": ["PCX-038"],
+      "projectIds": [
+        "PCX-038"
+      ],
       "candidate": "pixelomer/Shijima-Web",
       "currentVersion": "experimental main, pushed 2026-01-12",
       "maturity": "experimental",
@@ -72,7 +80,9 @@
       "acceptance": "Any borrowed behavior has a reproducible failing case and passes the existing GameSync browser/runtime gates; no bridge/storage/pack semantics are removed."
     },
     {
-      "projectIds": ["PCX-039"],
+      "projectIds": [
+        "PCX-039"
+      ],
       "candidate": "lars-rooij/webmeji",
       "currentVersion": "main source last updated 2026-01-27",
       "maturity": "current hobby/reference implementation",
@@ -89,7 +99,9 @@
       "acceptance": "Existing bottom/top/left/right, pet, drag, jump, fall and multi-instance behavior remains; touch and desktop input work; host page click/scroll/navigation remains unaffected; optional features disable cleanly."
     },
     {
-      "projectIds": ["PCX-040"],
+      "projectIds": [
+        "PCX-040"
+      ],
       "candidate": "Scheduler.yield() / Prioritized Task Scheduling API",
       "currentVersion": "web platform API",
       "maturity": "limited-availability web API",
@@ -106,7 +118,9 @@
       "acceptance": "Median/p95 interaction does not regress, organic card/media counts and full fidelity remain identical, Firefox follows the existing fallback, Lean Off/Performance Off remain reversible, and live Pinterest smoke has no new console/network/runtime errors."
     },
     {
-      "projectIds": ["PCX-040"],
+      "projectIds": [
+        "PCX-040"
+      ],
       "candidate": "web-vitals",
       "currentVersion": "6.0.0",
       "maturity": "stable/current",
@@ -123,7 +137,9 @@
       "acceptance": "No production dependency added unless a specific metric materially improves release gating beyond existing tests."
     },
     {
-      "projectIds": ["PCX-046"],
+      "projectIds": [
+        "PCX-046"
+      ],
       "candidate": "Provider capability/auth matrix using OAuth BCP 240 and provider-owned authorization flows",
       "currentVersion": "RFC 9700 / Spotify February 2026 API regime / current Apple MusicKit",
       "maturity": "current standards and provider APIs",
@@ -140,7 +156,9 @@
       "acceptance": "All existing provider mappings survive; no secret/signing key enters browser-exportable project state; authenticated actions are only shown when actually supported; errors remain provider-local; fallback navigation remains functional."
     },
     {
-      "projectIds": ["PCX-047"],
+      "projectIds": [
+        "PCX-047"
+      ],
       "candidate": "SQLite 3.53.4",
       "currentVersion": "3.53.4 (2026-07-24)",
       "maturity": "stable/current",
@@ -157,7 +175,9 @@
       "acceptance": "All data and IDs remain identical, all validation passes, no query regresses materially, and any adoption has measured benefit or needed correctness fixes."
     },
     {
-      "projectIds": ["PCX-048"],
+      "projectIds": [
+        "PCX-048"
+      ],
       "candidate": "Design Tokens Format Module 2025.10 interchange adapter",
       "currentVersion": "2025.10 stable final report",
       "maturity": "stable community specification",
@@ -174,7 +194,9 @@
       "acceptance": "No source-contract data is lost, visual/token semantics remain equivalent, reduced-motion/effects variants survive, no-cap gates pass, and host parity is unchanged."
     },
     {
-      "projectIds": ["PCX-049"],
+      "projectIds": [
+        "PCX-049"
+      ],
       "candidate": "Native mascot room-capability adapter contract",
       "currentVersion": "GameSync 0.25.9 Live Mascot Tavern verified checkpoint",
       "maturity": "verified internal architecture direction",
@@ -191,7 +213,9 @@
       "acceptance": "Every representative remains a real native engine, unsupported capabilities remain explicit, swarm/room state stays consistent, restart restores promised state and no fake simulator path reappears."
     },
     {
-      "projectIds": ["PCX-050"],
+      "projectIds": [
+        "PCX-050"
+      ],
       "candidate": "SQLite WASM 3.53.4 OPFS VFS matrix",
       "currentVersion": "SQLite 3.53.4 with opfs, opfs-wl and opfs-sahpool",
       "maturity": "stable/current",
@@ -208,5 +232,11 @@
       "acceptance": "Identical library count, identity/provenance and media quality; repeated median/p95 gains beyond noise; no restart/concurrency regression; real browser sync and persistence pass before adoption."
     }
   ],
-  "nextReview": ["PCX-051", "PCX-052", "PCX-053", "PCX-054", "PCX-055"]
+  "nextReview": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ]
 }

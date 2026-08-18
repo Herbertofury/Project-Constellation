@@ -1,7 +1,13 @@
 {
   "schema": "project-constellation.wiki-evolution-checkpoint/1",
   "checkpointAt": "2026-08-18T04:13:30Z",
-  "range": ["PCX-041", "PCX-042", "PCX-043", "PCX-044", "PCX-045"],
+  "range": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
   "materialUpdates": [
     {
       "projectId": "PCX-042",
@@ -47,6 +53,12 @@
       "reason": "Existing Feature Foundry Object Intelligence page remains detailed and no stronger newer source/runtime delta was resolved this pass."
     }
   ],
-  "nextCursor": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "nextCursor": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ],
   "automationObligation": "ONGOING"
 }

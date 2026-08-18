@@ -4,7 +4,6 @@
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
   "projectCount": 63,
-  "sportsGroupHubAbsent": true,
   "reviewedProjects": [
     "PCX-026",
     "PCX-027",
@@ -39,7 +38,6 @@
   "publicationDebtManifest": "f3349f01fbd4b445234c2b1fdb26f08a8840a4aa5137b4b60f466bbac3e48930",
   "validation": {
     "projectCount63": "pass",
-    "sportsGroupHubAbsent": "pass",
     "goalsRequirementsRecoveryHistory": "pass",
     "researchContract": "pass: 5 project research records + Publication Debt Queue app research, with fact/proposal/fit/experiment/risks/acceptance",
     "javascriptSyntax": "pass",

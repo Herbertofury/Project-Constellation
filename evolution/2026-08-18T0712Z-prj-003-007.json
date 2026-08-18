@@ -3,7 +3,6 @@
   "checkedAt": "2026-08-18T07:12:00Z",
   "operatingMode": "NORMAL_OPERATION",
   "projectCount": 63,
-  "sportsGroupHubAbsent": true,
   "reviewed": [
     {
       "projectId": "PRJ-003",
@@ -66,6 +65,12 @@
     "presentationArtifactsChanged": false,
     "presentationPublicationDebt": "unchanged presentation bytes were not regenerated solely for documentation checkpoint churn"
   },
-  "nextCursor": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
+  "nextCursor": [
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012"
+  ],
   "recurringServiceState": "OPEN_AND_ONGOING"
 }

@@ -88,13 +88,21 @@
         "pullRequest": 3,
         "head": "da91191ffaddc4d934cc94a59e2920b3d39b417c",
         "status": "WORKING_REPAIR_IN_PROGRESS",
-        "blockers": ["authoritative package-lock regeneration", "private hosted-runner execution", "npm registry access in available local environment"]
+        "blockers": [
+          "authoritative package-lock regeneration",
+          "private hosted-runner execution",
+          "npm registry access in available local environment"
+        ]
       },
       "nextTestToolchain": {
         "pullRequest": 11,
         "head": "11e2d0de558377eb0c3e5619a2729fc7eb1e66e0",
         "status": "WORKING_REPAIR_IN_PROGRESS",
-        "blockers": ["authoritative workspace lockfile regeneration", "private hosted-runner execution", "npm registry access in available local environment"]
+        "blockers": [
+          "authoritative workspace lockfile regeneration",
+          "private hosted-runner execution",
+          "npm registry access in available local environment"
+        ]
       }
     },
     "pinterestNocturne200": {

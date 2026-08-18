@@ -4,10 +4,15 @@
   "operatingMode": "NORMAL_OPERATION",
   "catalogInvariant": {
     "trackedProjects": 63,
-    "sportsGroupHubAbsent": true,
     "projectConstellationControlPlaneExcludedFromTargetRotation": true
   },
-  "slice": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "slice": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ],
   "canonical": {
     "projectDumpRepository": "Herbertofury/ProjectDump",
     "projectDumpBranch": "main",
@@ -29,7 +34,9 @@
       "proposal": "Extend the provider capability/auth schema with a stable provider account identity field and an explicit purpose-restricted bulk-catalog capability. Use Spotify account_id for durable Spotify linkage, keep MusicKit subscriber authorization separate from Apple Music Feed, and retain all six current external-navigation fallbacks.",
       "smallestExperiment": "Exercise Spotify PKCE plus account_id linkage and MusicKit web authorization while adding schema-only support for the Apple Music Feed lane without advertising it in UI until runtime-verified.",
       "acceptance": "All six V33 provider fallbacks and per-theme mappings survive; provider UI advertises only verified capabilities; no secrets/signing keys enter browser-exportable state; provider identity is stable; bulk-feed purpose/freshness is explicit; provider failures remain isolated.",
-      "writes": ["wikis/PCX-046-feature-foundry-source-hubs.md"]
+      "writes": [
+        "wikis/PCX-046-feature-foundry-source-hubs.md"
+      ]
     },
     {
       "project": "PCX-047",
@@ -58,7 +65,9 @@
       "proposal": "Treat the current theme package family as the target architecture but repair/verify theme-core and theme-schema contract consistency on a scoped proposal before adding the Design Tokens 2025.10 interchange adapter.",
       "smallestExperiment": "Run package-local theme-core and theme-schema builds/type checks, add field-type/select-option fixtures, prove the real consuming host uses the corrected contract, then perform one-theme Design Tokens round trip.",
       "acceptance": "Package contracts agree; clean package-local checks pass; real host consumes the tested output; stable IDs and all theme/world/object/provider data survive; North Star/no-cap/host-parity/runtime gates remain clean.",
-      "writes": ["wikis/PCX-048-gamesync-theme-foundry.md"]
+      "writes": [
+        "wikis/PCX-048-gamesync-theme-foundry.md"
+      ]
     },
     {
       "project": "PCX-049",
@@ -73,7 +82,9 @@
       "proposal": "Preserve the native-engine architecture while repairing the Petz descendant: remove the fixed architectural four-pet ceiling or make any safety preference explicitly configurable/non-destructive, define one persistence owner/key, and wire engine restore through the bridge.",
       "smallestExperiment": "Add bridge-focused tests for uncapped/configured spawn policy, save/load key identity and full serialize/restore round trip, then run extension v1 and Extension V2 restart fixtures before merge.",
       "acceptance": "No artificial mascot-count ceiling removes supported mascots; save/load identity matches; restored state is actually applied after full restart; real Petz engine behavior remains active; v1/v2 and broader cross-engine room fixtures pass without fake fallback or state loss.",
-      "writes": ["wikis/PCX-049-gamesync-live-mascot-tavern.md"]
+      "writes": [
+        "wikis/PCX-049-gamesync-live-mascot-tavern.md"
+      ]
     },
     {
       "project": "PCX-050",
@@ -96,7 +107,7 @@
     "action": "Continue treating the fresh research cursor as the scheduling authority without regenerating unchanged Quick View/master/PWA/wiki-pack presentation bytes solely for cursor bookkeeping."
   },
   "antiRegression": [
-    "Preserved exactly 63 tracked projects and Sports Group Hub absence.",
+    "Preserved exactly 63 tracked projects.",
     "No viewport admission, virtualization, culling, hidden count cap, reduced dataset, lower fidelity or weaker validation was introduced.",
     "No current product source was changed without real package/runtime verification; source-backed defects were documented as scoped repair proposals instead.",
     "Existing verified V33/0.25.9 preservation baselines remain rollback and parity references rather than being overwritten by unverified current-source assumptions."
@@ -106,5 +117,11 @@
     "drive": "Publish matching material wiki/checkpoint/cursor copies into the connected Project Constellation/Project Wikis Drive areas and re-read them.",
     "presentationArtifacts": "No Quick View/master/PWA/wiki-pack regeneration because no presentation bytes were changed in this pass."
   },
-  "nextCursor": ["PCX-051", "PCX-052", "PCX-053", "PCX-054", "PCX-055"]
+  "nextCursor": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ]
 }

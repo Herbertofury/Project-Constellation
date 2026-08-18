@@ -3,7 +3,6 @@
   "timestamp": "2026-08-18T06:12:00Z",
   "operatingMode": "NORMAL_OPERATION",
   "projectCountInvariant": 63,
-  "sportsGroupHubAbsent": true,
   "reviewed": [
     {
       "id": "PCX-056",
@@ -58,6 +57,12 @@
     "googleDriveMarkdownExportBytes": 3823,
     "googleDriveMarkdownExportSha256": "0d864c5df9afb9e82b8def4c6c165d193631ada80b302100c7b48fec76104a10"
   },
-  "nextCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-001", "PRJ-002"],
+  "nextCursor": [
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-001",
+    "PRJ-002"
+  ],
   "automationPersistence": "OPEN_AND_ONGOING"
 }

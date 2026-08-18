@@ -3,7 +3,13 @@
   "checkpointAt": "2026-08-18T11:08:00Z",
   "result": "MATERIAL_WIKI_DELTA",
   "automationObligation": "OPEN_AND_ONGOING",
-  "reviewed": ["PRJ-023", "PRJ-024", "PRJ-025", "PCX-026", "PCX-027"],
+  "reviewed": [
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026",
+    "PCX-027"
+  ],
   "materialUpdates": [
     {
       "projectId": "PRJ-025",
@@ -59,6 +65,12 @@
     "markdownSize": 4350,
     "markdownSha256": "399a7b2e303fae082027085dd1b67a178ded03f9d6a33937ef1be5248485c2ae"
   },
-  "nextCursor": ["PCX-028", "PCX-029", "PCX-030", "PCX-031", "PCX-032"],
+  "nextCursor": [
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032"
+  ],
   "persistenceRule": "This checkpoint records one recurring documentation pass only. The Wiki Maintainer obligation remains open and ongoing."
 }

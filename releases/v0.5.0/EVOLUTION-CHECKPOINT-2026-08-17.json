@@ -4,8 +4,13 @@
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
   "projectCount": 63,
-  "sportsGroupHubAbsent": true,
-  "reviewedProjects": ["PRJ-002", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"],
+  "reviewedProjects": [
+    "PRJ-002",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ],
   "materialChanges": {
     "PRJ-002": "Latest verified Feature Foundry reference corrected from V11 to V24; V23/V11 lineage preserved; production repository boundary retained.",
     "PRJ-022": "Identity resolved as generated Feature Foundry 2.0 Feral Unified App Base, package 0.1.0; not shippable.",
@@ -33,7 +38,6 @@
   },
   "validation": {
     "projectCount63": "pass",
-    "sportsGroupHubAbsent": "pass",
     "jsonParse": "pass",
     "javascriptSyntax": "pass",
     "wikiPages63": "pass",

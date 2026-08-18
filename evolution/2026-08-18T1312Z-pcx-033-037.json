@@ -25,7 +25,10 @@
       "projectVerifiedCommit": "71f85c8c7e10f6098dc5d49a501b07e9c4c4d21f",
       "projectVerifiedWorkflow": 32134811799,
       "projectLatestAdditiveCommit": "09c8334ef5b744afd8ca94732cd9c458744058fb",
-      "projectLatestAdditiveWorkflows": [32139957979, 32139957988],
+      "projectLatestAdditiveWorkflows": [
+        32139957979,
+        32139957988
+      ],
       "wikiSourceCommit": "1eac0fe0e0240574dde4432c15160217d299d073",
       "wikiSourceBlob": "33572afe3013ea3caa3efb41e8891dac800ee2c8",
       "wikiWorkflowRun": 32140886458,

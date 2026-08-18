@@ -12,8 +12,6 @@
   "invariants": {
     "projectCount": 63,
     "uniqueProjectIds": true,
-    "sportsGroupHubExcluded": true,
-    "sportsGroupHubRecordAbsent": true,
     "allProjectsHaveGoal": true,
     "allProjectsHaveRequirements": true,
     "allProjectsHaveRecoveryHistory": true

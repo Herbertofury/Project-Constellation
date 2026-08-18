@@ -2,7 +2,6 @@
   "schema": "project-constellation.research-delta/1",
   "checkedAt": "2026-08-17T23:38:00Z",
   "projectCountInvariant": 63,
-  "sportsGroupHubAbsent": true,
   "projects": [
     {
       "project": "PRJ-020",
@@ -12,13 +11,13 @@
       "checked": "2026-08-17",
       "currentVersionStatus": "fresh Rust + Flutter rewrite, main at 00adb430efd13b70db8791af3566eae7b4e8aa17 after first implementation commit 3a899b02c27e6abd67d6e92cdf1fe122a52f7b41",
       "maintenanceActivity": "repository created and pushed 2026-08-14; predecessor Qt repository pushed 2026-08-13 and explicitly announces migration to Rust",
-      "fact": "The rewrite splits a Shimeji-compatible runtime into Rust engine/pack/platform/runtime/CLI/store/common crates plus a Flutter manager. It documents QuickJS conditions, 22 actions, native transparent-window backends, .mascot/legacy ZIP handling, HTTP/local IPC compatibility and cargo workspace tests.",
+      "fact": "The rewrite splits a Shimeji-compatible runtime into Rust engine/pack/platform/runtime/CLI/store/common crates plus a Flutter manager. It documents QuickJS conditions, 22 actions, native transparent-window backends,.mascot/legacy ZIP handling, HTTP/local IPC compatibility and cargo workspace tests.",
       "fit": "PRJ-020 exists to preserve current desktop-pet ecosystem architecture and parity evidence for downstream Mascot/Shimeji/ACS/Petz projects.",
       "benefit": "Provides a current side-by-side migration case study with an unusually explicit compatibility contract rather than only a new UI or language rewrite.",
       "integrationCost": "low for research and differential fixtures; high for any direct migration",
       "risks": "The rewrite is only days old; Linux/macOS visual behavior is not yet real-machine proven and external store/GitHub-App deployment remains pending. It is not the user's canonical mascot source.",
       "migrationPath": "Do not replace any canonical project. Run the same resource-pack/action/window/CLI/API corpus against the mature Qt v0.5.3 line and the Rust rewrite, then transplant only measured improvements that preserve existing user-owned engine semantics.",
-      "smallestExperiment": "Build one Windows differential corpus covering representative Shimeji packs, all encountered action types, .mascot/ZIP import, drag/hit-testing, transparent windows, composition restart and CLI/HTTP/IPC outputs.",
+      "smallestExperiment": "Build one Windows differential corpus covering representative Shimeji packs, all encountered action types,.mascot/ZIP import, drag/hit-testing, transparent windows, composition restart and CLI/HTTP/IPC outputs.",
       "acceptance": "The candidate is useful only where behavior is parity-proven or a specific measured improvement survives the downstream project's full regression suite. No canonical runtime or research master is replaced."
     },
     {

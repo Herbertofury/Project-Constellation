@@ -3,8 +3,13 @@
   "timestamp": "2026-08-17T15:35:00Z",
   "operatingMode": "NORMAL_OPERATION",
   "projectCountInvariant": 63,
-  "sportsGroupHubAbsent": true,
-  "reviewedProjects": ["PCX-061", "PCX-062", "PCX-063", "PRJ-021", "PRJ-009"],
+  "reviewedProjects": [
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-021",
+    "PRJ-009"
+  ],
   "findings": {
     "PCX-061": "Current GameSync Next main 9e337c720f0180cffa577f140b181c699f0a1650 contains petz-engine, petz-compat, petz-formats and petz-bridge 0.1.0 TypeScript packages. PetzEngine is platform-agnostic and owns Petz state/simulation while PetzMascotBridge is a host adapter. Require deterministic cross-host parity/restart proof before claiming shipping/Next/desktop equivalence.",
     "PCX-062": "QA Cockpit lineage remains preserved but canonical current archive/repository is not exposed by connected GitHub/Drive searches. Current official RuneLite Plugin Hub guidance remains the recovery/build target: Java 11, Gradle run workflow, commit-pinned manifests, latest.release client tracking, and dependency-verification hashes for added third-party dependencies.",
@@ -13,7 +18,10 @@
     "PRJ-009": "Skill Atlas lineage through QA Cockpit remains preserved; canonical current source is unresolved. Treat PRJ-009 as the family/content lineage and PCX-062 as the QA surface over one eventual canonical source, not two drifting implementations."
   },
   "research": {
-    "runelite": ["https://github.com/runelite/plugin-hub", "https://github.com/runelite/runelite/wiki/Developer-Guide"],
+    "runelite": [
+      "https://github.com/runelite/plugin-hub",
+      "https://github.com/runelite/runelite/wiki/Developer-Guide"
+    ],
     "propertyBasedTestingReference": "fast-check v4.9.0; use the strategy only, implemented with a Java-native tool after Gradle source recovery",
     "aestheticVaultVectorReference": "sqlite-vec stable v0.1.9; 0.1.10-alpha.4 is pre-release and experiment-only"
   },
@@ -25,11 +33,16 @@
   },
   "antiRegression": {
     "projectCountChanged": false,
-    "sportsGroupHubReadded": false,
     "presentationArtifactsChanged": false,
     "lastAutomationHashChanged": false,
     "runtimeCodeChanged": false
   },
   "wikiCoverageAfterPass": 51,
-  "nextResearchCursor": ["PRJ-001", "PRJ-011", "PRJ-012", "PRJ-013", "PRJ-014"]
+  "nextResearchCursor": [
+    "PRJ-001",
+    "PRJ-011",
+    "PRJ-012",
+    "PRJ-013",
+    "PRJ-014"
+  ]
 }

@@ -6,7 +6,13 @@
     "trackedProjects": 63,
     "projectConstellationControlPlaneExcludedFromTargetRotation": true
   },
-  "slice": ["PCX-051", "PCX-052", "PCX-053", "PCX-054", "PCX-055"],
+  "slice": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ],
   "canonical": {
     "projectDumpRepository": "Herbertofury/ProjectDump",
     "projectDumpBranch": "main",
@@ -62,7 +68,9 @@
       "githubSourceCommit": "23c2feaa0eb90867bc649de59a0e4fe8e5df976a",
       "wikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
       "driveWikiFileId": "1pbwA7nHjwhdNGgy0jqTX4fiFa9vwx82q2JOyEIS2JK0",
-      "writes": ["wikis/PCX-054-gamesync-source-finder-entity-resolver.md"]
+      "writes": [
+        "wikis/PCX-054-gamesync-source-finder-entity-resolver.md"
+      ]
     },
     {
       "project": "PCX-055",
@@ -80,7 +88,9 @@
       "wikiPublicationCommitForPageUpdate": "77f48833db28db8088e87f36f8ccd3f3a8c91f2e",
       "finalWikiMasterCommitAfterSlice": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
       "driveWikiFileId": "1XFGWsjfhAu9zDvUIbw04jMwegxwZdovIPz5EbpQqoIY",
-      "writes": ["wikis/PCX-055-gamesync-script-polling-runtime.md"]
+      "writes": [
+        "wikis/PCX-055-gamesync-script-polling-runtime.md"
+      ]
     }
   ],
   "publicationVerification": {
@@ -98,5 +108,11 @@
     "No viewport virtualization, hidden count cap, reduced provider set, weakened identity threshold, or weaker verification was recommended as a fix.",
     "No product source code was changed by the wiki-maintenance pass; verified defects were documented with scoped repair and runtime acceptance requirements."
   ],
-  "nextCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"]
+  "nextCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ]
 }

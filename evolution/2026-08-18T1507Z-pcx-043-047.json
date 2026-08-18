@@ -1,7 +1,13 @@
 {
   "schema": "project-constellation.wiki-checkpoint/1",
   "checkpointAt": "2026-08-18T15:07:00Z",
-  "range": ["PCX-043", "PCX-044", "PCX-045", "PCX-046", "PCX-047"],
+  "range": [
+    "PCX-043",
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047"
+  ],
   "recurringObligation": "ONGOING",
   "materialUpdates": [
     {
@@ -56,7 +62,13 @@
       "ambiguousIdentifiers": 16
     }
   },
-  "nextCursor": ["PCX-048", "PCX-049", "PCX-050", "PCX-051", "PCX-052"],
+  "nextCursor": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
   "persistence": {
     "github": "ProjectDump source, real GitHub Wiki and this checkpoint committed and re-read",
     "drive": "PCX-043 wiki mirrored into Project Wikis and independently re-read/exported",

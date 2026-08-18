@@ -3,7 +3,6 @@
   "createdAt": "2026-08-17T05:45:00Z",
   "operatingMode": "NORMAL_OPERATION",
   "catalogProjectCount": 63,
-  "sportsGroupHubAbsent": true,
   "repoHeadAtStart": "fd976f482177a0d657632bfeacf7e5310d51e684",
   "repoHeadBeforeCheckpoint": "f6208fd4a2bb10ee908055a282decde2a6312962",
   "reviewedProjects": [
@@ -94,7 +93,6 @@
   },
   "validation": {
     "projectCount63": "pass from canonical automation state and byte-verified v0.5.0 Quick View",
-    "sportsGroupHubAbsent": "pass from canonical automation state and byte-verified v0.5.0 Quick View",
     "sourceAuthorityReview": "pass for PCX-046 through PCX-050",
     "wikiRemoteReadback": "pass for all five new wikis",
     "wikiCoverage": "33 detailed target-project wikis after index update",

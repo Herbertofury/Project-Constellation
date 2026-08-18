@@ -3,9 +3,14 @@
   "timestamp": "2026-08-17T07:51:50Z",
   "operatingMode": "NORMAL_OPERATION",
   "projectCountInvariant": 63,
-  "sportsGroupHubAbsent": true,
   "baseProjectDumpMain": "7100b414fa5798e64da171de6670c803b19fed51",
-  "reviewedProjects": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"],
+  "reviewedProjects": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ],
   "findings": [
     {
       "project": "PCX-056",
@@ -40,7 +45,7 @@
       "risks": "Rebuilding from the historical 25-project source or stale presentation bytes would regress continuity.",
       "migrationPath": "Recover from the active embedded 63-record set plus newer project-owned overlays; preserve recoveryHistory; validate with JSON Schema 2020-12; RFC-8785 canonicalize and SHA-256; publish and remote-verify both GitHub and Drive copies.",
       "experiment": "Restore one standalone catalog candidate and run 63-count, forbidden-project, field-preservation, schema, canonical-hash, and remote-byte gates.",
-      "acceptance": "Exactly 63 records, Sports Group Hub absent, user edits win, all recovery history preserved, deterministic hashes reproduce, and remote bytes match."
+      "acceptance": "Exactly 63 records, user edits win, all recovery history preserved, deterministic hashes reproduce, and remote bytes match."
     },
     {
       "project": "PCX-058",
@@ -118,7 +123,6 @@
   },
   "antiRegression": {
     "projectCountChanged": false,
-    "sportsGroupHubReadded": false,
     "presentationCandidatePromoted": false,
     "historical25ProjectDatabasePromoted": false,
     "runtimeCodeChanged": false
@@ -128,5 +132,11 @@
     "drive": "ACTIVE CHECKPOINT append required; existing byte-verified presentation artifacts remain canonical",
     "presentationPublicationDebt": "unchanged; no coherent presentation bytes changed this pass"
   },
-  "nextResearchCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-021", "PRJ-009"]
+  "nextResearchCursor": [
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-021",
+    "PRJ-009"
+  ]
 }

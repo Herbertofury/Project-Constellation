@@ -3,7 +3,13 @@
   "checkpointAt": "2026-08-18T12:12:00Z",
   "result": "MATERIAL_WIKI_DELTA",
   "automationObligation": "OPEN_AND_ONGOING",
-  "reviewed": ["PCX-028", "PCX-029", "PCX-030", "PCX-031", "PCX-032"],
+  "reviewed": [
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032"
+  ],
   "materialUpdates": [
     {
       "projectId": "PCX-030",
@@ -52,6 +58,12 @@
     "markdownSize": 4503,
     "markdownSha256": "72d3c44bd29c739cdbd98de25b81b81345cc60bfbf01001eb0f7f93eea478be0"
   },
-  "nextCursor": ["PCX-033", "PCX-034", "PCX-035", "PCX-036", "PCX-037"],
+  "nextCursor": [
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-036",
+    "PCX-037"
+  ],
   "persistenceRule": "This checkpoint records one recurring documentation pass only. The Wiki Maintainer obligation remains open and ongoing; PCX-036 is a preserved control-plane reference and is not a normal documentation target unless a real control-plane continuity change requires it."
 }
