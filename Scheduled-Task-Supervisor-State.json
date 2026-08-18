@@ -1,89 +1,75 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T09:13:25Z",
+  "updatedAt": "2026-08-18T10:15:00Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
   "retiredDuplicateCount": 1,
   "repairs": [
-    {
-      "task": "Project Constellation Evolution",
-      "action": "re-enabled",
-      "reason": "Permanent recurring evolution service disabled again despite explicit persistence rules; the obligation remains open indefinitely."
-    },
-    {
-      "task": "GameSync Performance Pass",
-      "action": "re-enabled",
-      "reason": "Permanent recurring performance service disabled again despite explicit persistence rules; recurring optimization duty remains open."
-    }
+    {"task":"Project Constellation Evolution","action":"re-enabled","reason":"Permanent recurring service disabled again while its obligation remains open."},
+    {"task":"GameSync Performance Pass","action":"re-enabled","reason":"Permanent recurring service disabled again while its optimization duty remains open."},
+    {"task":"Recover Stale Chats","action":"re-enabled","reason":"Permanent recurring recovery watch disabled again while its obligation remains open."}
   ],
   "health": {
     "scheduledTasks": "HEALTHY_AFTER_REPAIR",
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
-    "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally disabled because its prompt explicitly retires it as a duplicate covered by the canonical Recover Stale Chats worker.",
+    "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired as an explicit duplicate.",
     "userEscalationRequired": true,
-    "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition. This remains the common blocker preventing Pinterest publication and GameSync exact-head acceptance jobs from starting."
+    "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
     "projectDump": {
-      "status": "LATEST_REVIEW_NO_MATERIAL_WIKI_DELTA",
-      "latestReviewSlice": "PRJ-008 through PRJ-012",
-      "latestReviewCheckpointCommit": "12c838eb0d21997f8ca9b6b46a674db84a576042",
-      "reviewDriveVerification": "pass",
-      "reviewDriveExportSha256": "da0b7f732ba1c898221d58ac6fcda07f519a2babe6ad24ca4ab96c60cbcc85a3",
-      "latestVerifiedPublishedWikiSlice": "PCX-051 through PCX-055",
-      "verifiedWikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
-      "freshCloneByteVerification": "pass",
-      "nextWikiReviewSlice": "PRJ-013 through PRJ-017",
-      "note": "No newer material ProjectDump wiki publication was proven in this supervisor pass; prior verified wiki publication state is retained."
+      "status":"LATEST_REVIEW_NO_MATERIAL_WIKI_DELTA",
+      "latestReviewSlice":"PRJ-018 through PRJ-022",
+      "latestReviewCheckpoint":"project-constellation/evolution/2026-08-18T1006Z-prj-018-022.json",
+      "driveCheckpointFileId":"11UXJOc3TfjupRyphawShI76JdrxryTCJaMSum7k8Bi4",
+      "driveVerification":"re-read passed; checkpoint records export SHA-256 1be6448f7e831a3e9e49c1520e3659973aaa8a6a51d95cbc21009598ea7de57c",
+      "githubWikiSyncRequired":false,
+      "nextWikiReviewSlice":"PRJ-023, PRJ-024, PRJ-025, PCX-026, PCX-027"
     },
     "ferrum": {
-      "status": "VERIFIED_COMPLETE_PRODUCT_CHECKPOINT",
-      "verifiedCodeCommit": "0fbb31d4ea97791e047df25d23c674dc14d4bbec",
-      "verifiedProposalHead": "36d65391000aadbc3634eb0aed16c4bdcfc022c6",
-      "verifiedTree": "f59e485b976d09b08741411f014ab3afab0b97e7",
-      "workflowRunId": 32114007691,
-      "workflowConclusion": "success",
-      "verifiedAt": "2026-08-18T08:04:43Z",
-      "note": "Current Ferrum STATUS.json was re-read from main and still reports this verified product checkpoint."
+      "status":"VERIFIED_MERGED_PRODUCT_NEWER_THAN_STATUS_JSON",
+      "pullRequest":33,
+      "verifiedProposalHead":"30f131939086c96ee0274583f4b07e2036d37878",
+      "mergedCommit":"c43c3d6be08ccf58253a56904289d0ee490b880d",
+      "verifiedTree":"3421b002eadd3c9124bbcf57452768325fadb924",
+      "workflowRunId":32124761222,
+      "workflowConclusion":"success",
+      "note":"PR #33 removed Ferrum's implicit 400-element snapshot cap while preserving explicit caller limits; full CI passed across unit, Linux, Windows, WebDriver, Lightpanda, Electron/packaging, MV3 workloads, and Android/Appium. Ferrum STATUS.json still reports the older verified checkpoint and should be refreshed by Ferrum's own evolution authority."
     },
     "gameSyncStackStandalone": {
-      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest": 2,
-      "head": "419518a073fd99b175ee7761b172fff04d411dac",
-      "latestSecretScanRunId": 32118652854,
-      "latestJobId": 95653820132,
-      "executedStepCount": 0,
-      "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun while the hosted-runner billing/spending blocker persists."
+      "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest":2,
+      "head":"e587bfa0a620d2bcfc1cf398c0e1465dba750246",
+      "latestSecretScanRunId":32125384416,
+      "latestJobId":95674686503,
+      "executedStepCount":0
     },
     "gameSyncStackNext": {
-      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest": 8,
-      "head": "6c257662d3de028de865c8888ed1eb89b5cbd737",
-      "latestSecretScanRunId": 32118686050,
-      "latestJobId": 95653919389,
-      "executedStepCount": 0,
-      "repairPolicy": "Keep paired Vite 8.2.1 proposal current and require exact-head private acceptance before lead merge."
+      "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest":8,
+      "head":"9587a113062ff6b59a62980af866d5a748a4c078",
+      "latestSecretScanRunId":32125406795,
+      "latestJobId":95674756083,
+      "executedStepCount":0
     },
     "gameSyncPerformanceNext": {
-      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest": 7,
-      "head": "f795ccd958c2bd47c3a334a5b5e30913e6cdffea",
-      "latestSecretScanRunId": 32118735404,
-      "latestJobId": 95654068530,
-      "executedStepCount": 0,
-      "repairPolicy": "Preserve the verified performance proposal and require exact-current-head acceptance before lead merge. PR body metadata is stale relative to the actual current head, so future lead/worker passes must treat the GitHub PR head as canonical."
+      "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest":7,
+      "head":"c14642cacdfe51d7e21c3aaf457ec667ee6aa949",
+      "latestSecretScanRunId":32125440227,
+      "latestJobId":95674856406,
+      "executedStepCount":0
     },
     "pinterestNocturne200": {
-      "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
-      "workflowRunId": 32068119456,
-      "workflowAttempt": 4,
-      "jobId": 95625260153,
-      "executedStepCount": 0,
-      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASS",
-      "repairPolicy": "Keep retry enabled. Avoid blind reruns while the identical pre-execution hosted-runner failure persists; finish source expansion, build/package, release creation, asset publication and remote verification immediately when private Actions execution returns."
+      "status":"GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "repositoryHead":"6167038fac5f362dbabb83c2497edb64e588ad01",
+      "workflowRunId":32068119456,
+      "workflowAttempt":5,
+      "jobId":95671432512,
+      "executedStepCount":0,
+      "driveRecoveryStatus":"VERIFIED_COMPLETE_FROM_PRIOR_PASS"
     }
   }
 }
