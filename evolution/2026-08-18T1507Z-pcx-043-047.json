@@ -58,8 +58,12 @@
   },
   "nextCursor": ["PCX-048", "PCX-049", "PCX-050", "PCX-051", "PCX-052"],
   "persistence": {
-    "github": "ProjectDump source, real GitHub Wiki and this checkpoint committed",
+    "github": "ProjectDump source, real GitHub Wiki and this checkpoint committed and re-read",
     "drive": "PCX-043 wiki mirrored into Project Wikis and independently re-read/exported",
+    "driveCheckpointDocumentId": "13Lff9OaUxdcz3e9gXNS493WwgTT4pVqy5_2cKeEydeA",
+    "driveCheckpointMarkdownBytes": 5759,
+    "driveCheckpointMarkdownSha256": "eefb4ec80cee7bb5a1e5250ed7f1c4e17dd12007f83fc54c5a36dfbd1dff9d77",
+    "driveCheckpointVerification": "document moved into canonical Project Constellation folder, re-read in full, exported to Markdown and SHA-256 verified",
     "automation": "Recurring wiki-maintenance obligation remains open and ongoing"
   }
 }
