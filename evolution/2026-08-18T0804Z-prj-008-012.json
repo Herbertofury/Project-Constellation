@@ -1,0 +1,41 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T08:04:00Z",
+  "scope": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
+  "result": "NO_MATERIAL_WIKI_DELTA",
+  "projects": [
+    {
+      "id": "PRJ-008",
+      "decision": "no-change",
+      "evidence": "Herbertofury/Gamesync main remains at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928, the same verified shipping baseline already documented. The current detailed wiki already covers the real mascot-game runtime, launch allowlist, shared systems, build/load path, persistence surfaces, and the unresolved historical Golf requirement."
+    },
+    {
+      "id": "PRJ-009",
+      "decision": "no-change",
+      "evidence": "Exact Drive search for bert-skill-atlas-qa-cockpit.zip still resolves only continuity/index material; no canonical current archive or repository was recovered. The wiki already states this recovery boundary and the required real RuneLite verification workflow."
+    },
+    {
+      "id": "PRJ-010",
+      "decision": "no-change",
+      "evidence": "Exact Drive searches for farm-material-ranker and hitchless-runelite-main.jar still resolve only continuity material; Herbertofury/FlipForge remains a placeholder rather than implementation source. The wiki already preserves the known-good No-Hitch identity, Farm Material Ranker v1.1.0 lineage, and the Jagex-launched restart-persistence release gate."
+    },
+    {
+      "id": "PRJ-011",
+      "decision": "no-change",
+      "evidence": "No canonical runnable TS4 Accelerator repository or artifact is present in connected state. The existing wiki already records the recovered plan, current DX11 baseline, PresentMon measurement contract, preservation rules, and exact source-recovery/baseline next action."
+    },
+    {
+      "id": "PRJ-012",
+      "decision": "no-change",
+      "evidence": "No canonical overlay repository or runnable DLL is present in connected state. The existing wiki already records the native DX11/ImGui concept, current dependency research, fail-closed overlay contract, PresentMon comparison requirement, and unresolved relationship to PRJ-011."
+    }
+  ],
+  "publication": {
+    "wikiSourceChanged": false,
+    "githubWikiSyncRequired": false,
+    "driveWikiCopyRequired": false,
+    "reason": "No material project-wiki content changed; avoid cosmetic or timestamp-only churn."
+  },
+  "nextCursor": ["PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017"],
+  "automationObligation": "OPEN_AND_ONGOING"
+}
