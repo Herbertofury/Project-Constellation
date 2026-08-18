@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T17:12:00Z",
+  "updatedAt": "2026-08-18T18:10:00Z",
   "completedCursor": [
-    "PCX-058",
-    "PCX-059",
-    "PCX-060",
-    "PCX-061",
-    "PCX-062"
-  ],
-  "nextCursor": [
     "PCX-063",
     "PRJ-001",
     "PRJ-002",
     "PRJ-003",
     "PRJ-004"
   ],
-  "selectionReason": "PCX-058 through PCX-062 were rechecked against current ProjectDump wiki source, current project-owned repositories, and connected Drive continuity. PCX-058 Project Compass Northpoints, PCX-059 Feature Foundry Project Brain Bridge, and PCX-061 Petz Shared Core remain accurately documented and did not justify cosmetic churn. PCX-062 RuneLite QA Cockpit remains truthfully blocked because canonical current repository/ZIP bytes are still unresolved. PCX-060 ACS Voice / Speech Runtime received a material source-backed update: GameSync Next Extension V2 0.8.0 is now documented as a second verified implementation host, commit 60940e8479af518f3373a79efa091902f4843842 repaired clippy queue initialization order, and current source proves queued visible speech-balloon behavior while explicitly not proving audible TTS. Source commit 64229ef99c9d31afcc910d67538d53443f21b19d published through workflow 32163975940; ProjectDump.wiki.git was pushed, fresh-cloned, and byte-verified at master ee059fd6f943c0a5797c6de5c0e7dc2a685ca6b8. The updated PCX-060 wiki was also published to Drive Project Wikis, re-read, and exported as 25717 bytes with SHA-256 34351280a96aea689f3c1080b42f380436f73705b187f06cd26c97b8cea45afc.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1711Z-pcx-058-062.json",
+  "nextCursor": [
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009"
+  ],
+  "selectionReason": "PCX-063 and PRJ-001 through PRJ-004 were rechecked against current ProjectDump wiki source, current project-owned repositories, and connected Drive continuity. PCX-063 Feature Foundry Aesthetic Vault, PRJ-001 Project Compass Orchestrator, PRJ-003 GameSync Platform, and PRJ-004 Aesthetic Media Companion / Living Room Platform remain accurately documented and did not justify cosmetic churn. PRJ-002 Feature Foundry received a material source-authority correction: V33 FINAL_READY remains the strongest verified runnable/user-facing lineage, while the durable Feature Foundry Recovery Checkpoint Ledger now proves GameSync / Feature Foundry V2-253 as the newest remotely byte-verified maintainable source lineage. The wiki now documents exact V2-253 hashes/recovery, restored React workspace and Project Vault/Radar/agent operations, launch readiness BLOCKED at 6/13 hard gates, strict-parity counts, exact source toolchain floors, and the explicit 16-world V2 versus durable 17-theme reconciliation gap. Source commit e1fa36f82dc562a745eb0f51e8d2e5674854807d published through workflow 32169064081; ProjectDump.wiki.git was pushed, fresh-cloned, and byte-verified at master d0c776c7f8fec7e373e473e2d95ce62ea82dfb52. The updated PRJ-002 wiki was also published to Drive Project Wikis, re-read, and exported as 33699 bytes with SHA-256 7e6988ead0a2a6c22ce454311f83109faa10e8b94f5897c4dd6653aefc61e523.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1808Z-pcx-063-prj-004.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
