@@ -1,17 +1,17 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T19:08:01Z",
+  "updatedAt": "2026-08-18T20:12:00Z",
   "completedCursor": [
-    "PRJ-005"
+    "PRJ-006"
   ],
   "nextCursor": [
-    "PRJ-006",
     "PRJ-007",
     "PRJ-008",
     "PRJ-009",
-    "PRJ-010"
+    "PRJ-010",
+    "PRJ-011"
   ],
-  "selectionReason": "A corrective source pass found PRJ-005 materially stale: the umbrella wiki still treated Gamesync 0.6.3 as its only verified browser implementation host, while current GameSync Next Extension V2 0.8.0 source and commit 60940e8479af518f3373a79efa091902f4843842 prove universal all-site mascot parity, shared settings/site-policy gating, SPA route coordination, lightweight/full-runtime ownership, mount-error diagnostics, and a Clippy-compatible initialization-order repair. PRJ-005 was therefore reconciled and dual-published. PRJ-006 now needs immediate follow-up because its ACS parity wiki still lists Gamesync 0.6.3 as the sole verified host even though the same GameSync Next parity work adds typed Clippy/mascot runtime evidence. PRJ-007 remains current on the typed Petz core/persistence repair contract, PRJ-008 remains aligned with the shipping mascot-game runtime and unresolved Golf boundary, and PRJ-009 remains blocked on canonical Skill Atlas/QA Cockpit source recovery. Keep PRJ-007 through PRJ-009 in the next group for cheap delta rechecks, then resume forward catalog progression at PRJ-010.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1908Z-prj-005-mascot-umbrella.json",
+  "selectionReason": "PRJ-006 was materially stale because its ACS Agent Parity Runtime wiki treated Gamesync 0.6.3 as the sole verified implementation host. Current GameSync Next Extension V2 0.8.0 source and commit 60940e8479af518f3373a79efa091902f4843842 prove a second typed browser host with a real Clippy-compatible queue/balloon/animation runtime, the repaired post-prototype queue/event initialization order, universal all-site mascot mounting, SPA continuity, typed surface integration, timeline diagnostics and an isolated Opera verifier. The reconciliation also records source-proven remaining parity gaps: gestureAt() is still a stub returning true, no separate think() path is verified, and classic request-object Wait/Interrupt/StopAll/Get semantics remain absent. PRJ-007 remains current on the typed Petz persistence repair contract, PRJ-008 remains aligned with the verified mascot-game runtime and unresolved Golf boundary, and PRJ-009 remains blocked on canonical Skill Atlas/QA Cockpit source recovery. Continue forward at PRJ-010 and PRJ-011 after those cheap delta rechecks.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T2012Z-prj-006-acs-parity.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
