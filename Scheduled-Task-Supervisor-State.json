@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T17:13:30Z",
+  "updatedAt": "2026-08-18T18:15:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -9,13 +9,16 @@
     {
       "task": "Project Constellation Evolution",
       "action": "re-enabled",
-      "reason": "Permanent recurring evolution service was disabled after its latest run even though its recurring obligation remains open and presentation publication debt is unresolved."
+      "reason": "Permanent recurring evolution service was disabled after its latest run even though its recurring obligation and current-catalog presentation publication debt remain open."
     },
     {
-      "target": "project-constellation/Project-Constellation-Publication-Debt.json",
-      "action": "invalidated stale six-artifact candidate",
-      "commit": "d20f8f252374bc2b505a469dd4eda3a4423190b9",
-      "reason": "The debt file's historical candidate catalog SHA-256 no longer matches the current promoted catalog SHA-256; its own retry contract requires regeneration before publication."
+      "target": "Herbertofury/GameSync-Next#10",
+      "action": "reconciled stale PR metadata to actual remote head and current zero-step workflow evidence",
+      "head": "f916e1a445b4bc6b9d174c5b90169b7803e2f01c",
+      "petzVerifyRunId": 32168143964,
+      "petzVerifyJobId": 95812566007,
+      "secretScanRunId": 32168143809,
+      "secretScanJobId": 95812566691
     }
   ],
   "health": {
@@ -31,17 +34,15 @@
   "publicationLedger": {
     "projectDump": {
       "status": "VERIFIED_CURRENT_WIKI_PUBLICATION",
-      "currentMainAfterSupervisorRepair": "d20f8f252374bc2b505a469dd4eda3a4423190b9",
-      "latestMaterialWikiProject": "PCX-060 ACS Voice / Speech Runtime",
-      "wikiSourceCommit": "64229ef99c9d31afcc910d67538d53443f21b19d",
-      "wikiSyncRunId": 32163975940,
+      "mainObservedBeforeSupervisorWrite": "a5f3e397edc0b3f740120ff963a9909155ce7c57",
+      "latestMaterialWikiProject": "PRJ-002 Feature Foundry",
+      "wikiSourceCommit": "e1fa36f82dc562a745eb0f51e8d2e5674854807d",
+      "wikiSyncRunId": 32169064081,
       "wikiSyncConclusion": "success",
-      "wikiMaster": "ee059fd6f943c0a5797c6de5c0e7dc2a685ca6b8",
-      "wikiVerification": "Evolution checkpoint records ProjectDump.wiki.git push, fresh clone and complete page-set byte comparison; supervisor independently re-read the GitHub wiki source and Drive wiki copy.",
-      "driveWikiFileId": "1cglaNdTV5i6Xgy3koNqbCyZnClwdZzoEXv1H8FO3_54",
-      "driveWikiMarkdownSha256": "34351280a96aea689f3c1080b42f380436f73705b187f06cd26c97b8cea45afc",
-      "driveCheckpointFileId": "1LuGrYNa0Yxj0ba4qgbjO96GuYt7CE0szd5M5wDFc4Ek",
-      "driveCheckpointSha256": "4dc8d8d8999cf7499b9586ddf55a96b0bd85430a73c27581bacf36d605d77390"
+      "wikiSyncJobId": 95815531848,
+      "wikiMaster": "d0c776c7f8fec7e373e473e2d95ce62ea82dfb52",
+      "wikiVerification": "Supervisor independently fetched the successful sync job and logs: ProjectDump.wiki.git was pushed, then fresh-cloned and verified; the workflow recorded wiki-publication success for the source commit.",
+      "driveWikiVerification": "Evolution cursor checkpoint records the updated PRJ-002 Drive wiki copy was re-read and exported as 33699 bytes with SHA-256 7e6988ead0a2a6c22ce454311f83109faa10e8b94f5897c4dd6653aefc61e523."
     },
     "projectConstellationPresentationDebt": {
       "status": "REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED",
@@ -51,58 +52,64 @@
       "requiredRepair": "Regenerate a coherent current six-artifact presentation set, validate and browser-exercise it, publish the exact bytes to required GitHub/Drive destinations, re-read/re-download and verify size/SHA-256, then promote lastAutomationHash."
     },
     "ferrum": {
-      "status": "VERIFIED_PRODUCT",
-      "verifiedProductCommit": "502232441fdd828b9e7f191bb01f75a9154a789d",
-      "verifiedProposalHead": "9a7f7694f347804febc5f6b14ef9f35a83839d6d",
-      "verifiedWorkflowRun": 32155315750,
-      "perfettoCompatibilityRun": 32155315736,
-      "statusFileVerifiedAt": "2026-08-18T15:48:48Z"
+      "status": "VERIFIED_PRODUCT_WITH_NEWER_RESEARCH_CHECKPOINT",
+      "verifiedProductCommit": "0e212da9effebdc7db1d09a7faea03679bd11cc3",
+      "verifiedProposalHead": "53a8e8b11229c08aab95e06cda7d699cf2caed6b",
+      "verifiedTree": "95f135263ed7f6c4961699c101f25fb319ef7572",
+      "verifiedWorkflowRun": 32164953344,
+      "latestEvolutionCheckpointCommit": "98ad9b559c22f9463329fba13867dfade01407ec",
+      "latestEvolutionRun": 27,
+      "latestEvolutionDecision": "NO PROVEN IMPROVEMENT THIS RUN",
+      "statusFileNote": "STATUS.json still names the older run-25 product; run-26 checkpoint/product evidence is the newer verified product authority, and run 27 made no product-code change."
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
       "base": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
-      "head": "ced9392fb054dcc27ab4d927d734dac5a04780b3",
-      "secretScanRunId": 32157133296,
-      "jobId": 95776943927,
+      "head": "057775f40756d22080e9efcd3cd6e94f45012fda",
+      "secretScanRunId": 32167809840,
+      "jobId": 95811428610,
       "executedStepCount": 0
     },
     "gameSyncStackNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 8,
       "base": "9e337c720f0180cffa577f140b181c699f0a1650",
-      "head": "7431e98861b20e53dc87f5a312fb0ecb8e99fdec",
-      "secretScanRunId": 32157226020,
-      "jobId": 95777241640,
+      "head": "e3685d3303a5246893b01b41a20d901f35e78cfe",
+      "secretScanRunId": 32167826776,
+      "jobId": 95811485730,
       "executedStepCount": 0
     },
     "gameSyncPerformanceNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 7,
       "base": "9e337c720f0180cffa577f140b181c699f0a1650",
-      "head": "51dca586bc1a16d86ba27ee460aef5d76ff4c3bb",
-      "aheadBy": 35,
-      "secretScanRunId": 32157035937,
-      "jobId": 95776629439,
+      "head": "5767339466db03579578ca6b8f8ee9e8e24d3abd",
+      "aheadBy": 37,
+      "secretScanRunId": 32168000581,
+      "jobId": 95812067548,
       "executedStepCount": 0
     },
     "gameSyncPetzRepair": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 10,
-      "head": "eddda3f7c2fb53ec5d18d57c3e0130a839cc4757",
-      "petzVerifyRunId": 32163425446,
-      "petzVerifyJobId": 95797346394,
+      "head": "f916e1a445b4bc6b9d174c5b90169b7803e2f01c",
+      "petzVerifyRunId": 32168143964,
+      "petzVerifyJobId": 95812566007,
       "petzVerifyExecutedStepCount": 0,
-      "ferrumDependentJobId": 95797362106,
-      "ferrumDependentConclusion": "skipped"
+      "ferrumDependentJobId": 95812591596,
+      "ferrumDependentConclusion": "skipped",
+      "secretScanRunId": 32168143809,
+      "secretScanJobId": 95812566691,
+      "secretScanExecutedStepCount": 0
     },
     "gameSyncAdvisoryMigrations": {
       "standaloneWebVitals": {
         "pullRequest": 3,
-        "head": "da91191ffaddc4d934cc94a59e2920b3d39b417c",
+        "head": "45437119242cd652945695e090597ac571c88154",
         "status": "WORKING_REPAIR_IN_PROGRESS",
-        "secretScanRunId": 32152671787,
-        "jobId": 95762162642,
+        "secretScanRunId": 32167959089,
+        "jobId": 95811928948,
         "executedStepCount": 0,
         "blockers": [
           "authoritative package-lock regeneration",
@@ -112,10 +119,27 @@
       },
       "nextTestToolchain": {
         "pullRequest": 11,
-        "head": "2fef0118f066dc56c3ccc8293559124c1a7266e8",
+        "head": "49043c3b5bdb0e7139ece1ad63a40d57fab449d7",
         "status": "WORKING_REPAIR_IN_PROGRESS",
-        "secretScanRunId": 32157003169,
-        "jobId": 95776526254,
+        "secretScanRunId": 32167997918,
+        "jobId": 95812058783,
+        "executedStepCount": 0,
+        "blockers": [
+          "authoritative workspace lockfile regeneration",
+          "private hosted-runner execution",
+          "npm registry access in available worker environment"
+        ]
+      },
+      "nextUiRuntime": {
+        "pullRequest": 12,
+        "head": "e086598ea5c53fde9cb6bdb9d5b3b7633332f3c4",
+        "status": "WORKING_REPAIR_IN_PROGRESS",
+        "stackUiRuntimeRunId": 32167843183,
+        "linuxVerifyJobId": 95811542541,
+        "operaRuntimeJobId": 95811542646,
+        "ferrumAcceptanceJobId": 95811542689,
+        "secretScanRunId": 32167842961,
+        "secretScanJobId": 95811541514,
         "executedStepCount": 0,
         "blockers": [
           "authoritative workspace lockfile regeneration",
@@ -128,7 +152,8 @@
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
-      "latestObservedJobId": 95796264396,
+      "workflowAttempt": 10,
+      "latestObservedJobId": 95813924401,
       "latestObservedJobConclusion": "failure",
       "executedStepCount": 0,
       "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES",
