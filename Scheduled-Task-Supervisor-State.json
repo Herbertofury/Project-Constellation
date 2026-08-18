@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T12:18:45Z",
+  "updatedAt": "2026-08-18T13:16:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,8 +8,7 @@
   "repairs": [
     {"task":"Project Constellation Evolution","action":"re-enabled","reason":"Permanent recurring service disabled again while its obligation remains open."},
     {"task":"GameSync Performance Pass","action":"re-enabled","reason":"Permanent recurring service disabled again while its optimization duty remains open."},
-    {"task":"Recover Stale Chats","action":"re-enabled","reason":"Permanent recurring recovery watch disabled again while its obligation remains open."},
-    {"task":"GameSync-Next Performance PR #7","action":"reconciled PR metadata to actual current head and latest exact-head blocker evidence","reason":"PR body still described an older proposal head and older Secret Scan run while the remote PR head had advanced."}
+    {"task":"Recover Stale Chats","action":"re-enabled","reason":"Permanent recurring recovery watch disabled again while its obligation remains open."}
   ],
   "health": {
     "scheduledTasks": "HEALTHY_AFTER_REPAIR",
@@ -21,56 +20,47 @@
   },
   "publicationLedger": {
     "projectDump": {
-      "status":"MATERIAL_WIKI_DELTA_VERIFIED",
-      "latestMain":"e17a1f82e0c57e37ddf14e56ea54ff4949a49a97",
-      "latestReviewSlice":"PCX-028, PCX-029, PCX-030, PCX-031, PCX-032",
-      "driveCheckpointFileId":"1xgmMGdoJ5rGZOG4EmVRKzZSyEkV3GAeZnrOlaA2cH5E",
+      "status":"LAST_VERIFIED_WIKI_PUBLICATION_REMAINS_VALID",
       "materialWikiProject":"PCX-030 Reliable Artifact Publisher",
       "wikiSourceCommit":"54fd9c6cd3933f79c3bf48cdebf4efb2181baf3e",
-      "wikiSourceBlobSha":"2ddb1920ebff2725bb02e4347efb17e6855d20dd",
       "wikiSyncRunId":32135531196,
       "wikiSyncConclusion":"success",
       "wikiMaster":"b0e14cfa10c0679c6abbb70cdcd1e947ee217f5b",
       "wikiVerification":"publisher push plus fresh-clone complete-page-set byte comparison passed",
-      "driveWikiFileId":"1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4",
-      "driveWikiMarkdownBytes":18264,
-      "driveWikiMarkdownSha256":"e1d7aff09772f9092f78414c6d9ddf524906cb1503461f4f630890b4fc5e3b66",
-      "nextWikiReviewSlice":"PCX-033, PCX-034, PCX-035, PCX-037"
+      "driveCheckpointFileId":"1xgmMGdoJ5rGZOG4EmVRKzZSyEkV3GAeZnrOlaA2cH5E",
+      "driveWikiFileId":"1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4"
     },
     "ferrum": {
-      "status":"VERIFIED_MERGED_PRODUCT_AND_CHECKPOINT",
-      "verifiedProposalHead":"bd42ee47203f541a5e416468f7da9d5cfaa14459",
-      "workflowRunId":32134811799,
-      "workflowConclusion":"success",
-      "mergedProductCommit":"71f85c8c7e10f6098dc5d49a501b07e9c4c4d21f",
-      "currentMainCheckpoint":"41b49bfad7c1328cb19362003ae296c939a6eaff",
-      "note":"Evolution run 22 adds direct HTTP service interaction to process targets and passed Ferrum CI across unit/MCP/evidence integrity, Linux, Windows browser matrix/MV3/workloads, Selenium Grid, Electron source and packaged desktop, Lightpanda, and real Android/Appium."
+      "status":"VERIFIED_MERGED_PRODUCT",
+      "verifiedCodeCommit":"71f85c8c7e10f6098dc5d49a501b07e9c4c4d21f",
+      "verifiedWorkflowRun":32134811799,
+      "verifiedAt":"2026-08-18T12:08:30Z",
+      "verifiedToolchain":{"playwright":"1.63.0-alpha-2026-08-17","electron":"43.4.0","electronPackager":"20.3.0"}
     },
     "gameSyncStackStandalone": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":2,
-      "head":"16fd8eca4e73d18a810e7a214495b34c4efb098b",
-      "latestSecretScanRunId":32133929278,
-      "latestJobId":95700860971,
+      "head":"33ef5f35f8f595766b2749623ba8df56dde0c046",
+      "latestSecretScanRunId":32139355258,
+      "latestJobId":95718066719,
       "executedStepCount":0
     },
     "gameSyncStackNext": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":8,
-      "head":"519f5221f7127a79519a3826d106f95427e9976a",
-      "latestSecretScanRunId":32134012966,
-      "latestJobId":95701114133,
+      "head":"e4e0f088abd168eb095bab8e03149c7b24eede2d",
+      "latestSecretScanRunId":32139391349,
+      "latestJobId":95718182592,
       "executedStepCount":0
     },
     "gameSyncPerformanceNext": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":7,
-      "head":"36cdfc29980eb7511d30fbe182d9ea8840bc1b31",
-      "latestSecretScanRunId":32133897099,
-      "latestJobId":95700764304,
+      "head":"05e160922ba55dde1024be820d6659227ea043d9",
+      "latestSecretScanRunId":32139919051,
+      "latestJobId":95719892876,
       "executedStepCount":0,
-      "prMetadataReconciled":true,
-      "leadReview":"HOLD pending exact-head benchmark/build/parity/Ferrum/Opera/Secret gates"
+      "metadataDrift":"PR body still names older head 36cdfc29980eb7511d30fbe182d9ea8840bc1b31; actual remote head is recorded here as source of truth."
     },
     "pinterestNocturne200": {
       "status":"GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
