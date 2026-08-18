@@ -1,72 +1,75 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T22:16:30Z",
+  "updatedAt": "2026-08-18T23:45:23Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
   "retiredDuplicateCount": 1,
   "repairs": [
     {
-      "task": "Project Constellation Evolution",
-      "action": "re-enabled",
-      "reason": "The indefinite recurring task disabled again after its prior run despite explicit persistence instructions. It was restored before its next scheduled execution. The supervisor continues treating this repeated self-disable as a task-health defect rather than completion."
+      "area": "Project Constellation presentation publication",
+      "action": "browser gate independently satisfied and Drive canonical promotion verified",
+      "evidence": "Exact v0.5.1 Quick View SHA-256 8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1 passed a real Chromium end-to-end acceptance locally and a public GitHub Actions self-reporting browser gate. All six promoted Drive canonical objects were re-downloaded and match the candidate SHA-256 and byte sizes exactly."
     }
   ],
   "health": {
-    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_EXTERNAL_AND_PUBLICATION_DEBT",
+    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_PRIVATE_RUNNER_BLOCKER_AND_ACTIVE_GITHUB_PUBLICATION",
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
     "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired because the canonical Recover Stale Chats task covers the same scope.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Pinterest attempt 14 completed failure with no workflow steps, and current GameSync-Next TypeScript 7 exact-head workflow jobs likewise report pre-execution zero-step failures. This remains infrastructure/account execution evidence rather than product-test evidence.",
+    "privateHostedRunnerEvidence": "Current private GameSync proposal jobs continue to report zero-step hosted-runner failures; this is infrastructure/account execution evidence rather than product-test evidence.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
-    "projectConstellationPresentationDebt": {
-      "status": "REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED_EXCLUSIVE_REPAIR",
-      "debtFile": "project-constellation/Project-Constellation-Publication-Debt.json",
-      "currentCatalogProjectCount": 63,
-      "currentCatalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
-      "staleCandidateCatalogSha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
-      "requiredRepair": "Regenerate and validate one coherent current six-artifact presentation set, exercise Quick View in a functioning real browser, dual-publish exact bytes to GitHub and Drive, re-read/re-download all six and verify size/SHA-256, then clear debt and promote lastAutomationHash.",
-      "currentDebtEvidence": "Project-Constellation-Publication-Debt.json remains open and unchanged at REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED; stale candidate publication is prohibited."
+    "projectConstellationPresentation": {
+      "candidateVersion": "0.5.1",
+      "catalogProjectCount": 63,
+      "catalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "browserGate": {
+        "status": "VERIFIED_SUCCESS",
+        "candidateQuickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+        "githubActionsResultCommit": "b2e26f51c546b5f633f6ed9f0bd607dc3f0da0b4",
+        "localRealBrowserAcceptance": "pass: 63/63 availability, search, lens switching, project drawer, persisted checkpoint note, research drawer, snapshot export/import, zero page errors"
+      },
+      "driveCanonical": {
+        "status": "VERIFIED_PROMOTED",
+        "artifacts": {
+          "Bert_Project_Second_Brain_Website.zip": {"id": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u", "size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"},
+          "Bert_Project_Constellation_Quick_View.html": {"id": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5", "size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
+          "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"id": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci", "size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"},
+          "Bert_Project_Wiki_Pack.zip": {"id": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24", "size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"},
+          "Project-Constellation-Project-Catalog.json": {"id": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq", "size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"},
+          "Project-Constellation-Research-Suggestions.json": {"id": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8", "size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"}
+        }
+      },
+      "githubCanonical": {
+        "status": "ACTIVE_PUBLICATION_IN_PROGRESS_NOT_YET_FULLY_RECONCILED",
+        "browserGateResult": "verified",
+        "researchStatePromotionCommit": "b70ad9c1598fabeaeb3af3909da4119edefd88e8",
+        "latestObservedMain": "e79700cbc976c3c2b162e47082f3d38ed0b0eb31",
+        "latestObservedActivity": "staging master payload parts for canonical GitHub publication",
+        "concurrencyPolicy": "Do not race the active Project Constellation publisher. Reconcile and verify the final GitHub object set after its current publication sequence completes."
+      },
+      "debtFileStatus": "STALE_BROWSER_BLOCKED_RECORD_PENDING_FINAL_GITHUB_RECONCILIATION",
+      "completionGate": "Do not mark presentation debt cleared until canonical GitHub presentation objects/manifests are complete and independently re-read/verified, then update debt/automation state to the verified v0.5.1 hashes."
     },
-    "pinterestNocturne200": {
-      "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
-      "workflowRunId": 32068119456,
-      "workflowAttempt": 14,
-      "latestObservedJobId": 95882616475,
-      "latestObservedJobConclusion": "failure",
-      "executedStepCount": 0,
-      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES"
-    },
-    "gameSyncStandaloneStack": {
-      "vitePr": 2,
-      "viteHead": "082bfe60e2781188939c679fb6c776d8bf4c03cf",
-      "webVitalsPr": 3,
-      "webVitalsHead": "a52c3666fa80a15509b06d11f907b72028829671",
-      "status": "EXTERNAL_BLOCKER_PRIVATE_ACTIONS_PRE_EXECUTION"
-    },
-    "gameSyncNext": {
-      "main": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
-      "performancePr": 7,
-      "performanceHead": "f9d682831d479fcd23622a126f2796592f2ad798",
-      "vitePr": 8,
-      "viteHead": "7d8dea65d29256df447754c2d4427976f2941f52",
-      "petzPr": 10,
-      "petzHead": "6a9d65419dfd4e2c8f125006e0a6bf0938079514",
-      "testToolchainPr": 11,
-      "testToolchainHead": "ad5fb0fee5ba528dcda4061c0ee3f4bc2f66ccf7",
-      "uiRuntimePr": 12,
-      "uiRuntimeHead": "faa45be1cebe6881afeaa5cf6780155f5e471bac",
-      "typescript7Pr": 13,
-      "typescript7Head": "ccc5392253c9f918fa5b0ea0a3c94c2d5c5a315a",
-      "typescript7VerifyRun": 32188061382,
-      "typescript7SecretScanRun": 32188061408,
-      "typescript7Status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER_LOCKFILE_REGENERATION_AND_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "status": "MULTIPLE_ACTIVE_PROPOSALS_BLOCKED_BY_PRIVATE_ACTIONS_PRE_EXECUTION_WITH_ADDITIONAL_PROPOSAL_SPECIFIC_REPAIRS"
+    "gameSyncPrivateActions": {
+      "status": "EXTERNAL_BLOCKER_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "standalone": {
+        "vitePr2Head": "d04ff10f6331271a323719a27df190c1b033026b",
+        "webVitalsPr3Head": "362f3e33713d6c9841b4eff075cd0ebdd09f59e4"
+      },
+      "next": {
+        "main": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+        "performancePr7Head": "f9d682831d479fcd23622a126f2796592f2ad798",
+        "vitePr8Head": "9494a7d49335cb59385df8372c29e7495e03b47b",
+        "petzPr10Head": "6a9d65419dfd4e2c8f125006e0a6bf0938079514",
+        "testToolchainPr11Head": "c21d4a41bdaa20dba100fb5408e535675fcd04f0",
+        "uiRuntimePr12Head": "aaf169b53b0463d225c9ef604c40a6f201d05505",
+        "typescript7Pr13Head": "3afa4cfd268d6838307acccb991930a6aaa994b1"
+      }
     }
   }
 }
