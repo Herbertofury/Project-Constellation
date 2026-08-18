@@ -36,6 +36,14 @@
     "driveWikiCopyRequired": false,
     "reason": "No material project-wiki content changed; avoid cosmetic or timestamp-only churn."
   },
+  "driveCheckpoint": {
+    "fileId": "16ub9bLqU9d5UWCOJaqI9gElU6zoHeYHJ8cCGuH7UsGM",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "title": "Project Constellation Wiki Maintainer Checkpoint - PRJ-008-012 - 2026-08-18T0804Z",
+    "verification": "re-read with Google Docs API and re-downloaded as text/plain",
+    "exportBytes": 2573,
+    "exportSha256": "da0b7f732ba1c898221d58ac6fcda07f519a2babe6ad24ca4ab96c60cbcc85a3"
+  },
   "nextCursor": ["PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017"],
   "automationObligation": "OPEN_AND_ONGOING"
 }
