@@ -3,10 +3,8 @@
   "version": "0.5.0",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "updatedAt": "2026-08-17T06:54:08Z",
+  "updatedAt": "2026-08-18T15:52:00Z",
   "catalogProjectCount": 63,
-  "sportsGroupHubAbsent": true,
-  "removedProjectAbsent": true,
   "canonical": {"repository":"Herbertofury/ProjectDump","branch":"main","path":"project-constellation/","driveFolderId":"1mUSeFlumpIOBtVCmlwbhN11kChRsdblV","startup":"Read GitHub project-constellation state and Drive active artifacts; recovery is fallback-only after verified integrity failure."},
   "mergeBase": {"quickViewDriveFileId":"1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77","masterCommandCenterDriveFileId":"1yMbhEumf5-ie8Ack2Zj1dQpPvkrdlAbO","quickViewMatchedPriorLastAutomationHash":true,"masterMatchedPriorLastAutomationHash":true,"userEditedArtifactDetected":false,"historical25ProjectDatabase":"historical source detail only; never promote over current 63-record catalogue","lastVerifiedPresentationLineage":"0.5.0"},
   "lastAutomationHash": {
@@ -27,7 +25,7 @@
   "nextResearchCursor": ["PCX-056","PCX-057","PCX-058","PCX-059","PCX-060"],
   "appResearch": "Propose a read-only Capability Truth Lens generated from project-owned evidence that summarizes verified, implemented-unverified, gap, and stale-verification states with exact evidence destinations, while never allowing the Project Constellation presentation layer to mutate verification authority.",
   "changes": [
-    "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects and Sports Group Hub absent.",
+    "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects.",
     "PCX-036 Project Constellation: added a detailed control-plane wiki and materialized Project-Constellation-Project-Catalog.json as a current 63-record machine source using the byte-verified v0.5.0 Quick View plus additive current evidence overlays; old recoveryHistory fields were preserved.",
     "Added Project-Constellation-Technology-Radar.json and a current Project-Constellation-Research-Suggestions.json with explicit propose/observe/reject decisions rather than blind upgrades.",
     "PCX-037 Shimeji Desktop: resolved DalekCraft2/Shimeji-Desktop as an active JDK 25/Maven/DPI/backward-compatibility benchmark at dea89528c10c066626a09609f0e742cbe6405a8d; user-owned canonical source remains unresolved; archived Shijima-Qt is rejected as a new base.",
@@ -90,7 +88,6 @@
   "publicationDebt": {"status":"PENDING_REMOTE_BYTE_PUBLICATION","reason":"The coherent current candidate set exists and passed static/package integrity gates. Connector egress blocks generated local files from Drive upload/replace in this runtime, so the older byte-verified Drive artifacts remain canonical until the new six-file set can be uploaded and remotely hashed.","sourceCheckpoint":"EVOLUTION-CHECKPOINT-2026-08-17-0545Z","nextAction":"Publish the exact candidate bytes recorded here to Drive and GitHub presentation storage, re-read or re-download all six remote objects, verify SHA-256/size, exercise browser runtime in a functioning graphical/headless environment, then promote lastAutomationHash."},
   "validation": {
     "projectCount63":"pass: canonical automation state and byte-verified v0.5.0 Quick View retain exactly 63 records",
-    "sportsGroupHubAbsent":"pass: canonical automation state and byte-verified v0.5.0 Quick View exclude Sports Group Hub",
     "sourceAuthorityReview":"pass: PCX-051 through PCX-055 compared against current shipping GameSync, GameSync Next, connected current GitHub Releases API, parity/audit source and current primary GitHub/Twitch/SQLite/Chrome documentation",
     "wikiPublication":"pass by remote reread: PCX-051 complete intended wiki content present and wiki index reports 35 detailed target-project wikis",
     "machineCatalogJson":"pass from prior candidate: JSON parsed, 63 records, existing recoveryHistory preserved",
@@ -107,5 +104,5 @@
     "browserRuntime":"not rerun because no Project Constellation presentation/runtime bytes changed this pass; no GameSync runtime code was changed without the required Opera/Ferrum verification environment"
   },
   "browserRuntime":"prior regenerated Quick View Chromium attempt timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success is not claimed and no Project Constellation runtime bytes changed this pass",
-  "nextRunContract": {"classifyProjectConstellationAs":"ACTIVE","operatingMode":"NORMAL_OPERATION","performBroadRecoverySweep":false,"locateAndHashCanonicalArtifactsFirst":true,"preserveNewerUserEdits":true,"preserveAll63Projects":true,"sportsGroupHubExcluded":true,"rotateResearchBatchAboutFive":true,"nextResearchCursor":["PCX-056","PCX-057","PCX-058","PCX-059","PCX-060"],"researchAppQolWhenFresh":true,"onlyWriteArtifactsForMeaningfulChange":true,"resolveEvidenceCoverageBeforeStackMigration":true,"retryPublicationDebtWhenCapable":true,"publishMeaningfulCheckpointToDrive":true,"verifyRemoteCheckpointBytes":true}
+  "nextRunContract": {"classifyProjectConstellationAs":"ACTIVE","operatingMode":"NORMAL_OPERATION","performBroadRecoverySweep":false,"locateAndHashCanonicalArtifactsFirst":true,"preserveNewerUserEdits":true,"preserveAll63Projects":true,"rotateResearchBatchAboutFive":true,"nextResearchCursor":["PCX-056","PCX-057","PCX-058","PCX-059","PCX-060"],"researchAppQolWhenFresh":true,"onlyWriteArtifactsForMeaningfulChange":true,"resolveEvidenceCoverageBeforeStackMigration":true,"retryPublicationDebtWhenCapable":true,"publishMeaningfulCheckpointToDrive":true,"verifyRemoteCheckpointBytes":true}
 }
