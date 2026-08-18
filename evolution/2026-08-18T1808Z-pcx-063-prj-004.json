@@ -1,0 +1,97 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T18:08:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "reviewedProjects": [
+    {
+      "id": "PCX-063",
+      "name": "Feature Foundry Aesthetic Vault",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki already documents the GameSync Next Inspiration Vault host, browser capture bridge, boards/tags/provenance, cleanup controls, persistence, palette/export behavior, and V2-254 Aesthetic Vault subsystem evidence. No newer verified complete-source evidence justified churn."
+    },
+    {
+      "id": "PRJ-001",
+      "name": "Project Compass Orchestrator / Project Second Brain",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki still truthfully preserves the v3.3.0 artifact-library/project-memory lineage, GitHub+Drive durability requirements, and unresolved exact current installable-skill byte identity. No stronger current canonical skill artifact was verified during this pass."
+    },
+    {
+      "id": "PRJ-002",
+      "name": "Feature Foundry",
+      "decision": "MATERIAL_WIKI_UPDATE",
+      "sourceCommit": "e1fa36f82dc562a745eb0f51e8d2e5674854807d",
+      "wikiMasterCommit": "d0c776c7f8fec7e373e473e2d95ce62ea82dfb52",
+      "wikiWorkflowRun": 32169064081,
+      "readerWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-002-feature-foundry",
+      "evidence": {
+        "runnableAuthority": "Feature Foundry V33 FINAL_READY",
+        "maintainableSourceAuthority": "GameSync / Feature Foundry V2-253",
+        "recoveryLedgerDriveFileId": "1AES2lZ6GFfpdBFZdSX4XXy-FbGQxPKGrXFLJjM67Smg",
+        "v2_253FullCheckpointSize": 278378882,
+        "v2_253FullSha256": "a74d90679015cb5da01777bca9e32578d639bbbf299861a6a6cecf86db6b2c07",
+        "v2_253SourceFingerprint": "de24e9a03470ee397072b2ffcec0b8aee46529abbd9a3422e62cec24f404214d",
+        "v2_253SourceFiles": 6379,
+        "v2_253SourceBytes": 485619841,
+        "v2_253DeltaSize": 136149,
+        "v2_253DeltaSha256": "4c35d6087548378451401e9fe7748ec8ef0afb60625a5a88c800f08fe8f78efc",
+        "v2_253DeltaDriveFileId": "1vDJ4IDn2FvTS5hYH4-A_HC80VgaNe9poBmIOOo9JGyk",
+        "launchReadiness": "BLOCKED_6_OF_13_HARD_GATES",
+        "strictParity": {
+          "discoveredIdentifiers": 433,
+          "highConfidenceCandidates": 417,
+          "migratedRequestContracts": 239,
+          "pendingCandidates": 178,
+          "ambiguousIdentifiers": 16
+        },
+        "themeReconciliation": "Durable V11 direction preserves 17 approved themes while recovered V2 source currently verifies 16 worlds / 80 authored objects. This remains an explicit source-backed reconciliation requirement."
+      },
+      "publication": {
+        "githubSource": "VERIFIED",
+        "githubWiki": "PUSHED_FRESH_CLONED_BYTE_VERIFIED",
+        "driveWikiFileId": "1kRUF8kA-0aj04gSW71olFrBwc9mXK4IItVb7iyr9v6I",
+        "driveWikiFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "driveMarkdownSize": 33699,
+        "driveMarkdownSha256": "7e6988ead0a2a6c22ce454311f83109faa10e8b94f5897c4dd6653aefc61e523",
+        "driveContentReread": "VERIFIED"
+      },
+      "nextAction": "Continue from the exact remotely byte-verified V2-253 maintainable source, preserve V33 as the runnable behavior baseline, resolve hard launch-readiness and strict-parity blockers without weakening them, reconcile the 16-world V2 registry against the durable 17-theme contract, and complete exact production browser/desktop smoke before promoting V2 as stronger production authority."
+    },
+    {
+      "id": "PRJ-003",
+      "name": "GameSync Platform",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki already documents shipping Gamesync 0.6.3, GameSync Next typed successor, multi-host parity, desktop/server relationship, Feature Foundry relationship, and Opera build/verification expectations. No newer umbrella-level source change required a page rewrite in this pass."
+    },
+    {
+      "id": "PRJ-004",
+      "name": "Aesthetic Media Companion / Living Room Platform",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki already reconciles historical precursor status with the real shipping GameSync Living Room runtime and GameSync Next shared living-room contract, including architecture, persistent namespaces, room runtime, Pixi/Rapier path, vault, aesthetics/media, mysteries, world orchestration, mascot/loot/AI integration, import/export, and build/install guidance. No newer source evidence superseded it."
+    }
+  ],
+  "publicationVerification": {
+    "wikiSourceCommit": "e1fa36f82dc562a745eb0f51e8d2e5674854807d",
+    "syncWorkflowRun": 32169064081,
+    "workflowConclusion": "success",
+    "wikiPush": "verified",
+    "freshClone": "verified",
+    "completeByteComparison": "verified",
+    "wikiMasterCommit": "d0c776c7f8fec7e373e473e2d95ce62ea82dfb52"
+  },
+  "driveCheckpoint": {
+    "fileId": "1FGSCWmkYvO9CVAsubil0Zc2M4uAD5iwJHnHBjGCUk2Q",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "contentReread": "VERIFIED",
+    "markdownSize": 5190,
+    "markdownSha256": "5a1cb3cb78a6ae8bb1c3135a44e281354d36a44b442b5c3d60e11e1ddf3194b1"
+  },
+  "nextCursor": [
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009"
+  ]
+}
