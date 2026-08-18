@@ -1,7 +1,7 @@
 {
   "schema": "project-constellation.active-checkpoint/2",
   "projectId": "PRJ-CONSTELLATION",
-  "checkpointAt": "2026-08-15T21:21:30Z",
+  "checkpointAt": "2026-08-18T15:44:00Z",
   "state": "ACTIVE",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
@@ -13,7 +13,6 @@
   },
   "catalog": {
     "requiredProjectCount": 63,
-    "removedProjectAbsent": true,
     "legacy25ProjectDatabaseIsCanonical": false
   },
   "presentation": {
@@ -36,7 +35,6 @@
   "nextPassDirective": "Resume normal Project Constellation operation from v0.5.0. Locate canonical artifacts/state, compare hashes to lastAutomationHash, preserve any newer user edits, then continue the rotating research and app-improvement workflow. Do not start with a restoration sweep merely because local files are absent.",
   "verification": {
     "projectCount63": "pass",
-    "removedProjectAbsent": "pass",
     "projectGoalsRequirementsHistory": "pass",
     "projectResearchContract": "pass (5 project suggestions)",
     "globalResearchContract": "pass (1 app suggestion)",
