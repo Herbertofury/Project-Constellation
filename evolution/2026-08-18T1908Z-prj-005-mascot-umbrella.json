@@ -56,7 +56,27 @@
       "markdownBytes": 4347,
       "markdownSha256": "f3c22865ccf06aa20e6d8382f801b08a9aaff4e388d2c670bce90ccd41c172de",
       "roundTrip": "pass"
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownBytes": 1785,
+      "markdownSha256": "32a9089cdb7501107a7a75e0c11c8d51087b65b81a98881490f4e130c21ce784",
+      "roundTrip": "pass"
     }
+  },
+  "researchCursorPublication": {
+    "githubCommit": "85702eb918873e1c00e24c293efa8f0937f4712d",
+    "githubContentBlob": "c7ce15882cd6c15541a0f66dd957d88191a2550d",
+    "nextCursor": [
+      "PRJ-006",
+      "PRJ-007",
+      "PRJ-008",
+      "PRJ-009",
+      "PRJ-010"
+    ],
+    "githubRoundTrip": "pass",
+    "driveRoundTrip": "pass"
   },
   "adjacentReview": [
     {
