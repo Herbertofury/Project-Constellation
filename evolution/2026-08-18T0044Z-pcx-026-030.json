@@ -55,8 +55,23 @@
   "wikiCoverageAfterPass": 62,
   "nextResearchCursor": ["PCX-031", "PCX-032", "PCX-033", "PCX-034", "PCX-035"],
   "publication": {
-    "githubMain": "PENDING_POSTWRITE_REREAD",
-    "googleDrive": "PENDING",
-    "readerFacingWiki": "PENDING_EXACT_SOURCE_STATUS_CHECK"
+    "githubMain": "RE_READ_VERIFIED",
+    "githubWiki": {
+      "sourceCommit": "721824d90cd28b546f7f1b78a4f58efaa84bb687",
+      "workflowRunId": 32085575122,
+      "workflowConclusion": "success",
+      "wikiPublicationStatus": "success",
+      "publishedWikiMaster": "09c5b8fc26cc88dc0477b6f57b2f6d07d3c8b2e2",
+      "freshCloneByteComparison": "passed"
+    },
+    "googleDrive": {
+      "status": "RE_READ_VERIFIED",
+      "pcx029WikiDocumentId": "15wLrITVo7GWwG7XL47dzRiUyfLrqNaYaqmzjPxy4INE",
+      "pcx030WikiDocumentId": "1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4",
+      "checkpointDocumentId": "1kpocVeVldmINxXTbZ4U66_WTj7DgMgtlZgNTvhsN6TY",
+      "researchCursorDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "verification": "Both updated wiki mirrors, checkpoint, and cursor were fetched back non-empty after write."
+    },
+    "durability": "DUAL_PUBLISHED_RE_READ_VERIFIED"
   }
 }
