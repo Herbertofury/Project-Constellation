@@ -1,16 +1,11 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T08:16:50Z",
+  "updatedAt": "2026-08-18T09:13:25Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
   "retiredDuplicateCount": 1,
   "repairs": [
-    {
-      "task": "Recover Stale Chats",
-      "action": "re-enabled",
-      "reason": "Permanent recurring recovery watch disabled again despite explicit persistence rules; no retirement condition exists."
-    },
     {
       "task": "Project Constellation Evolution",
       "action": "re-enabled",
@@ -41,42 +36,44 @@
       "verifiedWikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
       "freshCloneByteVerification": "pass",
       "nextWikiReviewSlice": "PRJ-013 through PRJ-017",
-      "note": "The 08:04Z PRJ-008 through PRJ-012 review found no material wiki delta, so no new GitHub Wiki sync was required."
+      "note": "No newer material ProjectDump wiki publication was proven in this supervisor pass; prior verified wiki publication state is retained."
     },
     "ferrum": {
-      "status": "LATEST_EVOLUTION_MERGED_AND_EXACT_HEAD_CI_PASSED",
-      "pullRequest": 30,
-      "proposalHead": "36d65391000aadbc3634eb0aed16c4bdcfc022c6",
+      "status": "VERIFIED_COMPLETE_PRODUCT_CHECKPOINT",
+      "verifiedCodeCommit": "0fbb31d4ea97791e047df25d23c674dc14d4bbec",
+      "verifiedProposalHead": "36d65391000aadbc3634eb0aed16c4bdcfc022c6",
+      "verifiedTree": "f59e485b976d09b08741411f014ab3afab0b97e7",
       "workflowRunId": 32114007691,
       "workflowConclusion": "success",
-      "change": "Additive monotonic elapsedMs evidence timing and direct durationMs agent/run summaries while preserving existing wall-clock timestamps and evidence."
+      "verifiedAt": "2026-08-18T08:04:43Z",
+      "note": "Current Ferrum STATUS.json was re-read from main and still reports this verified product checkpoint."
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
-      "head": "f81e76c902ac033b7214a5a2d169b4f75cc6e010",
-      "latestSecretScanRunId": 32111745273,
-      "latestJobId": 95632495021,
+      "head": "419518a073fd99b175ee7761b172fff04d411dac",
+      "latestSecretScanRunId": 32118652854,
+      "latestJobId": 95653820132,
       "executedStepCount": 0,
       "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun while the hosted-runner billing/spending blocker persists."
     },
     "gameSyncStackNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 8,
-      "head": "e7c138087d7ada67e2c1d8e66a926a5e9d0bfe96",
-      "latestSecretScanRunId": 32111795891,
-      "latestJobId": 95632650424,
+      "head": "6c257662d3de028de865c8888ed1eb89b5cbd737",
+      "latestSecretScanRunId": 32118686050,
+      "latestJobId": 95653919389,
       "executedStepCount": 0,
       "repairPolicy": "Keep paired Vite 8.2.1 proposal current and require exact-head private acceptance before lead merge."
     },
     "gameSyncPerformanceNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 7,
-      "head": "d7ba9e398850d352ff5c6e0062edf9d7903bfc81",
-      "latestSecretScanRunId": 32113407830,
-      "latestJobId": 95637558864,
+      "head": "f795ccd958c2bd47c3a334a5b5e30913e6cdffea",
+      "latestSecretScanRunId": 32118735404,
+      "latestJobId": 95654068530,
       "executedStepCount": 0,
-      "repairPolicy": "Preserve the 39.65% warm-build median improvement proposal and require exact-current-head acceptance before lead merge."
+      "repairPolicy": "Preserve the verified performance proposal and require exact-current-head acceptance before lead merge. PR body metadata is stale relative to the actual current head, so future lead/worker passes must treat the GitHub PR head as canonical."
     },
     "pinterestNocturne200": {
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
