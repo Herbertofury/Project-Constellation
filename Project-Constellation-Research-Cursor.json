@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T10:06:24Z",
-  "completedCursor": ["PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022"],
-  "nextCursor": ["PRJ-023", "PRJ-024", "PRJ-025", "PCX-026", "PCX-027"],
-  "selectionReason": "PRJ-018 through PRJ-022 were rechecked against the current ProjectDump wiki source, connected GitHub repository surface, Drive continuity material, and exact artifact searches. PRJ-018 and PRJ-019 exact version searches still resolve documentation/continuity rather than canonical source bytes. PRJ-020 already contains the current NeurolingsCE architecture benchmark while the canonical master artifact remains unrecovered. PRJ-021 remains identity-unresolved with only the preserved GX Slim filename/hash in continuity evidence. PRJ-022 remains a generated Feature Foundry foundation whose exact archive is not currently recoverable from Drive. Their detailed wikis already capture the verified contracts and next proof gates, so no cosmetic or timestamp-only wiki edits were made.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1006Z-prj-018-022.json",
+  "updatedAt": "2026-08-18T11:08:00Z",
+  "completedCursor": ["PRJ-023", "PRJ-024", "PRJ-025", "PCX-026", "PCX-027"],
+  "nextCursor": ["PCX-028", "PCX-029", "PCX-030", "PCX-031", "PCX-032"],
+  "selectionReason": "PRJ-023 through PCX-027 were rechecked against current ProjectDump wiki source, connected GitHub repositories, Drive continuity material and project-owned evidence. PRJ-025 required a material wiki update because UltraDeck main now includes the verified default-off Surround layout at e1da516a7aad9a254443e4a3e48830b98a1c772b. The updated page documents per-site persistence, native-center plus two retained side lanes, source modules, real headless-browser verification, CI evidence, live qualification gates and no-culling preservation. ProjectDump source commit 4495b34d0d44ae4b9fe92387751ee54dc0c61124 published successfully to Wiki master 58f62221836b6101c62e5a6650ac5ddd52bfefe1 through fresh-clone byte verification, and the matching Drive wiki was re-read and hash-verified. PRJ-023, PRJ-024, PCX-026 and PCX-027 did not justify cosmetic churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1108Z-prj-023-pcx-027.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
