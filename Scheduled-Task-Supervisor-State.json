@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T20:16:30Z",
+  "updatedAt": "2026-08-18T21:13:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,125 +8,65 @@
   "repairs": [
     {
       "task": "Project Constellation Evolution",
-      "action": "re-enabled and hardened into exclusive publication-debt mode",
-      "reason": "The task disabled after its latest run and had drifted into PRJ-006 wiki/documentation maintenance while the known six-artifact presentation debt remained unchanged. The prompt now forbids unrelated wiki/research/project-rotation work until the debt is durably cleared or genuinely externally blocked, delegates wiki maintenance to the separate Wiki Maintainer, and requires recovery of the generation/browser/publication path rather than substituting another checkpoint."
+      "action": "re-enabled",
+      "reason": "The indefinite recurring task disabled again immediately after a run even though its prompt explicitly forbids self-disable. It was restored without changing its publication-debt-first acceptance contract."
     }
   ],
   "health": {
-    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_PUBLICATION_DEBT",
+    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_EXTERNAL_AND_PUBLICATION_DEBT",
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
-    "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired as an explicit duplicate.",
+    "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired because the canonical Recover Stale Chats task covers the same scope.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Fresh private Gamesync, GameSync-Next and Pinterest jobs continue to fail without workflow steps while the public ProjectDump Wiki job allocated a GitHub hosted runner and completed checkout, publication and fresh-clone verification.",
+    "privateHostedRunnerEvidence": "Pinterest attempt 13 and the new GameSync-Next TypeScript 7 exact-head workflows completed failure with zero workflow steps, matching the established private hosted-runner non-allocation pattern.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
-    "projectDump": {
-      "status": "VERIFIED_CURRENT_WIKI_PUBLICATION",
-      "mainObservedBeforeSupervisorWrite": "d94728998674768f07e30375e1f718b04a1883c7",
-      "latestMaterialWikiProject": "PRJ-006 ACS Agent Parity Runtime",
-      "wikiSourceCommit": "b3c8bfbe72ce5dcf543a018c017b28645ff62a30",
-      "wikiSyncRunId": 32180620786,
-      "wikiSyncJobId": 95852521216,
-      "wikiSyncConclusion": "success",
-      "wikiMaster": "3b34a791fab0fbcb444bebe6d3c87ce2b9f18e3c",
-      "wikiVerification": "Supervisor independently fetched the workflow, job and decoded logs. GitHub allocated an ubuntu-24.04 hosted runner; ProjectDump.wiki.git advanced to 3b34a791fab0fbcb444bebe6d3c87ce2b9f18e3c, the publisher fresh-cloned the Wiki, byte verification passed and wiki-publication status was recorded success."
-    },
     "projectConstellationPresentationDebt": {
       "status": "REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED_EXCLUSIVE_REPAIR",
       "debtFile": "project-constellation/Project-Constellation-Publication-Debt.json",
       "currentCatalogProjectCount": 63,
       "currentCatalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
       "staleCandidateCatalogSha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
-      "requiredRepair": "Regenerate one coherent current six-artifact presentation set from the current canonical catalog/research state; preserve the verified presentation feature surface; validate all six together; exercise Quick View in a functioning real browser; publish exact bytes to required GitHub and Drive destinations; re-read/re-download all six and verify size/SHA-256; then clear the debt and promote lastAutomationHash.",
-      "rootCauseObserved": "The latest Evolution run produced PRJ-006 wiki-maintenance artifacts instead of advancing this known debt, then the recurring task disabled. The task prompt is now in exclusive publication-debt mode until this repair is complete."
-    },
-    "ferrum": {
-      "status": "VERIFIED_PRODUCT",
-      "verifiedProductCommit": "0e212da9effebdc7db1d09a7faea03679bd11cc3",
-      "verifiedTree": "95f135263ed7f6c4961699c101f25fb319ef7572",
-      "verifiedWorkflowRun": 32164953344,
-      "verifiedAt": "2026-08-18T17:25:18Z",
-      "blockers": "none"
-    },
-    "gameSyncStackStandalone": {
-      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest": 2,
-      "head": "082bfe60e2781188939c679fb6c776d8bf4c03cf",
-      "secretScanRunId": 32178915994,
-      "jobId": 95847143870,
-      "executedStepCount": 0
-    },
-    "gameSyncStackNext": {
-      "status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER",
-      "pullRequest": 8,
-      "head": "584965e7579418b560a007322414bd404af5406f",
-      "relationToCurrentMain": "49 ahead / 2 behind",
-      "secretScanRunId": 32178959185,
-      "jobId": 95847278842,
-      "executedStepCount": 0,
-      "remaining": ["merge/rebase current main", "authoritative workspace lockfile regeneration", "private hosted-runner execution"]
-    },
-    "gameSyncPerformanceNext": {
-      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest": 7,
-      "head": "2eea58f0f99c9e27ff4ceebff8d5003e5fc4d1e4",
-      "relationToCurrentMain": "39 ahead / 0 behind",
-      "secretScanRunId": 32180574837,
-      "jobId": 95852374535,
-      "executedStepCount": 0,
-      "metadataNote": "The PR body still names an older head; this ledger records the actual current API head and fresh zero-step run as remote truth."
-    },
-    "gameSyncPetzRepair": {
-      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest": 10,
-      "head": "6a9d65419dfd4e2c8f125006e0a6bf0938079514",
-      "relationToCurrentMain": "12 ahead / 0 behind",
-      "petzVerifyRunId": 32180766882,
-      "petzVerifyJobId": 95852980939,
-      "petzVerifyExecutedStepCount": 0,
-      "secretScanRunId": 32180766899,
-      "secretScanJobId": 95852981122,
-      "secretScanExecutedStepCount": 0,
-      "metadataNote": "The PR body still names an older head; this ledger records the actual current API head and fresh exact-head failures."
-    },
-    "gameSyncAdvisoryMigrations": {
-      "standaloneWebVitals": {
-        "pullRequest": 3,
-        "head": "a52c3666fa80a15509b06d11f907b72028829671",
-        "status": "HOLD_RUNTIME_ACCEPTANCE_BLOCKED_PRE_EXECUTION",
-        "repairProgress": "Authoritative web-vitals 6.1.0 package-lock metadata was repaired from real npm registry evidence on a functioning public Ferrum runner; no unrelated lock subtree changed.",
-        "secretScanRunId": 32180206273,
-        "remaining": ["private hosted-runner execution", "full exact-head runtime/security/Ferrum/Opera gates"]
-      },
-      "nextTestToolchain": {
-        "pullRequest": 11,
-        "head": "ad5fb0fee5ba528dcda4061c0ee3f4bc2f66ccf7",
-        "status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER",
-        "relationToCurrentMain": "7 ahead / 0 behind",
-        "remaining": ["authoritative workspace lockfile regeneration", "private hosted-runner execution"]
-      },
-      "nextUiRuntime": {
-        "pullRequest": 12,
-        "head": "faa45be1cebe6881afeaa5cf6780155f5e471bac",
-        "status": "WORKING_REPAIR_IN_PROGRESS_EXTERNAL_BLOCKER",
-        "relationToCurrentMain": "14 ahead / 0 behind",
-        "stackRunId": 32180759054,
-        "remaining": ["authoritative workspace lockfile regeneration", "private hosted-runner execution"]
-      }
+      "requiredRepair": "Regenerate and validate one coherent current six-artifact presentation set, real-browser exercise Quick View, dual-publish exact bytes to GitHub and Drive, re-read/re-download all six and verify size/SHA-256, then clear debt and promote lastAutomationHash."
     },
     "pinterestNocturne200": {
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
-      "workflowAttempt": 12,
-      "latestObservedJobId": 95848718637,
+      "workflowAttempt": 13,
+      "latestObservedJobId": 95867168115,
       "latestObservedJobConclusion": "failure",
       "executedStepCount": 0,
-      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES",
-      "directReleaseFallback": "No connected GitHub release-asset upload action is exposed; complete release publication remains gated on executable publication infrastructure."
+      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES"
+    },
+    "gameSyncStandaloneStack": {
+      "vitePr": 2,
+      "viteHead": "082bfe60e2781188939c679fb6c776d8bf4c03cf",
+      "webVitalsPr": 3,
+      "webVitalsHead": "a52c3666fa80a15509b06d11f907b72028829671",
+      "status": "EXTERNAL_BLOCKER_PRIVATE_ACTIONS_PRE_EXECUTION"
+    },
+    "gameSyncNext": {
+      "main": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "performancePr": 7,
+      "performanceHead": "f9d682831d479fcd23622a126f2796592f2ad798",
+      "vitePr": 8,
+      "viteHead": "7d8dea65d29256df447754c2d4427976f2941f52",
+      "petzPr": 10,
+      "petzHead": "6a9d65419dfd4e2c8f125006e0a6bf0938079514",
+      "testToolchainPr": 11,
+      "testToolchainHead": "ad5fb0fee5ba528dcda4061c0ee3f4bc2f66ccf7",
+      "uiRuntimePr": 12,
+      "uiRuntimeHead": "faa45be1cebe6881afeaa5cf6780155f5e471bac",
+      "typescript7Pr": 13,
+      "typescript7Head": "a62e75f662e144b7663a8339749aeb9a11cbcfa2",
+      "typescript7SecretScanRun": 32186417793,
+      "typescript7VerifyRun": 32186417796,
+      "typescript7LinuxJob": 95870969274,
+      "typescript7LinuxExecutedStepCount": 0,
+      "status": "MULTIPLE_ACTIVE_PROPOSALS_BLOCKED_BY_PRIVATE_ACTIONS_PRE_EXECUTION_AND_LOCKFILE_REGENERATION"
     }
   }
 }
