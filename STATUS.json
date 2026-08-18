@@ -4,11 +4,11 @@
   "status": "ACTIVE",
   "operatingMode": "NORMAL_OPERATION",
   "recoveryMode": false,
-  "checkpointAt": "2026-08-15T21:21:30Z",
+  "checkpointAt": "2026-08-18T15:43:00Z",
   "currentGoal": "Keep the 63-project Project Constellation brain continuously usable so the user can immediately see where work stopped, the exact next action, blockers, version evidence, research freshness, and changed state.",
   "verifiedFacts": [
     "v0.5.0 artifacts were rebuilt under canonical filenames and current August 15 research dates.",
-    "Exactly 63 tracked records are present and Sports Group Hub is absent.",
+    "Exactly 63 tracked records are present.",
     "JavaScript syntax, JSON parsing, project content/research contracts, local links, artifact hashes, and both ZIPs passed static validation.",
     "All four presentation artifacts were published to the dedicated Drive Project Constellation folder, re-downloaded, and SHA-256 matched.",
     "Chromium runtime check was attempted and failed to initialize a DOM due container D-Bus/runtime failure; UI interaction success is not claimed.",
