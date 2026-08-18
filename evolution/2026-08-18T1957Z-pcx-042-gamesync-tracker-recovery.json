@@ -62,6 +62,9 @@
   "durability": {
     "githubCanonicalSource": "GameSync-Next main at cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
     "driveTarget": "PCX-042 GameSync Next Wiki",
-    "drivePublication": "pending round-trip verification in same recovery run"
+    "driveDocumentId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+    "drivePublication": "verified by round-trip text lookup in the same recovery run",
+    "driveRevisionId": "AIroW366nhnEukqkjThnxz2ig3kPX6SPF-qqhDJUG5h3mknD2A6opFw74vamJFdQXqPD25cmXu7Qas9Ckrni3o7vndTIP1ud1uf3k9Is2m8",
+    "roundTripMatchedHeading": "## Recovery checkpoint - 2026-08-18 19:57Z"
   }
 }
