@@ -1,22 +1,22 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T21:14:00Z",
+  "updatedAt": "2026-08-18T21:29:00Z",
   "completedCursor": [
-    "PRJ-007",
-    "PRJ-008",
-    "PRJ-009",
-    "PRJ-010",
-    "PRJ-011",
-    "PCX-042"
-  ],
-  "nextCursor": [
     "PRJ-012",
     "PRJ-013",
     "PRJ-014",
     "PRJ-015",
-    "PRJ-016"
+    "PRJ-016",
+    "PCX-053"
   ],
-  "selectionReason": "The scheduled PRJ-007 through PRJ-011 group was cheaply rechecked without a separate material wiki delta. During that evidence pass, current GameSync Next main had advanced from the PCX-042 wiki baseline 9e337c720f0180cffa577f140b181c699f0a1650 to cd906ff0831bf7fc33b41fea31b6f0c004cc1562, materially invalidating the wiki's Bounty and Animation Tracker gap statements. PCX-042 was therefore refreshed immediately with the verified Universal Game Tracker, Bounty and Animation Tracker architecture, message contracts, persistence/import-export behavior, current parity statuses and exact isolated Opera evidence. ProjectDump source commit 709b26baefc4dc9cf2288af3516879cbb375c998 published successfully to the real GitHub Wiki as master 36377c828be2723eef74f799f092eb2c9f3a1939 through workflow 32186179651 with fresh-clone byte verification. The Drive mirror was updated in place and re-read; its Markdown export is 42407 bytes with SHA-256 298855e3033f387521863088b912fd2fe6fdc1445e82b8fd94e2bb730ca21704. PCX-053 now has a follow-up reconciliation opportunity because its shipping Gamesync Bounty documentation predates the newly verified typed GameSync Next Bounty slice. Continue the catalog rotation at PRJ-012 through PRJ-016 while preserving that cross-project follow-up.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T2114Z-pcx-042-gamesync-next-wiki.json",
+  "nextCursor": [
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021"
+  ],
+  "selectionReason": "The scheduled PRJ-012 through PRJ-016 group was cheaply rechecked against current ProjectDump and Drive continuity evidence and did not justify separate documentation churn in this short delta window. The prior PCX-042 checkpoint identified a material cross-project follow-up: PCX-053 still treated GameSync Next as architecture-only evidence even though current main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 contains a verified typed Bounty slice. PCX-053 was therefore reconciled with the current Next contracts, gs_bounty_v1 persistence, BOUNTY_* background routing, React Bounty surfaces, 107-record isolated Opera acceptance evidence and explicit cross-host parity boundaries while preserving the richer shipping Gamesync 0.6.3 provider/miner/IndexedDB documentation. ProjectDump source commit e740dc115e8e43433e79dd398a4691fa647fe951 published successfully to the real GitHub Wiki as master 54300b8bb2eac65cf245fae1dd4f391d508939c4 through workflow 32187550047 with fresh-clone byte verification. A matching Drive Project Wikis document was created, moved into folder 1KzPLGRNubIHA4aedEEOj85vKj225zG4E, re-read and exported as 38443 bytes with SHA-256 28f5f042036f82ccc68802b20551316b908bfe42bfde82d0a205507fafd62664. Continue the catalog rotation at PRJ-017 through PRJ-021.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T2128Z-pcx-053-bounty-wiki.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
