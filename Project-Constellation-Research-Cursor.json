@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-17T23:38:00Z",
-  "completedCursor": ["PRJ-020", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025"],
-  "nextCursor": ["PCX-026", "PCX-027", "PCX-028", "PCX-029", "PCX-030"],
-  "selectionReason": "PRJ-020/022/023/024/025 were re-read from current canonical evidence. PRJ-020 gained a fresh NeurolingsCE Rust/Flutter parity benchmark; PRJ-022/023 toolchain evidence was corrected to current package lines; PRJ-024 remains intentionally unchanged pending real MO2 qualification; PRJ-025 advanced to canonical UltraDeck v8.5.0. Rotate next into Project Governance, GameSync Archive Doctor, DirectoryMonitor, PC Bridge/MCP Bridge, and Reliable Artifact Publisher.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-17T2338Z-prj-020-025.json",
+  "updatedAt": "2026-08-18T00:44:00Z",
+  "completedCursor": ["PCX-026", "PCX-027", "PCX-028", "PCX-029", "PCX-030"],
+  "nextCursor": ["PCX-031", "PCX-032", "PCX-033", "PCX-034", "PCX-035"],
+  "selectionReason": "PCX-026 through PCX-030 were delta-reviewed against the newest ProjectDump and Drive state. PCX-029 gained current MCP 2026-07-28 SDK/negotiation/conformance gates; PCX-030 gained verified ProjectDump wiki-publication proof and a joined publication-evidence model. PCX-026/027/028 remained unchanged because no newer canonical source evidence justified churn. Rotate next into Auralis, Profit Nova, Sims4CreatorStudio, Ferrum Browser, and MO2R for a fresh delta pass.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0044Z-pcx-026-030.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
