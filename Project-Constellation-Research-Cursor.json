@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T03:10:00Z",
-  "completedCursor": ["PCX-037", "PCX-038", "PCX-039", "PCX-040"],
-  "nextCursor": ["PCX-041", "PCX-042", "PCX-043", "PCX-044", "PCX-045"],
-  "selectionReason": "PCX-036 is the Project Constellation control plane and remains excluded from normal target-project wiki coverage. PCX-037 received a material source-backed update adding the current NeurolingsCE Rust+Flutter architecture/parity benchmark alongside the active Java Shimeji compatibility benchmark. PCX-038 and PCX-039 were rechecked against current GameSync head a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 and did not justify churn. PCX-040 was already materially refreshed to verified Pinterest Nocturne 2.0.0 state and dual-published before this cursor advance. Rotate next into PCX-041 through PCX-045.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0309Z-pcx-037-040.json",
+  "updatedAt": "2026-08-18T04:13:45Z",
+  "completedCursor": ["PCX-041", "PCX-042", "PCX-043", "PCX-044", "PCX-045"],
+  "nextCursor": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "selectionReason": "PCX-036 remains excluded as the Project Constellation control plane. PCX-042 received a material source-backed operational wiki expansion from current GameSync-Next main and current shipping/parity evidence, including the Extension V2 0.8.0 manifest/runtime architecture, user-facing routes, persistence, desktop/server/native boundaries, parity status/gaps, maintained Opera verification path, current-main test:e2e-opera script defect, and open proposal verification boundaries. PCX-041 and PCX-043 through PCX-045 were rechecked and no stronger newer authoritative evidence justified documentation churn. Rotate next into PCX-046 through PCX-050.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0413Z-pcx-041-045.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
