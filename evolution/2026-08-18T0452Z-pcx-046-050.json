@@ -1,0 +1,110 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "createdAt": "2026-08-18T04:52:35Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "catalogInvariant": {
+    "trackedProjects": 63,
+    "sportsGroupHubAbsent": true,
+    "projectConstellationControlPlaneExcludedFromTargetRotation": true
+  },
+  "slice": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "canonical": {
+    "projectDumpRepository": "Herbertofury/ProjectDump",
+    "projectDumpBranch": "main",
+    "gameSyncNextRepository": "Herbertofury/GameSync-Next",
+    "gameSyncNextHead": "9e337c720f0180cffa577f140b181c699f0a1650",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV"
+  },
+  "projectFindings": [
+    {
+      "project": "PCX-046",
+      "name": "Feature Foundry Source Hubs",
+      "decision": "PROPOSE_CAPABILITY_MATRIX_EXTENSION",
+      "facts": [
+        "The verified V33 soundtrack hub still supplies the preservation baseline and six-provider external-navigation fallback.",
+        "Spotify's May 2026 Web API change adds account_id as a public, immutable, pseudoanonymous account identifier and recommends it over user id for durable account linking.",
+        "Spotify Development Mode remains constrained by the February/March 2026 regime, including Premium ownership, limited users, changed endpoints/fields and PKCE as the public-client authorization path.",
+        "Apple Music Feed is a separate bulk offline catalog capability from MusicKit user authorization. Current Apple documentation says it refreshes fully every 24 hours, exports Parquet data through Apple Media Feed API, requires developer-token authentication, and is restricted to public promotion of Apple Music content."
+      ],
+      "proposal": "Extend the provider capability/auth schema with a stable provider account identity field and an explicit purpose-restricted bulk-catalog capability. Use Spotify account_id for durable Spotify linkage, keep MusicKit subscriber authorization separate from Apple Music Feed, and retain all six current external-navigation fallbacks.",
+      "smallestExperiment": "Exercise Spotify PKCE plus account_id linkage and MusicKit web authorization while adding schema-only support for the Apple Music Feed lane without advertising it in UI until runtime-verified.",
+      "acceptance": "All six V33 provider fallbacks and per-theme mappings survive; provider UI advertises only verified capabilities; no secrets/signing keys enter browser-exportable state; provider identity is stable; bulk-feed purpose/freshness is explicit; provider failures remain isolated.",
+      "writes": ["wikis/PCX-046-feature-foundry-source-hubs.md"]
+    },
+    {
+      "project": "PCX-047",
+      "name": "Favorite Artist Worlds Database",
+      "decision": "OBSERVE_NO_WRITE",
+      "facts": [
+        "The verified v4.0.1 content line remains the preservation baseline.",
+        "SQLite 3.53.4 remains the current stable SQLite release, dated 2026-07-24."
+      ],
+      "proposal": "Keep the existing SQLite 3.53.4 fixture/query-plan validation lane. Do not alter curated artist/world data or stable IDs without correctness parity and measured benefit.",
+      "smallestExperiment": "Run the unchanged v4.0.1 integrity, FK, FTS, stable-ID and representative relationship-query corpus under SQLite 3.53.4.",
+      "acceptance": "Entity counts, IDs, provenance, JSON/SQLite/workbook/FTS behavior and archive validation remain identical while any performance benefit is measured on the same corpus.",
+      "writes": []
+    },
+    {
+      "project": "PCX-048",
+      "name": "GameSync Theme Foundry",
+      "decision": "REPAIR_CURRENT_CONTRACT_BEFORE_INTERCHANGE_EXPERIMENT",
+      "facts": [
+        "Current GameSync Next main contains a dedicated theme package family including theme-core, theme-schema, theme-audio, theme-object-ecology, theme-runtime, theme-storage and host bridges.",
+        "theme-core defines a host-agnostic ThemeManifest, HostCapabilityMap, capability negotiation and FeatureHostBridge.",
+        "theme-core currently declares SettingsFieldType values boolean, number, string, select, color and range, while theme-schema validates toggle, slider, text, select, color and number and references additional names in comments.",
+        "theme-core select options are label/value objects, while theme-schema currently uses options.includes(String(value)), creating a source-level representation mismatch.",
+        "The root build:packages script does not traverse the dedicated theme packages and the current Feature Foundry app manifest does not list them as direct dependencies, so normal root build evidence is insufficient to prove this contract is clean or production-integrated."
+      ],
+      "proposal": "Treat the current theme package family as the target architecture but repair/verify theme-core and theme-schema contract consistency on a scoped proposal before adding the Design Tokens 2025.10 interchange adapter.",
+      "smallestExperiment": "Run package-local theme-core and theme-schema builds/type checks, add field-type/select-option fixtures, prove the real consuming host uses the corrected contract, then perform one-theme Design Tokens round trip.",
+      "acceptance": "Package contracts agree; clean package-local checks pass; real host consumes the tested output; stable IDs and all theme/world/object/provider data survive; North Star/no-cap/host-parity/runtime gates remain clean.",
+      "writes": ["wikis/PCX-048-gamesync-theme-foundry.md"]
+    },
+    {
+      "project": "PCX-049",
+      "name": "GameSync Live Mascot Tavern",
+      "decision": "PROPOSE_SCOPED_PETZ_BRIDGE_PARITY_REPAIR",
+      "facts": [
+        "Current GameSync Next main contains petz-engine, petz-compat, petz-formats and petz-bridge; the Petz mascot bridge is documented in source as consumed by both Opera extension v1 and Extension V2.",
+        "PetzMascotBridge constructs PetzEngine with maxPets: 4, and PetzEngine DEFAULT_ENGINE_CONFIG also sets maxPets to 4. spawnPet rejects creation when pets.size reaches that limit.",
+        "PetzMascotBridge spawnPet loads saved data using breedId but leaves the restore branch as TODO even though PetzEngine already exposes restore(data).",
+        "PetzMascotBridge destroy saves by runtime pet.id while loading uses breedId and writes the same whole-engine serialize() snapshot once per pet, creating a persistence identity/ownership mismatch."
+      ],
+      "proposal": "Preserve the native-engine architecture while repairing the Petz descendant: remove the fixed architectural four-pet ceiling or make any safety preference explicitly configurable/non-destructive, define one persistence owner/key, and wire engine restore through the bridge.",
+      "smallestExperiment": "Add bridge-focused tests for uncapped/configured spawn policy, save/load key identity and full serialize/restore round trip, then run extension v1 and Extension V2 restart fixtures before merge.",
+      "acceptance": "No artificial mascot-count ceiling removes supported mascots; save/load identity matches; restored state is actually applied after full restart; real Petz engine behavior remains active; v1/v2 and broader cross-engine room fixtures pass without fake fallback or state loss.",
+      "writes": ["wikis/PCX-049-gamesync-live-mascot-tavern.md"]
+    },
+    {
+      "project": "PCX-050",
+      "name": "GameSync Real Library Performance",
+      "decision": "OBSERVE_NO_WRITE",
+      "facts": [
+        "The existing real RESYNC_STEAM baseline remains the required next measurement before a storage migration.",
+        "SQLite 3.53.4 remains current stable and the official WASM persistence guidance still describes opfs, opfs-wl and opfs-sahpool as trade-off choices rather than a universal winner.",
+        "opfs-wl uses Web Locks and requires Atomics.waitAsync; official guidance says its performance is broadly on par with opfs while offering fairer FIFO lock distribution. opfs-sahpool remains the highest-performance documented OPFS option but does not support simultaneous connections in the same way."
+      ],
+      "proposal": "Keep the complete-library RESYNC_STEAM measurement first, then A/B VFS choices on the identical library and exact build without culling, quantity loss, quality loss or stale synchronization.",
+      "smallestExperiment": "Capture gsLastSteamSyncPerformance on the real current build and repeat the same complete-library workload across only capability-compatible VFS candidates.",
+      "acceptance": "Identical complete library identity/provenance/media data, repeatable material gain, clean reload/restart/concurrency/error recovery, and no viewport/cap/fidelity regressions.",
+      "writes": []
+    }
+  ],
+  "appResearch": {
+    "decision": "OBSERVE_NO_PRESENTATION_WRITE",
+    "finding": "The dedicated research cursor is materially newer than the broad automation-state snapshot and already contains an explicit authority rule limiting that freshness override to research scheduling fields.",
+    "action": "Continue treating the fresh research cursor as the scheduling authority without regenerating unchanged Quick View/master/PWA/wiki-pack presentation bytes solely for cursor bookkeeping."
+  },
+  "antiRegression": [
+    "Preserved exactly 63 tracked projects and Sports Group Hub absence.",
+    "No viewport admission, virtualization, culling, hidden count cap, reduced dataset, lower fidelity or weaker validation was introduced.",
+    "No current product source was changed without real package/runtime verification; source-backed defects were documented as scoped repair proposals instead.",
+    "Existing verified V33/0.25.9 preservation baselines remain rollback and parity references rather than being overwritten by unverified current-source assumptions."
+  ],
+  "publicationPlan": {
+    "github": "Publish the three material wiki updates, this checkpoint, and research cursor to Herbertofury/ProjectDump main and re-read them.",
+    "drive": "Publish matching material wiki/checkpoint/cursor copies into the connected Project Constellation/Project Wikis Drive areas and re-read them.",
+    "presentationArtifacts": "No Quick View/master/PWA/wiki-pack regeneration because no presentation bytes were changed in this pass."
+  },
+  "nextCursor": ["PCX-051", "PCX-052", "PCX-053", "PCX-054", "PCX-055"]
+}
