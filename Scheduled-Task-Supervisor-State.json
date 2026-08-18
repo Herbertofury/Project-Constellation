@@ -1,27 +1,75 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-17T23:38:30Z",
+  "updatedAt": "2026-08-18T00:24:21Z",
   "taskCount": 7,
   "enabledCount": 7,
   "pausedCount": 0,
   "health": {
     "scheduledTasks": "HEALTHY_ENABLED_STATE",
     "allRecurringTasksEnabled": true,
-    "pinterestPublication": "UNRESOLVED_GITHUB_ACTIONS_STARTUP_BLOCKER",
-    "pinterestEvidence": {
+    "userEscalationRequired": true,
+    "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition. This single account-level blocker is preventing both Pinterest publication and GameSync exact-head acceptance jobs from starting."
+  },
+  "publicationLedger": {
+    "projectDumpWiki": {
+      "status": "VERIFIED_HEALTHY",
+      "sourceCommit": "9bb798006e34c1122e40eae1037144a1247f2001",
+      "publicationStatus": "wiki-publication=success",
+      "workflowRunId": 32083218948,
+      "verification": "Sync job completed successfully, including publish-and-verify and verified-publication-status steps."
+    },
+    "ferrumStack": {
+      "status": "CI_IN_PROGRESS",
+      "pullRequest": 16,
+      "head": "5a7befd36f189de90dc5c21d560c9a4723f76842",
+      "workflowRunId": 32084212634,
+      "verification": "Unit, Appium Android, Lightpanda, and WebDriver Grid jobs passed; Linux and Windows Chromium matrix jobs were still in progress at audit time. No repair is justified while the current exact-head CI is actively progressing."
+    },
+    "gameSyncStackStandalone": {
+      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest": 2,
+      "head": "57fc957b59a0c5f4c53e1139df1f4b8b89a7f002",
+      "secretScanRunId": 32083801853,
+      "jobId": 95551960129,
+      "executedStepCount": 0,
+      "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun the known account-level hosted-runner failure."
+    },
+    "gameSyncStackNext": {
+      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest": 8,
+      "head": "143e0a1b04d326f407e5d8a4e0ad82e7d3ae13a9",
+      "secretScanRunId": 32083366117,
+      "jobId": 95550615882,
+      "executedStepCount": 0,
+      "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun the known account-level hosted-runner failure."
+    },
+    "gameSyncPerformanceNext": {
+      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest": 7,
+      "head": "bab54cdb3e011006715a0cefcb8613575da130ad",
+      "secretScanRunId": 32078893916,
+      "jobId": 95537743862,
+      "executedStepCount": 0,
+      "repairPolicy": "Preserve the verified performance proposal and wait for exact-head private runner execution before lead merge."
+    },
+    "pinterestNocturne200": {
+      "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
       "workflowAttempt": 3,
-      "workflowConclusion": "failure",
       "jobId": 95543968845,
-      "jobConclusion": "failure",
       "executedStepCount": 0,
-      "workflowUrl": "https://github.com/Herbertofury/Pinterest-Nocturne/actions/runs/32068119456",
-      "workflowDefinitionVerified": true,
-      "workflowHasExecutableSteps": true
-    },
-    "diagnosis": "The workflow definition contains normal checkout/build/test/package/release steps, but attempt 3 failed before any step executed. This isolates the remaining failure to GitHub Actions job startup/infrastructure/account execution rather than the Pinterest build script itself.",
-    "recoveryPolicy": "Keep Pinterest GitHub Publish Retry enabled hourly. Do not spam identical reruns while the same external startup failure persists. Recheck GitHub execution state each run and complete release publication immediately when the runner becomes available.",
-    "userEscalationRequired": true,
-    "userEscalationAction": "Review the GitHub account/repository Actions billing or spending-limit status so hosted jobs can start."
+      "driveRecovery": {
+        "status": "VERIFIED_COMPLETE",
+        "folderId": "1WQ2cHAGxDxqJMTXPW00bLbMksIHiwRvw",
+        "releaseZipSha256": "5bb685b30f15dab885aa6516480ff105bf1988c2f623f090c77bc0f512623f47",
+        "sourceZipSha256": "e5a592b20be11b48459754999db96e3d2949a882b13362fa9f47be89f14ee5fa",
+        "chromiumZipSha256": "680a05a40344dc6808ef46da7ad96c001081a7ee98a6bb7eb3a91764f7ab82c7",
+        "operaGxZipSha256": "07555faaeab2a96523b9440313306d870539a27707e9c4331f2dd841fc9d9162",
+        "firefoxZipSha256": "9779dae05cb2564388872e1c34919f0660e3da5976bd609592341c97dd0267d3",
+        "verification": "All five Drive ZIPs were re-downloaded, SHA-256 matched the stored checksum manifest, and ZIP integrity tests passed."
+      },
+      "repairPolicy": "Keep Pinterest GitHub Publish Retry enabled. Do not spam identical reruns while hosted jobs cannot start. Complete canonical source/release publication and remote asset verification as soon as private Actions execution is restored."
+    }
   }
 }
