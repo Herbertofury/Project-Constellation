@@ -1,0 +1,26 @@
+{
+  "schema": "project-constellation.catalog-integrity/1",
+  "checkedAt": "2026-08-18T05:52:00Z",
+  "catalog": {
+    "path": "project-constellation/Project-Constellation-Project-Catalog.json",
+    "driveFileId": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
+    "bytes": 116771,
+    "sha256": "79c8dd524b866ab1fe2dc011820f010d7ab5c8f4b0f42d31ad3e6ca8db82e8be",
+    "githubBlobSha": "d417e516449f7c2d4ec9a16accdedfebc5cb590f",
+    "githubRestoreCommit": "eb99a193c08b9f2ca370dbcf85c75c2f997eafa6"
+  },
+  "invariants": {
+    "projectCount": 63,
+    "uniqueProjectIds": true,
+    "sportsGroupHubExcluded": true,
+    "sportsGroupHubRecordAbsent": true,
+    "allProjectsHaveGoal": true,
+    "allProjectsHaveRequirements": true,
+    "allProjectsHaveRecoveryHistory": true
+  },
+  "publication": {
+    "github": "RESTORED_AND_FETCH_VERIFIED",
+    "googleDrive": "SOURCE_REDOWNLOADED_AND_SHA256_VERIFIED",
+    "rule": "A missing, stale, partial, or unverifiable GitHub or Drive copy is publication debt. Raw byte SHA-256 remains the exact publication identity; semantic canonicalization may only be additive."
+  }
+}
