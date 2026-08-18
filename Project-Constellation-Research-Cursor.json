@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T08:04:00Z",
-  "completedCursor": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
-  "nextCursor": ["PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017"],
-  "selectionReason": "PRJ-008 through PRJ-012 were rechecked against the current canonical repositories, connected Drive continuity artifacts, and project-owned wiki evidence. PRJ-008 remains aligned to the current Gamesync head a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928. PRJ-009 and PRJ-010 exact artifact searches still resolve continuity records rather than canonical recoverable archives, and PRJ-010's FlipForge repository remains a placeholder. PRJ-011 and PRJ-012 still lack canonical runnable source in connected state. Their existing wikis already document these boundaries and current verification/recovery contracts, so no cosmetic or timestamp-only wiki edits were made.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0804Z-prj-008-012.json",
+  "updatedAt": "2026-08-18T09:02:00Z",
+  "completedCursor": ["PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017"],
+  "nextCursor": ["PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022"],
+  "selectionReason": "PRJ-013 through PRJ-017 were rechecked against current ProjectDump wiki source, connected GitHub repositories, Drive continuity material, and exact artifact searches. PRJ-013 remains historical Money App lineage under active PCX-032 Profit Nova authority. PRJ-014's v6.1 HTML remains unrecovered. PRJ-015, PRJ-016, and PRJ-017 exact version searches resolve existing wiki/continuity material rather than canonical source or release bytes. Their current detailed wikis already document the verified host baselines, preservation contracts, source-recovery priorities, and exact real-runtime qualification gates, so no cosmetic or timestamp-only wiki edits were made.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0902Z-prj-013-017.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
