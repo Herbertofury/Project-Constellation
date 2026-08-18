@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T09:02:00Z",
-  "completedCursor": ["PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017"],
-  "nextCursor": ["PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022"],
-  "selectionReason": "PRJ-013 through PRJ-017 were rechecked against current ProjectDump wiki source, connected GitHub repositories, Drive continuity material, and exact artifact searches. PRJ-013 remains historical Money App lineage under active PCX-032 Profit Nova authority. PRJ-014's v6.1 HTML remains unrecovered. PRJ-015, PRJ-016, and PRJ-017 exact version searches resolve existing wiki/continuity material rather than canonical source or release bytes. Their current detailed wikis already document the verified host baselines, preservation contracts, source-recovery priorities, and exact real-runtime qualification gates, so no cosmetic or timestamp-only wiki edits were made.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0902Z-prj-013-017.json",
+  "updatedAt": "2026-08-18T10:06:24Z",
+  "completedCursor": ["PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022"],
+  "nextCursor": ["PRJ-023", "PRJ-024", "PRJ-025", "PCX-026", "PCX-027"],
+  "selectionReason": "PRJ-018 through PRJ-022 were rechecked against the current ProjectDump wiki source, connected GitHub repository surface, Drive continuity material, and exact artifact searches. PRJ-018 and PRJ-019 exact version searches still resolve documentation/continuity rather than canonical source bytes. PRJ-020 already contains the current NeurolingsCE architecture benchmark while the canonical master artifact remains unrecovered. PRJ-021 remains identity-unresolved with only the preserved GX Slim filename/hash in continuity evidence. PRJ-022 remains a generated Feature Foundry foundation whose exact archive is not currently recoverable from Drive. Their detailed wikis already capture the verified contracts and next proof gates, so no cosmetic or timestamp-only wiki edits were made.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1006Z-prj-018-022.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
