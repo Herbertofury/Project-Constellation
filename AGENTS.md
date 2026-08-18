@@ -13,7 +13,6 @@ Project Constellation is ACTIVE and runs in NORMAL_OPERATION. Recovery/restorati
 ## Hard invariants
 
 - Exactly 63 tracked projects unless the user explicitly changes the list.
-- Sports Group Hub remains removed and must never be re-added.
 - The older 25-project `USER-PROJECTS-DATABASE.md` is historical source detail only and cannot replace the active 63-project catalog.
 - Preserve user notes, checkpoints, version corrections, next actions, research keep/dismiss/promote decisions, and completed work.
 - Missing ephemeral files are not evidence that Project Constellation itself is in recovery.
