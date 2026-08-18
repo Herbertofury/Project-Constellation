@@ -1,21 +1,17 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T18:53:28Z",
+  "updatedAt": "2026-08-18T19:08:01Z",
   "completedCursor": [
-    "PRJ-005",
+    "PRJ-005"
+  ],
+  "nextCursor": [
     "PRJ-006",
     "PRJ-007",
     "PRJ-008",
-    "PRJ-009"
+    "PRJ-009",
+    "PRJ-010"
   ],
-  "nextCursor": [
-    "PRJ-010",
-    "PRJ-011",
-    "PRJ-012",
-    "PRJ-013",
-    "PRJ-014"
-  ],
-  "selectionReason": "PRJ-005 through PRJ-009 were rechecked against current ProjectDump wiki source, current project-owned repositories, connected Drive continuity, and current primary-source research. PRJ-005 Mascot / Screenmate remains accurately documented on shipping Gamesync 0.6.3. PRJ-006 ACS Agent Parity retains the same verified host; Piper v1.4.2 and whisper.cpp v1.9.1 remain current local speech-provider candidates behind the existing queue/request adapter boundary, so no runtime migration was applied. PRJ-007 PF Magic Petz has a material but unverified repair delta: issue #9 remains open, while draft PR #10 at exact head f916e1a445b4bc6b9d174c5b90169b7803e2f01c is 10 commits ahead / 0 behind current main and source inspection confirms stable persistence IDs, additive single-pet restore, per-pet serialization, diagnostics and awaited async shutdown saves. Exact-head Petz verify run 32168143964 still failed before any steps executed and Ferrum was skipped; this is recorded as an external-runner block, not a product pass or failure. PRJ-008 Mascot Games remains aligned with the current shipping runtime; WXT v0.21.2 and the migrated Rapier TypeScript maintenance line were evaluated but not adopted because the verified hosts do not currently depend on them and no measured migration benefit exists. PRJ-009 Skill Atlas / QA Cockpit source recovery remains blocked: current Drive search still finds continuity/index material rather than the canonical archive/repository; RuneLite Plugin Hub guidance and launcher 2.8.0 are compatibility context only until the source is recovered.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1853Z-prj-005-009.json",
+  "selectionReason": "A corrective source pass found PRJ-005 materially stale: the umbrella wiki still treated Gamesync 0.6.3 as its only verified browser implementation host, while current GameSync Next Extension V2 0.8.0 source and commit 60940e8479af518f3373a79efa091902f4843842 prove universal all-site mascot parity, shared settings/site-policy gating, SPA route coordination, lightweight/full-runtime ownership, mount-error diagnostics, and a Clippy-compatible initialization-order repair. PRJ-005 was therefore reconciled and dual-published. PRJ-006 now needs immediate follow-up because its ACS parity wiki still lists Gamesync 0.6.3 as the sole verified host even though the same GameSync Next parity work adds typed Clippy/mascot runtime evidence. PRJ-007 remains current on the typed Petz core/persistence repair contract, PRJ-008 remains aligned with the shipping mascot-game runtime and unresolved Golf boundary, and PRJ-009 remains blocked on canonical Skill Atlas/QA Cockpit source recovery. Keep PRJ-007 through PRJ-009 in the next group for cheap delta rechecks, then resume forward catalog progression at PRJ-010.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T1908Z-prj-005-mascot-umbrella.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
