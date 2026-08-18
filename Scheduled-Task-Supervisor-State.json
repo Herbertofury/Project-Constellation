@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T16:12:37Z",
+  "updatedAt": "2026-08-18T17:13:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -9,7 +9,13 @@
     {
       "task": "Project Constellation Evolution",
       "action": "re-enabled",
-      "reason": "Permanent recurring evolution service had disabled even though its recurring obligation remains open and current Project Constellation publication debt is unresolved."
+      "reason": "Permanent recurring evolution service was disabled after its latest run even though its recurring obligation remains open and presentation publication debt is unresolved."
+    },
+    {
+      "target": "project-constellation/Project-Constellation-Publication-Debt.json",
+      "action": "invalidated stale six-artifact candidate",
+      "commit": "d20f8f252374bc2b505a469dd4eda3a4423190b9",
+      "reason": "The debt file's historical candidate catalog SHA-256 no longer matches the current promoted catalog SHA-256; its own retry contract requires regeneration before publication."
     }
   ],
   "health": {
@@ -18,48 +24,47 @@
     "incompletePausedTasks": 0,
     "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired as an explicit duplicate.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Current private GameSync and Pinterest jobs continue to fail before workflow steps, while ProjectDump public wiki publication continues to obtain hosted execution.",
+    "privateHostedRunnerEvidence": "Current private Gamesync, GameSync-Next and Pinterest jobs independently return failed jobs with null/empty workflow steps, while ProjectDump public Wiki publication continues to obtain hosted execution and complete fresh-clone byte verification.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
     "projectDump": {
       "status": "VERIFIED_CURRENT_WIKI_PUBLICATION",
-      "currentMain": "efec1e7e3661cfc167ce2fac7701877ee8a314c7",
-      "latestMaterialWikiProject": "PCX-056 GameSync Mod Health",
-      "wikiSourceCommit": "dd541eb0b3d04b97f96e85aab6bc3afa327e5242",
-      "publisherRepairCommit": "965bfacab779d48c95a71691e13cee712ad61d4d",
-      "wikiSyncRunId": 32158805255,
+      "currentMainAfterSupervisorRepair": "d20f8f252374bc2b505a469dd4eda3a4423190b9",
+      "latestMaterialWikiProject": "PCX-060 ACS Voice / Speech Runtime",
+      "wikiSourceCommit": "64229ef99c9d31afcc910d67538d53443f21b19d",
+      "wikiSyncRunId": 32163975940,
       "wikiSyncConclusion": "success",
-      "wikiMaster": "ed45bdb48253f31c45ae1d76cb265e89f278b2db",
-      "wikiVerification": "Latest evolution checkpoint records ProjectDump.wiki.git push, fresh clone, complete page-set byte comparison pass, and verified dual publication.",
-      "driveWikiFileId": "1BYHbXcb2KbwP3l6mA_jzQjnfv_0QrkK3jg-_9ipHvTQ",
-      "driveWikiMarkdownSha256": "8d0402559344279189d7f9677cf0a956a57ac1cfb037507ac1ec7a7e61756908"
+      "wikiMaster": "ee059fd6f943c0a5797c6de5c0e7dc2a685ca6b8",
+      "wikiVerification": "Evolution checkpoint records ProjectDump.wiki.git push, fresh clone and complete page-set byte comparison; supervisor independently re-read the GitHub wiki source and Drive wiki copy.",
+      "driveWikiFileId": "1cglaNdTV5i6Xgy3koNqbCyZnClwdZzoEXv1H8FO3_54",
+      "driveWikiMarkdownSha256": "34351280a96aea689f3c1080b42f380436f73705b187f06cd26c97b8cea45afc",
+      "driveCheckpointFileId": "1LuGrYNa0Yxj0ba4qgbjO96GuYt7CE0szd5M5wDFc4Ek",
+      "driveCheckpointSha256": "4dc8d8d8999cf7499b9586ddf55a96b0bd85430a73c27581bacf36d605d77390"
     },
     "projectConstellationPresentationDebt": {
       "status": "REGENERATION_REQUIRED_CURRENT_CATALOG_CHANGED",
-      "sourceDebtFile": "project-constellation/Project-Constellation-Publication-Debt.json",
+      "debtRepairCommit": "d20f8f252374bc2b505a469dd4eda3a4423190b9",
       "staleCandidateCatalogSha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
-      "currentAutomationCatalogSha256": "79c8dd524b866ab1fe2dc011820f010d7ab5c8f4b0f42d31ad3e6ca8db82e8be",
-      "reason": "The debt file's own retry contract requires invalidation/regeneration when the presentation catalog changes before publication. Current automation state records a different 63-project catalog hash and newer source/research state, while the Drive presentation artifacts still match the older lastAutomationHash set rather than the stale candidate byte sizes.",
-      "requiredRepair": "Project Constellation Evolution must regenerate one coherent six-artifact presentation set from the current 63-project catalog, publish the exact bytes to Drive and the canonical GitHub destination where required, re-read/re-download and hash-verify all remote copies, exercise Quick View in a functioning browser, then replace the stale publication-debt record and promote lastAutomationHash."
+      "currentPromotedCatalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "requiredRepair": "Regenerate a coherent current six-artifact presentation set, validate and browser-exercise it, publish the exact bytes to required GitHub/Drive destinations, re-read/re-download and verify size/SHA-256, then promote lastAutomationHash."
     },
     "ferrum": {
-      "status": "VERIFIED_PRODUCT_WITH_NEWER_CHECKPOINT_STATE",
-      "currentMainCheckpointCommit": "65751574e696cfd527d15da81b31398c58c704a9",
+      "status": "VERIFIED_PRODUCT",
       "verifiedProductCommit": "502232441fdd828b9e7f191bb01f75a9154a789d",
       "verifiedProposalHead": "9a7f7694f347804febc5f6b14ef9f35a83839d6d",
       "verifiedWorkflowRun": 32155315750,
       "perfettoCompatibilityRun": 32155315736,
-      "verification": "Current GameSync proposal evidence records the exact Ferrum proposal tree passing the full severe CI surface, with the merged product carrying the same verified tree and independent Perfetto trace compatibility."
+      "statusFileVerifiedAt": "2026-08-18T15:48:48Z"
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
       "base": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
       "head": "ced9392fb054dcc27ab4d927d734dac5a04780b3",
-      "latestSecretScanRunId": 32157133296,
-      "latestJobId": 95776943927,
+      "secretScanRunId": 32157133296,
+      "jobId": 95776943927,
       "executedStepCount": 0
     },
     "gameSyncStackNext": {
@@ -67,8 +72,8 @@
       "pullRequest": 8,
       "base": "9e337c720f0180cffa577f140b181c699f0a1650",
       "head": "7431e98861b20e53dc87f5a312fb0ecb8e99fdec",
-      "latestSecretScanRunId": 32157226020,
-      "latestJobId": 95777241640,
+      "secretScanRunId": 32157226020,
+      "jobId": 95777241640,
       "executedStepCount": 0
     },
     "gameSyncPerformanceNext": {
@@ -77,27 +82,28 @@
       "base": "9e337c720f0180cffa577f140b181c699f0a1650",
       "head": "51dca586bc1a16d86ba27ee460aef5d76ff4c3bb",
       "aheadBy": 35,
-      "behindBy": 0,
-      "latestSecretScanRunId": 32157035937,
-      "latestJobId": 95776629439,
+      "secretScanRunId": 32157035937,
+      "jobId": 95776629439,
       "executedStepCount": 0
     },
     "gameSyncPetzRepair": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 10,
-      "head": "98f826b0e88340ef0d91264f726491ae02a2c192",
-      "petzVerifyRunId": 32157288265,
-      "petzVerifyJobId": 95777443369,
-      "secretScanRunId": 32157288283,
-      "secretScanJobId": 95777443304,
-      "executedStepCount": 0,
-      "note": "Active correctness repair remains draft/unmerged until exact-head package, runtime, restart, Ferrum, and security gates execute."
+      "head": "eddda3f7c2fb53ec5d18d57c3e0130a839cc4757",
+      "petzVerifyRunId": 32163425446,
+      "petzVerifyJobId": 95797346394,
+      "petzVerifyExecutedStepCount": 0,
+      "ferrumDependentJobId": 95797362106,
+      "ferrumDependentConclusion": "skipped"
     },
     "gameSyncAdvisoryMigrations": {
       "standaloneWebVitals": {
         "pullRequest": 3,
         "head": "da91191ffaddc4d934cc94a59e2920b3d39b417c",
         "status": "WORKING_REPAIR_IN_PROGRESS",
+        "secretScanRunId": 32152671787,
+        "jobId": 95762162642,
+        "executedStepCount": 0,
         "blockers": [
           "authoritative package-lock regeneration",
           "private hosted-runner execution",
@@ -108,6 +114,9 @@
         "pullRequest": 11,
         "head": "2fef0118f066dc56c3ccc8293559124c1a7266e8",
         "status": "WORKING_REPAIR_IN_PROGRESS",
+        "secretScanRunId": 32157003169,
+        "jobId": 95776526254,
+        "executedStepCount": 0,
         "blockers": [
           "authoritative workspace lockfile regeneration",
           "private hosted-runner execution",
@@ -119,12 +128,12 @@
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
-      "workflowAttempt": 8,
-      "latestObservedJobId": 95777350573,
+      "latestObservedJobId": 95796264396,
+      "latestObservedJobConclusion": "failure",
       "executedStepCount": 0,
-      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASS",
+      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASSES",
       "driveChecksumManifestFileId": "1X5AhqaaVQUlAk6EvSJiGs0HIoceKaLDD",
-      "directReleaseFallback": "No connected GitHub release-asset upload action is available; source/release completion remains gated on executable publication infrastructure."
+      "directReleaseFallback": "No connected GitHub release-asset upload action is exposed; complete release publication remains gated on executable publication infrastructure."
     }
   }
 }
