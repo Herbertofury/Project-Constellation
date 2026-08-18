@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T00:24:21Z",
+  "updatedAt": "2026-08-18T00:28:06Z",
   "taskCount": 7,
   "enabledCount": 7,
   "pausedCount": 0,
@@ -19,11 +19,13 @@
       "verification": "Sync job completed successfully, including publish-and-verify and verified-publication-status steps."
     },
     "ferrumStack": {
-      "status": "CI_IN_PROGRESS",
+      "status": "READY_FOR_LEAD_MERGE",
       "pullRequest": 16,
       "head": "5a7befd36f189de90dc5c21d560c9a4723f76842",
+      "base": "9cad64ba12492ee574b5fae01d1f3601e8502dd7",
       "workflowRunId": 32084212634,
-      "verification": "Unit, Appium Android, Lightpanda, and WebDriver Grid jobs passed; Linux and Windows Chromium matrix jobs were still in progress at audit time. No repair is justified while the current exact-head CI is actively progressing."
+      "workflowConclusion": "success",
+      "verification": "Exact-head Ferrum CI completed successfully across unit/MCP/evidence integrity, real WebDriver Grid, Linux and Windows Chromium/browser-matrix/MV3/workload/Electron/desktop/package paths, Lightpanda, and real Android/Appium. The PR is marked READY FOR LEAD MERGE; designated lead authority remains responsible for final stale-main review and merge."
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
