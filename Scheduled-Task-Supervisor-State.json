@@ -1,20 +1,25 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T07:18:30Z",
+  "updatedAt": "2026-08-18T08:16:50Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
   "retiredDuplicateCount": 1,
   "repairs": [
     {
+      "task": "Recover Stale Chats",
+      "action": "re-enabled",
+      "reason": "Permanent recurring recovery watch disabled again despite explicit persistence rules; no retirement condition exists."
+    },
+    {
       "task": "Project Constellation Evolution",
       "action": "re-enabled",
-      "reason": "Permanent recurring evolution service was disabled again despite its persistence directive and remains an open indefinite obligation."
+      "reason": "Permanent recurring evolution service disabled again despite explicit persistence rules; the obligation remains open indefinitely."
     },
     {
       "task": "GameSync Performance Pass",
       "action": "re-enabled",
-      "reason": "Permanent recurring performance service was disabled again despite its persistence directive and remains an open indefinite obligation."
+      "reason": "Permanent recurring performance service disabled again despite explicit persistence rules; recurring optimization duty remains open."
     }
   ],
   "health": {
@@ -27,37 +32,51 @@
   },
   "publicationLedger": {
     "projectDump": {
-      "status": "LATEST_VERIFIED_WIKI_PASS_RETAINED",
-      "latestVerifiedSlice": "PCX-051 through PCX-055",
+      "status": "LATEST_REVIEW_NO_MATERIAL_WIKI_DELTA",
+      "latestReviewSlice": "PRJ-008 through PRJ-012",
+      "latestReviewCheckpointCommit": "12c838eb0d21997f8ca9b6b46a674db84a576042",
+      "reviewDriveVerification": "pass",
+      "reviewDriveExportSha256": "da0b7f732ba1c898221d58ac6fcda07f519a2babe6ad24ca4ab96c60cbcc85a3",
+      "latestVerifiedPublishedWikiSlice": "PCX-051 through PCX-055",
       "verifiedWikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
       "freshCloneByteVerification": "pass",
-      "nextWikiSlice": "PCX-056 through PCX-060",
-      "note": "No newer independently verified wiki publication was established during this supervisor pass, so the last verified wiki publication remains authoritative."
+      "nextWikiReviewSlice": "PRJ-013 through PRJ-017",
+      "note": "The 08:04Z PRJ-008 through PRJ-012 review found no material wiki delta, so no new GitHub Wiki sync was required."
+    },
+    "ferrum": {
+      "status": "LATEST_EVOLUTION_MERGED_AND_EXACT_HEAD_CI_PASSED",
+      "pullRequest": 30,
+      "proposalHead": "36d65391000aadbc3634eb0aed16c4bdcfc022c6",
+      "workflowRunId": 32114007691,
+      "workflowConclusion": "success",
+      "change": "Additive monotonic elapsedMs evidence timing and direct durationMs agent/run summaries while preserving existing wall-clock timestamps and evidence."
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
-      "head": "bcc0a5f2f118c458b8da0f4947aff21c90033d61",
-      "latestSecretScanRunId": 32106276492,
+      "head": "f81e76c902ac033b7214a5a2d169b4f75cc6e010",
+      "latestSecretScanRunId": 32111745273,
+      "latestJobId": 95632495021,
       "executedStepCount": 0,
       "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun while the hosted-runner billing/spending blocker persists."
     },
     "gameSyncStackNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 8,
-      "head": "f68fa2b7466ff8ac65efcee0d3eddf67f016a651",
-      "latestSecretScanRunId": 32106310087,
+      "head": "e7c138087d7ada67e2c1d8e66a926a5e9d0bfe96",
+      "latestSecretScanRunId": 32111795891,
+      "latestJobId": 95632650424,
       "executedStepCount": 0,
       "repairPolicy": "Keep paired Vite 8.2.1 proposal current and require exact-head private acceptance before lead merge."
     },
     "gameSyncPerformanceNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 7,
-      "head": "1297526186a91e76412c2d7a57f772a7533088a0",
-      "latestSecretScanRunId": 32106351195,
-      "latestJobId": 95616477468,
+      "head": "d7ba9e398850d352ff5c6e0062edf9d7903bfc81",
+      "latestSecretScanRunId": 32113407830,
+      "latestJobId": 95637558864,
       "executedStepCount": 0,
-      "repairPolicy": "Preserve the optimization proposal and require exact-current-head acceptance before lead merge."
+      "repairPolicy": "Preserve the 39.65% warm-build median improvement proposal and require exact-current-head acceptance before lead merge."
     },
     "pinterestNocturne200": {
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
