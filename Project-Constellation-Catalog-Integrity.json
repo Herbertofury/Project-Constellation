@@ -1,13 +1,16 @@
 {
   "schema": "project-constellation.catalog-integrity/1",
-  "checkedAt": "2026-08-18T05:52:00Z",
+  "checkedAt": "2026-08-18T16:20:00Z",
   "catalog": {
     "path": "project-constellation/Project-Constellation-Project-Catalog.json",
     "driveFileId": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
-    "bytes": 116771,
-    "sha256": "79c8dd524b866ab1fe2dc011820f010d7ab5c8f4b0f42d31ad3e6ca8db82e8be",
-    "githubBlobSha": "d417e516449f7c2d4ec9a16accdedfebc5cb590f",
-    "githubRestoreCommit": "eb99a193c08b9f2ca370dbcf85c75c2f997eafa6"
+    "githubBlobSha": "297284ad1417e5b8b9dd8f6d16fbb3a28906e6ed",
+    "githubRestoreCommit": "eb99a193c08b9f2ca370dbcf85c75c2f997eafa6",
+    "driveBytes": 116737,
+    "driveSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+    "githubBytes": 48132,
+    "githubSha256": "e222fc0aadf0c653c1f87af2d790994235d9f30fb350b77a51274a7ad6ab5a45",
+    "githubJsonParse": "pre-existing malformed catalog preserved; retired references removed"
   },
   "invariants": {
     "projectCount": 63,

@@ -4,8 +4,7 @@
  "generatedAt": "2026-08-16T03:59:00Z",
  "operatingMode": "NORMAL_OPERATION",
  "projectCount": 63,
- "": true,
- "source": {
+"source": {
  "artifact": "Bert_Project_Constellation_Quick_View.html",
  "sha256": "1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
  "driveFileId": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"
