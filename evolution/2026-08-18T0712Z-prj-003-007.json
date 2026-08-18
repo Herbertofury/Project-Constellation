@@ -57,8 +57,15 @@
   "publication": {
     "github": "PRJ-007 source committed and reader-facing GitHub Wiki fresh-clone byte verification passed",
     "drive": "PRJ-007 full wiki copied into the Project Wikis Drive folder and exported/re-read at 27347 bytes with SHA-256 2ac95270d45830cd03c96718adb29b5dfcea8d99a7aaf7482c54f733f08b855a",
+    "driveCheckpoint": {
+      "documentId": "1xwMZP02z1mGCxGNjUd1qY_i0vPfjjmGIhWKDCbGc7qg",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 4141,
+      "markdownExportSha256": "c26bc396c5b8e0ea0df0bcb0c0491912e6921bdbab57b7e1a9e5e33d385e9685"
+    },
     "presentationArtifactsChanged": false,
     "presentationPublicationDebt": "unchanged presentation bytes were not regenerated solely for documentation checkpoint churn"
   },
-  "nextCursor": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"]
+  "nextCursor": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
+  "recurringServiceState": "OPEN_AND_ONGOING"
 }
