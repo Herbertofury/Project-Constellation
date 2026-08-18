@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T04:13:45Z",
-  "completedCursor": ["PCX-041", "PCX-042", "PCX-043", "PCX-044", "PCX-045"],
-  "nextCursor": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
-  "selectionReason": "PCX-036 remains excluded as the Project Constellation control plane. PCX-042 received a material source-backed operational wiki expansion from current GameSync-Next main and current shipping/parity evidence, including the Extension V2 0.8.0 manifest/runtime architecture, user-facing routes, persistence, desktop/server/native boundaries, parity status/gaps, maintained Opera verification path, current-main test:e2e-opera script defect, and open proposal verification boundaries. PCX-041 and PCX-043 through PCX-045 were rechecked and no stronger newer authoritative evidence justified documentation churn. Rotate next into PCX-046 through PCX-050.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0413Z-pcx-041-045.json",
+  "updatedAt": "2026-08-18T04:52:35Z",
+  "completedCursor": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "nextCursor": ["PCX-051", "PCX-052", "PCX-053", "PCX-054", "PCX-055"],
+  "selectionReason": "PCX-036 remains excluded as the Project Constellation control plane. PCX-046 received a material provider-contract refresh for Spotify account_id identity, current Development Mode constraints, MusicKit user auth, and the separate purpose-restricted Apple Music Feed bulk-catalog lane. PCX-048 was reconciled with current GameSync-Next main and now records the dedicated theme package architecture plus a verified theme-core/theme-schema settings-contract drift that must be repaired and package-locally tested before Design Tokens interchange work. PCX-049 was reconciled with the current Petz bridge descendant and now records three source-backed parity gaps: a fixed maxPets=4 ceiling, an unfinished restore path despite engine.restore(), and mismatched save/load identity with repeated whole-engine snapshots. PCX-047 and PCX-050 were rechecked against current SQLite 3.53.4 evidence and retain their existing validation/real-baseline-first next actions without churn. Rotate next into PCX-051 through PCX-055.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0452Z-pcx-046-050.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
