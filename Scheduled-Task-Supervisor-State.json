@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T06:18:30Z",
+  "updatedAt": "2026-08-18T07:18:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -32,14 +32,13 @@
       "verifiedWikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
       "freshCloneByteVerification": "pass",
       "nextWikiSlice": "PCX-056 through PCX-060",
-      "note": "No newer PCX-060 source result was found during this supervisor pass, so the last independently verified wiki publication remains authoritative."
+      "note": "No newer independently verified wiki publication was established during this supervisor pass, so the last verified wiki publication remains authoritative."
     },
     "gameSyncStackStandalone": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 2,
       "head": "bcc0a5f2f118c458b8da0f4947aff21c90033d61",
       "latestSecretScanRunId": 32106276492,
-      "latestJobId": 95616257273,
       "executedStepCount": 0,
       "repairPolicy": "Keep proposal current and leave merge authority to GameSync Lead Merge Gate; do not blind-rerun while the hosted-runner billing/spending blocker persists."
     },
@@ -48,16 +47,15 @@
       "pullRequest": 8,
       "head": "f68fa2b7466ff8ac65efcee0d3eddf67f016a651",
       "latestSecretScanRunId": 32106310087,
-      "latestJobId": 95616356047,
       "executedStepCount": 0,
       "repairPolicy": "Keep paired Vite 8.2.1 proposal current and require exact-head private acceptance before lead merge."
     },
     "gameSyncPerformanceNext": {
       "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest": 7,
-      "head": "7ad9570c79c9b5c16d89d0e27264a92d600e6e08",
-      "latestSecretScanRunId": 32101605304,
-      "latestJobId": 95603042984,
+      "head": "1297526186a91e76412c2d7a57f772a7533088a0",
+      "latestSecretScanRunId": 32106351195,
+      "latestJobId": 95616477468,
       "executedStepCount": 0,
       "repairPolicy": "Preserve the optimization proposal and require exact-current-head acceptance before lead merge."
     },
@@ -65,8 +63,8 @@
       "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId": 32068119456,
-      "workflowAttempt": 3,
-      "jobId": 95543968845,
+      "workflowAttempt": 4,
+      "jobId": 95625260153,
       "executedStepCount": 0,
       "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASS",
       "repairPolicy": "Keep retry enabled. Avoid blind reruns while the identical pre-execution hosted-runner failure persists; finish source expansion, build/package, release creation, asset publication and remote verification immediately when private Actions execution returns."
