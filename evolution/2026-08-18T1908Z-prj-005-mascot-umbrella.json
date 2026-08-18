@@ -1,0 +1,99 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T19:08:01Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "materialUpdate": {
+    "id": "PRJ-005",
+    "name": "Mascot / Screenmate Platform",
+    "decision": "MATERIAL_WIKI_RECONCILIATION",
+    "reason": "The prior umbrella wiki treated Gamesync 0.6.3 as the only verified browser implementation host. Current GameSync Next Extension V2 0.8.0 source proves a second typed next-generation host with verified universal all-site mascot parity, SPA route continuity, shared settings/site-policy gating, lightweight/full-runtime ownership coordination, mount-error diagnostics and a Clippy-compatible initialization repair.",
+    "evidence": {
+      "shippingHost": "Herbertofury/Gamesync 0.6.3",
+      "nextHost": "Herbertofury/GameSync-Next Extension V2 0.8.0",
+      "nextHead": "9e337c720f0180cffa577f140b181c699f0a1650",
+      "parityCommit": "60940e8479af518f3373a79efa091902f4843842",
+      "verifiedImplementation": [
+        "apps/extension-v2/src/entrypoints/page-mascot.content.ts",
+        "apps/extension-v2/src/content/universalPageMascot.ts",
+        "apps/extension-v2/src/content/features/pageMascot.ts",
+        "apps/extension-v2/src/content/runtimeCoordination.ts",
+        "apps/extension-v2/src/ui/lib/surfaceMascot.ts",
+        "apps/extension-v2/src/content/mascot/sharedCommands.ts",
+        "apps/extension-v2/src/background/bootstrap.ts",
+        "apps/extension-v2/wxt.config.ts",
+        "scripts/verify-extension-v2-opera.js"
+      ],
+      "desktopAuthority": "User-owned standalone desktop mascot core remains unresolved; PCX-037 retains desktop compatibility and architecture benchmark authority."
+    }
+  },
+  "githubPublication": {
+    "repository": "Herbertofury/ProjectDump",
+    "sourcePath": "wikis/PRJ-005-mascot-screenmate-platform.md",
+    "sourceCommit": "5716c6c14d3f811421e1a8518aeb12e9bb852e85",
+    "sourceBlob": "c4388bbb452b5532ebaf4b3f66b709b17bceef13",
+    "workflowRun": 32174885398,
+    "workflowConclusion": "success",
+    "wikiRepositoryPush": "pass",
+    "freshCloneByteCompare": "pass",
+    "wikiMasterCommit": "322d4266ee6c7cebeba2b0c49aaea01e7e393d85",
+    "readerFacingUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-005-mascot-screenmate-platform"
+  },
+  "drivePublication": {
+    "wiki": {
+      "fileId": "1IUcZHSHDndWjBrVrpUvElKMhANNbQ11HMPOkpeazpDE",
+      "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "title": "PRJ-005 Mascot Screenmate Platform Wiki",
+      "markdownBytes": 39158,
+      "markdownSha256": "d8ac0912ecd395ae8e4a16f8d1dfbbe6f4e7263cd65092816587ca8e6dffdd3a",
+      "roundTrip": "pass"
+    },
+    "checkpoint": {
+      "fileId": "1xXTiFodtP3BaFIXCn69E7vP5NC9vli9grES4oLOoLgE",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "title": "Project Constellation Evolution Checkpoint - PRJ-005 - 2026-08-18T1908Z",
+      "markdownBytes": 4347,
+      "markdownSha256": "f3c22865ccf06aa20e6d8382f801b08a9aaff4e388d2c670bce90ccd41c172de",
+      "roundTrip": "pass"
+    }
+  },
+  "adjacentReview": [
+    {
+      "id": "PRJ-006",
+      "decision": "NEEDS_FOLLOW_UP",
+      "reason": "Its wiki still lists Gamesync 0.6.3 as the sole verified host, while the same GameSync Next parity commit contains a source-proven Clippy queue/event initialization repair and typed next-generation mascot surface."
+    },
+    {
+      "id": "PRJ-007",
+      "decision": "NO_ADDITIONAL_WIKI_CHANGE",
+      "reason": "Recent documentation already records the typed Petz core and persistence defect/repair contract."
+    },
+    {
+      "id": "PRJ-008",
+      "decision": "NO_ADDITIONAL_WIKI_CHANGE",
+      "reason": "Current documentation remains aligned with the verified shipping mascot-game runtime and truthfully keeps Golf as unresolved."
+    },
+    {
+      "id": "PRJ-009",
+      "decision": "SOURCE_RECOVERY_BLOCKER_UNCHANGED",
+      "reason": "Canonical current Skill Atlas / QA Cockpit repository or ZIP remains unresolved; speculative implementation claims remain prohibited."
+    }
+  ],
+  "antiRegressionGate": {
+    "projectCount": 63,
+    "projectCountStatus": "PRESERVED",
+    "userEdits": "PRESERVED",
+    "canonicalPresentationArtifacts": "UNCHANGED",
+    "projectCatalog": "UNCHANGED",
+    "reason": "This pass corrected project documentation and continuity state only."
+  },
+  "nextCursor": [
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010"
+  ],
+  "endOfRunPersistence": "Recurring Project Constellation wiki maintenance remains open and ongoing; this checkpoint does not complete or retire the recurring obligation."
+}
