@@ -1,22 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T21:29:00Z",
+  "updatedAt": "2026-08-18T22:04:30Z",
   "completedCursor": [
-    "PRJ-012",
-    "PRJ-013",
-    "PRJ-014",
-    "PRJ-015",
-    "PRJ-016",
-    "PCX-053"
-  ],
-  "nextCursor": [
     "PRJ-017",
     "PRJ-018",
     "PRJ-019",
     "PRJ-020",
     "PRJ-021"
   ],
-  "selectionReason": "The scheduled PRJ-012 through PRJ-016 group was cheaply rechecked against current ProjectDump and Drive continuity evidence and did not justify separate documentation churn in this short delta window. The prior PCX-042 checkpoint identified a material cross-project follow-up: PCX-053 still treated GameSync Next as architecture-only evidence even though current main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 contains a verified typed Bounty slice. PCX-053 was therefore reconciled with the current Next contracts, gs_bounty_v1 persistence, BOUNTY_* background routing, React Bounty surfaces, 107-record isolated Opera acceptance evidence and explicit cross-host parity boundaries while preserving the richer shipping Gamesync 0.6.3 provider/miner/IndexedDB documentation. ProjectDump source commit e740dc115e8e43433e79dd398a4691fa647fe951 published successfully to the real GitHub Wiki as master 54300b8bb2eac65cf245fae1dd4f391d508939c4 through workflow 32187550047 with fresh-clone byte verification. A matching Drive Project Wikis document was created, moved into folder 1KzPLGRNubIHA4aedEEOj85vKj225zG4E, re-read and exported as 38443 bytes with SHA-256 28f5f042036f82ccc68802b20551316b908bfe42bfde82d0a205507fafd62664. Continue the catalog rotation at PRJ-017 through PRJ-021.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T2128Z-pcx-053-bounty-wiki.json",
+  "nextCursor": [
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026"
+  ],
+  "selectionReason": "PRJ-017 through PRJ-021 were rechecked as a delta pass. PRJ-017/018/019 already contain the current MO2 v2.5.2 host contracts, exact preserved version lineages and explicit source/live-host qualification boundaries; connected Drive search exposed no stronger canonical source archives. PRJ-020 already contains the current NeurolingsCE Rust+Flutter architecture benchmark, and a fresh GitHub check found NeurolingsCE unchanged at 00adb430efd13b70db8791af3566eae7b4e8aa17 while ModOrganizer2/modorganizer remains at the already documented efe2a02d5dc641946baaa8db1440800f38d07837. PRJ-021 exact Drive search still resolves continuity material only, so its unresolved GX Slim identity and preserved 1.0.0 hash remain correct. No project wiki source changed, so no ceremonial GitHub Wiki publication was triggered. Continue the tracked catalog rotation at PRJ-022 through PCX-026.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T2204Z-prj-017-021-wiki-delta.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
