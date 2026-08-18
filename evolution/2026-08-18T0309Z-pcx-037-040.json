@@ -33,6 +33,13 @@
       "note": "2.0.0 canonical repository, Drive artifacts, three browser targets, sidebar behavior, epik regression boundary, and publication blocker are already documented."
     }
   },
+  "driveCheckpoint": {
+    "documentId": "1HG8kYJWV7e_VqVVGjdaRlmRQ1RI4s1EWQNRNlOqcagk",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownExportSize": 3858,
+    "markdownExportSha256": "8b2a5b7ed8e5391ee5e2fc676005fcce72a59aa0e4a802dc44e12331bfbadf28",
+    "verification": "pass: checkpoint re-read from Drive after move; exported Markdown hashed locally"
+  },
   "nextCursor": ["PCX-041", "PCX-042", "PCX-043", "PCX-044", "PCX-045"],
   "nextDirective": "Continue tracked-project wiki maintenance with PCX-041 through PCX-045, prioritizing repositories with current source evidence and material documentation gaps. Keep PCX-036 excluded unless the user explicitly requests Project Constellation's own control-plane wiki.",
   "recurringServiceState": "ONGOING"
