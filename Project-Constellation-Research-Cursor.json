@@ -1,9 +1,9 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-18T06:12:30Z",
-  "completedCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"],
-  "nextCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-001", "PRJ-002"],
-  "selectionReason": "PCX-036 remains excluded as the Project Constellation control plane. PCX-056, PCX-058, PCX-059, and PCX-060 were rechecked against current project-owned GitHub/Drive evidence and did not justify documentation churn. PCX-057 changed materially because the new Project-Constellation-Catalog-Integrity.json receipt completed the page's previous next action; the wiki was updated to record the receipt schema, exact catalog identity and invariants, dual-publication status, stale-receipt boundary, and the next gate of automatically refreshing/verifying the receipt in the normal checkpoint path. The source page, actual GitHub Wiki, and Drive copy were all independently verified. Rotate next into PCX-061 through PCX-063, then wrap to PRJ-001 and PRJ-002.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0612Z-pcx-056-060.json",
+  "updatedAt": "2026-08-18T06:59:00Z",
+  "completedCursor": ["PCX-061", "PCX-062", "PCX-063", "PRJ-001", "PRJ-002"],
+  "nextCursor": ["PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007"],
+  "selectionReason": "PCX-061 produced a material source-proven persistence defect in the typed GameSync Next Petz bridge: load and save identities differ and the loaded save is ignored. GameSync-Next issue #9 now carries a preservation-first repair and restart acceptance contract. PCX-062 current RuneLite guidance remains Java 11/Plugin-Hub aligned; current jqwik is in pure maintenance mode with an Anti-AI clause while JQF remains active and supports JUnit 5 coverage-guided semantic fuzzing, so JQF is the stronger isolated post-recovery QA experiment candidate. PCX-063 and PRJ-001 were rechecked without a stronger canonical delta. PRJ-002 has a material continuity drift: its wiki still calls V24 newest while the durable V33 FINAL_READY checkpoint is stronger verified evidence; ProjectDump issue #2 records the additive correction contract. The pass also proposes a read-only Continuity Freshness Gate so stronger project-owned evidence can flag stale latest-version claims without mutating user state or promoting by timestamp alone.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0658Z-pcx-061-063-prj-001-002.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
