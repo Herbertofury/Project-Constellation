@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T11:14:55Z",
+  "updatedAt": "2026-08-18T12:18:45Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,7 +8,8 @@
   "repairs": [
     {"task":"Project Constellation Evolution","action":"re-enabled","reason":"Permanent recurring service disabled again while its obligation remains open."},
     {"task":"GameSync Performance Pass","action":"re-enabled","reason":"Permanent recurring service disabled again while its optimization duty remains open."},
-    {"task":"Recover Stale Chats","action":"re-enabled","reason":"Permanent recurring recovery watch disabled again while its obligation remains open."}
+    {"task":"Recover Stale Chats","action":"re-enabled","reason":"Permanent recurring recovery watch disabled again while its obligation remains open."},
+    {"task":"GameSync-Next Performance PR #7","action":"reconciled PR metadata to actual current head and latest exact-head blocker evidence","reason":"PR body still described an older proposal head and older Secret Scan run while the remote PR head had advanced."}
   ],
   "health": {
     "scheduledTasks": "HEALTHY_AFTER_REPAIR",
@@ -21,63 +22,62 @@
   "publicationLedger": {
     "projectDump": {
       "status":"MATERIAL_WIKI_DELTA_VERIFIED",
-      "latestMain":"d93cfaaec3e0f4a73b92689f43c6735351ffe165",
-      "latestReviewSlice":"PRJ-023, PRJ-024, PRJ-025, PCX-026, PCX-027",
-      "latestReviewCheckpoint":"project-constellation/evolution/2026-08-18T1108Z-prj-023-pcx-027.json",
-      "driveCheckpointFileId":"1B5FqKxLti3-4nZhNjvPcK3ZLgNbffGqE5gJToQmqaj8",
-      "materialWikiProject":"PRJ-025 UltraDeck",
-      "wikiSourceCommit":"4495b34d0d44ae4b9fe92387751ee54dc0c61124",
-      "wikiSyncRunId":32130161996,
+      "latestMain":"e17a1f82e0c57e37ddf14e56ea54ff4949a49a97",
+      "latestReviewSlice":"PCX-028, PCX-029, PCX-030, PCX-031, PCX-032",
+      "driveCheckpointFileId":"1xgmMGdoJ5rGZOG4EmVRKzZSyEkV3GAeZnrOlaA2cH5E",
+      "materialWikiProject":"PCX-030 Reliable Artifact Publisher",
+      "wikiSourceCommit":"54fd9c6cd3933f79c3bf48cdebf4efb2181baf3e",
+      "wikiSourceBlobSha":"2ddb1920ebff2725bb02e4347efb17e6855d20dd",
+      "wikiSyncRunId":32135531196,
       "wikiSyncConclusion":"success",
-      "wikiMaster":"58f62221836b6101c62e5a6650ac5ddd52bfefe1",
-      "wikiVerification":"fresh-clone complete-page-set byte comparison passed",
-      "driveWikiFileId":"1DqCCTuM3Ax8rjmNYN09xd5zuY1NDE8oztateaOmPN3M",
-      "driveWikiMarkdownBytes":18502,
-      "driveWikiMarkdownSha256":"9cf732dfc9b2474ccd3023c43d363da9f322664215812bf5eac23e0bcecbe4da",
-      "nextWikiReviewSlice":"PCX-028, PCX-029, PCX-030, PCX-031, PCX-032"
+      "wikiMaster":"b0e14cfa10c0679c6abbb70cdcd1e947ee217f5b",
+      "wikiVerification":"publisher push plus fresh-clone complete-page-set byte comparison passed",
+      "driveWikiFileId":"1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4",
+      "driveWikiMarkdownBytes":18264,
+      "driveWikiMarkdownSha256":"e1d7aff09772f9092f78414c6d9ddf524906cb1503461f4f630890b4fc5e3b66",
+      "nextWikiReviewSlice":"PCX-033, PCX-034, PCX-035, PCX-037"
     },
     "ferrum": {
       "status":"VERIFIED_MERGED_PRODUCT_AND_CHECKPOINT",
-      "pullRequest":35,
-      "verifiedProposalHead":"b0ac44b1b252d6c6fb563dd9fe60132162717b4e",
-      "workflowRunId":32129110712,
+      "verifiedProposalHead":"bd42ee47203f541a5e416468f7da9d5cfaa14459",
+      "workflowRunId":32134811799,
       "workflowConclusion":"success",
-      "mergedProductCommit":"0c363058d7507fb259de9e718a65e48d73fc269f",
-      "verifiedTree":"c24411ac0ee1b63ea7b212627d1d75fe1c6c21c0",
-      "currentMainCheckpoint":"e517af4d6e21cd60ea5679c0809f96df7052cfd2",
-      "note":"Run 21 checkpoint records the verified process-readiness terminal-state fix after full Ferrum CI across unit/MCP/evidence integrity, Linux, Windows browser matrix/MV3/workloads, Selenium Grid, Electron/source+packaged desktop, Lightpanda, and real Android/Appium."
+      "mergedProductCommit":"71f85c8c7e10f6098dc5d49a501b07e9c4c4d21f",
+      "currentMainCheckpoint":"41b49bfad7c1328cb19362003ae296c939a6eaff",
+      "note":"Evolution run 22 adds direct HTTP service interaction to process targets and passed Ferrum CI across unit/MCP/evidence integrity, Linux, Windows browser matrix/MV3/workloads, Selenium Grid, Electron source and packaged desktop, Lightpanda, and real Android/Appium."
     },
     "gameSyncStackStandalone": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":2,
-      "head":"8de05699cba0230c9eede689b5e1b5b3d011b624",
-      "latestSecretScanRunId":32129020612,
-      "latestJobId":95685818519,
+      "head":"16fd8eca4e73d18a810e7a214495b34c4efb098b",
+      "latestSecretScanRunId":32133929278,
+      "latestJobId":95700860971,
       "executedStepCount":0
     },
     "gameSyncStackNext": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":8,
-      "head":"f48ddd662fc3d815322a7e598af8622f0bd976a9",
-      "latestSecretScanRunId":32129047159,
-      "latestJobId":95685900379,
+      "head":"519f5221f7127a79519a3826d106f95427e9976a",
+      "latestSecretScanRunId":32134012966,
+      "latestJobId":95701114133,
       "executedStepCount":0
     },
     "gameSyncPerformanceNext": {
       "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "pullRequest":7,
-      "head":"7a0f2a18502be4d3445273c31ae29ac0927b3264",
-      "latestSecretScanRunId":32128800992,
-      "latestJobId":95685163529,
+      "head":"36cdfc29980eb7511d30fbe182d9ea8840bc1b31",
+      "latestSecretScanRunId":32133897099,
+      "latestJobId":95700764304,
       "executedStepCount":0,
+      "prMetadataReconciled":true,
       "leadReview":"HOLD pending exact-head benchmark/build/parity/Ferrum/Opera/Secret gates"
     },
     "pinterestNocturne200": {
       "status":"GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
       "repositoryHead":"6167038fac5f362dbabb83c2497edb64e588ad01",
       "workflowRunId":32068119456,
-      "workflowAttempt":5,
-      "jobId":95671432512,
+      "workflowAttempt":6,
+      "jobId":95702309194,
       "executedStepCount":0,
       "driveRecoveryStatus":"VERIFIED_COMPLETE_FROM_PRIOR_PASS"
     }
