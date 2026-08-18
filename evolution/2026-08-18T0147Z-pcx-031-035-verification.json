@@ -1,0 +1,28 @@
+{
+  "schema": "project-constellation.evolution-publication-verification/1",
+  "timestamp": "2026-08-18T01:47:00Z",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-18T0145Z-pcx-031-035.json",
+  "publicationStatus": "DUAL_PUBLISHED_RE_READ_VERIFIED",
+  "github": {
+    "PCX-032": {"path": "wikis/PCX-032-profit-nova.md", "contentSha": "a62c9482d6d92fb95e2462c799b2d66aa6bc384c", "reRead": true},
+    "PCX-033": {"path": "wikis/PCX-033-sims4creatorstudio.md", "contentSha": "a1038e5f5389748e4c5c59df57808c2d11534e17", "reRead": true},
+    "PCX-034": {"path": "wikis/PCX-034-ferrum-browser.md", "contentSha": "8af407a920bd4f9d6ec37db4758bd43c7f803860", "reRead": true},
+    "researchCursor": {"path": "project-constellation/Project-Constellation-Research-Cursor.json", "contentSha": "0d751c23082badf71a9fcbbca7ca47d715c950c3", "reRead": true}
+  },
+  "drive": {
+    "PCX-032": {"fileId": "1Uxnu31-UskS0auSdGz_T6r4zx9-rkEKSUalV9HisdMc", "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E", "reRead": true, "revisionId": "AIroW35J8EZIkgoHmwdFuEHqigV-YjkJMJOK0v2S1oK3id-BtexkW8YKMtNle9sNL-mbeAjFdDoY9XPQVqGKbGY7smkJSg_5GWojsUy7GV8"},
+    "PCX-033": {"fileId": "1S7xWqJV5r9JzCPuoP2PYz4uUlWwKtA88rP2PTMCnT1k", "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E", "reRead": true, "revisionId": "AIroW37PwK71OJm_hCpWdIrtDH1SGfl9oOwlYYjXblBvqETw2Qv--W7KVo7l4UUBGs7CCsdVfbWELIx3TbjeNhBNviLE6Pk2hXPZUa3ma40"},
+    "PCX-034": {"fileId": "11IOk6ZB78lOXoAUIa0vhZD9wioQ0QtG_Pq2cs7B0fD8", "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E", "reRead": true, "revisionId": "AIroW35bk2dasAVj7O9yN9ZUE_koSruiUpfunFpMHfV_O2wd4OA8tXv_tRanF6G6uHIkLOpnI48DrPfKTcw1WF-74aFHvQsRrfOo-vvOXTM"},
+    "checkpoint": {"fileId": "1w0_Z54j015WwOCWAoRy6jHYxpdapxyTqx6SKzQXO3_k", "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV", "reRead": true, "revisionId": "AIroW35vMRfTQK8GNZjpGtfmNtyvyF7y3Bs_xvMi24tHrODNHFerIvYw-UHJYYUNQr-OqgnPB-Sq0s9eC9z4LWwNgB6Aq-W-boipIPv0gqo"},
+    "researchCursor": {"fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc", "reRead": true, "revisionId": "AIroW37qa3im72HOYj0IS2KB7atI9FS1D8aQACwJO8BrTm26MU9hieQ8O_1pJPkDNhGkEcsZzKZvzEjb1crLvAL3AyMTochMWG38JOcT48Q"}
+  },
+  "antiRegression": {
+    "projectCountInvariant": 63,
+    "sportsGroupHubAbsent": true,
+    "runtimeCodeChanged": false,
+    "presentationArtifactsChanged": false,
+    "testsWeakened": false,
+    "featureOrDataCapsAdded": false
+  },
+  "nextResearchCursor": ["PCX-036", "PCX-037", "PCX-038", "PCX-039", "PCX-040"]
+}
