@@ -1,14 +1,21 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T14:16:00Z",
+  "updatedAt": "2026-08-18T15:16:30Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
   "retiredDuplicateCount": 1,
   "repairs": [
-    {"task":"Project Constellation Evolution","action":"re-enabled","reason":"Permanent recurring evolution service disabled while its obligation remained open."},
-    {"task":"GameSync Performance Pass","action":"re-enabled","reason":"Permanent recurring performance service disabled while its obligation remained open."},
-    {"task":"Recover Stale Chats","action":"re-enabled","reason":"Permanent recurring recovery watch disabled while its obligation remained open."}
+    {
+      "task": "GameSync Performance Pass",
+      "action": "re-enabled",
+      "reason": "Permanent recurring performance service had disabled while its recurring obligation and active PR #7 remained open."
+    },
+    {
+      "task": "Recover Stale Chats",
+      "action": "re-enabled",
+      "reason": "Permanent recurring recovery watch had disabled even though it is explicitly indefinite."
+    }
   ],
   "health": {
     "scheduledTasks": "HEALTHY_AFTER_REPAIR",
@@ -16,71 +23,89 @@
     "incompletePausedTasks": 0,
     "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired as an explicit duplicate.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Current private GameSync and Pinterest jobs fail with no workflow step payload, while the ProjectDump wiki workflow obtained a hosted runner and completed successfully at 2026-08-18T14:06Z.",
+    "privateHostedRunnerEvidence": "Current private GameSync and Pinterest jobs continue to complete failure with no workflow steps, while public ProjectDump Wiki publication run 32152510476 obtained a hosted runner and completed successfully.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
     "projectDump": {
-      "status":"VERIFIED_CURRENT_WIKI_PUBLICATION",
-      "materialWikiProject":"PCX-038 Shimeji Browser Extension",
-      "wikiSourceCommit":"d0daf1f690d0b4e5e9ebcf300ceccfec28218849",
-      "wikiSourceBlob":"c3d11a8f8b72cb6f643b223e950f90d462156535",
-      "wikiSyncRunId":32146331461,
-      "wikiSyncConclusion":"success",
-      "wikiMaster":"228cdb919a54c7de80b6532e677aeee6a359cef6",
-      "wikiVerification":"GitHub workflow independently confirmed ProjectDump.wiki.git push, fresh clone, and complete remote page-set byte verification.",
-      "driveCheckpointFileId":"1dpVX5N1mYESJ5mm7Zjg1FyocyJS5iczI-f2gcOy4kY8",
-      "driveWikiFileId":"17q_kSyrQHzU-yonaJdafEJJ8TRxKbr7K_0uUkm8QcrE"
+      "status": "VERIFIED_CURRENT_WIKI_PUBLICATION",
+      "mainCheckpointCommit": "664648a1eae0984118129fad8b9b777599bc2f1a",
+      "materialWikiProject": "PCX-043 Feature Foundry Production App",
+      "wikiSourceCommit": "5fe311761d5a30380361fe184564fa80894a6f39",
+      "wikiSourceBlob": "0b9b94aa36bab723563383f9b2b031ad9a6f08ac",
+      "wikiSyncRunId": 32152510476,
+      "wikiSyncJobId": 95761614166,
+      "wikiSyncConclusion": "success",
+      "wikiMaster": "3b319ec9f939150be29fe69f1bd94633cd64b9d7",
+      "wikiVerification": "GitHub job logs independently confirm ProjectDump.wiki.git push, fresh clone, complete remote page-set byte verification, and success status on the source commit.",
+      "driveCheckpointFileId": "13Lff9OaUxdcz3e9gXNS493WwgTT4pVqy5_2cKeEydeA",
+      "driveWikiFileId": "1DDpn4uhmaKjcroZUNMM23WWEapS2Ul9jKKItrcr20AI",
+      "driveWikiMarkdownSha256": "15b1e72ed9e21363e675639d80e2a8b9db3c73c80bb8fb4ee395416b8dbd9eda"
     },
     "ferrum": {
-      "status":"VERIFIED_MERGED_PRODUCT",
-      "verifiedCodeCommit":"1a1f32fd14922ee2368d8aa4c3f5c91588d67194",
-      "verifiedTree":"63ef0c81e738bc91618ab098386607fd32d0eed7",
-      "verifiedProposalHead":"f0731bc4bf52077cee9a2457fd68c3da523d68d9",
-      "verifiedWorkflowRun":32143220324,
-      "workflowVerification":"unit, Linux, Windows, WebDriver Grid, Electron/packaged desktop, Lightpanda, and Android/Appium jobs all completed successfully",
-      "verifiedToolchain":{"playwright":"1.63.0-alpha-2026-08-17","electron":"43.4.0","electronPackager":"20.3.0"}
+      "status": "VERIFIED_PRODUCT_WITH_NEWER_CHECKPOINT_STATE",
+      "currentMainCheckpointCommit": "da492a44becf4fd1d56004d251e2d133f2fa8801",
+      "verifiedCodeCommit": "71f85c8c7e10f6098dc5d49a501b07e9c4c4d21f",
+      "verifiedWorkflowRun": 32134811799,
+      "verifiedToolchain": {
+        "playwright": "1.63.0-alpha-2026-08-17",
+        "electron": "43.4.0",
+        "electronPackager": "20.3.0"
+      },
+      "verification": "STATUS reports unit, Linux, Windows, WebDriver Grid, MV3/browser matrix, Electron/packaged desktop, Lightpanda, Android/Appium, evidence-integrity, process-service, and GitHub Wiki automation coverage passed."
     },
     "gameSyncStackStandalone": {
-      "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest":2,
-      "base":"a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
-      "head":"e85a9b7622a85cf952b77c4ffb1f3e1cc45a3ee8",
-      "latestSecretScanRunId":32145131166,
-      "latestJobId":95736937244,
-      "executedStepCount":0,
-      "driveEvidence":"GameSync Stack Upgrade CURRENT and GameSync Lead Gate CURRENT contain this exact head."
+      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest": 2,
+      "base": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "head": "3badfd06c96877466126ee90a48b83f66ed0d89c",
+      "latestSecretScanRunId": 32152461426,
+      "executedStepCount": 0
     },
     "gameSyncStackNext": {
-      "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest":8,
-      "base":"9e337c720f0180cffa577f140b181c699f0a1650",
-      "head":"53780c3b646a31f4f912dd962f492ef73f615642",
-      "latestSecretScanRunId":32145227906,
-      "latestJobId":95737244700,
-      "executedStepCount":0,
-      "driveEvidence":"GameSync Stack Upgrade CURRENT and GameSync Lead Gate CURRENT contain this exact head."
+      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest": 8,
+      "base": "9e337c720f0180cffa577f140b181c699f0a1650",
+      "head": "8c9bf19323a5d315af3073661f60aef05263d364",
+      "latestSecretScanRunId": 32152526372,
+      "executedStepCount": 0
     },
     "gameSyncPerformanceNext": {
-      "status":"BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "pullRequest":7,
-      "base":"9e337c720f0180cffa577f140b181c699f0a1650",
-      "head":"3cff1e2b8ce7990fa5b23ef9436b48e9374ea142",
-      "latestSecretScanRunId":32145795343,
-      "latestJobId":95739091253,
-      "executedStepCount":0,
-      "driveEvidence":"GameSync Lead Gate CURRENT contains this exact head."
+      "status": "BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "pullRequest": 7,
+      "base": "9e337c720f0180cffa577f140b181c699f0a1650",
+      "head": "da7c13bc1d774e6f69b2ec66b6f448ed6d2396a0",
+      "aheadBy": 33,
+      "behindBy": 0,
+      "latestSecretScanRunId": 32151969659,
+      "latestJobId": 95759804241,
+      "executedStepCount": 0,
+      "note": "PR description still referenced an older exact-head snapshot when audited; remote PR head and workflow run are authoritative."
+    },
+    "gameSyncAdvisoryMigrations": {
+      "standaloneWebVitals": {
+        "pullRequest": 3,
+        "head": "da91191ffaddc4d934cc94a59e2920b3d39b417c",
+        "status": "WORKING_REPAIR_IN_PROGRESS",
+        "blockers": ["authoritative package-lock regeneration", "private hosted-runner execution", "npm registry access in available local environment"]
+      },
+      "nextTestToolchain": {
+        "pullRequest": 11,
+        "head": "11e2d0de558377eb0c3e5619a2729fc7eb1e66e0",
+        "status": "WORKING_REPAIR_IN_PROGRESS",
+        "blockers": ["authoritative workspace lockfile regeneration", "private hosted-runner execution", "npm registry access in available local environment"]
+      }
     },
     "pinterestNocturne200": {
-      "status":"GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "repositoryHead":"6167038fac5f362dbabb83c2497edb64e588ad01",
-      "workflowRunId":32068119456,
-      "latestObservedJobId":95702309194,
-      "executedStepCount":0,
-      "driveRecoveryStatus":"VERIFIED_COMPLETE_FROM_PRIOR_PASS",
-      "driveChecksumManifestFileId":"1X5AhqaaVQUlAk6EvSJiGs0HIoceKaLDD",
-      "directReleaseFallback":"No connected GitHub release-asset upload action is available; source/release completion therefore remains gated on executable GitHub publication infrastructure."
+      "status": "GITHUB_RELEASE_BLOCKED_PRIVATE_ACTIONS_PRE_EXECUTION",
+      "repositoryHead": "6167038fac5f362dbabb83c2497edb64e588ad01",
+      "workflowRunId": 32068119456,
+      "latestObservedJobId": 95757251403,
+      "executedStepCount": 0,
+      "driveRecoveryStatus": "VERIFIED_COMPLETE_FROM_PRIOR_PASS",
+      "driveChecksumManifestFileId": "1X5AhqaaVQUlAk6EvSJiGs0HIoceKaLDD",
+      "directReleaseFallback": "No connected GitHub release-asset upload action is available; source/release completion remains gated on executable publication infrastructure."
     }
   }
 }
