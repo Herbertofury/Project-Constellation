@@ -77,6 +77,17 @@
     "driveMarkdownSha256": "09efdbd13099752f61862060501090feae0ccfd67403647a140e230408977aae",
     "roundTrip": "passed"
   },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubCommit": "316db41c55594b17fc91ed20dda5d8c844fb6ccf",
+    "githubBlob": "c10c54719848cb0410401097c17cda1d738701fd",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveRevisionId": "AIroW37rAMsY4uxq0L3OQz5z7AitxFXhHxFp0lxY7MRP2XQX88mirnKxTsikoqw_oWmPuEhbyz1vszJAqlBqV_dnNAf6gBS56ZujcfpyPPo",
+    "driveTextBytes": 1774,
+    "driveTextSha256": "d76a6797d5b447cca6933545926560aed863ef4a099b37ab8c3226c8e030e5c0",
+    "jsonParse": "passed after UTF-8 BOM handling",
+    "roundTrip": "passed"
+  },
   "nextCursor": [
     "PCX-053",
     "PCX-054",
