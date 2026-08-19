@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T16:11:28Z",
+  "updatedAt": "2026-08-19T17:05:30Z",
   "completedCursor": [
-    "PRJ-020",
-    "PRJ-021",
-    "PRJ-022",
-    "PRJ-023",
-    "PRJ-024"
-  ],
-  "nextCursor": [
     "PRJ-025",
     "PCX-026",
     "PCX-027",
     "PCX-028",
     "PCX-029"
   ],
-  "selectionReason": "Publication-backlog-first verification passed before new documentation work: canonical Sync GitHub Wiki run 32266598462 had already fresh-clone byte-verified the complete prior wikis/ tree at Wiki master da62a375c722055b3b5f4bcd43119589de4dcc9d. PRJ-020 was rechecked against NeurolingsCE and its observed head remains 00adb430efd13b70db8791af3566eae7b4e8aa17, so no documentation delta was justified. PRJ-021 remains identity-unresolved: fresh connected Drive and GitHub searches still recovered no GX-Slim-1.0.0-FULL.zip, README, manifest or canonical repository, so the preserved SHA-256 lineage remains the truthful boundary. PRJ-022 had no stronger current project-owned source than its documented generated Feature Foundry base evidence. PRJ-023 received a material reproducibility/toolchain refresh at ProjectDump source commit c08986f4cb7ba3410c8cb9cb927a2956b5f6a862: current package evidence now demonstrates real version drift behind the starter's floating latest declarations, and the wiki adds a two-clean-environment reproducible-build acceptance contract. Sync GitHub Wiki run 32274410068 published that exact source, pushed ProjectDump.wiki.git, fresh-cloned the complete Wiki, passed byte comparison, and produced Wiki master 650626676bbe5a1a9d216b468613cce87948e494. The matching Drive wiki document 17sISQkxtUUIE9oTzyL6vra6RlTaOYjuX3zgOyztEjpU was updated and reread; Markdown export is 9298 bytes with SHA-256 7e8e88315e784477ba765ebeef57e0a3b591a946726d39d47e52053c4437de44. PRJ-024 was rechecked against the current official MO2 release line and its existing v2.5.2 coordinated live-stack qualification remains current, so no source churn was justified.",
-  "sourceCheckpoint": "WIKI_MAINTAINER:2026-08-19T161128Z:PRJ-020-024:UPDATED=PRJ-023:SOURCE=c08986f4cb7ba3410c8cb9cb927a2956b5f6a862:WIKI=650626676bbe5a1a9d216b468613cce87948e494:DRIVE=17sISQkxtUUIE9oTzyL6vra6RlTaOYjuX3zgOyztEjpU",
+  "nextCursor": [
+    "PCX-030",
+    "PCX-031",
+    "PCX-032",
+    "PCX-033",
+    "PCX-034"
+  ],
+  "selectionReason": "Publication-backlog-first verification passed before new documentation work: prior material wiki source commit c08986f4cb7ba3410c8cb9cb927a2956b5f6a862 had wiki-publication success, and Sync GitHub Wiki run 32274410068 pushed ProjectDump.wiki.git, fresh-cloned the complete Wiki, passed byte comparison, and produced Wiki master 650626676bbe5a1a9d216b468613cce87948e494. PRJ-025 was rechecked and UltraDeck current main remains d9278d4a0fd33d184e9c6f928556262668af4125, already documented as v8.6.0, so no new delta was justified. PCX-026 remains grounded in the ProjectDump governance contract with no separately resolved standalone implementation. PCX-027 was rechecked against GameSync and no source newer than a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 justified a wiki change. PCX-028 still has no resolved standalone source artifact/repository and its existing watcher/reconciliation guidance remains current. PCX-029 received a material protocol-correctness update at source commit b105b2b476c9a55b351a85eb39bcfafaac6c81e2, blob 44c5eacd8a742f18246ff0db3ffa21e32220ae6c: the released MCP 2026-07-28 specification requires servers to implement server/discover while clients may skip the probe and call inline; the page now also separates modern per-request Streamable HTTP behavior, explicit SDK era opt-in, compatibility fixtures, capability truth evidence, and troubleshooting. Sync GitHub Wiki run 32279485824 published that exact source, pushed ProjectDump.wiki.git, fresh-cloned the complete Wiki, passed byte comparison, and produced Wiki master d57dfe0cfcafce0e76f7ca50024549bf1b24b09c. The matching Drive wiki document 15wLrITVo7GWwG7XL47dzRiUyfLrqNaYaqmzjPxy4INE was updated and reread; Markdown export is 14884 bytes with SHA-256 a907d3725fa19be7c7043465ca343137f5eac8c6387c9ef98e67fe2f75c9a141.",
+  "sourceCheckpoint": "WIKI_MAINTAINER:2026-08-19T170530Z:PRJ-025-PCX-029:UPDATED=PCX-029:SOURCE=b105b2b476c9a55b351a85eb39bcfafaac6c81e2:WIKI=d57dfe0cfcafce0e76f7ca50024549bf1b24b09c:DRIVE=15wLrITVo7GWwG7XL47dzRiUyfLrqNaYaqmzjPxy4INE",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
