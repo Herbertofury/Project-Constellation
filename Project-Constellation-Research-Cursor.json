@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T06:11:39Z",
+  "updatedAt": "2026-08-19T07:12:00Z",
   "completedCursor": [
-    "PCX-058",
-    "PCX-059",
-    "PCX-060",
-    "PCX-061",
-    "PCX-062"
-  ],
-  "nextCursor": [
     "PCX-063",
     "PRJ-001",
     "PRJ-002",
     "PRJ-003",
     "PRJ-004"
   ],
-  "selectionReason": "PCX-061 Petz Shared Core required a material current-state refresh after GameSync Next issue #9 and draft PR #10 exposed and staged a preservation-first persistence repair. The wiki now distinguishes current-main behavior from the unmerged repair: current main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 still ignores loaded save data and mismatches breed-key reads with generated pet.id writes, while draft PR #10 head 72669096280904eb0f210d49d3a3e3163f42b106 stages stable host-owned persistence IDs, additive per-pet serialize/restore, legacy-save fallback, diagnostics, and awaited asynchronous teardown saves. ProjectDump source commit 833a3e51537c2a6a42b470ed4160ea8f44ef635a published successfully through Sync GitHub Wiki run 32222118258; the publisher pushed ProjectDump.wiki.git, fresh-cloned and byte-verified the complete page set, producing Wiki master 84354054da26b193ff4a717fb4b0f92f34bc9cd3. The matching Drive wiki was re-read and Markdown-exported at 45,260 bytes with SHA-256 e66359960e3f50cb731084e590ef7ce0a1ceca027a40deab43ccc5d1fd0fe156. PR #10 remains staging-only because its exact-head package/regression/Extension V2/parity/Ferrum/security workflows still fail before executable steps under the private hosted-runner allocation blocker, so no implementation pass/fail is inferred. PCX-058, PCX-059, PCX-060, and PCX-062 were rechecked without unjustified documentation churn. Continue with PCX-063 and PRJ-001 through PRJ-004.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0611Z-pcx-058-062-wiki-delta.json",
+  "nextCursor": [
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009"
+  ],
+  "selectionReason": "PRJ-003 GameSync Platform required a material refresh because GameSync Next main advanced after the previous PRJ-003 checkpoint. Commit cd906ff0831bf7fc33b41fea31b6f0c004cc1562 merged the verified Universal Game Tracker, Bounty, Animation Tracker, universal page mascot, and keyboard command-center recovery. The umbrella wiki now records current Gamesync 0.6.3 and GameSync Next 0.8.0 source identities, the recovered feature slices, the executable cross-repository parity audit, and the distinction between structural audit success and parityComplete. ProjectDump source commit 1fbce40d3433004ea56fee3f2ac6b16558b9ffb2 published through Sync GitHub Wiki run 32226443619; the publisher pushed ProjectDump.wiki.git, fresh-cloned and byte-verified the complete page set, producing Wiki master 50fd35b85d9ddef2a976c74f8e18b35582d313a9. The matching Drive wiki was re-read and Markdown-exported at 21,219 bytes with SHA-256 cdab4a357e8a9c33539d8e62c922c0e3fb5041838013fc0b43f6a06fb580f0f1. PCX-063, PRJ-001, PRJ-002, and PRJ-004 had no newer project-owned delta requiring documentation churn. Continue with PRJ-005 through PRJ-009.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0711Z-pcx-063-prj-004-wiki-delta.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
