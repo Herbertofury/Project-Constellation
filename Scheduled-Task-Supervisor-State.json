@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T03:47:06Z",
+  "updatedAt": "2026-08-19T06:16:00Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,42 +8,22 @@
   "repairs": [
     {
       "area": "Project Constellation recurring task health",
-      "action": "re-enabled incomplete recurring Project Constellation Evolution task",
-      "result": "enabled"
-    },
-    {
-      "area": "Project Constellation Quick View browser gate",
-      "action": "fixed false-negative built-in-lens selector by scoping lens buttons to #lenses",
-      "fixCommit": "f6080a6425c574676319a7023632eb44b4a12453",
-      "resultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38",
-      "candidateSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
-      "result": "VERIFIED_SUCCESS"
-    },
-    {
-      "area": "Project Constellation canonical GitHub presentation publication",
-      "action": "diagnosed the failed public publisher: the six canonical Drive artifacts are private owner-only files and unauthenticated Drive download URLs return Google sign-in HTML rather than artifact bytes",
-      "failedRepairWorkflowCommit": "98980a19f57740b2d8aaeafbbf1bff109fa6d7ba",
-      "result": "ROOT_CAUSE_VERIFIED_PRIVATE_DRIVE_AUTH_BOUNDARY"
-    },
-    {
-      "area": "Project Constellation publication recovery strategy",
-      "action": "hardened the recurring evolution task to stop using unauthenticated Drive URLs and instead use authenticated Drive download plus GitHub Git Data APIs; if binary connector payloads require chunking, use deterministic GitHub-hosted staging payloads and a public reconstruction workflow that never reads private Drive directly",
-      "result": "TASK_DEFINITION_REPAIRED_AND_ENABLED"
+      "action": "Project Constellation Evolution was found disabled while its recurring obligation and v0.5.1 GitHub publication debt remain incomplete; re-enabled immediately and rechecked enabled state.",
+      "result": "VERIFIED_ENABLED"
     },
     {
       "area": "Project Constellation authenticated Drive-to-GitHub recovery",
-      "action": "committed SHA-verified website payload parts 000-007 plus repaired part0080 and part0081 to project-constellation/publication-payload/v0.5.1/site on main, preserving 81000 of 144481 exact bytes for deterministic reconstruction",
-      "commit": "6210e8f9f4b6af24c4d5e1695f5bc43020a647ee",
-      "result": "PAYLOAD_STAGING_DURABLY_ADVANCED"
+      "action": "Preserved the already verified site payload staging on canonical GitHub main and rejected unattached connector blob experiments whose content SHA could not be deterministically matched. No mismatched test blob was added to a tree or commit.",
+      "result": "CANONICAL_TREE_PRESERVED; RECOVERY_CONTINUES"
     }
   ],
   "health": {
-    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_PRIVATE_RUNNER_BLOCKER_AND_PROJECT_CONSTELLATION_GITHUB_RECONCILIATION_DEBT",
+    "scheduledTasks": "ACTIVE_RECURRING_TASKS_ENABLED_WITH_ONE_INTENTIONALLY_RETIRED_DUPLICATE",
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
-    "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired because the canonical Recover Stale Chats task covers the same scope.",
+    "retiredDuplicateCount": 1,
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Pinterest publish job 95921145840 is completed failure with no workflow steps; current private GameSync proposal jobs continue to exhibit the same pre-execution pattern.",
+    "privateHostedRunnerEvidence": "Pinterest publication and current private GameSync proposal jobs continue to fail before workflow steps execute.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -54,38 +34,29 @@
       "catalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
       "browserGate": {
         "status": "VERIFIED_SUCCESS",
-        "candidateQuickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
-        "githubActionsWorkflowSha": "f6080a6425c574676319a7023632eb44b4a12453",
-        "githubActionsResultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38"
+        "quickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"
       },
       "driveCanonical": {
         "status": "VERIFIED_PROMOTED_AND_AUTHENTICATED_DOWNLOAD_CONFIRMED",
         "visibility": "private-owner-only",
-        "artifacts": {
-          "Bert_Project_Second_Brain_Website.zip": {"id": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u", "size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"},
-          "Bert_Project_Constellation_Quick_View.html": {"id": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5", "size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
-          "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"id": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci", "size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"},
-          "Bert_Project_Wiki_Pack.zip": {"id": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24", "size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"},
-          "Project-Constellation-Project-Catalog.json": {"id": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq", "size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"},
-          "Project-Constellation-Research-Suggestions.json": {"id": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8", "size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"}
-        }
+        "artifactCount": 6
       },
       "githubCanonical": {
         "status": "RECONCILIATION_IN_PROGRESS_AUTHENTICATED_CONNECTOR_TO_GIT_DATA_PATH",
-        "failedUnauthenticatedWorkflowCommit": "98980a19f57740b2d8aaeafbbf1bff109fa6d7ba",
         "payloadPath": "project-constellation/publication-payload/v0.5.1/site",
         "payloadCommit": "6210e8f9f4b6af24c4d5e1695f5bc43020a647ee",
         "stagedArtifact": "Bert_Project_Second_Brain_Website.zip",
         "stagedBytes": 81000,
         "expectedBytes": 144481,
-        "stagedParts": ["part000", "part001", "part002", "part003", "part004", "part005", "part006", "part007", "part0080", "part0081"],
-        "requiredNextEvidence": "Stage remaining exact website and Wiki Pack bytes, reconstruct and verify all six exact canonical objects under project-constellation/<artifact-name>, independently verify exact remote bytes/SHA-256, then promote Project-Constellation-Automation-State.json lastAutomationHash and clear the debt."
+        "canonicalQuickViewObserved": "MISSING",
+        "debtCleared": false,
+        "requiredNextEvidence": "Continue deterministic SHA-verified staging/reconstruction of exact Drive-promoted bytes, publish all six canonical GitHub objects, round-trip verify size/SHA-256, then promote Project-Constellation-Automation-State.json lastAutomationHash and clear publication debt."
       },
       "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING"
     },
     "privateActions": {
-      "pinterest": {"workflowRunId": 32068119456, "latestObservedJobId": 95921145840, "jobConclusion": "failure", "executedStepCount": 0},
-      "gameSync": {"status": "CURRENT_PRIVATE_PROPOSAL_HEADS_REMAIN_PRE_EXECUTION_BLOCKED"}
+      "pinterest": {"status": "PRE_EXECUTION_BLOCKED"},
+      "gameSync": {"status": "CURRENT_PRIVATE_PROPOSAL_HEADS_PRE_EXECUTION_BLOCKED"}
     }
   }
 }
