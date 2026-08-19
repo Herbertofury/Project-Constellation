@@ -1,5 +1,6 @@
 {
-  "schema": "project-constellation.v051-payload-recovery/1",
+  "schema": "project-constellation.v051-payload-recovery/2",
+  "fallbackRef": "origin/automation/pc-v051-sourcebundle",
   "payloads": {
     "qv": {
       "parts": [
@@ -16,6 +17,7 @@
       "compressedSha256": "cd439b61ea4fb6df0a3d14422002316f4a45238c261a1ad6f0c7957df1b7699c",
       "decodedBytes": 128283,
       "decodedSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+      "source": "current-main-payload",
       "sizeMatch": true,
       "shaMatch": true,
       "canonicalEncodedChars": 40748,
@@ -28,54 +30,10 @@
           "bytes": 20023
         }
       ],
-      "encodedChars": 20021,
-      "filteredChars": 20013,
-      "invalidCount": 8,
-      "invalidFirst": [
-        {
-          "index": 10000,
-          "char": "[",
-          "ord": 91
-        },
-        {
-          "index": 10001,
-          "char": ".",
-          "ord": 46
-        },
-        {
-          "index": 10002,
-          "char": ".",
-          "ord": 46
-        },
-        {
-          "index": 10003,
-          "char": ".",
-          "ord": 46
-        },
-        {
-          "index": 10017,
-          "char": ".",
-          "ord": 46
-        },
-        {
-          "index": 10018,
-          "char": ".",
-          "ord": 46
-        },
-        {
-          "index": 10019,
-          "char": ".",
-          "ord": 46
-        },
-        {
-          "index": 10020,
-          "char": "]",
-          "ord": 93
-        }
-      ],
-      "compressedBytes": 15008,
-      "compressedSha256": "200db290850be26411eb3eb333b453bde8b0775085318ad1846dca31ff9f524f",
-      "error": "error('Error -3 while decompressing data: invalid distance too far back')"
+      "currentError": "error('Error -3 while decompressing data: invalid distance too far back')",
+      "fallbackError": "Error('Invalid base64-encoded string: number of data characters (43049) cannot be 1 more than a multiple of 4')",
+      "sizeMatch": false,
+      "shaMatch": false
     }
   },
   "status": "DIAGNOSTIC_FAILED"
