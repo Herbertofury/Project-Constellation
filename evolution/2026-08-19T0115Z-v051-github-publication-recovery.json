@@ -1,0 +1,41 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkedAt": "2026-08-19T01:15:00Z",
+  "task": "Recover interrupted Project Constellation v0.5.1 canonical GitHub publication",
+  "status": "RECOVERY_ACTIVE",
+  "canonicalRepository": "Herbertofury/ProjectDump",
+  "canonicalBranch": "main",
+  "projectPath": "project-constellation",
+  "sourceState": {
+    "publicationDebt": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING",
+    "browserAcceptanceCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38",
+    "browserAcceptance": "pass",
+    "projectCount": 63
+  },
+  "recovery": {
+    "driveCanonicalRoundTrip": "pass: all six authenticated Drive downloads matched expected SHA-256 and byte size in the recovery runtime",
+    "githubActionsDriveDownloadDiagnosis": "Unauthenticated drive.usercontent.google.com downloads return Google Accounts sign-in HTML rather than artifact bytes, so a public GitHub Actions publisher cannot truthfully reconstruct these private canonical objects from raw Drive links.",
+    "diagnosticFile": "project-constellation/publication-gate/diagnostic.json",
+    "publisherWorkflow": ".github/workflows/project-constellation-publish-canonical.yml",
+    "safeRecoveryRule": "Keep Drive artifacts private. Do not weaken access controls or promote mismatched bytes. Transfer only the already verified exact bytes through an authenticated/staged path, verify SHA-256 and size after GitHub publication, then promote lastAutomationHash and durable v0.5.1 state.",
+    "stagingBranch": "automation/project-constellation-v051-authenticated-publish",
+    "stagingBranchResetToCurrentMain": "a65422b20b7622b7d2527b462c37b96047dbc805",
+    "temporaryCorruptStageRemoved": true
+  },
+  "artifacts": {
+    "Bert_Project_Second_Brain_Website.zip": {"size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c", "driveId": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u"},
+    "Bert_Project_Constellation_Quick_View.html": {"size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1", "driveId": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5"},
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8", "driveId": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci"},
+    "Bert_Project_Wiki_Pack.zip": {"size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891", "driveId": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24"},
+    "Project-Constellation-Project-Catalog.json": {"size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab", "driveId": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq"},
+    "Project-Constellation-Research-Suggestions.json": {"size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6", "driveId": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8"}
+  },
+  "remainingAcceptance": [
+    "Publish all six exact canonical artifact byte streams to GitHub without changing Drive privacy.",
+    "Round-trip every GitHub object and verify exact SHA-256 and byte size.",
+    "Promote Project-Constellation-Automation-State.json lastAutomationHash to the verified v0.5.1 hashes.",
+    "Advance ACTIVE-CHECKPOINT.json, PROJECT.json, HANDOFF.md, and publication-debt state only after GitHub round-trip success.",
+    "Publish and re-read the final recovery checkpoint in both GitHub and Google Drive."
+  ],
+  "userActionRequired": false
+}
