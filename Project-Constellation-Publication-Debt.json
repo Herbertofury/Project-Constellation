@@ -1,8 +1,8 @@
 {
   "schema": "project-constellation.publication-debt/2",
-  "updatedAt": "2026-08-18T22:32:00Z",
+  "updatedAt": "2026-08-18T23:48:09Z",
   "status": "CANDIDATE_BYTE_VERIFIED_BROWSER_PROMOTION_BLOCKED",
-  "reason": "A coherent v0.5.1 evidence-refresh candidate was regenerated from the current valid 63-project Drive catalog, preserving all project recoveryHistory while adding a presentation-only current-evidence overlay and the latest research cursor. Static JSON/ZIP/inline-JavaScript validation passed. All six candidate files were uploaded to a dedicated Drive candidate folder, fully re-downloaded, and matched local SHA-256 and size. Canonical v0.5.0 Drive objects and lastAutomationHash remain unchanged because system Chromium still times out with zero DOM bytes after D-Bus/zygote initialization failures, so the required browser-runtime gate has not passed.",
+  "reason": "The coherent v0.5.1 evidence-refresh candidate remains byte-verified and unpromoted. Recovery re-downloaded the exact Quick View candidate and independently matched its expected 128283-byte size and SHA-256. Chromium 144 starts successfully and exposes a working DevTools endpoint, correcting the earlier assumption that the renderer itself was unusable. The actual runtime blocker in this execution environment is an enforced managed Chromium URLBlocklist of [\"*\"], which rejects file:, localhost/http, data:, and chrome: top-level navigation with ERR_BLOCKED_BY_ADMINISTRATOR. Exact candidate HTML injected into about:blank parses and exposes the expected v0.5.1 UI plus all 63 BASE records, but about:blank has an opaque origin and cannot provide the localStorage semantics required by the real snapshot/import/export workflow, so this parse-only probe is not accepted as browser-runtime proof. Canonical v0.5.0 bytes and lastAutomationHash remain unchanged.",
   "candidateVersion": "0.5.1",
   "candidateDriveFolderId": "1WRlXomhO7H-V1GgbYtPT6Slrc76R6KKU",
   "catalogAuthority": {
@@ -33,11 +33,24 @@
     "wikiPackZipIntegrity": "pass",
     "wikiProjectPages63": "pass",
     "driveRemoteRoundTrip": "pass: all six exact SHA-256 and size matched",
-    "browserRuntime": "blocked: system Chromium timed out with rc=124 and 0 DOM bytes; hardened single-process retry also produced 0 DOM bytes"
+    "browserRuntime": "blocked: Chromium 144 and DevTools start successfully, but managed URLBlocklist [\"*\"] returns ERR_BLOCKED_BY_ADMINISTRATOR for usable top-level origins. about:blank injection is parse-only and cannot satisfy localStorage/import/export acceptance."
+  },
+  "browserRecoveryEvidence": {
+    "quickViewDriveFileId": "1nrOfSX9Geea5T7J2PnhV8bZqltfiNzdU",
+    "quickViewSize": 128283,
+    "quickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+    "chromiumVersion": "144.0.7559.96",
+    "devToolsEndpoint": "pass: remote-debugging endpoint became live",
+    "managedPolicy": "URLBlocklist=[\"*\"]",
+    "blockedNavigation": ["file:", "http://127.0.0.1", "data:", "chrome:"],
+    "blockedError": "ERR_BLOCKED_BY_ADMINISTRATOR",
+    "parseOnlyProbe": "pass: exact HTML title/UI rendered through document.write and BASE.length=63; APP_RESEARCH.length=2",
+    "acceptanceClaim": false,
+    "whyNotAccepted": "Opaque about:blank origin throws on localStorage, so stateful search/snapshot/import/export behavior cannot be faithfully exercised there."
   },
   "canonicalPromotion": {
     "performed": false,
     "reason": "Browser runtime gate not passed; verified v0.5.0 canonical bytes preserved."
   },
-  "requiredRepair": "Run the staged v0.5.1 Quick View in a functioning browser/Ferrum environment and exercise search, lenses, project drawer, snapshot export/import, current-evidence overlay, and 63-record availability. If it passes and the catalog has not changed, replace the canonical six targets with these exact verified bytes or regenerate again if source state changed, re-download/hash all canonical destinations, publish the same artifact manifest to GitHub, then promote lastAutomationHash."
+  "requiredRepair": "Execute these exact v0.5.1 candidate bytes in a real unrestricted browser or Ferrum environment with a normal storage origin. Exercise 63-record availability, search, every lens, project drawer, current-evidence overlay, snapshot export, snapshot import/FileReader, persistence/localStorage, and clean console/runtime behavior. If all pass and the catalog hash is still current, replace the canonical six targets with the already byte-verified candidate set (or regenerate if source state changed), re-download/hash all canonical destinations, publish the same manifest to GitHub, then promote lastAutomationHash."
 }
