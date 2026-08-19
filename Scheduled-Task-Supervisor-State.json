@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T01:22:00Z",
+  "updatedAt": "2026-08-19T03:47:06Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -29,6 +29,12 @@
       "area": "Project Constellation publication recovery strategy",
       "action": "hardened the recurring evolution task to stop using unauthenticated Drive URLs and instead use authenticated Drive download plus GitHub Git Data APIs; if binary connector payloads require chunking, use deterministic GitHub-hosted staging payloads and a public reconstruction workflow that never reads private Drive directly",
       "result": "TASK_DEFINITION_REPAIRED_AND_ENABLED"
+    },
+    {
+      "area": "Project Constellation authenticated Drive-to-GitHub recovery",
+      "action": "committed SHA-verified website payload parts 000-007 plus repaired part0080 and part0081 to project-constellation/publication-payload/v0.5.1/site on main, preserving 81000 of 144481 exact bytes for deterministic reconstruction",
+      "commit": "6210e8f9f4b6af24c4d5e1695f5bc43020a647ee",
+      "result": "PAYLOAD_STAGING_DURABLY_ADVANCED"
     }
   ],
   "health": {
@@ -65,9 +71,15 @@
         }
       },
       "githubCanonical": {
-        "status": "RECONCILIATION_PENDING_AUTHENTICATED_CONNECTOR_TO_GIT_DATA_PATH",
+        "status": "RECONCILIATION_IN_PROGRESS_AUTHENTICATED_CONNECTOR_TO_GIT_DATA_PATH",
         "failedUnauthenticatedWorkflowCommit": "98980a19f57740b2d8aaeafbbf1bff109fa6d7ba",
-        "requiredNextEvidence": "Publish the six exact authenticated Drive bytes to project-constellation/<artifact-name> with connected GitHub Git Data APIs or deterministic GitHub-hosted staging/reconstruction, independently verify exact bytes/SHA-256, then promote Project-Constellation-Automation-State.json lastAutomationHash and clear the debt."
+        "payloadPath": "project-constellation/publication-payload/v0.5.1/site",
+        "payloadCommit": "6210e8f9f4b6af24c4d5e1695f5bc43020a647ee",
+        "stagedArtifact": "Bert_Project_Second_Brain_Website.zip",
+        "stagedBytes": 81000,
+        "expectedBytes": 144481,
+        "stagedParts": ["part000", "part001", "part002", "part003", "part004", "part005", "part006", "part007", "part0080", "part0081"],
+        "requiredNextEvidence": "Stage remaining exact website and Wiki Pack bytes, reconstruct and verify all six exact canonical objects under project-constellation/<artifact-name>, independently verify exact remote bytes/SHA-256, then promote Project-Constellation-Automation-State.json lastAutomationHash and clear the debt."
       },
       "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING"
     },
