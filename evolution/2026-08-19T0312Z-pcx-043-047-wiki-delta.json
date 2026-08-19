@@ -83,9 +83,20 @@
     "driveFileId": "1hMGpmfAtiuPJwgczYmn4-v3PqT6ywqyjKMbK8P9tV_k",
     "driveTitle": "Project Constellation Wiki Maintainer Checkpoint - PCX-043-047 - 2026-08-19T0312Z",
     "driveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-    "driveRevisionId": "AIroW35H1o26Ve93Yln6DTRZsUa80urKjuSeTJgGxsR4OyAwtXtJjR7aORVXTKG7WP52SZ2VLnKxEoob8iu3OtzOBRUWjJTz9roYeVcQ-o4",
-    "driveMarkdownBytes": 5486,
-    "driveMarkdownSha256": "36451f0a78bee79b6f1505e8977210827344a6bff8d87d3af573521f71fe71f5",
+    "driveRevisionId": "AIroW36OMRo4sS3_wgVSd14ZapfkIkM3o-sd_MrkNSvFftsF69pKQqOFdkatOPYePv1X0DJcQYbULY9oQgwYzhtEdE1aSzrRTjfjMQuoNo4",
+    "driveMarkdownBytes": 6140,
+    "driveMarkdownSha256": "eda96857c6ae63028416e4416a2729bfb2d2fdbab541e0497a5756a6847451c8",
+    "roundTrip": "passed"
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubCommit": "f3965b1ac29d577ecfdb36de25cf25b75a0cf94e",
+    "githubBlob": "213b92a5fcae709fa71836584280c55c8b97b309",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveRevisionId": "AIroW37CbtSMfJaEdcHEEXznNnyIy9xIBxyRagac7zRNKMk6cZWd99sxSMby96drTAU61BrVR3f2CuqgOfI8bJlzXjdiHjt2PnpbwFmJ0F0",
+    "driveTextBytes": 1842,
+    "driveTextSha256": "fae2c2f3249e54a67fc7a432e4ab5b00444bb98fb9332d590e7428cb288671e6",
+    "jsonParse": "passed after UTF-8 BOM handling",
     "roundTrip": "passed"
   },
   "nextCursor": [
