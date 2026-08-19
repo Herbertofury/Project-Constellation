@@ -1,0 +1,56 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkedAt": "2026-08-19T05:01:47Z",
+  "scope": ["PCX-053", "PCX-054", "PCX-055", "PCX-056", "PCX-057"],
+  "result": "MATERIAL_UPDATE",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "reviews": {
+    "PCX-053": "Rechecked current GameSync and GameSync Next evidence; the recently expanded Bounty / Rewards Runtime wiki remains aligned and no further material delta justified.",
+    "PCX-054": "Rechecked current source-discovery evidence; no newer source-finder implementation delta justified documentation churn.",
+    "PCX-055": "Rechecked Script Polling Runtime; the documented stop/start alarm-listener re-arm defect remains current and no newer verified fix was found.",
+    "PCX-056": "Rechecked Mod Health; the recently documented background-to-overlay evidence-cache continuity gap remains current and no newer verified fix was found.",
+    "PCX-057": "Material documentation correction completed after the current catalog-integrity receipt and direct remote reads disproved the older wiki claim that GitHub and Drive still contain identical catalog bytes."
+  },
+  "pcx057": {
+    "driveCatalog": {
+      "fileId": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
+      "bytes": 116737,
+      "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "jsonParse": "pass",
+      "projectCount": 63,
+      "projectArrayLength": 63,
+      "uniqueProjectIds": 63,
+      "requiredContinuityFields": "pass"
+    },
+    "githubCatalog": {
+      "path": "project-constellation/Project-Constellation-Project-Catalog.json",
+      "blobSha": "297284ad1417e5b8b9dd8f6d16fbb3a28906e6ed",
+      "bytes": 48132,
+      "sha256": "e222fc0aadf0c653c1f87af2d790994235d9f30fb350b77a51274a7ad6ab5a45",
+      "jsonParse": "fail",
+      "observedTail": "truncated inside PRJ-019 USVFS research text",
+      "classification": "PUBLICATION_DEBT"
+    },
+    "integrityReceipt": {
+      "path": "project-constellation/Project-Constellation-Catalog-Integrity.json",
+      "checkedAt": "2026-08-18T16:20:00Z",
+      "interpretation": "The receipt identifies both independently fetched remote objects but records different byte/hash identities; it does not prove mirror equality."
+    },
+    "wikiSource": {
+      "path": "wikis/PCX-057-project-catalog-cross-chat-database.md",
+      "commit": "9fbd1764cc840d1e70e8517259a85aeb1a4ca781",
+      "blob": "81b2286c75e76f663f7b93e210f5079b9fa37070",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-057-project-catalog-cross-chat-database",
+      "publicationStatus": "PENDING_WORKFLOW_PROOF"
+    },
+    "driveWikiMirror": {
+      "fileId": "152UrTZclCJS3yBQ8QOYmXQHTeMSA9ShhPabTPHcGP8M",
+      "markdownBytes": 15208,
+      "markdownSha256": "bb3d0be4c2cefe22cfd9c9d690973e14a0dd3066fd11914b2c8d326c1c96f7ba",
+      "reread": "pass"
+    },
+    "safeNextAction": "Confirm no newer valid catalog checkpoint supersedes the complete Drive object, then restore the GitHub catalog from verified complete bytes, independently re-fetch/parse/hash both destinations, and refresh the integrity receipt only after exact convergence."
+  },
+  "verificationBoundary": "This wiki-maintainer run diagnosed and documented the PCX-057 catalog publication debt. It did not mutate the Project Constellation catalog/control-plane payload itself.",
+  "nextCursor": ["PCX-058", "PCX-059", "PCX-060", "PCX-061", "PCX-062"]
+}
