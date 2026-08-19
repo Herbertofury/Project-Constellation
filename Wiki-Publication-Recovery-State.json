@@ -1,7 +1,7 @@
 {
   "schema": "project-constellation.wiki-publication-recovery/1",
-  "updatedAt": "2026-08-19T11:11:00Z",
-  "state": "BLOCKED_ACTIONS_EVENT_EXECUTION",
+  "updatedAt": "2026-08-19T12:15:33Z",
+  "state": "BLOCKED_ACTIONS_EVENT_EXECUTION_WITH_SCHEDULED_SAFETY_NET",
   "publicationBacklog": [
     {
       "projectId": "PRJ-014",
@@ -28,28 +28,31 @@
     "issueTriggeredRecoveryObservedState": "OPEN_NO_WORKFLOW_COMMENT_OR_CLOSURE",
     "issueTriggeredRecoveryHeadStatus": "MISSING",
     "independentPullRequestRecoveryHead": "e097903d1a083f3c3417245be5f1410eda0b57e7",
-    "independentPullRequestRecoveryStatus": "MISSING"
+    "independentPullRequestRecoveryStatus": "MISSING",
+    "scheduledSafetyNetCommit": "e207d8ea1e1a36a4582f722fd3f3296312fb6afd",
+    "scheduledSafetyNetWorkflowBlob": "4b6bc2d42b74e5e47496d24ae1cc4dd7f11251c3",
+    "scheduledSafetyNetCron": "11 * * * *",
+    "scheduledSafetyNetFirstWindowObservedAt": "2026-08-19T12:15:33Z",
+    "scheduledSafetyNetHeadStatus": "MISSING_AFTER_FIRST_SCHEDULE_WINDOW",
+    "knownGoodStatusReadControlCommit": "b444e28a0afc0b4aa17a2abc9cc7436868999225",
+    "knownGoodStatusReadControl": "wiki-publication success remains readable through connected GitHub status API"
   },
-  "diagnosis": "Eligible push, issue, and pull-request recovery paths are all observable in repository state but are not producing workflow/status evidence. The blocker is broader GitHub Actions event execution or observability, not a PRJ-014/PRJ-018 path-filter defect.",
+  "diagnosis": "Eligible push, issue, pull-request, and now scheduled recovery paths are all represented in repository state, but the current backlog and safety-net heads still have no wiki-publication status. The connected status API can still read older successful wiki-publication statuses, so the missing evidence is not explained by status-read failure. This continues to point to broader GitHub Actions event execution or observability rather than a PRJ-014/PRJ-018 path-filter defect. Scheduled workflows can be delayed, so the hourly safety net remains enabled for subsequent rechecks.",
   "dualPublication": {
     "github": {
       "recoveryStatePath": "project-constellation/Wiki-Publication-Recovery-State.json",
       "researchCursorPath": "project-constellation/Project-Constellation-Research-Cursor.json",
-      "issueTriggerWorkflowPath": ".github/workflows/sync-github-wiki-issue-trigger.yml",
+      "canonicalWorkflowPath": ".github/workflows/sync-github-wiki.yml",
       "reReadVerified": true
     },
     "drive": {
       "recoveryStateDocumentId": "1jmVY8fmw6j1h8WJFqKkSK0EQ0ZgbEWrS7wc6Nvdj2FA",
-      "recoveryStateExportBytes": 2483,
-      "recoveryStateExportSha256": "e4fc39ed50ddc09a56d250b74e32b32dbc063d26b25bd80578a08e6c52bf9693",
       "researchCursorDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
-      "researchCursorExportBytes": 1971,
-      "researchCursorExportSha256": "3b659c18d1a84994e5b78499c412c6bc4a6f288dd7d06f99ff8e87fd5c97a5aa",
-      "issueTriggerWorkflowDocumentId": "1v-MgQ8JcitVSdR_SXb_x_qirfVbQymmaYZQ9XcuGUdA",
-      "issueTriggerWorkflowExportBytes": 2209,
-      "issueTriggerWorkflowExportSha256": "54616b60fa6160457cc33de40badeb6e61a5892504bdaaed169bde60dd130115",
+      "recoveryCheckpointDocumentId": "14_8OaexIG9QVdESaeQ72SnirOKZquuYMrR6930hH3JQ",
       "parentProjectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-      "reReadVerified": true
+      "currentMirrorReReadRequired": true,
+      "priorVerifiedRecoveryStateExportSha256": "e4fc39ed50ddc09a56d250b74e32b32dbc063d26b25bd80578a08e6c52bf9693",
+      "priorVerifiedResearchCursorExportSha256": "3b659c18d1a84994e5b78499c412c6bc4a6f288dd7d06f99ff8e87fd5c97a5aa"
     }
   },
   "rules": {
@@ -64,6 +67,6 @@
       "captured Wiki master commit"
     ]
   },
-  "nextAction": "Recover supported GitHub Actions execution or another authenticated full-wiki publication path, then publish and fresh-clone byte-verify the complete current wikis/ tree before resuming project documentation. PRJ-014 and PRJ-018 remain first backlog targets.",
+  "nextAction": "Recheck the scheduled Sync GitHub Wiki safety net and any newly available workflow_dispatch execution path. If GitHub Actions still produces no run evidence, use another authenticated full-wiki publication path when available. Do not create new project wiki deltas until the complete current wikis/ tree is published and fresh-clone byte-verified; PRJ-014 and PRJ-018 remain the publication backlog.",
   "recurringObligation": "OPEN_AND_ONGOING"
 }
