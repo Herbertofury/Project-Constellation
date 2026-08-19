@@ -1,10 +1,19 @@
-file:///home/runner/work/ProjectDump/ProjectDump/project-constellation/browser-gate/verify-quick-view.mjs:20
-const fail = message => { throw new Error(message); };
-                                ^
-
-Error: Missing built-in lens: Today
-    at fail (file:///home/runner/work/ProjectDump/ProjectDump/project-constellation/browser-gate/verify-quick-view.mjs:20:33)
-    at expect (file:///home/runner/work/ProjectDump/ProjectDump/project-constellation/browser-gate/verify-quick-view.mjs:21:58)
-    at file:///home/runner/work/ProjectDump/ProjectDump/project-constellation/browser-gate/verify-quick-view.mjs:49:5
-
-Node.js v24.19.0
+{
+  "status": "PASS",
+  "htmlPath": "/home/runner/work/ProjectDump/ProjectDump/project-constellation/browser-gate/quick-view.html",
+  "trackedProjects": 63,
+  "checks": [
+    "load",
+    "all-63-cards",
+    "current-evidence-overlay",
+    "search",
+    "all-built-in-lenses",
+    "project-drawer",
+    "today-localStorage-reload-persistence",
+    "app-research-drawer",
+    "snapshot-export",
+    "snapshot-import-file-reader",
+    "post-import-reload-persistence",
+    "runtime-errors"
+  ]
+}
