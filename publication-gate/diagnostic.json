@@ -1,0 +1,7 @@
+{
+  "schema": "project-constellation.publication-diagnostic/1",
+  "workflowSha": "837fc60977fe6c3c30ffb6900f7ba958043a5c5f",
+  "downloadOutcome": "success",
+  "verifyOutcome": "failure",
+  "checkedAt": "2026-08-19T01:04:17Z"
+}
