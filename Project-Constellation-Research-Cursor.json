@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T07:12:00Z",
+  "updatedAt": "2026-08-19T08:20:59Z",
   "completedCursor": [
-    "PCX-063",
-    "PRJ-001",
-    "PRJ-002",
-    "PRJ-003",
-    "PRJ-004"
-  ],
-  "nextCursor": [
     "PRJ-005",
     "PRJ-006",
     "PRJ-007",
     "PRJ-008",
     "PRJ-009"
   ],
-  "selectionReason": "PRJ-003 GameSync Platform required a material refresh because GameSync Next main advanced after the previous PRJ-003 checkpoint. Commit cd906ff0831bf7fc33b41fea31b6f0c004cc1562 merged the verified Universal Game Tracker, Bounty, Animation Tracker, universal page mascot, and keyboard command-center recovery. The umbrella wiki now records current Gamesync 0.6.3 and GameSync Next 0.8.0 source identities, the recovered feature slices, the executable cross-repository parity audit, and the distinction between structural audit success and parityComplete. ProjectDump source commit 1fbce40d3433004ea56fee3f2ac6b16558b9ffb2 published through Sync GitHub Wiki run 32226443619; the publisher pushed ProjectDump.wiki.git, fresh-cloned and byte-verified the complete page set, producing Wiki master 50fd35b85d9ddef2a976c74f8e18b35582d313a9. The matching Drive wiki was re-read and Markdown-exported at 21,219 bytes with SHA-256 cdab4a357e8a9c33539d8e62c922c0e3fb5041838013fc0b43f6a06fb580f0f1. PCX-063, PRJ-001, PRJ-002, and PRJ-004 had no newer project-owned delta requiring documentation churn. Continue with PRJ-005 through PRJ-009.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0711Z-pcx-063-prj-004-wiki-delta.json",
+  "nextCursor": [
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012",
+    "PRJ-013",
+    "PRJ-014"
+  ],
+  "selectionReason": "Rechecked PRJ-005 through PRJ-009 against current connected source and continuity evidence. GameSync remains at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 and GameSync Next main remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562, so the recently refreshed PRJ-005 and PRJ-006 pages remain current. PRJ-007 issue #9 remains unresolved on main and draft PR #10 remains open, draft, mergeable, and unmerged; GitHub PR metadata still identifies head 1b8ad1abb3c01065e03a6780d67db9e74ef11e71, and the existing wiki already documents the staged stable-identity/additive-restore repair, awaited asynchronous teardown persistence, regression coverage, and hosted-runner execution blocker. PRJ-008 shipping mascot-game evidence remains on the unchanged GameSync head; Golf is still absent from the verified launch allowlist and no newer project-owned game implementation was resolved. PRJ-009 source recovery remains blocked: current Drive search still surfaces continuity/index material rather than the canonical Skill Atlas/QA Cockpit repository or ZIP, while current official RuneLite Plugin Hub guidance still uses Java 11, latest.release tracking, runelite-plugin.properties build modes, and Gradle dependency verification. No project wiki content required a material change, so no wiki publication workflow was triggered. Continue with PRJ-010 through PRJ-014.",
+  "sourceCheckpoint": "NO_MATERIAL_WIKI_DELTA:2026-08-19T0820Z:PRJ-005-009",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
