@@ -63,6 +63,20 @@
   "persistence": {
     "githubSourceAndWikiVerified": true,
     "driveWikiVerified": true,
-    "checkpointDrivePublicationPendingAtThisWrite": true
+    "driveCheckpoint": {
+      "documentId": "1VYHMuYjQI-uaq9HiCl8fmXKU15MGtMjNxT9qxWU-uKQ",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 5339,
+      "markdownExportSha256": "9095d02056a73b9c1791819c96eb2f97073098eabc4e3910ce2f29446fcb00e8",
+      "rereadVerified": true
+    },
+    "driveResearchCursor": {
+      "documentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "plainTextExportBytes": 1945,
+      "plainTextExportSha256": "23429f1f59a15608e357d46bff048ce52765eb6e42afe7130e7d6c033a5a943a",
+      "rereadVerified": true
+    },
+    "dualPublicationVerified": true
   }
 }
