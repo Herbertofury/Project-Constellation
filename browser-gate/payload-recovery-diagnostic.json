@@ -27,10 +27,18 @@
       "parts": [
         {
           "name": "master.b64.part01",
-          "bytes": 20022
+          "bytes": 13000
+        },
+        {
+          "name": "master.b64.part02",
+          "bytes": 13000
+        },
+        {
+          "name": "master.b64.part03",
+          "bytes": 12948
         }
       ],
-      "currentError": "error('Error -3 while decompressing data: invalid distance too far back')",
+      "currentError": "BadGzipFile('CRC check failed')",
       "fallbackError": "Error('Invalid base64-encoded string: number of data characters (43049) cannot be 1 more than a multiple of 4')",
       "sizeMatch": false,
       "shaMatch": false
