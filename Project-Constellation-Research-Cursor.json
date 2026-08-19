@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T10:16:00Z",
+  "updatedAt": "2026-08-19T11:08:00Z",
   "completedCursor": [
     "PRJ-015",
     "PRJ-016",
@@ -9,13 +9,10 @@
     "PRJ-019"
   ],
   "nextCursor": [
-    "PRJ-020",
-    "PRJ-021",
-    "PRJ-022",
-    "PRJ-023",
-    "PRJ-024"
+    "PRJ-014",
+    "PRJ-018"
   ],
-  "selectionReason": "PRJ-015, PRJ-016, PRJ-017, and PRJ-019 were rechecked without justified churn. PRJ-018 received a material wiki expansion at source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1, blob dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3, grounded in the recovered 1.1.0 README, test report, package SHA-256 615b3b05e081ce6c529b4e9e117dbdc207f30e0dca5c858c31739a0981da7b56, and shared drag/drop root-cause evidence. The Drive wiki mirror reread passed and exported to 21,842 bytes with SHA-256 5c43eda49ce93edd666d8d908d47e67f97784291d760c9d94e598ef1c2febe8c. GitHub Wiki publication remains blocked: the exact source commit returned no wiki-publication status even though it changed an eligible wikis/** path. The current Sync GitHub Wiki workflow was reread and still contains the expected main push path filters and write/status permissions. A meaningful eligible publication-contract hardening commit, acb5a0b2521d4c784320bad6ba7fba7282985e5d, also returned no wiki-publication status, confirming a broader Actions trigger/execution observability blocker rather than a PRJ-018 path-filter mistake. Its Drive mirror reread passed and exported to 5,267 bytes with SHA-256 4ac51da4eef0c679c80d26676d109d1736b68a9b64d9e6bd8aef9d740eb9e620. PRJ-014 retains the same earlier publication-proof debt. Continue documentation at PRJ-020 through PRJ-024 while keeping both publication debts fail-closed.",
-  "sourceCheckpoint": "MATERIAL_WIKI_DELTA_SOURCE_AND_DRIVE_VERIFIED_ACTIONS_TRIGGER_BLOCKED:2026-08-19T1016Z:PRJ-015-019",
+  "selectionReason": "Publication-backlog-first hold. PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 still return no wiki-publication status. The canonical Sync GitHub Wiki workflow was reread and still has main push filters for wikis/**, tools/github-wiki/**, and the workflow file itself, plus contents:write and statuses:write. The earlier meaningful publisher-contract hardening commit acb5a0b2521d4c784320bad6ba7fba7282985e5d likewise has no wiki-publication status. This run added a separate issue-triggered recovery workflow at 02ff80f2903be6668215299eebef306090144ce7 and opened recovery issue #7 to dispatch the existing workflow_dispatch publisher. The issue remained open with no workflow-written comment or closure, and commit 02ff80f2903be6668215299eebef306090144ce7 also returned no wiki-publication status after observation. An independently existing pull-request recovery head e097903d1a083f3c3417245be5f1410eda0b57e7 likewise has no statuses. Evidence now points to a broader GitHub Actions event-execution/observability outage rather than a page path-filter defect. Do not create new wiki source deltas or advance to PRJ-020 until the actual ProjectDump Wiki is published and fresh-clone/byte-verified. Keep PRJ-014 and PRJ-018 publication debt fail-closed.",
+  "sourceCheckpoint": "PUBLICATION_BACKLOG_ACTIONS_EVENT_EXECUTION_BLOCKED:2026-08-19T1108Z:PRJ-014,PRJ-018",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
