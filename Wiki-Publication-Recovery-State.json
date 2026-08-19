@@ -1,7 +1,7 @@
 {
   "schema": "project-constellation.wiki-publication-recovery/1",
-  "updatedAt": "2026-08-19T12:15:33Z",
-  "state": "BLOCKED_ACTIONS_EVENT_EXECUTION_WITH_SCHEDULED_SAFETY_NET",
+  "updatedAt": "2026-08-19T12:50:52Z",
+  "state": "BLOCKED_ACTIONS_EVENT_EXECUTION_AFTER_TWO_SCHEDULE_WINDOWS",
   "publicationBacklog": [
     {
       "projectId": "PRJ-014",
@@ -19,8 +19,15 @@
   "publisherEvidence": {
     "workflowPath": ".github/workflows/sync-github-wiki.yml",
     "workflowConfigVerified": true,
-    "workflowPushFiltersVerified": ["wikis/**", "tools/github-wiki/**", ".github/workflows/sync-github-wiki.yml"],
-    "workflowPermissionsVerified": ["contents: write", "statuses: write"],
+    "workflowPushFiltersVerified": [
+      "wikis/**",
+      "tools/github-wiki/**",
+      ".github/workflows/sync-github-wiki.yml"
+    ],
+    "workflowPermissionsVerified": [
+      "contents: write",
+      "statuses: write"
+    ],
     "publisherContractHardeningCommit": "acb5a0b2521d4c784320bad6ba7fba7282985e5d",
     "publisherContractHardeningStatus": "MISSING",
     "issueTriggeredRecoveryWorkflowCommit": "02ff80f2903be6668215299eebef306090144ce7",
@@ -33,11 +40,14 @@
     "scheduledSafetyNetWorkflowBlob": "4b6bc2d42b74e5e47496d24ae1cc4dd7f11251c3",
     "scheduledSafetyNetCron": "11 * * * *",
     "scheduledSafetyNetFirstWindowObservedAt": "2026-08-19T12:15:33Z",
-    "scheduledSafetyNetHeadStatus": "MISSING_AFTER_FIRST_SCHEDULE_WINDOW",
+    "scheduledSafetyNetSecondWindowObservedAt": "2026-08-19T12:50:52Z",
+    "scheduledSafetyNetHeadStatus": "MISSING_AFTER_TWO_SCHEDULE_WINDOWS",
+    "currentMainStatusCheckedAt": "2026-08-19T12:50:52Z",
+    "currentMainStatusCount": 0,
     "knownGoodStatusReadControlCommit": "b444e28a0afc0b4aa17a2abc9cc7436868999225",
     "knownGoodStatusReadControl": "wiki-publication success remains readable through connected GitHub status API"
   },
-  "diagnosis": "Eligible push, issue, pull-request, and now scheduled recovery paths are all represented in repository state, but the current backlog and safety-net heads still have no wiki-publication status. The connected status API can still read older successful wiki-publication statuses, so the missing evidence is not explained by status-read failure. This continues to point to broader GitHub Actions event execution or observability rather than a PRJ-014/PRJ-018 path-filter defect. Scheduled workflows can be delayed, so the hourly safety net remains enabled for subsequent rechecks.",
+  "diagnosis": "Eligible push, issue, pull-request, and scheduled recovery paths are all represented in repository state, but the current backlog and current-main head still have no wiki-publication status after two observed hourly schedule windows. The connected status API can still read older successful wiki-publication statuses, so the missing evidence is not explained by status-read failure. The canonical sync workflow is configured for standard ubuntu-latest execution, and no connector-exposed authenticated GitHub Wiki Git write action or ProjectDump.wiki REST repository is available as a full-fidelity substitute. Continue to treat this as GitHub Actions event/runner execution or observability debt rather than a PRJ-014/PRJ-018 path-filter defect.",
   "dualPublication": {
     "github": {
       "recoveryStatePath": "project-constellation/Wiki-Publication-Recovery-State.json",
@@ -54,9 +64,10 @@
       "recoveryCheckpointExportBytes": 3211,
       "recoveryCheckpointExportSha256": "33645d9029a610d5b4e6073cdef34332072dca0059e9f0b0d026ebdfe799b9c9",
       "parentProjectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-      "currentMirrorReReadRequired": false,
-      "currentMirrorReReadVerified": true,
-      "priorVerifiedRecoveryStateExportSha256": "e4fc39ed50ddc09a56d250b74e32b32dbc063d26b25bd80578a08e6c52bf9693"
+      "currentMirrorReReadRequired": true,
+      "currentMirrorReReadVerified": false,
+      "priorVerifiedRecoveryStateExportSha256": "e4fc39ed50ddc09a56d250b74e32b32dbc063d26b25bd80578a08e6c52bf9693",
+      "priorVerifiedResearchCursorExportSha256": "f06f32758127ec4eb9a6f7ce9897286e46d830211699996e0d3f260bfa21549c"
     }
   },
   "rules": {
@@ -71,6 +82,6 @@
       "captured Wiki master commit"
     ]
   },
-  "nextAction": "Recheck the scheduled Sync GitHub Wiki safety net and any newly available workflow_dispatch execution path. If GitHub Actions still produces no run evidence, use another authenticated full-wiki publication path when available. Do not create new project wiki deltas until the complete current wikis/ tree is published and fresh-clone byte-verified; PRJ-014 and PRJ-018 remain the publication backlog.",
+  "nextAction": "Recheck the scheduled Sync GitHub Wiki safety net and any newly available workflow_dispatch execution path on the next recovery pass. If GitHub Actions resumes, require a successful publisher run, captured Wiki master commit, fresh clone, and complete byte comparison before clearing the backlog. If Actions remains non-executing, use another authenticated full-wiki Git publication path only when that path is actually available. Do not create new project wiki deltas until the complete current wikis/ tree is published and fresh-clone byte-verified; PRJ-014 and PRJ-018 remain the publication backlog.",
   "recurringObligation": "OPEN_AND_ONGOING"
 }
