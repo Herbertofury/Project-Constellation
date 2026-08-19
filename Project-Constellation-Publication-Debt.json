@@ -1,8 +1,8 @@
 {
   "schema": "project-constellation.publication-debt/2",
-  "updatedAt": "2026-08-19T00:20:20Z",
-  "status": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING",
-  "reason": "The coherent v0.5.1 evidence-refresh candidate is byte-verified and now passes the real unrestricted-browser acceptance gate. Public GitHub Actions reconstructed the exact 128283-byte Quick View candidate at SHA-256 8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1 and exercised all 63 cards, current-evidence overlay, search, every built-in lens, project drawer, Today localStorage persistence across reload, app-research drawer, snapshot export, snapshot import/FileReader, post-import reload persistence, and clean runtime diagnostics. Drive canonical promotion is independently verified for all six exact candidate artifacts. The remaining publication debt is final canonical GitHub object reconciliation plus lastAutomationHash promotion; do not treat the older local managed-Chromium block as current browser evidence.",
+  "updatedAt": "2026-08-19T08:00:00Z",
+  "status": "GITHUB_PUBLISHED_PENDING_REMOTE_VERIFY",
+  "reason": "The exact verified v0.5.1 six-object set has been deterministically reconstructed and committed to GitHub. lastAutomationHash remains unpromoted until an independent checkout of the published commit verifies all six exact sizes/SHA-256 values and ZIP/JSON integrity.",
   "candidateVersion": "0.5.1",
   "candidateDriveFolderId": "1WRlXomhO7H-V1GgbYtPT6Slrc76R6KKU",
   "catalogAuthority": {
@@ -12,25 +12,91 @@
   },
   "researchCursor": {
     "updatedAt": "2026-08-18T22:04:30Z",
-    "completed": ["PRJ-017", "PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021"],
-    "next": ["PRJ-022", "PRJ-023", "PRJ-024", "PRJ-025", "PCX-026"]
+    "completed": [
+      "PRJ-017",
+      "PRJ-018",
+      "PRJ-019",
+      "PRJ-020",
+      "PRJ-021"
+    ],
+    "next": [
+      "PRJ-022",
+      "PRJ-023",
+      "PRJ-024",
+      "PRJ-025",
+      "PCX-026"
+    ]
   },
   "candidate": {
-    "Bert_Project_Second_Brain_Website.zip": {"size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c", "driveCandidateFileId": "1CBBETMjDqnUXDFTpMLewnLst5pyZVoEg", "remoteRoundTrip": "sha256+size matched"},
-    "Bert_Project_Constellation_Quick_View.html": {"size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1", "driveCandidateFileId": "1nrOfSX9Geea5T7J2PnhV8bZqltfiNzdU", "remoteRoundTrip": "sha256+size matched"},
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8", "driveCandidateFileId": "1Ol5LWw_f97BR0_kST2qJREGd9fFmvpuQ", "remoteRoundTrip": "sha256+size matched"},
-    "Bert_Project_Wiki_Pack.zip": {"size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891", "driveCandidateFileId": "1YsCRRxHeO-EuOi4YIgdYOcXsu-k4ZuhC", "remoteRoundTrip": "sha256+size matched"},
-    "Project-Constellation-Project-Catalog.json": {"size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab", "driveCandidateFileId": "1F6w7qfzxqsrqPAhwXydN3q3QTUvjVwk8", "remoteRoundTrip": "sha256+size matched"},
-    "Project-Constellation-Research-Suggestions.json": {"size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6", "driveCandidateFileId": "1A9Oreticfu-C2yGDxLNNIOJQOlyMIlsa", "remoteRoundTrip": "sha256+size matched"}
+    "Bert_Project_Second_Brain_Website.zip": {
+      "size": 144481,
+      "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c",
+      "driveCandidateFileId": "1CBBETMjDqnUXDFTpMLewnLst5pyZVoEg",
+      "remoteRoundTrip": "sha256+size matched"
+    },
+    "Bert_Project_Constellation_Quick_View.html": {
+      "size": 128283,
+      "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+      "driveCandidateFileId": "1nrOfSX9Geea5T7J2PnhV8bZqltfiNzdU",
+      "remoteRoundTrip": "sha256+size matched"
+    },
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+      "size": 143064,
+      "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8",
+      "driveCandidateFileId": "1Ol5LWw_f97BR0_kST2qJREGd9fFmvpuQ",
+      "remoteRoundTrip": "sha256+size matched"
+    },
+    "Bert_Project_Wiki_Pack.zip": {
+      "size": 183831,
+      "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891",
+      "driveCandidateFileId": "1YsCRRxHeO-EuOi4YIgdYOcXsu-k4ZuhC",
+      "remoteRoundTrip": "sha256+size matched"
+    },
+    "Project-Constellation-Project-Catalog.json": {
+      "size": 116737,
+      "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "driveCandidateFileId": "1F6w7qfzxqsrqPAhwXydN3q3QTUvjVwk8",
+      "remoteRoundTrip": "sha256+size matched"
+    },
+    "Project-Constellation-Research-Suggestions.json": {
+      "size": 13295,
+      "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6",
+      "driveCandidateFileId": "1A9Oreticfu-C2yGDxLNNIOJQOlyMIlsa",
+      "remoteRoundTrip": "sha256+size matched"
+    }
   },
   "driveCanonical": {
     "status": "VERIFIED_PROMOTED",
-    "Bert_Project_Second_Brain_Website.zip": {"id": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u", "size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"},
-    "Bert_Project_Constellation_Quick_View.html": {"id": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5", "size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
-    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"id": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci", "size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"},
-    "Bert_Project_Wiki_Pack.zip": {"id": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24", "size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"},
-    "Project-Constellation-Project-Catalog.json": {"id": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq", "size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"},
-    "Project-Constellation-Research-Suggestions.json": {"id": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8", "size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"}
+    "Bert_Project_Second_Brain_Website.zip": {
+      "id": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u",
+      "size": 144481,
+      "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"
+    },
+    "Bert_Project_Constellation_Quick_View.html": {
+      "id": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5",
+      "size": 128283,
+      "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"
+    },
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+      "id": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci",
+      "size": 143064,
+      "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"
+    },
+    "Bert_Project_Wiki_Pack.zip": {
+      "id": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24",
+      "size": 183831,
+      "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"
+    },
+    "Project-Constellation-Project-Catalog.json": {
+      "id": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
+      "size": 116737,
+      "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"
+    },
+    "Project-Constellation-Research-Suggestions.json": {
+      "id": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8",
+      "size": 13295,
+      "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"
+    }
   },
   "validation": {
     "projectCount63": "pass",
@@ -52,7 +118,12 @@
       "chromiumVersion": "144.0.7559.96",
       "devToolsEndpoint": "pass: remote-debugging endpoint became live",
       "managedPolicy": "URLBlocklist=[\"*\"]",
-      "blockedNavigation": ["file:", "http://127.0.0.1", "data:", "chrome:"],
+      "blockedNavigation": [
+        "file:",
+        "http://127.0.0.1",
+        "data:",
+        "chrome:"
+      ],
       "blockedError": "ERR_BLOCKED_BY_ADMINISTRATOR",
       "parseOnlyProbe": "pass: exact HTML title/UI rendered through document.write and BASE.length=63; APP_RESEARCH.length=2",
       "historicalAcceptanceClaim": false,
@@ -64,14 +135,28 @@
       "checkedAt": "2026-08-19T00:20:20Z",
       "status": "success",
       "acceptanceClaim": true,
-      "checks": ["load", "all-63-cards", "current-evidence-overlay", "search", "all-built-in-lenses", "project-drawer", "today-localStorage-reload-persistence", "app-research-drawer", "snapshot-export", "snapshot-import-file-reader", "post-import-reload-persistence", "runtime-errors"]
+      "checks": [
+        "load",
+        "all-63-cards",
+        "current-evidence-overlay",
+        "search",
+        "all-built-in-lenses",
+        "project-drawer",
+        "today-localStorage-reload-persistence",
+        "app-research-drawer",
+        "snapshot-export",
+        "snapshot-import-file-reader",
+        "post-import-reload-persistence",
+        "runtime-errors"
+      ]
     }
   },
   "canonicalPromotion": {
     "performed": false,
     "drivePerformed": true,
-    "githubPerformed": false,
-    "reason": "Drive canonical bytes are promoted and browser acceptance is satisfied. Final GitHub canonical presentation-object reconciliation and lastAutomationHash promotion remain open."
+    "githubPerformed": true,
+    "reason": "Drive canonical bytes are promoted and browser acceptance is satisfied. Final GitHub canonical presentation-object reconciliation and lastAutomationHash promotion remain open.",
+    "githubVerificationPending": true
   },
   "requiredRepair": "Finish the in-progress canonical GitHub publication for the exact v0.5.1 six-artifact set, independently re-read or reconstruct every published GitHub object and verify its expected byte size/SHA-256, then update Project-Constellation-Automation-State.json lastAutomationHash and durable supervisor/publication state to the verified v0.5.1 hashes. Do not regenerate or replace the already verified Drive canonical bytes unless source state changes."
 }

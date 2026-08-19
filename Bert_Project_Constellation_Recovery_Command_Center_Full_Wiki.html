@@ -1,0 +1,1085 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation Master Continuity Command Center v0.5.1</title><style>
+:root{color-scheme:dark;--bg:#0c0f16;--panel:#141927;--panel2:#1b2233;--text:#eef3ff;--muted:#9aa8c3;--line:#2a3550;--accent:#8fb8ff;--good:#8fe0b0;--warn:#ffd383;--bad:#ff9d9d}*{box-sizing:border-box}body{margin:0;font:14px/1.45 Inter,ui-sans-serif,system-ui,Segoe UI,sans-serif;background:radial-gradient(circle at 20% 0,#18213a 0,#0c0f16 45%);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width:1600px;margin:auto;padding:18px}.top{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}.brand h1{margin:0;font-size:24px}.brand small{color:var(--muted)}.badge{display:inline-flex;padding:4px 9px;border:1px solid #31584a;background:#18372b;border-radius:999px;color:var(--good);font-weight:700}.continuity{margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,#151c2d,#101522);display:grid;grid-template-columns:1.1fr 1.3fr 1fr auto;gap:12px;align-items:start}.continuity b{display:block;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.07em}.continuity span{display:block;margin-top:5px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.toolbar input{flex:1;min-width:240px}.toolbar input,.toolbar select,.editor input,.editor textarea{background:#0d1220;border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px}.lensbar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px}.lens{border:1px solid var(--line);background:#111829;color:var(--text);border-radius:999px;padding:7px 11px}.lens.active{background:#294574;border-color:#4d75b7}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}.card{border:1px solid var(--line);background:rgba(20,25,39,.92);border-radius:13px;padding:13px;min-height:210px;display:flex;flex-direction:column;gap:8px}.card:hover{border-color:#48628f}.card h3{margin:0;font-size:16px}.meta{color:var(--muted);font-size:12px}.next{background:#101a2d;border-left:3px solid var(--accent);padding:8px;border-radius:6px}.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}.btn{border:1px solid var(--line);background:#1a2438;color:var(--text);border-radius:8px;padding:7px 9px}.btn.primary{background:#294574}.btn.good{background:#1d4933}.drawer{position:fixed;inset:0 0 0 auto;width:min(760px,96vw);background:#0e1320;border-left:1px solid var(--line);z-index:20;overflow:auto;padding:18px;box-shadow:-18px 0 60px #0008}.hidden{display:none!important}.drawer h2{margin-top:0}.section{border-top:1px solid var(--line);padding-top:12px;margin-top:14px}.section h3{margin:0 0 8px}.research{background:#121a2a;border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}.research .fact{border-left:3px solid var(--good);padding-left:8px}.research .proposal{border-left:3px solid var(--accent);padding-left:8px}.research a{color:#a9c8ff}.editor{display:grid;gap:8px}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.journal{font-size:12px;color:var(--muted);max-height:180px;overflow:auto}.empty{padding:30px;text-align:center;color:var(--muted)}.counts{color:var(--muted);font-size:12px}.footer{margin:22px 0;color:var(--muted);font-size:12px}@media(max-width:900px){.continuity{grid-template-columns:1fr 1fr}}@media(max-width:600px){.continuity{grid-template-columns:1fr}.shell{padding:10px}.grid{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}a{color:#a9c8ff}</style></head><body><main class="shell"><span class="badge">ACTIVE · NORMAL OPERATION</span><h1>Project Constellation Master Continuity Command Center</h1><p><b>Current source-controlled wiki:</b> <a href="https://github.com/Herbertofury/ProjectDump/wiki">ProjectDump Wiki</a>. This page preserves the 63-record continuity base; newer project-specific evidence is additive and must not erase recovery history.</p><p>Version 0.5.1 · exactly 63 tracked projects. This is the active durable human-readable continuity surface. Restoration procedures are fallback-only after a verified integrity failure.</p><div class="continuity"><div><b>Core question</b><span>Where did work stop?</span></div><div><b>Then</b><span>What exact action happens next?</span></div><div><b>Evidence</b><span>What version/source proves the state?</span></div><div><b>Mode</b><span>Active</span></div></div><section id="evidence-overlay" class="continuity" style="grid-template-columns:1.2fr 1.3fr 1.2fr;">
+<div><b>Current evidence layer</b><span>v0.5.1 evidence refresh · 63-project preservation base retained</span></div>
+<div><b>Freshness authority</b><span>Source-controlled project wikis + latest verified project checkpoints; catalog history is preserved rather than silently rewritten.</span></div>
+<div><b>Research cursor</b><span>Completed: PRJ-017, PRJ-018, PRJ-019, PRJ-020, PRJ-021<br>Next: PRJ-022, PRJ-023, PRJ-024, PRJ-025, PCX-026</span></div>
+</section><section class="section"><h2>Global Ideas & Research</h2><div class="research"><div class="meta">current · checked 2026-08-15</div><p class="fact"><b>What is new / source-backed:</b> GitHub Projects supports persistent named views that preserve different filtered/sorted perspectives of the same underlying work items.</p><p class="proposal"><b>Proposal:</b> Add Project Constellation Continuity Lenses: persistent views for Today, Blocked, Version Proof, Research Stale, Changed Since Last Visit, plus user-created lenses. Lenses never alter the canonical project data; they only change the working perspective.</p><p><b>Exact goal:</b> Make exact next actions, blockers, stale work, and changes since the last visit immediately visible while keeping all projects available.</p><p><b>Why it fits:</b> The core problem is instantly finding where work stopped and what deserves attention without losing the full 63-project catalogue.</p><p><b>Small experiment / next step:</b> Ship built-in lenses plus one user-created lens stored in local state, and a per-project change journal watermark.</p><p><b>Risks:</b> Too many lenses can become another navigation burden; defaults must stay small and deletable custom lenses must never delete project data.</p><p><b>Acceptance test:</b> Switching lenses changes only the visible perspective; all 63 projects remain searchable; custom lenses survive reload; Changed Since Last Visit updates after viewing; clearing a lens never changes project content.</p><a href="https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/managing-your-views">Primary source</a></div></section><section class="section" id="catalogue"><h2>63-project catalogue</h2><table><thead><tr><th>ID</th><th>Project</th><th>Status</th><th>Exact next action</th></tr></thead><tbody><tr><td>PRJ-001</td><td><a href="#PRJ-001">Project Compass Orchestrator / project second brain</a></td><td>ACTIVE</td><td>Keep installed skill and portable bundle synchronized; export after every policy or memory-system change.</td></tr><tr><td>PRJ-002</td><td><a href="#PRJ-002">Feature Foundry</a></td><td>ACTIVE, major production rebuild</td><td>Locate the canonical app repository and reconcile it against V11 before any coding.</td></tr><tr><td>PRJ-003</td><td><a href="#PRJ-003">GameSync platform</a></td><td>ACTIVE, multiple hosts</td><td>Preserve the three host roots and make one host/version/parity ledger.</td></tr><tr><td>PRJ-004</td><td><a href="#PRJ-004">Aesthetic Media Companion / Living Room platform</a></td><td>PRECURSOR / MERGED</td><td>Treat as a Feature Foundry predecessor unless a separate canonical repo proves otherwise.</td></tr><tr><td>PRJ-005</td><td><a href="#PRJ-005">Mascot / Screenmate platform</a></td><td>ACTIVE umbrella</td><td>Resolve which repository currently owns the shared mascot core.</td></tr><tr><td>PRJ-006</td><td><a href="#PRJ-006">ACS Agent parity runtime</a></td><td>SPEC / ACTIVE implementation track</td><td>Audit the current runtime against the checklist before claiming classic Microsoft Agent parity.</td></tr><tr><td>PRJ-007</td><td><a href="#PRJ-007">PF Magic Petz runtime integration</a></td><td>ACTIVE GameSync/Mascot subproject</td><td>Keep one shared Petz core, then roll out GameSync v1 → v2 → desktop.</td></tr><tr><td>PRJ-008</td><td><a href="#PRJ-008">Mascot Games / sports and Golf flagship</a></td><td>ACTIVE design/implementation track</td><td>Reconcile against current mascot repository and verify real playable flows.</td></tr><tr><td>PRJ-009</td><td><a href="#PRJ-009">Bert&#x27;s Skill Atlas / Skill Guide</a></td><td>ACTIVE RuneLite project</td><td>Find the newest ZIP and repository, then record its hash and build status.</td></tr><tr><td>PRJ-010</td><td><a href="#PRJ-010">RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD family</a></td><td>ACTIVE, release blocker</td><td>Prove external plugins load in the actual Jagex-launched client and persist after restart.</td></tr><tr><td>PRJ-011</td><td><a href="#PRJ-011">The Sims 4 Accelerator</a></td><td>SPEC / SCAFFOLD</td><td>Benchmark the exact game/mod setup before deeper hooks; preserve the real Mods folder.</td></tr><tr><td>PRJ-012</td><td><a href="#PRJ-012">Sims 4 native DX11 overlay mod</a></td><td>SPEC / possibly related to Accelerator</td><td>Decide whether this is a TS4 Accelerator module or a separate repo before implementation.</td></tr><tr><td>PRJ-013</td><td><a href="#PRJ-013">Money App / AI Monetization Station</a></td><td>SPEC / PLAN</td><td>Locate canonical plan and implementation repo; separate real working rooms from aspirational modules.</td></tr><tr><td>PRJ-014</td><td><a href="#PRJ-014">Grim Dawn Cairn Codex</a></td><td>ARTIFACT PRESENT</td><td>Open the latest HTML, verify all navigation/state in-browser, and record a hash.</td></tr><tr><td>PRJ-015</td><td><a href="#PRJ-015">Bethesda Plugin Info for MO2</a></td><td>VALIDATED ARTIFACT, live test pending</td><td>Install in exact Windows MO2 and verify dedicated column, tooltips, warnings, categories, drag/drop, DPI, and restart.</td></tr><tr><td>PRJ-016</td><td><a href="#PRJ-016">Bethesda Creations Version Tracker for MO2</a></td><td>VALIDATED ARTIFACT, live test pending</td><td>Install in exact Windows MO2 and verify migration, metadata, conflicts, column behavior, and restart.</td></tr><tr><td>PRJ-017</td><td><a href="#PRJ-017">MO2 Image Column / MO2R image automation</a></td><td>ACTIVE, corrected build</td><td>Verify v1.4.12 live with the complete plugin stack; do not regress image identity or drag/drop behavior.</td></tr><tr><td>PRJ-018</td><td><a href="#PRJ-018">MO2 Drag-and-Drop Line Restorer</a></td><td>VALIDATED ARTIFACT, live visual test pending</td><td>Run final visual/target smoke test in MO2 2.5.3 beta 12 with active theme and plugins.</td></tr><tr><td>PRJ-019</td><td><a href="#PRJ-019">MO2 Performance Accelerator</a></td><td>ACTIVE / corrected after crash</td><td>Replace v4.0.0, then live-test startup, drag, filtering, viewport restoration, and shutdown in Windows MO2.</td></tr><tr><td>PRJ-020</td><td><a href="#PRJ-020">Master Desktop Pet Research</a></td><td>RESEARCH BASE</td><td>Append future verified research to the master rather than creating drifting numbered copies.</td></tr><tr><td>PRJ-021</td><td><a href="#PRJ-021">GX Slim</a></td><td>UNRESOLVED IDENTITY</td><td>Find the ZIP/README and identify purpose, source repo, validation, and relationship to other projects.</td></tr><tr><td>PRJ-022</td><td><a href="#PRJ-022">Feral Unified Native Base</a></td><td>UNRESOLVED / Feature Foundry-generated base</td><td>Determine whether this is a standalone product base or a generated Feature Foundry starter; validation was not run.</td></tr><tr><td>PRJ-023</td><td><a href="#PRJ-023">Feature Foundry Portable Feature Starter</a></td><td>GENERATED STARTER, not shippable</td><td>Keep as a template; its generated validation scenarios were not run and report `shippable: false`.</td></tr><tr><td>PRJ-024</td><td><a href="#PRJ-024">MO2 Drag/Column Compatibility Pack</a></td><td>VALIDATED COMPATIBILITY WORK</td><td>Treat as a coordinated compatibility release and live-test all three together.</td></tr><tr><td>PRJ-025</td><td><a href="#PRJ-025">UltraDeck</a></td><td>ACTIVE</td><td>Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B.</td></tr><tr><td>PCX-026</td><td><a href="#PCX-026">Project Governance</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Project Governance evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-027</td><td><a href="#PCX-027">GameSync Archive Doctor</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Archive Doctor evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-028</td><td><a href="#PCX-028">DirectoryMonitor</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical DirectoryMonitor evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-029</td><td><a href="#PCX-029">PC Bridge / MCP Bridge</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical PC Bridge / MCP Bridge evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-030</td><td><a href="#PCX-030">Reliable Artifact Publisher</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Reliable Artifact Publisher evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-031</td><td><a href="#PCX-031">Auralis</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Auralis evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-032</td><td><a href="#PCX-032">Profit Nova</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Profit Nova evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-033</td><td><a href="#PCX-033">Sims4CreatorStudio</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Sims4CreatorStudio evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-034</td><td><a href="#PCX-034">Ferrum Browser</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Ferrum Browser evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-035</td><td><a href="#PCX-035">MO2R</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical MO2R evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-036</td><td><a href="#PCX-036">Project Constellation</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Project Constellation evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-037</td><td><a href="#PCX-037">Shimeji Desktop</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Shimeji Desktop evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-038</td><td><a href="#PCX-038">Shimeji Browser Extension</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Shimeji Browser Extension evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-039</td><td><a href="#PCX-039">Webmeji</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Webmeji evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-040</td><td><a href="#PCX-040">Pinterest Nocturne</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Pinterest Nocturne evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-041</td><td><a href="#PCX-041">ChatGPT Ultimate Optimizer</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical ChatGPT Ultimate Optimizer evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-042</td><td><a href="#PCX-042">GameSync Next</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Next evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-043</td><td><a href="#PCX-043">Feature Foundry Production App</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Feature Foundry Production App evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-044</td><td><a href="#PCX-044">Feature Foundry Living Ecology</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Feature Foundry Living Ecology evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-045</td><td><a href="#PCX-045">Feature Foundry Object Intelligence</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Feature Foundry Object Intelligence evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-046</td><td><a href="#PCX-046">Feature Foundry Source Hubs</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Feature Foundry Source Hubs evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-047</td><td><a href="#PCX-047">Favorite Artist Worlds Database</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Favorite Artist Worlds Database evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-048</td><td><a href="#PCX-048">GameSync Theme Foundry</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Theme Foundry evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-049</td><td><a href="#PCX-049">GameSync Live Mascot Tavern</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Live Mascot Tavern evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-050</td><td><a href="#PCX-050">GameSync Real Library Performance</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Real Library Performance evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-051</td><td><a href="#PCX-051">GameSync Capability Truth / UI QoL</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Capability Truth / UI QoL evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-052</td><td><a href="#PCX-052">GameSync Release Factory</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Release Factory evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-053</td><td><a href="#PCX-053">GameSync Bounty / Rewards Runtime</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Bounty / Rewards Runtime evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-054</td><td><a href="#PCX-054">GameSync Source Finder / Entity Resolver</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Source Finder / Entity Resolver evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-055</td><td><a href="#PCX-055">GameSync Script Polling Runtime</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Script Polling Runtime evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-056</td><td><a href="#PCX-056">GameSync Mod Health</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical GameSync Mod Health evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-057</td><td><a href="#PCX-057">Project Catalog / Cross-Chat Database</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Project Catalog / Cross-Chat Database evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-058</td><td><a href="#PCX-058">Project Compass Northpoints</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Project Compass Northpoints evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-059</td><td><a href="#PCX-059">Feature Foundry Project Brain Bridge</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Feature Foundry Project Brain Bridge evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-060</td><td><a href="#PCX-060">ACS Voice / Speech Runtime</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical ACS Voice / Speech Runtime evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-061</td><td><a href="#PCX-061">Petz Shared Core</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Petz Shared Core evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-062</td><td><a href="#PCX-062">RuneLite QA Cockpit</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical RuneLite QA Cockpit evidence, record the exact stop point, then execute the smallest verified next step.</td></tr><tr><td>PCX-063</td><td><a href="#PCX-063">Feature Foundry Aesthetic Vault</a></td><td>ACTIVE / TRACKED</td><td>Re-read the newest canonical Feature Foundry Aesthetic Vault evidence, record the exact stop point, then execute the smallest verified next step.</td></tr></tbody></table></section><section class="section" id="PRJ-001"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Project Compass Orchestrator / project second brain</h2><p class="meta">PRJ-001 · ACTIVE · Skill v3.3.0, artifact-library storage manager, master project/version catalog, portable AGENTS bundle, project-memory and cross-chat artifact reconciliation</p><h3>Goal</h3><p>Continue Project Compass Orchestrator / project second brain from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Keep installed skill and portable bundle synchronized; export after every policy or memory-system change.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Keep installed skill and portable bundle synchronized; export after every policy or memory-system change.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-001 — Project Compass Orchestrator / Cross-Chat Second Brain
+
+**Status:** ACTIVE  
+**Confidence:** High  
+**Purpose:** Apply the full AGENTS execution contract across chats and agents, preserve project identity and progress, remember sourced research, prevent accidental restarts, and export a portable Codex/agent bundle.
+
+### Latest recovered state
+
+- Current-chat release: **v3.3.0 — Artifact Library and Storage Manager**.
+- Trigger phrases include `agent`, `agent:`, direct agent requests, and substantive project work.
+- Maintains all-in-one and modular AGENTS forms.
+- Adds project-owned `.agents-memory/`, a durable cross-project catalog and Markdown database, an organized artifact-library vault, storage warnings, hash-proven duplicate cleanup, reversible quarantine, project bundle folders, identity checks, handoffs, research memory, artifact reconciliation, controlled learning, anti-poisoning, and export tools.
+- Known handoff artifacts:
+  - `skill.zip`
+  - `AGENTS-workflow-bundle.zip`
+  - `AGENTS-all-in-one.md`
+  - `AGENTS-modular.md`
+  - `Feature-Foundry-Project-Brain.zip`
+  - `USER-PROJECTS-DATABASE.md`
+  - `project-catalog.json` and portable catalog ZIP
+  - `library-catalog.json`, `LIBRARY-DATABASE.md`, organized project bundles, and portable library catalog ZIP
+
+### Preservation rules
+
+- Installed skill packages do not silently update themselves; regenerate and reinstall after changes.
+- Repository/project memory is separate from the installed skill.
+- Never claim cross-chat persistence unless a durable store accepted and reread the update.
+- Always preserve version lineage when same-name artifacts are replaced.
+
+### Open work
+
+- Keep the master project and artifact-library catalogs synchronized after every checkpoint, artifact reconciliation, rename, merge, version change, cleanup, or bundle export.
+- Revalidate ambiguous latest-version claims before promotion and preserve every prior version.
+- Export the catalog whenever the live durable store cannot be shared with another chat or agent.
+
+---</pre></details></section><section class="section" id="PRJ-002"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry</h2><p class="meta">PRJ-002 · ACTIVE, major production rebuild · V11 production data platform and living-world directive; V11 database bundle validated</p><h3>Goal</h3><p>A professional, deeply moddable authoring application for living theme worlds, UI skins, rooms, objects, weather, time, soundtracks, UI sounds, mascots, interactions, assets, research, mixing, packaging, and exports to multiple hosts.</p><h3>Requirements</h3><ul><li>Locate canonical repo and branch.</li><li>Hash and import the V11 bundle without overwriting newer repository data.</li><li>Reproduce the current Room Studio/Explorer/Vault failures.</li><li>Build a migration ledger from current implementation to V11.</li><li>Establish exact production/runtime proof rather than relying on database validation or HTML prototypes.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Locate the canonical app repository and reconcile it against V11 before any coding.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-002 — Feature Foundry
+
+**Status:** ACTIVE — production application not yet proven complete  
+**Confidence:** High  
+**Aliases:** Theme Home, Theme Lab, living aesthetic worlds, Feature Foundry Theme Studio
+
+### Mission
+
+A professional, deeply moddable authoring application for living theme worlds, UI skins, rooms, objects, weather, time, soundtracks, UI sounds, mascots, interactions, assets, research, mixing, packaging, and exports to multiple hosts.
+
+### Current canonical document
+
+- `feature-foundry-aesthetic-worlds-codex-master-directive.md`
+- Internal revision marker: **V11**, researched 2026-08-02.
+- The V11 directive calls itself the single canonical implementation contract.
+- The final implementation directive says the standalone HTML is not the finished product and the real application must implement and persist the workflows.
+
+### Version and artifact lineage
+
+1. Early standalone living-world HTML concept.
+2. V4 standalone HTML.
+3. V7 HTML.
+4. V8 HTML.
+5. V9 HTML.
+6. V10 production-stack directive.
+7. **V11 production data platform and bundle reference**.
+
+Current V11 artifacts recovered:
+
+- `feature-foundry-aesthetic-worlds-codex-master-directive.md`
+- `feature-foundry-codex-final-implementation-directive-v11.md`
+- `feature-foundry-aesthetic-world-guide-v11.md`
+- `feature-foundry-living-world-prototype-v11-bundle-reference.html`
+- `V11-VALIDATION-REPORT.md`
+- Object Atlas SQLite database
+- Theme Worlds SQLite database
+
+### V11 validation facts
+
+The V11 validation report records **61 passed, 0 failed** for the supplied data/schema bundle, including:
+
+- 178 object archetypes and families
+- 52 materials
+- 178 behavior profiles
+- 12 affordances
+- 17 themes and versions
+- 72 districts
+- 17 room presets
+- 51 weather profiles
+- 17 soundtrack profiles
+- 17 mascot profiles
+- 170 object-pool members
+- database integrity, foreign keys, FTS, RTree, cross-database references, manifest hashes
+
+**Critical boundary:** the report explicitly does **not** claim that final artwork, production runtime integration, Blender conversion, provider authentication, or the complete app is implemented.
+
+### Approved theme set
+
+V11 preserves **17 full themes**:
+
+1. Frutiger Aero
+2. Utopian Scholastic
+3. Wacky Pomo
+4. Contempo Eclectic
+5. Vaporwave
+6. Neo-Y2K
+7. Liminal Leisure
+8. Diner Kitsch
+9. Cassette Futurism
+10. Googie Kitsch
+11. French Synthpop
+12. Memphis
+13. Ethereal CGI
+14. Divine Machinery
+15. Dark Fantasy
+16. Atomic Age
+17. Jazz / Solo Jazz
+
+The broader aesthetics guide is research-only and must not silently promote every entry to a shipping theme.
+
+### Major subsystems
+
+- Professional application surface
+- Living left/right worlds
+- Focused Full UI
+- Performance Mode
+- Theme Studio
+- Aesthetic Explorer and Mixer
+- Asset Vault
+- World Studio and Room Studio
+- Object Studio and semantic affordance/rig system
+- Weather, time, lighting, soundtrack, UI sound, mascot and interaction studios
+- Package/export system
+- Object Atlas and Theme Worlds databases
+- Opera-style multi-provider Music Hub
+- GameSync migration and host adapters
+
+### Current failure/repair focus
+
+- Room Studio is currently documented as an unconvincing mostly empty scene with pasted objects and weak editing tools.
+- Aesthetic Explorer is documented as generic, flat, and not a real mixing/research workflow.
+- Asset Vault is documented as an empty or underbuilt drawer rather than a real asset operating system.
+- The desired Aesthetic Explorer/media base may be a branch before v23; do not assume the numerically highest old branch is the latest-good base.
+
+### Canonical repository
+
+**Not yet recovered in this chat.** Do not edit the prototypes or initialize a new project in their place. Locate the existing Feature Foundry repo/worktree/branch first.
+
+### Related artifacts
+
+- `ui-theme-agent-spec.md` and historical v48/v49/v51 variants
+- `FEATURE_FOUNDRY_CODEX_MASTER_PROMPT.md`
+- `LIVE_DEVELOPMENT_WORKBENCH.md`
+- `TECH_STACK_PHYSICS_RENDERING_ATLAS.md`
+- `Feature_Foundry_Portable_Feature_Starter.zip`
+- visual targets for Frutiger Aero, Wacky Pomo, and Neo-Y2K
+
+### Immediate next checkpoint
+
+1. Locate canonical repo and branch.
+2. Hash and import the V11 bundle without overwriting newer repository data.
+3. Reproduce the current Room Studio/Explorer/Vault failures.
+4. Build a migration ledger from current implementation to V11.
+5. Establish exact production/runtime proof rather than relying on database validation or HTML prototypes.
+
+---</pre></details></section><section class="section" id="PRJ-003"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync platform</h2><p class="meta">PRJ-003 · ACTIVE, multiple hosts · Opera extension, extension-v2, desktop app; theme system and several game/runtime subprojects</p><h3>Goal</h3><p>Continue GameSync platform from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Create a host matrix:</li><li>`feature/version -&gt; Opera v1 -&gt; extension-v2 -&gt; desktop -&gt; Feature Foundry source -&gt; evidence -&gt; parity gap`</li><li>Three hosts can drift.</li><li>Feature Foundry theme exports and GameSync theme implementations can diverge.</li><li>Old checked boxes may not match current runtime.</li><li>Generated or copied extensions can be mistaken for canonical source.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Preserve the three host roots and make one host/version/parity ledger.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-003 — GameSync Platform
+
+**Status:** ACTIVE  
+**Confidence:** High
+
+### Known canonical roots
+
+- Opera/v1 extension: `C:\Users\Owner\Desktop\GameSync\opera-extension`
+- v2 extension: `C:\Users\Owner\Desktop\GameSync\apps\extension-v2`
+- Desktop app: `C:\Users\Owner\Desktop\GameSync\apps\desktop`
+
+### Main tracks
+
+#### A. Core GameSync product and theme runtime
+
+The current theme checklist documents:
+
+- original 16-theme registration and world packs
+- theme engine, interactions, sounds, object ecology, collectibles, weather, timeflow, media surfaces, library interactions, districts, and Spotify architecture
+- v1 and v2 parity work
+- Feature Foundry editors and portable theme packages
+
+Treat the checklist as claimed implementation history, not proof that every feature works in the current loaded build. The newer Feature Foundry V11 contract supersedes the theme catalogue with 17 themes and stronger production requirements.
+
+#### B. Search, source finder, and entity resolution
+
+Recovered goals:
+
+- game and mod title search
+- source discovery
+- strong identity and anti-normalization matching
+- Typesense and Meilisearch exploration
+- SQL-centered extension data
+- direct source links
+- append-only upgrade behavior
+
+Known hotspots from prior work:
+
+- `background/background.js`
+- title normalization and fuzzy match functions
+- `src/modsources/discovery.js`
+- AutoNotes
+- FolderMonitor
+- ModAuthors
+
+Known artifacts:
+
+- `checklist-updated.md`
+- `opera-extension-analyzed.zip`
+
+#### C. HyperBowl original reconstruction
+
+- Original assets are expected under `C:\Users\Owner\Desktop\GameSync\hyperbowl\HYPERBOWL ORGINAL`.
+- Original assets are read-only reference material.
+- Unity extracts are not the canonical behavior source.
+- Control work should follow `HYPERBOWL_ORIGINAL_RECONSTRUCTION_MASTER.md` when found.
+
+#### D. Petz / PF Magic runtime
+
+See PRJ-007.
+
+### Preservation risks
+
+- Three hosts can drift.
+- Feature Foundry theme exports and GameSync theme implementations can diverge.
+- Old checked boxes may not match current runtime.
+- Generated or copied extensions can be mistaken for canonical source.
+
+### Immediate next checkpoint
+
+Create a host matrix:
+
+`feature/version -&gt; Opera v1 -&gt; extension-v2 -&gt; desktop -&gt; Feature Foundry source -&gt; evidence -&gt; parity gap`
+
+---</pre></details></section><section class="section" id="PRJ-004"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Aesthetic Media Companion / Living Room platform</h2><p class="meta">PRJ-004 · PRECURSOR / MERGED · `master-living-room-aesthetic-plan-v3.md`</p><h3>Goal</h3><p>room runtime asset vault aesthetic catalogue/explorer media companion mystery/progression world orchestration</p><h3>Requirements</h3><ul><li>Treat as a Feature Foundry predecessor unless a separate canonical repo proves otherwise.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Treat as a Feature Foundry predecessor unless a separate canonical repo proves otherwise.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-004 — Aesthetic Media Companion / Living Room Platform
+
+**Status:** PRECURSOR / MERGED candidate  
+**Confidence:** Medium
+
+### Latest known plan
+
+- `master-living-room-aesthetic-plan-v3.md`
+
+### Scope
+
+- room runtime
+- asset vault
+- aesthetic catalogue/explorer
+- media companion
+- mystery/progression
+- world orchestration
+
+### Recovered technical direction
+
+- Rapier2D
+- PixiJS v8
+- ECS
+- Web Animations + GSAP
+- local-first persistence with JSON export/import
+
+### Relationship decision
+
+Most of this scope now appears inside Feature Foundry. Preserve the v3 plan as source history and research. Do not maintain a parallel implementation unless a distinct repository and product identity are confirmed.
+
+---</pre></details></section><section class="section" id="PRJ-005"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Mascot / Screenmate platform</h2><p class="meta">PRJ-005 · ACTIVE umbrella · Shimeji engine, ACS engine, mascot runtime, desktop build, research base</p><h3>Goal</h3><p>A shared browser/desktop mascot runtime combining Shimeji-style packs, classic ACS agents, screenmates, desktop companions, Petz-style creatures, overlays, voices, interactions, games, and future Feature Foundry/GameSync integrations.</p><h3>Requirements</h3><ul><li>Resolve which repository currently owns the shared mascot core.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Resolve which repository currently owns the shared mascot core.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-005 — Mascot / Screenmate Platform
+
+**Status:** ACTIVE umbrella  
+**Confidence:** High
+
+### Purpose
+
+A shared browser/desktop mascot runtime combining Shimeji-style packs, classic ACS agents, screenmates, desktop companions, Petz-style creatures, overlays, voices, interactions, games, and future Feature Foundry/GameSync integrations.
+
+### Known systems
+
+- Real Shimeji pack ingestion
+- XML action graphs
+- anchors, borders, frame durations, velocities and hotspots
+- carry/throw behavior
+- wall and ceiling traversal
+- graph-driven animation reuse
+- WXT + React + Vite migration track
+- browser extension and future desktop build
+- ACS compatibility runtime
+- Petz runtime integration
+- mascot games and sports
+
+### Latest broad implementation artifact
+
+- `mascotgames_master_agent_ordered_wxt_react_vite_v2_aligned_playable_contract_glorious_sports_golf_flagship.md`
+
+### Critical preservation rule
+
+Do not replace authentic pack/state/action semantics with a generic sprite animation system. Preserve current smooth dragging, browser safety, existing pack conversion, and working runtime behavior while adding parity.
+
+### Canonical repository
+
+Not recovered. Resolve before any new scaffold.
+
+---</pre></details></section><section class="section" id="PRJ-006"><p><a href="#catalogue">↑ Catalogue</a></p><h2>ACS Agent parity runtime</h2><p class="meta">PRJ-006 · SPEC / ACTIVE implementation track · `acs-agent-parity-checklist-generalized-v3.md`</p><h3>Goal</h3><p>Restore classic Microsoft Agent, Office Assistant, MASH/TMAFE, and Double Agent behavior across the whole mascot runtime without regressing modern browser improvements.</p><h3>Requirements</h3><ul><li>Audit the current runtime against the checklist before claiming classic Microsoft Agent parity.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Audit the current runtime against the checklist before claiming classic Microsoft Agent parity.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-006 — ACS Agent Parity Runtime
+
+**Status:** SPEC / ACTIVE track  
+**Confidence:** High
+
+### Latest artifact
+
+- `acs-agent-parity-checklist-generalized-v3.md`
+
+### Mission
+
+Restore classic Microsoft Agent, Office Assistant, MASH/TMAFE, and Double Agent behavior across the whole mascot runtime without regressing modern browser improvements.
+
+### Existing foundation documented in the checklist
+
+- ACS parser
+- ACS-to-runtime conversion
+- spritesheets and audio export
+- `pack.acsAgent` metadata
+- state and return maps
+- voice and balloon metadata
+- queued playback, movement, speech, dragging and idle transitions
+- Shimeji compatibility
+
+### Primary gaps documented
+
+- true `GestureAt()` direction selection
+- true `Think()` path
+- request objects and queue semantics such as Wait/Interrupt/StopAll/Get
+- classic popup/Commands/CommandsWindow/Voice Commands Window parity
+- speech recognition/voice grammar
+- deeper state semantics
+- lip-sync/audio timing
+- local AI, local STT/TTS and voice switching
+- inspector, parity scoring and authoring tools
+
+### Version note
+
+Multiple same-name v3 copies exist. The latest content-rich version includes Phases 0–6, local packaged intelligence/voices, page-element attachment, browser/app reactions, and desktop readiness. Preserve all copies until their content hashes are reconciled.
+
+---</pre></details></section><section class="section" id="PRJ-007"><p><a href="#catalogue">↑ Catalogue</a></p><h2>PF Magic Petz runtime integration</h2><p class="meta">PRJ-007 · ACTIVE GameSync/Mascot subproject · `gamesync_petz_build_checklist.md`; PF Magic source path known</p><h3>Goal</h3><p>Continue PF Magic Petz runtime integration from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>One shared core engine with host adapters, not three divergent reimplementations.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Keep one shared Petz core, then roll out GameSync v1 → v2 → desktop.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-007 — PF Magic Petz Runtime Integration
+
+**Status:** ACTIVE subproject  
+**Confidence:** Medium
+
+### Known source
+
+- `C:\Users\Owner\Desktop\GameSync\PF Magic`
+
+### Goal
+
+Build a fully playable Petz/Dogz/Catz/Oddballz-compatible runtime integrated with the shared mascot system.
+
+### Rollout order
+
+1. GameSync v1
+2. GameSync v2
+3. Desktop app
+
+### Architecture rule
+
+One shared core engine with host adapters, not three divergent reimplementations.
+
+### Known artifacts
+
+- `gamesync_petz_build_checklist.md`
+- earlier `pf_petz_playable_methods.md`
+
+### Continuity risks
+
+- PF Magic source and extracted assets must remain preserved.
+- Petz behavior should not be flattened into ordinary mascot animation.
+- GameSync, mascot, and Feature Foundry object/room systems may overlap; define ownership explicitly.
+
+---</pre></details></section><section class="section" id="PRJ-008"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Mascot Games / sports and Golf flagship</h2><p class="meta">PRJ-008 · ACTIVE design/implementation track · `mascotgames_master_agent_ordered_wxt_react_vite_v2_aligned_playable_contract_glorious_sports_golf_flagship.md`</p><h3>Goal</h3><p>Continue Mascot Games / sports and Golf flagship from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Reconcile against current mascot repository and verify real playable flows.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Reconcile against current mascot repository and verify real playable flows.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-008 — Mascot Games / Golf and Sports
+
+**Status:** ACTIVE design/implementation track  
+**Confidence:** Medium
+
+### Latest known artifact
+
+- `mascotgames_master_agent_ordered_wxt_react_vite_v2_aligned_playable_contract_glorious_sports_golf_flagship.md`
+
+### Direction
+
+- Golf as flagship
+- sports experiences playable in popup, panel, and full view
+- aligned with the WXT/React/Vite v2 mascot runtime
+- real playable loops, not decorative sports screens
+
+### Needed reconciliation
+
+Locate the repository and verify what is implemented versus specified. Keep the sports game layer modular so it does not corrupt the core mascot runtime.
+
+---</pre></details></section><section class="section" id="PRJ-009"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Bert&#x27;s Skill Atlas / Skill Guide</h2><p class="meta">PRJ-009 · ACTIVE RuneLite project · QA Cockpit after Unified Cockpit; earlier Master plugin README recovered</p><h3>Goal</h3><p>Continue Bert&#x27;s Skill Atlas / Skill Guide from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Find the newest QA Cockpit ZIP, compute SHA-256, extract cleanly, run Gradle build/tests, launch RuneLite developer mode, and verify sidebar, routes, overlays, links, and persistence.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Find the newest ZIP and repository, then record its hash and build status.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-009 — Bert&#x27;s Skill Atlas / Skill Guide
+
+**Status:** ACTIVE RuneLite plugin family  
+**Confidence:** Medium
+
+### Recovered lineage
+
+1. `Bert&#x27;s Skill Guide Master`
+2. `bert-skill-guide-master.zip`
+3. `bert-skill-atlas-ultra.zip`
+4. `bert-skill-atlas-unified-cockpit.zip`
+5. `bert-skill-atlas-qa-cockpit.zip`
+
+### Known earlier Master plugin scope
+
+- RuneLite sidebar guide
+- all 24 current skills including Sailing
+- multiple routes and steps
+- money-making tabs
+- object/NPC/tile/inventory/bank/equipment highlights
+- Wiki and Prices actions
+- data-driven `GuideRepository.java`
+
+### Prior-chat recovered counts
+
+The Unified Cockpit was described as preserving:
+
+- 24 skills
+- 144 routes
+- 404 money-makers
+- 211 quest entries
+- 4,877 quest steps
+
+The QA Cockpit added True Content QA and consolidated guide/prep/map/money/settings workflows.
+
+### Build status warning
+
+An earlier artifact explicitly had not been locally built. Do not assume later ZIPs compile or load until the latest package is found and tested in RuneLite developer mode.
+
+### Immediate next checkpoint
+
+Find the newest QA Cockpit ZIP, compute SHA-256, extract cleanly, run Gradle build/tests, launch RuneLite developer mode, and verify sidebar, routes, overlays, links, and persistence.
+
+---</pre></details></section><section class="section" id="PRJ-010"><p><a href="#catalogue">↑ Catalogue</a></p><h2>RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD family</h2><p class="meta">PRJ-010 · ACTIVE, release blocker · Multiple master prompts; known-good hitchless RuneLite JAR identity; Farm Material Ranker v1.1.0</p><h3>Goal</h3><p>Continue RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD family from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Prove external plugins load in the actual Jagex-launched client and persist after restart.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Prove external plugins load in the actual Jagex-launched client and persist after restart.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-010 — RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD
+
+**Status:** ACTIVE, external-plugin loading is a release blocker  
+**Confidence:** Medium
+
+### Components
+
+- `flipfore-osrs` / user-facing FlipForge naming
+- Farm Material Ranker
+- Rust dashboard/bridge
+- No-Hitch RuneLite launcher/runtime
+- 117HD / RLHD integration
+
+### Farm Material Ranker
+
+Latest known standalone version: **v1.1.0**.
+
+Recovered features:
+
+- searchable sidebar
+- OSRS/GE pricing
+- item icons
+- sorting
+- monster metadata
+- shortest-path routing
+
+Artifact: `farm-material-ranker.zip`
+
+### Known-good hitchless reference identity
+
+- Artifact: `hitchless-runelite-main.jar`
+- SHA-256: `80d99e72d82ad28a5fe7779d7325450b487edb2c9c1f617b2e75acfa39f61d89`
+- Size: 57,842,944 bytes
+- Main class: `com.bertsplugins.hitchless.HitchlessRuneLiteMain`
+- Embedded RuneLite: 1.12.29.1
+- Commit: `68ff80e`
+
+### Main unresolved release gate
+
+The actual Jagex-launched client must prove that both external plugins are visible, enabled, functional, and persistent after restart. A build, JAR inspection, or developer-mode load is not enough.
+
+---</pre></details></section><section class="section" id="PRJ-011"><p><a href="#catalogue">↑ Catalogue</a></p><h2>The Sims 4 Accelerator</h2><p class="meta">PRJ-011 · SPEC / SCAFFOLD · `TS4_ACCELERATOR_AGENT_PLAN.md`; starter workspace README</p><h3>Goal</h3><p>A Windows-only TS4 performance project targeting: 1. large Mods/Overrides startup cost 2. zone-load hitching and asset warmup 3. DX11 frame pacing and render-thread overhead</p><h3>Requirements</h3><ul><li>Measure before internal patching.</li><li>Preserve the real Mods library.</li><li>Start with pass-through projection and externalized bottlenecks.</li><li>Benchmark DX9/DX11 and Memory Boost states where relevant.</li><li>Stop if projection is slower, content compatibility breaks, or the DLL crashes with hooks disabled.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Benchmark the exact game/mod setup before deeper hooks; preserve the real Mods folder.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-011 — The Sims 4 Accelerator
+
+**Status:** SPEC / STARTER SCAFFOLD  
+**Confidence:** High
+
+### Latest recovered plan
+
+- `TS4_ACCELERATOR_AGENT_PLAN.md`
+- Updated plan variants from 2026-04-20 through 2026-04-27
+- Starter `README.md`
+
+### Mission
+
+A Windows-only TS4 performance project targeting:
+
+1. large Mods/Overrides startup cost
+2. zone-load hitching and asset warmup
+3. DX11 frame pacing and render-thread overhead
+
+### Architecture
+
+- Rust launcher/control plane
+- C++23 provider and injected telemetry/acceleration DLL
+- ProjFS first, WinFsp fallback, staged/hardlink fallback
+- SQLite manifests and baselines
+- ETW, PresentMon and Tracy
+- Detours/MinHook
+- DBPF and `.ts4script` optimization
+- libdeflate/zlib-ng only after profiling proves a decompression bottleneck
+
+### Strict rules
+
+- Measure before internal patching.
+- Preserve the real Mods library.
+- Start with pass-through projection and externalized bottlenecks.
+- Benchmark DX9/DX11 and Memory Boost states where relevant.
+- Stop if projection is slower, content compatibility breaks, or the DLL crashes with hooks disabled.
+
+### Current status
+
+The README explicitly describes the workspace as a **blueprint and scaffold, not a finished optimizer**.
+
+---</pre></details></section><section class="section" id="PRJ-012"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Sims 4 native DX11 overlay mod</h2><p class="meta">PRJ-012 · SPEC / possibly related to Accelerator · Native C++/DX11/Dear ImGui architecture prompt</p><h3>Goal</h3><p>Continue Sims 4 native DX11 overlay mod from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Decide whether this is a TS4 Accelerator module or a separate repo before implementation.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Decide whether this is a TS4 Accelerator module or a separate repo before implementation.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-012 — Sims 4 Native DX11 Overlay Mod
+
+**Status:** SPEC / relationship unresolved  
+**Confidence:** Medium
+
+### Recovered requirements
+
+- native C++
+- DirectX 11 overlay
+- Dear ImGui
+- F11 toggle
+- architecture, folder structure, build, hooking, input, configuration and runtime variables
+- explicitly excludes XML, Python, HTML, CAS and a separate app
+
+### Relationship question
+
+This may be:
+
+- a UI/telemetry module within TS4 Accelerator, or
+- a separate native mod project.
+
+Do not merge repositories or duplicate hooks until the original prompt/artifact is located and the user intent is reconciled.
+
+---</pre></details></section><section class="section" id="PRJ-013"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Money App / AI Monetization Station</h2><p class="meta">PRJ-013 · SPEC / PLAN · `money_app_plan_v38_no_meta_prompts.md`</p><h3>Goal</h3><p>Continue Money App / AI Monetization Station from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Locate canonical plan and implementation repo; separate real working rooms from aspirational modules.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Locate canonical plan and implementation repo; separate real working rooms from aspirational modules.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-013 — Money App / AI Monetization Station
+
+**Status:** SPEC / PLAN  
+**Confidence:** Medium
+
+### Latest known plan
+
+- `money_app_plan_v38_no_meta_prompts.md`
+
+### Recovered version lineage
+
+v9 → v17 → v19 → v25 → v26 → v27 → v28 → v36 → v37 → **v38**
+
+### Scope in v38
+
+An interconnected creation and monetization station with rooms/pipelines such as:
+
+- Game Asset Foundry
+- Mod Garage
+- Music Foundry
+- Logo Lab
+- Etsy
+- Fiverr
+- TikTok
+- YouTube
+- Vault
+- Patreon
+- SubscribeStar
+- Boosty
+- Afdian
+- OnlyFans
+- Bandcamp
+- BeatStars
+- ecommerce and automation pipelines
+
+### Status boundary
+
+The plan is substantial, but current implementation, repository, integrations, credentials, and real revenue workflows were not recovered. Treat it as a plan until proven in a runtime.
+
+---</pre></details></section><section class="section" id="PRJ-014"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Grim Dawn Cairn Codex</h2><p class="meta">PRJ-014 · ARTIFACT PRESENT · `Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html`</p><h3>Goal</h3><p>Continue Grim Dawn Cairn Codex from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Open the v6.1 artifact in a browser, test every navigation/filter/state path, verify save/migration/reload behavior, inspect console errors, and record the file hash.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Open the latest HTML, verify all navigation/state in-browser, and record a hash.</p><h3>Ideas & Research</h3><div class="research"><div class="meta">current · checked 2026-08-15</div><p class="fact"><b>What is new / source-backed:</b> Crate Entertainment released Grim Dawn v1.3.0.0 in July 2026 with backend changes for Fangs of Asterkarn and a complete UI visual overhaul.</p><p class="proposal"><b>Proposal:</b> Add a version-evidence panel and run a data-diff audit against v1.3.0.0 areas/quests/UI labels before changing any guide content.</p><p><b>Exact goal:</b> Keep the standalone Cairn Codex accurate and usable against the current game while preserving its localStorage migration path.</p><p><b>Why it fits:</b> The Cairn Codex is a standalone quest/area guide whose current artifact predates this game baseline, so version-sensitive data and UI terminology may now be stale.</p><p><b>Small experiment / next step:</b> Add a version-evidence panel and run a data-diff audit against v1.3.0.0 areas/quests/UI labels before changing any guide content.</p><p><b>Risks:</b> Patch data may require manual reconciliation; do not ingest community-derived values as official facts.</p><p><b>Acceptance test:</b> Codex declares its supported game baseline, all changed quest/area references are source-backed, existing saves migrate and reload, and navigation/state tests still pass.</p><a href="https://forums.crateentertainment.com/t/grim-dawn-version-v1-3-0-0/155979/1">Primary source</a></div><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-014 — Grim Dawn Cairn Codex
+
+**Status:** ARTIFACT PRESENT; functional status unverified  
+**Confidence:** Medium
+
+### Latest known artifact
+
+- `Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html`
+
+### Recovered characteristics
+
+- standalone HTML guide/codex
+- quest and area data
+- localStorage schema associated with Cairn Codex Ultimate v5
+- legacy v4/v3 migration awareness
+
+### Immediate next checkpoint
+
+Open the v6.1 artifact in a browser, test every navigation/filter/state path, verify save/migration/reload behavior, inspect console errors, and record the file hash.
+
+---
+
+# 4. Mod Organizer 2 project family</pre></details></section><section class="section" id="PRJ-015"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Bethesda Plugin Info for MO2</h2><p class="meta">PRJ-015 · VALIDATED ARTIFACT, live test pending · v1.5.3 shared drag/drop correction; v1.5.0 full validation available</p><h3>Goal</h3><p>Continue Bethesda Plugin Info for MO2 from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>exact Windows MO2 2.5.3 beta 12 or compatible build</li><li>installed theme and DPI</li><li>full plugin stack</li><li>dedicated column and native columns</li><li>drag/drop insertion indicator</li><li>tooltips</li><li>enable warning</li><li>categories</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Install in exact Windows MO2 and verify dedicated column, tooltips, warnings, categories, drag/drop, DPI, and restart.</p><h3>Ideas & Research</h3><div class="research"><div class="meta">current · checked 2026-08-15</div><p class="fact"><b>What is new / source-backed:</b> The official MO2 release page identifies v2.5.2 as the latest release and documents Qt 6/Python changes plus new third-party plugin interface capabilities.</p><p class="proposal"><b>Proposal:</b> Create a two-lane live test: v2.5.2 release first, then a separately isolated forward-compatibility lane against current upstream only after release proof passes.</p><p><b>Exact goal:</b> Prove dedicated column, tooltips, warnings, categories, drag/drop, DPI behavior, and restart persistence in a current real MO2 runtime.</p><p><b>Why it fits:</b> Bethesda Plugin Info is waiting on a real MO2 live compatibility pass, so testing against the current released host is more meaningful than relying on the older beta target alone.</p><p><b>Small experiment / next step:</b> Create a two-lane live test: v2.5.2 release first, then a separately isolated forward-compatibility lane against current upstream only after release proof passes.</p><p><b>Risks:</b> Theme/DPI/plugin-stack differences can hide regressions; do not weaken tests to fit host changes.</p><p><b>Acceptance test:</b> All promised controls and column behavior work in v2.5.2 with the full plugin stack, native drag/drop remains unchanged, and state survives restart.</p><a href="https://github.com/ModOrganizer2/modorganizer/releases">Primary source</a></div><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-015 — Bethesda Plugin Info
+
+**Status:** VALIDATED ARTIFACT; final Windows MO2 test pending  
+**Confidence:** High
+
+### Version lineage recovered
+
+v1.0.0 → v1.1.0 → v1.2.0 → v1.3.0 → v1.4.0 → v1.5.0 → v1.5.1/v1.5.2 patch work → **v1.5.3 compatibility correction**
+
+### Strongest full validation recovered
+
+v1.5.0:
+
+- 69 automated tests passed
+- clean ZIP and release hygiene
+- dedicated column, header movement, resize safety, branch restoration, selection/model preservation
+- rich and classic tooltip modes
+- warning and category behavior
+- 22 ICO + 22 PNG assets
+- no networking, subprocesses, per-mod sidecars, game Data or Overwrite writes
+
+### Latest correction
+
+The shared drag/drop root-cause report records Bethesda Plugin Info **v1.5.3** with native-column-zero drop capability and paint-barrier corrections. It retained 76 tests plus four subtests in that compatibility pass.
+
+### Final live test needed
+
+- exact Windows MO2 2.5.3 beta 12 or compatible build
+- installed theme and DPI
+- full plugin stack
+- dedicated column and native columns
+- drag/drop insertion indicator
+- tooltips
+- enable warning
+- categories
+- restart persistence
+
+---</pre></details></section><section class="section" id="PRJ-016"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Bethesda Creations Version Tracker for MO2</h2><p class="meta">PRJ-016 · VALIDATED ARTIFACT, live test pending · v2.4.3 shared drag/drop correction</p><h3>Goal</h3><p>Continue Bethesda Creations Version Tracker for MO2 from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Verify migration, metadata, version/source data, dedicated column behavior, no false conflicts, drag/drop, and persistence inside the real Windows MO2 installation.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Install in exact Windows MO2 and verify migration, metadata, conflicts, column behavior, and restart.</p><h3>Ideas & Research</h3><div class="research"><div class="meta">current · checked 2026-08-15</div><p class="fact"><b>What is new / source-backed:</b> MO2 v2.5.2 includes updated Starfield Creation handling and third-party plugin interface changes in the current official release line.</p><p class="proposal"><b>Proposal:</b> Build a deterministic fixture set covering legacy marker migration, Starfield Creation metadata, corrupt marker quarantine, and restart persistence on MO2 v2.5.2.</p><p><b>Exact goal:</b> Verify migration, metadata, version/source data, conflict behavior, dedicated column interaction, and persistence in the current MO2 host.</p><p><b>Why it fits:</b> The Version Tracker exists specifically to reason about Bethesda Creations metadata/version state inside MO2, so current Creation behavior is directly relevant.</p><p><b>Small experiment / next step:</b> Build a deterministic fixture set covering legacy marker migration, Starfield Creation metadata, corrupt marker quarantine, and restart persistence on MO2 v2.5.2.</p><p><b>Risks:</b> Creation metadata semantics differ by game and may evolve; avoid inferring versions from display text alone.</p><p><b>Acceptance test:</b> Fixtures migrate without data loss, no per-mod sidecars reappear, false conflicts remain zero, drag/drop is unaffected, and results persist after restart.</p><a href="https://github.com/ModOrganizer2/modorganizer/releases">Primary source</a></div><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-016 — Bethesda Creations Version Tracker
+
+**Status:** VALIDATED ARTIFACT; final Windows MO2 test pending  
+**Confidence:** High
+
+### Version lineage recovered
+
+v2.0.0 → v2.1.0 → v2.2.0 → v2.3.0 → v2.3.1 → v2.4.0 → v2.4.1 → v2.4.2 patch → **v2.4.3 compatibility correction**
+
+### Important migration history
+
+v2.3.1 stopped creating `.bethesda-creation-sorter.json` in every Creation mod, migrated ownership to MO2 metadata/central plugin data, quarantined corrupt legacy marker data, and preserved user metadata.
+
+### Latest correction
+
+The shared root-cause report records v2.4.3 with the same dedicated-column drop flag and repaint corrections as the other synthetic-column plugins.
+
+### Final live test needed
+
+Verify migration, metadata, version/source data, dedicated column behavior, no false conflicts, drag/drop, and persistence inside the real Windows MO2 installation.
+
+---</pre></details></section><section class="section" id="PRJ-017"><p><a href="#catalogue">↑ Catalogue</a></p><h2>MO2 Image Column / MO2R image automation</h2><p class="meta">PRJ-017 · ACTIVE, corrected build · Image Column v1.4.12; AI Automation Master Prompt</p><h3>Goal</h3><p>Continue MO2 Image Column / MO2R image automation from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Verify v1.4.12 with Bethesda Plugin Info and Version Tracker installed together, including insertion line, download-to-mod-list drag, thumbnails, tooltips, identity matching, scrolling and separator preservation.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Verify v1.4.12 live with the complete plugin stack; do not regress image identity or drag/drop behavior.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-017 — MO2 Image Column / MO2R Image Automation
+
+**Status:** ACTIVE corrected build  
+**Confidence:** High
+
+### Version lineage recovered
+
+- restored v1.4.10 base
+- rejected/avoided v1.4.11 delegate-substitution path for final compatibility fix
+- **v1.4.12** shared drag/drop correction
+
+### Related master prompt
+
+- `MO2R_Image_Column_AI_Automation_Master_Prompt.md`
+
+### Major requirements
+
+- exact image identity and duplicate isolation
+- local/remote source resolution
+- bounded caching and invalidation
+- context-aware repair actions
+- no mod-list state regression
+- preserve scroll, selection, separators, column state, search/filter, profile and drag/drop
+- compact row height by default
+
+### Final live test needed
+
+Verify v1.4.12 with Bethesda Plugin Info and Version Tracker installed together, including insertion line, download-to-mod-list drag, thumbnails, tooltips, identity matching, scrolling and separator preservation.
+
+---</pre></details></section><section class="section" id="PRJ-018"><p><a href="#catalogue">↑ Catalogue</a></p><h2>MO2 Drag-and-Drop Line Restorer</h2><p class="meta">PRJ-018 · VALIDATED ARTIFACT, live visual test pending · v1.1.0</p><h3>Goal</h3><p>A visual-only overlay that restores an always-visible MO2 drop indicator without accepting, rejecting, rerouting or executing drag/drop.</p><h3>Requirements</h3><ul><li>Exact appearance and insertion target in Windows MO2 with the active theme and full plugin stack.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Run final visual/target smoke test in MO2 2.5.3 beta 12 with active theme and plugins.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-018 — MO2 Drag-and-Drop Line Restorer
+
+**Status:** VALIDATED ARTIFACT; visual live test pending  
+**Confidence:** High
+
+### Latest version
+
+- **v1.1.0**
+- SHA-256: `615b3b05e081ce6c529b4e9e117dbdc207f30e0dca5c858c31739a0981da7b56`
+
+### Function
+
+A visual-only overlay that restores an always-visible MO2 drop indicator without accepting, rejecting, rerouting or executing drag/drop.
+
+### v1.1.0 additions
+
+- exact MO2 native renderer mode
+- Enhanced v1 and Fully Custom modes
+- live preview
+- presets
+- target tests
+- native indicator positioning
+
+### Automated evidence
+
+Offscreen tests passed for native/custom rendering, model/view discovery, safety, settings, drag event non-interference, performance, ZIP layout and compilation.
+
+### Final live test needed
+
+Exact appearance and insertion target in Windows MO2 with the active theme and full plugin stack.
+
+---</pre></details></section><section class="section" id="PRJ-019"><p><a href="#catalogue">↑ Catalogue</a></p><h2>MO2 Performance Accelerator</h2><p class="meta">PRJ-019 · ACTIVE / corrected after crash · v4.0.1</p><h3>Goal</h3><p>Continue MO2 Performance Accelerator from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Install v4.0.1, not v4.0.0. Verify startup, drag, filtering, sorting, viewport/separators, fail-safes, restoration and shutdown in the real Windows process.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Replace v4.0.0, then live-test startup, drag, filtering, viewport restoration, and shutdown in Windows MO2.</p><h3>Ideas & Research</h3><div class="research"><div class="meta">current/alpha-core · checked 2026-08-15</div><p class="fact"><b>What is new / source-backed:</b> The official USVFS repository still describes the virtual filesystem as an alpha work in progress while noting it is a core MO2 component receiving real-world testing.</p><p class="proposal"><b>Proposal:</b> Add an instrumentation-only benchmark mode that timestamps accelerator hooks and MO2 model/proxy phases while leaving USVFS untouched; compare enabled/disabled runs on the same library.</p><p><b>Exact goal:</b> Improve startup/filter/drag responsiveness without recurring workers, lost state, crashes, or interference with MO2/USVFS behavior.</p><p><b>Why it fits:</b> The Performance Accelerator changes MO2 hot paths and must not destabilize the host or filesystem virtualization, so performance wins need explicit isolation from USVFS behavior.</p><p><b>Small experiment / next step:</b> Add an instrumentation-only benchmark mode that timestamps accelerator hooks and MO2 model/proxy phases while leaving USVFS untouched; compare enabled/disabled runs on the same library.</p><p><b>Risks:</b> Synthetic proxy speedups can overstate real gains; instrumentation itself can perturb timings.</p><p><b>Acceptance test:</b> Repeated real-library runs show a statistically meaningful UI latency improvement, identical mod/file results, zero new USVFS errors, preserved viewport/separators, and clean shutdown.</p><a href="https://github.com/ModOrganizer2/usvfs">Primary source</a></div><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-019 — MO2 Performance Accelerator
+
+**Status:** ACTIVE / corrected after a reproduced crash  
+**Confidence:** High
+
+### Version lineage
+
+v2.0.0 → v3.0.0 → v4.0.0 → **v4.0.1**
+
+### v4 design
+
+- event-driven only
+- no recurring workers or scans
+- transactional proxy updates
+- drag fast path
+- lossless filter batching
+- viewport/separator preservation
+- passive reversible tuning
+
+### v4.0.0 failure
+
+A deleted `QTabWidget` wrapper could enter the discovery path and raise `RuntimeError: wrapped C/C++ object ... has been deleted`.
+
+### v4.0.1 fix
+
+- removed generic discovery implementation
+- binds only after `setParentWidget()`
+- exact `modList` targeting
+- exception containment and circuit breaker
+- no workers, recurring timers, filesystem traversal or arbitrary view binding
+- synthetic benchmark showed about 8.3–8.6× for the targeted proxy recomputation pattern, not a promise for whole MO2 performance
+
+### Final live test needed
+
+Install v4.0.1, not v4.0.0. Verify startup, drag, filtering, sorting, viewport/separators, fail-safes, restoration and shutdown in the real Windows process.
+
+---</pre></details></section><section class="section" id="PRJ-020"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Master Desktop Pet Research</h2><p class="meta">PRJ-020 · RESEARCH BASE · Consolidated master containing v10, v14, v9, and v7 material</p><h3>Goal</h3><p>Continue Master Desktop Pet Research from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Append future verified research to the master rather than creating drifting numbered copies.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Append future verified research to the master rather than creating drifting numbered copies.</p><h3>Ideas & Research</h3><div class="research"><div class="meta">bleeding-edge/current · checked 2026-08-15</div><p class="fact"><b>What is new / source-backed:</b> DalekCraft2/Shimeji-Desktop is a 2026-active Shimeji-ee port to JDK 25 that explicitly targets backward compatibility while adding DPI scaling, bug fixes, Maven packaging, and Windows/macOS/Linux support.</p><p class="proposal"><b>Proposal:</b> Add a compatibility matrix row comparing pack/action XML behavior, DPI handling, packaging, platform support, and migration cost against the preserved Shimeji reference sources.</p><p><b>Exact goal:</b> Keep one verified desktop-pet research master covering current engines, compatibility approaches, host support, and reusable implementation lessons.</p><p><b>Why it fits:</b> The master desktop-pet research should track modern implementations that preserve Shimeji semantics instead of only cataloguing older forks.</p><p><b>Small experiment / next step:</b> Add a compatibility matrix row comparing pack/action XML behavior, DPI handling, packaging, platform support, and migration cost against the preserved Shimeji reference sources.</p><p><b>Risks:</b> A newer fork can still diverge subtly from legacy behavior; Java 25 raises deployment requirements.</p><p><b>Acceptance test:</b> The master records exact source/revision/date, verified compatibility claims, tested pack behaviors, platform/runtime requirements, and a clear keep/adapt/reject decision without spawning a separate research file.</p><a href="https://github.com/DalekCraft2/Shimeji-Desktop">Primary source</a></div><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-020 — Master Desktop Pet Research
+
+**Status:** RESEARCH BASE  
+**Confidence:** High
+
+### Canonical master
+
+- `master desktop pet research.md`
+- Primary consolidation date: 2026-04-01
+
+### Consolidated content
+
+- exhaustive ecosystem catalogue
+- host map
+- creator/linktree/hub research
+- Discord/community map
+- Microsoft Agent / ACS / Bonzi / Peedy / Clippy / XP Search branch
+- KinitoPET addendum
+- embedded v10 and v14 passes
+- retained v9 and v7 appendices
+
+### Rule
+
+Append future verified passes to this master rather than creating unrelated numbered files, unless a snapshot is intentionally versioned.
+
+---</pre></details></section><section class="section" id="PRJ-021"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GX Slim</h2><p class="meta">PRJ-021 · UNRESOLVED IDENTITY · `GX-Slim-1.0.0-FULL.zip`, SHA-256 sidecar recovered</p><h3>Goal</h3><p>Continue GX Slim from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Find the ZIP/README and identify purpose, source repo, validation, and relationship to other projects.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Find the ZIP/README and identify purpose, source repo, validation, and relationship to other projects.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-021 — GX Slim
+
+**Status:** UNRESOLVED IDENTITY  
+**Confidence:** Low
+
+### Recovered artifact
+
+- `GX-Slim-1.0.0-FULL.zip`
+- SHA-256: `5ad8aa6d13a898af1ead4d50b7922829ec94d427199475f17522b2ed1a4a9717`
+
+### Missing
+
+- README/purpose
+- canonical source repository
+- validation report
+- relationship to Opera GX, GameSync, Feature Foundry or another project
+
+Do not guess or merge it until the archive is found and inspected.
+
+---</pre></details></section><section class="section" id="PRJ-022"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feral Unified Native Base</h2><p class="meta">PRJ-022 · UNRESOLVED / Feature Foundry-generated base · `Feral_Unified_Native_Base.zip`</p><h3>Goal</h3><p>Continue Feral Unified Native Base from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Determine whether this is a standalone product base or a generated Feature Foundry starter; validation was not run.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Determine whether this is a standalone product base or a generated Feature Foundry starter; validation was not run.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-022 — Feral Unified Native Base
+
+**Status:** UNRESOLVED / generated base  
+**Confidence:** Medium
+
+### Recovered artifact
+
+- `Feral_Unified_Native_Base.zip`
+
+### Evidence
+
+The archive contains Feature Foundry-style App DNA, mod-cartridge, preview-runtime, validation, promotion, and golden-fleet structures. Generated validation scenarios were marked not run and `shippable: false`.
+
+### Needed decision
+
+Determine whether Feral is:
+
+- a standalone application project,
+- a generic native app base,
+- a generated Feature Foundry experiment,
+- or a precursor to another product.
+
+---</pre></details></section><section class="section" id="PRJ-023"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Portable Feature Starter</h2><p class="meta">PRJ-023 · GENERATED STARTER, not shippable · v0.1.0 starter ZIP</p><h3>Goal</h3><p>Continue Feature Foundry Portable Feature Starter from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Keep as a template; its generated validation scenarios were not run and report `shippable: false`.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Keep as a template; its generated validation scenarios were not run and report `shippable: false`.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-023 — Feature Foundry Portable Feature Starter
+
+**Status:** GENERATED STARTER / TEMPLATE  
+**Confidence:** High
+
+### Version
+
+- package version `0.1.0`
+
+### Stack and capabilities recovered
+
+- Vite
+- Vue 3 in the recovered package manifest
+- Tauri 2
+- TypeScript
+- Vitest
+- Playwright
+- Biome
+- portable feature capsule operations
+- upgrade, rollback, validation and golden-fleet scaffolding
+
+### Validation boundary
+
+The included validation report had zero scenarios run and `shippable: false`. Preserve it as a starter/template, not a completed application.
+
+---
+
+# 6. Changelog and version-reconciliation rules
+
+## 6.1 Never overwrite history silently
+
+For each project, keep:
+
+- stable project ID
+- aliases
+- canonical repository/path
+- artifact filename
+- embedded version
+- content hash
+- source chat/file location
+- created/recovered date
+- predecessor and successor links
+- validation status
+- live-runtime status
+- known regressions
+- next action
+
+## 6.2 Version trust order
+
+Use this order when deciding the latest usable state:
+
+1. Current explicit user correction.
+2. Current canonical repository and runtime evidence.
+3. Embedded version and changelog inside the artifact.
+4. Content hash and verified lineage.
+5. Validation report tied to the exact artifact hash.
+6. File Library upload time.
+7. Filename alone.
+
+A higher filename number does not automatically beat a known-good branch or artifact.
+
+## 6.3 Required statuses per artifact
+
+Use separate fields:
+
+- **Discovered**
+- **Preserved**
+- **Parsed/inspected**
+- **Build passed**
+- **Automated tests passed**
+- **Packaged**
+- **Fresh extraction passed**
+- **Installed in target**
+- **Real workflow passed**
+- **Restart persistence passed**
+- **Canonical/latest-good confirmed**
+
+Do not collapse these into one “done” checkbox.
+
+## 6.4 Append-only project changelog template
+
+```markdown
+### YYYY-MM-DD — Project name — version/artifact
+
+- Project ID:
+- Canonical repo/worktree/branch:
+- Previous version/hash:
+- New version/hash:
+- Source chat/file:
+- What changed:
+- What was preserved:
+- What was removed intentionally:
+- Automated checks:
+- Real-runtime checks:
+- Known regressions or risks:
+- Latest-good status:
+- Next exact step:
+```
+
+---
+
+# 7. Highest-priority organization work
+
+1. **Create canonical IDs and paths** for Feature Foundry, GameSync, Mascot, RuneLite, MO2, TS4, Money App, Grim Dawn and GX Slim.
+2. **Find and hash the latest artifact** for every Medium/Low confidence record.
+3. **Separate project families from subprojects** so one subsystem is not restarted as a new app.
+4. **Preserve latest-good builds before changes**, especially Feature Foundry Explorer/media work, MO2 v4.0.1, RuneLite hitchless reference, and GameSync hosts.
+5. **Add a per-project `PROJECT.md` and `.agents-memory/` folder** to every active repository.
+6. **Checkpoint after each meaningful chat** with what changed, artifact hashes, current blockers and next exact steps.
+7. **Re-run this cross-chat inventory periodically** and append deltas instead of regenerating an unrelated list.
+
+---
+
+# 8. Source evidence index
+
+This database was assembled from available current-chat files, File Library search results and prior-chat personal context. Key recovered source documents include:
+
+## Feature Foundry
+
+- `feature-foundry-aesthetic-worlds-codex-master-directive.md` — V11 canonical marker
+- `feature-foundry-codex-final-implementation-directive-v11.md`
+- `feature-foundry-aesthetic-world-guide-v11.md`
+- `feature-foundry-living-world-prototype-v11-bundle-reference.html`
+- `V11-VALIDATION-REPORT.md`
+- `ui-theme-agent-spec.md`
+- `ui-theme-agent-spec-v48.md`, `v49.md`, `v51.md`
+- `aesthetics-guide.md`
+- `Feature_Foundry_Portable_Feature_Starter.zip`
+
+## GameSync and Mascot
+
+- `AGENTS.md` records for GameSync
+- `acs-agent-parity-checklist-generalized-v3.md`
+- `mascot_engine_rebuild_directive (2).md`
+- `master desktop pet research.md`
+- `gamesync_petz_build_checklist.md`
+- `pf_petz_playable_methods.md`
+- mascot games Golf/sports master directive
+
+## RuneLite
+
+- `README.md` for Bert&#x27;s Skill Guide Master
+- Bert&#x27;s Skill Atlas prior-chat artifacts
+- `RuneLite_Master_Prompt_Smart_No_BS.md`
+- `RuneLite_Codex_Master_Prompt_No_Logging.md`
+- `runelite_flipping_codex_master_prompt(4).md`
+- `RuneLite_External_Plugins_Codex_Prompt_CLEANED(7).md`
+
+## Sims 4
+
+- `TS4_ACCELERATOR_AGENT_PLAN.md`
+- TS4 Accelerator `README.md`
+- prior-chat native DX11 overlay architecture prompt
+
+## MO2
+
+- Bethesda Plugin Info validation reports v1.0.0 through v1.5.0
+- Bethesda Creations Version Tracker validation/hash records
+- `MO2-Drag-Drop-Audit-and-Fix-Report.md`
+- `MO2-Drag-Drop-Root-Cause-and-Fix-Report.md`
+- `MO2-Drag-Drop-Line-Restorer-v1.1.0-README.md`
+- `MO2-Drag-Drop-Line-Restorer-v1.1.0-TEST-REPORT.md`
+- `MO2-Performance-Accelerator-v4.0.1-TEST-REPORT.md`
+- `MO2R_Image_Column_AI_Automation_Master_Prompt.md`
+
+## Other
+
+- `money_app_plan_v38_no_meta_prompts.md`
+- `Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html`
+- `GX-Slim-1.0.0-FULL.zip.sha256`
+- `Feral_Unified_Native_Base.zip`
+
+---
+
+# 9. Known gaps in this recovery
+
+- Chat history is not exposed as one complete export, so some one-off or unnamed projects may be missing.
+- Several latest artifacts were recovered from prior-chat context but not rediscovered as current File Library files.
+- Canonical repository paths are known only for GameSync and the PF Magic source branch.
+- “Implemented” checklists may describe repository work that has not been revalidated in the current runtime.
+- Some version relationships are inferred from explicit changelog/report text but still need artifact hashes and repository confirmation.
+- GX Slim and Feral Unified Native Base need identity reconciliation.
+
+**Do not treat these gaps as permission to start over. Search, identify, preserve and reconcile first.**</pre></details></section><section class="section" id="PRJ-024"><p><a href="#catalogue">↑ Catalogue</a></p><h2>MO2 Drag/Column Compatibility Pack</h2><p class="meta">PRJ-024 · VALIDATED COMPATIBILITY WORK · Image Column 1.4.12 + Bethesda Plugin Info 1.5.3 + Version Tracker 2.4.3</p><h3>Goal</h3><p>Continue MO2 Drag/Column Compatibility Pack from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Treat as a coordinated compatibility release and live-test all three together.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Treat as a coordinated compatibility release and live-test all three together.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">## PRJ-024 — MO2 Drag/Column Compatibility Pack
+
+**Status:** VALIDATED COMPATIBILITY WORK; live stack test pending  
+**Confidence:** High
+
+### Coordinated versions
+
+- Image Column 1.4.12
+- Bethesda Plugin Info 1.5.3
+- Bethesda Creations Version Tracker 2.4.3
+
+### Root cause corrected
+
+1. Synthetic columns inherited drag/drop flags from the wrong native column.
+2. Queued plugin repaints could erase native insertion feedback and add drag-path work.
+
+### Required live proof
+
+All three plugins loaded together in the exact MO2 build with:
+
+- installed-mod moves
+- separator moves
+- download-to-list drags
+- top/bottom auto-scroll
+- full insertion-line visibility
+- unchanged native drop behavior
+
+---
+
+# 5. Research and supporting projects</pre></details></section><section class="section" id="PRJ-025"><p><a href="#catalogue">↑ Catalogue</a></p><h2>UltraDeck</h2><p class="meta">PRJ-025 · ACTIVE · 7.5.0</p><h3>Goal</h3><p>Continue UltraDeck from its preserved durable project record without losing lineage or completed work.</p><h3>Requirements</h3><ul><li>Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B.</li></ul><h3>Stop point</h3><p>Durable record imported; newer project-specific evidence should supersede this record when verified.</p><h3>Exact next action</h3><p class="next">Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">### PRJ-025 — UltraDeck
+
+- **Status:** ACTIVE
+- **Confidence:** High
+- **Latest:** 7.5.0
+- **Last checkpoint:** 2026-08-09T23:36:57.954646+00:00
+- **Next action:** Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B.
+- **Aliases:** UltraDeck-Project
+- **Known roots:** `/mnt/data/UltraDeck-Project`
+
+#### Version and artifact lineage
+- 7.5.0 — UltraDeck-v7.5.0-fresh-artifact-verification.json **LATEST**; status=verified; confidence=high; observed=2026-08-09T00:29:33.030892+00:00
+
+#### Tracked artifacts
+- `UltraDeck-Tumblr-Extension-v7.5.0-source.zip` — version=7.5.0 — hash=7529de42c7a8ddf2af468e01bab3de8b2651a787aa114dac972e8f28f534a06f — source=7529de42c7a8ddf2af468e01
+- `Tumblr-UltraWide-Deck-preview-v7.5.0.html` — version=7.5.0 — hash=df79ba6d8c227de15d9036e6dd6bb319ee7cd9cadd4139ff0d164df4d64a66e4 — source=df79ba6d8c227de15d9036e6
+- `UltraDeck-Extension-v7.5.0-popup.png` — version=7.5.0 — hash=8bf4daa1c7cc01614a8c2c151dcaf7774903128a0643e91208a7cfb0cf3a1f67 — source=8bf4daa1c7cc01614a8c2c15
+- `UltraDeck-v7.5.0-verification-report.md` — version=7.5.0 — hash=4eb8fde893cb919aa77d10bdfa023a29d1f67d078f6fb6311babd67f55d39454 — source=4eb8fde893cb919aa77d10bd
+- `UltraDeck-v7.5.0-performance-summary.json` — version=7.5.0 — hash=bc0d6f481c2bee6378ab5827208e6565a72a19b152c5a10333413916f0d15da1 — source=bc0d6f481c2bee6378ab5827
+- `UltraDeck-v7.5.0-saturation-log.json` — version=7.5.0 — hash=adc5ad1c473f10885a7767ad120f66506d6d1a0f45ccac08a44145e0364c80a1 — source=adc5ad1c473f10885a7767ad
+- `UltraDeck-v7.5.0-startup-reload-ab.json` — version=7.5.0 — hash=599b94b76b84864d074976635979d05dc9922ae5f9fde3c87d257bb99041d2f3 — source=599b94b76b84864d07497663
+- `UltraDeck-v7.5.0-startup-reload-ab-reverse.json` — version=7.5.0 — hash=09f730bd0dc7852dfa497494bf23706443bd594fe6d705d96e55102437d87103 — source=09f730bd0dc7852dfa497494
+- `UltraDeck-v7.5.0-mutation-hotpath-ab.json` — version=7.5.0 — hash=1124e22ae28dfb9ba6301bedd54d206789c7822e67e1620309a272904b60a648 — source=1124e22ae28dfb9ba6301bed
+- `UltraDeck-v7.5.0-mutation-hotpath-ab-reverse.json` — version=7.5.0 — hash=9b472f67cad7d15cecad88fdd3a0a1173bc48137561d11c4e89cd8784119ae4f — source=9b472f67cad7d15cecad88fd
+- `UltraDeck-v7.5.0-hotpaths-ab.json` — version=7.5.0 — hash=70ec41f95de061530674f85b112e44d698aafb25e5b71c340b88ac5190916347 — source=70ec41f95de061530674f85b
+- `UltraDeck-v7.5.0-hotpaths-ab-reverse.json` — version=7.5.0 — hash=b94b114918bc7e32887780dfca4648ebe02f93007de3c02b774d74a04f965bb1 — source=b94b114918bc7e32887780df
+- `UltraDeck-v7.5.0-intent-prewarm-ab.json` — version=7.5.0 — hash=1df56501e6e58d858064492aa71c27b19243199ba91ad6b64ddd32a23aae05ab — source=1df56501e6e58d858064492a
+- `UltraDeck-v7.5.0-intent-prewarm-ab-reverse.json` — version=7.5.0 — hash=c292e2de07d3f44ed64f805c27cc10a33dcc465e42912b43836fc19fc3c1e482 — source=c292e2de07d3f44ed64f805c
+- `UltraDeck-v7.5.0-offscreen-interaction.json` — version=7.5.0 — hash=021b165f9cc2669632905932d1ee0f1a97d4c1ed150fb72aea1b021d8808f8cf — source=021b165f9cc2669632905932
+- `UltraDeck-v7.5.0-no-cap-scale.json` — version=7.5.0 — hash=de56d25c3ebb511bff979f3063b44b246b00ef112416cafad83312bd6e224349 — source=de56d25c3ebb511bff979f30
+- `UltraDeck-v7.5.0-real-mv3.json` — version=7.5.0 — hash=bf06665fd3adf32be40c87a31c1880e09cb21dd64984e66012ecb3adc7b37841 — source=bf06665fd3adf32be40c87a3
+- `UltraDeck-v7.5.0-media-network.json` — version=7.5.0 — hash=2de7e0a3505d77a2a67427c603398c21edde84b7ff6c45e4dfc78707b4c00594 — source=2de7e0a3505d77a2a67427c6
+- `UltraDeck-v7.5.0-release.zip` — version=7.5.0 — hash=97f6943eac9ae22e53e67ea641994a0f2e9f5fa82a2406d9ba68693676134ccd — source=97f6943eac9ae22e53e67ea641994a0f2e9f5fa82a2406d9ba68693676134ccd
+- `UltraDeck-v7.5.0-fresh-artifact-verification.json` — version=7.5.0 — hash=unavailable — source=local-build
+
+---
+
+## Catalog update protocol
+
+1. Search cross-chat sources and recent uploads before continuing a named project.
+2. Open plausible newer artifacts and compare content, not filenames alone.
+3. Reconcile project, version, artifact, hash, source, checkpoint, confidence, and supersession into the JSON catalog.
+4. Render this Markdown mirror and reread the changed project record before editing code.
+5. Export the catalog when no writable durable store is available.</pre></details></section><section class="section" id="PCX-026"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Project Governance</h2><p class="meta">PCX-026 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Keep project execution rules, acceptance contracts, and cross-project workflow policy current and enforceable.</p><h3>Requirements</h3><ul><li>Maintain canonical policy state, preserve user steering, and verify changes before publication.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Project Governance evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-027"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Archive Doctor</h2><p class="meta">PCX-027 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Diagnose and repair GameSync archives and continuity artifacts without destructive rewrites.</p><h3>Requirements</h3><ul><li>Preserve source bytes, verify hashes, provide native and browser fallback paths, and record provenance.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Archive Doctor evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-028"><p><a href="#catalogue">↑ Catalogue</a></p><h2>DirectoryMonitor</h2><p class="meta">PCX-028 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Provide reliable low-latency filesystem change awareness without silently losing events.</p><h3>Requirements</h3><ul><li>Detect overflow/stale watcher state and reconcile against authoritative filesystem state.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical DirectoryMonitor evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-029"><p><a href="#catalogue">↑ Catalogue</a></p><h2>PC Bridge / MCP Bridge</h2><p class="meta">PCX-029 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Bridge local PC capabilities into MCP-compatible tools with truthful capability discovery.</p><h3>Requirements</h3><ul><li>Preserve tool identity, authenticated state, and prove real tool calls rather than handshake-only success.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical PC Bridge / MCP Bridge evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-030"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Reliable Artifact Publisher</h2><p class="meta">PCX-030 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Publish complete artifacts with deterministic packaging and byte-level remote verification.</p><h3>Requirements</h3><ul><li>Verify local hash/size, remote hash/size or re-download, and preserve resumable state.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Reliable Artifact Publisher evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-031"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Auralis</h2><p class="meta">PCX-031 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Build the local audio capture/routing and speech-capable runtime without fake device support.</p><h3>Requirements</h3><ul><li>Use real Windows audio/session APIs, explicit routing, and measurable latency/error handling.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Auralis evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-032"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Profit Nova</h2><p class="meta">PCX-032 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Build the interconnected creation and monetization station with real working rooms, agent workflows, and durable local state.</p><h3>Requirements</h3><ul><li>Separate behavior contracts from donor implementations; every borrowed subsystem maps to Profit Nova service/event/permission/memory contracts.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Profit Nova evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-033"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Sims4CreatorStudio</h2><p class="meta">PCX-033 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Build a verified Sims 4 creator studio from the preserved alpha repository lineage.</p><h3>Requirements</h3><ul><li>Preserve the verified repository snapshot, manifest identity, source assets, and real creator workflows.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Sims4CreatorStudio evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-034"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Ferrum Browser</h2><p class="meta">PCX-034 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Build a browser with persistent Tab Islands and user-owned workspace behavior.</p><h3>Requirements</h3><ul><li>Use stable Ferrum-owned identities for persistence and verify restart/reorder/native-group event behavior.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Ferrum Browser evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-035"><p><a href="#catalogue">↑ Catalogue</a></p><h2>MO2R</h2><p class="meta">PCX-035 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Evolve Mod Organizer 2 workflows with richer relationships, changelog, metadata, and media intelligence while preserving native MO2 behavior.</p><h3>Requirements</h3><ul><li>Keep compatibility with current upstream MO2 and prove columns, relationships, drag/drop, state, and restart behavior.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical MO2R evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-036"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Project Constellation</h2><p class="meta">PCX-036 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Provide the fast human-facing second-brain control surface across all tracked projects.</p><h3>Requirements</h3><ul><li>Exactly 63 tracked records, exact next action/stop point, durable provenance, safe user edits, research decisions, and normal active operation.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Project Constellation evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-037"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Shimeji Desktop</h2><p class="meta">PCX-037 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Maintain and modernize the desktop Shimeji runtime while preserving pack/action compatibility.</p><h3>Requirements</h3><ul><li>Preserve XML behavior/action graphs, window interactions, DPI behavior, and pack compatibility.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Shimeji Desktop evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-038"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Shimeji Browser Extension</h2><p class="meta">PCX-038 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Run Shimeji-style mascots in the browser with faithful packs and safe page interaction.</p><h3>Requirements</h3><ul><li>Preserve pack semantics, anchors/actions/physics, browser isolation, and extension persistence.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Shimeji Browser Extension evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-039"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Webmeji</h2><p class="meta">PCX-039 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Embed Shimeji companions directly into websites as a lightweight web runtime.</p><h3>Requirements</h3><ul><li>Preserve zero/low-setup embedding, character behavior, and host-page safety.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Webmeji evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-040"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Pinterest Nocturne</h2><p class="meta">PCX-040 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Maintain the Pinterest Nocturne extension/theme line as a polished, versioned browser project.</p><h3>Requirements</h3><ul><li>Preserve current visual behavior and verify each release against real Pinterest runtime changes.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Pinterest Nocturne evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-041"><p><a href="#catalogue">↑ Catalogue</a></p><h2>ChatGPT Ultimate Optimizer</h2><p class="meta">PCX-041 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Maintain the ChatGPT optimization tooling as a versioned product rather than a loose patch set.</p><h3>Requirements</h3><ul><li>Preserve releases, verify changes in the real product UI, and avoid brittle selectors.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical ChatGPT Ultimate Optimizer evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-042"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Next</h2><p class="meta">PCX-042 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Advance the next-generation GameSync implementation while preserving validated GameSync behavior and host parity.</p><h3>Requirements</h3><ul><li>Track parity against current GameSync and prove migrations rather than assuming replacement equivalence.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Next evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-043"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Production App</h2><p class="meta">PCX-043 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Turn Feature Foundry from prototypes/data bundles into the actual production authoring application.</p><h3>Requirements</h3><ul><li>Real workspaces, persistent editors, production assets, package/export paths, and runtime proof.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Feature Foundry Production App evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-044"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Living Ecology</h2><p class="meta">PCX-044 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Implement theme-native living-world interactions and bounded cross-element causality.</p><h3>Requirements</h3><ul><li>Preserve user-input sovereignty, accessibility/performance variants, and measurable interaction behavior.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Feature Foundry Living Ecology evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-045"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Object Intelligence</h2><p class="meta">PCX-045 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Provide semantic object, material, affordance, rig, and behavior intelligence.</p><h3>Requirements</h3><ul><li>Immutable originals, reversible derivation lineage, evidence-backed object identity and capabilities.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Feature Foundry Object Intelligence evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-046"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Source Hubs</h2><p class="meta">PCX-046 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Manage external media/asset providers through explicit source adapters.</p><h3>Requirements</h3><ul><li>Track auth mode, limits, cache, fallback, evidence, review dates, and provider capability changes.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Feature Foundry Source Hubs evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-047"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Favorite Artist Worlds Database</h2><p class="meta">PCX-047 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Preserve and operationalize favorite-artist worldbuilding data for Feature Foundry.</p><h3>Requirements</h3><ul><li>Keep the database source-backed, searchable, versioned, and separate research from shipping themes.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Favorite Artist Worlds Database evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-048"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Theme Foundry</h2><p class="meta">PCX-048 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Author and package GameSync themes without drifting from Feature Foundry source contracts.</p><h3>Requirements</h3><ul><li>One source-of-truth theme contract, host adapters, migration evidence, and parity checks.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Theme Foundry evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-049"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Live Mascot Tavern</h2><p class="meta">PCX-049 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Run live mascot engines inside GameSync as real interactive systems.</p><h3>Requirements</h3><ul><li>Keep native mascot engines faithful, stateful, and modular rather than decorative.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Live Mascot Tavern evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-050"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Real Library Performance</h2><p class="meta">PCX-050 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Optimize GameSync against the complete real library without culling or hiding off-screen cards.</p><h3>Requirements</h3><ul><li>Measure full-data behavior, preserve quantity/quality, and prohibit viewport-based correctness regressions.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Real Library Performance evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-051"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Capability Truth / UI QoL</h2><p class="meta">PCX-051 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Keep GameSync UI claims aligned with actual implemented capabilities.</p><h3>Requirements</h3><ul><li>Every visible control must execute its real promise end-to-end and show truthful failures.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Capability Truth / UI QoL evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-052"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Release Factory</h2><p class="meta">PCX-052 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Create reproducible GameSync app/extension release artifacts from canonical source.</p><h3>Requirements</h3><ul><li>Build, package, test, hash, and prove exact artifact identity before publication.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Release Factory evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-053"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Bounty / Rewards Runtime</h2><p class="meta">PCX-053 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Track eligible game/reward campaigns with authoritative ownership/progress data and explicit claim behavior.</p><h3>Requirements</h3><ul><li>No synthetic progress; authorized source truth, clean stop/resume, notifications, and persistence.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Bounty / Rewards Runtime evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-054"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Source Finder / Entity Resolver</h2><p class="meta">PCX-054 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Resolve game/mod identity and strongest source pages across providers without false merges.</p><h3>Requirements</h3><ul><li>Strong identity, duplicate isolation, source provenance, confidence, and user-correctable matches.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Source Finder / Entity Resolver evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-055"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Script Polling Runtime</h2><p class="meta">PCX-055 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Run bounded background script/poll workflows with reliable catch-up and state persistence.</p><h3>Requirements</h3><ul><li>Explicit scheduling, startup catch-up, truthful progress, and no runaway workers.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Script Polling Runtime evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-056"><p><a href="#catalogue">↑ Catalogue</a></p><h2>GameSync Mod Health</h2><p class="meta">PCX-056 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Detect meaningful mod health/version/source changes without destructive automation.</p><h3>Requirements</h3><ul><li>Preserve current mod state, evidence every finding, and make repairs explicit/reversible.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical GameSync Mod Health evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-057"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Project Catalog / Cross-Chat Database</h2><p class="meta">PCX-057 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Maintain the durable cross-project locator, version lineage, artifact hashes, and next actions.</p><h3>Requirements</h3><ul><li>Never promote by timestamp alone; preserve supersession and same-name-different-content lineage.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Project Catalog / Cross-Chat Database evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-058"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Project Compass Northpoints</h2><p class="meta">PCX-058 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Preserve durable product intent, goals, guardrails, and measurable acceptance signals.</p><h3>Requirements</h3><ul><li>Supersede rather than silently rewrite foundational intent; sync meaningful checkpoints.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Project Compass Northpoints evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-059"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Project Brain Bridge</h2><p class="meta">PCX-059 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Keep Feature Foundry second-brain import/export portable and additive.</p><h3>Requirements</h3><ul><li>Do not claim native integration until the actual runtime is wired and exercised.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Feature Foundry Project Brain Bridge evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-060"><p><a href="#catalogue">↑ Catalogue</a></p><h2>ACS Voice / Speech Runtime</h2><p class="meta">PCX-060 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Preserve classic agent speech/voice interaction expectations in the modern mascot runtime.</p><h3>Requirements</h3><ul><li>Use real speech/audio services, maintain agent state/animation coordination, and prove interruption/cancellation.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical ACS Voice / Speech Runtime evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-061"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Petz Shared Core</h2><p class="meta">PCX-061 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Preserve PF Magic Petz behavior in one shared core for GameSync hosts.</p><h3>Requirements</h3><ul><li>One engine with adapters, preserved assets/source, and no flattening into ordinary mascot animation.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Petz Shared Core evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-062"><p><a href="#catalogue">↑ Catalogue</a></p><h2>RuneLite QA Cockpit</h2><p class="meta">PCX-062 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Provide one verified RuneLite cockpit for guides, preparation, map, money, settings, and content QA.</p><h3>Requirements</h3><ul><li>Build/test the actual plugin, verify routes/overlays/links/persistence, and keep data-driven content.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical RuneLite QA Cockpit evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section><section class="section" id="PCX-063"><p><a href="#catalogue">↑ Catalogue</a></p><h2>Feature Foundry Aesthetic Vault</h2><p class="meta">PCX-063 · ACTIVE / TRACKED · Durable evidence track; exact earlier 63-entry UI bytes unavailable</p><h3>Goal</h3><p>Operate a real searchable asset/aesthetic vault rather than an empty drawer.</p><h3>Requirements</h3><ul><li>Persistent assets, source provenance, visual DNA, hot-drop/capture flows, and reversible organization.</li></ul><h3>Stop point</h3><p>Continuity record established; await next verified project-specific checkpoint.</p><h3>Exact next action</h3><p class="next">Re-read the newest canonical Feature Foundry Aesthetic Vault evidence, record the exact stop point, then execute the smallest verified next step.</p><h3>Ideas & Research</h3><p class="meta">No fresh research suggestion in this rotation. Preserved project detail remains available below.</p><details><summary>Preserved project history / lineage</summary><pre style="white-space:pre-wrap">This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.</pre></details></section></main></body></html>
