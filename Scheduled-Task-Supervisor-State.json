@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-18T23:45:23Z",
+  "updatedAt": "2026-08-19T00:20:20Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -9,7 +9,7 @@
     {
       "area": "Project Constellation presentation publication",
       "action": "browser gate independently satisfied and Drive canonical promotion verified",
-      "evidence": "Exact v0.5.1 Quick View SHA-256 8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1 passed a real Chromium end-to-end acceptance locally and a public GitHub Actions self-reporting browser gate. All six promoted Drive canonical objects were re-downloaded and match the candidate SHA-256 and byte sizes exactly."
+      "evidence": "Exact v0.5.1 Quick View SHA-256 8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1 passed the public GitHub Actions real Chromium end-to-end acceptance at result commit 67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38. All six promoted Drive canonical objects were previously re-downloaded and matched candidate SHA-256 and byte sizes exactly. The managed local Chromium URLBlocklist remains a local-environment limitation only and is no longer the presentation browser blocker."
     }
   ],
   "health": {
@@ -30,8 +30,10 @@
       "browserGate": {
         "status": "VERIFIED_SUCCESS",
         "candidateQuickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
-        "githubActionsResultCommit": "b2e26f51c546b5f633f6ed9f0bd607dc3f0da0b4",
-        "localRealBrowserAcceptance": "pass: 63/63 availability, search, lens switching, project drawer, persisted checkpoint note, research drawer, snapshot export/import, zero page errors"
+        "githubActionsWorkflowSha": "f6080a6425c574676319a7023632eb44b4a12453",
+        "githubActionsResultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38",
+        "checkedAt": "2026-08-19T00:20:20Z",
+        "publicRealBrowserAcceptance": "pass: 63/63 availability, current-evidence overlay, search, all built-in lenses, project drawer, Today localStorage persistence, research drawer, snapshot export/import, post-import reload persistence, zero runtime errors"
       },
       "driveCanonical": {
         "status": "VERIFIED_PROMOTED",
@@ -48,11 +50,11 @@
         "status": "ACTIVE_PUBLICATION_IN_PROGRESS_NOT_YET_FULLY_RECONCILED",
         "browserGateResult": "verified",
         "researchStatePromotionCommit": "b70ad9c1598fabeaeb3af3909da4119edefd88e8",
-        "latestObservedMain": "e79700cbc976c3c2b162e47082f3d38ed0b0eb31",
-        "latestObservedActivity": "staging master payload parts for canonical GitHub publication",
+        "latestObservedMain": "777a8a7b28e35f48e6af00415b0d0a6e84a01ec9",
+        "latestObservedActivity": "real browser gate recovered; publication debt now records browser success and waits only on final canonical GitHub six-object reconciliation plus lastAutomationHash promotion",
         "concurrencyPolicy": "Do not race the active Project Constellation publisher. Reconcile and verify the final GitHub object set after its current publication sequence completes."
       },
-      "debtFileStatus": "STALE_BROWSER_BLOCKED_RECORD_PENDING_FINAL_GITHUB_RECONCILIATION",
+      "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING",
       "completionGate": "Do not mark presentation debt cleared until canonical GitHub presentation objects/manifests are complete and independently re-read/verified, then update debt/automation state to the verified v0.5.1 hashes."
     },
     "gameSyncPrivateActions": {
