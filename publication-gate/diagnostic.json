@@ -1,57 +1,75 @@
 {
-  "schema": "project-constellation.publication-diagnostic/2",
-  "workflowSha": "2b948a2609bf279be30a4f1dcde0f264081228e7",
+  "schema": "project-constellation.publication-diagnostic/3",
+  "workflowSha": "657cfaaafee6f01fddfeb897bd0d276c4f05a626",
   "downloadOutcome": "success",
   "verifyOutcome": "failure",
-  "checkedAt": "2026-08-19T01:05:07Z",
+  "checkedAt": "2026-08-19T01:06:33Z",
   "actual": {
     "Bert_Project_Second_Brain_Website.zip": {
       "exists": true,
-      "size": 902183,
-      "sha256": "07ddf2abe77223e7c5e633304c666db5f7cd6774318798186f1f2fb1b2bfe9b7",
+      "size": 901862,
+      "sha256": "ea9c0176d8b14915b891822d7d4528d187da9887d7e85300e72c50afffe6f9ed",
       "expectedSize": 144481,
       "expectedSha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c",
-      "match": false
+      "match": false,
+      "prefix": "<!doctype html><html lang=\"en-US\" dir=\"ltr\"><head><base href=\"https://accounts.google.com/v3/signin/\"><link rel=\"preconnect\" href=\"//www.gstatic.com\"><meta name=\"referrer\" content=\"origin\"><style data-href=\"https://www.gstatic.com/_/mss/boq-identity/_/ss/k=boq-identity.AccountsSignInUi.5i56Glvr9Hg.L.W.O/am=EUEABDjfiDdyAOT__28AAAMUAAQCASAgAIACAAAAAAAAAICAAACAhQBE/d=1/ed=1/rs=AOaEmlE012aCOh2WO4WS4TA_ZLsmCBFXaw/m=identifierview,_b,_tp\" nonce=\"K9mDQ49DElI93WPYlzBkhQ\">@-webkit-keyframes mdc-ripple-fg",
+      "htmlTitle": null,
+      "looksLikeHtml": true
     },
     "Bert_Project_Constellation_Quick_View.html": {
       "exists": true,
-      "size": 901983,
-      "sha256": "3a908a79ccef9dbaac52088338226b6f350a31cdc5faf34e925342778564abbf",
+      "size": 903597,
+      "sha256": "a82289fa63adf149ec139170ae2c4577087a7a5c8460622cfc32bbd898ac8ed5",
       "expectedSize": 128283,
       "expectedSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
-      "match": false
+      "match": false,
+      "prefix": "<!doctype html><html lang=\"en-US\" dir=\"ltr\"><head><base href=\"https://accounts.google.com/v3/signin/\"><link rel=\"preconnect\" href=\"//www.gstatic.com\"><meta name=\"referrer\" content=\"origin\"><style data-href=\"https://www.gstatic.com/_/mss/boq-identity/_/ss/k=boq-identity.AccountsSignInUi.5i56Glvr9Hg.L.W.O/am=EUEABDjfiDdyAOT__28AAAMUAAQCASAgAIACAAAAAAAAAICABACAhQBE/d=1/ed=1/rs=AOaEmlHqVj-7YmV2I83BpC5VeWlqiQz5Zw/m=identifierview,_b,_tp\" nonce=\"8ipTqlNGBKagc348OahDQw\">@-webkit-keyframes mdc-ripple-fg",
+      "htmlTitle": null,
+      "looksLikeHtml": true
     },
     "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
       "exists": true,
-      "size": 902061,
-      "sha256": "be0ce24bb6fb54b0024a6b4e172052e8a22920ccae076a34b8f8baf8fc45e766",
+      "size": 902022,
+      "sha256": "2e4882b4f21099402cfa5c00cea93c4b074e4258570c0e8a40b37ee5ed149861",
       "expectedSize": 143064,
       "expectedSha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8",
-      "match": false
+      "match": false,
+      "prefix": "<!doctype html><html lang=\"en-US\" dir=\"ltr\"><head><base href=\"https://accounts.google.com/v3/signin/\"><link rel=\"preconnect\" href=\"//www.gstatic.com\"><meta name=\"referrer\" content=\"origin\"><style data-href=\"https://www.gstatic.com/_/mss/boq-identity/_/ss/k=boq-identity.AccountsSignInUi.5i56Glvr9Hg.L.W.O/am=EUEABDjfiDdyAOT__28AAAMUAAQCASAgAIACAAAAAAAAAICABACAhQBE/d=1/ed=1/rs=AOaEmlHqVj-7YmV2I83BpC5VeWlqiQz5Zw/m=identifierview,_b,_tp\" nonce=\"cPZTin-De3qCjseDrBeeoQ\">@-webkit-keyframes mdc-ripple-fg",
+      "htmlTitle": null,
+      "looksLikeHtml": true
     },
     "Bert_Project_Wiki_Pack.zip": {
       "exists": true,
-      "size": 902128,
-      "sha256": "717e9ee6c55915bf3847dba3a86a4395725081d3094c99715e3fae02b6695899",
+      "size": 902033,
+      "sha256": "b7ce66b81108ffe2081187f69c700f078c6a00146d8a0129e085ff254396993d",
       "expectedSize": 183831,
       "expectedSha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891",
-      "match": false
+      "match": false,
+      "prefix": "<!doctype html><html lang=\"en-US\" dir=\"ltr\"><head><base href=\"https://accounts.google.com/v3/signin/\"><link rel=\"preconnect\" href=\"//www.gstatic.com\"><meta name=\"referrer\" content=\"origin\"><style data-href=\"https://www.gstatic.com/_/mss/boq-identity/_/ss/k=boq-identity.AccountsSignInUi.5i56Glvr9Hg.L.W.O/am=EUEABDjfiDdyAOT__28AAAMUAAQCASAgAIACAAAAAAAAAICAAACAhQBE/d=1/ed=1/rs=AOaEmlE012aCOh2WO4WS4TA_ZLsmCBFXaw/m=identifierview,_b,_tp\" nonce=\"oCDedWLgRzXamue3i0waTw\">@-webkit-keyframes mdc-ripple-fg",
+      "htmlTitle": null,
+      "looksLikeHtml": true
     },
     "Project-Constellation-Project-Catalog.json": {
       "exists": true,
-      "size": 902238,
-      "sha256": "ad21233e9a816cb1b301343217087e967f53ebb3becba418df809db1adf9722e",
+      "size": 902185,
+      "sha256": "014e6185636ead98ddb52586fa5543d0285e5e89810429ab06b56519cbcfba9a",
       "expectedSize": 116737,
       "expectedSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
-      "match": false
+      "match": false,
+      "prefix": "<!doctype html><html lang=\"en-US\" dir=\"ltr\"><head><base href=\"https://accounts.google.com/v3/signin/\"><link rel=\"preconnect\" href=\"//www.gstatic.com\"><meta name=\"referrer\" content=\"origin\"><style data-href=\"https://www.gstatic.com/_/mss/boq-identity/_/ss/k=boq-identity.AccountsSignInUi.5i56Glvr9Hg.L.W.O/am=EUEABDjfiDdyAOT__28AAAMUAAQCASAgAIACAAAAAAAAAICAAACAhQBE/d=1/ed=1/rs=AOaEmlE012aCOh2WO4WS4TA_ZLsmCBFXaw/m=identifierview,_b,_tp\" nonce=\"GjZXa38nK9ScdtbmhE82UQ\">@-webkit-keyframes mdc-ripple-fg",
+      "htmlTitle": null,
+      "looksLikeHtml": true
     },
     "Project-Constellation-Research-Suggestions.json": {
       "exists": true,
-      "size": 902162,
-      "sha256": "c3ef3b6a587780e41b0c1723add6120c6b83503e957b23565c3ff4ba7d072312",
+      "size": 901945,
+      "sha256": "f5ef67de3ea4ddeafa0314bdc2b94272bf8a6e272af4c46d11fc7ccc335d5276",
       "expectedSize": 13295,
       "expectedSha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6",
-      "match": false
+      "match": false,
+      "prefix": "<!doctype html><html lang=\"en-US\" dir=\"ltr\"><head><base href=\"https://accounts.google.com/v3/signin/\"><link rel=\"preconnect\" href=\"//www.gstatic.com\"><meta name=\"referrer\" content=\"origin\"><style data-href=\"https://www.gstatic.com/_/mss/boq-identity/_/ss/k=boq-identity.AccountsSignInUi.5i56Glvr9Hg.L.W.O/am=EUEABDjfiDdyAOT__28AAAMUAAQCASAgAIACAAAAAAAAAICABACAhQBE/d=1/ed=1/rs=AOaEmlHqVj-7YmV2I83BpC5VeWlqiQz5Zw/m=identifierview,_b,_tp\" nonce=\"KAgS_RW_9yxvJGJDjgCofA\">@-webkit-keyframes mdc-ripple-fg",
+      "htmlTitle": null,
+      "looksLikeHtml": true
     }
   }
 }
