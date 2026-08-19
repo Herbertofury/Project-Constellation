@@ -81,6 +81,20 @@
     "PCX-038": "GameSync Next current main advanced to cd906ff0831bf7fc33b41fea31b6f0c004cc1562, but the Shimeji-specific universal page mascot implementation remains the already-documented 60940e8479af518f3373a79efa091902f4843842 parity line; no new Shimeji-browser behavior justified churn.",
     "PCX-040": "Pinterest Nocturne project repository remains at 6167038fac5f362dbabb83c2497edb64e588ad01 with no newer source commit; the detailed 2.0.0 wiki remains current."
   },
+  "researchCursorMirror": {
+    "githubCommit": "03d03d0fd0a89918674898a0e7158d84f4dd73ab",
+    "driveDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "reread": "pass",
+    "markdownExportBytes": 2771,
+    "markdownExportSha256": "a6495ca618de0195ab0e036f81e1863ac74faeac49e4d9b4d89c72133b60ac29"
+  },
+  "durableCheckpointDrive": {
+    "documentId": "13fr65Ej_Ah9vL2RKKXXDvkIQpqwe5EpqImflsClv7NQ",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "reread": "pass",
+    "markdownExportBytes": 5426,
+    "markdownExportSha256": "7c1531a5c0fc12361ede64d84ddfe81dbe50d54ceb48ea53b8597a598f75b6a5"
+  },
   "nextCursor": [
     "PCX-041",
     "PCX-042",
