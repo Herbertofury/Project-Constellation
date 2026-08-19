@@ -1,8 +1,8 @@
 {
   "schema": "project-constellation.publication-debt/2",
   "updatedAt": "2026-08-19T08:00:00Z",
-  "status": "GITHUB_PUBLISHED_PENDING_REMOTE_VERIFY",
-  "reason": "The exact verified v0.5.1 six-object set has been deterministically reconstructed and committed to GitHub. lastAutomationHash remains unpromoted until an independent checkout of the published commit verifies all six exact sizes/SHA-256 values and ZIP/JSON integrity.",
+  "status": "VERIFIED_CLEARED",
+  "reason": "Project Constellation v0.5.1 is byte-verified on canonical Google Drive and GitHub. The exact Quick View browser acceptance passed, all six GitHub objects were independently verified at the published commit, ZIP/JSON integrity passed, and lastAutomationHash was promoted only after that proof.",
   "candidateVersion": "0.5.1",
   "candidateDriveFolderId": "1WRlXomhO7H-V1GgbYtPT6Slrc76R6KKU",
   "catalogAuthority": {
@@ -156,7 +156,9 @@
     "drivePerformed": true,
     "githubPerformed": true,
     "reason": "Drive canonical bytes are promoted and browser acceptance is satisfied. Final GitHub canonical presentation-object reconciliation and lastAutomationHash promotion remain open.",
-    "githubVerificationPending": true
+    "githubVerificationPending": false,
+    "githubPublishedSha": "226a606e37cc208ba8ad8a84194012e02781b4d8",
+    "githubRoundTrip": "exact size/SHA-256, ZIP integrity, JSON parse and 63-project invariant passed from independent checkout"
   },
   "requiredRepair": "Finish the in-progress canonical GitHub publication for the exact v0.5.1 six-artifact set, independently re-read or reconstruct every published GitHub object and verify its expected byte size/SHA-256, then update Project-Constellation-Automation-State.json lastAutomationHash and durable supervisor/publication state to the verified v0.5.1 hashes. Do not regenerate or replace the already verified Drive canonical bytes unless source state changes."
 }

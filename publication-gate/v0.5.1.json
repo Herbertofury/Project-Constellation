@@ -1,8 +1,14 @@
 {
   "schema": "project-constellation.publication-gate/2",
   "candidateVersion": "0.5.1",
-  "status": "GITHUB_PUBLISHED_PENDING_REMOTE_VERIFY",
-  "browserGate": {"status":"success","candidateSha256":"8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
+  "status": "VERIFIED_PUBLISHED",
+  "browserGate": {
+    "status": "success",
+    "candidateSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"
+  },
   "drivePromotion": "verified exact canonical bytes before GitHub publication",
-  "publicationMethod": "deterministic reconstruction from verified Quick View/Master GitHub evidence plus preserved candidate metadata; ZIPs rebuilt byte-identically with fixed timestamp and deflate level 9"
+  "publicationMethod": "deterministic reconstruction from verified Quick View/Master GitHub evidence plus preserved candidate metadata; ZIPs rebuilt byte-identically with fixed timestamp and deflate level 9",
+  "publishedSha": "226a606e37cc208ba8ad8a84194012e02781b4d8",
+  "githubRoundTrip": "passed exact six-object size/SHA-256 plus ZIP/JSON integrity",
+  "lastAutomationHashPromoted": true
 }
