@@ -1,24 +1,38 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T00:20:20Z",
+  "updatedAt": "2026-08-19T00:26:00Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
   "retiredDuplicateCount": 1,
   "repairs": [
     {
-      "area": "Project Constellation presentation publication",
-      "action": "browser gate independently satisfied and Drive canonical promotion verified",
-      "evidence": "Exact v0.5.1 Quick View SHA-256 8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1 passed the public GitHub Actions real Chromium end-to-end acceptance at result commit 67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38. All six promoted Drive canonical objects were previously re-downloaded and matched candidate SHA-256 and byte sizes exactly. The managed local Chromium URLBlocklist remains a local-environment limitation only and is no longer the presentation browser blocker."
+      "area": "Project Constellation recurring task health",
+      "action": "re-enabled incomplete recurring Project Constellation Evolution task",
+      "result": "enabled"
+    },
+    {
+      "area": "Project Constellation Quick View browser gate",
+      "action": "fixed false-negative built-in-lens selector by scoping lens buttons to #lenses",
+      "fixCommit": "f6080a6425c574676319a7023632eb44b4a12453",
+      "resultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38",
+      "candidateSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+      "result": "VERIFIED_SUCCESS"
+    },
+    {
+      "area": "Project Constellation canonical GitHub presentation publication",
+      "action": "added a race-safe canonical publisher that downloads the six already Drive-promoted v0.5.1 artifacts, verifies exact sizes/SHA-256 plus ZIP/JSON integrity, then publishes the exact objects into the canonical project-constellation repository path",
+      "publisherCommit": "421b5710a736dfd6d761bdf5825b1f1e7242bc0f",
+      "result": "PUBLISHER_TRIGGERED; remote canonical-object verification still required before debt clearance"
     }
   ],
   "health": {
-    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_PRIVATE_RUNNER_BLOCKER_AND_ACTIVE_GITHUB_PUBLICATION",
+    "scheduledTasks": "HEALTHY_ENABLED_STATE_WITH_OPEN_PRIVATE_RUNNER_BLOCKER_AND_ACTIVE_PROJECT_CONSTELLATION_GITHUB_PUBLICATION",
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
     "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired because the canonical Recover Stale Chats task covers the same scope.",
     "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Current private GameSync proposal jobs continue to report zero-step hosted-runner failures; this is infrastructure/account execution evidence rather than product-test evidence.",
+    "privateHostedRunnerEvidence": "Pinterest publish job 95908943337 still completes as failure with zero workflow steps; current private GameSync proposal jobs exhibit the same pre-execution pattern.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -32,11 +46,10 @@
         "candidateQuickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
         "githubActionsWorkflowSha": "f6080a6425c574676319a7023632eb44b4a12453",
         "githubActionsResultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38",
-        "checkedAt": "2026-08-19T00:20:20Z",
-        "publicRealBrowserAcceptance": "pass: 63/63 availability, current-evidence overlay, search, all built-in lenses, project drawer, Today localStorage persistence, research drawer, snapshot export/import, post-import reload persistence, zero runtime errors"
+        "publicRealBrowserAcceptance": "pass: 63/63 availability, evidence overlay, search, all built-in lenses, project drawer, Today localStorage reload persistence, research drawer, snapshot export/import, post-import reload persistence, zero runtime errors"
       },
       "driveCanonical": {
-        "status": "VERIFIED_PROMOTED",
+        "status": "VERIFIED_PROMOTED_AND_INDEPENDENTLY_REDOWNLOADED_THIS_RUN",
         "artifacts": {
           "Bert_Project_Second_Brain_Website.zip": {"id": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u", "size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"},
           "Bert_Project_Constellation_Quick_View.html": {"id": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5", "size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
@@ -47,31 +60,15 @@
         }
       },
       "githubCanonical": {
-        "status": "ACTIVE_PUBLICATION_IN_PROGRESS_NOT_YET_FULLY_RECONCILED",
-        "browserGateResult": "verified",
-        "researchStatePromotionCommit": "b70ad9c1598fabeaeb3af3909da4119edefd88e8",
-        "latestObservedMain": "777a8a7b28e35f48e6af00415b0d0a6e84a01ec9",
-        "latestObservedActivity": "real browser gate recovered; publication debt now records browser success and waits only on final canonical GitHub six-object reconciliation plus lastAutomationHash promotion",
-        "concurrencyPolicy": "Do not race the active Project Constellation publisher. Reconcile and verify the final GitHub object set after its current publication sequence completes."
+        "status": "PUBLICATION_REPAIR_TRIGGERED_NOT_YET_REMOTELY_VERIFIED",
+        "publisherCommit": "421b5710a736dfd6d761bdf5825b1f1e7242bc0f",
+        "requiredNextEvidence": "Verify canonical repository objects exist at project-constellation/<artifact-name> with exact bytes/SHA-256, then promote Project-Constellation-Automation-State.json lastAutomationHash and clear the publication debt."
       },
-      "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING",
-      "completionGate": "Do not mark presentation debt cleared until canonical GitHub presentation objects/manifests are complete and independently re-read/verified, then update debt/automation state to the verified v0.5.1 hashes."
+      "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING"
     },
-    "gameSyncPrivateActions": {
-      "status": "EXTERNAL_BLOCKER_PRIVATE_ACTIONS_PRE_EXECUTION",
-      "standalone": {
-        "vitePr2Head": "d04ff10f6331271a323719a27df190c1b033026b",
-        "webVitalsPr3Head": "362f3e33713d6c9841b4eff075cd0ebdd09f59e4"
-      },
-      "next": {
-        "main": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
-        "performancePr7Head": "f9d682831d479fcd23622a126f2796592f2ad798",
-        "vitePr8Head": "9494a7d49335cb59385df8372c29e7495e03b47b",
-        "petzPr10Head": "6a9d65419dfd4e2c8f125006e0a6bf0938079514",
-        "testToolchainPr11Head": "c21d4a41bdaa20dba100fb5408e535675fcd04f0",
-        "uiRuntimePr12Head": "aaf169b53b0463d225c9ef604c40a6f201d05505",
-        "typescript7Pr13Head": "3afa4cfd268d6838307acccb991930a6aaa994b1"
-      }
+    "privateActions": {
+      "pinterest": {"workflowRunId": 32068119456, "latestObservedJobId": 95908943337, "jobConclusion": "failure", "executedStepCount": 0},
+      "gameSync": {"status": "CURRENT_PRIVATE_PROPOSAL_HEADS_REMAIN_PRE_EXECUTION_BLOCKED"}
     }
   }
 }
