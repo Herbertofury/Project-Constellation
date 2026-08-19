@@ -1,0 +1,48 @@
+{
+  "schema": "project-constellation.wiki-publication-recovery/1",
+  "checkedAt": "2026-08-19T15:05:59Z",
+  "status": "CLEARED",
+  "sourceRepository": "Herbertofury/ProjectDump",
+  "sourceBranch": "main",
+  "verifiedSourceSha": "2fcf3cc8274af6d12671b05739dcc582a1077a65",
+  "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki",
+  "wikiMasterCommit": "da62a375c722055b3b5f4bcd43119589de4dcc9d",
+  "canonicalWorkflow": {
+    "name": "Sync GitHub Wiki",
+    "runId": 32266598462,
+    "jobId": 96112497746,
+    "conclusion": "success",
+    "sourceStatus": "wiki-publication success",
+    "publisherResult": "Wiki already matches source; nothing to publish.",
+    "freshCloneVerification": "pass: complete remote Wiki byte-compared against wikis/"
+  },
+  "recoveryWorkflow": {
+    "runId": 32262312888,
+    "jobId": 96098240784,
+    "conclusion": "success",
+    "verifiedSourceSha": "2fcf3cc8274af6d12671b05739dcc582a1077a65",
+    "wikiMasterCommit": "da62a375c722055b3b5f4bcd43119589de4dcc9d",
+    "freshCloneVerification": "pass"
+  },
+  "clearedBacklog": [
+    {
+      "projectId": "PRJ-014",
+      "name": "Grim Dawn Cairn Codex",
+      "materialSourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
+      "sourcePage": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-014-grim-dawn-cairn-codex",
+      "publicationProof": "covered by complete-current-tree fresh-clone byte verification at current main"
+    },
+    {
+      "projectId": "PRJ-018",
+      "name": "MO2 Drag-and-Drop Line Restorer",
+      "materialSourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "sourcePage": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-018-mo2-drag-and-drop-line-restorer",
+      "publicationProof": "covered by complete-current-tree fresh-clone byte verification at current main"
+    }
+  ],
+  "historicalStatusNote": "The older individual PRJ-014 and PRJ-018 source commits still have no historical wiki-publication status object. That absence no longer represents publication debt because the canonical publisher independently verified the complete current source tree against the actual Wiki and recorded success on the current source head.",
+  "nextDocumentationCursor": ["PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023", "PRJ-024"],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}
