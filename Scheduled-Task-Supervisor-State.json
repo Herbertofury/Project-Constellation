@@ -1,89 +1,94 @@
 {
-  "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T10:24:00Z",
-  "taskCount": 10,
-  "enabledCount": 9,
-  "pausedIncompleteCount": 0,
-  "retiredDuplicateCount": 1,
+  "schema": "scheduled-task-supervisor.state/2",
+  "updatedAt": "2026-08-19T21:51:00Z",
+  "currentTaskCount": 7,
+  "enabledCurrentTaskCount": 7,
+  "pausedIncompleteCurrentTaskCount": 0,
   "repairs": [
     {
-      "area": "Constellation Wiki Maintainer publication discipline",
-      "taskId": "6a81fb47538c8191a53e672c2d2a7378",
-      "action": "Hardened the recurring Wiki Maintainer so unresolved actual-Wiki publication proof is cleared before any new material wikis/** source delta or cursor advance. Current known backlog is PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1. The task must diagnose trigger/execution/publication failure, avoid no-op trigger spam, and remain fail-closed until the actual ProjectDump Wiki is fresh-cloned/re-read and byte-compared.",
-      "result": "TASK_DEFINITION_REPAIRED_AND_ENABLED"
+      "area": "Current-task authority reconciliation",
+      "action": "Repaired GameSync Performance Pass and GameSync Stack Upgrade to operate only against the live scheduled-task set. Both remain strictly branch/PR-only for Gamesync and GameSync-Next, may not write or merge main, may not recreate or depend on user-deleted automations, and must scrub stale deleted-task authority references from material PR/checkpoint updates.",
+      "result": "BOTH_CURRENT_WORKERS_ENABLED_AND_AUTHORITY_CORRECTED"
     },
     {
-      "area": "Project Constellation v0.5.1 Drive source-of-truth",
-      "action": "Freshly re-downloaded all six canonical private Drive artifacts through authenticated Drive access and independently matched every expected byte size and SHA-256. This confirms the exact recovery source remains intact while GitHub canonical publication is unfinished.",
-      "result": "ALL_SIX_DRIVE_CANONICAL_ARTIFACTS_REVERIFIED"
+      "area": "ProjectDump Wiki publication proof",
+      "action": "Repaired Constellation Wiki Maintainer so publication backlog is derived dynamically. A later successful full-set Sync GitHub Wiki run that contains an older source update and fresh-clone byte-compares the complete remote Wiki against wikis/ now correctly supersedes missing status metadata on the older individual source commit unless that page changed again.",
+      "result": "FALSE_PER_COMMIT_BACKLOG_RULE_REMOVED; CURRENT_WIKI_MAINTAINER_ENABLED"
+    },
+    {
+      "area": "Project Constellation v0.5.1 canonical publication",
+      "action": "Reconciled current GitHub state and confirmed the prior six-artifact presentation debt is now durably cleared: the canonical GitHub objects exist, Project-Constellation-Automation-State.json is promoted to v0.5.1 with exact hashes, and Project-Constellation-Publication-Debt.json is VERIFIED_CLEARED after GitHub plus Drive byte verification.",
+      "result": "VERIFIED_CLEARED"
     }
   ],
   "health": {
-    "scheduledTasks": "ALL_NON_RETIRED_RECURRING_TASKS_ENABLED",
-    "activeRecurringTasksEnabled": true,
-    "incompletePausedTasks": 0,
-    "retiredDuplicateCount": 1,
-    "retiredDuplicateExemption": "Superseded Recover Stale Chats remains intentionally retired because canonical Recover Stale Chats covers the full recurring scope.",
-    "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
+    "currentScheduledTasks": "ALL_CURRENT_TASKS_ENABLED",
+    "currentTaskCount": 7,
+    "enabledCurrentTaskCount": 7,
+    "incompletePausedCurrentTasks": 0,
+    "privateHostedRunnerDiagnosis": "PRIVATE_GAMESYNC_EXACT_HEAD_EXECUTION_REMAINS_EXTERNALLY_BLOCKED",
+    "publicFerrumCompute": "AVAILABLE",
+    "crossRepositoryRecoveryBoundary": "Ferrum public recovery can allocate runners and reach npm, but private GameSync checkout requires authorized private-repository access or restored private Actions allocation.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
     "projectConstellationPresentation": {
-      "candidateVersion": "0.5.1",
+      "version": "0.5.1",
       "catalogProjectCount": 63,
-      "browserGate": {
-        "status": "VERIFIED_SUCCESS",
-        "quickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"
-      },
-      "driveCanonical": {
-        "status": "VERIFIED_PROMOTED_AND_FRESHLY_REDOWNLOADED",
-        "visibility": "private-owner-only",
-        "freshReverificationAt": "2026-08-19T10:24:00Z",
-        "artifacts": {
-          "Bert_Project_Second_Brain_Website.zip": {"size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"},
-          "Bert_Project_Constellation_Quick_View.html": {"size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
-          "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"},
-          "Bert_Project_Wiki_Pack.zip": {"size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"},
-          "Project-Constellation-Project-Catalog.json": {"size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"},
-          "Project-Constellation-Research-Suggestions.json": {"size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"}
-        }
-      },
+      "status": "VERIFIED_CLEARED",
+      "projectDumpMainAtAudit": "cb9fc7487dc17e520d3b7b6e6a2fc235c42e2c2a",
+      "githubPublishedSha": "226a606e37cc208ba8ad8a84194012e02781b4d8",
       "githubCanonical": {
-        "status": "RECONCILIATION_PENDING",
-        "currentMainAtAudit": "6f6428dc136d642572d914f1028b6d134ea5b23c",
-        "canonicalQuickViewObserved": "MISSING_404",
-        "automationStateObservedVersion": "0.5.0",
-        "lastAutomationHashPromotedToV051": false,
-        "debtCleared": false,
-        "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING",
-        "requiredNextEvidence": "Publish all six exact v0.5.1 objects at project-constellation/<artifact>, independently re-read or reconstruct the GitHub bytes and verify exact size/SHA-256 plus ZIP/JSON integrity, then verify Project-Constellation-Automation-State.json promotion and publication debt VERIFIED_CLEARED."
-      }
+        "Bert_Project_Second_Brain_Website.zip": {"size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c"},
+        "Bert_Project_Constellation_Quick_View.html": {"size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
+        "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"},
+        "Bert_Project_Wiki_Pack.zip": {"size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"},
+        "Project-Constellation-Project-Catalog.json": {"size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"},
+        "Project-Constellation-Research-Suggestions.json": {"size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"}
+      },
+      "automationState": {
+        "version": "0.5.1",
+        "lastAutomationHashPromoted": true,
+        "publicationDebt": "VERIFIED_CLEARED"
+      },
+      "driveCanonical": "VERIFIED_PROMOTED_AND_ROUND_TRIPPED"
     },
     "projectDumpWiki": {
-      "status": "PUBLICATION_PROOF_BACKLOG_ACTIONS_TRIGGER_UNOBSERVED",
-      "workflowConfig": "sync-github-wiki.yml still contains correct main push path filters, contents/statuses write permissions, fresh-clone publisher, and wiki-publication status reporting.",
-      "backlog": [
-        {"project": "PRJ-014", "sourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5", "publicationProof": "UNVERIFIED"},
-        {"project": "PRJ-018", "sourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1", "publicationProof": "UNVERIFIED", "driveMarkdownBytes": 21842, "driveMarkdownSha256": "5c43eda49ce93edd666d8d908d47e67f97784291d760c9d94e598ef1c2febe8c"}
-      ],
-      "triggerEvidence": {
-        "contractHardeningCommit": "acb5a0b2521d4c784320bad6ba7fba7282985e5d",
-        "result": "No wiki-publication status observed, confirming a broader Actions trigger/execution observability blocker rather than only a path-filter mistake."
+      "status": "LATEST_OBSERVED_FULL_SET_PUBLICATION_VERIFIED",
+      "latestVerifiedSourceHead": "fe4f261bfbe1762ee56e2ff5bc498c80f61a12e7",
+      "workflowRunId": 32303842702,
+      "workflowConclusion": "success",
+      "wikiMaster": "3b8e3f1488f9aedcd01753eb26aff8fa5dbb9b65",
+      "verification": "Publisher pushed ProjectDump.wiki.git, fresh-cloned the Wiki, and byte-compared the complete remote page set against wikis/.",
+      "driveDurabilityRepair": {
+        "project": "PCX-044",
+        "markdownBytes": 26376,
+        "sha256": "746c9647bd51e1a98eb993e5073b7a10d6b778f8d49bec37135ae3e6bc1884f8",
+        "status": "VERIFIED"
       },
-      "repairAction": "Wiki Maintainer is now publication-backlog-first and must stop new source deltas until the oldest actual-Wiki publication debt is independently cleared."
+      "backlogRule": "Older empty per-commit wiki status lists are not debt when a later full-set verified publication contains those pages unchanged."
     },
-    "pinterestNocturne": {
-      "status": "GITHUB_PUBLICATION_NOT_VERIFIED_COMPLETE",
-      "repairAction": "Keep retry task enabled; do not treat bootstrap/staging as the v2.0.0 release."
+    "gameSyncPerformance": {
+      "publicationMode": "BRANCH_PR_PLUS_DRIVE",
+      "mainWriteAuthorized": false,
+      "currentKnownProposal": {"repository": "Herbertofury/GameSync-Next", "pr": 7, "head": "0fdb0dbec3729d0d96c18395cf25b469b1d09a36"},
+      "status": "CURRENT_BRANCH_OUTPUT_PRESENT; EXACT_HEAD_PRIVATE_EXECUTION_EXTERNALLY_BLOCKED",
+      "driveCheckpoint": "GameSync Performance Pass - Latest"
     },
-    "gameSync": {
-      "status": "PRIVATE_HOSTED_RUNNER_PRE_EXECUTION_BLOCKER_REMAINS",
-      "repairAction": "Keep Stack/Performance/Lead tasks enabled and preserve exact-head acceptance gates."
+    "gameSyncStack": {
+      "publicationMode": "BRANCH_PR_PLUS_DRIVE",
+      "mainWriteAuthorized": false,
+      "status": "CURRENT_STACK_BRANCH_OUTPUTS_PRESENT; AUTHORITATIVE_LOCK_AND_EXACT_HEAD_PRIVATE_EXECUTION_GATES_REMAIN",
+      "driveCheckpoint": "GameSync Stack Upgrade CURRENT"
     },
     "ferrum": {
-      "status": "ACTIVE_BRANCH_GATED_WORK",
-      "repairAction": "Keep Ferrum Evolution enabled; do not bypass its verification gates."
+      "main": "cd1c44db73ac68edbd52eda526bea51ab09d4447",
+      "verifiedRun56Product": "2fbb96eaff23a747b8dfce9041c9a6204791f439",
+      "verifiedRun56Ci": 32299963354,
+      "activeStatusRepairPr": {"pr": 69, "head": "f92181c34321d2cf815190dfb016930ee0758574"},
+      "activeGameSyncRecoveryPr": {"pr": 62, "head": "0a0dfbd9f91abc92f257d604761f9c084778306b"},
+      "recoveryBoundary": "Public compute and npm are proven available; private GameSync checkout remains authorization/allocation blocked."
     }
   }
 }
