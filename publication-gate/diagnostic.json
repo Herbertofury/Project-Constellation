@@ -1,7 +1,57 @@
 {
-  "schema": "project-constellation.publication-diagnostic/1",
-  "workflowSha": "837fc60977fe6c3c30ffb6900f7ba958043a5c5f",
+  "schema": "project-constellation.publication-diagnostic/2",
+  "workflowSha": "2b948a2609bf279be30a4f1dcde0f264081228e7",
   "downloadOutcome": "success",
   "verifyOutcome": "failure",
-  "checkedAt": "2026-08-19T01:04:17Z"
+  "checkedAt": "2026-08-19T01:05:07Z",
+  "actual": {
+    "Bert_Project_Second_Brain_Website.zip": {
+      "exists": true,
+      "size": 902183,
+      "sha256": "07ddf2abe77223e7c5e633304c666db5f7cd6774318798186f1f2fb1b2bfe9b7",
+      "expectedSize": 144481,
+      "expectedSha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c",
+      "match": false
+    },
+    "Bert_Project_Constellation_Quick_View.html": {
+      "exists": true,
+      "size": 901983,
+      "sha256": "3a908a79ccef9dbaac52088338226b6f350a31cdc5faf34e925342778564abbf",
+      "expectedSize": 128283,
+      "expectedSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+      "match": false
+    },
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+      "exists": true,
+      "size": 902061,
+      "sha256": "be0ce24bb6fb54b0024a6b4e172052e8a22920ccae076a34b8f8baf8fc45e766",
+      "expectedSize": 143064,
+      "expectedSha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8",
+      "match": false
+    },
+    "Bert_Project_Wiki_Pack.zip": {
+      "exists": true,
+      "size": 902128,
+      "sha256": "717e9ee6c55915bf3847dba3a86a4395725081d3094c99715e3fae02b6695899",
+      "expectedSize": 183831,
+      "expectedSha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891",
+      "match": false
+    },
+    "Project-Constellation-Project-Catalog.json": {
+      "exists": true,
+      "size": 902238,
+      "sha256": "ad21233e9a816cb1b301343217087e967f53ebb3becba418df809db1adf9722e",
+      "expectedSize": 116737,
+      "expectedSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "match": false
+    },
+    "Project-Constellation-Research-Suggestions.json": {
+      "exists": true,
+      "size": 902162,
+      "sha256": "c3ef3b6a587780e41b0c1723add6120c6b83503e957b23565c3ff4ba7d072312",
+      "expectedSize": 13295,
+      "expectedSha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6",
+      "match": false
+    }
+  }
 }
