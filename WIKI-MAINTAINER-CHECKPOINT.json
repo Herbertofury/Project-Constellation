@@ -1,0 +1,57 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "updatedAt": "2026-08-19T09:12:00Z",
+  "reviewedProjects": [
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012",
+    "PRJ-013",
+    "PRJ-014"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-014",
+      "name": "Grim Dawn Cairn Codex",
+      "wikiSourcePath": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "sourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
+      "sourceBlob": "b1410e83bb4460bbf6e3223e851a750f124662c3",
+      "summary": "Expanded the recovery-only wiki into a detailed current-game freshness and qualification guide. Updated the verified official game baseline to Grim Dawn v1.3.0.5, added concrete v1.3.0.5 audit cases, immutable artifact recovery, browser/navigation/control verification, v3/v4/v5 localStorage migration testing, Content Freshness Manifest rules, domain-by-domain game-data auditing, exact contextual-link validation, offline behavior, full-data performance guardrails, troubleshooting, and release qualification gates.",
+      "sourceEvidence": {
+        "historicalArtifact": "Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html",
+        "artifactBytesRecovered": false,
+        "currentOfficialGameBaseline": "v1.3.0.5",
+        "baselineCheckedAt": "2026-08-19"
+      },
+      "driveMirror": {
+        "fileId": "1mVb4bNC3MUInGUGY_WAXvlNqsxxlMZrJPmhzaVY7_CY",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 20560,
+        "markdownExportSha256": "e4a4ba23ac2e7403727b31e500d466d11337597bac862fdcb05655b06274caec",
+        "contentReread": "pass"
+      },
+      "githubWikiPublication": {
+        "sourceCommitStatusObserved": "no wiki-publication status returned yet",
+        "complete": false,
+        "requiredNextVerification": "Resolve the exact Sync GitHub Wiki run for source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and require successful ProjectDump.wiki.git push, fresh clone, byte comparison, and Wiki master commit before calling the update complete."
+      }
+    }
+  ],
+  "noChangeReviews": {
+    "PRJ-010": "Herbertofury/FlipForge remains a placeholder repository at initial commit 03cb2057c480929831852fed8fd866954e3ad5c0. Drive search still resolves continuity material rather than canonical FlipForge/Farm Material Ranker/No-Hitch implementation bytes. Existing wiki already states this boundary and the Jagex-launched restart gate.",
+    "PRJ-011": "Canonical Sims 4 Accelerator implementation source remains unresolved; Drive search still returns continuity material. Existing wiki already documents the current DX11-first baseline and external measurement-first contract.",
+    "PRJ-012": "No canonical overlay repository or runnable DLL resolved. Existing wiki already documents the DX11/PresentMon measurement boundary and unresolved relationship to PRJ-011.",
+    "PRJ-013": "No newer Money App-specific implementation evidence resolved. Existing wiki correctly preserves v38 lineage and routes active implementation authority through PCX-032 Profit Nova unless explicitly split again."
+  },
+  "nextResearchCursor": [
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019"
+  ],
+  "openObligations": [
+    "Verify and record the actual GitHub Wiki publication for PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 before treating that page update as fully published.",
+    "Continue tracked-project wiki maintenance after the publication verification, beginning with PRJ-015 through PRJ-019.",
+    "Keep the recurring wiki-maintenance service open and ongoing."
+  ]
+}
