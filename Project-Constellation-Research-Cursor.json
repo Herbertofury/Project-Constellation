@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T03:13:00Z",
+  "updatedAt": "2026-08-19T04:08:00Z",
   "completedCursor": [
-    "PCX-043",
-    "PCX-044",
-    "PCX-045",
-    "PCX-046",
-    "PCX-047"
-  ],
-  "nextCursor": [
     "PCX-048",
     "PCX-049",
     "PCX-050",
     "PCX-051",
     "PCX-052"
   ],
-  "selectionReason": "PCX-045 Feature Foundry Object Intelligence had a material documentation gap: its prior page still treated V11 as the strongest durable Object Atlas evidence even though project-owned V23 artifacts prove Object Atlas schema 13/build 23.0.0, 142/142 validation, 831 object affordances, 20 context commands, 170/170 Theme Worlds cross-references, and a 28/28 Chromium interaction pass. The page was rewritten around the V23 Object Atlas authority while preserving the later V33 runnable-product and newer V2-253 maintainable-source boundaries. ProjectDump source commit 987bc1a82c3b04a2ed66cde7f8783a99f751713e published through Wiki workflow 32211061129 to Wiki master 0f7bb038878aab1c5c2cd4f41565e456c83d7bf3 with ProjectDump.wiki.git push, fresh clone and complete byte verification. The matching Drive wiki was re-read and Markdown-export verified at 21,503 bytes with SHA-256 07d285b34fa88c5a484541cbf48eb6ed5ef52fc19e17bf5c0a8bc638e10d95ed. PCX-043, PCX-044, PCX-046 and PCX-047 were rechecked without a newer verified project-owned delta sufficient to justify documentation churn. Continue at PCX-048 through PCX-052.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0312Z-pcx-043-047-wiki-delta.json",
+  "nextCursor": [
+    "PCX-053",
+    "PCX-054",
+    "PCX-055",
+    "PCX-056",
+    "PCX-057"
+  ],
+  "selectionReason": "PCX-051 GameSync Capability Truth / UI QoL had a material stale-evidence gap after GameSync Next main advanced to cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The project-owned parity matrix now marks Bounty, Animation Tracker, and Universal Game Tracker verified, while the prior wiki still described Bounty and Animation Tracker as gaps. The page was corrected with current isolated-Opera evidence, status-transition provenance, and dependency-aware stale-evidence rules. ProjectDump source commit b444e28a0afc0b4aa17a2abc9cc7436868999225 published through Wiki workflow 32214436121 to Wiki master 2522c2ceb34e8aee8d46c1b8618f2c1757fa5efc with ProjectDump.wiki.git push, fresh clone and complete byte verification. The matching Drive wiki was re-read and Markdown-export verified at 17,349 bytes with SHA-256 f44c2b83252b86d574d8cc8c62ffc30d0ac082830a85c93d770a06af3449e363. PCX-048, PCX-049, PCX-050 and PCX-052 were rechecked without a newer verified project-specific delta sufficient to justify documentation churn. Continue at PCX-053 through PCX-057.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0406Z-pcx-048-052-wiki-delta.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
