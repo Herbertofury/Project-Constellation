@@ -1,57 +1,65 @@
 {
   "schema": "project-constellation.wiki-maintainer-checkpoint/1",
-  "updatedAt": "2026-08-19T09:12:00Z",
+  "updatedAt": "2026-08-19T10:09:00Z",
   "reviewedProjects": [
-    "PRJ-010",
-    "PRJ-011",
-    "PRJ-012",
-    "PRJ-013",
-    "PRJ-014"
-  ],
-  "materialUpdates": [
-    {
-      "projectId": "PRJ-014",
-      "name": "Grim Dawn Cairn Codex",
-      "wikiSourcePath": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
-      "sourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
-      "sourceBlob": "b1410e83bb4460bbf6e3223e851a750f124662c3",
-      "summary": "Expanded the recovery-only wiki into a detailed current-game freshness and qualification guide. Updated the verified official game baseline to Grim Dawn v1.3.0.5, added concrete v1.3.0.5 audit cases, immutable artifact recovery, browser/navigation/control verification, v3/v4/v5 localStorage migration testing, Content Freshness Manifest rules, domain-by-domain game-data auditing, exact contextual-link validation, offline behavior, full-data performance guardrails, troubleshooting, and release qualification gates.",
-      "sourceEvidence": {
-        "historicalArtifact": "Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html",
-        "artifactBytesRecovered": false,
-        "currentOfficialGameBaseline": "v1.3.0.5",
-        "baselineCheckedAt": "2026-08-19"
-      },
-      "driveMirror": {
-        "fileId": "1mVb4bNC3MUInGUGY_WAXvlNqsxxlMZrJPmhzaVY7_CY",
-        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
-        "markdownExportBytes": 20560,
-        "markdownExportSha256": "e4a4ba23ac2e7403727b31e500d466d11337597bac862fdcb05655b06274caec",
-        "contentReread": "pass"
-      },
-      "githubWikiPublication": {
-        "sourceCommitStatusObserved": "no wiki-publication status returned yet",
-        "complete": false,
-        "requiredNextVerification": "Resolve the exact Sync GitHub Wiki run for source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and require successful ProjectDump.wiki.git push, fresh clone, byte comparison, and Wiki master commit before calling the update complete."
-      }
-    }
-  ],
-  "noChangeReviews": {
-    "PRJ-010": "Herbertofury/FlipForge remains a placeholder repository at initial commit 03cb2057c480929831852fed8fd866954e3ad5c0. Drive search still resolves continuity material rather than canonical FlipForge/Farm Material Ranker/No-Hitch implementation bytes. Existing wiki already states this boundary and the Jagex-launched restart gate.",
-    "PRJ-011": "Canonical Sims 4 Accelerator implementation source remains unresolved; Drive search still returns continuity material. Existing wiki already documents the current DX11-first baseline and external measurement-first contract.",
-    "PRJ-012": "No canonical overlay repository or runnable DLL resolved. Existing wiki already documents the DX11/PresentMon measurement boundary and unresolved relationship to PRJ-011.",
-    "PRJ-013": "No newer Money App-specific implementation evidence resolved. Existing wiki correctly preserves v38 lineage and routes active implementation authority through PCX-032 Profit Nova unless explicitly split again."
-  },
-  "nextResearchCursor": [
     "PRJ-015",
     "PRJ-016",
     "PRJ-017",
     "PRJ-018",
     "PRJ-019"
   ],
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-018",
+      "name": "MO2 Drag-and-Drop Line Restorer",
+      "wikiSourcePath": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "sourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "sourceBlob": "dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3",
+      "summary": "Expanded the 1.1.0 wiki into a practical operations and qualification guide using the recovered project-owned README, test report, package hash, and coordinated drag/drop root-cause evidence. Added exact native-renderer source references, renderer/customizer controls, install/replace workflow, view-discovery and overlay ownership boundaries, the full visual-only safety contract, all 15 verified offscreen checks, the 100,000-calculation performance sample, coordinated synthetic-column failure context, a complete real-host acceptance matrix, Host Drag Contract Recorder design, troubleshooting, source-recovery priorities, and explicit v2.5.2 stable versus 2.5.3 beta 12 development-source qualification lanes.",
+      "sourceEvidence": {
+        "version": "1.1.0",
+        "packageSha256": "615b3b05e081ce6c529b4e9e117dbdc207f30e0dca5c858c31739a0981da7b56",
+        "developmentHostSource": "MO2 2.5.3 beta 12",
+        "currentStableHostGate": "MO2 v2.5.2",
+        "stableHostCheckedAt": "2026-08-19",
+        "offscreenValidation": "pass",
+        "indicatorCalculations": 100000,
+        "averageIndicatorCalculationMicroseconds": 3.318
+      },
+      "driveMirror": {
+        "fileId": "1SfPZROUniOq2xy1PaBHpU3zHW-wgwpFfs2w3JXNx0rg",
+        "folderPurpose": "Project Wikis",
+        "markdownExportBytes": 21842,
+        "markdownExportSha256": "5c43eda49ce93edd666d8d908d47e67f97784291d760c9d94e598ef1c2febe8c",
+        "contentReread": "pass"
+      },
+      "githubWikiPublication": {
+        "sourceCommitStatusObserved": "no wiki-publication status returned yet as of 2026-08-19T10:09Z",
+        "complete": false,
+        "requiredNextVerification": "Resolve the exact Sync GitHub Wiki run for source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 and require successful ProjectDump.wiki.git push, fresh clone, full byte comparison, and resulting Wiki master commit before calling this page update fully published."
+      }
+    }
+  ],
+  "noChangeReviews": {
+    "PRJ-015": "Bethesda Plugin Info 1.5.3 wiki already preserves the shared drag/drop correction, v1.5.0 validation history, current MO2 v2.5.2 stable-host gate, coordinated-stack acceptance matrix, and unresolved real Windows qualification boundary. No newer canonical project-owned source was resolved in this pass.",
+    "PRJ-016": "Bethesda Creations Version Tracker 2.4.3 wiki already preserves the v2.3.1 sidecar-to-central-state migration, shared drag/drop correction, current stable-host gate, and real-host migration/conflict/restart acceptance requirements. No newer verified implementation delta was resolved.",
+    "PRJ-017": "MO2 Image Column 1.4.12 wiki already preserves broad multi-source image resolution, compact-row behavior, current stable-host gate, delegate/drop-contract safeguards, and the unresolved canonical-source/live-stack qualification boundary. No material newer project-owned delta was found.",
+    "PRJ-019": "MO2 Performance Accelerator 4.0.1 wiki already documents the v4.0.0 deleted-wrapper crash, exact-widget 4.0.1 correction, event-driven design, host hot-path instrumentation contract, current MO2 v2.5.2 gate, and real Windows acceptance matrix. The complete 4.0.1 source tree remains unresolved, so no speculative rewrite was made."
+  },
+  "carriedOpenObligations": [
+    "PRJ-014 Grim Dawn Cairn Codex source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 still has no wiki-publication status through the connected GitHub status API; its actual GitHub Wiki publication remains unverified and must not be called complete."
+  ],
+  "nextResearchCursor": [
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024"
+  ],
   "openObligations": [
-    "Verify and record the actual GitHub Wiki publication for PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 before treating that page update as fully published.",
-    "Continue tracked-project wiki maintenance after the publication verification, beginning with PRJ-015 through PRJ-019.",
+    "Verify and record the actual GitHub Wiki publication for PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 before treating the update as fully published.",
+    "Preserve the older PRJ-014 GitHub Wiki publication-proof blocker until an exact successful Sync GitHub Wiki run can be associated with its source update.",
+    "Continue tracked-project wiki maintenance with PRJ-020 through PRJ-024 after publication verification work.",
     "Keep the recurring wiki-maintenance service open and ongoing."
   ]
 }
