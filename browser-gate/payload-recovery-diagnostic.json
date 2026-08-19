@@ -35,14 +35,23 @@
         },
         {
           "name": "master.b64.part03",
-          "bytes": 12948
+          "bytes": 12949
         }
       ],
-      "currentError": "BadGzipFile('CRC check failed')",
-      "fallbackError": "Error('Invalid base64-encoded string: number of data characters (43049) cannot be 1 more than a multiple of 4')",
-      "sizeMatch": false,
-      "shaMatch": false
+      "encodedChars": 38948,
+      "filteredChars": 38948,
+      "invalidCount": 0,
+      "invalidFirst": [],
+      "compressedBytes": 29210,
+      "compressedSha256": "e900ea9528f27bfc61a6d531d475cd6b73282fb30f54d1fba31141e76f75c318",
+      "decodedBytes": 143064,
+      "decodedSha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8",
+      "source": "current-main-payload",
+      "sizeMatch": true,
+      "shaMatch": true,
+      "canonicalEncodedChars": 38948,
+      "canonicalPart": "master.b64.part01"
     }
   },
-  "status": "DIAGNOSTIC_FAILED"
+  "status": "SANITIZED_EXACT"
 }
