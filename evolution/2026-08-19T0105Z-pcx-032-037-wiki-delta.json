@@ -90,6 +90,24 @@
       "note": "No newly resolved canonical Herbertofury repository delta justified changing the already detailed current wiki in this pass."
     }
   ],
+  "durableCheckpoint": {
+    "githubPath": "project-constellation/evolution/2026-08-19T0105Z-pcx-032-037-wiki-delta.json",
+    "driveFileId": "1Cf5FQsQ7jtI-H8Xc5qch6xW57G0mOwHRaC-UkfAHvjM",
+    "driveTitle": "Project Constellation Wiki Maintainer Checkpoint - PCX-032-037 - 2026-08-19T0105Z",
+    "driveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveRevisionId": "AIroW35Ye6gfs564n9q9GAEgFF3n_f0LA0pHKR172HkJZrSUDQECJLYX2YbRSjvBvP8a1Hv9NYLIjPpTARmDl2NSAlxIQil4si3GEesf5dM",
+    "driveMarkdownBytes": 5697,
+    "driveMarkdownSha256": "79a988f33db079ea270a324f8cd2c5e61439ce22ac6125a0541402d8745defc1",
+    "roundTrip": "passed"
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubBlob": "baf384be277f3d5abbac0d550d5b06f104b2ee22",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveRevisionId": "AIroW35F5jwtMTQmlSRtZPLqVXY2QttDysjrtCBR2RqqVkU2r140TObdWnNXEVaTtQhvhl_rw2MpLdCzgykuYq0loAwdEH3AhDXImjQjeDQ",
+    "driveTextBytes": 1796,
+    "driveTextSha256": "46f803c233a7d756a98bd32b6f7dad2ba8df5c80754b9091c2aa12ae0bce0286"
+  },
   "nextCursor": [
     "PCX-038",
     "PCX-039",
