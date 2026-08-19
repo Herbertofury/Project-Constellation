@@ -1,8 +1,8 @@
 {
   "schema": "project-constellation.browser-gate/1",
-  "workflowSha": "7bde1fd9fc9d3f5a836e4d5d1889e65f2a997904",
+  "workflowSha": "1f309392a8db1dcfbb0262be1e108534d4ef92db",
   "candidateVersion": "0.5.1",
   "candidateSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
   "status": "failure",
-  "checkedAt": "2026-08-19T17:07:44Z"
+  "checkedAt": "2026-08-19T17:09:48Z"
 }
