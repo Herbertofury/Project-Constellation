@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T06:16:00Z",
+  "updatedAt": "2026-08-19T08:14:00Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,22 +8,22 @@
   "repairs": [
     {
       "area": "Project Constellation recurring task health",
-      "action": "Project Constellation Evolution was found disabled while its recurring obligation and v0.5.1 GitHub publication debt remain incomplete; re-enabled immediately and rechecked enabled state.",
+      "action": "Project Constellation Evolution was found disabled while its permanent recurring obligation and v0.5.1 GitHub publication debt remain incomplete; re-enabled immediately and a final task scan confirmed it enabled.",
       "result": "VERIFIED_ENABLED"
     },
     {
-      "area": "Project Constellation authenticated Drive-to-GitHub recovery",
-      "action": "Preserved the already verified site payload staging on canonical GitHub main and rejected unattached connector blob experiments whose content SHA could not be deterministically matched. No mismatched test blob was added to a tree or commit.",
-      "result": "CANONICAL_TREE_PRESERVED; RECOVERY_CONTINUES"
+      "area": "Project Constellation GitHub publication recovery",
+      "action": "Observed the new public deterministic recovery workflow on canonical ProjectDump main at 4db5d38e2dfcfedf1933b4de1c56109ce42df51c. It reconstructs the verified v0.5.1 artifacts from durable GitHub browser-gate evidence, verifies the six expected hashes/sizes, retries against current origin/main, and promotes state only after independent origin verification. Canonical Quick View is still absent and the catalog is still stale on the currently observed main, so publication debt remains open until the workflow's final published objects are independently observed.",
+      "result": "RECOVERY_PATH_IMPROVED; FINAL_GITHUB_OBJECT_VERIFICATION_PENDING"
     }
   ],
   "health": {
-    "scheduledTasks": "ACTIVE_RECURRING_TASKS_ENABLED_WITH_ONE_INTENTIONALLY_RETIRED_DUPLICATE",
+    "scheduledTasks": "ALL_NON_RETIRED_RECURRING_TASKS_ENABLED",
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
     "retiredDuplicateCount": 1,
-    "privateHostedRunnerDiagnosis": "CONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
-    "privateHostedRunnerEvidence": "Pinterest publication and current private GameSync proposal jobs continue to fail before workflow steps execute.",
+    "privateHostedRunnerDiagnosis": "DURABLE_OPEN_EXTERNAL_BLOCKER",
+    "privateHostedRunnerEvidence": "Pinterest retry remains enabled without verified GitHub publication completion; private GameSync workers and lead remain enabled while the previously verified private-repository hosted-runner startup blocker is unresolved.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -42,21 +42,29 @@
         "artifactCount": 6
       },
       "githubCanonical": {
-        "status": "RECONCILIATION_IN_PROGRESS_AUTHENTICATED_CONNECTOR_TO_GIT_DATA_PATH",
-        "payloadPath": "project-constellation/publication-payload/v0.5.1/site",
-        "payloadCommit": "6210e8f9f4b6af24c4d5e1695f5bc43020a647ee",
-        "stagedArtifact": "Bert_Project_Second_Brain_Website.zip",
-        "stagedBytes": 81000,
-        "expectedBytes": 144481,
-        "canonicalQuickViewObserved": "MISSING",
+        "status": "PUBLIC_DETERMINISTIC_RECONSTRUCTION_WORKFLOW_INSTALLED_FINAL_OBJECTS_NOT_YET_VERIFIED",
+        "observedMainSha": "4db5d38e2dfcfedf1933b4de1c56109ce42df51c",
+        "recoveryWorkflow": ".github/workflows/recover-project-constellation-v051-deterministic.yml",
+        "browserGateEvidencePath": "project-constellation/browser-gate",
+        "legacyPayloadPath": "project-constellation/publication-payload/v0.5.1/site",
+        "legacyStagedBytes": 81000,
+        "legacyExpectedBytes": 144481,
+        "canonicalQuickViewObserved": "MISSING_404",
+        "canonicalCatalogObservedBytes": 48132,
+        "canonicalCatalogExpectedBytes": 116737,
+        "canonicalCatalogStatus": "STALE",
         "debtCleared": false,
-        "requiredNextEvidence": "Continue deterministic SHA-verified staging/reconstruction of exact Drive-promoted bytes, publish all six canonical GitHub objects, round-trip verify size/SHA-256, then promote Project-Constellation-Automation-State.json lastAutomationHash and clear publication debt."
+        "requiredNextEvidence": "Observe the workflow-published canonical GitHub six-object set; independently re-read/reconstruct each object and verify expected byte size/SHA-256 plus ZIP/JSON integrity; confirm lastAutomationHash promotion and VERIFIED_CLEARED debt state. If the workflow does not complete, diagnose and repair that workflow without weakening verification."
       },
       "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING"
     },
     "privateActions": {
-      "pinterest": {"status": "PRE_EXECUTION_BLOCKED"},
-      "gameSync": {"status": "CURRENT_PRIVATE_PROPOSAL_HEADS_PRE_EXECUTION_BLOCKED"}
+      "pinterest": {
+        "status": "RETRY_ENABLED_NO_VERIFIED_GITHUB_COMPLETION_OBSERVED"
+      },
+      "gameSync": {
+        "status": "WORKERS_AND_LEAD_ENABLED_PRIVATE_HOSTED_RUNNER_BLOCKER_REMAINS_OPEN"
+      }
     }
   }
 }
