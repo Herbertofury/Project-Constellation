@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T21:36:47Z",
+  "updatedAt": "2026-08-19T22:57:00Z",
   "completedCursor": [
-    "PCX-035",
-    "PCX-037",
-    "PCX-038",
-    "PCX-039",
-    "PCX-040"
-  ],
-  "nextCursor": [
     "PCX-041",
     "PCX-042",
     "PCX-043",
     "PCX-044",
     "PCX-045"
   ],
-  "selectionReason": "Publication-backlog-only durability repair. A newer material wiki update for PCX-044 Feature Foundry Living Ecology landed at source commit fe4f261bfbe1762ee56e2ff5bc498c80f61a12e7 after the prior cursor checkpoint. GitHub publication was independently verified by Sync GitHub Wiki run 32303842702, job 96232187212, which checked out the exact source head, pushed ProjectDump.wiki.git, fresh-cloned the Wiki, byte-compared the complete remote page set against wikis/, and recorded Wiki master 3b8e3f1488f9aedcd01753eb26aff8fa5dbb9b65. The required Drive wiki mirror was missing, so this run created PCX-044 Feature Foundry Living Ecology Wiki in the canonical Project Wikis folder, independently re-read it, and exported 26376 Markdown bytes with SHA-256 746c9647bd51e1a98eb993e5073b7a10d6b778f8d49bec37135ae3e6bc1884f8. No new wikis/** source delta was created. Hold PCX-041 through PCX-045 for the next run so the group can be rechecked after this durability backlog is fully sealed.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T2136Z-wiki-pcx-044-drive-durability-repair.json",
+  "nextCursor": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ],
+  "selectionReason": "PCX-041 through PCX-045 were rechecked against current project-owned evidence. PCX-042 GameSync Next required material refresh because its wiki had stale proposal heads and documented only two pending lanes while the connected repository now has independent draft lanes for package-build performance, Vite, Petz persistence, Playwright/Oxlint/ws, React/Three, TypeScript 7, PlayCanvas/Tauri, and the broken Opera compatibility entrypoint. Source commit 8f0b22828e8db5af2f4bfdcd9f2a2b741a1de398 was published by Sync GitHub Wiki run 32310775792 and full-set byte verification produced Wiki master 513fde0edaf6659e83d322a8af0c7a805f76f6bd. The canonical Drive mirror was updated in place, re-read for the proposal matrix and PR #15 exact head, and exported as 47795 Markdown bytes with SHA-256 d65969fa00b36266752a3586955b13ccb3fa5ded9a6dc3a142a8160af0f6a181. PCX-041, PCX-043, PCX-044, and PCX-045 had no stronger verified delta requiring source churn. Advance to PCX-046 through PCX-050.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T2256Z-wiki-pcx-041-045.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
