@@ -21,6 +21,7 @@ const fail = message => { throw new Error(message); };
 const expect = (condition, message) => { if (!condition) fail(message); };
 const countText = async () => (await page.locator('#count').textContent()) || '';
 const cardCount = async () => page.locator('#grid .card').count();
+const lensButton = name => page.locator('#lenses').getByRole('button', { name, exact: true });
 
 try {
   await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -45,7 +46,7 @@ try {
 
   const builtInLenses = ['Today', 'Review Queue', 'Blocked', 'Version proof', 'Research stale', 'Changed since last visit'];
   for (const name of builtInLenses) {
-    const button = page.getByRole('button', { name, exact: true });
+    const button = lensButton(name);
     expect(await button.count() === 1, `Missing built-in lens: ${name}`);
     await button.click();
     await page.waitForTimeout(50);
@@ -53,7 +54,7 @@ try {
     expect((await countText()).includes('63 tracked'), `${name} lens changed canonical tracked count`);
     expect(await cardCount() <= 63, `${name} lens rendered more than 63 project cards`);
   }
-  await page.getByRole('button', { name: 'All', exact: true }).click();
+  await lensButton('All').click();
   expect(await cardCount() === 63, 'All lens did not restore 63 visible cards');
 
   const featureCard = page.locator('#grid .card[data-id="PRJ-002"]');
@@ -65,14 +66,14 @@ try {
   await page.locator('#drawer').getByRole('button', { name: 'Close', exact: true }).click();
 
   await featureCard.getByRole('button', { name: 'Add Today', exact: true }).click();
-  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  await lensButton('Today').click();
   expect(await page.locator('#grid .card[data-id="PRJ-002"]').count() === 1, 'Today lens did not retain the selected PRJ-002 project');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#grid .card', { timeout: 15000 });
-  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  await lensButton('Today').click();
   expect(await page.locator('#grid .card[data-id="PRJ-002"]').count() === 1, 'Today state did not persist through reload/localStorage');
   await page.locator('#grid .card[data-id="PRJ-002"]').getByRole('button', { name: 'Remove Today', exact: true }).click();
-  await page.getByRole('button', { name: 'All', exact: true }).click();
+  await lensButton('All').click();
   expect(await cardCount() === 63, 'Removing Today state did not restore the complete All lens');
 
   await page.locator('#appResearch').click();
