@@ -1,0 +1,48 @@
+{
+  "schema": "project-constellation.wiki-publication-recovery/1",
+  "updatedAt": "2026-08-19T11:09:00Z",
+  "state": "BLOCKED_ACTIONS_EVENT_EXECUTION",
+  "publicationBacklog": [
+    {
+      "projectId": "PRJ-014",
+      "sourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
+      "sourcePath": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "wikiPublicationStatus": "MISSING"
+    },
+    {
+      "projectId": "PRJ-018",
+      "sourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "sourcePath": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "wikiPublicationStatus": "MISSING"
+    }
+  ],
+  "publisherEvidence": {
+    "workflowPath": ".github/workflows/sync-github-wiki.yml",
+    "workflowConfigVerified": true,
+    "workflowPushFiltersVerified": ["wikis/**", "tools/github-wiki/**", ".github/workflows/sync-github-wiki.yml"],
+    "workflowPermissionsVerified": ["contents: write", "statuses: write"],
+    "publisherContractHardeningCommit": "acb5a0b2521d4c784320bad6ba7fba7282985e5d",
+    "publisherContractHardeningStatus": "MISSING",
+    "issueTriggeredRecoveryWorkflowCommit": "02ff80f2903be6668215299eebef306090144ce7",
+    "issueTriggeredRecoveryIssue": 7,
+    "issueTriggeredRecoveryObservedState": "OPEN_NO_WORKFLOW_COMMENT_OR_CLOSURE",
+    "issueTriggeredRecoveryHeadStatus": "MISSING",
+    "independentPullRequestRecoveryHead": "e097903d1a083f3c3417245be5f1410eda0b57e7",
+    "independentPullRequestRecoveryStatus": "MISSING"
+  },
+  "diagnosis": "Eligible push, issue, and pull-request recovery paths are all observable in repository state but are not producing workflow/status evidence. The blocker is broader GitHub Actions event execution or observability, not a PRJ-014/PRJ-018 path-filter defect.",
+  "rules": {
+    "failClosed": true,
+    "newWikiSourceDeltasAllowed": false,
+    "advanceDocumentationCursorAllowed": false,
+    "completionRequires": [
+      "successful Sync GitHub Wiki run",
+      "ProjectDump.wiki.git push",
+      "fresh clone of reader-facing Wiki",
+      "complete byte comparison against wikis/",
+      "captured Wiki master commit"
+    ]
+  },
+  "nextAction": "Recover supported GitHub Actions execution or another authenticated full-wiki publication path, then publish and fresh-clone byte-verify the complete current wikis/ tree before resuming project documentation. PRJ-014 and PRJ-018 remain first backlog targets.",
+  "recurringObligation": "OPEN_AND_ONGOING"
+}
