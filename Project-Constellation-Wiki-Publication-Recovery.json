@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.wiki-publication-recovery/1",
-  "checkedAt": "2026-08-19T15:05:59Z",
+  "checkedAt": "2026-08-19T15:52:08Z",
   "status": "CLEARED",
   "sourceRepository": "Herbertofury/ProjectDump",
   "sourceBranch": "main",
@@ -47,6 +47,14 @@
     "cursorUpdateCommit": "dfe44a31bd57e6f491aa057e1f19a97662e3c3c7",
     "recoveryCheckpointCreateCommit": "95db23c67cbd80d9fb18b84735f5686f7697c803",
     "recoveryCheckpointDualPublishCommit": "b2a27c8f397afe2d09e91011bf05543be014ad59"
+  },
+  "triggerCloseout": {
+    "recoveryPullRequest": 9,
+    "recoveryPullRequestState": "closed-unmerged-after-successful-execution",
+    "recoveryIssue": 7,
+    "recoveryIssueState": "closed-completed",
+    "closedAt": "2026-08-19T15:52:08Z",
+    "reason": "Both independent recovery and canonical publisher paths passed complete fresh-clone Wiki byte verification; the execution-only PR and one-shot recovery issue no longer carry unresolved acceptance criteria."
   },
   "driveDurability": {
     "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
