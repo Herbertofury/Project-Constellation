@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.recovery-checkpoint/1",
-  "checkedAt": "2026-08-19T00:20:20Z",
+  "checkedAt": "2026-08-19T00:25:06Z",
   "sourceTask": "Recover stale Project Constellation v0.5.1 presentation browser gate",
   "status": "MEANINGFUL_RECOVERY_BROWSER_GATE_VERIFIED_GITHUB_RECONCILIATION_REMAINS",
   "candidate": {
@@ -11,14 +11,25 @@
     "catalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"
   },
   "failureRecovered": {
-    "previousResultCommit": "befff1c51a7e3db01fb72f49e941ffa73c0aebec",
-    "previousFailure": "Browser gate failed at an ambiguous/global exact-name lens selector and reported Missing built-in lens: Today even though the exact candidate contained the lens surface.",
-    "repairCommit": "f6080a6425c574676319a7023632eb44b4a12453",
-    "repair": "Scope lens selectors to the actual lens control group so unrelated controls do not invalidate exact built-in lens discovery.",
-    "verifiedResultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38"
+    "originalFailedResultCommit": "befff1c51a7e3db01fb72f49e941ffa73c0aebec",
+    "originalFailure": "Browser gate reported Missing built-in lens: Today because the verifier searched the global button surface rather than the dedicated lens control group.",
+    "canonicalRepairCommit": "f6080a6425c574676319a7023632eb44b4a12453",
+    "canonicalRepair": "Scope built-in lens selectors to #lenses.",
+    "firstVerifiedResultCommit": "67f29ed34d8109892cfa1e2f6d30c61ce6ff8b38",
+    "recoverySelfAudit": {
+      "temporaryVerifierCommit": "a3b344fe098cf382d1c0501ab26afcf20015b063",
+      "temporaryVerifierResult": "failure: an attempted generic text-matching hardening reintroduced ambiguity and was rejected by real CI",
+      "restoredVerifierCommit": "2bbc4cb178b511b8d01c308d79497d785f1583b5",
+      "restoredVerifierBlob": "0d13356baa2ed20974201e1158398b328f70b409",
+      "temporaryVerifierCleanupCommit": "df8db80e451d579ddedc899d6cf8fe3b25f91a93",
+      "temporaryDiagnosticCleanupCommit": "d0bc487c95acfd3a91b6d52b509c597e36fe02bf",
+      "finalVerifiedResultCommit": "b31c3d270a2cfa3b8eb296ec49eece57158d1022"
+    }
   },
   "realBrowserAcceptance": {
     "status": "PASS",
+    "workflowSha": "2bbc4cb178b511b8d01c308d79497d785f1583b5",
+    "resultCommit": "b31c3d270a2cfa3b8eb296ec49eece57158d1022",
     "checks": [
       "load",
       "all-63-cards",
@@ -44,7 +55,16 @@
       "Bert_Project_Wiki_Pack.zip": {"id": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24", "size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891"},
       "Project-Constellation-Project-Catalog.json": {"id": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq", "size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab"},
       "Project-Constellation-Research-Suggestions.json": {"id": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8", "size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"}
+    },
+    "independentRecoveryDownloadVerification": {
+      "status": "PASS",
+      "verified": ["six exact byte sizes", "six exact SHA-256 values", "website ZIP integrity", "wiki ZIP integrity", "catalog JSON parse", "research JSON parse"]
     }
+  },
+  "githubCanonicalPublication": {
+    "publisherWorkflowCommit": "421b5710a736dfd6d761bdf5825b1f1e7242bc0f",
+    "status": "IN_PROGRESS_NOT_YET_INDEPENDENTLY_RECONCILED",
+    "note": "The GitHub canonical publisher was added after browser acceptance. Final six-object publication and lastAutomationHash promotion remain open and are not represented as completed in this checkpoint."
   },
   "stateRepairs": {
     "publicationDebtCommit": "777a8a7b28e35f48e6af00415b0d0a6e84a01ec9",
