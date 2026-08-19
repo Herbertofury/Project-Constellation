@@ -41,7 +41,12 @@
       "commit": "9fbd1764cc840d1e70e8517259a85aeb1a4ca781",
       "blob": "81b2286c75e76f663f7b93e210f5079b9fa37070",
       "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-057-project-catalog-cross-chat-database",
-      "publicationStatus": "PENDING_WORKFLOW_PROOF"
+      "workflowRun": 32218103495,
+      "workflowConclusion": "success",
+      "wikiGitPush": "pass",
+      "freshCloneByteComparison": "pass",
+      "wikiMasterCommit": "69aa425dddfb19e873dc276a181234717900c943",
+      "publicationStatus": "VERIFIED"
     },
     "driveWikiMirror": {
       "fileId": "152UrTZclCJS3yBQ8QOYmXQHTeMSA9ShhPabTPHcGP8M",
