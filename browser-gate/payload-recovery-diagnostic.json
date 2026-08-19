@@ -1,0 +1,102 @@
+{
+  "schema": "project-constellation.v051-payload-recovery/1",
+  "payloads": {
+    "qv": {
+      "parts": [
+        {
+          "name": "qv.b64.part01",
+          "bytes": 6788
+        },
+        {
+          "name": "qv.b64.part02",
+          "bytes": 6788
+        },
+        {
+          "name": "qv.b64.part03",
+          "bytes": 6788
+        },
+        {
+          "name": "qv.b64.part04",
+          "bytes": 6788
+        },
+        {
+          "name": "qv.b64.part05",
+          "bytes": 6788
+        },
+        {
+          "name": "qv.b64.part06",
+          "bytes": 6800
+        }
+      ],
+      "encodedChars": 40740,
+      "filteredChars": 40740,
+      "invalidCount": 0,
+      "invalidFirst": [],
+      "compressedBytes": 30555,
+      "compressedSha256": "a9eca77e47031ac1fbbaf977ccf5dc44f9366b5b84f3e07233af64c2bed35ce9",
+      "decodedBytes": 128283,
+      "decodedSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+      "sizeMatch": true,
+      "shaMatch": true,
+      "canonicalEncodedChars": 40748,
+      "canonicalPart": "qv.b64.part01"
+    },
+    "master": {
+      "parts": [
+        {
+          "name": "master.b64.part01",
+          "bytes": 20023
+        }
+      ],
+      "encodedChars": 20021,
+      "filteredChars": 20013,
+      "invalidCount": 8,
+      "invalidFirst": [
+        {
+          "index": 10000,
+          "char": "[",
+          "ord": 91
+        },
+        {
+          "index": 10001,
+          "char": ".",
+          "ord": 46
+        },
+        {
+          "index": 10002,
+          "char": ".",
+          "ord": 46
+        },
+        {
+          "index": 10003,
+          "char": ".",
+          "ord": 46
+        },
+        {
+          "index": 10017,
+          "char": ".",
+          "ord": 46
+        },
+        {
+          "index": 10018,
+          "char": ".",
+          "ord": 46
+        },
+        {
+          "index": 10019,
+          "char": ".",
+          "ord": 46
+        },
+        {
+          "index": 10020,
+          "char": "]",
+          "ord": 93
+        }
+      ],
+      "compressedBytes": 15008,
+      "compressedSha256": "200db290850be26411eb3eb333b453bde8b0775085318ad1846dca31ff9f524f",
+      "error": "error('Error -3 while decompressing data: invalid distance too far back')"
+    }
+  },
+  "status": "DIAGNOSTIC_FAILED"
+}
