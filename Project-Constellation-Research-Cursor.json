@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T11:08:00Z",
+  "updatedAt": "2026-08-19T12:15:33Z",
   "completedCursor": [
     "PRJ-015",
     "PRJ-016",
@@ -12,7 +12,7 @@
     "PRJ-014",
     "PRJ-018"
   ],
-  "selectionReason": "Publication-backlog-first hold. PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 still return no wiki-publication status. The canonical Sync GitHub Wiki workflow was reread and still has main push filters for wikis/**, tools/github-wiki/**, and the workflow file itself, plus contents:write and statuses:write. The earlier meaningful publisher-contract hardening commit acb5a0b2521d4c784320bad6ba7fba7282985e5d likewise has no wiki-publication status. This run added a separate issue-triggered recovery workflow at 02ff80f2903be6668215299eebef306090144ce7 and opened recovery issue #7 to dispatch the existing workflow_dispatch publisher. The issue remained open with no workflow-written comment or closure, and commit 02ff80f2903be6668215299eebef306090144ce7 also returned no wiki-publication status after observation. An independently existing pull-request recovery head e097903d1a083f3c3417245be5f1410eda0b57e7 likewise has no statuses. Evidence now points to a broader GitHub Actions event-execution/observability outage rather than a page path-filter defect. Do not create new wiki source deltas or advance to PRJ-020 until the actual ProjectDump Wiki is published and fresh-clone/byte-verified. Keep PRJ-014 and PRJ-018 publication debt fail-closed.",
-  "sourceCheckpoint": "PUBLICATION_BACKLOG_ACTIONS_EVENT_EXECUTION_BLOCKED:2026-08-19T1108Z:PRJ-014,PRJ-018",
+  "selectionReason": "Publication-backlog-first hold remains active. PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 still return no wiki-publication status. The canonical Sync GitHub Wiki workflow was re-read and remains correctly configured for main pushes, manual dispatch, write/status permissions, and fresh-clone byte verification. Earlier eligible push, issue-trigger, and pull-request recovery paths produced no publication proof. This pass materially hardened the canonical publisher with an hourly scheduled safety-net trigger at commit e207d8ea1e1a36a4582f722fd3f3296312fb6afd, workflow blob 4b6bc2d42b74e5e47496d24ae1cc4dd7f11251c3. The first scheduled window at minute 11 UTC had still produced no wiki-publication status when checked at 2026-08-19T12:15:33Z. A known older successful wiki-publication status remains readable through the same connected GitHub status API, so the missing evidence is not a status-read failure. Continue treating the blocker as broader GitHub Actions event execution or observability. Scheduled runs can be delayed, so recheck the safety net on subsequent runs. Do not create new wiki source deltas or advance past this backlog until the actual ProjectDump Wiki is published and the complete page set is fresh-clone/byte-verified.",
+  "sourceCheckpoint": "PUBLICATION_BACKLOG_SCHEDULED_SAFETY_NET_ACTIVE:2026-08-19T1215Z:PRJ-014,PRJ-018",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
