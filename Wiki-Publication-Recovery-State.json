@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.wiki-publication-recovery/1",
-  "updatedAt": "2026-08-19T11:09:00Z",
+  "updatedAt": "2026-08-19T11:11:00Z",
   "state": "BLOCKED_ACTIONS_EVENT_EXECUTION",
   "publicationBacklog": [
     {
@@ -31,6 +31,27 @@
     "independentPullRequestRecoveryStatus": "MISSING"
   },
   "diagnosis": "Eligible push, issue, and pull-request recovery paths are all observable in repository state but are not producing workflow/status evidence. The blocker is broader GitHub Actions event execution or observability, not a PRJ-014/PRJ-018 path-filter defect.",
+  "dualPublication": {
+    "github": {
+      "recoveryStatePath": "project-constellation/Wiki-Publication-Recovery-State.json",
+      "researchCursorPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+      "issueTriggerWorkflowPath": ".github/workflows/sync-github-wiki-issue-trigger.yml",
+      "reReadVerified": true
+    },
+    "drive": {
+      "recoveryStateDocumentId": "1jmVY8fmw6j1h8WJFqKkSK0EQ0ZgbEWrS7wc6Nvdj2FA",
+      "recoveryStateExportBytes": 2483,
+      "recoveryStateExportSha256": "e4fc39ed50ddc09a56d250b74e32b32dbc063d26b25bd80578a08e6c52bf9693",
+      "researchCursorDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "researchCursorExportBytes": 1971,
+      "researchCursorExportSha256": "3b659c18d1a84994e5b78499c412c6bc4a6f288dd7d06f99ff8e87fd5c97a5aa",
+      "issueTriggerWorkflowDocumentId": "1v-MgQ8JcitVSdR_SXb_x_qirfVbQymmaYZQ9XcuGUdA",
+      "issueTriggerWorkflowExportBytes": 2209,
+      "issueTriggerWorkflowExportSha256": "54616b60fa6160457cc33de40badeb6e61a5892504bdaaed169bde60dd130115",
+      "parentProjectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "reReadVerified": true
+    }
+  },
   "rules": {
     "failClosed": true,
     "newWikiSourceDeltasAllowed": false,
