@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T13:05:40Z",
+  "updatedAt": "2026-08-19T14:10:00Z",
   "completedCursor": [
     "PRJ-015",
     "PRJ-016",
@@ -12,7 +12,7 @@
     "PRJ-014",
     "PRJ-018"
   ],
-  "selectionReason": "Publication-backlog-first hold remains active. PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 still return no wiki-publication status. The canonical Sync GitHub Wiki workflow remains correctly configured for main pushes, workflow_dispatch, the hourly safety-net schedule, write/status permissions, Wiki Git publication, fresh clone, and complete byte verification. Recovery workflow run 32245667123 now provides direct evidence that GitHub Actions event creation is working, but its dispatch-and-verify job 96045502127 remains queued. This narrows the blocker to runner execution/capacity or account-level Actions execution debt rather than trigger creation or status-read failure. No new wiki source delta is allowed and the cursor must not advance until the complete current wikis/ tree is published to ProjectDump.wiki.git and independently fresh-clone/byte-verified.",
-  "sourceCheckpoint": "PUBLICATION_BACKLOG_RUN_QUEUED_NO_RUNNER:2026-08-19T1305Z:PRJ-014,PRJ-018",
+  "selectionReason": "Publication-backlog-first hold remains active. PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 and PRJ-018 source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1 still have no independently verified Wiki publication proof. The earlier run 32245667123 was Project Constellation v0.5.1 artifact recovery rather than Wiki recovery; its logs nevertheless prove pull_request Actions runner execution and workflow_dispatch creation work. A dedicated same-repository pull_request Wiki publisher is now installed on main at 765641e7350bcc814378335bd010c3c0d839c92b. Activation PR #9 has created Wiki recovery run 32262312888 with job 96098240784, currently queued. No new wikis/** source delta is allowed and the cursor must not advance until this or another fully capable publisher pushes the complete current wikis/ tree to ProjectDump.wiki.git, captures the Wiki master commit, fresh-clones the remote Wiki, and passes the complete byte comparison.",
+  "sourceCheckpoint": "PUBLICATION_BACKLOG_PR_WIKI_RECOVERY_QUEUED:2026-08-19T1410Z:PRJ-014,PRJ-018",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
