@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T02:16:00Z",
+  "updatedAt": "2026-08-19T03:13:00Z",
   "completedCursor": [
-    "PCX-038",
-    "PCX-039",
-    "PCX-040",
-    "PCX-041",
-    "PCX-042"
-  ],
-  "nextCursor": [
     "PCX-043",
     "PCX-044",
     "PCX-045",
     "PCX-046",
     "PCX-047"
   ],
-  "selectionReason": "PCX-041 ChatGPT Ultimate Optimizer had a material documentation gap despite stable v1.0.1 release identity. Exact project-owned release source and closeout evidence were recovered and used to document the shared userscript/MV3 architecture, settings/profiles, IndexedDB archive schema, save-before-freeze Extreme mode, ChatGPT turn/streaming discovery, server-history mirror, export/recovery workflows, UI acceptance surface, installation, build/test gates, modification map, troubleshooting, and the blocked live-browser verification boundary. The page was published from ProjectDump source commit 2c451a42e8dd8295635a1e1e6b074033dc8b3e47 to real Wiki master f125081b4d28a670c50c9079bbcd0a3b2ab9dbbc with fresh-clone complete byte verification. The matching Drive wiki was re-read and Markdown-export verified at 28,966 bytes with SHA-256 b52899fd97252cdec95cbd9eb034de9c598e95d80cfa95a8386380116df5cd57. PCX-038, PCX-039, PCX-040 and PCX-042 were rechecked without a newer verified project-owned delta sufficient to justify documentation churn. Continue at PCX-043 through PCX-047.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0212Z-pcx-038-042-wiki-delta.json",
+  "nextCursor": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
+  "selectionReason": "PCX-045 Feature Foundry Object Intelligence had a material documentation gap: its prior page still treated V11 as the strongest durable Object Atlas evidence even though project-owned V23 artifacts prove Object Atlas schema 13/build 23.0.0, 142/142 validation, 831 object affordances, 20 context commands, 170/170 Theme Worlds cross-references, and a 28/28 Chromium interaction pass. The page was rewritten around the V23 Object Atlas authority while preserving the later V33 runnable-product and newer V2-253 maintainable-source boundaries. ProjectDump source commit 987bc1a82c3b04a2ed66cde7f8783a99f751713e published through Wiki workflow 32211061129 to Wiki master 0f7bb038878aab1c5c2cd4f41565e456c83d7bf3 with ProjectDump.wiki.git push, fresh clone and complete byte verification. The matching Drive wiki was re-read and Markdown-export verified at 21,503 bytes with SHA-256 07d285b34fa88c5a484541cbf48eb6ed5ef52fc19e17bf5c0a8bc638e10d95ed. PCX-043, PCX-044, PCX-046 and PCX-047 were rechecked without a newer verified project-owned delta sufficient to justify documentation churn. Continue at PCX-048 through PCX-052.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0312Z-pcx-043-047-wiki-delta.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
