@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T00:11:30Z",
+  "updatedAt": "2026-08-19T01:06:00Z",
   "completedCursor": [
-    "PCX-027",
-    "PCX-028",
-    "PCX-029",
-    "PCX-030",
-    "PCX-031"
-  ],
-  "nextCursor": [
     "PCX-032",
     "PCX-033",
     "PCX-034",
     "PCX-035",
     "PCX-037"
   ],
-  "selectionReason": "PCX-027 changed materially: connected GameSync V2-289 checkpoint and parity evidence proved that Archive Doctor remained part of the release/checkpoint publication system beyond the older 0.25.9 evidence. The wiki was expanded with exact V2-289 archive/source/part/oracle identities, byte-stable 0.25.12/V2-289 support-tool hashes, checkpoint and tamper fixtures, browser fallback operation and troubleshooting, atomic readiness/readback semantics, and a narrower unresolved-source boundary. ProjectDump source commit 206485d754be448c704e66d15ff4b292e5209455 published successfully to the real GitHub Wiki as master 098c5ad6c19e983d05130e04402c39d2bd0039f8 with fresh-clone byte verification. The matching Drive wiki was re-read and Markdown-export verified at 16,717 bytes with SHA-256 52af6b1d766acb3adcbe96e5b058606bb323d59ec0411d6302bb800cc304b36b. PCX-028, PCX-029, PCX-030 and PCX-031 were rechecked against current GitHub/Drive evidence without a material project-owned source delta, so no cosmetic churn was applied. Continue the tracked catalog rotation at PCX-032, PCX-033, PCX-034, PCX-035 and PCX-037; skip PCX-036 because it is the Project Constellation control-plane reference, not a normal project wiki target.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0011Z-pcx-027-031-wiki-delta.json",
+  "nextCursor": [
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042"
+  ],
+  "selectionReason": "PCX-034 changed materially after its prior wiki checkpoint. New Ferrum project-owned evolution evidence proves real Tauri v2 qualification on Linux and Windows through the provider-neutral W3C runner, native Windows WPF/UIA qualification through two independent Appium 3 drivers, and a verified CI critical-path split that retained all five Windows browsers while reducing the measured full CI wall clock from 349 seconds to 149 seconds. The Ferrum wiki was refreshed and published from ProjectDump source commit 4a23083aad7d9bf95d06195a7fb3efffc41522fb to real Wiki master 40e086e0e8436b72d2af76ab22ff01732c8a4a0e with fresh-clone complete byte verification. The matching Drive wiki was re-read and Markdown-export verified at 37,414 bytes with SHA-256 ec305efe1b4e20164a60fa0fc1ef60719c29414380552b2fa49c07659370058d. PCX-032, PCX-033, PCX-035 and PCX-037 were rechecked without a newer verified project-owned delta sufficient to justify documentation churn. Continue at PCX-038 through PCX-042; PCX-036 remains excluded as the Project Constellation control-plane reference.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T0105Z-pcx-032-037-wiki-delta.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
