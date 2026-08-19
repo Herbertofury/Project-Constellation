@@ -1,0 +1,104 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-19T01:05:00Z",
+  "projectGroup": [
+    "PCX-032",
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-037"
+  ],
+  "skippedControlPlane": "PCX-036",
+  "materialUpdates": [
+    {
+      "projectId": "PCX-034",
+      "name": "Ferrum Browser",
+      "readerWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-034-ferrum-browser",
+      "sourcePath": "wikis/PCX-034-ferrum-browser.md",
+      "sourceCommit": "4a23083aad7d9bf95d06195a7fb3efffc41522fb",
+      "sourceBlob": "e7ab6b5c01ad6f65d568d4bbafef5ea904b11166",
+      "wikiWorkflowRun": 32203631371,
+      "wikiMasterCommit": "40e086e0e8436b72d2af76ab22ff01732c8a4a0e",
+      "wikiPublication": "passed: ProjectDump.wiki.git push + fresh-clone complete byte comparison",
+      "driveWiki": {
+        "fileId": "11IOk6ZB78lOXoAUIa0vhZD9wioQ0QtG_Pq2cs7B0fD8",
+        "title": "PCX-034 Ferrum Browser Wiki",
+        "revisionId": "AIroW37VPHLqUxlTVwz2YFjXj-vItl7_nGjY522XqTMGqVn8t_uI0eHJ1mPFAvAD3DJI6Pn1OPwGMxih47eHGeaVULnp0Ek8KAPmJuUvprc",
+        "markdownBytes": 37414,
+        "markdownSha256": "ec305efe1b4e20164a60fa0fc1ef60719c29414380552b2fa49c07659370058d",
+        "roundTrip": "passed"
+      },
+      "verifiedDelta": {
+        "latestVerifiedMergedProductCommit": "8ff1d85d26500f415c01b7de1753608c4d689f80",
+        "latestVerifiedFullCi": 32201388085,
+        "tauri": {
+          "productCommit": "cf79303b8788d58fe274d7ce3e4a9b87d889c310",
+          "workflow": 32194473469,
+          "provider": "tauri-plugin-wdio-webdriver 1.3.0",
+          "tauri": "2.11.5",
+          "tauriBuild": "2.6.3",
+          "tauriRuntime": "2.11.3",
+          "tauriRuntimeWry": "2.11.4",
+          "requiredEmbeddedLinux": "passed",
+          "requiredEmbeddedWindows": "passed",
+          "officialLinuxReference": "passed",
+          "officialWindowsReference": "diagnostic-only"
+        },
+        "nativeWindows": {
+          "productCommit": "eb88b2149cf695edde2591e8e16d13bb43a90c8e",
+          "ferrumCi": 32199800957,
+          "workflow": 32199800977,
+          "providers": [
+            "appium-desktop-driver 2.4.5 / DesktopDriver",
+            "appium-novawindows-driver 1.4.4 / NovaWindows"
+          ],
+          "fixture": ".NET 8 WPF/UIA",
+          "fixtureSha256": "E865F876A7999CEF1F067484C8E7007A809EA2A8A4EE7A65812498D4123A9330",
+          "acceptance": "both providers passed the same AutomationId find/fill/click/assert/screenshot/source workload twice in distinct clean sessions"
+        },
+        "ciCriticalPath": {
+          "productCommit": "8ff1d85d26500f415c01b7de1753608c4d689f80",
+          "workflow": 32201388085,
+          "baselineWallClockSeconds": 349,
+          "verifiedWallClockSeconds": 149,
+          "reductionSeconds": 200,
+          "reductionPercent": 57.31,
+          "coverageBoundary": "all five Windows browsers retained; Brave and Opera GX moved to independent required jobs; lower total runner consumption is not claimed"
+        }
+      }
+    }
+  ],
+  "recheckedWithoutMaterialWikiChange": [
+    {
+      "projectId": "PCX-032",
+      "name": "Profit Nova",
+      "note": "No canonical Herbertofury GitHub repository was resolved in this pass; no newer project-owned source evidence justified a wiki rewrite."
+    },
+    {
+      "projectId": "PCX-033",
+      "name": "Sims4CreatorStudio",
+      "note": "Recent connected repository delta check did not expose a newer material change than the current documented checkpoint."
+    },
+    {
+      "projectId": "PCX-035",
+      "name": "MO2R",
+      "note": "Recent connected repository delta check did not expose a newer material change than the current documented checkpoint."
+    },
+    {
+      "projectId": "PCX-037",
+      "name": "Shimeji Desktop",
+      "note": "No newly resolved canonical Herbertofury repository delta justified changing the already detailed current wiki in this pass."
+    }
+  ],
+  "nextCursor": [
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042"
+  ],
+  "persistence": {
+    "recurringObligation": "OPEN_AND_ONGOING",
+    "automationDisposition": "remain enabled; successful or no-op project passes never retire the service"
+  }
+}
