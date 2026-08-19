@@ -3,7 +3,8 @@
   "projectId": "PCX-040",
   "project": "Pinterest Nocturne",
   "checkedAt": "2026-08-19T09:08:00Z",
-  "status": "SOURCE_RUNTIME_RECOVERED_GITHUB_PUBLISH_BLOCKED",
+  "updatedAt": "2026-08-19T09:19:00Z",
+  "status": "SOURCE_RUNTIME_RECOVERED_DEEP_HORIZON_REGRESSION_FOUND_GITHUB_PUBLISH_BLOCKED",
   "canonical": {
     "repository": "Herbertofury/Pinterest-Nocturne",
     "branch": "main",
@@ -29,8 +30,32 @@
     "leanBrowsing": "pass: sponsored/tracking surfaces filtered while organic/essential content remained; pause/off restored behavior; setting persisted across browser restart",
     "leanPerf": "pass: 3000-card regression gate passed",
     "engineTamer": "pass with PN_ENGINE_RUNS=1: event/scroll throttling, drag/local/custom behavior, promoted-payload filtering, XHR and JSON processing regression gate passed",
-    "aggregateNpmTest": "partial: build/static/core real-runtime stages passed before the outer 45-second execution budget expired; individual remaining gates were then executed separately",
-    "deepHorizon": "not verified: dedicated reduced-run attempt exceeded the available execution window after repeated local fixture BrokenPipe diagnostics; no pass is inferred"
+    "aggregateNpmTest": "partial: build/static/core real-runtime stages passed before the outer execution budget expired; individual remaining gates were then executed separately",
+    "deepHorizon": {
+      "state": "regression reproduced on exact source after isolated per-case diagnosis",
+      "command": "PN_DEEP_HORIZON_RUNS=1 PN_DEEP_HORIZON_BASELINE_RUNS=1 python3 tests/runtime/deep_horizon.py",
+      "result": "failure",
+      "failure": "adaptive: 3s runway contains unfinished media",
+      "adaptive": {
+        "baselineCards1500": 84,
+        "currentCards1500": 168,
+        "baselineCards3000": 84,
+        "currentCards3000": 240,
+        "baselineLoaded3000": 84,
+        "currentLoaded3000": 233,
+        "currentDeepTargetReadyMs": 6.646
+      },
+      "maximum": {
+        "baselineCards1500": 108,
+        "currentCards1500": 156,
+        "baselineCards3000": 108,
+        "currentCards3000": 240,
+        "baselineLoaded3000": 108,
+        "currentLoaded3000": 240,
+        "currentDeepTargetReadyMs": 6.94
+      },
+      "diagnosis": "The timeout was not the root defect. Isolated cases complete in roughly 4-7 seconds each. The complete reduced-run benchmark finishes and exposes a real Adaptive media-completion regression: card materialization can outrun image readiness at the 3-second gate. Experimental warm-concurrency and pipeline-serialization variants were rejected because they either retained unfinished media or reduced Maximum early-runway throughput. The exact source was restored after those experiments."
+    }
   },
   "existingPublicationPath": {
     "workflow": ".github/workflows/publish-v2.yml",
@@ -46,7 +71,7 @@
     "firefox": "9779dae05cb2564388872e1c34919f0660e3da5976bd609592341c97dd0267d3"
   },
   "remaining": [
-    "Run and diagnose deep_horizon to completion before treating the full runtime suite as completely recovered.",
+    "Repair the Adaptive Deep Horizon media-completion regression without reducing runway depth, image quality, source coverage, constrained-link backoff, first-row performance, observer semantics, or Maximum throughput; rerun the default multi-run Deep Horizon benchmark plus the full runtime suite.",
     "Expand the already-staged source onto canonical GitHub main, rerun the repository's complete build/static/runtime/package gate from that exact GitHub checkout, and publish/round-trip verify the GitHub v2.0.0 release once private hosted-runner execution is available."
   ],
   "blocker": "Canonical GitHub publication workflow is on a private repository and remains unable to obtain hosted runner execution under the already-established account payment/spending-limit condition. This checkpoint does not treat that infrastructure non-execution as a product failure and does not weaken the release gate."
