@@ -43,6 +43,25 @@
     }
   ],
   "historicalStatusNote": "The older individual PRJ-014 and PRJ-018 source commits still have no historical wiki-publication status object. That absence no longer represents publication debt because the canonical publisher independently verified the complete current source tree against the actual Wiki and recorded success on the current source head.",
+  "githubState": {
+    "cursorUpdateCommit": "dfe44a31bd57e6f491aa057e1f19a97662e3c3c7",
+    "recoveryCheckpointCreateCommit": "95db23c67cbd80d9fb18b84735f5686f7697c803"
+  },
+  "driveDurability": {
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "textExportBytes": 1637,
+      "textExportSha256": "76394c59be6155cb783097b73dabaf1db9142fbb1a6a94cb1039ff164f295a57",
+      "remoteReread": "pass"
+    },
+    "recoveryCheckpoint": {
+      "fileId": "1Wsdw-mrAm5We_aMpCDuRzPSTeipfkm3yTndDBgnF56k",
+      "textExportBytes": 2800,
+      "textExportSha256": "16cf3a078eb8f9c3a1948c0b0e0f61dbb47e0c07fb969537976c764ffb47bf3a",
+      "remoteReread": "pass"
+    }
+  },
   "nextDocumentationCursor": ["PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023", "PRJ-024"],
   "recurringObligation": "OPEN_AND_ONGOING"
 }
