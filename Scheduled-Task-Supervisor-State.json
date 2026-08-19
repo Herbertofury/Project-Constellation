@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T08:20:00Z",
+  "updatedAt": "2026-08-19T09:21:00Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,13 +8,13 @@
   "repairs": [
     {
       "area": "Project Constellation recurring task health",
-      "action": "Project Constellation Evolution was found disabled while its permanent recurring obligation and v0.5.1 GitHub publication debt remain incomplete; re-enabled immediately and the final task inventory confirmed it enabled.",
+      "action": "Project Constellation Evolution was previously found disabled while its permanent recurring obligation and v0.5.1 GitHub publication debt remained incomplete; it was re-enabled and is still enabled in the current inventory.",
       "result": "VERIFIED_ENABLED"
     },
     {
       "area": "Project Constellation GitHub publication recovery",
-      "action": "Observed the new deterministic public-repository recovery workflow committed at 4db5d38e2dfcfedf1933b4de1c56109ce42df51c. It reconstructs verified v0.5.1 artifacts from durable GitHub browser-gate evidence, checks the six expected hashes/sizes and integrity contracts, retries safely against fresh origin/main, and promotes state only after independent origin verification. The canonical Quick View remained 404 and the catalog remained stale on the post-repair observation base, so publication debt is still open rather than falsely cleared.",
-      "result": "RECOVERY_PATH_IMPROVED; FINAL_GITHUB_OBJECT_VERIFICATION_PENDING"
+      "action": "Freshly re-downloaded all six private canonical Drive v0.5.1 artifacts through the authenticated Drive connector and independently revalidated every expected byte size and SHA-256; both ZIPs passed integrity testing and both JSON files parsed successfully. Current ProjectDump main is b48a1e2750a7e7f8683691c1c3c7dcffe1240159, which explicitly kicks the deterministic v0.5.1 recovery workflow. The canonical Quick View is still absent on GitHub and no final six-object publication commit has been independently observed, so the debt remains open rather than being falsely promoted.",
+      "result": "DRIVE_EXACT_BYTES_REVERIFIED; RECOVERY_KICK_ACTIVE; FINAL_GITHUB_OBJECT_VERIFICATION_PENDING"
     }
   ],
   "health": {
@@ -47,7 +47,6 @@
     "projectConstellationPresentation": {
       "candidateVersion": "0.5.1",
       "catalogProjectCount": 63,
-      "catalogSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
       "browserGate": {
         "status": "VERIFIED_SUCCESS",
         "quickViewSha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"
@@ -55,38 +54,43 @@
       "driveCanonical": {
         "status": "VERIFIED_PROMOTED_AND_AUTHENTICATED_DOWNLOAD_CONFIRMED",
         "visibility": "private-owner-only",
-        "artifactCount": 6
+        "artifactCount": 6,
+        "freshReverificationAt": "2026-08-19T09:21:00Z",
+        "artifacts": {
+          "Bert_Project_Second_Brain_Website.zip": {"size": 144481, "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c", "integrity": "ZIP_OK"},
+          "Bert_Project_Constellation_Quick_View.html": {"size": 128283, "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1"},
+          "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {"size": 143064, "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8"},
+          "Bert_Project_Wiki_Pack.zip": {"size": 183831, "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891", "integrity": "ZIP_OK"},
+          "Project-Constellation-Project-Catalog.json": {"size": 116737, "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab", "integrity": "JSON_OK"},
+          "Project-Constellation-Research-Suggestions.json": {"size": 13295, "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6", "integrity": "JSON_OK"}
+        }
       },
       "githubCanonical": {
-        "status": "PUBLIC_DETERMINISTIC_RECONSTRUCTION_WORKFLOW_INSTALLED_FINAL_OBJECTS_NOT_YET_VERIFIED",
+        "status": "RECOVERY_KICK_COMMITTED_FINAL_OBJECTS_NOT_YET_VERIFIED",
+        "currentMainAtAudit": "b48a1e2750a7e7f8683691c1c3c7dcffe1240159",
+        "recoveryKickCommit": "b48a1e2750a7e7f8683691c1c3c7dcffe1240159",
+        "recoveryKickWorkflow": ".github/workflows/kick-recover-v051.yml",
         "recoveryWorkflowCommit": "4db5d38e2dfcfedf1933b4de1c56109ce42df51c",
-        "observationBaseSha": "358be7025177c96629a9ee56b5a8309ef0e7ec2b",
+        "recoveryVerificationWorkflowCommit": "802da6bea7448b897f3aa87e27a446da6acbaa02",
         "recoveryWorkflow": ".github/workflows/recover-project-constellation-v051-deterministic.yml",
         "browserGateEvidencePath": "project-constellation/browser-gate",
         "legacyPayloadPath": "project-constellation/publication-payload/v0.5.1/site",
         "legacyStagedBytes": 81000,
         "legacyExpectedBytes": 144481,
         "canonicalQuickViewObserved": "MISSING_404",
-        "canonicalCatalogObservedBytes": 48132,
-        "canonicalCatalogExpectedBytes": 116737,
-        "canonicalCatalogStatus": "STALE",
         "debtCleared": false,
-        "requiredNextEvidence": "Observe the workflow-published canonical GitHub six-object set; independently re-read or reconstruct each object and verify expected byte size/SHA-256 plus ZIP/JSON integrity; confirm lastAutomationHash promotion and VERIFIED_CLEARED debt state. If the workflow does not complete, diagnose and repair it without weakening verification."
+        "requiredNextEvidence": "Observe the deterministic recovery publication on canonical GitHub main; independently re-read or reconstruct all six canonical objects and verify exact byte size/SHA-256 plus ZIP/JSON integrity; then confirm lastAutomationHash promotion and VERIFIED_CLEARED debt state. Do not race an actively executing publisher with a destructive ref update."
       },
       "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING"
     },
     "projectDumpWiki": {
       "status": "DURABLE_PUBLICATION_CONTRACT_PRESENT",
       "coverageTargetCount": 62,
-      "checkpointEvidence": "WIKI-MAINTENANCE.md records a successful fresh-clone byte-verified Wiki publication contract; no supervisor-side overwrite performed this run."
+      "checkpointEvidence": "WIKI-MAINTENANCE.md records a successful fresh-clone byte-verified Wiki publication contract; no supervisor-side overwrite was needed during this reconciliation."
     },
     "ferrum": {
       "status": "ACTIVE_BRANCH_GATED_WORK",
-      "openProposalHeadsObserved": [
-        "7cd5c50150ac634ac03862559aa72951945f91ef",
-        "6b50ad2e472f6061dab5d13069fee2cda1ddb937"
-      ],
-      "repairAction": "None by supervisor; proposals remain draft/verification-gated and Ferrum Evolution Loop is enabled."
+      "repairAction": "No supervisor merge bypass; active proposals remain verification-gated and Ferrum Evolution Loop is enabled."
     },
     "pinterestNocturne": {
       "status": "GITHUB_PUBLICATION_NOT_VERIFIED_COMPLETE",
