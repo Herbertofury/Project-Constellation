@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T09:13:00Z",
+  "updatedAt": "2026-08-19T10:10:00Z",
   "completedCursor": [
-    "PRJ-010",
-    "PRJ-011",
-    "PRJ-012",
-    "PRJ-013",
-    "PRJ-014"
-  ],
-  "nextCursor": [
     "PRJ-015",
     "PRJ-016",
     "PRJ-017",
     "PRJ-018",
     "PRJ-019"
   ],
-  "selectionReason": "Reviewed PRJ-010 through PRJ-014 against the current catalog, connected GitHub repositories, Google Drive continuity evidence, and project-owned wiki state. PRJ-010 remains source-blocked because Herbertofury/FlipForge is still only the initial placeholder commit 03cb2057c480929831852fed8fd866954e3ad5c0 and Drive still exposes continuity rather than canonical implementation bytes. PRJ-011 remains source-unresolved and its existing wiki already preserves the measurement-first current DX11 baseline. PRJ-012 remains relationship/source unresolved and its wiki already captures the DX11/PresentMon diagnostic boundary. PRJ-013 has no newer Money App-specific implementation evidence and its existing wiki correctly routes active implementation authority through PCX-032 Profit Nova while preserving v38 lineage. PRJ-014 received a material documentation refresh at ProjectDump source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5, blob b1410e83bb4460bbf6e3223e851a750f124662c3: the current official Grim Dawn baseline is now v1.3.0.5, and the wiki now contains detailed immutable artifact recovery, browser and state verification, v3/v4/v5 migration tests, Content Freshness Manifest rules, domain-level Fangs of Asterkarn/current-patch auditing, exact contextual-link validation, full-data performance guardrails, troubleshooting, and release gates. Its Drive wiki mirror is file 1mVb4bNC3MUInGUGY_WAXvlNqsxxlMZrJPmhzaVY7_CY in Project Wikis; the reread passed and the Markdown export is 20,560 bytes with SHA-256 e4a4ba23ac2e7403727b31e500d466d11337597bac862fdcb05655b06274caec. The source commit has not yet returned a wiki-publication status through the connected GitHub status API, so the next run must verify the exact Sync GitHub Wiki publication before treating PRJ-014 as fully published, then continue with PRJ-015 through PRJ-019.",
-  "sourceCheckpoint": "MATERIAL_WIKI_DELTA_SOURCE_AND_DRIVE_VERIFIED_GITHUB_WIKI_PUBLICATION_PENDING:2026-08-19T0913Z:PRJ-010-014",
+  "nextCursor": [
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024"
+  ],
+  "selectionReason": "Reviewed PRJ-015 through PRJ-019 against the current Project Constellation catalog, ProjectDump wiki sources, connected Google Drive project evidence, File Library artifacts, and current host evidence. PRJ-015 Bethesda Plugin Info 1.5.3, PRJ-016 Bethesda Creations Version Tracker 2.4.3, PRJ-017 MO2 Image Column 1.4.12, and PRJ-019 MO2 Performance Accelerator 4.0.1 already contain detailed current stable-host gates, source/evidence boundaries, compatibility requirements, and real Windows qualification matrices; no newer canonical project-owned implementation delta justified churn. PRJ-018 received a material wiki expansion at source commit 37bf614da57d40d09d541f7804e7ba5ea87c3ac1, blob dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3. The update is grounded in the recovered 1.1.0 README, test report, package SHA-256 615b3b05e081ce6c529b4e9e117dbdc207f30e0dca5c858c31739a0981da7b56, and shared drag/drop root-cause evidence. It now documents source-backed native rendering, three renderer modes and controls, installation, view/overlay/event ownership, all 15 verified offscreen checks, 100,000 indicator-position calculations averaging 3.318 microseconds, semantic host-contract invariants, the coordinated synthetic-column stack, full real-host qualification, troubleshooting, and a Host Drag Contract Recorder proposal. The Drive wiki mirror 1SfPZROUniOq2xy1PaBHpU3zHW-wgwpFfs2w3JXNx0rg reread successfully and exported to 21,842 bytes of Markdown with SHA-256 5c43eda49ce93edd666d8d908d47e67f97784291d760c9d94e598ef1c2febe8c. The source commit has not yet returned a wiki-publication status through the connected GitHub status API, so the next run must verify the exact Sync GitHub Wiki publication before treating PRJ-018 as fully published. The older PRJ-014 source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 likewise still lacks a connected wiki-publication status and remains an open publication-proof debt.",
+  "sourceCheckpoint": "MATERIAL_WIKI_DELTA_SOURCE_AND_DRIVE_VERIFIED_GITHUB_WIKI_PUBLICATION_PENDING:2026-08-19T1010Z:PRJ-015-019",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
