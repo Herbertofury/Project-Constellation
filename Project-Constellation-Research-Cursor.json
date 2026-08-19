@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T08:20:59Z",
+  "updatedAt": "2026-08-19T09:13:00Z",
   "completedCursor": [
-    "PRJ-005",
-    "PRJ-006",
-    "PRJ-007",
-    "PRJ-008",
-    "PRJ-009"
-  ],
-  "nextCursor": [
     "PRJ-010",
     "PRJ-011",
     "PRJ-012",
     "PRJ-013",
     "PRJ-014"
   ],
-  "selectionReason": "Rechecked PRJ-005 through PRJ-009 against current connected source and continuity evidence. GameSync remains at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 and GameSync Next main remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562, so the recently refreshed PRJ-005 and PRJ-006 pages remain current. PRJ-007 issue #9 remains unresolved on main and draft PR #10 remains open, draft, mergeable, and unmerged; GitHub PR metadata still identifies head 1b8ad1abb3c01065e03a6780d67db9e74ef11e71, and the existing wiki already documents the staged stable-identity/additive-restore repair, awaited asynchronous teardown persistence, regression coverage, and hosted-runner execution blocker. PRJ-008 shipping mascot-game evidence remains on the unchanged GameSync head; Golf is still absent from the verified launch allowlist and no newer project-owned game implementation was resolved. PRJ-009 source recovery remains blocked: current Drive search still surfaces continuity/index material rather than the canonical Skill Atlas/QA Cockpit repository or ZIP, while current official RuneLite Plugin Hub guidance still uses Java 11, latest.release tracking, runelite-plugin.properties build modes, and Gradle dependency verification. No project wiki content required a material change, so no wiki publication workflow was triggered. Continue with PRJ-010 through PRJ-014.",
-  "sourceCheckpoint": "NO_MATERIAL_WIKI_DELTA:2026-08-19T0820Z:PRJ-005-009",
+  "nextCursor": [
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019"
+  ],
+  "selectionReason": "Reviewed PRJ-010 through PRJ-014 against the current catalog, connected GitHub repositories, Google Drive continuity evidence, and project-owned wiki state. PRJ-010 remains source-blocked because Herbertofury/FlipForge is still only the initial placeholder commit 03cb2057c480929831852fed8fd866954e3ad5c0 and Drive still exposes continuity rather than canonical implementation bytes. PRJ-011 remains source-unresolved and its existing wiki already preserves the measurement-first current DX11 baseline. PRJ-012 remains relationship/source unresolved and its wiki already captures the DX11/PresentMon diagnostic boundary. PRJ-013 has no newer Money App-specific implementation evidence and its existing wiki correctly routes active implementation authority through PCX-032 Profit Nova while preserving v38 lineage. PRJ-014 received a material documentation refresh at ProjectDump source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5, blob b1410e83bb4460bbf6e3223e851a750f124662c3: the current official Grim Dawn baseline is now v1.3.0.5, and the wiki now contains detailed immutable artifact recovery, browser and state verification, v3/v4/v5 migration tests, Content Freshness Manifest rules, domain-level Fangs of Asterkarn/current-patch auditing, exact contextual-link validation, full-data performance guardrails, troubleshooting, and release gates. Its Drive wiki mirror is file 1mVb4bNC3MUInGUGY_WAXvlNqsxxlMZrJPmhzaVY7_CY in Project Wikis; the reread passed and the Markdown export is 20,560 bytes with SHA-256 e4a4ba23ac2e7403727b31e500d466d11337597bac862fdcb05655b06274caec. The source commit has not yet returned a wiki-publication status through the connected GitHub status API, so the next run must verify the exact Sync GitHub Wiki publication before treating PRJ-014 as fully published, then continue with PRJ-015 through PRJ-019.",
+  "sourceCheckpoint": "MATERIAL_WIKI_DELTA_SOURCE_AND_DRIVE_VERIFIED_GITHUB_WIKI_PUBLICATION_PENDING:2026-08-19T0913Z:PRJ-010-014",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
