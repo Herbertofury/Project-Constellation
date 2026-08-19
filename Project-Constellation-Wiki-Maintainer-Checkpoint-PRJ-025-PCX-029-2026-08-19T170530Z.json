@@ -1,0 +1,38 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkedAt": "2026-08-19T17:05:30Z",
+  "status": "VERIFIED_DUAL_PUBLICATION",
+  "completedGroup": ["PRJ-025", "PCX-026", "PCX-027", "PCX-028", "PCX-029"],
+  "updatedProjects": ["PCX-029"],
+  "recheckedNoChange": {
+    "PRJ-025": "UltraDeck main remains d9278d4a0fd33d184e9c6f928556262668af4125 and the existing v8.6.0 wiki already documents that verified product state.",
+    "PCX-026": "Project Governance remains grounded in ProjectDump governance evidence; no standalone canonical implementation was newly resolved.",
+    "PCX-027": "GameSync Archive Doctor was rechecked against GameSync current main a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 with no newer project-owned delta.",
+    "PCX-028": "DirectoryMonitor standalone source remains unresolved; existing watcher overflow/reconciliation guidance remains the truthful boundary."
+  },
+  "materialUpdate": {
+    "projectId": "PCX-029",
+    "sourcePath": "wikis/PCX-029-pc-mcp-bridge.md",
+    "sourceCommit": "b105b2b476c9a55b351a85eb39bcfafaac6c81e2",
+    "sourceBlob": "44c5eacd8a742f18246ff0db3ffa21e32220ae6c",
+    "reason": "Corrected and expanded the MCP 2026-07-28 protocol authority: servers MUST implement server/discover, client invocation is optional except compatibility probing, and SDK version alone is not wire-protocol proof. Added modern per-request Streamable HTTP boundaries, explicit era negotiation, fixtures, truth evidence, and troubleshooting.",
+    "publication": {
+      "workflowRunId": 32279485824,
+      "workflowJobId": 96154594122,
+      "workflowConclusion": "success",
+      "wikiMasterCommit": "d57dfe0cfcafce0e76f7ca50024549bf1b24b09c",
+      "wikiPushVerified": true,
+      "freshCloneByteCompare": "pass",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-029-pc-mcp-bridge"
+    },
+    "drive": {
+      "documentId": "15wLrITVo7GWwG7XL47dzRiUyfLrqNaYaqmzjPxy4INE",
+      "title": "PCX-029 PC Bridge - MCP Bridge Wiki",
+      "rereadVerified": true,
+      "markdownSize": 14884,
+      "markdownSha256": "a907d3725fa19be7c7043465ca343137f5eac8c6387c9ef98e67fe2f75c9a141"
+    }
+  },
+  "nextCursor": ["PCX-030", "PCX-031", "PCX-032", "PCX-033", "PCX-034"],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}
