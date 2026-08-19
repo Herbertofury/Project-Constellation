@@ -57,6 +57,9 @@
     },
     "drive": {
       "recoveryStateDocumentId": "1jmVY8fmw6j1h8WJFqKkSK0EQ0ZgbEWrS7wc6Nvdj2FA",
+      "recoveryStateRevisionId": "AIroW35rEd5Lfno7r06oZNnoRj7shPLlv94yEeUnT5xUayo7bgzdU_V2pCeUqU9jntqkv5bm5-1owvaVzj1ht3_RlgluEHZay0iuqnNjBaE",
+      "recoveryStateExportBytes": 5443,
+      "recoveryStateExportSha256": "d9f3bb361245294d897e814495d9dba78f8110c52477831f515a996c95f73a67",
       "researchCursorDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
       "researchCursorExportBytes": 2010,
       "researchCursorExportSha256": "f06f32758127ec4eb9a6f7ce9897286e46d830211699996e0d3f260bfa21549c",
@@ -64,8 +67,8 @@
       "recoveryCheckpointExportBytes": 3211,
       "recoveryCheckpointExportSha256": "33645d9029a610d5b4e6073cdef34332072dca0059e9f0b0d026ebdfe799b9c9",
       "parentProjectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-      "currentMirrorReReadRequired": true,
-      "currentMirrorReReadVerified": false,
+      "currentMirrorReReadRequired": false,
+      "currentMirrorReReadVerified": true,
       "priorVerifiedRecoveryStateExportSha256": "e4fc39ed50ddc09a56d250b74e32b32dbc063d26b25bd80578a08e6c52bf9693",
       "priorVerifiedResearchCursorExportSha256": "f06f32758127ec4eb9a6f7ce9897286e46d830211699996e0d3f260bfa21549c"
     }
