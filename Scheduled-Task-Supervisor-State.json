@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/1",
-  "updatedAt": "2026-08-19T08:14:00Z",
+  "updatedAt": "2026-08-19T08:20:00Z",
   "taskCount": 10,
   "enabledCount": 9,
   "pausedIncompleteCount": 0,
@@ -8,12 +8,12 @@
   "repairs": [
     {
       "area": "Project Constellation recurring task health",
-      "action": "Project Constellation Evolution was found disabled while its permanent recurring obligation and v0.5.1 GitHub publication debt remain incomplete; re-enabled immediately and a final task scan confirmed it enabled.",
+      "action": "Project Constellation Evolution was found disabled while its permanent recurring obligation and v0.5.1 GitHub publication debt remain incomplete; re-enabled immediately and the final task inventory confirmed it enabled.",
       "result": "VERIFIED_ENABLED"
     },
     {
       "area": "Project Constellation GitHub publication recovery",
-      "action": "Observed the new public deterministic recovery workflow on canonical ProjectDump main at 4db5d38e2dfcfedf1933b4de1c56109ce42df51c. It reconstructs the verified v0.5.1 artifacts from durable GitHub browser-gate evidence, verifies the six expected hashes/sizes, retries against current origin/main, and promotes state only after independent origin verification. Canonical Quick View is still absent and the catalog is still stale on the currently observed main, so publication debt remains open until the workflow's final published objects are independently observed.",
+      "action": "Observed the new deterministic public-repository recovery workflow committed at 4db5d38e2dfcfedf1933b4de1c56109ce42df51c. It reconstructs verified v0.5.1 artifacts from durable GitHub browser-gate evidence, checks the six expected hashes/sizes and integrity contracts, retries safely against fresh origin/main, and promotes state only after independent origin verification. The canonical Quick View remained 404 and the catalog remained stale on the post-repair observation base, so publication debt is still open rather than falsely cleared.",
       "result": "RECOVERY_PATH_IMPROVED; FINAL_GITHUB_OBJECT_VERIFICATION_PENDING"
     }
   ],
@@ -22,8 +22,24 @@
     "activeRecurringTasksEnabled": true,
     "incompletePausedTasks": 0,
     "retiredDuplicateCount": 1,
-    "privateHostedRunnerDiagnosis": "DURABLE_OPEN_EXTERNAL_BLOCKER",
-    "privateHostedRunnerEvidence": "Pinterest retry remains enabled without verified GitHub publication completion; private GameSync workers and lead remain enabled while the previously verified private-repository hosted-runner startup blocker is unresolved.",
+    "privateHostedRunnerDiagnosis": "FRESHLY_RECONFIRMED_PRIVATE_REPO_PRE_EXECUTION_BLOCKER",
+    "privateHostedRunnerEvidence": {
+      "gamesyncVitePr2": {
+        "head": "3f6cb97ccaacfccb63d664f55260ddf72b5f88c9",
+        "secretScanRun": 32223092803,
+        "gitleaksJob": 95977263201,
+        "result": "failure with no workflow step payload; PR evidence records prior runner_id 0/account payment-spending-limit diagnosis"
+      },
+      "gameSyncNextDesktopPr14": {
+        "head": "75912e22088f73c506d1a0afde139b9554bda721",
+        "stackRun": 32225634219,
+        "linuxJob": 95984663167,
+        "ferrumJob": 95984663321,
+        "windowsJob": 95984663578,
+        "secretScanJob": 95984663998,
+        "result": "all failed before workflow steps; PR evidence identifies the same private hosted-runner payment-spending-limit condition"
+      }
+    },
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for private repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -43,7 +59,8 @@
       },
       "githubCanonical": {
         "status": "PUBLIC_DETERMINISTIC_RECONSTRUCTION_WORKFLOW_INSTALLED_FINAL_OBJECTS_NOT_YET_VERIFIED",
-        "observedMainSha": "4db5d38e2dfcfedf1933b4de1c56109ce42df51c",
+        "recoveryWorkflowCommit": "4db5d38e2dfcfedf1933b4de1c56109ce42df51c",
+        "observationBaseSha": "358be7025177c96629a9ee56b5a8309ef0e7ec2b",
         "recoveryWorkflow": ".github/workflows/recover-project-constellation-v051-deterministic.yml",
         "browserGateEvidencePath": "project-constellation/browser-gate",
         "legacyPayloadPath": "project-constellation/publication-payload/v0.5.1/site",
@@ -54,17 +71,28 @@
         "canonicalCatalogExpectedBytes": 116737,
         "canonicalCatalogStatus": "STALE",
         "debtCleared": false,
-        "requiredNextEvidence": "Observe the workflow-published canonical GitHub six-object set; independently re-read/reconstruct each object and verify expected byte size/SHA-256 plus ZIP/JSON integrity; confirm lastAutomationHash promotion and VERIFIED_CLEARED debt state. If the workflow does not complete, diagnose and repair that workflow without weakening verification."
+        "requiredNextEvidence": "Observe the workflow-published canonical GitHub six-object set; independently re-read or reconstruct each object and verify expected byte size/SHA-256 plus ZIP/JSON integrity; confirm lastAutomationHash promotion and VERIFIED_CLEARED debt state. If the workflow does not complete, diagnose and repair it without weakening verification."
       },
       "debtFileStatus": "BROWSER_GATE_VERIFIED_DRIVE_PROMOTED_GITHUB_RECONCILIATION_PENDING"
     },
-    "privateActions": {
-      "pinterest": {
-        "status": "RETRY_ENABLED_NO_VERIFIED_GITHUB_COMPLETION_OBSERVED"
-      },
-      "gameSync": {
-        "status": "WORKERS_AND_LEAD_ENABLED_PRIVATE_HOSTED_RUNNER_BLOCKER_REMAINS_OPEN"
-      }
+    "projectDumpWiki": {
+      "status": "DURABLE_PUBLICATION_CONTRACT_PRESENT",
+      "coverageTargetCount": 62,
+      "checkpointEvidence": "WIKI-MAINTENANCE.md records a successful fresh-clone byte-verified Wiki publication contract; no supervisor-side overwrite performed this run."
+    },
+    "ferrum": {
+      "status": "ACTIVE_BRANCH_GATED_WORK",
+      "openProposalHeadsObserved": [
+        "7cd5c50150ac634ac03862559aa72951945f91ef",
+        "6b50ad2e472f6061dab5d13069fee2cda1ddb937"
+      ],
+      "repairAction": "None by supervisor; proposals remain draft/verification-gated and Ferrum Evolution Loop is enabled."
+    },
+    "pinterestNocturne": {
+      "status": "GITHUB_PUBLICATION_NOT_VERIFIED_COMPLETE",
+      "latestObservedCommit": "6167038fac5f362dbabb83c2497edb64e588ad01",
+      "latestObservedCommitMessage": "Bootstrap full Pinterest Nocturne 2.0.0 publish",
+      "repairAction": "Keep retry task enabled; do not treat bootstrap/staging commit as completed v2.0.0 publication."
     }
   }
 }
