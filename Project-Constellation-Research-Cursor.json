@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-19T18:12:00Z",
+  "updatedAt": "2026-08-19T19:10:00Z",
   "completedCursor": [
-    "PCX-030",
-    "PCX-031",
-    "PCX-032",
-    "PCX-033",
-    "PCX-034"
-  ],
-  "nextCursor": [
     "PCX-035",
     "PCX-037",
     "PCX-038",
     "PCX-039",
     "PCX-040"
   ],
-  "selectionReason": "Publication-backlog-first verification passed before new documentation work: prior material wiki source commit b105b2b476c9a55b351a85eb39bcfafaac6c81e2 already had wiki-publication success, with Sync GitHub Wiki run 32279485824 and Wiki master d57dfe0cfcafce0e76f7ca50024549bf1b24b09c. PCX-030 received a material evidence update after Project Constellation v0.5.1 completed a verified corruption-recovery and deterministic publication cycle. The page now records master.b64.part03 as the isolated corruption point, fail-closed exact fallback and deterministic re-encoding behavior, sanitizer run 32284169760, deterministic publisher run 32284190866, six exact artifact identities, current 116737-byte catalog SHA-256 79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab, publication-debt clearing, promotion gates, and receipt self-consistency rules. Wiki source commit 277f76615bed86ca9fdf324f6457e5afc4a337f4 published successfully through Sync GitHub Wiki run 32285835435; the separate Wiki repository was pushed, fresh-cloned, byte-compared successfully, and reached Wiki master c7f6a2f78e8ae13560001d60062f9f65551ce4ec. The matching Drive wiki 1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4 was updated and reread; Markdown export is 28141 bytes with SHA-256 a65bb778599f2831b3090b041cbe02b8e6ca135ddfa07fa7f41ec01d005e3bad. PCX-031 remains source-unresolved; PCX-032 still lacks a resolved canonical production repository beyond its detailed master-plan/donor evidence; PCX-033 main remains the recovery/staging line at a810bdba98bd5ca8dfd879f48776ce3f7a8add0e and the Alpha11 target is not yet proven on canonical main; PCX-034 verified product state remains 82170af96663aa36116b5cd1f6b803418223aa18 while evolution runs 49-52 have no merged product delta and the systemd-isolation experiment remains off-main/proof-incomplete. Continue at PCX-035, then skip PCX-036 because it is the Project Constellation control-plane reference, and continue PCX-037 through PCX-040.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T1812Z-pcx-030-034-wiki-delta.json",
+  "nextCursor": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
+  "selectionReason": "Publication-backlog-first verification passed before new documentation work: prior material wiki source commit 277f76615bed86ca9fdf324f6457e5afc4a337f4 already had wiki-publication success through Sync GitHub Wiki run 32285835435 and Wiki master c7f6a2f78e8ae13560001d60062f9f65551ce4ec. PCX-039 Webmeji received the only material wiki delta in this pass after current source inspection proved pixelomer/Shijima-Web is a stronger Shimeji-ee/WebAssembly differential reference than the existing page documented. The page now records current heads lars-rooij/webmeji ead02b16acb7759588d8ee52480386dac2c25898 and pixelomer/Shijima-Web 817237c07b5afdb4d37b4a5fc6b546045b986947, Shijima-Web's CMake/Emscripten/libshijima/libshimejifinder architecture, archive import pipeline, Pointer Events drag lifecycle, viewport/tick/render boundaries, GameSync Webmeji settings, a three-lane architecture comparison, differential acceptance corpus, and troubleshooting. Wiki source commit ca79214f116187289fe83edea168ff4b5d440201 published successfully through Sync GitHub Wiki run 32291305100; ProjectDump.wiki.git was pushed, fresh-cloned, byte-compared successfully, and reached Wiki master 29eb9a03de4a5a567245db6c2718094070e19f58. The matching Drive wiki 12updBZsOb2nkf0qT-n0rPmkoavdGclnj6RCOABeO4iU was created in Project Wikis, reread, and exported as 14508 bytes with SHA-256 524e9f0b04f600831970bc52664785ce022333f91067472932c5bc31ac10a081. PCX-035 remains source-unresolved with only the initial minimal MO2R repository commit 222652c89be6c0820aa34c804afe02fe0b08e294. PCX-037 canonical user-owned source remains unresolved and NeurolingsCE is unchanged at 00adb430efd13b70db8791af3566eae7b4e8aa17. PCX-038 has no new Shimeji-specific delta beyond the already documented universal mascot line 60940e8479af518f3373a79efa091902f4843842 despite GameSync Next main advancing to cd906ff0831bf7fc33b41fea31b6f0c004cc1562. PCX-040 Pinterest Nocturne remains at 6167038fac5f362dbabb83c2497edb64e588ad01. Continue with PCX-041 through PCX-045.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-19T1910Z-pcx-035-040-wiki-delta.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
