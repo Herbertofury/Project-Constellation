@@ -1,0 +1,61 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkedAt": "2026-08-19T21:08:21Z",
+  "status": "PUBLICATION_BACKLOG_CLEARED",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "runScope": "PUBLICATION_BACKLOG_ONLY",
+  "newWikiSourceDeltasCreated": false,
+  "backlog": [
+    {
+      "projectId": "PRJ-014",
+      "projectName": "Grim Dawn Cairn Codex",
+      "originalMaterialSourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
+      "originalCommitWikiPublicationStatus": "ABSENT",
+      "wikiSourcePath": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "sourceBlobAtLaterVerifiedHead": "b1410e83bb4460bbf6e3223e851a750f124662c3",
+      "currentMainBlob": "b1410e83bb4460bbf6e3223e851a750f124662c3",
+      "clearance": "CLEARED_BY_LATER_COMPLETE_TREE_PUBLICATION_PROOF"
+    },
+    {
+      "projectId": "PRJ-018",
+      "projectName": "MO2 Drag-and-Drop Line Restorer",
+      "originalMaterialSourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "originalCommitWikiPublicationStatus": "ABSENT",
+      "wikiSourcePath": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "sourceBlobAtLaterVerifiedHead": "dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3",
+      "currentMainBlob": "dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3",
+      "clearance": "CLEARED_BY_LATER_COMPLETE_TREE_PUBLICATION_PROOF"
+    }
+  ],
+  "independentPublicationProof": {
+    "verifiedSourceHead": "ca79214f116187289fe83edea168ff4b5d440201",
+    "workflow": "Sync GitHub Wiki",
+    "workflowRun": 32291305100,
+    "job": 96192494377,
+    "workflowConclusion": "success",
+    "projectDumpWikiPush": "pass",
+    "freshClone": "pass",
+    "completeByteComparisonAgainstWikis": "pass",
+    "wikiMasterCommit": "29eb9a03de4a5a567245db6c2718094070e19f58",
+    "wikiPublicationStatusOnVerifiedHead": "success",
+    "evidence": "The workflow checked out exact source head ca79214f116187289fe83edea168ff4b5d440201, mirrored the complete wikis/ tree to ProjectDump.wiki.git, fresh-cloned the published Wiki, and diff-verified the entire remote tree. At that exact source head, PRJ-014 and PRJ-018 have the same blob IDs as current main, so the pending material page bytes were included in the verified complete-tree publication even though their original source commits never received individual wiki-publication statuses."
+  },
+  "publicationBacklogFirstResult": "PASS",
+  "cursorAction": "HOLD_CURRENT_CURSOR_THIS_RUN",
+  "completedCursor": [
+    "PCX-035",
+    "PCX-037",
+    "PCX-038",
+    "PCX-039",
+    "PCX-040"
+  ],
+  "nextCursor": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
+  "nextRunDirective": "Publication backlog is independently cleared. Resume tracked-project documentation with PCX-041 through PCX-045 on the next run after repeating the publication-backlog-first check. Do not treat this clearance as completion of the recurring service.",
+  "controlPlaneExclusion": "PCX-036 remains a preserved Project Constellation control-plane reference and is excluded from normal tracked-project documentation rotation."
+}
