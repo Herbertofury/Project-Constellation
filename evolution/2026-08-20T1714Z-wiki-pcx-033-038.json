@@ -1,0 +1,106 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-20T17:14:33Z",
+  "group": [
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-037",
+    "PCX-038"
+  ],
+  "publicationBacklogAtStart": "CLEAR",
+  "publicationBacklogEvidence": {
+    "previousMaterialWikiCommit": "db01d1f53707cdcb0f74ac59675e2ff2fe75f368",
+    "previousWikiPublicationStatus": "success",
+    "previousWorkflowRun": 32387006041
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PCX-034",
+      "name": "Ferrum Browser",
+      "reason": "Project-owned evidence advanced materially through verified evolution runs 64 and 65 after the prior wiki checkpoint.",
+      "projectAuthority": {
+        "repository": "Herbertofury/Ferrum-Browser",
+        "branch": "main",
+        "latestObservedMain": "13c5deffe4e7901fcfd4e26206ff8156d0525226",
+        "verifiedProductCommit": "56879a6410f41b3142ad97f21d4ffefb9ca1b5d3",
+        "verifiedFerrumCi": 32369906986,
+        "verifiedEvidenceBenchmark": 32369906922,
+        "verifiedToolchain": {
+          "node": ">=24.0.0",
+          "playwright": "1.63.0-alpha-2026-08-20",
+          "electron": "43.4.0",
+          "electronPackager": "20.3.0"
+        }
+      },
+      "verifiedDelta": {
+        "playwrightAug20Qualification": true,
+        "operaGxLegacyScreenshotCompatibilityScoped": true,
+        "evidenceHistoryCollisionSafeCache": true,
+        "evidenceHistoryWorkers": 32,
+        "watcherStrategy": "recursive-root on supported non-Windows hosts; per-summary file watchers on Windows; exact-byte fallback when watcher protection is unavailable or unhealthy",
+        "forcedSameStatCollisionRegression": "legacy stat-only cache returned stale passed state; repaired cache returned current failed state on Linux and Windows",
+        "benchmarkRuns": 2000,
+        "linuxMedianGainPercent": 58.37,
+        "linuxP95GainPercent": 60.39,
+        "windowsMedianGainPercent": 54.58,
+        "windowsP95GainPercent": 55.40,
+        "verificationRuns": [32369906986, 32369906922, 32369907019, 32369906884, 32369906931, 32369906942, 32369906881]
+      },
+      "githubSource": {
+        "repository": "Herbertofury/ProjectDump",
+        "path": "wikis/PCX-034-ferrum-browser.md",
+        "commit": "adfd06cef393b0b5bb198a3f93e5d979e8a7946e",
+        "blob": "7c2791f7f9995e7ca8e191c7ba976e49085e9909"
+      },
+      "actualWikiPublication": {
+        "status": "success",
+        "workflowRun": 32396274360,
+        "job": 96513728279,
+        "sourceCheckout": "adfd06cef393b0b5bb198a3f93e5d979e8a7946e",
+        "wikiMasterCommit": "80b131952d9b32db14222f96326cb9b4fe128273",
+        "freshCloneByteComparison": "pass",
+        "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-034-ferrum-browser"
+      },
+      "driveMirror": {
+        "fileId": "11IOk6ZB78lOXoAUIa0vhZD9wioQ0QtG_Pq2cs7B0fD8",
+        "title": "PCX-034 Ferrum Browser Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "reread": "pass",
+        "markdownExportBytes": 44367,
+        "markdownExportSha256": "829624eeb58244e6025a9f0d68243f29af0c7795caaea5bb867d96b084b7a3f8"
+      }
+    }
+  ],
+  "rechecks": [
+    {
+      "projectId": "PCX-033",
+      "result": "no material wiki source change",
+      "evidence": "Connected Sims4CreatorStudio repository has no newer project-owned source delta after the verified Alpha11 recovery line; latest observed commit a810bdba98bd5ca8dfd879f48776ce3f7a8add0e from 2026-08-17."
+    },
+    {
+      "projectId": "PCX-035",
+      "result": "no material wiki source change",
+      "evidence": "Connected MO2R repository still contains only its initial commit 222652c89be6c0820aa34c804afe02fe0b08e294; current wiki remains the stronger truthful continuity boundary."
+    },
+    {
+      "projectId": "PCX-037",
+      "result": "no material wiki source change",
+      "evidence": "No newer canonical Shimeji Desktop project-owned delta was resolved beyond the already documented compatibility/research baseline."
+    },
+    {
+      "projectId": "PCX-038",
+      "result": "no material wiki source change",
+      "evidence": "GameSync Next current merged authority remains cd906ff0831bf7fc33b41fea31b6f0c004cc1562; no newer merged browser-Shimeji runtime delta justified churn."
+    }
+  ],
+  "controlPlaneExclusion": "PCX-036 Project Constellation intentionally excluded from normal tracked-project documentation work.",
+  "publicationState": "DUAL_PUBLISHED_VERIFIED",
+  "nextCursor": [
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042",
+    "PCX-043"
+  ]
+}
