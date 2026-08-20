@@ -1,0 +1,51 @@
+{
+  "schema": "project-constellation.wiki-evolution-checkpoint/1",
+  "checkpointAt": "2026-08-20T20:47:55Z",
+  "projectId": "PCX-044",
+  "projectName": "Feature Foundry Living Ecology",
+  "sourceAuthority": {
+    "repository": "Herbertofury/Feature-Foundry",
+    "release": "v24.0.0",
+    "repositoryHead": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "historicalBenchmark": "Feature Foundry V33 - Recovered Ecology"
+  },
+  "wikiSource": {
+    "repository": "Herbertofury/ProjectDump",
+    "path": "wikis/PCX-044-feature-foundry-living-ecology.md",
+    "previousBlobSha": "18a5416a1564967937868595e267f9af6f9b0ded",
+    "sourceCommit": "9ba29e65ae008387c7779ff404bc0084e0f97f6d",
+    "blobSha": "87ef58715c27c36afd0811212de96c9647d41000",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-044-feature-foundry-living-ecology"
+  },
+  "wikiPublication": {
+    "status": "verified",
+    "workflowRunId": 32415786222,
+    "workflowJobId": 96576490014,
+    "wikiMasterCommit": "09fe9807ee965eebbcb4a37d7abf4ea2f9e08ea7",
+    "sourceCheckout": "9ba29e65ae008387c7779ff404bc0084e0f97f6d",
+    "freshCloneByteComparison": "pass",
+    "note": "Publisher reported the Wiki already matched source, then fresh-cloned the actual Wiki and byte-compared the complete remote page set successfully."
+  },
+  "driveMirror": {
+    "fileId": "1FziWTqhLO-Xe4-2-4kKqozhYuT4N4lxN8MJuD1euYRc",
+    "title": "PCX-044 Feature Foundry Living Ecology Wiki",
+    "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "markdownExportBytes": 36873,
+    "markdownSha256": "143a8fd0777a110c67f78da3688cdfdca81216814a68a17a46c4f49f46c686e7",
+    "contentReread": "pass",
+    "replacedOldDriveFileId": "1BZL8SOs4DaTUgjT5LKBxY7205nUlgk7c71UYaxlEMcc"
+  },
+  "materialChange": {
+    "summary": "Promoted Living Ecology current production authority to the released Feature Foundry v24.0.0 repository while preserving V33 as the deeper historical ecology benchmark. Added current object ecology, theme/room routing, world reaction, snapshot, build, verification, source-layout, authority-count, and non-regression boundaries.",
+    "currentProductionCounts": {
+      "themes": 17,
+      "rooms": 34,
+      "weatherSystems": 17,
+      "ecologyObjects": 85,
+      "artistWorlds": 10,
+      "themeAtlasWorlds": 27
+    }
+  },
+  "nextCursor": ["PCX-045", "PCX-046", "PCX-047", "PCX-048", "PCX-049"],
+  "publicationComplete": true
+}
