@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T05:36:00Z",
+  "updatedAt": "2026-08-20T07:16:00Z",
   "completedCursor": [
-    "PCX-061",
-    "PCX-062",
-    "PCX-063",
-    "PRJ-001",
-    "PRJ-002"
-  ],
-  "nextCursor": [
     "PRJ-003",
     "PRJ-004",
     "PRJ-005",
     "PRJ-006",
     "PRJ-007"
   ],
-  "selectionReason": "Dynamic publication-backlog verification found no unresolved GitHub Wiki source debt: Sync GitHub Wiki run 32329772340 checked out f5c3a5f1145de31c65611b5fd78059a0790f367f, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, completed the full byte comparison, and recorded Wiki master b0dc35ce2820ebec64c788afdcc276e6bc32a772. Comparing that source commit to current main showed only Project Constellation state files changed, with no newer wikis/** delta. PCX-061 and PRJ-002 already had durable Drive wiki mirrors and had no stronger source delta. PCX-062, PCX-063, and PRJ-001 remained source-current but were missing complete Project Wikis Drive mirrors, so those durability gaps were repaired without creating unnecessary wiki source churn. The new mirrors were moved into Project Wikis, independently re-read, and Markdown-export verified: PCX-062 4152 bytes SHA-256 d283c7b705412605fad7a6516fe8e0cb0500feb610c853874e62d895f934b32a; PCX-063 20794 bytes SHA-256 1566757e56945f91c12b08556c9ada077018d05b540f97043dfcaf47750e9b35; PRJ-001 6023 bytes SHA-256 c546af160142d98b7b9d7028a0ed8435919d7813387ec6d676c1e7e1e36264fa. Advance to PRJ-003 through PRJ-007.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0536Z-wiki-drive-durability-pcx-061-063-prj-001-002.json",
+  "nextCursor": [
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012"
+  ],
+  "selectionReason": "Dynamic publication-backlog verification remains clear: the newest recent material wikis/** source state is covered by successful wiki-publication run 32329772340 at f5c3a5f1145de31c65611b5fd78059a0790f367f, and comparison through the checked later repository head a88c44673e35ae3f7d7831d3941ebeb34db7cd1a showed no newer wikis/** delta. PRJ-003, PRJ-005, PRJ-006, and PRJ-007 already have detailed current source pages plus existing Drive Project Wikis mirrors, and no stronger project-owned delta justified source churn. PRJ-004 had a real Drive durability gap: its detailed current Living Room wiki source was already GitHub-published but lacked a complete Project Wikis Drive mirror. A complete mirror was created at Drive file 1lNWUcLvESEcU7zOm-Vtgvjr6pgH7uEVkwToA_69uaMQ, moved into Project Wikis, independently re-read, and Markdown-export verified at 28251 bytes with SHA-256 4d18a9806fd198c918994f2b7baf3f3911b5a4ed64b4e5205f31964f1776d527. Advance to PRJ-008 through PRJ-012.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0716Z-wiki-drive-durability-prj-003-007.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
