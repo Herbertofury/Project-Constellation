@@ -1,6 +1,6 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-20T23:57:00Z",
+  "updatedAt": "2026-08-20T23:58:00Z",
   "completedCursor": [
     "PCX-046"
   ],
@@ -11,7 +11,7 @@
     "PCX-050",
     "PCX-051"
   ],
-  "selectionReason": "Publication backlog was clear at run start. PCX-046 Feature Foundry Source Hubs required material reconciliation because released Herbertofury/Feature-Foundry v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9 now contains a real typed six-provider Music Hub. The page now documents providerCatalog.ts, MusicHub.ts, Tauri OAuth callback and SQLite persistence, Spotify PKCE/account_id/token/quota/playback behavior, Apple Music MusicKit authorization/playback, truthful external-only adapters for Deezer/SoundCloud/TIDAL/YouTube Music, current build/verification commands, and the boundary between source-implemented auth and live-account verification. Wiki source commit 1fbf153f28a423483c50a8b969c9415354e83522 was published by Sync GitHub Wiki run 32430549257 with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master 09fb0e6bad07631634a9bacb8083e7ac0e68b25f. The canonical Drive wiki mirror was updated in place, independently re-read, and Markdown-exported at 26,813 bytes with SHA-256 42aba995b2cc3c0964024afaf731252fbb6adb64a804e49adfe905fc9a95aa4e. PCX-047 is next for a current-authority delta/completeness check.",
+  "selectionReason": "Publication backlog was clear at run start. PCX-046 Feature Foundry Source Hubs required material reconciliation because released Herbertofury/Feature-Foundry v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9 now contains a real typed six-provider Music Hub. The page now documents providerCatalog.ts, MusicHub.ts, Tauri OAuth callback and SQLite persistence, Spotify PKCE/account_id/token/quota/playback behavior, Apple Music MusicKit authorization/playback, truthful external-only adapters for Deezer/SoundCloud/TIDAL/YouTube Music, current build/verification commands, and the boundary between source-implemented auth and live-account verification. Wiki source commit 1fbf153f28a423483c50a8b969c9415354e83522 was published by Sync GitHub Wiki run 32430549257 with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master 09fb0e6bad07631634a9bacb8083e7ac0e68b25f. The canonical Drive wiki mirror was updated in place, independently re-read, and Markdown-exported at 26,812 bytes with SHA-256 49da1f96a7a78357df0f5b30e6e78e0be9adb0f79c86199e2dcac18639cbec0b. PCX-047 is next for a current-authority delta/completeness check.",
   "sourceCheckpoint": "project-constellation/evolution/2026-08-20T2356Z-wiki-pcx-046-v24.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
