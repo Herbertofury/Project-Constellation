@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T00:45:00Z",
+  "updatedAt": "2026-08-20T02:15:00Z",
   "completedCursor": [
-    "PCX-046",
-    "PCX-047",
-    "PCX-048",
-    "PCX-049",
-    "PCX-050"
-  ],
-  "nextCursor": [
     "PCX-051",
     "PCX-052",
     "PCX-053",
     "PCX-054",
     "PCX-055"
   ],
-  "selectionReason": "PCX-046 through PCX-050 were reviewed under publication-backlog-first rules. A later successful full-set Sync GitHub Wiki run (32310775792) checked out source head 8f0b22828e8db5af2f4bfdcd9f2a2b741a1de398, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set against wikis/, and produced Wiki master 513fde0edaf6659e83d322a8af0c7a805f76f6bd, so there is no unresolved actual-Wiki debt for these unchanged pages. The real backlog was Google Drive durability: PCX-046 had only an incomplete short mirror and PCX-047 through PCX-050 were absent from the canonical Project Wikis folder. PCX-046 was replaced with the complete current wiki source; complete mirrors for PCX-047 through PCX-050 were created, moved into Project Wikis, independently re-read/exported, and SHA-256 recorded. No wikis/** source delta was created because the existing pages remain materially current. Advance to PCX-051 through PCX-055.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0044Z-wiki-drive-durability-pcx-046-050.json",
+  "nextCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ],
+  "selectionReason": "PCX-051 through PCX-055 were reviewed after dynamically confirming there was no unresolved Wiki publication backlog. PCX-052 required a material update because its GameSync Next release baseline was stale at 9e337c720f0180cffa577f140b181c699f0a1650 while current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The updated Release Factory page now covers the merged Universal Game Tracker, Bounty, and Animation Tracker release surface, current dependency/lockfile implications, project-owned Opera acceptance evidence, and the broken legacy test:e2e-opera entrypoint. Source commit 877c132f7dc4047d14a67d7271de2375f23954fc was published by Sync GitHub Wiki run 32323810372 with fresh-clone byte verification and Wiki master 7c7e82977c85adcff7966be4d12858696c270829. The existing Drive mirror was expanded from an incomplete summary to the complete page and independently exported at 30016 bytes with SHA-256 ee7e752109a2e43056e91e7cfdd692143aeadb2ab18d8351a1843f75e44cb0b7. PCX-051 and PCX-053 already reflected cd906 current evidence; PCX-054 had no material Source Finder delta in the two newer commits; PCX-055 had no newer shipping Script Polling delta. Advance to PCX-056 through PCX-060.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0215Z-wiki-pcx-051-055.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
