@@ -1,0 +1,91 @@
+{
+  "schema": "project-constellation.wiki-checkpoint/1",
+  "checkpointAt": "2026-08-20T23:56:00Z",
+  "projectId": "PCX-046",
+  "projectName": "Feature Foundry Source Hubs",
+  "status": "PUBLISHED_AND_DURABLE",
+  "wiki": {
+    "sourcePath": "wikis/PCX-046-feature-foundry-source-hubs.md",
+    "sourceCommit": "1fbf153f28a423483c50a8b969c9415354e83522",
+    "sourceBlob": "d4e87c7eed312cdcb26cd1959d829363f30c7ca2",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-046-feature-foundry-source-hubs",
+    "publicationRunId": 32430549257,
+    "publicationJobId": 96621086023,
+    "wikiMasterCommit": "09fb0e6bad07631634a9bacb8083e7ac0e68b25f",
+    "publicationVerification": "pass: exact source checkout, ProjectDump.wiki.git push, fresh clone, complete byte comparison, wiki-publication success"
+  },
+  "currentProjectAuthority": {
+    "repository": "Herbertofury/Feature-Foundry",
+    "branch": "main",
+    "head": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "version": "24.0.0",
+    "sourceEvidence": {
+      "providerCatalog": {
+        "path": "src/music/providerCatalog.ts",
+        "blob": "97cca97b5debff94fc5d2bea99af006de4ce0efb"
+      },
+      "musicHub": {
+        "path": "src/music/MusicHub.ts",
+        "blob": "53beae0464c44c947c8009bd9fc71456403486b3"
+      },
+      "tauriHost": {
+        "path": "src-tauri/src/lib.rs",
+        "blob": "2ece40e40cde1a6542a81e2d391f9596197c1caf"
+      },
+      "tauriDatabase": {
+        "path": "src-tauri/src/database.rs",
+        "blob": "2725d35a606722ec4c444d4b07208ebd379382a4"
+      },
+      "uiVerification": {
+        "path": "tests/ui.test.ts",
+        "blob": "7eaace90ec9bc5f475a32b4f0a39d97cd88ea2bc"
+      },
+      "packageManifest": {
+        "path": "package.json",
+        "blob": "46e0a282f5e65d87b456e12a0cab90e1ac967947"
+      }
+    }
+  },
+  "materialDelta": [
+    "Promoted released Feature Foundry v24.0.0 from future/secondary evidence to current Source Hubs production authority.",
+    "Documented the typed six-provider catalog and current Music Hub architecture.",
+    "Documented real Spotify PKCE, account identity, access refresh, terminal reauthorization, quota/rate-limit states, playback, and native loopback callback implementation.",
+    "Documented Apple Music MusicKit v3 authorization/playback implementation and the server-issued developer-token boundary.",
+    "Documented Deezer, SoundCloud, TIDAL, and YouTube Music as truthful external-handoff-only adapters.",
+    "Documented browser localStorage mapping durability, session-only credentials, and native SQLite room-soundtrack persistence.",
+    "Added exact build/verify/package commands, configuration workflows, troubleshooting, anti-regression rules, and provider-auth qualification requirements."
+  ],
+  "verificationBoundary": {
+    "sourceImplemented": true,
+    "projectBuildAndUiEvidence": true,
+    "liveSpotifyAccountAuthAndPlaybackProvenByCurrentRepositoryTests": false,
+    "liveAppleMusicSubscriberAuthAndPlaybackProvenByCurrentRepositoryTests": false,
+    "rule": "Do not promote source-implemented authenticated behavior to live-runtime verified until controlled real-account end-to-end smokes pass."
+  },
+  "drivePublication": {
+    "documentId": "1tOHMMgIzjBuswYf8JJF3NRB83F90953qsDPbVNa1sp8",
+    "title": "PCX-046 Feature Foundry Source Hubs Wiki",
+    "reread": "pass",
+    "markdownExportBytes": 26813,
+    "markdownExportSha256": "42aba995b2cc3c0964024afaf731252fbb6adb64a804e49adfe905fc9a95aa4e"
+  },
+  "research": {
+    "checkedAt": "2026-08-20",
+    "primarySources": [
+      "Spotify Web API authorization / PKCE documentation",
+      "Spotify May 2026 account_id change",
+      "Spotify June 2026 refresh-token expiration change",
+      "Spotify July 2026 Development Mode quota update",
+      "Apple Music API developer-token documentation",
+      "Apple Music MusicKit user-authentication documentation"
+    ]
+  },
+  "nextAction": "Add deterministic provider-auth fixtures around the current v24 implementation, then run controlled live Spotify and Apple Music authorization/playback smokes before promoting account-controlled behavior to live-runtime verified.",
+  "nextDocumentationCursor": [
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051"
+  ]
+}
