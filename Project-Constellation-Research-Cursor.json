@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-20T17:14:33Z",
+  "updatedAt": "2026-08-20T18:58:00Z",
   "completedCursor": [
-    "PCX-033",
-    "PCX-034",
-    "PCX-035",
-    "PCX-037",
-    "PCX-038"
-  ],
-  "nextCursor": [
     "PCX-039",
     "PCX-040",
     "PCX-041",
     "PCX-042",
     "PCX-043"
   ],
-  "selectionReason": "Publication backlog was clear at run start. PCX-034 Ferrum Browser received a material source improvement from current project-owned evolution runs 64 and 65: Playwright 1.63.0-alpha-2026-08-20 qualification, collision-safe evidence-history caching with platform-specific watcher strategy and exact-byte fallback, forced same-stat collision regression proof, and 2,000-run Linux/Windows benchmark evidence. Source commit adfd06cef393b0b5bb198a3f93e5d979e8a7946e was published by Sync GitHub Wiki run 32396274360 with full fresh-clone byte verification to Wiki master 80b131952d9b32db14222f96326cb9b4fe128273. The existing PCX-034 Drive wiki was updated in place, independently re-read, and Markdown-exported at 44,367 bytes with SHA-256 829624eeb58244e6025a9f0d68243f29af0c7795caaea5bb867d96b084b7a3f8. PCX-033, PCX-035, PCX-037, and PCX-038 were rechecked without unnecessary source churn. PCX-036 remains skipped because it is the Project Constellation control-plane reference rather than a normal tracked-project documentation target.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1714Z-wiki-pcx-033-038.json",
+  "nextCursor": [
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047",
+    "PCX-048"
+  ],
+  "selectionReason": "Publication backlog was clear at run start. PCX-043 Feature Foundry Production App required a material authority correction because Herbertofury/Feature-Foundry is now a complete released v24.0.0 product repository rather than the previously documented placeholder. The wiki now records current source/runtime/package ownership, native Tauri/SQLite behavior, V24/V33/V2 authority lanes, release artifacts and SHA-256 identities, build/verify/package/install workflows, modification ownership, troubleshooting, and non-regression rules. Source commit 8f7569e1bd1c9a61a7df244719c80301433791c7 was published by Sync GitHub Wiki run 32405841257 with full fresh-clone byte verification to Wiki master eaf21cc619e85426693931931da0b304f812eccc. The PCX-043 Drive mirror was updated in place, independently re-read, and Markdown-exported at 34,004 bytes with SHA-256 142a32682745d1ac6a0fe37f0f3e95a018dca752ee4aa502fe60ba2793d4b07e. PCX-039 through PCX-042 were rechecked without unnecessary source churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1858Z-wiki-pcx-039-043.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
