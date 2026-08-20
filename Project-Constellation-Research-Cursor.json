@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T07:16:00Z",
+  "updatedAt": "2026-08-20T09:00:30Z",
   "completedCursor": [
-    "PRJ-003",
-    "PRJ-004",
-    "PRJ-005",
-    "PRJ-006",
-    "PRJ-007"
-  ],
-  "nextCursor": [
     "PRJ-008",
     "PRJ-009",
     "PRJ-010",
     "PRJ-011",
     "PRJ-012"
   ],
-  "selectionReason": "Dynamic publication-backlog verification remains clear: the newest recent material wikis/** source state is covered by successful wiki-publication run 32329772340 at f5c3a5f1145de31c65611b5fd78059a0790f367f, and comparison through the checked later repository head a88c44673e35ae3f7d7831d3941ebeb34db7cd1a showed no newer wikis/** delta. PRJ-003, PRJ-005, PRJ-006, and PRJ-007 already have detailed current source pages plus existing Drive Project Wikis mirrors, and no stronger project-owned delta justified source churn. PRJ-004 had a real Drive durability gap: its detailed current Living Room wiki source was already GitHub-published but lacked a complete Project Wikis Drive mirror. A complete mirror was created at Drive file 1lNWUcLvESEcU7zOm-Vtgvjr6pgH7uEVkwToA_69uaMQ, moved into Project Wikis, independently re-read, and Markdown-export verified at 28251 bytes with SHA-256 4d18a9806fd198c918994f2b7baf3f3911b5a4ed64b4e5205f31964f1776d527. Advance to PRJ-008 through PRJ-012.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0716Z-wiki-drive-durability-prj-003-007.json",
+  "nextCursor": [
+    "PRJ-013",
+    "PRJ-014",
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017"
+  ],
+  "selectionReason": "Dynamic publication-backlog verification remains clear: successful wiki-publication run 32329772340 covers the latest material wikis/** source state at f5c3a5f1145de31c65611b5fd78059a0790f367f, and comparison through repository head cc36397c51ed9883c8ac2d7fb2769a0c46625637 showed no newer wikis/** delta. PRJ-008 through PRJ-012 each lacked a complete Project Wikis Google Drive mirror even though their current GitHub wiki source pages were already publication-current. Complete mirrors were created in the canonical Project Wikis folder, independently exported to Markdown, and verified by size, SHA-256, and distinctive-content reread. No wikis/** source churn was justified: Gamesync remains at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928, GameSync-Next remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562, FlipForge remains a placeholder at 03cb2057c480929831852fed8fd866954e3ad5c0, and the canonical Skill Atlas / TS4 Accelerator / DX11 overlay implementation sources remain unresolved. Advance to PRJ-013 through PRJ-017.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0900Z-wiki-drive-durability-prj-008-012.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
