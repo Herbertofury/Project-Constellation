@@ -1,17 +1,17 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-20T20:47:55Z",
+  "updatedAt": "2026-08-20T22:15:00Z",
   "completedCursor": [
-    "PCX-044"
+    "PCX-045"
   ],
   "nextCursor": [
-    "PCX-045",
     "PCX-046",
     "PCX-047",
     "PCX-048",
-    "PCX-049"
+    "PCX-049",
+    "PCX-050"
   ],
-  "selectionReason": "Publication backlog was clear at run start. PCX-044 Feature Foundry Living Ecology required a material authority correction after Herbertofury/Feature-Foundry became a complete released v24.0.0 production repository. The wiki now uses v24 as current production authority for object ecology, theme/room routing, world reactions, browser/native snapshots, build and verification workflows, while preserving V33 as a deeper historical ecology/non-regression benchmark. Source commit 9ba29e65ae008387c7779ff404bc0084e0f97f6d was covered by Sync GitHub Wiki run 32415786222 with complete fresh-clone byte verification to Wiki master 09fe9807ee965eebbcb4a37d7abf4ea2f9e08ea7. The canonical Drive wiki mirror was replaced, independently re-read, and Markdown-exported at 36,873 bytes with SHA-256 143a8fd0777a110c67f78da3688cdfdca81216814a68a17a46c4f49f46c686e7. PCX-045 and PCX-046 remain next because their current documentation still needs v24 authority reconciliation before they can be considered current.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T2047Z-wiki-pcx-044.json",
+  "selectionReason": "Publication backlog was clear at run start. PCX-045 Feature Foundry Object Intelligence required material reconciliation after Herbertofury/Feature-Foundry became the released v24.0.0 production authority. The page now documents current typed WorldObjectRecord/ObjectEcologyLayer behavior, the protected V24 Object Atlas compatibility runtime, current build/verify/package workflows, and a V23-to-v24 coverage ledger while preserving V23 schema 13 as the strongest detailed historical Object Atlas database contract. Source commit 1a49ba84e6c3f731e970062d391ba4bd6b581456 was covered by Sync GitHub Wiki run 32423576077 with complete fresh-clone byte verification to Wiki master cf1f2634e22155482309c6369a578d9ba74d9f18. The canonical Drive wiki mirror was updated, independently re-read, and Markdown-exported at 33,097 bytes with SHA-256 ecd53c00167f0be834b294e75f36ad60880a16f7e589a5fccd5f9c61a734b323. PCX-046 remains first next because its Source Hubs page still describes V33 as current implementation evidence even though released v24 now contains a real typed Music Hub and six provider adapters.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T2215Z-wiki-pcx-045-v24.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
