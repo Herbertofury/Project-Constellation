@@ -1,27 +1,49 @@
 {
   "schema": "project-constellation.catalog-integrity/1",
-  "checkedAt": "2026-08-18T16:20:00Z",
+  "checkedAt": "2026-08-20T03:50:00Z",
   "catalog": {
     "path": "project-constellation/Project-Constellation-Project-Catalog.json",
     "driveFileId": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
-    "githubBlobSha": "297284ad1417e5b8b9dd8f6d16fbb3a28906e6ed",
-    "githubRestoreCommit": "eb99a193c08b9f2ca370dbcf85c75c2f997eafa6",
     "driveBytes": 116737,
     "driveSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
-    "githubBytes": 48132,
-    "githubSha256": "e222fc0aadf0c653c1f87af2d790994235d9f30fb350b77a51274a7ad6ab5a45",
-    "githubJsonParse": "pre-existing malformed catalog preserved; retired references removed"
+    "driveJsonParse": "pass",
+    "githubBlobSha": "0cbd23ef565c5ea61c26c978142d2b1f434c6bbf",
+    "githubVerifiedAtCommit": "6b508765a93334ae163dc60d51bdfd5c574909b5",
+    "githubBytes": 116737,
+    "githubSha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+    "githubJsonParse": "pass",
+    "gitBlobMatchesDriveBytes": true,
+    "exactByteMatch": true
   },
   "invariants": {
     "projectCount": 63,
+    "projectArrayLength": 63,
     "uniqueProjectIds": true,
     "allProjectsHaveGoal": true,
     "allProjectsHaveRequirements": true,
-    "allProjectsHaveRecoveryHistory": true
+    "allProjectsHaveRecoveryHistory": true,
+    "allProjectsHaveNextAction": true,
+    "allProjectsHaveStopPoint": true,
+    "lastProjectIds": [
+      "PCX-059",
+      "PCX-060",
+      "PCX-061",
+      "PCX-062",
+      "PCX-063"
+    ]
+  },
+  "historicalDivergence": {
+    "status": "RESOLVED",
+    "previousGitHubBlobSha": "297284ad1417e5b8b9dd8f6d16fbb3a28906e6ed",
+    "previousGitHubBytes": 48132,
+    "previousGitHubSha256": "e222fc0aadf0c653c1f87af2d790994235d9f30fb350b77a51274a7ad6ab5a45",
+    "previousCondition": "GitHub catalog mirror was truncated inside PRJ-019 while the complete Drive catalog remained valid.",
+    "resolutionEvidence": "The current GitHub blob SHA equals git hash-object of the re-downloaded Drive catalog bytes, and both destinations now share the same 116737-byte SHA-256 identity."
   },
   "publication": {
-    "github": "RESTORED_AND_FETCH_VERIFIED",
+    "github": "EXACT_BYTES_FETCH_VERIFIED",
     "googleDrive": "SOURCE_REDOWNLOADED_AND_SHA256_VERIFIED",
-    "rule": "A missing, stale, partial, or unverifiable GitHub or Drive copy is publication debt. Raw byte SHA-256 remains the exact publication identity; semantic canonicalization may only be additive."
+    "dualPublication": "PASS",
+    "rule": "A missing, stale, partial, malformed, or byte-divergent GitHub or Drive copy is publication debt. Raw byte SHA-256 plus parse and 63-record semantic invariants remain the promotion gate."
   }
 }
