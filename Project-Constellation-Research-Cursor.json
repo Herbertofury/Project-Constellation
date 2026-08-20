@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T02:15:00Z",
+  "updatedAt": "2026-08-20T03:56:00Z",
   "completedCursor": [
-    "PCX-051",
-    "PCX-052",
-    "PCX-053",
-    "PCX-054",
-    "PCX-055"
-  ],
-  "nextCursor": [
     "PCX-056",
     "PCX-057",
     "PCX-058",
     "PCX-059",
     "PCX-060"
   ],
-  "selectionReason": "PCX-051 through PCX-055 were reviewed after dynamically confirming there was no unresolved Wiki publication backlog. PCX-052 required a material update because its GameSync Next release baseline was stale at 9e337c720f0180cffa577f140b181c699f0a1650 while current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The updated Release Factory page now covers the merged Universal Game Tracker, Bounty, and Animation Tracker release surface, current dependency/lockfile implications, project-owned Opera acceptance evidence, and the broken legacy test:e2e-opera entrypoint. Source commit 877c132f7dc4047d14a67d7271de2375f23954fc was published by Sync GitHub Wiki run 32323810372 with fresh-clone byte verification and Wiki master 7c7e82977c85adcff7966be4d12858696c270829. The existing Drive mirror was expanded from an incomplete summary to the complete page and independently exported at 30016 bytes with SHA-256 ee7e752109a2e43056e91e7cfdd692143aeadb2ab18d8351a1843f75e44cb0b7. PCX-051 and PCX-053 already reflected cd906 current evidence; PCX-054 had no material Source Finder delta in the two newer commits; PCX-055 had no newer shipping Script Polling delta. Advance to PCX-056 through PCX-060.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0215Z-wiki-pcx-051-055.json",
+  "nextCursor": [
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-001",
+    "PRJ-002"
+  ],
+  "selectionReason": "PCX-056 through PCX-060 were reviewed after dynamically confirming the prior material Wiki update had full publication proof and there was no newer unverified wikis/** delta. PCX-057 required a material correction because its page and integrity receipt still described an old truncated GitHub catalog state even though current GitHub blob 0cbd23ef565c5ea61c26c978142d2b1f434c6bbf is the exact git hash-object of the independently re-downloaded 116737-byte Drive catalog, SHA-256 79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab. JSON parse, 63-record length, unique IDs, and required continuity-field coverage all pass. The historical 48132-byte truncated blob remains preserved as resolved evidence. The integrity receipt was refreshed at commit 7e9791beeb4546a2230c8029724b3fe08e899ca0. Wiki source commit f5c3a5f1145de31c65611b5fd78059a0790f367f was published by Sync GitHub Wiki run 32329772340 with exact-source checkout, ProjectDump.wiki.git push, fresh clone, complete byte comparison, and Wiki master b0dc35ce2820ebec64c788afdcc276e6bc32a772. The Drive wiki mirror was updated in place, re-read, and exported at 14589 bytes with SHA-256 a8368edc1e9d04152e60c9411e6dcf5ffd5518c3a3e8547dcebf5ee8317d9d1a. A Drive integrity receipt mirror was also created under the canonical Project Constellation folder and exported at 2169 bytes with SHA-256 a4d06e6f02379e970ea10cf2db8accd9b1fea071670287ea3678a8cc27c8af74. PCX-056, PCX-058, PCX-059, and PCX-060 had no stronger project-owned source delta justifying documentation churn. Advance to PCX-061, PCX-062, PCX-063, PRJ-001, and PRJ-002.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0355Z-wiki-pcx-056-060.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
