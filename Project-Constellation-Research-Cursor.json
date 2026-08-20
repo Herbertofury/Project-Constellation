@@ -1,21 +1,21 @@
 {
-  "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T13:55:00Z",
+  "schema": "project-constellation.research-cursor/2",
+  "updatedAt": "2026-08-20T15:39:31Z",
   "completedCursor": [
-    "PRJ-023",
-    "PRJ-024",
-    "PRJ-025",
-    "PCX-026",
-    "PCX-027"
-  ],
-  "nextCursor": [
     "PCX-028",
     "PCX-029",
     "PCX-030",
     "PCX-031",
     "PCX-032"
   ],
-  "selectionReason": "Dynamic publication-backlog verification remains clear: latest material Wiki source commit 23a5d694a64f8c114ca729ea8158905555df6a92 has successful wiki-publication via Sync GitHub Wiki run 32359556184 / job 96396011827 and Wiki master commit 0702d79dac14e84d057e4a998f79dc1e5eec179d. Comparison to the pre-checkpoint main head shows no later wikis/** delta. PRJ-024 and PCX-026 lacked complete Google Drive Project Wikis mirrors; both were created in the canonical Project Wikis folder, independently re-read, and Markdown-exported at 4,748 bytes / SHA-256 d3eb83d5c3949c1a983bcefd35166eebe744bfebbef55baf591c7f52cefb20fe and 5,825 bytes / SHA-256 a2b51bd5c729910860df99278181f99ee9f7076c35a5fc2557a9eaea85bfc6f3 respectively. PRJ-023, PRJ-025, and PCX-027 were rechecked and their existing Drive mirrors contain the current key evidence. Advance to PCX-028 through PCX-032.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1355Z-wiki-drive-durability-prj-023-pcx-027.json",
-  "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
+  "nextCursor": [
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-037",
+    "PCX-038"
+  ],
+  "selectionReason": "Publication backlog was clear at run start. PCX-031 received a material source improvement that preserves recovered Slint 1.17.0 as the recovery baseline while documenting Slint 1.17.1 as a patch-level qualification candidate; source commit db01d1f53707cdcb0f74ac59675e2ff2fe75f368 was published by Sync GitHub Wiki run 32387006041 with full fresh-clone byte verification to Wiki master 88d47be9cfd4a3a120a41072a5be195564a58685. Drive durability was repaired for PCX-028 (blank/out-of-folder mirror), PCX-031 (missing mirror), and PCX-032 (condensed mirror), with independent rereads and Markdown export hashes. PCX-029 and PCX-030 were rechecked current without source churn. PCX-036 is skipped because it is the Project Constellation control-plane reference rather than a normal tracked-project documentation target.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1539Z-wiki-pcx-028-032.json",
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
