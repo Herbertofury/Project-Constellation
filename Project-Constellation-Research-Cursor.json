@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T12:10:00Z",
+  "updatedAt": "2026-08-20T13:55:00Z",
   "completedCursor": [
-    "PRJ-018",
-    "PRJ-019",
-    "PRJ-020",
-    "PRJ-021",
-    "PRJ-022"
-  ],
-  "nextCursor": [
     "PRJ-023",
     "PRJ-024",
     "PRJ-025",
     "PCX-026",
     "PCX-027"
   ],
-  "selectionReason": "Dynamic publication-backlog verification is clear: the latest material Wiki source commit 23a5d694a64f8c114ca729ea8158905555df6a92 was covered by successful Sync GitHub Wiki run 32359556184 / job 96396011827, which checked out that exact source, pushed the complete page set to ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set against wikis/ successfully, and produced Wiki master commit 0702d79dac14e84d057e4a998f79dc1e5eec179d. PRJ-018 and PRJ-019 were rechecked without source churn and their Drive mirrors retain the current host-baseline sections. PRJ-020 and PRJ-022 had materially condensed Drive mirrors, so each was replaced in place with the full current Wiki source and independently re-read. PRJ-020 now exports to 11,928 Markdown bytes with SHA-256 6d6ee52d78d1d975757692beb5531dc11a186d318c80380634a3f12225520e95; PRJ-022 exports to 5,335 bytes with SHA-256 17dd42dbfef03df647c467e827f53ee6af115cf2cc47b18a2a668cb15d7409ff. PRJ-021 had no complete Project Wikis Drive mirror; one was created in the canonical Project Wikis folder, independently re-read, and exported at 3,230 bytes with SHA-256 8b71421dd7535177600caae7d52c08701830fa4b094f452c5c3aec4007ace76a. Exact-name Drive and Herbertofury GitHub repository searches still did not recover GX-Slim-1.0.0-FULL.zip or a canonical GX Slim source repository. Advance to PRJ-023, PRJ-024, PRJ-025, PCX-026, and PCX-027.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1210Z-wiki-drive-durability-prj-018-022.json",
+  "nextCursor": [
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032"
+  ],
+  "selectionReason": "Dynamic publication-backlog verification remains clear: latest material Wiki source commit 23a5d694a64f8c114ca729ea8158905555df6a92 has successful wiki-publication via Sync GitHub Wiki run 32359556184 / job 96396011827 and Wiki master commit 0702d79dac14e84d057e4a998f79dc1e5eec179d. Comparison to the pre-checkpoint main head shows no later wikis/** delta. PRJ-024 and PCX-026 lacked complete Google Drive Project Wikis mirrors; both were created in the canonical Project Wikis folder, independently re-read, and Markdown-exported at 4,748 bytes / SHA-256 d3eb83d5c3949c1a983bcefd35166eebe744bfebbef55baf591c7f52cefb20fe and 5,825 bytes / SHA-256 a2b51bd5c729910860df99278181f99ee9f7076c35a5fc2557a9eaea85bfc6f3 respectively. PRJ-023, PRJ-025, and PCX-027 were rechecked and their existing Drive mirrors contain the current key evidence. Advance to PCX-028 through PCX-032.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1355Z-wiki-drive-durability-prj-023-pcx-027.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
