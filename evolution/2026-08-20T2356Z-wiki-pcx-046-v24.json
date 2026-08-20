@@ -69,6 +69,23 @@
     "markdownExportBytes": 26812,
     "markdownExportSha256": "49da1f96a7a78357df0f5b30e6e78e0be9adb0f79c86199e2dcac18639cbec0b"
   },
+  "checkpointDurability": {
+    "githubPath": "project-constellation/evolution/2026-08-20T2356Z-wiki-pcx-046-v24.json",
+    "driveDocumentId": "1d8J9G1jWZrChrLifak73srbDKo9uM1xmJ1ytMQJxjEA",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveReread": "pass",
+    "driveMarkdownExportBytes": 3334,
+    "driveMarkdownExportSha256": "76653aef9a10b6560fa3e632e82468b1d12099d2e1d91846672ded1659e02da7"
+  },
+  "cursorDurability": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubBlob": "c30c4bb48a906e45135aed3d9fc4e2e0d9967d0c",
+    "driveDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveSemanticReread": "pass",
+    "driveMarkdownExportBytes": 1934,
+    "driveMarkdownExportSha256": "79061e3ad850e23fe563c643cf209e81b517bb28fb6d76094cc9729928771b04"
+  },
   "research": {
     "checkedAt": "2026-08-20",
     "primarySources": [
