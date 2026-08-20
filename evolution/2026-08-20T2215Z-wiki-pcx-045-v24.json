@@ -31,6 +31,20 @@
     "markdownSha256": "ecd53c00167f0be834b294e75f36ad60880a16f7e589a5fccd5f9c61a734b323",
     "reread": "pass"
   },
+  "driveCheckpoint": {
+    "fileId": "1JSyyRSjEqNiwye_kctLtZTwvY5jzIDxzlKPbxV0heaw",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 3034,
+    "markdownSha256": "db73de3863999987576b9c68457714c6e7e2577eca61eed5ae0b85acace71451",
+    "reread": "pass"
+  },
+  "researchCursor": {
+    "githubBlob": "1f4c0ec63c235a272d78596aba496216b96664cf",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "markdownBytes": 1863,
+    "markdownSha256": "47b72ebf539b0795851b94b3404b845290a875897b63df830af383f573aa0365",
+    "reread": "pass"
+  },
   "changeSummary": [
     "Promoted released Feature Foundry v24.0.0 to current production application authority for Object Intelligence.",
     "Preserved V23 schema 13 as the strongest detailed historical Object Atlas database and interaction contract instead of erasing its 178-object, FTS, spatial, provenance, and context-command evidence.",
