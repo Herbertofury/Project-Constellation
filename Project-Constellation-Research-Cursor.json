@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/1",
-  "updatedAt": "2026-08-20T09:00:30Z",
+  "updatedAt": "2026-08-20T10:34:09Z",
   "completedCursor": [
-    "PRJ-008",
-    "PRJ-009",
-    "PRJ-010",
-    "PRJ-011",
-    "PRJ-012"
-  ],
-  "nextCursor": [
     "PRJ-013",
     "PRJ-014",
     "PRJ-015",
     "PRJ-016",
     "PRJ-017"
   ],
-  "selectionReason": "Dynamic publication-backlog verification remains clear: successful wiki-publication run 32329772340 covers the latest material wikis/** source state at f5c3a5f1145de31c65611b5fd78059a0790f367f, and comparison through repository head cc36397c51ed9883c8ac2d7fb2769a0c46625637 showed no newer wikis/** delta. PRJ-008 through PRJ-012 each lacked a complete Project Wikis Google Drive mirror even though their current GitHub wiki source pages were already publication-current. Complete mirrors were created in the canonical Project Wikis folder, independently exported to Markdown, and verified by size, SHA-256, and distinctive-content reread. No wikis/** source churn was justified: Gamesync remains at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928, GameSync-Next remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562, FlipForge remains a placeholder at 03cb2057c480929831852fed8fd866954e3ad5c0, and the canonical Skill Atlas / TS4 Accelerator / DX11 overlay implementation sources remain unresolved. Advance to PRJ-013 through PRJ-017.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T0900Z-wiki-drive-durability-prj-008-012.json",
+  "nextCursor": [
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022"
+  ],
+  "selectionReason": "Dynamic publication-backlog verification is clear: PRJ-014 material source commit 23a5d694a64f8c114ca729ea8158905555df6a92 was published by Sync GitHub Wiki run 32359556184, which checked out that exact source, pushed the complete page set to ProjectDump.wiki.git, fresh-cloned the actual Wiki, and byte-compared the complete remote page set successfully, producing Wiki master commit 0702d79dac14e84d057e4a998f79dc1e5eec179d. PRJ-014 required a material freshness update because Crate Entertainment released Grim Dawn v1.3.0.6 on 2026-08-07; the wiki now records current quest, bounty, multiplayer, Fangs of Asterkarn spawn/density, loot/itemization, and mastery/skill audit cases. PRJ-013 had no complete Project Wikis Drive mirror; a complete mirror was created, moved into the canonical Project Wikis folder, independently re-read, and Markdown-exported at 5,089 bytes with SHA-256 7ab699212b3ffac80e933c6b9887d518cc71c7f0faec9446a62b72e637b00590. PRJ-014 Drive durability was updated in place and verified at 23,873 Markdown bytes with SHA-256 c966f2742ff81a5b4183884e0841b70457c62e4fc26ea41aa48f5bd32b1430e7. PRJ-015 through PRJ-017 were rechecked without source churn because their current detailed pages still match the strongest recovered evidence and MO2 v2.5.2 remains the current stable host baseline. Advance to PRJ-018 through PRJ-022.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1031Z-wiki-prj-013-017.json",
   "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
 }
