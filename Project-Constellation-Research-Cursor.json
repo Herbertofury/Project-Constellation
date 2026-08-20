@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-20T15:39:31Z",
+  "updatedAt": "2026-08-20T17:14:33Z",
   "completedCursor": [
-    "PCX-028",
-    "PCX-029",
-    "PCX-030",
-    "PCX-031",
-    "PCX-032"
-  ],
-  "nextCursor": [
     "PCX-033",
     "PCX-034",
     "PCX-035",
     "PCX-037",
     "PCX-038"
   ],
-  "selectionReason": "Publication backlog was clear at run start. PCX-031 received a material source improvement that preserves recovered Slint 1.17.0 as the recovery baseline while documenting Slint 1.17.1 as a patch-level qualification candidate; source commit db01d1f53707cdcb0f74ac59675e2ff2fe75f368 was published by Sync GitHub Wiki run 32387006041 with full fresh-clone byte verification to Wiki master 88d47be9cfd4a3a120a41072a5be195564a58685. Drive durability was repaired for PCX-028 (blank/out-of-folder mirror), PCX-031 (missing mirror), and PCX-032 (condensed mirror), with independent rereads and Markdown export hashes. PCX-029 and PCX-030 were rechecked current without source churn. PCX-036 is skipped because it is the Project Constellation control-plane reference rather than a normal tracked-project documentation target.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1539Z-wiki-pcx-028-032.json",
+  "nextCursor": [
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042",
+    "PCX-043"
+  ],
+  "selectionReason": "Publication backlog was clear at run start. PCX-034 Ferrum Browser received a material source improvement from current project-owned evolution runs 64 and 65: Playwright 1.63.0-alpha-2026-08-20 qualification, collision-safe evidence-history caching with platform-specific watcher strategy and exact-byte fallback, forced same-stat collision regression proof, and 2,000-run Linux/Windows benchmark evidence. Source commit adfd06cef393b0b5bb198a3f93e5d979e8a7946e was published by Sync GitHub Wiki run 32396274360 with full fresh-clone byte verification to Wiki master 80b131952d9b32db14222f96326cb9b4fe128273. The existing PCX-034 Drive wiki was updated in place, independently re-read, and Markdown-exported at 44,367 bytes with SHA-256 829624eeb58244e6025a9f0d68243f29af0c7795caaea5bb867d96b084b7a3f8. PCX-033, PCX-035, PCX-037, and PCX-038 were rechecked without unnecessary source churn. PCX-036 remains skipped because it is the Project Constellation control-plane reference rather than a normal tracked-project documentation target.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-20T1714Z-wiki-pcx-033-038.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
