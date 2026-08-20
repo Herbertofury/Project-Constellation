@@ -80,7 +80,21 @@
         "parentFolder": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
         "result": "current; no repair required"
       }
-    ]
+    ],
+    "checkpointMirror": {
+      "driveFileId": "19ojiETBxxbt-sp9xp8e63TgtetSKbhdgKsYOysUVPUI",
+      "parentFolder": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "roundTripRead": "pass",
+      "markdownExportBytes": 3418,
+      "markdownExportSha256": "6144245859bc17dd3be28a5c1c7c2e910846def66e4782af24ba5909990af895"
+    },
+    "researchCursorMirror": {
+      "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "parentFolder": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "roundTripRead": "pass",
+      "markdownExportBytes": 1646,
+      "markdownExportSha256": "b154e3c6d73369d39d5c0afe861452d3116d60e6865837abed434221995ea2af"
+    }
   },
   "reviewDecisions": {
     "PCX-028": "No source churn. Canonical implementation remains unresolved and existing notify-rs/Watchman research remains materially current; Drive mirror repaired.",
