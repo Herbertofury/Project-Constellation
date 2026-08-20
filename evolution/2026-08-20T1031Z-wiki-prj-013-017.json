@@ -1,0 +1,85 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T10:31:00Z",
+  "group": [
+    "PRJ-013",
+    "PRJ-014",
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017"
+  ],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "23a5d694a64f8c114ca729ea8158905555df6a92",
+    "wikiPublicationStatus": "success",
+    "syncWorkflowRunId": 32359556184,
+    "syncJobId": 96396011827,
+    "wikiMasterCommit": "0702d79dac14e84d057e4a998f79dc1e5eec179d",
+    "verification": "Sync GitHub Wiki checked out exact source commit 23a5d694a64f8c114ca729ea8158905555df6a92, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, and byte-compared the complete remote page set against wikis/ with success."
+  },
+  "projects": {
+    "PRJ-013": {
+      "result": "DRIVE_DURABILITY_REPAIRED",
+      "sourceChanged": false,
+      "githubSourcePath": "wikis/PRJ-013-money-app-ai-monetization-station.md",
+      "githubSourceBlob": "e9c441b1ecb99f3647cf2d478dddbeec40ce5fea",
+      "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-013-money-app-ai-monetization-station",
+      "driveDocumentId": "1rJFEbUmRACCJuBeWqiXZ4VPDJR4wKJzJOlUbfOdlXK0",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveMarkdownBytes": 5089,
+      "driveMarkdownSha256": "7ab699212b3ffac80e933c6b9887d518cc71c7f0faec9446a62b72e637b00590",
+      "verification": "Complete current wiki content was written to a new canonical Project Wikis Drive mirror, moved into the Project Wikis folder, independently re-read, and exported to Markdown for size/hash proof."
+    },
+    "PRJ-014": {
+      "result": "MATERIAL_WIKI_REFRESH_AND_DUAL_PUBLICATION",
+      "sourceChanged": true,
+      "githubSourcePath": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "githubSourceCommit": "23a5d694a64f8c114ca729ea8158905555df6a92",
+      "githubSourceBlob": "fe84daa1983757dc76587ea661ab3fa258f4674b",
+      "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-014-grim-dawn-cairn-codex",
+      "officialGameBaseline": "Grim Dawn v1.3.0.6",
+      "officialBaselineChecked": "2026-08-20",
+      "driveDocumentId": "1mVb4bNC3MUInGUGY_WAXvlNqsxxlMZrJPmhzaVY7_CY",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveMarkdownBytes": 23873,
+      "driveMarkdownSha256": "c966f2742ff81a5b4183884e0841b70457c62e4fc26ea41aa48f5bd32b1430e7",
+      "verification": "The stale v1.3.0.5 freshness baseline was replaced by the current official v1.3.0.6 baseline with new quest, bounty, multiplayer, spawn-density, loot, itemization and mastery/skill audit cases. GitHub full-set Wiki publication succeeded and the existing Drive mirror was replaced, independently re-read, and Markdown-exported for size/hash proof."
+    },
+    "PRJ-015": {
+      "result": "RECHECKED_NO_SOURCE_CHURN",
+      "sourceChanged": false,
+      "reason": "Current detailed page still matches the strongest recovered Bethesda Plugin Info 1.5.3 evidence; MO2 v2.5.2 remains the primary current release gate and real Windows host qualification remains pending."
+    },
+    "PRJ-016": {
+      "result": "RECHECKED_NO_SOURCE_CHURN",
+      "sourceChanged": false,
+      "reason": "Current detailed page still matches the strongest recovered Version Tracker 2.4.3 and migration evidence; current real Windows MO2 v2.5.2 qualification remains pending."
+    },
+    "PRJ-017": {
+      "result": "RECHECKED_NO_SOURCE_CHURN",
+      "sourceChanged": false,
+      "reason": "Current detailed page still matches the strongest Image Column 1.4.12 identity/cache/drag-contract evidence; real coordinated MO2 v2.5.2 host qualification remains pending."
+    }
+  },
+  "research": {
+    "grimDawn": {
+      "checked": "2026-08-20",
+      "officialPatch": "v1.3.0.6",
+      "officialPatchDate": "2026-08-07",
+      "source": "https://forums.crateentertainment.com/t/grim-dawn-version-1-3-0-6/157907/1"
+    },
+    "modOrganizer2": {
+      "checked": "2026-08-20",
+      "latestStable": "v2.5.2",
+      "source": "https://github.com/ModOrganizer2/modorganizer/releases/tag/v2.5.2"
+    }
+  },
+  "nextCursor": [
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022"
+  ],
+  "controlPlaneExcluded": true
+}
