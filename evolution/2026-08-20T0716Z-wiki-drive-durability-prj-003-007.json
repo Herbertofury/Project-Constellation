@@ -1,0 +1,54 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T07:16:00Z",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "scope": ["PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007"],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "f5c3a5f1145de31c65611b5fd78059a0790f367f",
+    "wikiPublicationStatus": "success",
+    "syncWorkflowRunId": 32329772340,
+    "laterRepositoryHeadChecked": "a88c44673e35ae3f7d7831d3941ebeb34db7cd1a",
+    "laterWikisDelta": false,
+    "ruleApplied": "The successful full-set publisher covers the complete wikis/ source at the material source checkpoint; later commits through the checked head changed only Project Constellation state, not wikis/."
+  },
+  "projects": {
+    "PRJ-003": {
+      "decision": "NO_MATERIAL_WIKI_SOURCE_CHANGE",
+      "evidence": "Current GameSync Platform wiki already reflects shipping Gamesync 0.6.3 and GameSync Next 0.8.0/current merged feature evidence; the existing Project Wikis Drive mirror is present."
+    },
+    "PRJ-004": {
+      "decision": "REPAIRED_DRIVE_DURABILITY",
+      "sourcePath": "wikis/PRJ-004-aesthetic-media-companion-living-room.md",
+      "sourceBlobSha": "a0d53fd023a8aed90f97c5a5e6f4bee42d1db55e",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-004-aesthetic-media-companion-living-room",
+      "drive": {
+        "fileId": "1lNWUcLvESEcU7zOm-Vtgvjr6pgH7uEVkwToA_69uaMQ",
+        "title": "PRJ-004 Aesthetic Media Companion Living Room Platform Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 28251,
+        "markdownExportSha256": "4d18a9806fd198c918994f2b7baf3f3911b5a4ed64b4e5205f31964f1776d527",
+        "reread": "pass"
+      },
+      "notes": "A complete Project Wikis Drive mirror was missing. The current detailed wiki source was mirrored, list-boundary formatting was corrected, the complete unresolved-boundaries/contribution/maintenance tail was re-read, and the document was moved into the canonical Project Wikis folder. No wikis/ source churn was required."
+    },
+    "PRJ-005": {
+      "decision": "NO_MATERIAL_WIKI_SOURCE_CHANGE",
+      "evidence": "Current Mascot / Screenmate Platform page already documents both browser hosts and the unresolved standalone desktop-core ownership boundary; Drive mirror exists."
+    },
+    "PRJ-006": {
+      "decision": "NO_MATERIAL_WIKI_SOURCE_CHANGE",
+      "evidence": "Current ACS Agent Parity Runtime page already reflects GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and parity implementation evidence; Drive mirror exists."
+    },
+    "PRJ-007": {
+      "decision": "NO_MATERIAL_WIKI_SOURCE_CHANGE",
+      "evidence": "Current PF Magic Petz Runtime Integration page and Drive mirror already preserve the persistence repair contract and current verified boundaries."
+    }
+  },
+  "sourceHeadsObserved": {
+    "Herbertofury/Gamesync": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+    "Herbertofury/GameSync-Next": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562"
+  },
+  "nextCursor": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
+  "stopPoint": "PRJ-004 Drive durability is repaired and independently verified; PRJ-003/005/006/007 required no source churn. Continue with PRJ-008 through PRJ-012 on the next pass."
+}
