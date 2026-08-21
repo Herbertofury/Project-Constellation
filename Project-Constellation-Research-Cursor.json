@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T14:55:00Z",
+  "updatedAt": "2026-08-21T16:36:00Z",
   "completedCursor": [
-    "PCX-026",
-    "PCX-027",
-    "PCX-028",
-    "PCX-029",
-    "PCX-030"
-  ],
-  "nextCursor": [
     "PCX-031",
     "PCX-032",
     "PCX-033",
     "PCX-034",
     "PCX-035"
   ],
-  "selectionReason": "Dynamic publication backlog was clear before source work: PRJ-023 commit 58960b6dcffe5740f1cc21ea3d7a257aaf419ecd had wiki-publication success from run 32485734005, and comparing that commit to the pre-pass main state showed only Project Constellation cursor/supervisor/checkpoint files with no later wikis/** changes. PCX-028 received a material correctness/completeness expansion using current primary sources: notify 8.2.0 is the current stable notify lane, notify 9.0.0-rc.4 remains a prerelease qualification lane, Watchman v2026.08.10.00 is the current service lane, Microsoft ReadDirectoryChangesW documents overflow/ERROR_NOTIFY_ENUM_DIR re-enumeration requirements plus a 64 KiB network buffer boundary, Microsoft USN change-journal guidance establishes persistent catch-up semantics and journal-identity/history-loss recovery requirements, and Linux inotify documents IN_Q_OVERFLOW as explicit queue loss. The wiki now contains a backend-neutral continuity model, deterministic 28-case mutation/overflow/restart/filesystem corpus, reconciliation algorithm, acceptance gates, performance metrics and troubleshooting while keeping the canonical DirectoryMonitor implementation unresolved. Source commit 37ec14e4e65d0eba1e848cfad33b876c83e13392, blob d1bad5fd04254cda2f9438b75e5f7f1d3e52d75b, has wiki-publication success from Sync GitHub Wiki run 32494453585, job 96809459945; the publisher checked out the exact source, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set successfully and recorded Wiki master 9d6bff512af551e36abe128cc0ff134a0cf1e044. The canonical Drive mirror was updated in place, independently re-read and Markdown-exported at 17,631 bytes with SHA-256 a7050d455e5f8be59423d3f11b3515bbe7e994da6b40a0cc7f28d84fec8dc72b. PCX-026, PCX-027, PCX-029 and PCX-030 had no newer project-owned evidence justifying source churn. Publication backlog is clear. Next group is PCX-031 through PCX-035.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1454Z-wiki-pcx-026-030.json",
+  "nextCursor": [
+    "PCX-037",
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041"
+  ],
+  "selectionReason": "Dynamic publication backlog is clear. Sync GitHub Wiki run 32494556557, job 96809788039, checked out exact material wiki source 37ec14e4e65d0eba1e848cfad33b876c83e13392, confirmed the actual Wiki already matched wikis/, fresh-cloned ProjectDump.wiki.git, passed the complete byte comparison and recorded wiki-publication success with Wiki master 9d6bff512af551e36abe128cc0ff134a0cf1e044. Comparing that source state with the current pre-pass repository head showed only Project Constellation state/checkpoint changes and no later wikis/** changes. PCX-031 Auralis and PCX-032 Profit Nova remain aligned with the strongest recovered evidence; PCX-034 Ferrum already reflects the strongest verified current evidence. PCX-033 Sims4CreatorStudio had a materially condensed Google Drive Project Wikis mirror, so it was replaced in place with the complete current GitHub wiki source and independently re-read; its Markdown export is 9,550 bytes with SHA-256 1486632a2ec7ac8c6b448a9d0ecedae7e3d27f9317710a333591735c6586234c. PCX-035 MO2R had no complete Drive project-wiki mirror, so a complete mirror was created in the canonical Project Wikis folder and independently re-read; its Markdown export is 12,657 bytes with SHA-256 b1d8fa7090a1d2640796c22a2d9d80b3a9ca95100f77c58340ed23368d0e2af7. No wikis/** source churn was justified. PCX-036 is intentionally skipped because Project Constellation is the catalog/control plane, not a normal documentation target. Next group is PCX-037 through PCX-041.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1635Z-wiki-drive-durability-pcx-031-035.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
