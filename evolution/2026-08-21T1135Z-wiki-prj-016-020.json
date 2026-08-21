@@ -1,0 +1,84 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-21T11:35:00Z",
+  "repository": "Herbertofury/ProjectDump",
+  "branch": "main",
+  "group": [
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020"
+  ],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "257d632b32a1a090fed6d0464e49c0dd9333f1b9",
+    "syncRunId": 32477696451,
+    "syncJobId": 96757360927,
+    "wikiMasterCommit": "1a7fd8836af002cb16169a12185771160c4f207c",
+    "verification": "pass: exact source checkout, ProjectDump.wiki.git push, fresh clone, complete remote Wiki byte comparison, wiki-publication success"
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-020",
+      "project": "Master Desktop Pet Research",
+      "reason": "A deeper durable-source recovery located the consolidated master that the existing wiki incorrectly said had not been recovered.",
+      "recoveredMaster": {
+        "filename": "master desktop pet research.md",
+        "contentAuthority": "recovered consolidated master",
+        "primaryBase": "master desktop pet research (2).md",
+        "mergedSources": [
+          "desktop-pets-research-2026-04-01-v10-exhaustive.md",
+          "desktop-pets-research-2026-04-01-v14-ms-agent-buddies.md"
+        ],
+        "retainedAppendices": [
+          "desktop-pets-research-2026-04-01-v9.md",
+          "desktop-pets-research-2026-04-01-v7.md"
+        ],
+        "retainedResearch": [
+          "KinitoPET addendum"
+        ],
+        "canonicalBytePromotion": "pending: recovered master still needs project-owned canonical path plus SHA-256/size and supersession receipt"
+      },
+      "wikiSource": {
+        "path": "wikis/PRJ-020-master-desktop-pet-research.md",
+        "commit": "257d632b32a1a090fed6d0464e49c0dd9333f1b9",
+        "blob": "4759ef896c2419c775574db54afa70ce2d65df63"
+      },
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-020-master-desktop-pet-research",
+      "driveMirror": {
+        "fileId": "1n8HYbENodTeFyf0WksAJYvXd0BghzwiRatEraW74hO0",
+        "title": "PRJ-020 Master Desktop Pet Research Wiki",
+        "markdownExportBytes": 14964,
+        "markdownSha256": "6db5769bafff2f1bc8a52f84fd5f08d0486d9fd8897a5f3f6c0baf84b3c8e05d",
+        "reRead": "pass: recovered consolidated master authority, remaining canonicalization boundary and new exact next action present"
+      }
+    }
+  ],
+  "reviewedNoSourceChange": [
+    {
+      "projectId": "PRJ-016",
+      "reason": "Current detailed wiki remains aligned to v2.4.3 recovery evidence and MO2 v2.5.2 stable host; no v2.4.3 source/package bytes were newly recovered."
+    },
+    {
+      "projectId": "PRJ-017",
+      "reason": "Current detailed wiki remains aligned to Image Column v1.4.12; newly recovered File Library material is v1.4.11 and does not supersede the current page."
+    },
+    {
+      "projectId": "PRJ-018",
+      "reason": "Current detailed wiki already incorporates the recovered v1.1.0 README/test evidence and current MO2 qualification boundary."
+    },
+    {
+      "projectId": "PRJ-019",
+      "reason": "Current detailed wiki already incorporates v4.0.1 event-driven/no-worker architecture and current MO2 v2.5.2 qualification boundary."
+    }
+  ],
+  "nextCursor": [
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}
