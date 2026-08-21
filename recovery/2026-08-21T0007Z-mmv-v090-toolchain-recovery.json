@@ -4,14 +4,14 @@
   "targetVersion": "0.9.0",
   "checkpointType": "recovery-watch",
   "status": "TOOLCHAIN_AND_KNOWLEDGE_SEEDS_VERIFIED_PRODUCT_WORK_REMAINS",
-  "recordedAt": "2026-08-21T00:07:08Z",
+  "recordedAt": "2026-08-21T00:10:01Z",
   "canonicalProductRepository": "Herbertofury/Minecraft-Mod-Vault",
   "canonicalProductMainAtInspection": "16b561897ff6801aa607686c6aba24e546db4723",
   "lastVerifiedProductLine": "0.8.0",
   "recoverySource": {
     "repository": "Herbertofury/ProjectDump",
     "temporaryPrs": [12, 13],
-    "note": "Execution scaffolding only. Neither PR is product source and neither is intended to merge."
+    "note": "Execution scaffolding only. Neither PR is product source and neither is intended to merge. PR #13 was closed without merge after all exact-head execution workflows completed successfully."
   },
   "verifiedExecution": {
     "toolchainBridge": {
@@ -32,13 +32,15 @@
         "authoritative Mojang, Fabric, Quilt, Forge and NeoForge seed catalogs downloaded and validated"
       ]
     },
-    "sqliteVendorAndSeeds": {
+    "finalSeedAndVendorHead": {
       "pr": 13,
-      "head": "0530d63417569293f2b7a47027a548f3a395abf9",
-      "bundleWorkflowRun": 32431318884,
+      "head": "e66af18bce1f54733a308e1f2622bb818268e0f3",
+      "bundleWorkflowRun": 32431506869,
       "bundleConclusion": "success",
-      "mojangDeepSeedWorkflowRun": 32431318879,
+      "mojangDeepSeedWorkflowRun": 32431506765,
       "mojangDeepSeedConclusion": "success",
+      "officialLoaderBuildToolSeedWorkflowRun": 32431506852,
+      "officialLoaderBuildToolSeedConclusion": "success",
       "runtimeObservation": {
         "sqliteVersion": "3.53.3",
         "journalMode": "wal",
@@ -48,28 +50,34 @@
       },
       "artifacts": [
         {
-          "id": 9429180161,
+          "id": 9429247299,
           "name": "mmv-v090-modernc-vendor",
           "sizeBytes": 26974719,
-          "providerSha256": "a62cb0d5c254dffee1a1c5c252789c9bf9d72b95d387cfbf689c6184cc6ccaf1"
+          "providerSha256": "5814cb1b122dd29323e4a284da05142e287274bb2365eb4323fdc4c48d216210"
         },
         {
-          "id": 9429180663,
+          "id": 9429248327,
           "name": "go1.27.0-linux-amd64",
           "sizeBytes": 70523437,
-          "providerSha256": "6e302eb64a148f098fe144a6791285d6f0e20fc82ee0889d180158d33ecd1fec"
+          "providerSha256": "edfdc670fea5a647f59cd58cb72dd2b527ceb40f5ed3296a818b709c18d66150"
         },
         {
-          "id": 9429180917,
+          "id": 9429248935,
           "name": "mmv-v090-mcmeta-versions-seed",
           "sizeBytes": 217157,
-          "providerSha256": "8728b196f20fe481f3c8b70cd6aab3c1363297ca235cd7013dfecb21fd24c647"
+          "providerSha256": "da00df8e3a03647dd261495591c32ba2b9aa1bc80837e9ff2de3943868df9cb4"
         },
         {
-          "id": 9429154412,
+          "id": 9429217783,
           "name": "mmv-v090-mojang-deep-seed",
           "sizeBytes": 2124858,
-          "providerSha256": "434599cae370f883a6e54c51ebb93fe33c9060723c9038f48d4f1757f0f1d14e"
+          "providerSha256": "ca6df80ff0cf2ec746d6e65d9315d9c7857a2312f568cb8c0e58061260f1443d"
+        },
+        {
+          "id": 9429218906,
+          "name": "mmv-v090-official-source-seeds",
+          "sizeBytes": 963927,
+          "providerSha256": "2ea0aa70e19b0048574e6b8d376186e26db20d2c48b0ff79d47541ba0a25dac7"
         }
       ]
     }
@@ -80,7 +88,8 @@
       "pure-Go SQLite vendor generation",
       "real SQLite WAL and FTS5 behavior",
       "Linux and Windows cgo-free smoke binary compilation",
-      "Minecraft and loader knowledge seed acquisition/validation",
+      "Minecraft version knowledge seed acquisition/validation",
+      "official loader/build-tool source seed acquisition/validation",
       "artifact publication with provider SHA-256 identities"
     ],
     "notYetVerified": [
