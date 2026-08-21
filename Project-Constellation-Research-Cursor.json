@@ -1,17 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T00:04:00Z",
+  "updatedAt": "2026-08-21T01:36:00Z",
   "completedCursor": [
-    "PCX-047"
-  ],
-  "nextCursor": [
     "PCX-048",
     "PCX-049",
     "PCX-050",
     "PCX-051",
     "PCX-052"
   ],
-  "selectionReason": "PCX-047 required material reconciliation after Feature Foundry v24.0.0 became the production consumer of the verified Favorite Artist Worlds v4.0.1 curation authority. The page now separates database authority from application versioning, records exact workbook/JSON/SQLite hashes, documents the embedded production JSON and native SQLite seeding, preserves 5 artists / 10 worlds and the Azure Save Coast stable-ID correction, records music-route approval states and the 17 durable-theme + 10 artist-world authority split, and adds a workbook-to-production round-trip qualification contract. SQLite 3.53.4 remains current upstream as of 2026-08-20, but the page now correctly requires the bundled production runtime version to be observed through catalog_summary rather than inferred. Wiki source commit 65073c8d29e6770a275f82e1bddf9eac6daf7ff1 was published by Sync GitHub Wiki run 32431029483 with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master 49dbbcb5471b4924945cced0f16ef8c0c2e945a8. The canonical Drive wiki mirror was updated, independently re-read, and Markdown-exported at 16,523 bytes with SHA-256 b520177c36e6748871e0c757c270b7175a9a7505ded070062e1d6b8c71b37446. PCX-048 is next for a current-authority delta/completeness check.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0003Z-wiki-pcx-047-v24.json",
+  "nextCursor": [
+    "PCX-053",
+    "PCX-054",
+    "PCX-055",
+    "PCX-056",
+    "PCX-057"
+  ],
+  "selectionReason": "PCX-048 required material reconciliation after released Feature Foundry v24.0.0 became the current production authoring/runtime authority while GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 remains the current host/interchange architecture authority. The page now documents the schema-3 living-world package, 17 durable themes / 17 worlds / 34 rooms / 17 weather systems / 85 ecology objects, the separate 10-artist-world authority lane, exact Feature Foundry build/verify/package workflows, the GameSync host capability/bridge contracts, and the source-proven theme-core/theme-schema field-type plus select-option defects that must be repaired before v24 interchange is promoted. Wiki source commit 6a30f55f91379cc9f19e263179051174fa16f319 was published by Sync GitHub Wiki run 32436575583 with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master eaf0c8fe3a36d6eb591102bec30b18c640c0d9c4. The canonical Drive wiki mirror was updated, independently re-read, and Markdown-exported at 22,765 bytes with SHA-256 6ba0a636dc0c2c77793ad7e97dfb6d0e1d6502b535652e20ef3e2f70a94273c8. PCX-049 through PCX-052 were rechecked without unjustified source churn; PCX-051 and PCX-052 already use cd906 as current evidence. The next group is PCX-053 through PCX-057.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0135Z-wiki-pcx-048-v24.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
