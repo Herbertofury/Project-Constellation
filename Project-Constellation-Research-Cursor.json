@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T16:36:00Z",
+  "updatedAt": "2026-08-21T18:16:00Z",
   "completedCursor": [
-    "PCX-031",
-    "PCX-032",
-    "PCX-033",
-    "PCX-034",
-    "PCX-035"
-  ],
-  "nextCursor": [
     "PCX-037",
     "PCX-038",
     "PCX-039",
     "PCX-040",
     "PCX-041"
   ],
-  "selectionReason": "Dynamic publication backlog is clear. Sync GitHub Wiki run 32494556557, job 96809788039, checked out exact material wiki source 37ec14e4e65d0eba1e848cfad33b876c83e13392, confirmed the actual Wiki already matched wikis/, fresh-cloned ProjectDump.wiki.git, passed the complete byte comparison and recorded wiki-publication success with Wiki master 9d6bff512af551e36abe128cc0ff134a0cf1e044. Comparing that source state with the current pre-pass repository head showed only Project Constellation state/checkpoint changes and no later wikis/** changes. PCX-031 Auralis and PCX-032 Profit Nova remain aligned with the strongest recovered evidence; PCX-034 Ferrum already reflects the strongest verified current evidence. PCX-033 Sims4CreatorStudio had a materially condensed Google Drive Project Wikis mirror, so it was replaced in place with the complete current GitHub wiki source and independently re-read; its Markdown export is 9,550 bytes with SHA-256 1486632a2ec7ac8c6b448a9d0ecedae7e3d27f9317710a333591735c6586234c. PCX-035 MO2R had no complete Drive project-wiki mirror, so a complete mirror was created in the canonical Project Wikis folder and independently re-read; its Markdown export is 12,657 bytes with SHA-256 b1d8fa7090a1d2640796c22a2d9d80b3a9ca95100f77c58340ed23368d0e2af7. No wikis/** source churn was justified. PCX-036 is intentionally skipped because Project Constellation is the catalog/control plane, not a normal documentation target. Next group is PCX-037 through PCX-041.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1635Z-wiki-drive-durability-pcx-031-035.json",
+  "nextCursor": [
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045",
+    "PCX-046"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-037 Shimeji Desktop received a material completeness refresh using current NeurolingsCE project-owned evidence: current inspected head 3f3ec7221cbc7c597b17d77e0da5082256af75ed, C++/Qt v0.5.3 migration baseline, M0-M9 completion record, 76-test later verification checkpoint, and post-M9 manager/store/tray/contract hardening. ProjectDump source commit a2ded158a2f1bd33a5d1cc24188d12afc2b7ce9d was published by Sync GitHub Wiki run 32512001697, job 96865053738; the actual Wiki was pushed, fresh-cloned, completely byte-compared, and verified at Wiki master 40116139b1d2083d99a90395fa6d1b1fd030066a. The PCX-037 Drive mirror was updated, moved into the canonical Project Wikis folder, reread, and exported at 17,575 bytes with SHA-256 85cf65d3930b43bdf0a8d3a0ebffb0390d526e0ed98b7f630b4d2ece5d6a6169. PCX-040 Pinterest Nocturne had no dedicated complete Project Wikis Drive mirror; a complete current 2.0.0 mirror was created in the canonical Project Wikis folder, reread, and exported at 30,691 bytes with SHA-256 e4bb5a55365673589e9d818801f6f5050f76bc35ba6102a8c661b5e53834d278. PCX-038, PCX-039, and PCX-041 were rechecked without unnecessary source churn. Next group is PCX-042 through PCX-046.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1815Z-wiki-pcx-037-041.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
