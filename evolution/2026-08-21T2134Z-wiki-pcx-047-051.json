@@ -1,0 +1,56 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-21T21:34:30Z",
+  "group": ["PCX-047", "PCX-048", "PCX-049", "PCX-050", "PCX-051"],
+  "materialUpdates": ["PCX-049"],
+  "recheckedNoChurn": ["PCX-047", "PCX-048", "PCX-050", "PCX-051"],
+  "publicationBacklogAtStart": "clear",
+  "materialUpdate": {
+    "projectId": "PCX-049",
+    "projectName": "GameSync Live Mascot Tavern",
+    "wikiSourcePath": "wikis/PCX-049-gamesync-live-mascot-tavern.md",
+    "sourceCommit": "2899378570866b9bbd97efb052abe49691d9a245",
+    "sourceBlob": "ce9ffab1834fa9ae133b0aa1a3c27a8774f88c49",
+    "readerWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-049-gamesync-live-mascot-tavern",
+    "syncRunId": 32529033074,
+    "syncJobId": 96917150867,
+    "wikiMasterCommit": "874af054e7b8306dc1340d62c34239f7a6f24c61",
+    "fullSetFreshCloneByteCompare": "pass",
+    "wikiPublicationStatus": "success",
+    "driveMirror": {
+      "fileId": "1xj6xus1cjuKPul9WXWGFnvX37iSudjWekuVlzSMUFi8",
+      "title": "PCX-049 GameSync Live Mascot Tavern Wiki",
+      "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "markdownExportBytes": 16005,
+      "markdownExportSha256": "d8f371a99a4d3877cce2f2e89411c2408793805e5e2298d3cdb8fecdae1863de",
+      "reread": "pass"
+    }
+  },
+  "evidence": {
+    "gameSyncNextMain": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+    "mainPetzBridgeBlob": "54a1ed43d94f356fe717ee8a64c39c1118bacc95",
+    "petzPersistencePr": 10,
+    "petzPersistencePrState": "open draft mergeable unmerged",
+    "petzPersistencePrHead": "2612396804b44399b7b23b4f32f21217325da79c",
+    "stagedPetzBridgeBlob": "a98694a9eec6a1f89a712925e2c30857e8257d2a",
+    "mainDefectsPreserved": [
+      "saved payload loaded but restore path remains TODO",
+      "load key breedId differs from save key runtime pet.id",
+      "whole-engine snapshot is written once per pet",
+      "destroy does not await asynchronous host persistence",
+      "hard maxPets: 4 ceiling remains"
+    ],
+    "stagedRepairPreserved": [
+      "host-owned stable persistenceId",
+      "legacy breed-key fallback",
+      "single-pet serializePet and additive restorePet",
+      "corrupt-save diagnostics and fresh-spawn fallback",
+      "awaited per-pet saves during destroy"
+    ],
+    "stagedRepairRemainingGap": "maxPets: 4 remains in exact PR #10 staged bridge",
+    "exactHeadAcceptance": "not complete; private checks failed before executable steps and public Ferrum recovery stops at private GameSync read-token preflight"
+  },
+  "selectionReason": "PCX-049 materially lagged current project-owned evidence: it still pointed to GameSync Next 9e337c720f0180cffa577f140b181c699f0a1650 and described a not-yet-created repair as the next action. Current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and draft PR #10 now contains a concrete persistence repair proposal with exact-head evidence and an explicit remaining maxPets cap. The page was refreshed while preserving the historical Moonwake Rest House shipping authority and fail-closed acceptance boundaries. PCX-047, PCX-048, PCX-050, and PCX-051 remain aligned with their strongest current evidence and were not churned.",
+  "nextCursor": ["PCX-052", "PCX-053", "PCX-054", "PCX-055", "PCX-056"],
+  "recurringObligation": "open"
+}
