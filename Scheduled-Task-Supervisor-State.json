@@ -1,6 +1,6 @@
 {
-  "schema": "scheduled-task-supervisor.state/5",
-  "updatedAt": "2026-08-21T05:31:00Z",
+  "schema": "scheduled-task-supervisor.state/6",
+  "updatedAt": "2026-08-21T07:10:46Z",
   "currentTaskCount": 6,
   "enabledCurrentTaskCount": 6,
   "pausedIncompleteCurrentTaskCount": 0,
@@ -15,13 +15,13 @@
   "materialChangesThisRun": [
     {
       "area": "ProjectDump Wiki publication ledger",
-      "result": "REFRESHED_TO_PCX_063_AND_INDEPENDENTLY_VERIFIED",
-      "detail": "The newest material wiki source is a57d77e1017dcf3b372496bff9181a1bc4f114b3. Its wiki-publication status points to Sync GitHub Wiki run 32448353814. The exact-source run completed successfully; job 96672015129 published the actual ProjectDump.wiki repository, fresh-cloned it, byte-verified the complete page set, and recorded Wiki master c5f3b6f1e441082cbc5b0cacfa468a92308c0bda. The matching Drive PCX-063 wiki/checkpoint was independently re-read and records a 31,006-byte Markdown export with SHA-256 543549c15a4dc2e2c6c6185efdaa1039fc2577f82b7dd1b8389de2df266cb093."
+      "result": "REFRESHED_TO_PRJ_002_V24_AUTHORITY_AND_INDEPENDENTLY_VERIFIED",
+      "detail": "The newest material wiki source is 382dc4669105539770acfb9f4c5b0aae7a5ed1a9. Its wiki-publication status is success and resolves to Sync GitHub Wiki run 32454920940. The exact-source run completed successfully. The current Project Constellation research cursor records exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master eb570429e4a257c343ca5e12c5fc7a0d21beaeca. The canonical Drive PRJ-002 mirror was independently re-read and Markdown-exported at 31,761 bytes with SHA-256 a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c."
     },
     {
       "area": "GameSync Performance publication ledger",
       "result": "REFRESHED_TO_CURRENT_BRANCH_HEAD_AND_DRIVE_EVIDENCE",
-      "detail": "GameSync-Next PR #7 is the current branch-only Performance proposal at exact head 203bb508abdcf5357d754220814b4ac6adb30cb4 on base cd906ff0831bf7fc33b41fea31b6f0c004cc1562. Its matching Google Drive checkpoint independently contains the same head and branch-only status. Exact-head Secret Scan run 32448089000 / job 96671302070 failed before workflow steps, so no product/security failure or readiness is inferred."
+      "detail": "GameSync-Next PR #7 is the current branch-only Performance proposal at exact head 0b90520a8bb236cca02fae8d31d6f3907f905c24 on base cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The matching Google Drive checkpoint was independently re-read and contains the same exact head and branch-only authority. Exact-head Secret Scan run 32454190664 / Gitleaks job 96688219468 failed with zero workflow steps, so no product/security failure or readiness is inferred."
     }
   ],
   "health": {
@@ -29,10 +29,11 @@
     "currentTaskCount": 6,
     "enabledCurrentTaskCount": 6,
     "incompletePausedCurrentTasks": 0,
+    "trackNewMinecraftMods": "ENABLED; FIRST SCHEDULED RUN NOT YET DUE AT AUDIT TIME",
     "gameSyncMergeAuthority": "NO_CURRENT_LIVE_AUTOMATION_AUTHORIZED_TO_MERGE_GAMESYNC_MAIN",
     "privateHostedRunnerDiagnosis": "PRIVATE_GAMESYNC_EXACT_HEAD_EXECUTION_REMAINS_EXTERNALLY_BLOCKED",
     "publicFerrumCompute": "AVAILABLE",
-    "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives runners and reaches public dependencies, but private GameSync checkout remains fail-closed without an authorized read-only private-repository token. Direct private GameSync Actions continue to fail before executable workflow steps.",
+    "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives real runners and reaches public dependencies, but private GameSync checkout remains fail-closed without an authorized read-only private-repository token. Direct private GameSync Actions continue to fail before executable workflow steps.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for the private GameSync repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -41,7 +42,7 @@
       "taskStatus": "ENABLED",
       "materialOutputObserved": false,
       "githubPublicationTarget": "NONE_INFERRED_YET",
-      "action": "Discover publication destinations from actual future task output rather than inventing one before its first run."
+      "action": "Discover publication destinations from the first real task output rather than inventing one in advance."
     },
     "projectConstellationPresentation": {
       "version": "0.5.1",
@@ -54,28 +55,26 @@
     },
     "projectDumpWiki": {
       "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED",
-      "latestVerifiedSourceHead": "a57d77e1017dcf3b372496bff9181a1bc4f114b3",
-      "workflowRunId": 32448353814,
-      "workflowJobId": 96672015129,
+      "latestVerifiedSourceHead": "382dc4669105539770acfb9f4c5b0aae7a5ed1a9",
+      "workflowRunId": 32454920940,
       "workflowConclusion": "success",
-      "wikiMaster": "c5f3b6f1e441082cbc5b0cacfa468a92308c0bda",
+      "wikiMaster": "eb570429e4a257c343ca5e12c5fc7a0d21beaeca",
       "freshCloneCompleteByteComparison": "PASS",
-      "driveWikiDocumentId": "10pKds457uLXnh1wQYq1TCY8sZxTKq3gtUgIBbjKEwc4",
-      "driveCheckpointDocumentId": "1j3C9wsv-AZmGlk20DVmFkpI21Hm6dx4VGJVlFyxU7ko",
-      "driveMarkdownBytes": 31006,
-      "driveMarkdownSha256": "543549c15a4dc2e2c6c6185efdaa1039fc2577f82b7dd1b8389de2df266cb093"
+      "driveMarkdownBytes": 31761,
+      "driveMarkdownSha256": "a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c",
+      "nextCursor": ["PRJ-006","PRJ-007","PRJ-008","PRJ-009","PRJ-010"]
     },
     "gameSyncPerformance": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
       "mainWriteAuthorized": false,
       "repository": "Herbertofury/GameSync-Next",
       "pr": 7,
-      "head": "203bb508abdcf5357d754220814b4ac6adb30cb4",
+      "head": "0b90520a8bb236cca02fae8d31d6f3907f905c24",
       "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
       "githubState": "OPEN_DRAFT_BRANCH_ONLY_UNMERGED",
       "driveCheckpointDocumentId": "1ihaBjEQJ5h-AIe9RcUWkD08RPaOkhC_tyWxGVSDaobs",
-      "exactHeadSecretScanRun": 32448089000,
-      "exactHeadSecretScanJob": 96671302070,
+      "exactHeadSecretScanRun": 32454190664,
+      "exactHeadSecretScanJob": 96688219468,
       "exactHeadExecution": "PRE_EXECUTION_INFRASTRUCTURE_FAILURE; NOT A PRODUCT FAILURE OR PASS",
       "status": "CURRENT_BRANCH_OUTPUT_AND_DRIVE_EVIDENCE_PRESENT; SEVERE EXACT_HEAD ACCEPTANCE REMAINS BLOCKED"
     },
