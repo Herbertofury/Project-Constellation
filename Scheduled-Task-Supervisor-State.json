@@ -1,6 +1,6 @@
 {
-  "schema": "scheduled-task-supervisor.state/6",
-  "updatedAt": "2026-08-21T07:10:46Z",
+  "schema": "scheduled-task-supervisor.state/7",
+  "updatedAt": "2026-08-21T08:55:00Z",
   "currentTaskCount": 6,
   "enabledCurrentTaskCount": 6,
   "pausedIncompleteCurrentTaskCount": 0,
@@ -14,14 +14,19 @@
   ],
   "materialChangesThisRun": [
     {
-      "area": "ProjectDump Wiki publication ledger",
-      "result": "REFRESHED_TO_PRJ_002_V24_AUTHORITY_AND_INDEPENDENTLY_VERIFIED",
-      "detail": "The newest material wiki source is 382dc4669105539770acfb9f4c5b0aae7a5ed1a9. Its wiki-publication status is success and resolves to Sync GitHub Wiki run 32454920940. The exact-source run completed successfully. The current Project Constellation research cursor records exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master eb570429e4a257c343ca5e12c5fc7a0d21beaeca. The canonical Drive PRJ-002 mirror was independently re-read and Markdown-exported at 31,761 bytes with SHA-256 a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c."
+      "area": "GameSync-Next Petz PR #10 publication claim",
+      "result": "REPAIRED_AND_INDEPENDENTLY_REREAD",
+      "detail": "PR #10 had a stale body claiming an older exact head. The body now identifies actual current head 2612396804b44399b7b23b4f32f21217325da79c and current private workflow evidence: Petz verify run 32459020450 / job 96701992871 and Secret Scan run 32459020441 / job 96701992684 both completed failure with steps:null before executable verification. It also refreshes Ferrum recovery authority to PR #62 head 3e9e5371c03f4aac5be27c5e128a0cd60e1fa037 and preserves branch/PR-only authority because no current live task may merge GameSync main."
     },
     {
-      "area": "GameSync Performance publication ledger",
-      "result": "REFRESHED_TO_CURRENT_BRANCH_HEAD_AND_DRIVE_EVIDENCE",
-      "detail": "GameSync-Next PR #7 is the current branch-only Performance proposal at exact head 0b90520a8bb236cca02fae8d31d6f3907f905c24 on base cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The matching Google Drive checkpoint was independently re-read and contains the same exact head and branch-only authority. Exact-head Secret Scan run 32454190664 / Gitleaks job 96688219468 failed with zero workflow steps, so no product/security failure or readiness is inferred."
+      "area": "ProjectDump Wiki publication ledger",
+      "result": "REFRESHED_TO_PRJ_007_AND_INDEPENDENTLY_VERIFIED",
+      "detail": "Newest material wiki source d9d39c346fa89c38d640d1d3bc3c7aac88b6ba6d has wiki-publication success via Sync GitHub Wiki run 32462759772. The run completed success on that exact head. Project Constellation continuity records full actual-Wiki fresh-clone byte verification to Wiki master 62fee7bbc4df3c6d3edf38e9796300b8e7b001a7. Canonical Drive PRJ-007 mirror was independently re-read and exported at 19,368 Markdown bytes with SHA-256 58eee55818da4facaa344fff8ef17b92d5bccbabe40d34487b52d5c88c553f33."
+    },
+    {
+      "area": "Ferrum recovery publication ledger",
+      "result": "REFRESHED_TO_CURRENT_HEAD",
+      "detail": "Ferrum recovery PR #62 current head is 3e9e5371c03f4aac5be27c5e128a0cd60e1fa037. On that exact head public runner probe 32460964252, registry freshness 32460964357, Stack Playwright lock integrity 32460964247, and Ferrum CI 32460964290 succeeded. Cross-repository recovery receives real public runners but stops fail-closed at the explicit private GameSync read-token preflight before checkout."
     }
   ],
   "health": {
@@ -29,11 +34,11 @@
     "currentTaskCount": 6,
     "enabledCurrentTaskCount": 6,
     "incompletePausedCurrentTasks": 0,
-    "trackNewMinecraftMods": "ENABLED; FIRST SCHEDULED RUN NOT YET DUE AT AUDIT TIME",
+    "trackNewMinecraftMods": "ENABLED; NO MATERIAL OUTPUT OBSERVED YET",
     "gameSyncMergeAuthority": "NO_CURRENT_LIVE_AUTOMATION_AUTHORIZED_TO_MERGE_GAMESYNC_MAIN",
     "privateHostedRunnerDiagnosis": "PRIVATE_GAMESYNC_EXACT_HEAD_EXECUTION_REMAINS_EXTERNALLY_BLOCKED",
-    "publicFerrumCompute": "AVAILABLE",
-    "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives real runners and reaches public dependencies, but private GameSync checkout remains fail-closed without an authorized read-only private-repository token. Direct private GameSync Actions continue to fail before executable workflow steps.",
+    "publicFerrumCompute": "AVAILABLE_AND_VERIFIED_ON_CURRENT_RECOVERY_HEAD",
+    "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives real runners and public dependency access but private GameSync checkout remains fail-closed without authorized read-only private-repository access. Direct private GameSync Actions continue to fail before executable workflow steps.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for the private GameSync repositories by resolving the account billing/payment/spending-limit condition."
   },
@@ -55,14 +60,14 @@
     },
     "projectDumpWiki": {
       "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED",
-      "latestVerifiedSourceHead": "382dc4669105539770acfb9f4c5b0aae7a5ed1a9",
-      "workflowRunId": 32454920940,
+      "latestVerifiedSourceHead": "d9d39c346fa89c38d640d1d3bc3c7aac88b6ba6d",
+      "workflowRunId": 32462759772,
       "workflowConclusion": "success",
-      "wikiMaster": "eb570429e4a257c343ca5e12c5fc7a0d21beaeca",
+      "wikiMaster": "62fee7bbc4df3c6d3edf38e9796300b8e7b001a7",
       "freshCloneCompleteByteComparison": "PASS",
-      "driveMarkdownBytes": 31761,
-      "driveMarkdownSha256": "a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c",
-      "nextCursor": ["PRJ-006","PRJ-007","PRJ-008","PRJ-009","PRJ-010"]
+      "driveMarkdownBytes": 19368,
+      "driveMarkdownSha256": "58eee55818da4facaa344fff8ef17b92d5bccbabe40d34487b52d5c88c553f33",
+      "nextCursor": ["PRJ-011","PRJ-012","PRJ-013","PRJ-014","PRJ-015"]
     },
     "gameSyncPerformance": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
@@ -91,13 +96,34 @@
       "ferrumRecovery": {
         "repository": "Herbertofury/Ferrum-Browser",
         "pr": 62,
-        "head": "25d4ca5e4a6c89a00688751131ee7f1e8a6e9660",
+        "head": "3e9e5371c03f4aac5be27c5e128a0cd60e1fa037",
         "base": "13c5deffe4e7901fcfd4e26206ff8156d0525226",
-        "publicExecution": "HEALTHY",
+        "publicExecution": "HEALTHY_ON_CURRENT_HEAD",
+        "runnerProbeRun": 32460964252,
+        "registryFreshnessRun": 32460964357,
+        "playwrightLockIntegrityRun": 32460964247,
+        "ferrumCiRun": 32460964290,
         "privateCheckout": "BLOCKED_AT_EXPLICIT_READ_TOKEN_PREFLIGHT"
       },
       "driveCheckpointDocumentId": "1KFedaTNCClVMtCQo77bfUhg33m2L3FOF436_Seo00Dg",
-      "status": "CURRENT_BRANCH_OUTPUTS_AND_DRIVE_MASTER_PRESENT; AUTHORITATIVE LOCK AND EXACT_HEAD PRIVATE EXECUTION GATES REMAIN"
+      "status": "CURRENT_BRANCH_OUTPUTS_PRESENT; AUTHORITATIVE PRIVATE LOCK/EXACT_HEAD EXECUTION GATES REMAIN"
+    },
+    "petzPersistence": {
+      "publicationMode": "BRANCH_PR_PLUS_DRIVE_WIKI_EVIDENCE",
+      "repository": "Herbertofury/GameSync-Next",
+      "pr": 10,
+      "head": "2612396804b44399b7b23b4f32f21217325da79c",
+      "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY",
+      "exactHeadVerifyRun": 32459020450,
+      "exactHeadVerifyJob": 96701992871,
+      "exactHeadSecretScanRun": 32459020441,
+      "exactHeadSecretScanJob": 96701992684,
+      "executionState": "PRE_EXECUTION_INFRASTRUCTURE_FAILURE; ACCEPTANCE REMAINS OPEN",
+      "projectDumpWikiSource": "d9d39c346fa89c38d640d1d3bc3c7aac88b6ba6d",
+      "projectDumpWikiRun": 32462759772,
+      "driveWikiMirrorBytes": 19368,
+      "driveWikiMirrorSha256": "58eee55818da4facaa344fff8ef17b92d5bccbabe40d34487b52d5c88c553f33"
     },
     "staleChatRecovery": {
       "publicationMode": "RECOVER_IN_PLACE_AND_PRESERVE_EXISTING_CANONICAL_GITHUB_DRIVE_DESTINATIONS",
