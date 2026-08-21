@@ -1,0 +1,63 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-21T20:00:00Z",
+  "group": ["PCX-042", "PCX-043", "PCX-044", "PCX-045", "PCX-046"],
+  "materialProjects": ["PCX-042"],
+  "recheckedWithoutSourceChurn": {
+    "PCX-043": "Feature Foundry Production App remains current on released v24 production authority; no newer canonical Feature-Foundry main head was resolved.",
+    "PCX-044": "Living Ecology remains current on released v24 authority; no stronger project-owned delta was resolved.",
+    "PCX-045": "Object Intelligence remains current on v24 production plus preserved V23 Object Atlas contract; no stronger delta was resolved.",
+    "PCX-046": "Source Hubs remains current on v24 six-provider Music Hub evidence; no stronger delta was resolved."
+  },
+  "wikiUpdate": {
+    "projectId": "PCX-042",
+    "readerFacingUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-042-gamesync-next",
+    "sourcePath": "wikis/PCX-042-gamesync-next.md",
+    "sourceCommit": "4f7d81c8fb95b89e3a6d0a0098a44153cb4f4776",
+    "sourceBlob": "90be2e5d5292f9bff54715f16c367eb8f2c87039",
+    "change": "Refreshed the connected draft-proposal matrix and execution boundaries while preserving cd906ff0831bf7fc33b41fea31b6f0c004cc1562 as current-main product authority.",
+    "proposalHeads": {
+      "7": "b2920094ad32951d861802d039aca6100989c1ab",
+      "8": "89adc7390c5ab53daa60d8be86e81c1f5eb3be33",
+      "10": "2612396804b44399b7b23b4f32f21217325da79c",
+      "11": "5eeed65742412c57d052d1e836d5cba56fe80363",
+      "12": "c05e0039d3b6cf690c99a8425198a48f69c6b576",
+      "13": "8580a0d31263fa8275c5888f185ea3faa9daad83",
+      "14": "94a9ac91fcffef7e9278aa2a61ca99b4a1196339",
+      "15": "3046883c2575be72c320ff25364a71a46f328629",
+      "16": "c63d27e0b26b61dec8aa042e399d67617f9ee5be",
+      "17": "e81bdbd110307640f35168f33ca0f28efec08716",
+      "18": "8c7c7e6563802720dcb96a5c4645ccab6ac8556d",
+      "19": "11a21ffa4edcf4098f4c4b38777b5eee9208ed39",
+      "20": "e6a27bf8263d3c56a1a6fb199fa63dd23913c5aa",
+      "21": "bbd6a258d721c75afe0404b93b60969f290226c4",
+      "22": "b37e3e6b150791e178a4d48f636bc3a5c95d6140"
+    }
+  },
+  "githubWikiPublication": {
+    "status": "success",
+    "workflowRunId": 32520961929,
+    "jobId": 96892822348,
+    "wikiMasterCommit": "9ace3e357e6b8888a91cd50fd9e635f82e37243a",
+    "sourceCheckoutVerified": true,
+    "wikiPushVerified": true,
+    "freshCloneByteComparisonVerified": true,
+    "publicationBacklogClear": true
+  },
+  "driveWikiMirror": {
+    "fileId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+    "title": "PCX-042 GameSync Next Wiki",
+    "projectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "markdownExportBytes": 52347,
+    "markdownExportSha256": "9dcb069b00bd3da59d0106df48db2647119b5e31c3877008669e6aacac27be03",
+    "rereadVerified": true,
+    "verifiedMarkers": [
+      "PR #22 head b37e3e6b150791e178a4d48f636bc3a5c95d6140",
+      "PR #7 head b2920094ad32951d861802d039aca6100989c1ab",
+      "A proposal table head is stale",
+      "PRs #7, #8, and #10 through #22"
+    ]
+  },
+  "nextCursor": ["PCX-047", "PCX-048", "PCX-049", "PCX-050", "PCX-051"],
+  "obligation": "Tracked-project Wiki maintenance remains open and recurring."
+}
