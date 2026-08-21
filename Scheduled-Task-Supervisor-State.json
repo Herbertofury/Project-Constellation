@@ -1,6 +1,6 @@
 {
-  "schema": "scheduled-task-supervisor.state/10",
-  "updatedAt": "2026-08-21T15:33:00Z",
+  "schema": "scheduled-task-supervisor.state/11",
+  "updatedAt": "2026-08-21T17:10:00Z",
   "currentTaskCount": 9,
   "enabledCurrentTaskCount": 9,
   "pausedIncompleteCurrentTaskCount": 0,
@@ -19,23 +19,23 @@
   "materialChangesThisRun": [
     {
       "area": "Recurring task health",
-      "result": "FIVE_INCOMPLETE_RECURRING_TASKS_REENABLED_AND_VERIFIED",
-      "detail": "The live task inventory exposed Track New Minecraft Mods, Recover Stale Chats, Ferrum Evolution Loop, GameSync Lead Merge Gate, and Project Constellation Evolution as disabled despite continuing obligations and no user retirement. All five were re-enabled. A subsequent live inventory showed every current task enabled and zero paused tasks. Four already contained explicit permanent-persistence directives, so their disablement is treated as scheduler/runtime self-disable drift rather than user retirement."
-    },
-    {
-      "area": "Track New Minecraft Mods definition",
-      "result": "PERSISTENCE_AND_DUAL_PUBLICATION_CONTRACT_HARDENED",
-      "detail": "The task had no explicit anti-self-disable/no-op contract and disabled after its first run. Its prompt now requires permanent enablement, treats an empty qualifying-mod delta as a healthy no-op rather than completion, dynamically resolves the canonical Minecraft report destination, and requires every material checkpoint to be independently verified on both GitHub and Google Drive. No durable Minecraft report newer than the 2026-08-21T14:23Z task run was observable in the canonical Minecraft-Mod-Vault repository or Drive search, so no publication claim was invented; the task remains enabled for the next pass."
+      "result": "FOUR_INCOMPLETE_RECURRING_TASKS_REENABLED",
+      "detail": "Recover Stale Chats, Ferrum Evolution Loop, GameSync Lead Merge Gate, and Project Constellation Evolution were disabled despite explicit permanent recurring obligations and no user retirement. All four were re-enabled immediately. Their prompts already prohibit self-disable on success, no-op, or temporary blocker, so this is scheduler/runtime self-disable drift rather than completion."
     },
     {
       "area": "ProjectDump Wiki publication ledger",
-      "result": "ADVANCED_TO_PCX_026_030_VERIFIED_DUAL_PUBLICATION",
-      "detail": "The latest material Wiki source update is PCX-028 DirectoryMonitor at commit 37ec14e4e65d0eba1e848cfad33b876c83e13392. Its wiki-publication status is success and the current scheduled Sync GitHub Wiki run 32494556557 also completed successfully on that exact source head. The sealed PCX-026 through PCX-030 continuity checkpoint independently records verified publication through run 32494453585, actual Wiki master 9d6bff512af551e36abe128cc0ff134a0cf1e044, source checkout verification, Wiki push verification, fresh-clone verification, complete full-page-set byte comparison, and verified Drive durability. The PCX-028 Drive mirror round-trip is 17,631 Markdown bytes with SHA-256 a7050d455e5f8be59423d3f11b3515bbe7e994da6b40a0cc7f28d84fec8dc72b."
+      "result": "ADVANCED_THROUGH_PCX_031_035_DURABILITY_PASS",
+      "detail": "The current research cursor records PCX-031 through PCX-035 complete and next cursor PCX-037 through PCX-041. The latest material wikis source remains 37ec14e4e65d0eba1e848cfad33b876c83e13392. Sync GitHub Wiki run 32494556557 completed successfully on that exact source head; continuity records actual Wiki master 9d6bff512af551e36abe128cc0ff134a0cf1e044 and complete fresh-clone byte comparison success. PCX-033 and PCX-035 Drive mirrors were independently repaired/re-read at 9,550 bytes / SHA-256 1486632a2ec7ac8c6b448a9d0ecedae7e3d27f9317710a333591735c6586234c and 12,657 bytes / SHA-256 b1d8fa7090a1d2640796c22a2d9d80b3a9ca95100f77c58340ed23368d0e2af7 respectively."
     },
     {
-      "area": "GameSync authority and publication claims",
-      "result": "LIVE_MERGE_AUTHORITY_RESTORED; BRANCH_OUTPUTS_REVERIFIED",
-      "detail": "GameSync Lead Merge Gate is again enabled and is the sole live automation authorized to merge Gamesync/GameSync-Next main. Some existing worker PR descriptions still contain stale text written while that lead task was disabled; those statements are no longer authoritative and must be refreshed by the owning worker/lead before any merge decision. Performance PR #7 remains branch-only at exact head aac9fb3441aea7296c06449a3ab41b29a294495e. Stack proposals remain branch/PR-only until the re-enabled lead verifies and merges them under its acceptance contract."
+      "area": "GameSync live merge authority",
+      "result": "LEAD_MERGE_GATE_RESTORED_AND_PERFORMANCE_PR_AUTHORITY_CORRECTED",
+      "detail": "GameSync Lead Merge Gate was re-enabled and is again the sole live automation authorized to write or merge Gamesync/GameSync-Next main. GameSync-Next Performance PR #7 is current at exact head d214a695865684bcd1ac9bbaa81ee602d5c8b816. A new remotely re-read supervisor comment, issuecomment 5372950442, explicitly supersedes stale PR-body wording that claimed no live merge-authority task existed. The proposal remains branch/PR-only until exact-head severe acceptance passes."
+    },
+    {
+      "area": "Minecraft tracker publication audit",
+      "result": "NO_MATERIAL_POST_RUN_OUTPUT_OBSERVED; HEALTHY_NO_OP_ALLOWED",
+      "detail": "Track New Minecraft Mods remained enabled. Minecraft-Mod-Vault remains at d81526ed43edbaf819ad18d65f610855f07e28ff and no material GitHub or Drive report newer than its 2026-08-21T14:23:24Z run was observed. Its hardened contract explicitly treats a genuine no-delta scouting pass as a healthy silent no-op, so no publication was fabricated."
     }
   ],
   "health": {
@@ -47,21 +47,19 @@
     "repeatedDisableRootCause": "SYSTEMIC_SCHEDULER_RUNTIME_SELF_DISABLE_DRIFT; NOT USER_RETIREMENT",
     "gameSyncMergeAuthority": "ENABLED_GAME_SYNC_LEAD_MERGE_GATE_IS_SOLE_MAIN_MERGE_AUTHORITY",
     "privateHostedRunnerDiagnosis": "PRIVATE_GAMESYNC_EXACT_HEAD_EXECUTION_REMAINS_EXTERNALLY_BLOCKED",
-    "publicFerrumCompute": "AVAILABLE_AND_VERIFIED_ON_CURRENT_RECOVERY_HEAD",
+    "publicFerrumCompute": "AVAILABLE_AND_VERIFIED",
     "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives real runners and dependency access but private GameSync checkout remains fail-closed without authorized read-only private-repository access. Direct private GameSync Actions continue to fail before executable workflow steps.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for the private GameSync repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
     "trackNewMinecraftMods": {
-      "taskStatus": "ENABLED_AND_PROMPT_HARDENED",
+      "taskStatus": "ENABLED",
       "canonicalKnownRepository": "Herbertofury/Minecraft-Mod-Vault",
       "currentRepositoryHead": "d81526ed43edbaf819ad18d65f610855f07e28ff",
-      "latestObservedRepositoryReleaseLine": "0.10.0 OmniManager canonical landing state",
       "lastTaskRun": "2026-08-21T14:23:24Z",
       "materialOutputAfterLastRunObserved": false,
-      "driveSearchAfterLastRunObserved": false,
-      "action": "Remain enabled; next material report must dual-publish and remote-verify. A true no-op must remain enabled and silent."
+      "action": "Remain enabled. A true no-op stays silent; the next material report must dual-publish and remote-verify."
     },
     "projectConstellationPresentation": {
       "version": "0.5.1",
@@ -73,25 +71,17 @@
       "driveCanonical": "VERIFIED_PROMOTED_AND_ROUND_TRIPPED"
     },
     "projectDumpWiki": {
-      "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED",
-      "projectDumpMainAtAudit": "f0a1cdd867bbe16e6478bc28f5967605e34c258a",
-      "latestVerifiedSourceHead": "37ec14e4e65d0eba1e848cfad33b876c83e13392",
-      "sourcePath": "wikis/PCX-028-directorymonitor.md",
-      "sourceBlob": "d1bad5fd04254cda2f9438b75e5f7f1d3e52d75b",
-      "verifiedCheckpointWorkflowRunId": 32494453585,
+      "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED_AND_DRIVE_DURABILITY_CURRENT",
+      "projectDumpMainAtAudit": "4f67922c6cbfa813a2cdd8437e14369dfeb73d98",
+      "latestVerifiedMaterialSourceHead": "37ec14e4e65d0eba1e848cfad33b876c83e13392",
       "latestObservedSuccessfulWorkflowRunId": 32494556557,
       "workflowConclusion": "success",
       "wikiMaster": "9d6bff512af551e36abe128cc0ff134a0cf1e044",
       "freshCloneCompleteByteComparison": "PASS",
-      "driveMirrorProject": "PCX-028 DirectoryMonitor Wiki",
-      "driveMirrorDocumentId": "1B6qkI0yYhF_4bDbKxOvVP2_Ec6LnPorh8Nyo2gEdhn4",
-      "driveMarkdownBytes": 17631,
-      "driveMarkdownSha256": "a7050d455e5f8be59423d3f11b3515bbe7e994da6b40a0cc7f28d84fec8dc72b",
-      "continuityCheckpoint": "project-constellation/evolution/2026-08-21T1454Z-wiki-pcx-026-030.json",
-      "driveCheckpointDocumentId": "1XfiHtztnWKYHjc3_SmbEY2cCc42d7i5qIzVANmH6Khc",
-      "driveCheckpointMarkdownBytes": 4131,
-      "driveCheckpointMarkdownSha256": "1e8d6ab23310db8d5d2fd8215111b36ad558b48eab144f57980aa05365998984",
-      "nextCursor": ["PCX-031","PCX-032","PCX-033","PCX-034","PCX-035"]
+      "completedCursor": ["PCX-031","PCX-032","PCX-033","PCX-034","PCX-035"],
+      "pcx033DriveMirror": {"bytes": 9550, "sha256": "1486632a2ec7ac8c6b448a9d0ecedae7e3d27f9317710a333591735c6586234c"},
+      "pcx035DriveMirror": {"bytes": 12657, "sha256": "b1d8fa7090a1d2640796c22a2d9d80b3a9ca95100f77c58340ed23368d0e2af7"},
+      "nextCursor": ["PCX-037","PCX-038","PCX-039","PCX-040","PCX-041"]
     },
     "gameSyncPerformance": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
@@ -99,13 +89,14 @@
       "leadMergeAuthorityEnabled": true,
       "repository": "Herbertofury/GameSync-Next",
       "pr": 7,
-      "head": "aac9fb3441aea7296c06449a3ab41b29a294495e",
+      "head": "d214a695865684bcd1ac9bbaa81ee602d5c8b816",
       "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
       "githubState": "OPEN_DRAFT_BRANCH_ONLY_PENDING_SEVERE_ACCEPTANCE",
-      "exactHeadSecretScanRun": 32493962925,
-      "exactHeadSecretScanJob": 96807890654,
-      "exactHeadExecution": "PRE_EXECUTION_INFRASTRUCTURE_FAILURE; NOT A PRODUCT FAILURE OR PASS",
-      "status": "GITHUB BRANCH OUTPUT CURRENT; LEAD MAY MERGE ONLY AFTER FULL EXACT_HEAD ACCEPTANCE"
+      "exactHeadSecretScanRun": 32502761493,
+      "exactHeadSecretScanJob": 96836027972,
+      "exactHeadExecution": "PRE_EXECUTION_INFRASTRUCTURE_FAILURE; NOT A PRODUCT OR SECURITY RESULT",
+      "authorityCorrectionCommentId": 5372950442,
+      "status": "BRANCH OUTPUT CURRENT; LIVE LEAD MAY MERGE ONLY AFTER FULL EXACT_HEAD ACCEPTANCE"
     },
     "gameSyncStack": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
@@ -114,20 +105,10 @@
       "gamesyncMain": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
       "gameSyncNextMain": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
       "primaryProposals": [
-        {
-          "repository": "Herbertofury/Gamesync",
-          "pr": 2,
-          "head": "a028c0531814e889fd9dd101aa1e931543b79000",
-          "topic": "Vite 8.2.2",
-          "githubState": "OPEN_DRAFT_BRANCH_ONLY_PENDING_SEVERE_ACCEPTANCE"
-        },
-        {
-          "repository": "Herbertofury/GameSync-Next",
-          "pr": 8,
-          "head": "89adc7390c5ab53daa60d8be86e81c1f5eb3be33",
-          "topic": "Vite 8.2.2 plus plugin-react 6.1.0",
-          "githubState": "OPEN_DRAFT_BRANCH_ONLY_PENDING_SEVERE_ACCEPTANCE"
-        }
+        {"repository": "Herbertofury/Gamesync", "pr": 2, "head": "a028c0531814e889fd9dd101aa1e931543b79000", "topic": "Vite 8.2.2"},
+        {"repository": "Herbertofury/GameSync-Next", "pr": 8, "head": "89adc7390c5ab53daa60d8be86e81c1f5eb3be33", "topic": "Vite 8.2.2 plus plugin-react 6.1.0"},
+        {"repository": "Herbertofury/GameSync-Next", "pr": 12, "head": "c05e0039d3b6cf690c99a8425198a48f69c6b576", "topic": "React/Three/Pixi/Babylon UI runtime"},
+        {"repository": "Herbertofury/GameSync-Next", "pr": 22, "head": "b37e3e6b150791e178a4d48f636bc3a5c95d6140", "topic": "Native Zod 4 JSON Schema"}
       ],
       "ferrumAuthority": {
         "currentMain": "fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9",
@@ -143,15 +124,15 @@
         "head": "67d0fd5ac89841c67ef1a9da00d4638c4097b23f",
         "base": "fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9",
         "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY",
-        "publicExecution": "HEALTHY_ON_CURRENT_HEAD",
         "runnerProbeRun": 32465762844,
         "registryFreshnessRun": 32465762828,
         "playwrightLockIntegrityRun": 32465762866,
         "ferrumCiRun": 32465762875,
         "operaRetryJob": 96730984528,
+        "publicExecution": "HEALTHY",
         "privateCheckout": "BLOCKED_AT_EXPLICIT_READ_TOKEN_PREFLIGHT"
       },
-      "status": "CURRENT BRANCH OUTPUTS PRESENT; AUTHORITATIVE PRIVATE LOCK/EXACT_HEAD EXECUTION GATES REMAIN"
+      "status": "CURRENT BRANCH OUTPUTS PRESENT; AUTHORITATIVE PRIVATE EXACT_HEAD EXECUTION GATES REMAIN"
     }
   }
 }
