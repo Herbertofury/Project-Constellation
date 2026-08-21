@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T11:36:00Z",
+  "updatedAt": "2026-08-21T13:15:00Z",
   "completedCursor": [
-    "PRJ-016",
-    "PRJ-017",
-    "PRJ-018",
-    "PRJ-019",
-    "PRJ-020"
-  ],
-  "nextCursor": [
     "PRJ-021",
     "PRJ-022",
     "PRJ-023",
     "PRJ-024",
     "PRJ-025"
   ],
-  "selectionReason": "PRJ-016 through PRJ-019 were rechecked against current MO2 v2.5.2 host evidence and recovered project artifacts without a newer source delta that justified wiki churn. PRJ-020 received a material source-authority correction after a deeper durable-source recovery located a consolidated master desktop pet research artifact whose own content says it was built from the latest master pass, checked against every uploaded source file, embeds v10 and v14, retains v9 and v7 as appendices, and preserves the KinitoPET addendum. The wiki no longer incorrectly says the master was not located; it now distinguishes recovered content authority from the still-pending project-owned canonical byte promotion/hash receipt. PRJ-020 source commit 257d632b32a1a090fed6d0464e49c0dd9333f1b9, blob 4759ef896c2419c775574db54afa70ce2d65df63, has wiki-publication success from Sync GitHub Wiki run 32477696451, job 96757360927. The publisher checked out the exact source commit, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set against wikis/ successfully, and recorded Wiki master 1a7fd8836af002cb16169a12185771160c4f207c. The canonical Drive PRJ-020 wiki mirror was updated in place, independently re-read, and Markdown-exported at 14,964 bytes with SHA-256 6db5769bafff2f1bc8a52f84fd5f08d0486d9fd8897a5f3f6c0baf84b3c8e05d. Publication backlog is clear. The next group is PRJ-021 through PRJ-025.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1135Z-wiki-prj-016-020.json",
+  "nextCursor": [
+    "PCX-026",
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear before source work: PRJ-020 commit 257d632b32a1a090fed6d0464e49c0dd9333f1b9 had wiki-publication success and the three later ProjectDump commits changed only Project Constellation state. PRJ-023 received a material reproducibility-accuracy refresh from current primary package evidence: Biome stable is 2.5.9, Vue stable 3.5.41 with 3.6.0-rc.4 prerelease, Vitest stable 4.1.10 with 5.0.0-beta.7 prerelease, Vite 8.2.2, Tauri CLI 2.11.4 and TypeScript 7.0.2. The update strengthens the existing floating-latest warning with direct observed drift and keeps prerelease channels outside the stable baseline. PRJ-023 source commit 58960b6dcffe5740f1cc21ea3d7a257aaf419ecd, blob c8825012be75f8e2e7ed8384f50c5c16370f20ba, has wiki-publication success from Sync GitHub Wiki run 32485734005, job 96781692920; the publisher checked out the exact source, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set successfully and recorded Wiki master 76f9d1751a9fdb94fe9a3e3647aa37e0e4382882. The Drive mirror was updated in place, independently re-read and Markdown-exported at 10,246 bytes with SHA-256 ab37c6830a2dc17169c672b935fe2e769bfc254143ee225c0e8ca45dcbd0c867. PRJ-021 remains recovery-first because GX Slim source/archive is unresolved; PRJ-022, PRJ-024 and PRJ-025 had no newer project-owned delta justifying wiki churn. Publication backlog is clear. Next group is PCX-026 through PCX-030.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1315Z-wiki-prj-021-025.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
