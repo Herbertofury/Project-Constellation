@@ -41,6 +41,25 @@
     "markdownExportBytes": 31761,
     "markdownExportSha256": "a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c"
   },
+  "driveCheckpoint": {
+    "title": "Project Constellation Wiki Checkpoint - PRJ-002 v24 Authority - 2026-08-21T0640Z",
+    "fileId": "17arkLM5HGvvj7Zr1d1Q0MjL-zPhbvh8yxIbfW6d0NpU",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "parentFolderTitle": "Project Constellation",
+    "reread": "pass",
+    "markdownExportBytes": 5513,
+    "markdownExportSha256": "bc3e6e1a9c932e07720646625918561ef78fe3c7a191120c11dc60999380d589"
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubCommit": "00489f3792021145d6cb4a178952bd2a3aae9feb",
+    "githubBlob": "a322778aa068c147dcd983d4dcc6cd192b729832",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveReread": "pass",
+    "driveTextExportBytes": 2562,
+    "driveTextExportSha256": "d816a82803eb3f8f9f3af4cd5494219bc1442f7a8d2de3c8f5b2e5b2dc0817b3"
+  },
   "authorityCorrections": [
     "Herbertofury/Feature-Foundry is no longer a placeholder; it is the current released production source authority.",
     "V33 FINAL_READY is preserved as a historical high-confidence runnable/non-regression benchmark rather than current source authority.",
