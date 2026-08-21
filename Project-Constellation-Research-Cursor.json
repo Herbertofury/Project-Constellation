@@ -1,21 +1,17 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T03:25:34Z",
+  "updatedAt": "2026-08-21T04:58:00Z",
   "completedCursor": [
-    "PCX-058",
-    "PCX-059",
-    "PCX-060",
-    "PCX-061",
-    "PCX-062"
+    "PCX-063"
   ],
   "nextCursor": [
-    "PCX-063",
     "PRJ-001",
     "PRJ-002",
     "PRJ-003",
-    "PRJ-004"
+    "PRJ-004",
+    "PRJ-005"
   ],
-  "selectionReason": "PCX-059 required a material completeness pass because its old wiki still treated the Feature Foundry receiving runtime as unresolved even though Feature Foundry v24.0.0 is now a released production repository at e1ba080b5c7590f1c844a6ed13b3a471709920b9. The page now documents the real browser ff.browser-snapshot.v1 persistence, Tauri save_world_snapshot/load_world_snapshot commands, living-world-snapshot.json ownership, feature-foundry.sqlite3 and generic native history events, while explicitly proving that none of those surfaces yet constitutes native Project Brain import/export parity. It adds a separate additive envelope architecture, validation and authority rules, deterministic round-trip/stale-conflict/host-extension fixtures, exact v24 build and verification commands, integration acceptance tests, troubleshooting, and anti-degradation rules. Source commit 9af43337d1cbf24ada015127d2b30cffaa9dc4e7 was published by Sync GitHub Wiki run 32443186596, job 96657794392, with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master 6e6dd09d057fc4b14c3d09d0a4ec052ae2ca3810. A complete canonical Drive wiki mirror was created, moved into Project Wikis, independently re-read, and Markdown-exported at 21,761 bytes with SHA-256 b63af005c4bfd2b1942d961660657fa8271353e80bc3a3701b42a3026b11d0fc. PCX-058, PCX-060, PCX-061, and PCX-062 were rechecked without unjustified source churn. The next group is PCX-063 plus PRJ-001 through PRJ-004.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0325Z-wiki-pcx-059-v24-bridge.json",
+  "selectionReason": "PCX-063 required a material completeness pass because its wiki still treated the standalone Feature-Foundry repository as empty and the GameSync Next Inspiration Vault as the sole implementation authority. Current project-owned evidence proves released Feature Foundry v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9 now owns the production Asset Vault, floating Object Atlas/Scrapbook/Layers/History/Environment/Room Intelligence surface, browser/native snapshots, and production build/verification workflow, while GameSync Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 remains the strongest browser capture/provenance lane. The updated wiki also documents a source-proven production gap: handleFile() creates user imports only in the in-memory asset catalog, ff-scrapbook-layout stores assetId, and restore skips missing definitions, so arbitrary imported asset bytes/definitions are not yet restart-proven durable. Source commit a57d77e1017dcf3b372496bff9181a1bc4f114b3 was published by Sync GitHub Wiki run 32448353814, job 96672015129, with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master c5f3b6f1e441082cbc5b0cacfa468a92308c0bda. The canonical Drive wiki mirror was updated in Project Wikis, independently re-read, and Markdown-exported at 31,006 bytes with SHA-256 543549c15a4dc2e2c6c6185efdaa1039fc2577f82b7dd1b8389de2df266cb093. The next group begins with PRJ-001 through PRJ-005; PRJ-002 should receive an early authority check because its current umbrella wiki still describes Herbertofury/Feature-Foundry as a placeholder despite the released v24 production repository.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0455Z-wiki-pcx-063-v24-aesthetic-vault.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
