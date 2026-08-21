@@ -58,6 +58,22 @@
       "PRs #7, #8, and #10 through #22"
     ]
   },
+  "driveCheckpoint": {
+    "fileId": "1i_Sqnfpl4n7SnHbNCH4JVGDh-PqsQs0yCebf3eXMbpA",
+    "title": "Project Constellation Wiki Maintainer Checkpoint - PCX-042-046 - 2026-08-21T2000Z",
+    "projectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownExportBytes": 3201,
+    "markdownExportSha256": "bee6aa1156b5011692ad7e51602cf14e9168f904e12312f2944b489e9d9b2026",
+    "rereadVerified": true
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubBlob": "e92ca2040eb6eac602e2fdc525999f3d73de4f72",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveTextBytes": 1954,
+    "driveTextSha256": "3501a4ba3574789f26658005666dfc27e36f77292a87df5aebe01b681ae99c00",
+    "jsonValidated": true
+  },
   "nextCursor": ["PCX-047", "PCX-048", "PCX-049", "PCX-050", "PCX-051"],
   "obligation": "Tracked-project Wiki maintenance remains open and recurring."
 }
