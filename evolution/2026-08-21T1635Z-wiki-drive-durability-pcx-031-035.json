@@ -70,6 +70,27 @@
       "currentProjectBoundary": "Connected Herbertofury/MO2R remains a one-commit placeholder at 222652c89be6c0820aa34c804afe02fe0b08e294; the real implementation worktree remains unresolved, so the wiki correctly stays evidence/qualification-first."
     }
   ],
+  "driveCheckpoint": {
+    "fileId": "15ydj16BrySgd6QQ9A77qdHM3Rq92VEmB_cZBHkqNcp0",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 3901,
+    "sha256": "a3262754680c41e4950eabd52bf8c79f8908ffd346c555f76733a258e46201f1",
+    "reread": "PASS"
+  },
+  "driveResearchCursor": {
+    "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 2341,
+    "sha256": "2d4dad525c1ab54acd1b704c31415213ced23f766ef4e3b6c502827343d22311",
+    "reread": "PASS",
+    "nextCursor": [
+      "PCX-037",
+      "PCX-038",
+      "PCX-039",
+      "PCX-040",
+      "PCX-041"
+    ]
+  },
   "coverageChanges": false,
   "homeSidebarIndexChangesRequired": false,
   "nextCursor": [
