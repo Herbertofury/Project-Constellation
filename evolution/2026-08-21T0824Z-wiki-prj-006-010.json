@@ -52,7 +52,19 @@
   "nextCursor": ["PRJ-011", "PRJ-012", "PRJ-013", "PRJ-014", "PRJ-015"],
   "persistence": {
     "github": "verified",
-    "drive": "verified for material PRJ-007 mirror; checkpoint/cursor Drive copies required before closeout"
+    "drive": "verified",
+    "driveCheckpoint": {
+      "fileId": "1cM2eZeh4hiC2jm09zZpj-gQcOUOan2otzZ118wHLPeI",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 4026,
+      "markdownExportSha256": "d0528d5c582620a9379d216e22d7323e2467abb9f85636929f212422dd52eb24"
+    },
+    "driveResearchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "plainTextExportBytes": 2283,
+      "plainTextExportSha256": "7c7a289757494b4f3b788f273b18520494203733092475aad09196409ebeaeb0",
+      "jsonValidation": "pass"
+    }
   },
   "serviceState": "ONGOING"
 }
