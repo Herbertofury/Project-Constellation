@@ -1,17 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T04:58:00Z",
+  "updatedAt": "2026-08-21T06:42:00Z",
   "completedCursor": [
-    "PCX-063"
-  ],
-  "nextCursor": [
     "PRJ-001",
     "PRJ-002",
     "PRJ-003",
     "PRJ-004",
     "PRJ-005"
   ],
-  "selectionReason": "PCX-063 required a material completeness pass because its wiki still treated the standalone Feature-Foundry repository as empty and the GameSync Next Inspiration Vault as the sole implementation authority. Current project-owned evidence proves released Feature Foundry v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9 now owns the production Asset Vault, floating Object Atlas/Scrapbook/Layers/History/Environment/Room Intelligence surface, browser/native snapshots, and production build/verification workflow, while GameSync Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 remains the strongest browser capture/provenance lane. The updated wiki also documents a source-proven production gap: handleFile() creates user imports only in the in-memory asset catalog, ff-scrapbook-layout stores assetId, and restore skips missing definitions, so arbitrary imported asset bytes/definitions are not yet restart-proven durable. Source commit a57d77e1017dcf3b372496bff9181a1bc4f114b3 was published by Sync GitHub Wiki run 32448353814, job 96672015129, with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master c5f3b6f1e441082cbc5b0cacfa468a92308c0bda. The canonical Drive wiki mirror was updated in Project Wikis, independently re-read, and Markdown-exported at 31,006 bytes with SHA-256 543549c15a4dc2e2c6c6185efdaa1039fc2577f82b7dd1b8389de2df266cb093. The next group begins with PRJ-001 through PRJ-005; PRJ-002 should receive an early authority check because its current umbrella wiki still describes Herbertofury/Feature-Foundry as a placeholder despite the released v24 production repository.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0455Z-wiki-pcx-063-v24-aesthetic-vault.json",
+  "nextCursor": [
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010"
+  ],
+  "selectionReason": "PRJ-002 required a material authority correction. Its umbrella wiki still treated Herbertofury/Feature-Foundry as a placeholder and GameSync / Feature Foundry V2-253 as the newest maintainable source even though the user-owned Feature-Foundry repository now contains the released v24.0.0 production application at e1ba080b5c7590f1c844a6ed13b3a471709920b9. The refreshed umbrella page now makes v24 the current production source/release authority; preserves V33 FINAL_READY as a historical high-confidence runnable/non-regression benchmark; preserves V2-253 as project-operations/recovery architecture and exact recovery history; preserves V23, standalone V24, and V11 as historical schema/runtime evidence; records the current npm/Tauri toolchain and package-lock boundary; preserves exact v24 Drive release artifact hashes; records the current 17-theme/17-world/34-room/17-weather/85-object/10-artist-world authority; and carries forward the Asset Vault imported-content durability gap plus the Feature Foundry/GameSync theme-adapter mismatch as real open work. Source commit 382dc4669105539770acfb9f4c5b0aae7a5ed1a9 was published by Sync GitHub Wiki run 32454920940, job 96690257088, with exact-head checkout, ProjectDump.wiki.git push, fresh-clone complete byte verification, and Wiki master eb570429e4a257c343ca5e12c5fc7a0d21beaeca. The canonical Drive PRJ-002 wiki mirror was updated in Project Wikis, independently re-read, and Markdown-exported at 31,761 bytes with SHA-256 a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c. PRJ-001, PRJ-003, PRJ-004, and PRJ-005 were rechecked without source churn because no stronger project-specific delta justified rewriting their current pages. The next group is PRJ-006 through PRJ-010.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0640Z-wiki-prj-002-v24-authority.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
