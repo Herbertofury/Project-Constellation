@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "project": "Minecraft Mod Vault",
+  "targetVersion": "0.9.0",
+  "checkpointType": "recovery-watch",
+  "status": "TOOLCHAIN_AND_KNOWLEDGE_SEEDS_VERIFIED_PRODUCT_WORK_REMAINS",
+  "recordedAt": "2026-08-21T00:07:08Z",
+  "canonicalProductRepository": "Herbertofury/Minecraft-Mod-Vault",
+  "canonicalProductMainAtInspection": "16b561897ff6801aa607686c6aba24e546db4723",
+  "lastVerifiedProductLine": "0.8.0",
+  "recoverySource": {
+    "repository": "Herbertofury/ProjectDump",
+    "temporaryPrs": [12, 13],
+    "note": "Execution scaffolding only. Neither PR is product source and neither is intended to merge."
+  },
+  "verifiedExecution": {
+    "toolchainBridge": {
+      "pr": 12,
+      "head": "67375a931201efe8898c29c99e8b54ac2f519180",
+      "workflowRun": 32425946577,
+      "conclusion": "success",
+      "artifact": {
+        "id": 9427425585,
+        "name": "mmv-v090-toolchain-bridge",
+        "sizeBytes": 99481099,
+        "providerSha256": "9263684614069896dd990616aa3f310825ef1ad8dcda8d3f9ed0d32da6260595"
+      },
+      "coverage": [
+        "official Go 1.27.0 archive downloaded and SHA-256 verified",
+        "modernc.org/sqlite v1.57.0 dependency graph generated and verified",
+        "real database/sql SQLite execution with FTS5 and foreign-key behavior",
+        "authoritative Mojang, Fabric, Quilt, Forge and NeoForge seed catalogs downloaded and validated"
+      ]
+    },
+    "sqliteVendorAndSeeds": {
+      "pr": 13,
+      "head": "0530d63417569293f2b7a47027a548f3a395abf9",
+      "bundleWorkflowRun": 32431318884,
+      "bundleConclusion": "success",
+      "mojangDeepSeedWorkflowRun": 32431318879,
+      "mojangDeepSeedConclusion": "success",
+      "runtimeObservation": {
+        "sqliteVersion": "3.53.3",
+        "journalMode": "wal",
+        "fts5Matches": 1,
+        "goVersion": "1.27.0",
+        "cgoFreeCrossBuilds": ["linux/amd64", "windows/amd64"]
+      },
+      "artifacts": [
+        {
+          "id": 9429180161,
+          "name": "mmv-v090-modernc-vendor",
+          "sizeBytes": 26974719,
+          "providerSha256": "a62cb0d5c254dffee1a1c5c252789c9bf9d72b95d387cfbf689c6184cc6ccaf1"
+        },
+        {
+          "id": 9429180663,
+          "name": "go1.27.0-linux-amd64",
+          "sizeBytes": 70523437,
+          "providerSha256": "6e302eb64a148f098fe144a6791285d6f0e20fc82ee0889d180158d33ecd1fec"
+        },
+        {
+          "id": 9429180917,
+          "name": "mmv-v090-mcmeta-versions-seed",
+          "sizeBytes": 217157,
+          "providerSha256": "8728b196f20fe481f3c8b70cd6aab3c1363297ca235cd7013dfecb21fd24c647"
+        },
+        {
+          "id": 9429154412,
+          "name": "mmv-v090-mojang-deep-seed",
+          "sizeBytes": 2124858,
+          "providerSha256": "434599cae370f883a6e54c51ebb93fe33c9060723c9038f48d4f1757f0f1d14e"
+        }
+      ]
+    }
+  },
+  "acceptanceBoundary": {
+    "verified": [
+      "current public Go toolchain acquisition",
+      "pure-Go SQLite vendor generation",
+      "real SQLite WAL and FTS5 behavior",
+      "Linux and Windows cgo-free smoke binary compilation",
+      "Minecraft and loader knowledge seed acquisition/validation",
+      "artifact publication with provider SHA-256 identities"
+    ],
+    "notYetVerified": [
+      "Minecraft Mod Vault 0.9.0 product source implementation",
+      "full application build/package",
+      "fresh extracted application launch",
+      "real UI/backend workflows",
+      "persistence/restart behavior",
+      "release packaging and final product hashes"
+    ],
+    "rule": "Do not promote v0.9.0 product status from toolchain/seed evidence alone."
+  },
+  "nextAction": "Use these verified toolchain/vendor/knowledge-seed artifacts as inputs to the canonical Minecraft-Mod-Vault 0.9.0 implementation and then run the complete product build, package, fresh-launch and real workflow acceptance before release promotion."
+}
