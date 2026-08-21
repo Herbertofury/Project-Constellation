@@ -1,6 +1,6 @@
 {
-  "schema": "scheduled-task-supervisor.state/8",
-  "updatedAt": "2026-08-21T12:14:00Z",
+  "schema": "scheduled-task-supervisor.state/9",
+  "updatedAt": "2026-08-21T13:53:00Z",
   "currentTaskCount": 5,
   "enabledCurrentTaskCount": 5,
   "pausedIncompleteCurrentTaskCount": 0,
@@ -15,12 +15,17 @@
     {
       "area": "ProjectDump Wiki publication ledger",
       "result": "ADVANCED_TO_LATEST_FULL_SET_VERIFIED_PUBLICATION",
-      "detail": "The durable supervisor ledger was stale at PRJ-012. Current Project Constellation continuity now records PRJ-016 through PRJ-020 source commit 1607e33368752d98e3730294cf509c74d4b58000 as covered by successful Sync GitHub Wiki run 32477696451. The publisher fresh-cloned the actual Wiki and byte-compared the complete remote page set, recording Wiki master ef467aae454498b461b3560918062f2800ececa4. The canonical PRJ-020 Drive mirror was independently rediscovered and re-read; the governing checkpoint records a 9,054-byte Markdown export with SHA-256 cbf5f09f34796cc6fa5e2f3d64bd7bc1b44934a991b4ca6279d54a51dec5fc41."
+      "detail": "The prior supervisor ledger ended at PRJ-016 through PRJ-020. Current Project Constellation GitHub continuity and the independently re-read Google Drive checkpoint agree that PRJ-023 source commit 58960b6dcffe5740f1cc21ea3d7a257aaf419ecd was published by Sync GitHub Wiki run 32485734005 / job 96781692920. The publisher checked out the exact source, pushed ProjectDump.wiki.git, fresh-cloned the reader-facing Wiki, byte-compared the complete remote page set successfully, and recorded Wiki master 76f9d1751a9fdb94fe9a3e3647aa37e0e4382882. The corresponding Drive mirror was updated in place, independently re-read, and Markdown-exported at 10,246 bytes with SHA-256 ab37c6830a2dc17169c672b935fe2e769bfc254143ee225c0e8ca45dcbd0c867."
     },
     {
-      "area": "Current task health and GameSync publication claim audit",
-      "result": "NO_REPAIR_REQUIRED",
-      "detail": "All five current recurring tasks are enabled and incomplete paused current tasks remain zero. GameSync Performance PR #7 and its Drive checkpoint independently agree on exact head 0b90520a8bb236cca02fae8d31d6f3907f905c24. GameSync Stack current Drive state and GitHub proposal state remain branch/PR-only and aligned with run-66 Ferrum authority; no current task is authorized to merge GameSync main."
+      "area": "GameSync Performance publication ledger",
+      "result": "ADVANCED_TO_CURRENT_BRANCH_HEAD",
+      "detail": "GameSync-Next Performance PR #7 is independently re-read as open, draft, mergeable and unmerged at exact head 6eda02ae9540c55b3a8841c425d31e6ef60d2c2a, 80 commits ahead / 0 behind current main cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The durable Drive Performance checkpoint independently records the same head. Exact-head Secret Scan 32485449952 / Gitleaks 96780816777 failed with zero workflow steps, so severe acceptance remains open and no product/security failure or pass is inferred."
+    },
+    {
+      "area": "GameSync Stack and Ferrum recovery publication ledger",
+      "result": "CURRENT_BRANCH_PR_DESTINATIONS_REVERIFIED",
+      "detail": "Standalone Gamesync Vite PR #2 is open/draft/mergeable at a028c0531814e889fd9dd101aa1e931543b79000; GameSync-Next Vite/plugin-react PR #8 is open/draft/mergeable at 89adc7390c5ab53daa60d8be86e81c1f5eb3be33; Ferrum recovery PR #62 is open/draft/mergeable at 67d0fd5ac89841c67ef1a9da00d4638c4097b23f on current Ferrum main fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9. Public recovery compute, registry, Playwright-lock and Ferrum CI are healthy; private GameSync checkout remains fail-closed at the explicit read-token preflight and direct private GameSync Actions still fail before executable steps."
     }
   ],
   "health": {
@@ -54,44 +59,57 @@
     },
     "projectDumpWiki": {
       "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED",
-      "latestVerifiedSourceHead": "1607e33368752d98e3730294cf509c74d4b58000",
-      "workflowRunId": 32477696451,
+      "projectDumpMainAtAudit": "9f22644a7cbc9e9e4a53d5d1a8578cef06fe3cc8",
+      "latestVerifiedSourceHead": "58960b6dcffe5740f1cc21ea3d7a257aaf419ecd",
+      "sourceBlob": "c8825012be75f8e2e7ed8384f50c5c16370f20ba",
+      "workflowRunId": 32485734005,
+      "workflowJobId": 96781692920,
       "workflowConclusion": "success",
-      "wikiMaster": "ef467aae454498b461b3560918062f2800ececa4",
+      "wikiMaster": "76f9d1751a9fdb94fe9a3e3647aa37e0e4382882",
       "freshCloneCompleteByteComparison": "PASS",
-      "driveMirrorProject": "PRJ-020 Master Desktop Pet Research",
-      "driveMirrorDocumentId": "1XnaIYa5MAfEbe14zfXsA-QIL8mQqDqXeSiNYFtue8lw",
-      "driveMarkdownBytes": 9054,
-      "driveMarkdownSha256": "cbf5f09f34796cc6fa5e2f3d64bd7bc1b44934a991b4ca6279d54a51dec5fc41",
-      "continuityCheckpoint": "project-constellation/evolution/2026-08-21T1135Z-wiki-prj-016-020.json",
-      "nextCursor": ["PRJ-021","PRJ-022","PRJ-023","PRJ-024","PRJ-025"]
+      "driveMirrorProject": "PRJ-023 Feature Foundry Portable Feature Starter Wiki",
+      "driveMirrorDocumentId": "17sISQkxtUUIE9oTzyL6vra6RlTaOYjuX3zgOyztEjpU",
+      "driveMarkdownBytes": 10246,
+      "driveMarkdownSha256": "ab37c6830a2dc17169c672b935fe2e769bfc254143ee225c0e8ca45dcbd0c867",
+      "continuityCheckpoint": "project-constellation/evolution/2026-08-21T1315Z-wiki-prj-021-025.json",
+      "nextCursor": ["PCX-026","PCX-027","PCX-028","PCX-029","PCX-030"]
     },
     "gameSyncPerformance": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
       "mainWriteAuthorized": false,
       "repository": "Herbertofury/GameSync-Next",
       "pr": 7,
-      "head": "0b90520a8bb236cca02fae8d31d6f3907f905c24",
+      "head": "6eda02ae9540c55b3a8841c425d31e6ef60d2c2a",
       "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
       "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY",
       "driveCheckpointDocumentId": "1ihaBjEQJ5h-AIe9RcUWkD08RPaOkhC_tyWxGVSDaobs",
-      "driveCheckpointHead": "0b90520a8bb236cca02fae8d31d6f3907f905c24",
-      "exactHeadSecretScanRun": 32454190664,
-      "exactHeadSecretScanJob": 96688219468,
+      "driveCheckpointHead": "6eda02ae9540c55b3a8841c425d31e6ef60d2c2a",
+      "exactHeadSecretScanRun": 32485449952,
+      "exactHeadSecretScanJob": 96780816777,
       "exactHeadExecution": "PRE_EXECUTION_INFRASTRUCTURE_FAILURE; NOT A PRODUCT FAILURE OR PASS",
       "status": "GITHUB_AND_DRIVE_BRANCH_OUTPUTS_ALIGNED; SEVERE EXACT_HEAD ACCEPTANCE REMAINS BLOCKED"
     },
     "gameSyncStack": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
       "mainWriteAuthorized": false,
-      "representativeCurrentProposal": {
-        "repository": "Herbertofury/GameSync-Next",
-        "pr": 22,
-        "head": "b37e3e6b150791e178a4d48f636bc3a5c95d6140",
-        "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
-        "topic": "replace deprecated JSON Schema generator with native Zod 4",
-        "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY"
-      },
+      "gamesyncMain": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "gameSyncNextMain": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "primaryProposals": [
+        {
+          "repository": "Herbertofury/Gamesync",
+          "pr": 2,
+          "head": "a028c0531814e889fd9dd101aa1e931543b79000",
+          "topic": "Vite 8.2.2",
+          "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY"
+        },
+        {
+          "repository": "Herbertofury/GameSync-Next",
+          "pr": 8,
+          "head": "89adc7390c5ab53daa60d8be86e81c1f5eb3be33",
+          "topic": "Vite 8.2.2 plus plugin-react 6.1.0",
+          "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY"
+        }
+      ],
       "ferrumAuthority": {
         "currentMain": "fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9",
         "verifiedProduct": "7cbf7f5d972f5e27a58ced7b0f32d9d816ef54f1",
@@ -105,6 +123,7 @@
         "pr": 62,
         "head": "67d0fd5ac89841c67ef1a9da00d4638c4097b23f",
         "base": "fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9",
+        "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY",
         "publicExecution": "HEALTHY_ON_CURRENT_HEAD",
         "runnerProbeRun": 32465762844,
         "registryFreshnessRun": 32465762828,
