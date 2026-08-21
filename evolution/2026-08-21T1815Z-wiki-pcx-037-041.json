@@ -94,6 +94,20 @@
     "wikiMasterCommit": "40116139b1d2083d99a90395fa6d1b1fd030066a",
     "freshCloneByteCompare": "pass"
   },
+  "driveCheckpoint": {
+    "id": "1E-u4CJZTSS3cZz15Bnm8CNrIU8uXXKof6tO7vtmzzjg",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 4491,
+    "sha256": "09de4491154115f354da314cde40dddde2cdbefa15accd96f532a0b9f50e90b0",
+    "reread": "pass"
+  },
+  "driveResearchCursor": {
+    "id": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "textBytes": 2057,
+    "sha256": "9a1fcec4131d6d03fef7aec2a376cbb36a35b056210dca28b86c9c3a83f1811e",
+    "jsonValidation": "pass-with-UTF8-BOM",
+    "nextCursor": ["PCX-042", "PCX-043", "PCX-044", "PCX-045", "PCX-046"]
+  },
   "nextCursor": ["PCX-042", "PCX-043", "PCX-044", "PCX-045", "PCX-046"],
   "recurringObligation": "OPEN_ONGOING"
 }
