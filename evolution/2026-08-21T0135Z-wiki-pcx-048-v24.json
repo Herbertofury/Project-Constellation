@@ -1,0 +1,83 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-21T01:35:00Z",
+  "projectId": "PCX-048",
+  "projectName": "GameSync Theme Foundry",
+  "result": "MATERIAL_WIKI_IMPROVEMENT_DUAL_PUBLISHED",
+  "source": {
+    "repository": "Herbertofury/ProjectDump",
+    "branch": "main",
+    "path": "wikis/PCX-048-gamesync-theme-foundry.md",
+    "commit": "6a30f55f91379cc9f19e263179051174fa16f319",
+    "blob": "4db384aa2dc9eecb32dc9344178f97c24ba701d2"
+  },
+  "authorityReconciliation": {
+    "productionAuthoring": {
+      "repository": "Herbertofury/Feature-Foundry",
+      "release": "v24.0.0",
+      "head": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+      "themeWorldDataBlob": "da43ce2483302d9d7b0760747eef0f1cf2fa3356",
+      "runtimeCatalogSha256": "83aac630afa4e6522d28452bb6a7c0ebe183eee6812b89b6d742662876af06ec",
+      "verifiedCounts": {
+        "durableThemes": 17,
+        "durableWorlds": 17,
+        "rooms": 34,
+        "weatherSystems": 17,
+        "ecologyObjects": 85,
+        "artistWorldsSeparateAuthority": 10
+      }
+    },
+    "hostInterchange": {
+      "repository": "Herbertofury/GameSync-Next",
+      "head": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "themeCoreBlob": "3095d1c4fa4ac24e6be27408750d6ee1d15182f4",
+      "themeSchemaBlob": "9f021893845798dd26806b11eb68bc8704370daf"
+    },
+    "historicalContinuity": "GameSync 0.25.9 Theme Foundry / Feature Foundry adoption checkpoints remain preserved as lineage, not current production authoring authority."
+  },
+  "materialChanges": [
+    "Promoted released Feature Foundry v24.0.0 to current production authoring/runtime authority while preserving older GameSync 0.25.9 continuity evidence.",
+    "Documented the production schema-3 living-world package with identity, visual/UI language, worlds/districts/rooms, weather/time, sound, interaction, performance, accessibility, workspace and editor capabilities.",
+    "Separated the 17 durable V33 theme packages from the 10 Favorite Artist Worlds v4.0.1 authority lane.",
+    "Updated GameSync Next evidence watermark from 9e337c720f0180cffa577f140b181c699f0a1650 to cd906ff0831bf7fc33b41fea31b6f0c004cc1562.",
+    "Preserved the source-proven GameSync theme-core/theme-schema field-type mismatch and select-options validation defect as an explicit integration blocker.",
+    "Documented that released Feature Foundry v24 does not directly depend on @gamesync/theme-* packages, so a versioned adapter remains the real integration task.",
+    "Added clean build/verify/package workflows, adapter architecture, regression corpus, acceptance contract, troubleshooting and no-cap/fidelity rules.",
+    "Kept Design Tokens 2025.10 as a stable interchange subset only and prohibited flattening living-world semantics into generic token fields."
+  ],
+  "publication": {
+    "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-048-gamesync-theme-foundry",
+    "statusContext": "wiki-publication",
+    "status": "success",
+    "workflowRun": 32436575583,
+    "workflowJob": 96638876108,
+    "checkedOutSourceCommit": "6a30f55f91379cc9f19e263179051174fa16f319",
+    "wikiMasterCommit": "eaf0c8fe3a36d6eb591102bec30b18c640c0d9c4",
+    "publisherPush": "pass",
+    "freshClone": "pass",
+    "completeByteComparison": "pass"
+  },
+  "driveDurability": {
+    "title": "PCX-048 GameSync Theme Foundry Wiki",
+    "fileId": "1_WCTi7vrX6UwnWvRqrH11pIqND30BwApNTdCCk2snt0",
+    "reread": "pass",
+    "markdownExportBytes": 22765,
+    "markdownSha256": "6ba0a636dc0c2c77793ad7e97dfb6d0e1d6502b535652e20ef3e2f70a94273c8"
+  },
+  "groupReview": {
+    "projects": ["PCX-048", "PCX-049", "PCX-050", "PCX-051", "PCX-052"],
+    "materialUpdate": "PCX-048",
+    "noChurn": [
+      "PCX-049 remained aligned with the verified mascot/Petz descendant boundary; no newer source evidence changed its documented parity boundary.",
+      "PCX-050 retained its real-library/no-culling contract; no stronger current project-owned performance delta justified a source rewrite.",
+      "PCX-051 already uses GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 as its evidence watermark.",
+      "PCX-052 already documents GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and the current Extension V2 release surface."
+    ]
+  },
+  "nextCursor": ["PCX-053", "PCX-054", "PCX-055", "PCX-056", "PCX-057"],
+  "openWork": [
+    "Repair GameSync Next theme-core/theme-schema field-type and select-option contract drift on a scoped proposal branch before implementing v24 interchange.",
+    "Implement and verify a read-only Feature Foundry v24 schema-3 adapter against one durable theme before expanding to all 17 themes and artist-world fixtures.",
+    "Preserve complete-data/no-cap and full-fidelity behavior across shipping GameSync and GameSync Next host qualification."
+  ]
+}
