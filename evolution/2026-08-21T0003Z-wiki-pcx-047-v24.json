@@ -75,6 +75,23 @@
     "markdownExportBytes": 16523,
     "markdownExportSha256": "b520177c36e6748871e0c757c270b7175a9a7505ded070062e1d6b8c71b37446"
   },
+  "checkpointDurability": {
+    "githubPath": "project-constellation/evolution/2026-08-21T0003Z-wiki-pcx-047-v24.json",
+    "driveDocumentId": "1BeRS2hoaQ_ufmIs_9K4-lm7FKPOsPkSeuaW0U42fwLI",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveReread": "pass",
+    "driveMarkdownExportBytes": 3482,
+    "driveMarkdownExportSha256": "259c57f6f9d8c4cfdb26e532090fde2eecc29ad0cfefa9a34ad552e7e89b7d0e"
+  },
+  "cursorDurability": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubBlob": "6151deeb7915c542f81514eaaeb9e3768acbd741",
+    "driveDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveSemanticReread": "pass",
+    "driveMarkdownExportBytes": 2057,
+    "driveMarkdownExportSha256": "8801748229b93946dfee03148999663bbfff614c3efaea9d30d0a1d6c3304f0e"
+  },
   "nextAction": "Run a v4.0.1 production round-trip qualification in Feature Foundry v24, including workbook/JSON/SQLite hashes, embedded authority counts, native catalog_summary SQLite version and integrity, all 10 artist worlds and Azure Save Coast in Theme Atlas, music-route state preservation, and restart persistence for user mappings without mutating curation rows.",
   "nextDocumentationCursor": [
     "PCX-048",
