@@ -1,10 +1,11 @@
 {
-  "schema": "scheduled-task-supervisor.state/3",
-  "updatedAt": "2026-08-21T02:17:00Z",
-  "currentTaskCount": 5,
-  "enabledCurrentTaskCount": 5,
+  "schema": "scheduled-task-supervisor.state/4",
+  "updatedAt": "2026-08-21T03:48:00Z",
+  "currentTaskCount": 6,
+  "enabledCurrentTaskCount": 6,
   "pausedIncompleteCurrentTaskCount": 0,
   "currentTaskSet": [
+    "Track New Minecraft Mods",
     "GameSync Stack Upgrade",
     "GameSync Performance Pass",
     "Recover Stale Chats",
@@ -13,39 +14,45 @@
   ],
   "repairs": [
     {
-      "area": "GameSync merge-authority metadata",
-      "action": "GameSync-Next PR #15 still referenced a no-longer-current merge-authority automation. Replaced that stale authority language with the live task-set truth: the PR remains open/draft/branch-only and no current live automation may merge it to main. Independently re-read the PR after the update; exact proposal head remains 3046883c2575be72c320ff25364a71a46f328629.",
-      "result": "DELETED_AUTHORITY_REFERENCE_REMOVED_AND_PR_REREAD"
-    },
-    {
-      "area": "GameSync Stack cross-schedule recovery claims",
-      "action": "Reconciled stale 'current Ferrum recovery PR #62 head' claims across active Stack publication surfaces. Added explicit supervisor correction comments to GameSync-Next PRs #8, #11, #12, #13, #14, #16, #17, #18, #19, #20, #21 and Gamesync PRs #2, #3, #4. All now record that Ferrum recovery PR #62 current head is 25d4ca5e4a6c89a00688751131ee7f1e8a6e9660 and that evidence from older recovery heads is historical only. PR #8 also records current UI-runtime PR #12 head c05e0039d3b6cf690c99a8425198a48f69c6b576. Each correction was independently re-read from the corresponding GitHub issue conversation.",
-      "result": "STALE_CROSS_SCHEDULE_PUBLICATION_CLAIMS_SUPERSEDED_AND_REMOTE_REREAD"
+      "area": "Live task-set ledger",
+      "action": "Discovered the newly current recurring task Track New Minecraft Mods and added it to supervisor scope. It is enabled. No material run output or canonical GitHub publication target was observed yet, so none is invented.",
+      "result": "CURRENT_TASK_SET_REFRESHED"
     },
     {
       "area": "ProjectDump Wiki publication",
-      "action": "Independently revalidated the newest material Wiki publication. Source commit 6a30f55f91379cc9f19e263179051174fa16f319 has wiki-publication success through Sync GitHub Wiki run 32436575583. Current Project Constellation research state records full actual-Wiki fresh-clone byte verification to Wiki master eaf0c8fe3a36d6eb591102bec30b18c640c0d9c4. The matching PCX-048 Google Drive wiki was independently re-read and matches current Feature Foundry v24.0.0 authority and GameSync-Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562; the durable cursor records the Drive Markdown mirror at 22765 bytes / SHA-256 6ba0a636dc0c2c77793ad7e97dfb6d0e1d6502b535652e20ef3e2f70a94273c8.",
+      "action": "Independently revalidated the newest material Wiki publication. Source commit 9af43337d1cbf24ada015127d2b30cffaa9dc4e7 has wiki-publication success through Sync GitHub Wiki run 32443186596. The run completed successfully on the exact source head. Current Project Constellation research state records complete actual-Wiki fresh-clone byte verification to Wiki master 6e6dd09d057fc4b14c3d09d0a4ec052ae2ca3810. The matching PCX-059 Google Drive wiki and maintainer checkpoint are present; durable state records the Drive Markdown mirror at 21761 bytes / SHA-256 b63af005c4bfd2b1942d961660657fa8271353e80bc3a3701b42a3026b11d0fc.",
       "result": "LATEST_WIKI_GITHUB_AND_DRIVE_PUBLICATION_VERIFIED"
     },
     {
       "area": "GameSync Performance publication ledger",
-      "action": "Refreshed the current Performance publication head from GitHub. GameSync-Next PR #7 is open/draft/mergeable at exact head 638acf7e024354b5bc6d41ebb839f855f9d787a8 on current main cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The PR itself correctly states that no current live GameSync merge-authority task exists and retains exact-head fail-closed acceptance requirements.",
-      "result": "PERFORMANCE_LEDGER_CURRENT"
+      "action": "Refreshed the current Performance publication head directly from GitHub and its Drive checkpoint. GameSync-Next PR #7 is open, draft, mergeable, and unmerged at exact head 79930fb8ba27eb65693f80bdfa6c693f24b708ea on current main cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The Drive checkpoint independently records the same exact head and branch-only status. Exact-head private execution remains externally blocked, so no readiness or merge claim is made.",
+      "result": "PERFORMANCE_LEDGER_CURRENT_AND_DUAL_DURABILITY_PRESENT"
+    },
+    {
+      "area": "GameSync Stack publication ledger",
+      "action": "Revalidated representative Stack proposal GameSync-Next PR #22 as open, draft, mergeable, and unmerged at exact head b37e3e6b150791e178a4d48f636bc3a5c95d6140 on current Next main. Revalidated Ferrum recovery PR #62 as open, draft, mergeable, and unmerged at exact head 25d4ca5e4a6c89a00688751131ee7f1e8a6e9660. Its exact-head runner probe, registry freshness, Playwright lock integrity, and Ferrum CI are successful; public recovery still stops at the explicit private GameSync read-token preflight before checkout. The current Drive Stack master records the same recovery head and recovery boundary.",
+      "result": "STACK_LEDGER_CURRENT_AND_DUAL_DURABILITY_PRESENT"
     }
   ],
   "health": {
     "currentScheduledTasks": "ALL_CURRENT_TASKS_ENABLED",
-    "currentTaskCount": 5,
-    "enabledCurrentTaskCount": 5,
+    "currentTaskCount": 6,
+    "enabledCurrentTaskCount": 6,
     "incompletePausedCurrentTasks": 0,
     "gameSyncMergeAuthority": "NO_CURRENT_LIVE_AUTOMATION_AUTHORIZED_TO_MERGE_GAMESYNC_MAIN",
     "privateHostedRunnerDiagnosis": "PRIVATE_GAMESYNC_EXACT_HEAD_EXECUTION_REMAINS_EXTERNALLY_BLOCKED",
     "publicFerrumCompute": "AVAILABLE",
-    "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives runners and reaches public dependencies, but private GameSync checkout remains fail-closed without authorized private-repository read access. Direct private GameSync Actions also continue to fail before executable workflow steps.",
+    "crossRepositoryRecoveryBoundary": "Ferrum public recovery receives runners and reaches public dependencies, but private GameSync checkout remains fail-closed without an authorized read-only private-repository token. Direct private GameSync Actions also continue to fail before executable workflow steps.",
     "userEscalationRequired": true,
     "userEscalationAction": "Restore GitHub Actions hosted-runner execution for the private GameSync repositories by resolving the account billing/payment/spending-limit condition."
   },
   "publicationLedger": {
+    "trackNewMinecraftMods": {
+      "taskStatus": "ENABLED",
+      "materialOutputObserved": false,
+      "githubPublicationTarget": "NONE_INFERRED_YET",
+      "action": "Keep under supervisor policy and discover its publication destinations from future actual outputs/task state rather than hard-coding a destination now."
+    },
     "projectConstellationPresentation": {
       "version": "0.5.1",
       "catalogProjectCount": 63,
@@ -65,24 +72,25 @@
     },
     "projectDumpWiki": {
       "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED",
-      "latestVerifiedSourceHead": "6a30f55f91379cc9f19e263179051174fa16f319",
-      "workflowRunId": 32436575583,
+      "latestVerifiedSourceHead": "9af43337d1cbf24ada015127d2b30cffaa9dc4e7",
+      "workflowRunId": 32443186596,
       "workflowConclusion": "success",
-      "wikiMaster": "eaf0c8fe3a36d6eb591102bec30b18c640c0d9c4",
-      "driveWikiDocumentId": "1_WCTi7vrX6UwnWvRqrH11pIqND30BwApNTdCCk2snt0",
-      "driveMarkdownBytes": 22765,
-      "driveMarkdownSha256": "6ba0a636dc0c2c77793ad7e97dfb6d0e1d6502b535652e20ef3e2f70a94273c8",
-      "nextCursor": ["PCX-053", "PCX-054", "PCX-055", "PCX-056", "PCX-057"]
+      "wikiMaster": "6e6dd09d057fc4b14c3d09d0a4ec052ae2ca3810",
+      "driveWikiDocumentId": "1qBTCWryghe32PGfIgS1H-CdILzMHnV2pCXGdcrKCblM",
+      "driveMarkdownBytes": 21761,
+      "driveMarkdownSha256": "b63af005c4bfd2b1942d961660657fa8271353e80bc3a3701b42a3026b11d0fc",
+      "nextCursor": ["PCX-063", "PRJ-001", "PRJ-002", "PRJ-003", "PRJ-004"]
     },
     "gameSyncPerformance": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
       "mainWriteAuthorized": false,
       "repository": "Herbertofury/GameSync-Next",
       "pr": 7,
-      "head": "638acf7e024354b5bc6d41ebb839f855f9d787a8",
+      "head": "79930fb8ba27eb65693f80bdfa6c693f24b708ea",
       "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED",
       "status": "CURRENT_BRANCH_OUTPUT_PRESENT; EXACT_HEAD_PRIVATE_EXECUTION_EXTERNALLY_BLOCKED",
-      "driveCheckpoint": "GameSync Performance Pass - Latest"
+      "driveCheckpointDocumentId": "1ihaBjEQJ5h-AIe9RcUWkD08RPaOkhC_tyWxGVSDaobs"
     },
     "gameSyncStack": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
@@ -91,41 +99,29 @@
         "repository": "Herbertofury/GameSync-Next",
         "pr": 22,
         "head": "b37e3e6b150791e178a4d48f636bc3a5c95d6140",
+        "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+        "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED",
         "topic": "replace deprecated JSON Schema generator with native Zod 4"
-      },
-      "crossScheduleMetadataCorrection": {
-        "currentFerrumRecoveryPr": 62,
-        "currentFerrumRecoveryHead": "25d4ca5e4a6c89a00688751131ee7f1e8a6e9660",
-        "correctedGameSyncNextPrs": [8, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21],
-        "correctedGamesyncPrs": [2, 3, 4],
-        "correctionMode": "REMOTE_SUPERVISOR_COMMENT_REREAD_VERIFIED",
-        "historicalRecoveryHeadsDoNotVerifyCurrent": true
-      },
-      "status": "CURRENT_STACK_BRANCH_OUTPUTS_AND_DRIVE_MASTER_PRESENT; AUTHORITATIVE_LOCK_AND_EXACT_HEAD_PRIVATE_EXECUTION_GATES_REMAIN",
-      "driveCheckpoint": "GameSync Stack Upgrade CURRENT"
-    },
-    "staleChatRecovery": {
-      "petzProposal": {
-        "repository": "Herbertofury/GameSync-Next",
-        "pr": 10,
-        "head": "f6dc0f8adb4852910b1c3edd7de63983971a7fd3",
-        "githubPrMetadata": "RECONCILED_CURRENT",
-        "driveEvidence": "PRJ-007 PF Magic Petz Runtime Integration Wiki"
-      },
-      "operaEntrypointProposal": {
-        "repository": "Herbertofury/GameSync-Next",
-        "pr": 15,
-        "head": "3046883c2575be72c320ff25364a71a46f328629",
-        "githubPrMetadata": "CURRENT_LIVE_TASK_AUTHORITY_REPAIRED",
-        "mergeAuthority": "NONE_IN_CURRENT_LIVE_TASK_SET"
       },
       "ferrumRecovery": {
         "repository": "Herbertofury/Ferrum-Browser",
         "pr": 62,
         "head": "25d4ca5e4a6c89a00688751131ee7f1e8a6e9660",
-        "githubPrMetadata": "RECONCILED_CURRENT",
-        "currentWorkflowBlob": "80246a57004dc1b5640ee002435147c985a58620"
-      }
+        "base": "13c5deffe4e7901fcfd4e26206ff8156d0525226",
+        "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED",
+        "runnerProbe": 32431419133,
+        "registryFreshness": 32431419167,
+        "playwrightLockIntegrity": 32431419124,
+        "ferrumCi": 32431419159,
+        "publicExecution": "HEALTHY",
+        "privateCheckout": "BLOCKED_AT_EXPLICIT_READ_TOKEN_PREFLIGHT"
+      },
+      "status": "CURRENT_STACK_BRANCH_OUTPUTS_AND_DRIVE_MASTER_PRESENT; AUTHORITATIVE_LOCK_AND_EXACT_HEAD_PRIVATE_EXECUTION_GATES_REMAIN",
+      "driveCheckpointDocumentId": "1KFedaTNCClVMtCQo77bfUhg33m2L3FOF436_Seo00Dg"
+    },
+    "staleChatRecovery": {
+      "publicationMode": "RECOVER_IN_PLACE_AND_PRESERVE_EXISTING_CANONICAL_GITHUB_DRIVE_DESTINATIONS",
+      "status": "CURRENT_TASK_ENABLED; NO_NEW_UNVERIFIED_PUBLICATION_CLAIM_ADDED_THIS_SUPERVISOR_RUN"
     },
     "ferrumVerificationDependency": {
       "main": "13c5deffe4e7901fcfd4e26206ff8156d0525226",
