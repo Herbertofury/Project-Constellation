@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T10:01:00Z",
+  "updatedAt": "2026-08-21T11:36:00Z",
   "completedCursor": [
-    "PRJ-011",
-    "PRJ-012",
-    "PRJ-013",
-    "PRJ-014",
-    "PRJ-015"
-  ],
-  "nextCursor": [
     "PRJ-016",
     "PRJ-017",
     "PRJ-018",
     "PRJ-019",
     "PRJ-020"
   ],
-  "selectionReason": "PRJ-011 and PRJ-012 received material evidence/operations refreshes. PRJ-011 now uses PresentMon 2.5.1 as the external frame-time authority, preserves raw evidence across collector-semantic changes, defines an immutable Mods baseline, and adds evidence-gated ProjFS plus separately qualified WinFsp fallback lanes without pretending the unresolved scaffold is implemented. PRJ-012 now inherits that external measurement authority and defines a read-only fail-closed DX11 diagnostic milestone with explicit timing semantics, device/swap-chain lifecycle, input ownership, logging, packaging, troubleshooting, and restart gates. PRJ-011 source commit b34bfed72219cc987650c4cee2f873a67e8cf55d has exact wiki-publication success from run 32470379384; the later full-set PRJ-012 publication also covers it. PRJ-012 source commit 7839a46dce2fd1e27435b14f7f6612435e7e143c has wiki-publication success from Sync GitHub Wiki run 32470496440, job 96736064318: it checked out the exact source, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set against wikis/ successfully, and recorded Wiki master ff77d156d21233b11b774b89baed66c414bdae91. Their canonical Drive mirrors were replaced in place, independently re-read, and Markdown-exported: PRJ-011 16,098 bytes SHA-256 b2ec306881a688a0ce44862544d28a5212ae984fdd8fd8814fe90416ccabf758; PRJ-012 13,323 bytes SHA-256 4df1fa8e0c96f1edcaa70ab10cbc9493e7e9abd5ececfb59d0c34bd960d37280. PRJ-013 remains correctly historical under PCX-032 Profit Nova authority. PRJ-014 still matches the latest official Grim Dawn v1.3.0.6 baseline. PRJ-015 remains aligned to Bethesda Plugin Info 1.5.3 with MO2 v2.5.2 still the latest stable host release. Publication backlog is clear. The next group is PRJ-016 through PRJ-020.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T0955Z-wiki-prj-011-015.json",
+  "nextCursor": [
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ],
+  "selectionReason": "PRJ-016 through PRJ-019 were rechecked against current MO2 v2.5.2 host evidence and recovered project artifacts without a newer source delta that justified wiki churn. PRJ-020 received a material source-authority correction after a deeper durable-source recovery located a consolidated master desktop pet research artifact whose own content says it was built from the latest master pass, checked against every uploaded source file, embeds v10 and v14, retains v9 and v7 as appendices, and preserves the KinitoPET addendum. The wiki no longer incorrectly says the master was not located; it now distinguishes recovered content authority from the still-pending project-owned canonical byte promotion/hash receipt. PRJ-020 source commit 257d632b32a1a090fed6d0464e49c0dd9333f1b9, blob 4759ef896c2419c775574db54afa70ce2d65df63, has wiki-publication success from Sync GitHub Wiki run 32477696451, job 96757360927. The publisher checked out the exact source commit, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, byte-compared the complete remote page set against wikis/ successfully, and recorded Wiki master 1a7fd8836af002cb16169a12185771160c4f207c. The canonical Drive PRJ-020 wiki mirror was updated in place, independently re-read, and Markdown-exported at 14,964 bytes with SHA-256 6db5769bafff2f1bc8a52f84fd5f08d0486d9fd8897a5f3f6c0baf84b3c8e05d. Publication backlog is clear. The next group is PRJ-021 through PRJ-025.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1135Z-wiki-prj-016-020.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
