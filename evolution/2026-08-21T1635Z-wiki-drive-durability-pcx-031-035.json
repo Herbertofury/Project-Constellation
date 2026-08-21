@@ -1,0 +1,83 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkedAt": "2026-08-21T16:35:00Z",
+  "result": "MATERIAL_DRIVE_DURABILITY_REPAIR",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "group": [
+    "PCX-031",
+    "PCX-032",
+    "PCX-033",
+    "PCX-034",
+    "PCX-035"
+  ],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "37ec14e4e65d0eba1e848cfad33b876c83e13392",
+    "fullSetRunId": 32494556557,
+    "fullSetJobId": 96809788039,
+    "wikiMasterCommit": "9d6bff512af551e36abe128cc0ff134a0cf1e044",
+    "proof": "Sync GitHub Wiki checked out exact source 37ec14e4e65d0eba1e848cfad33b876c83e13392, reported the actual Wiki already matched wikis/, fresh-cloned ProjectDump.wiki.git, passed complete byte comparison and recorded wiki-publication success. Comparing that material source to the current pre-pass repository state showed only Project Constellation state/checkpoint changes and no later wikis/** changes."
+  },
+  "reviewed": [
+    {
+      "id": "PCX-031",
+      "name": "Auralis",
+      "sourceDelta": false,
+      "decision": "Current detailed wiki remains aligned with the strongest recovered implementation directive and Slint 1.17.1 patch-qualification boundary. Existing Drive mirror is present in the canonical Project Wikis folder."
+    },
+    {
+      "id": "PCX-032",
+      "name": "Profit Nova",
+      "sourceDelta": false,
+      "decision": "Current detailed v39 strict-spec wiki remains materially useful; no stronger canonical production source was resolved. Existing Drive mirror is present in the canonical Project Wikis folder."
+    },
+    {
+      "id": "PCX-033",
+      "name": "Sims4CreatorStudio",
+      "sourceDelta": false,
+      "githubSourceBlob": "497084a698bb503d2745c4965d0eca7ec1d62c05",
+      "wikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-033-sims4creatorstudio",
+      "driveRepair": {
+        "action": "REPLACED_CONDENSED_MIRROR_WITH_COMPLETE_CURRENT_WIKI",
+        "fileId": "1S7xWqJV5r9JzCPuoP2PYz4uUlWwKtA88rP2PTMCnT1k",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 9550,
+        "sha256": "1486632a2ec7ac8c6b448a9d0ecedae7e3d27f9317710a333591735c6586234c",
+        "reread": "PASS: complete Alpha11 recovery contract, installation/build boundary, required recovery verification, troubleshooting and maintenance sections present."
+      },
+      "currentProjectBoundary": "Sims4CreatorStudio main remains staging/recovery commit a810bdba98bd5ca8dfd879f48776ce3f7a8add0e; exact Alpha11 source aa011d208d65dca1ad38bd83302fa05364e51800 is recoverable through the verified Drive Git-bundle workflow but is not yet remotely published to canonical main."
+    },
+    {
+      "id": "PCX-034",
+      "name": "Ferrum Browser",
+      "sourceDelta": false,
+      "decision": "Current detailed wiki and canonical Drive mirror already reflect the strongest verified Ferrum evidence available before this pass."
+    },
+    {
+      "id": "PCX-035",
+      "name": "MO2R",
+      "sourceDelta": false,
+      "githubSourceBlob": "60fa9fa635096df03f3931e408cd8a2e740175c7",
+      "wikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-035-mo2r",
+      "driveRepair": {
+        "action": "CREATED_MISSING_COMPLETE_PROJECT_WIKI_MIRROR",
+        "fileId": "1uk-lBLco2W0R5FiqNmHBW-lkJvda4LdCRoAlZtHuNu8",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 12657,
+        "sha256": "b1d8fa7090a1d2640796c22a2d9d80b3a9ca95100f77c58340ed23368d0e2af7",
+        "reread": "PASS: Changelog contract, Relationship pipeline, full acceptance sets, source boundary, current experiment and maintenance sections present."
+      },
+      "currentProjectBoundary": "Connected Herbertofury/MO2R remains a one-commit placeholder at 222652c89be6c0820aa34c804afe02fe0b08e294; the real implementation worktree remains unresolved, so the wiki correctly stays evidence/qualification-first."
+    }
+  ],
+  "coverageChanges": false,
+  "homeSidebarIndexChangesRequired": false,
+  "nextCursor": [
+    "PCX-037",
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041"
+  ],
+  "notes": "PCX-036 is intentionally skipped because Project Constellation is the catalog/control plane rather than a normal tracked-project documentation target. No wikis/** source change was created because no project-owned source delta justified churn; this run repaired Drive durability only."
+}
