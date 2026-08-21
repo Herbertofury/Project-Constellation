@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-21T18:16:00Z",
+  "updatedAt": "2026-08-21T20:00:00Z",
   "completedCursor": [
-    "PCX-037",
-    "PCX-038",
-    "PCX-039",
-    "PCX-040",
-    "PCX-041"
-  ],
-  "nextCursor": [
     "PCX-042",
     "PCX-043",
     "PCX-044",
     "PCX-045",
     "PCX-046"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-037 Shimeji Desktop received a material completeness refresh using current NeurolingsCE project-owned evidence: current inspected head 3f3ec7221cbc7c597b17d77e0da5082256af75ed, C++/Qt v0.5.3 migration baseline, M0-M9 completion record, 76-test later verification checkpoint, and post-M9 manager/store/tray/contract hardening. ProjectDump source commit a2ded158a2f1bd33a5d1cc24188d12afc2b7ce9d was published by Sync GitHub Wiki run 32512001697, job 96865053738; the actual Wiki was pushed, fresh-cloned, completely byte-compared, and verified at Wiki master 40116139b1d2083d99a90395fa6d1b1fd030066a. The PCX-037 Drive mirror was updated, moved into the canonical Project Wikis folder, reread, and exported at 17,575 bytes with SHA-256 85cf65d3930b43bdf0a8d3a0ebffb0390d526e0ed98b7f630b4d2ece5d6a6169. PCX-040 Pinterest Nocturne had no dedicated complete Project Wikis Drive mirror; a complete current 2.0.0 mirror was created in the canonical Project Wikis folder, reread, and exported at 30,691 bytes with SHA-256 e4bb5a55365673589e9d818801f6f5050f76bc35ba6102a8c661b5e53834d278. PCX-038, PCX-039, and PCX-041 were rechecked without unnecessary source churn. Next group is PCX-042 through PCX-046.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T1815Z-wiki-pcx-037-041.json",
+  "nextCursor": [
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-042 GameSync Next received a material proposal-matrix refresh using current connected GitHub evidence while preserving cd906ff0831bf7fc33b41fea31b6f0c004cc1562 as current-main product authority. The page now tracks draft PRs #7, #8, and #10 through #22 with current observed heads, makes branch-only execution metadata explicit, records current acceptance-infrastructure/read-token boundaries, and keeps the broken main test:e2e-opera compatibility route fail-closed. ProjectDump source commit 4f7d81c8fb95b89e3a6d0a0098a44153cb4f4776 was published by Sync GitHub Wiki run 32520961929, job 96892822348; ProjectDump.wiki.git was pushed, the actual Wiki was fresh-cloned and completely byte-compared, and Wiki master 9ace3e357e6b8888a91cd50fd9e635f82e37243a was recorded. The PCX-042 Drive mirror was updated, moved into the canonical Project Wikis folder, independently reread, and exported at 52,347 bytes with SHA-256 9dcb069b00bd3da59d0106df48db2647119b5e31c3877008669e6aacac27be03. PCX-043 through PCX-046 were rechecked without justified source churn. Next group is PCX-047 through PCX-051.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-21T2000Z-wiki-pcx-042-046.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
