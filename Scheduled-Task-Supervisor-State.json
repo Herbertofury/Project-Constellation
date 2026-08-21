@@ -1,6 +1,6 @@
 {
   "schema": "scheduled-task-supervisor.state/8",
-  "updatedAt": "2026-08-21T10:31:00Z",
+  "updatedAt": "2026-08-21T12:14:00Z",
   "currentTaskCount": 5,
   "enabledCurrentTaskCount": 5,
   "pausedIncompleteCurrentTaskCount": 0,
@@ -13,19 +13,14 @@
   ],
   "materialChangesThisRun": [
     {
-      "area": "Live scheduled-task inventory",
-      "result": "RECONCILED_TO_CURRENT_LIVE_SET",
-      "detail": "The durable supervisor checkpoint was stale at six current tasks. The live scheduler now contains five current recurring tasks and all five are enabled; incomplete paused current tasks remain zero. User-deleted task records are not carried forward as current obligations."
-    },
-    {
       "area": "ProjectDump Wiki publication ledger",
-      "result": "REFRESHED_AND_INDEPENDENTLY_VERIFIED",
-      "detail": "PRJ-012 source commit 7839a46dce2fd1e27435b14f7f6612435e7e143c has wiki-publication success via Sync GitHub Wiki run 32470496440, which completed successfully on that exact source. Current Project Constellation continuity records full fresh-clone byte comparison of the actual Wiki to Wiki master ff77d156d21233b11b774b89baed66c414bdae91. The canonical Drive PRJ-012 mirror was independently re-read during this supervisor run."
+      "result": "ADVANCED_TO_LATEST_FULL_SET_VERIFIED_PUBLICATION",
+      "detail": "The durable supervisor ledger was stale at PRJ-012. Current Project Constellation continuity now records PRJ-016 through PRJ-020 source commit 1607e33368752d98e3730294cf509c74d4b58000 as covered by successful Sync GitHub Wiki run 32477696451. The publisher fresh-cloned the actual Wiki and byte-compared the complete remote page set, recording Wiki master ef467aae454498b461b3560918062f2800ececa4. The canonical PRJ-020 Drive mirror was independently rediscovered and re-read; the governing checkpoint records a 9,054-byte Markdown export with SHA-256 cbf5f09f34796cc6fa5e2f3d64bd7bc1b44934a991b4ca6279d54a51dec5fc41."
     },
     {
-      "area": "Ferrum recovery publication ledger",
-      "result": "REFRESHED_TO_CURRENT_HEAD",
-      "detail": "Ferrum recovery PR #62 is open, draft, mergeable and unmerged at exact head 67d0fd5ac89841c67ef1a9da00d4638c4097b23f on current Ferrum main fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9. Public runner probe 32465762844, registry freshness 32465762828, Stack Playwright lock integrity 32465762866 and Ferrum CI 32465762875 are green; the targeted unchanged-head Opera retry 96730984528 passed after the original Chocolatey HTTP 503. Private GameSync checkout remains fail-closed at the explicit read-token preflight."
+      "area": "Current task health and GameSync publication claim audit",
+      "result": "NO_REPAIR_REQUIRED",
+      "detail": "All five current recurring tasks are enabled and incomplete paused current tasks remain zero. GameSync Performance PR #7 and its Drive checkpoint independently agree on exact head 0b90520a8bb236cca02fae8d31d6f3907f905c24. GameSync Stack current Drive state and GitHub proposal state remain branch/PR-only and aligned with run-66 Ferrum authority; no current task is authorized to merge GameSync main."
     }
   ],
   "health": {
@@ -33,7 +28,7 @@
     "currentTaskCount": 5,
     "enabledCurrentTaskCount": 5,
     "incompletePausedCurrentTasks": 0,
-    "trackNewMinecraftMods": "ENABLED; NO MATERIAL OUTPUT OBSERVED YET",
+    "trackNewMinecraftMods": "ENABLED; FIRST SCHEDULED ACTIVE WINDOW HAS NOT YET PRODUCED MATERIAL OUTPUT",
     "gameSyncMergeAuthority": "NO_CURRENT_LIVE_AUTOMATION_AUTHORIZED_TO_MERGE_GAMESYNC_MAIN",
     "privateHostedRunnerDiagnosis": "PRIVATE_GAMESYNC_EXACT_HEAD_EXECUTION_REMAINS_EXTERNALLY_BLOCKED",
     "publicFerrumCompute": "AVAILABLE_AND_VERIFIED_ON_CURRENT_RECOVERY_HEAD",
@@ -59,15 +54,17 @@
     },
     "projectDumpWiki": {
       "status": "LATEST_MATERIAL_FULL_SET_PUBLICATION_VERIFIED",
-      "latestVerifiedSourceHead": "7839a46dce2fd1e27435b14f7f6612435e7e143c",
-      "workflowRunId": 32470496440,
+      "latestVerifiedSourceHead": "1607e33368752d98e3730294cf509c74d4b58000",
+      "workflowRunId": 32477696451,
       "workflowConclusion": "success",
-      "wikiMaster": "ff77d156d21233b11b774b89baed66c414bdae91",
+      "wikiMaster": "ef467aae454498b461b3560918062f2800ececa4",
       "freshCloneCompleteByteComparison": "PASS",
-      "driveMirrorDocumentId": "1BMrKEpTKVhjrR-W5mpV3-ClGeqsl-r635m-fH5st9zI",
-      "driveMarkdownBytes": 13323,
-      "driveMarkdownSha256": "4df1fa8e0c96f1edcaa70ab10cbc9493e7e9abd5ececfb59d0c34bd960d37280",
-      "nextCursor": ["PRJ-016","PRJ-017","PRJ-018","PRJ-019","PRJ-020"]
+      "driveMirrorProject": "PRJ-020 Master Desktop Pet Research",
+      "driveMirrorDocumentId": "1XnaIYa5MAfEbe14zfXsA-QIL8mQqDqXeSiNYFtue8lw",
+      "driveMarkdownBytes": 9054,
+      "driveMarkdownSha256": "cbf5f09f34796cc6fa5e2f3d64bd7bc1b44934a991b4ca6279d54a51dec5fc41",
+      "continuityCheckpoint": "project-constellation/evolution/2026-08-21T1135Z-wiki-prj-016-020.json",
+      "nextCursor": ["PRJ-021","PRJ-022","PRJ-023","PRJ-024","PRJ-025"]
     },
     "gameSyncPerformance": {
       "publicationMode": "BRANCH_PR_PLUS_DRIVE",
@@ -94,6 +91,14 @@
         "base": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
         "topic": "replace deprecated JSON Schema generator with native Zod 4",
         "githubState": "OPEN_DRAFT_MERGEABLE_UNMERGED_BRANCH_ONLY"
+      },
+      "ferrumAuthority": {
+        "currentMain": "fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9",
+        "verifiedProduct": "7cbf7f5d972f5e27a58ced7b0f32d9d816ef54f1",
+        "testedProposal": "15a011a89f52c7bcd6c2ed297aec28c5eadb0e16",
+        "verifiedTree": "ccbe12002d2161c43c06ecc8f9288b9ecebee98c",
+        "fullCiRun": 32462095769,
+        "playwright": "1.63.0-alpha-2026-08-21"
       },
       "ferrumRecovery": {
         "repository": "Herbertofury/Ferrum-Browser",
