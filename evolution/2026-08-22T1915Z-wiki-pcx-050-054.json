@@ -70,6 +70,22 @@
     "wikiMasterCommit": "2b226728ef9bc9535903880b073b9cfa4b38eb26",
     "freshCloneByteCompare": "PASS"
   },
+  "durableStateProof": {
+    "driveCheckpoint": {
+      "fileId": "1anfD9Y2Gko_Cxd9thjmN5_OlucLJfWmwO3AsYTCIt0E",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownBytes": 3700,
+      "sha256": "6d068458a8b2339eb3c8090f3a47b50058f278367b5993c09272837bf1b71410",
+      "reread": "PASS"
+    },
+    "driveResearchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "plainTextBytes": 1812,
+      "sha256": "47469ebeec21d12cc013d1445b279f0da6c1707c48d92fb122f7f31e8785f377",
+      "jsonParse": "PASS",
+      "nextCursor": ["PCX-055", "PCX-056", "PCX-057", "PCX-058", "PCX-059"]
+    }
+  },
   "nextCursor": ["PCX-055", "PCX-056", "PCX-057", "PCX-058", "PCX-059"],
   "notes": "Project Constellation remains the catalog/control plane and is excluded as a normal documentation target. Do not disable the recurring wiki-maintenance obligation."
 }
