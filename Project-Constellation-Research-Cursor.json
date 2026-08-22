@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T05:55:00Z",
+  "updatedAt": "2026-08-22T07:42:00Z",
   "completedCursor": [
-    "PRJ-009",
-    "PRJ-010",
-    "PRJ-011",
-    "PRJ-012",
-    "PRJ-013"
-  ],
-  "nextCursor": [
     "PRJ-014",
     "PRJ-015",
     "PRJ-016",
     "PRJ-017",
     "PRJ-018"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit ca3f687167813756408e18c67ab3b6410322b443 already had wiki-publication success. PRJ-010 RuneLite FlipForge Family lacked a current host-compatibility and safety baseline even though its canonical implementation source remains unresolved. The wiki was materially improved with the current official RuneLite Plugin Hub 1.12.36 baseline from plugin-hub commit 94b2b0d54b2f537a415731e6f85b216b0d9c457e, the current example-plugin reference at 5370caa0f5f6a5bba4fbb42931722ca535ad3fd5, Java 11 / Gradle 8.10 compatibility references, client-thread/network/file/overlay lifecycle rules, Plugin Hub restriction boundaries, and a fail-closed no-automated-game-input verification rule. The historical No-Hitch 1.12.29.1 artifact remains preserved as a regression reference and now explicitly requires compatibility qualification against 1.12.36. Source commit 04450860a51e44cad32fa2e77ad2916359ffdc07 was publication-proven by Sync GitHub Wiki run 32555453903/job 96988768048 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master 0fd5b644a67445dd168b93f131dbb86693c1a8d3. The Drive mirror was updated, independently exported at 21,261 bytes, and SHA-256 verified as 49577bb32adbad264e5c0de89d3f78988fb8f2813d1ac6bd7cd3160331ab996d. PRJ-009 and PRJ-011 through PRJ-013 were rechecked without justified source churn.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0555Z-wiki-prj-009-013.json",
+  "nextCursor": [
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 04450860a51e44cad32fa2e77ad2916359ffdc07 already had wiki-publication success. PRJ-015 Bethesda Plugin Info was the weakest page in the group and materially lacked enough current-host architecture, recovery, qualification, troubleshooting, and contribution detail for another maintainer to operate the project safely. The wiki was expanded with the current Mod Organizer 2 v2.5.2 stable host gate, pinned upstream modorganizer and modorganizer-plugin_python development heads, current pybind11 proxy/runner/mobase architecture, official host-side test commands, 2026 upstream API/lifecycle drift watchpoints, a preservation-first source/artifact recovery workflow, a detailed real-host acceptance matrix, forward-compatibility lane, instrumentation receipt, troubleshooting, and source-recovery priorities. Source commit 180ad65acbafc0b98785ed1cdb1e4fd4e6131964 was publication-proven by Sync GitHub Wiki run 32560014478/job 97000064915 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master d738a653dd71d7f64943fe3d5c95f596b17a1fd5. The Drive mirror was updated in place, independently exported at 18,730 bytes, and SHA-256 verified as 773ee09e4665aee878451d40499efb2947ca18ad2aa1afff625139ae0b599a15. PRJ-014 and PRJ-016 through PRJ-018 were rechecked without justified source churn; their current pages remain aligned with the strongest verified evidence available.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0742Z-wiki-prj-014-018.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
