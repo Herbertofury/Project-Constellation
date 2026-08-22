@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T16:02:00Z",
+  "updatedAt": "2026-08-22T17:32:42Z",
   "completedCursor": [
-    "PCX-040",
-    "PCX-041",
-    "PCX-042",
-    "PCX-043",
-    "PCX-044"
-  ],
-  "nextCursor": [
     "PCX-045",
     "PCX-046",
     "PCX-047",
     "PCX-048",
     "PCX-049"
   ],
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1600Z-wiki-pcx-040-044.json",
-  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-042 received a material current-evidence refresh for new npm 12.0.2 proposal PR #23 plus advanced PR #7 and PR #14 heads; exact source commit 585c6c52035a0f2f8a11a33cccebc263ea45c83d was published by full-set Wiki sync with fresh-clone byte verification. PCX-040, PCX-041, PCX-043, and PCX-044 were rechecked without source churn because no stronger project-owned delta was resolved.",
-  "operatingRule": "Continue tracked-project documentation in catalog order, skipping PCX-036 as the Project Constellation control-plane reference. Before each new material wikis/** delta, dynamically prove no unresolved actual-Wiki publication debt remains."
+  "nextCursor": [
+    "PCX-050",
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start. Latest material wiki source commit 585c6c52035a0f2f8a11a33cccebc263ea45c83d is publication-proven by Sync GitHub Wiki run 32583276795/job 97055710272, which pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, passed the complete remote page-set byte comparison, and recorded Wiki master b3960d733d80fa845a3fedd0e8751e9628ca51dd. PCX-045 through PCX-049 were rechecked against current Feature Foundry, GameSync Next, Petz PR, GitHub wiki-source, and Drive mirror evidence. Feature Foundry remains v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9; GameSync Next remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562; draft Petz PR #10 remains at exact head 2612396804b44399b7b23b4f32f21217325da79c. No stronger project-owned delta or Drive durability defect justified wiki-source churn in this pass.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1732Z-wiki-pcx-045-049.json",
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
