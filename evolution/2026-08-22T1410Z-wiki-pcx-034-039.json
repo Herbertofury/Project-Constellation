@@ -1,0 +1,86 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-22T14:10:00Z",
+  "projectGroup": [
+    "PCX-034",
+    "PCX-035",
+    "PCX-037",
+    "PCX-038",
+    "PCX-039"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-034",
+      "name": "Ferrum Browser",
+      "reason": "Project-owned Ferrum evidence advanced from run 65 / Playwright 2026-08-20 to verified evolution run 66 / Playwright 2026-08-21.",
+      "projectRepository": "Herbertofury/Ferrum-Browser",
+      "verifiedProjectVersion": "0.2.0",
+      "verifiedProductCommit": "7cbf7f5d972f5e27a58ced7b0f32d9d816ef54f1",
+      "latestObservedMain": "fc2a8c13fbf2e6694dd5bbc9d9ce9e54095dfab9",
+      "verifiedWorkflowRun": 32462095769,
+      "verifiedToolchain": {
+        "playwright": "1.63.0-alpha-2026-08-21",
+        "electron": "43.4.0",
+        "electronPackager": "20.3.0"
+      },
+      "verifiedProposalHead": "15a011a89f52c7bcd6c2ed297aec28c5eadb0e16",
+      "verifiedTree": "ccbe12002d2161c43c06ecc8f9288b9ecebee98c",
+      "treeMatchesMergedProduct": true,
+      "projectDumpSourceCommit": "1906fa4c1e607386a04c96099e6bdea91ee20699",
+      "projectDumpWikiSourceBlob": "163ff17892c214ae279615aceb4a0dfb5a19209f",
+      "actualWiki": {
+        "url": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-034-ferrum-browser",
+        "syncRun": 32577922308,
+        "syncJob": 97042891590,
+        "status": "success",
+        "publisherPushedWikiRepository": true,
+        "freshCloneByteComparison": "pass",
+        "wikiMasterCommit": "3b0dd1019b68de8cfcedafc2acd31c6bcb09cece"
+      },
+      "driveMirror": {
+        "fileId": "11IOk6ZB78lOXoAUIa0vhZD9wioQ0QtG_Pq2cs7B0fD8",
+        "title": "PCX-034 Ferrum Browser Wiki",
+        "reread": "pass",
+        "markdownExportBytes": 45114,
+        "markdownExportSha256": "321ad14834d403700c70cc3e5f34a68736db10657f04bdf63b3eb21b0a1c1f35"
+      }
+    }
+  ],
+  "recheckedWithoutSourceChurn": [
+    {
+      "projectId": "PCX-035",
+      "name": "MO2R",
+      "result": "No stronger current project-owned implementation evidence resolved during this delta pass; existing detailed page remains the strongest truthful source."
+    },
+    {
+      "projectId": "PCX-037",
+      "name": "Shimeji Desktop",
+      "result": "NeurolingsCE reference head remains 3f3ec7221cbc7c597b17d77e0da5082256af75ed, already documented; no new canonical user-owned source resolved."
+    },
+    {
+      "projectId": "PCX-038",
+      "name": "Shimeji Browser Extension",
+      "result": "No newer verified source delta requiring documentation change; existing GameSync/GameSync Next all-site parity documentation remains current."
+    },
+    {
+      "projectId": "PCX-039",
+      "name": "Webmeji",
+      "result": "No newer canonical standalone Webmeji source resolved; current differential-reference and recovery boundary remains accurate."
+    }
+  ],
+  "publicationBacklog": {
+    "clearAtStart": true,
+    "startProofCommit": "11e44523026adb2720ce444c7fdceb433edd9ada",
+    "newMaterialSourceCommit": "1906fa4c1e607386a04c96099e6bdea91ee20699",
+    "newMaterialPublicationProven": true,
+    "currentUnresolvedMaterialWikiDebt": []
+  },
+  "nextCursor": [
+    "PCX-040",
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044"
+  ],
+  "operatingRule": "Project Constellation remains the control plane, not the normal wiki target. Continue tracked-project documentation only after dynamically confirming actual-Wiki publication debt is clear."
+}
