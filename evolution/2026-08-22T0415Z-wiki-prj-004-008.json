@@ -56,6 +56,21 @@
       "reason": "Mascot Games page remains detailed and current against shipping GameSync; fresh Drive/GitHub searching did not resolve a shipping Golf implementation or newer canonical Golf source."
     }
   ],
+  "driveCheckpoint": {
+    "fileId": "1IYgTy7K7QIzxYnloC3_epkCzq7BisexbEfQ2pFrrjCY",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 2683,
+    "markdownSha256": "cdb6b10bb25d0fe5d22ee26edf1adce1ee401dff82e3419b10e3fc36cd5abb9c",
+    "rereadVerified": true
+  },
+  "driveResearchCursor": {
+    "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "textBytes": 1845,
+    "textSha256": "4f0fa69d4b7699fd364e68085ba685fa925aa4f3b499ede934c4b1edfd25ad98",
+    "jsonValid": true,
+    "rereadVerified": true
+  },
   "publicationBacklogAtEnd": "clear",
   "nextCursor": ["PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012", "PRJ-013"],
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. A material wiki update is complete only after actual Wiki full-set publication proof and durable Drive mirror verification."
