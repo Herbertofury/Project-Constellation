@@ -68,6 +68,20 @@
       "reason": "DirectoryMonitor already carries the current deep watcher/reconciliation qualification guide; no stronger canonical project source was resolved in this pass."
     }
   ],
+  "driveCheckpoint": {
+    "fileId": "1wD1SFrhcnn94_gDJ9vO22ariIkLa0eavNsRw0tuvnEc",
+    "title": "Project Constellation Wiki Maintainer Checkpoint - PRJ-024-PCX-028 - 2026-08-22T1052Z",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownExportBytes": 3751,
+    "markdownSha256": "5a9c38debc86ba4fbb3ba5372842c7296afbc035ee3fb71ee367bb46ef24199d",
+    "reread": "pass"
+  },
+  "driveResearchCursor": {
+    "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "textExportBytes": 2424,
+    "textSha256": "f0629a3e6e04d7d428c633d1ed703afabf189971958ae3451b6ed832b97e8f79",
+    "jsonValidation": "pass"
+  },
   "publicationBacklogAtEnd": {
     "state": "clear",
     "latestMaterialWikiCommit": "21eca0811c2c48fcbacfbd401a0eb44ee28c69d2",
