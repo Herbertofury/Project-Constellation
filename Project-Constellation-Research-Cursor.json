@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T07:42:00Z",
+  "updatedAt": "2026-08-22T09:11:00Z",
   "completedCursor": [
-    "PRJ-014",
-    "PRJ-015",
-    "PRJ-016",
-    "PRJ-017",
-    "PRJ-018"
-  ],
-  "nextCursor": [
     "PRJ-019",
     "PRJ-020",
     "PRJ-021",
     "PRJ-022",
     "PRJ-023"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 04450860a51e44cad32fa2e77ad2916359ffdc07 already had wiki-publication success. PRJ-015 Bethesda Plugin Info was the weakest page in the group and materially lacked enough current-host architecture, recovery, qualification, troubleshooting, and contribution detail for another maintainer to operate the project safely. The wiki was expanded with the current Mod Organizer 2 v2.5.2 stable host gate, pinned upstream modorganizer and modorganizer-plugin_python development heads, current pybind11 proxy/runner/mobase architecture, official host-side test commands, 2026 upstream API/lifecycle drift watchpoints, a preservation-first source/artifact recovery workflow, a detailed real-host acceptance matrix, forward-compatibility lane, instrumentation receipt, troubleshooting, and source-recovery priorities. Source commit 180ad65acbafc0b98785ed1cdb1e4fd4e6131964 was publication-proven by Sync GitHub Wiki run 32560014478/job 97000064915 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master d738a653dd71d7f64943fe3d5c95f596b17a1fd5. The Drive mirror was updated in place, independently exported at 18,730 bytes, and SHA-256 verified as 773ee09e4665aee878451d40499efb2947ca18ad2aa1afff625139ae0b599a15. PRJ-014 and PRJ-016 through PRJ-018 were rechecked without justified source churn; their current pages remain aligned with the strongest verified evidence available.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0742Z-wiki-prj-014-018.json",
+  "nextCursor": [
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026",
+    "PCX-027",
+    "PCX-028"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 180ad65acbafc0b98785ed1cdb1e4fd4e6131964 had wiki-publication success. PRJ-019 received the material update this pass: MO2 v2.5.2 remains the stable host and upstream master remains efe2a02d5dc641946baaa8db1440800f38d07837, while currently open upstream issue #2420 provides a concrete Creation Club/top-separator F5 refresh regression that directly exercises the model/filter/separator state paths the accelerator must preserve. The wiki now includes a differential accelerator-off/on lane, stable identity capture, expanded host probes and a qualification row so performance work cannot hide, worsen or later reintroduce the host defect. Source commit 547d599689dae5aad0f1e112b577cd329712210d was publication-proven by Sync GitHub Wiki run 32564171391/job 97010238717 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master 1e9ea8444c6ade92731659a1c9eedba26d943493. The Drive wiki mirror was updated in place, independently re-read, exported at 13,851 bytes and SHA-256 verified as 147f10f73de69000405777370a810a64b2736306537693925f440cdd9272e7c3. PRJ-020 through PRJ-023 were rechecked without justified wiki-source churn; PRJ-021 still lacks the hash-matching GX Slim archive/source, while the other pages remain aligned with their strongest current evidence.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0910Z-wiki-prj-019-023.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
