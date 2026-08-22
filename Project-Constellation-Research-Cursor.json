@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T00:59:00Z",
+  "updatedAt": "2026-08-22T02:33:00Z",
   "completedCursor": [
-    "PCX-057",
-    "PCX-058",
-    "PCX-059",
-    "PCX-060",
-    "PCX-061"
-  ],
-  "nextCursor": [
     "PCX-062",
     "PCX-063",
     "PRJ-001",
     "PRJ-002",
     "PRJ-003"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-061 Petz Shared Core materially lagged current project-owned persistence evidence: draft GameSync Next PR #10 is now at exact head 2612396804b44399b7b23b4f32f21217325da79c, with fresh private Petz verify run 32459020450/job 96701992871 and Secret Scan run 32459020441/job 96701992684 both zero-step infrastructure non-executions. Public Ferrum recovery PR #62 at head 3e9e5371c03f4aac5be27c5e128a0cd60e1fa037 has healthy runner/registry/lock/CI evidence but still stops at the private GameSync read-token preflight, so PR #10 remains draft, unmerged and fail-closed. The wiki source was refreshed at commit 0e42b6bd565989cd440cae6585a57b72f6e6d07e and publication-proven by run 32541788362/job 96953068575 with complete fresh-clone byte verification and Wiki master 4c588cb0c20cfa7185177e30abf344e85294cecb. The Drive mirror was updated, independently reread and exported at 46,504 bytes with SHA-256 4b4e6a51c725673969fda94d04ddc20b2f6e92cb9bef1a095b1cd835492c5efe. PCX-057 through PCX-060 were rechecked without justified source churn.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0058Z-wiki-pcx-057-061.json",
+  "nextCursor": [
+    "PRJ-004",
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-062 RuneLite QA Cockpit was materially under-documented even though its canonical project source remains unresolved. Fresh Drive/GitHub searches still did not expose bert-skill-atlas-qa-cockpit.zip or a canonical user-owned QA Cockpit repository, so the page was strengthened as a recovery and current-qualification guide instead of inventing a replacement implementation. Current official RuneLite evidence inspected for this pass includes Plugin Hub runelite.version 1.12.36, Plugin Hub head e39910dc2f8ec6549b4e30163403a9e667fbd4d5, and example-plugin head 5370caa0f5f6a5bba4fbb42931722ca535ad3fd5. The wiki source was refreshed at commit 5b45ad3e5a6d6e888aa9616b945a3f0968c55fac and publication-proven by Sync GitHub Wiki run 32546455294/job 96965657441 with ProjectDump.wiki.git push, complete fresh-clone byte verification, and Wiki master dbf1db13adbabbe2b92bb4c9ad739ce71e6809b3. The Drive mirror was updated in canonical Project Wikis, independently reread, and exported at 26,380 bytes with SHA-256 5d751083e7b487317631fdc2844f135f851d7e3d571b0b4da7fb25c2be45eca1. PCX-063, PRJ-001, PRJ-002, and PRJ-003 were rechecked without justified source churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0232Z-wiki-pcx-062-prj-003.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
