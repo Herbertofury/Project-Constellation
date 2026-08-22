@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T10:53:00Z",
+  "updatedAt": "2026-08-22T12:36:00Z",
   "completedCursor": [
-    "PRJ-024",
-    "PRJ-025",
-    "PCX-026",
-    "PCX-027",
-    "PCX-028"
-  ],
-  "nextCursor": [
     "PCX-029",
     "PCX-030",
     "PCX-031",
     "PCX-032",
     "PCX-033"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 547d599689dae5aad0f1e112b577cd329712210d had wiki-publication success. PRJ-024 received the material update this pass: MO2 v2.5.2 remains the latest stable host, current upstream master remains efe2a02d5dc641946baaa8db1440800f38d07837, and open upstream issue #2420 provides a concrete Creation Club/top-separator F5 refresh regression that directly overlaps the compatibility pack's promise to preserve separators, model/view truth, synthetic-column identity, and native drag/drop. The wiki now includes a pack-disabled versus pack-enabled differential lane, stable logical identity capture, drag-after-refresh qualification, a machine-readable receipt contract, troubleshooting, and explicit rules against masking a real host defect with stale plugin UI. Source commit 21eca0811c2c48fcbacfbd401a0eb44ee28c69d2 was publication-proven by Sync GitHub Wiki run 32568673292/job 97020910507 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master b7d4f78e0659940bbbfe434c264ab825e9eaf234. The Drive wiki mirror was updated in place, independently re-read, exported at 12,934 bytes and SHA-256 verified as b29f5c93df031528b5f0045757f340c2c1451ecbffd1abb0532c9c880f373979. PRJ-025 and PCX-026 through PCX-028 were rechecked without justified wiki-source churn; UltraDeck remains v8.6.0 at d9278d4a0fd33d184e9c6f928556262668af4125, Archive Doctor remains bounded by recovered GameSync V2-289 evidence, and DirectoryMonitor already carries the current deep watcher/reconciliation qualification guide.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1052Z-wiki-prj-024-pcx-028.json",
+  "nextCursor": [
+    "PCX-034",
+    "PCX-035",
+    "PCX-037",
+    "PCX-038",
+    "PCX-039"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 21eca0811c2c48fcbacfbd401a0eb44ee28c69d2 had wiki-publication success. PCX-031 received the material update this pass after fresh official toolchain research showed Rust 1.98.0 became stable on 2026-08-20, superseding the wiki's claim that recovered Rust 1.97.1 was still current stable. The Auralis wiki now preserves Rust 1.97.1 + Slint 1.17.0 as the recovery baseline, qualifies Slint 1.17.1 and Rust 1.98.0 in separate lanes, and adds a compiler-sensitive DSP gate because Rust 1.98.0's algebraic floating-point methods may reorder operations and are documented as non-deterministic. Source commit 11e44523026adb2720ce444c7fdceb433edd9ada was publication-proven by Sync GitHub Wiki run 32573361953/job 97032017217 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master dc4c14d9ddd797503ada5e93b264e759e793bddc. The Drive Auralis wiki mirror was updated in place, independently re-read, exported at 13,885 bytes, and SHA-256 verified as 20016fbaf5f56e07e04db493a83e2ae93b0cf4c80e590367c001c0b4a99192ad. PCX-029 remains current against MCP 2026-07-28 after fresh official-spec revalidation; PCX-030 remains aligned with the verified v0.5.1 deterministic recovery/publication evidence; PCX-032 had no stronger project-owned runtime delta; and PCX-033 still truthfully remains blocked on publishing exact Alpha11 source aa011d208d65dca1ad38bd83302fa05364e51800 to canonical main.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1236Z-wiki-pcx-029-033.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
