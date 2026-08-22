@@ -65,6 +65,22 @@
     "latestMaterialSourceCommit": "5b45ad3e5a6d6e888aa9616b945a3f0968c55fac",
     "latestVerifiedFullSetWikiCommit": "dbf1db13adbabbe2b92bb4c9ad739ce71e6809b3"
   },
+  "dualPublicationVerification": {
+    "driveCheckpoint": {
+      "documentId": "10PjYy0-ltH16I5Mpp-KaZn4nRojeDglA5bRDvzPFI50",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 4265,
+      "markdownSha256": "55a1b92f0be9d4f3d70b3cdf392b225cd7d49dc65d9db1cb8c472366fb4e282a",
+      "reread": "pass"
+    },
+    "driveResearchCursor": {
+      "documentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "textExportBytes": 2024,
+      "textSha256": "09cef5cda759ef681a5dafd954623ae87c544b660f282c3b4d8ed7be53352745",
+      "jsonValidation": "pass with UTF-8 BOM handled as utf-8-sig"
+    }
+  },
   "nextCursor": [
     "PRJ-004",
     "PRJ-005",
