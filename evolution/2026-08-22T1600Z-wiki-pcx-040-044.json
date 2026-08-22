@@ -1,0 +1,86 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-22T16:00:00Z",
+  "projectGroup": [
+    "PCX-040",
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-042",
+      "name": "GameSync Next",
+      "reason": "Connected proposal evidence advanced materially: PR #23 adds an npm 12.0.2 install-time trust/package-manager policy, PR #7 advanced to a new bounded-overlap complete artifact-tree verification head, and PR #14 advanced to a newer desktop-runtime proposal head with current Rust/Tauri package identities.",
+      "projectRepository": "Herbertofury/GameSync-Next",
+      "verifiedCurrentMain": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "extensionVersion": "0.8.0",
+      "proposalEvidence": {
+        "pr7Head": "acc7b89c8c27715ba46e14f3d186a03dcc030f18",
+        "pr14Head": "32bed08688c1c5e6da52a771051f29a6e7b1861d",
+        "pr23Head": "14d35f4f7dea811af2b3e7a4056a676e217f0072",
+        "pr23Npm": "12.0.2",
+        "pr23NodePolicy": "^24.15.0 || >=26.0.0",
+        "pr23TrustBoundary": "lock-derived allowScripts + strict-allow-scripts; allow-git=none; allow-remote=root only for the reviewed direct SheetJS CE tarball",
+        "proposalStatus": "draft / unmerged / not current product source"
+      },
+      "projectDumpSourceCommit": "585c6c52035a0f2f8a11a33cccebc263ea45c83d",
+      "projectDumpWikiSourceBlob": "6b352a72179a60df0436c8fe7055914ab9579f3c",
+      "actualWiki": {
+        "url": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-042-gamesync-next",
+        "syncRun": 32583276795,
+        "syncJob": 97055710272,
+        "status": "success",
+        "publisherPushedWikiRepository": true,
+        "freshCloneByteComparison": "pass",
+        "wikiMasterCommit": "b3960d733d80fa845a3fedd0e8751e9628ca51dd"
+      },
+      "driveMirror": {
+        "fileId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+        "title": "PCX-042 GameSync Next Wiki",
+        "reread": "pass: PR #23 row and package-manager/install-time-trust section resolved after update",
+        "markdownExportBytes": 56634,
+        "markdownExportSha256": "58a08b05cd96e16ee9443176706bebaaa9ec9866e17a170a54c103e1f9900c0c"
+      }
+    }
+  ],
+  "recheckedWithoutSourceChurn": [
+    {
+      "projectId": "PCX-040",
+      "name": "Pinterest Nocturne",
+      "result": "Canonical Pinterest-Nocturne repository remains at bootstrap commit 6167038fac5f362dbabb83c2497edb64e588ad01; no newer project-owned source delta resolved."
+    },
+    {
+      "projectId": "PCX-041",
+      "name": "ChatGPT Ultimate Optimizer",
+      "result": "Existing v1.0.1 recovery/operations page remains the strongest verified evidence; no newer canonical source repository or release identity resolved."
+    },
+    {
+      "projectId": "PCX-043",
+      "name": "Feature Foundry Production App",
+      "result": "Feature Foundry production authority remains released v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9, already documented."
+    },
+    {
+      "projectId": "PCX-044",
+      "name": "Feature Foundry Living Ecology",
+      "result": "Feature Foundry production authority remains released v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9; no newer living-ecology delta resolved."
+    }
+  ],
+  "publicationBacklog": {
+    "clearAtStart": true,
+    "startProofCommit": "1906fa4c1e607386a04c96099e6bdea91ee20699",
+    "newMaterialSourceCommit": "585c6c52035a0f2f8a11a33cccebc263ea45c83d",
+    "newMaterialPublicationProven": true,
+    "wikiMasterCommit": "b3960d733d80fa845a3fedd0e8751e9628ca51dd",
+    "currentUnresolvedMaterialWikiDebt": []
+  },
+  "nextCursor": [
+    "PCX-045",
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049"
+  ],
+  "operatingRule": "Project Constellation remains the control plane, not the normal wiki target. Continue tracked-project documentation only after dynamically confirming actual-Wiki publication debt is clear."
+}
