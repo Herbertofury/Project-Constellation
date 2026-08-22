@@ -3,6 +3,7 @@
   "checkpointAt": "2026-08-22T09:10:00Z",
   "projects": ["PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023"],
   "publicationBacklogAtStart": "clear",
+  "publicationBacklogAtClose": "clear",
   "materialUpdate": {
     "projectId": "PRJ-019",
     "wikiSourcePath": "wikis/PRJ-019-mo2-performance-accelerator.md",
@@ -36,7 +37,21 @@
       "Current MO2 host baseline, revalidated 2026-08-22",
       "Current host regression to protect: separator state across F5 refresh",
       "F5 / Creation Club separator regression qualification row"
-    ]
+    ],
+    "checkpoint": {
+      "fileId": "1_Qn4X2qXONttJxEB82ubjt3yilCIQSrMWygC5WfBjuU",
+      "parent": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "rereadVerified": true,
+      "markdownExportBytes": 3817,
+      "markdownSha256": "7446d85e98873fb7e39586c78cb8c2d150d433b791aa84c4b9ce3fab55e45a9f"
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "parent": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "rereadVerified": true,
+      "markdownExportBytes": 2215,
+      "markdownSha256": "886d8d53322be28b573b047cd7667e752d6689827337923b8d0d71954cc1807e"
+    }
   },
   "otherProjects": [
     {
