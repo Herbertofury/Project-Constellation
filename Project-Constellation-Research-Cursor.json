@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T04:15:00Z",
+  "updatedAt": "2026-08-22T05:55:00Z",
   "completedCursor": [
-    "PRJ-004",
-    "PRJ-005",
-    "PRJ-006",
-    "PRJ-007",
-    "PRJ-008"
-  ],
-  "nextCursor": [
     "PRJ-009",
     "PRJ-010",
     "PRJ-011",
     "PRJ-012",
     "PRJ-013"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start. PRJ-005 Mascot / Screenmate Platform contained a stale GameSync Next authority watermark (9e337c...) even though current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562. Direct current-main inspection confirmed the all-site page-mascot WXT entrypoint and universal mascot lifecycle/settings/SPA ownership behavior remain present, while 60940e8479af518f3373a79efa091902f4843842 remains the universal mascot implementation lineage. The wiki source was refreshed at commit ca3f687167813756408e18c67ab3b6410322b443 and publication-proven by Sync GitHub Wiki run 32551137107/job 96977957514 with ProjectDump.wiki.git push, complete fresh-clone byte verification, and Wiki master eaf172f2d627f7c793060fff9577bd0c7811c196. The Drive mirror was updated in canonical Project Wikis, independently reread, and exported at 39,748 bytes with SHA-256 11e757122a999080d4ea3d350192497aa0b7194e0a8bdccdfb8d37a586763776. PRJ-004, PRJ-006, PRJ-007, and PRJ-008 were rechecked without justified source churn.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0415Z-wiki-prj-004-008.json",
+  "nextCursor": [
+    "PRJ-014",
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit ca3f687167813756408e18c67ab3b6410322b443 already had wiki-publication success. PRJ-010 RuneLite FlipForge Family lacked a current host-compatibility and safety baseline even though its canonical implementation source remains unresolved. The wiki was materially improved with the current official RuneLite Plugin Hub 1.12.36 baseline from plugin-hub commit 94b2b0d54b2f537a415731e6f85b216b0d9c457e, the current example-plugin reference at 5370caa0f5f6a5bba4fbb42931722ca535ad3fd5, Java 11 / Gradle 8.10 compatibility references, client-thread/network/file/overlay lifecycle rules, Plugin Hub restriction boundaries, and a fail-closed no-automated-game-input verification rule. The historical No-Hitch 1.12.29.1 artifact remains preserved as a regression reference and now explicitly requires compatibility qualification against 1.12.36. Source commit 04450860a51e44cad32fa2e77ad2916359ffdc07 was publication-proven by Sync GitHub Wiki run 32555453903/job 96988768048 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master 0fd5b644a67445dd168b93f131dbb86693c1a8d3. The Drive mirror was updated, independently exported at 21,261 bytes, and SHA-256 verified as 49577bb32adbad264e5c0de89d3f78988fb8f2813d1ac6bd7cd3160331ab996d. PRJ-009 and PRJ-011 through PRJ-013 were rechecked without justified source churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0555Z-wiki-prj-009-013.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
