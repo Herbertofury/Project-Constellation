@@ -1,0 +1,78 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T05:55:00Z",
+  "projectGroup": ["PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012", "PRJ-013"],
+  "publicationBacklogAtStart": "clear",
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-010",
+      "page": "wikis/PRJ-010-runelite-flipforge-family.md",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-010-runelite-flipforge-family",
+      "sourceCommit": "04450860a51e44cad32fa2e77ad2916359ffdc07",
+      "sourceBlob": "7493becb8dfa31fce632320c55a03844749e1c6a",
+      "change": "Added the current RuneLite Plugin Hub 1.12.36 compatibility baseline, official example-plugin Java 11 / Gradle 8.10 reference, client-thread/network/file/overlay lifecycle constraints, Plugin Hub safety boundaries, and a fail-closed user-driven in-game verification rule while preserving the unresolved PRJ-010 source boundary and known-good No-Hitch 1.12.29.1 artifact as historical regression evidence.",
+      "wikiPublication": {
+        "runId": 32555453903,
+        "jobId": 96988768048,
+        "state": "success",
+        "wikiMasterCommit": "0fd5b644a67445dd168b93f131dbb86693c1a8d3",
+        "exactSourceCheckout": true,
+        "wikiPush": true,
+        "freshClone": true,
+        "completeByteComparison": true
+      },
+      "driveMirror": {
+        "fileId": "18En2mm2o9RzY-_rx8BEzQREGGRWE8agdW-mfgC7MmQ8",
+        "title": "PRJ-010 RuneLite FlipForge Family Wiki",
+        "markdownBytes": 21261,
+        "markdownSha256": "49577bb32adbad264e5c0de89d3f78988fb8f2813d1ac6bd7cd3160331ab996d",
+        "rereadVerified": true
+      },
+      "evidence": {
+        "pluginHubCommit": "94b2b0d54b2f537a415731e6f85b216b0d9c457e",
+        "pluginHubRuneLiteVersion": "1.12.36",
+        "examplePluginCommit": "5370caa0f5f6a5bba4fbb42931722ca535ad3fd5",
+        "examplePluginJavaTarget": 11,
+        "examplePluginGradleWrapper": "8.10",
+        "noHitchHistoricalRuneLite": "1.12.29.1",
+        "flipForgeRepositoryState": "one-file placeholder at 03cb2057c480929831852fed8fd866954e3ad5c0"
+      }
+    }
+  ],
+  "noChangeRechecks": [
+    {
+      "projectId": "PRJ-009",
+      "reason": "Current Skill Atlas page already records the Plugin Hub compatibility contract and remains truthfully recovery-first because the canonical current Skill Atlas / QA Cockpit source or archive is unresolved."
+    },
+    {
+      "projectId": "PRJ-011",
+      "reason": "Current Sims 4 Accelerator page already carries the PresentMon 2.5.1 evidence-first measurement contract, renderer baseline, raw-evidence comparability rules, and source-recovery boundary; no stronger project-owned implementation source was resolved."
+    },
+    {
+      "projectId": "PRJ-012",
+      "reason": "Current Sims 4 Native DX11 Overlay page already records the read-only fail-closed first milestone, DX11 baseline, Dear ImGui research, PresentMon 2.5.1 cross-check contract, and unresolved source boundary."
+    },
+    {
+      "projectId": "PRJ-013",
+      "reason": "Current Money App page correctly preserves v38 as historical lineage beneath PCX-032 Profit Nova v39 active implementation authority; no newer Money App-specific artifact was resolved."
+    }
+  ],
+  "driveCheckpoint": {
+    "fileId": "1HQf8q7tWzl11ImPprdC50PfjVsJB0WLkrPFOOhM8v_A",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 3568,
+    "markdownSha256": "0fa9d87ff0040e06953643ca67d0ba1f7acc9f143450faa9680c8ccbad4b26f1",
+    "rereadVerified": true
+  },
+  "driveResearchCursor": {
+    "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "textBytes": 2234,
+    "textSha256": "b7925888f80ea5d153988232a9880b2894fe8562e7b32cb4819798a44d8579ec",
+    "jsonValid": true,
+    "rereadVerified": true
+  },
+  "publicationBacklogAtEnd": "clear",
+  "nextCursor": ["PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018"],
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. A material wiki update is complete only after actual Wiki full-set publication proof and durable Drive mirror verification."
+}
