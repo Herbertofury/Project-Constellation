@@ -40,6 +40,24 @@
       "reason": "Current Feature Foundry Project Brain Bridge wiki and dedicated Drive mirror remain present and aligned with released Feature Foundry v24 production-host evidence; no newer material source delta was resolved."
     }
   },
+  "driveDurability": {
+    "checkpoint": {
+      "fileId": "19gUqP3O3HcZpscT9MHasxnJbhivOpcgotRQU2d3oOHc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "exportMime": "text/markdown",
+      "exportSizeBytes": 3306,
+      "exportSha256": "5c42697f67df46ae28712b4363673a0bbc832e5b331ffa2ba104e1aad1aac52d",
+      "verification": "Moved into the canonical Project Constellation folder, independently re-read through the ongoing-service statement, then exported and hashed."
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "exportMime": "text/plain",
+      "exportSizeBytes": 1763,
+      "exportSha256": "77d00dd1d55f51e84762376261345414878eea8441cd868367c723a78ad2c74a",
+      "verification": "Drive cursor was replaced from the verified GitHub cursor content, re-read from Drive, exported, and hashed."
+    }
+  },
   "nextCursor": ["PCX-060", "PCX-061", "PCX-062", "PCX-063", "PRJ-001"],
   "ongoing": true,
   "notes": "This run repaired Drive durability only. No wikis/** source page changed, so no new Wiki sync was required. The recurring tracked-project wiki-maintenance obligation remains active."
