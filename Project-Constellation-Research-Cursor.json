@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T19:15:00Z",
+  "updatedAt": "2026-08-22T20:59:00Z",
   "completedCursor": [
-    "PCX-050",
-    "PCX-051",
-    "PCX-052",
-    "PCX-053",
-    "PCX-054"
-  ],
-  "nextCursor": [
     "PCX-055",
     "PCX-056",
     "PCX-057",
     "PCX-058",
     "PCX-059"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-050 received a material SQLite/WASM qualification correction separating SQLite core 3.53.4 from the currently published @sqlite.org/sqlite-wasm 3.53.0-build1 wrapper, adding API-deprecation qualification and attributable VFS/version benchmark lanes. Source commit 35ca7d734a91071e82fcc104fc4af41e85e6c8b7 is publication-proven by Sync GitHub Wiki run 32593090575/job 97079830808, which pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, passed the complete page-set byte comparison, and recorded Wiki master 2b226728ef9bc9535903880b073b9cfa4b38eb26. PCX-051 through PCX-054 were rechecked; no load-bearing project-owned delta justified additional wiki-source churn in this pass. PCX-054 current-main movement to cd906ff0831bf7fc33b41fea31b6f0c004cc1562 did not touch its source-discovery load-bearing files, and the existing page still accurately records the verified capability plus the source-proven Found Mods limit:5000 completeness defect.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1915Z-wiki-pcx-050-054.json",
+  "nextCursor": [
+    "PCX-060",
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-001"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start. The latest material wikis/** source commit 35ca7d734a91071e82fcc104fc4af41e85e6c8b7 is publication-proven by Sync GitHub Wiki run 32593090575/job 97079830808, which pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, completed the full page-set byte comparison, and recorded Wiki master 2b226728ef9bc9535903880b073b9cfa4b38eb26. PCX-055, PCX-056, PCX-057, and PCX-059 were rechecked without a stronger project-owned source delta justifying wiki-source churn. PCX-058 had a real dual-publication durability gap: its complete GitHub Wiki page had no dedicated Project Wikis Drive mirror. A complete Drive mirror was created at file ID 1b1QrHcgZyAkkK188tCW0bmnu026-6tJTkqx5NJHWbsY, moved into Project Wikis folder 1KzPLGRNubIHA4aedEEOj85vKj225zG4E, independently re-read, and Markdown-exported at 5568 bytes with SHA-256 34daef2a3e602b07b6be1987d85916f328d1637c75b7541abb1769a4597cee6f.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T2058Z-wiki-drive-durability-pcx-055-059.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
