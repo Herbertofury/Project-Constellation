@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T02:33:00Z",
+  "updatedAt": "2026-08-22T04:15:00Z",
   "completedCursor": [
-    "PCX-062",
-    "PCX-063",
-    "PRJ-001",
-    "PRJ-002",
-    "PRJ-003"
-  ],
-  "nextCursor": [
     "PRJ-004",
     "PRJ-005",
     "PRJ-006",
     "PRJ-007",
     "PRJ-008"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-062 RuneLite QA Cockpit was materially under-documented even though its canonical project source remains unresolved. Fresh Drive/GitHub searches still did not expose bert-skill-atlas-qa-cockpit.zip or a canonical user-owned QA Cockpit repository, so the page was strengthened as a recovery and current-qualification guide instead of inventing a replacement implementation. Current official RuneLite evidence inspected for this pass includes Plugin Hub runelite.version 1.12.36, Plugin Hub head e39910dc2f8ec6549b4e30163403a9e667fbd4d5, and example-plugin head 5370caa0f5f6a5bba4fbb42931722ca535ad3fd5. The wiki source was refreshed at commit 5b45ad3e5a6d6e888aa9616b945a3f0968c55fac and publication-proven by Sync GitHub Wiki run 32546455294/job 96965657441 with ProjectDump.wiki.git push, complete fresh-clone byte verification, and Wiki master dbf1db13adbabbe2b92bb4c9ad739ce71e6809b3. The Drive mirror was updated in canonical Project Wikis, independently reread, and exported at 26,380 bytes with SHA-256 5d751083e7b487317631fdc2844f135f851d7e3d571b0b4da7fb25c2be45eca1. PCX-063, PRJ-001, PRJ-002, and PRJ-003 were rechecked without justified source churn.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0232Z-wiki-pcx-062-prj-003.json",
+  "nextCursor": [
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012",
+    "PRJ-013"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start. PRJ-005 Mascot / Screenmate Platform contained a stale GameSync Next authority watermark (9e337c...) even though current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562. Direct current-main inspection confirmed the all-site page-mascot WXT entrypoint and universal mascot lifecycle/settings/SPA ownership behavior remain present, while 60940e8479af518f3373a79efa091902f4843842 remains the universal mascot implementation lineage. The wiki source was refreshed at commit ca3f687167813756408e18c67ab3b6410322b443 and publication-proven by Sync GitHub Wiki run 32551137107/job 96977957514 with ProjectDump.wiki.git push, complete fresh-clone byte verification, and Wiki master eaf172f2d627f7c793060fff9577bd0c7811c196. The Drive mirror was updated in canonical Project Wikis, independently reread, and exported at 39,748 bytes with SHA-256 11e757122a999080d4ea3d350192497aa0b7194e0a8bdccdfb8d37a586763776. PRJ-004, PRJ-006, PRJ-007, and PRJ-008 were rechecked without justified source churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0415Z-wiki-prj-004-008.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
