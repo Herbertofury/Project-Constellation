@@ -35,8 +35,16 @@
     }
   },
   "driveDurability": {
-    "state": "CURRENT",
-    "evidence": "Current Drive Project Wikis mirrors were re-resolved for PCX-045 through PCX-049 and retain the same current authority lines as the GitHub wiki sources. No stale or missing mirror requiring repair was found in this pass."
+    "state": "CURRENT_AND_VERIFIED",
+    "evidence": "Current Drive Project Wikis mirrors were re-resolved for PCX-045 through PCX-049 and retain the same current authority lines as the GitHub wiki sources. No stale or missing mirror requiring repair was found in this pass.",
+    "checkpointDriveFileId": "1vKs4KPE1bJdCur-iRQEXveMS0dU98h51VbFDxedKrgg",
+    "checkpointDriveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "checkpointMarkdownBytes": 3003,
+    "checkpointMarkdownSha256": "14875db68be40fa9a8dbd4b357d9a0d6df9ffc33875653d8993cd63dd53aac9a",
+    "cursorDriveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "cursorPlainTextBytes": 1661,
+    "cursorPlainTextSha256": "d221bfaf487286445752ab1f3e2e03c0a50e6872d515792c857342568e9f1a10",
+    "reread": "The Drive checkpoint export contains the PCX-045 through PCX-049 group, CLEAR publication backlog, OPEN_AND_ONGOING obligation, and PCX-050 through PCX-054 next cursor. The Drive cursor export is valid JSON-shaped text and contains the same next cursor and source checkpoint."
   },
   "materialWikiSourceUpdates": [],
   "nextCursor": ["PCX-050", "PCX-051", "PCX-052", "PCX-053", "PCX-054"],
