@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T14:10:00Z",
+  "updatedAt": "2026-08-22T16:02:00Z",
   "completedCursor": [
-    "PCX-034",
-    "PCX-035",
-    "PCX-037",
-    "PCX-038",
-    "PCX-039"
-  ],
-  "nextCursor": [
     "PCX-040",
     "PCX-041",
     "PCX-042",
     "PCX-043",
     "PCX-044"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 11e44523026adb2720ce444c7fdceb433edd9ada had wiki-publication success. PCX-034 received the material update after current Ferrum project-owned STATUS/package evidence proved evolution run 66 promoted Playwright 1.63.0-alpha-2026-08-21 on verified code commit 7cbf7f5d972f5e27a58ced7b0f32d9d816ef54f1, with Ferrum CI 32462095769, exact proposal/tree agreement, companion native/Tauri/service workflows, and content-addressed build/evidence artifacts. ProjectDump source commit 1906fa4c1e607386a04c96099e6bdea91ee20699 was publication-proven by Sync GitHub Wiki run 32577922308/job 97042891590 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master 3b0dd1019b68de8cfcedafc2acd31c6bcb09cece. The Drive Ferrum wiki mirror was updated in place, independently re-read, and exported at 45,114 bytes with SHA-256 321ad14834d403700c70cc3e5f34a68736db10657f04bdf63b3eb21b0a1c1f35. PCX-035 had no stronger current project-owned implementation evidence. PCX-037's NeurolingsCE reference head remains 3f3ec7221cbc7c597b17d77e0da5082256af75ed and is already documented. PCX-038 and PCX-039 had no newer verified canonical source delta justifying source churn.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1410Z-wiki-pcx-034-039.json",
-  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
+  "nextCursor": [
+    "PCX-045",
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049"
+  ],
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1600Z-wiki-pcx-040-044.json",
+  "selectionReason": "Dynamic publication backlog was clear at run start. PCX-042 received a material current-evidence refresh for new npm 12.0.2 proposal PR #23 plus advanced PR #7 and PR #14 heads; exact source commit 585c6c52035a0f2f8a11a33cccebc263ea45c83d was published by full-set Wiki sync with fresh-clone byte verification. PCX-040, PCX-041, PCX-043, and PCX-044 were rechecked without source churn because no stronger project-owned delta was resolved.",
+  "operatingRule": "Continue tracked-project documentation in catalog order, skipping PCX-036 as the Project Constellation control-plane reference. Before each new material wikis/** delta, dynamically prove no unresolved actual-Wiki publication debt remains."
 }
