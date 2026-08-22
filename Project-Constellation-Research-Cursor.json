@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T09:11:00Z",
+  "updatedAt": "2026-08-22T10:53:00Z",
   "completedCursor": [
-    "PRJ-019",
-    "PRJ-020",
-    "PRJ-021",
-    "PRJ-022",
-    "PRJ-023"
-  ],
-  "nextCursor": [
     "PRJ-024",
     "PRJ-025",
     "PCX-026",
     "PCX-027",
     "PCX-028"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 180ad65acbafc0b98785ed1cdb1e4fd4e6131964 had wiki-publication success. PRJ-019 received the material update this pass: MO2 v2.5.2 remains the stable host and upstream master remains efe2a02d5dc641946baaa8db1440800f38d07837, while currently open upstream issue #2420 provides a concrete Creation Club/top-separator F5 refresh regression that directly exercises the model/filter/separator state paths the accelerator must preserve. The wiki now includes a differential accelerator-off/on lane, stable identity capture, expanded host probes and a qualification row so performance work cannot hide, worsen or later reintroduce the host defect. Source commit 547d599689dae5aad0f1e112b577cd329712210d was publication-proven by Sync GitHub Wiki run 32564171391/job 97010238717 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master 1e9ea8444c6ade92731659a1c9eedba26d943493. The Drive wiki mirror was updated in place, independently re-read, exported at 13,851 bytes and SHA-256 verified as 147f10f73de69000405777370a810a64b2736306537693925f440cdd9272e7c3. PRJ-020 through PRJ-023 were rechecked without justified wiki-source churn; PRJ-021 still lacks the hash-matching GX Slim archive/source, while the other pages remain aligned with their strongest current evidence.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T0910Z-wiki-prj-019-023.json",
+  "nextCursor": [
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032",
+    "PCX-033"
+  ],
+  "selectionReason": "Dynamic publication backlog was clear at run start because the preceding material wiki commit 547d599689dae5aad0f1e112b577cd329712210d had wiki-publication success. PRJ-024 received the material update this pass: MO2 v2.5.2 remains the latest stable host, current upstream master remains efe2a02d5dc641946baaa8db1440800f38d07837, and open upstream issue #2420 provides a concrete Creation Club/top-separator F5 refresh regression that directly overlaps the compatibility pack's promise to preserve separators, model/view truth, synthetic-column identity, and native drag/drop. The wiki now includes a pack-disabled versus pack-enabled differential lane, stable logical identity capture, drag-after-refresh qualification, a machine-readable receipt contract, troubleshooting, and explicit rules against masking a real host defect with stale plugin UI. Source commit 21eca0811c2c48fcbacfbd401a0eb44ee28c69d2 was publication-proven by Sync GitHub Wiki run 32568673292/job 97020910507 with ProjectDump.wiki.git push, complete fresh-clone byte comparison, and Wiki master b7d4f78e0659940bbbfe434c264ab825e9eaf234. The Drive wiki mirror was updated in place, independently re-read, exported at 12,934 bytes and SHA-256 verified as b29f5c93df031528b5f0045757f340c2c1451ecbffd1abb0532c9c880f373979. PRJ-025 and PCX-026 through PCX-028 were rechecked without justified wiki-source churn; UltraDeck remains v8.6.0 at d9278d4a0fd33d184e9c6f928556262668af4125, Archive Doctor remains bounded by recovered GameSync V2-289 evidence, and DirectoryMonitor already carries the current deep watcher/reconciliation qualification guide.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T1052Z-wiki-prj-024-pcx-028.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
