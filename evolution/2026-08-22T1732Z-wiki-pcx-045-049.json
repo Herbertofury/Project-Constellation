@@ -1,0 +1,44 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T17:32:42Z",
+  "group": ["PCX-045", "PCX-046", "PCX-047", "PCX-048", "PCX-049"],
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "585c6c52035a0f2f8a11a33cccebc263ea45c83d",
+    "wikiPublicationStatus": "success",
+    "syncRun": 32583276795,
+    "syncJob": 97055710272,
+    "wikiMasterCommit": "b3960d733d80fa845a3fedd0e8751e9628ca51dd",
+    "proof": "Sync GitHub Wiki checked out the exact latest material wiki source commit, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, and completed the full remote page-set byte comparison successfully. Later ProjectDump commits through this checkpoint are Project Constellation state-only changes, not newer wikis/** deltas."
+  },
+  "projectRechecks": {
+    "PCX-045": {
+      "result": "NO_MATERIAL_DELTA",
+      "reason": "Feature Foundry production authority remains v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9. The current Object Intelligence wiki and Drive mirror already reflect the released production authority plus the V23 detailed Object Atlas lineage."
+    },
+    "PCX-046": {
+      "result": "NO_MATERIAL_DELTA",
+      "reason": "Feature Foundry production authority remains v24.0.0 at e1ba080b5c7590f1c844a6ed13b3a471709920b9. The current Source Hubs wiki and Drive mirror already document the typed six-provider production lane and historical V33 boundary."
+    },
+    "PCX-047": {
+      "result": "NO_MATERIAL_DELTA",
+      "reason": "Favorite Artist Worlds durable curation authority and the Feature Foundry v24 production-consumer boundary remain unchanged. The Drive mirror is present with the current v4.0.1/v24 authority model."
+    },
+    "PCX-048": {
+      "result": "NO_MATERIAL_DELTA",
+      "reason": "Feature Foundry remains at e1ba080b5c7590f1c844a6ed13b3a471709920b9 and GameSync Next remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The current Theme Foundry wiki and Drive mirror already describe both authorities and the unresolved schema-adapter boundary."
+    },
+    "PCX-049": {
+      "result": "NO_MATERIAL_DELTA",
+      "reason": "GameSync Next main remains cd906ff0831bf7fc33b41fea31b6f0c004cc1562. Draft Petz persistence PR #10 remains open, draft, mergeable, unmerged, and at exact head 2612396804b44399b7b23b4f32f21217325da79c. The current wiki and Drive mirror already record that exact staged authority and its remaining maxPets/no-cap gap."
+    }
+  },
+  "driveDurability": {
+    "state": "CURRENT",
+    "evidence": "Current Drive Project Wikis mirrors were re-resolved for PCX-045 through PCX-049 and retain the same current authority lines as the GitHub wiki sources. No stale or missing mirror requiring repair was found in this pass."
+  },
+  "materialWikiSourceUpdates": [],
+  "nextCursor": ["PCX-050", "PCX-051", "PCX-052", "PCX-053", "PCX-054"],
+  "operatingRule": "Continue tracked-project documentation in catalog order. Before every new material wikis/** delta, dynamically prove the actual Wiki publication backlog is clear. Do not document PCX-036 as a normal target project."
+}
