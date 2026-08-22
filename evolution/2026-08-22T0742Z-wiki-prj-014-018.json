@@ -1,0 +1,78 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T07:42:00Z",
+  "projectGroup": ["PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018"],
+  "publicationBacklogAtStart": "clear",
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-015",
+      "page": "wikis/PRJ-015-bethesda-plugin-info-for-mo2.md",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-015-bethesda-plugin-info-for-mo2",
+      "sourceCommit": "180ad65acbafc0b98785ed1cdb1e4fd4e6131964",
+      "sourceBlob": "210bad44a969bf54ba07717359be905f105a7ac5",
+      "change": "Deepened Bethesda Plugin Info into a practical current-host recovery and qualification guide. Added the current MO2 v2.5.2 stable release gate, pinned upstream modorganizer and modorganizer-plugin_python heads, current pybind11 proxy/runner/mobase architecture, official host-side test commands, 2026 API/lifecycle drift watchpoints, preservation-first artifact/source recovery, a detailed stable-host acceptance matrix, a separate forward-compatibility lane, evidence-capture requirements, troubleshooting, modification/contribution rules, and source-recovery priorities without inventing project-specific build/package commands while the exact 1.5.3 source tree remains unresolved.",
+      "wikiPublication": {
+        "runId": 32560014478,
+        "jobId": 97000064915,
+        "state": "success",
+        "wikiMasterCommit": "d738a653dd71d7f64943fe3d5c95f596b17a1fd5",
+        "exactSourceCheckout": true,
+        "wikiPush": true,
+        "freshClone": true,
+        "completeByteComparison": true
+      },
+      "driveMirror": {
+        "fileId": "14nHqYvx59FXTolDCA9N2Gn2MeA3aD2i2z31hp8qtAso",
+        "title": "PRJ-015 Bethesda Plugin Info for MO2 Wiki",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 18730,
+        "markdownSha256": "773ee09e4665aee878451d40499efb2947ca18ad2aa1afff625139ae0b599a15",
+        "rereadVerified": true
+      },
+      "evidence": {
+        "stableHost": "Mod Organizer 2 v2.5.2",
+        "modOrganizerMaster": "efe2a02d5dc641946baaa8db1440800f38d07837",
+        "pythonProxyMaster": "e9d55a50a7c9f38280e72f52d910852fdcf0321e",
+        "latestRecoveredPlugin": "Bethesda Plugin Info 1.5.3",
+        "strongestFullValidation": "1.5.0: 69 automated tests",
+        "compatibilityPass": "1.5.3: 76 tests plus four subtests"
+      }
+    }
+  ],
+  "noChangeRechecks": [
+    {
+      "projectId": "PRJ-014",
+      "reason": "Current Cairn Codex page already uses official Grim Dawn v1.3.0.6 as the game baseline and preserves the exact artifact-recovery, browser-validation, migration, and data-freshness boundaries. No newer canonical Codex artifact/source was resolved."
+    },
+    {
+      "projectId": "PRJ-016",
+      "reason": "Current Bethesda Creations Version Tracker page already preserves the 2.4.3 compatibility correction, 2.3.1 migration/data-ownership contract, MO2 v2.5.2 host gate, coordinated-stack acceptance matrix, troubleshooting, and unresolved source/package boundary. No stronger project-owned source was resolved."
+    },
+    {
+      "projectId": "PRJ-017",
+      "reason": "Current Image Column page already preserves version 1.4.12, multi-source media support, MO2 base-delegate composition, stable mod identity/cache rules, coordinated drag/column acceptance, the v2.5.2 gate, and the unresolved canonical source boundary. No material source/runtime delta was resolved."
+    },
+    {
+      "projectId": "PRJ-018",
+      "reason": "Current Line Restorer page remains comprehensive for v1.1.0, including package hash, source-backed native indicator rendering, visual-only ownership, automated validation/performance evidence, customization/install guidance, coordinated-stack qualification, troubleshooting, and the real-host acceptance boundary. No newer artifact superseded it."
+    }
+  ],
+  "driveCheckpoint": {
+    "fileId": "16d9YYldHe97fb658SmPOsnk6dVsr2Pi3pBVx10H14Vs",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 5865,
+    "markdownSha256": "89669a932e50c49c22feba959cc00b44f8075364ec7d0bac1fa9089ee42345a9",
+    "rereadVerified": true
+  },
+  "driveResearchCursor": {
+    "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "textBytes": 2297,
+    "textSha256": "f0d5e521a6565272edbf9d291a8290649158a6fd1d558cc0ea9c05503a5a5ec7",
+    "jsonValid": true,
+    "rereadVerified": true
+  },
+  "publicationBacklogAtEnd": "clear",
+  "nextCursor": ["PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023"],
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. A material wiki update is complete only after actual Wiki full-set publication proof and durable Drive mirror verification."
+}
