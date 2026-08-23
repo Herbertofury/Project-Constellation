@@ -25,7 +25,9 @@
     "status": "VERIFIED",
     "checkpointFileId": "13Jd_h-ctQpZwxqizR-H0CpMLUZ3oTjsHsITeUVPO43Y",
     "checkpointFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
-    "checkpointRemoteReread": "pending-final-read"
+    "checkpointRemoteReread": "pass: full checkpoint re-read through next cursor and ongoing-service statement",
+    "researchCursorFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "researchCursorRemoteReread": "pass: updated PCX-060-PRJ-001 completed cursor and PRJ-002-PRJ-006 next cursor re-read from Drive"
   },
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries; avoid timestamp/hash-only churn; never advance past a real publication backlog; require actual-Wiki full-set proof for material wiki changes and Drive durability for persistent checkpoints."
 }
