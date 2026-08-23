@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T22:32:20Z",
+  "updatedAt": "2026-08-23T16:31:00Z",
   "completedCursor": [
-    "PCX-060",
-    "PCX-061",
-    "PCX-062",
-    "PCX-063",
-    "PRJ-001"
-  ],
-  "nextCursor": [
     "PRJ-002",
     "PRJ-003",
     "PRJ-004",
     "PRJ-005",
     "PRJ-006"
   ],
-  "selectionReason": "Publication backlog remained clear: current wikis/ tree 0ff5cf3767db48c740dc61bbb271ba9e4e09f7c0 is the same tree covered by successful full-set Sync GitHub Wiki run 32593090575/job 97079830808 at source commit 35ca7d734a91071e82fcc104fc4af41e85e6c8b7, which fresh-cloned the actual Wiki, byte-compared the complete page set, and recorded Wiki master 2b226728ef9bc9535903880b073b9cfa4b38eb26. PCX-060 through PRJ-001 were rechecked against current project-owned GitHub/Drive evidence. No material wiki-source delta justified page churn. PCX-062 still lacks recovered canonical QA Cockpit bytes despite a fresh Drive search; its external RuneLite compatibility baseline remains 1.12.36 even though Plugin Hub master advanced. PCX-061 PR #10 remains draft/unmerged at 2612396804b44399b7b23b4f32f21217325da79c. Feature Foundry and GameSync Next authority heads used by PCX-063 remain unchanged. PRJ-001 still lacks resolved canonical installable skill/bundle bytes. A durable Drive checkpoint was created at file ID 13Jd_h-ctQpZwxqizR-H0CpMLUZ3oTjsHsITeUVPO43Y in the canonical Project Constellation folder.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T2232Z-wiki-maintenance-pcx-060-prj-001.json",
-  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
+  "nextCursor": [
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011"
+  ],
+  "selectionReason": "Publication backlog remained clear at run start. PRJ-003 received one material umbrella-level update: current GameSync Next Performance PR #7 is now tracked as branch-only proposal evidence at exact head 964e947fc92cf9175112d436d2d7ddb74677159a, with its historical build benchmark, current indexed Ferrum provenance resolver optimization, exact-head pre-execution Secret Scan blocker, and fail-closed acceptance surface documented without promoting the branch into main product authority. Source commit 5653f2806a04ea89018e8fae75654c4e141bfb97 was publication-proven by Sync GitHub Wiki run 32651821308/job 97224520061, which pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, completed the full page-set byte comparison, and recorded Wiki master 4e71e36517c6ff10dc5132e61bc6e6aed85514ea. The canonical PRJ-003 Drive wiki mirror was updated in place and re-read in Project Wikis. PRJ-002, PRJ-004, PRJ-005, and PRJ-006 were rechecked without a stronger project-owned source delta justifying additional wiki-source churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-23T1631Z-wiki-prj-002-006.json",
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat draft branches as proposal evidence until exact-head acceptance passes. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
