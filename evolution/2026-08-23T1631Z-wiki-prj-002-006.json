@@ -1,0 +1,53 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-23T16:31:00Z",
+  "projectGroup": ["PRJ-002", "PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006"],
+  "publicationBacklogAtStart": "clear",
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-003",
+      "page": "wikis/PRJ-003-gamesync-platform.md",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-003-gamesync-platform",
+      "sourceCommit": "5653f2806a04ea89018e8fae75654c4e141bfb97",
+      "sourceBlob": "087cc73ecd6829e4db87d9794790977e5b7a5224",
+      "change": "Added the current branch-only GameSync Next Performance proposal without promoting it into product authority. Documented PR #7 exact head 964e947fc92cf9175112d436d2d7ddb74677159a, historical six-package benchmark evidence, the indexed Ferrum provenance resolver optimization, exact-head pre-execution Secret Scan blocker, and the remaining fail-closed acceptance surface.",
+      "wikiPublication": {
+        "runId": 32651821308,
+        "jobId": 97224520061,
+        "state": "success",
+        "wikiMasterCommit": "4e71e36517c6ff10dc5132e61bc6e6aed85514ea",
+        "exactSourceCheckout": true,
+        "wikiPush": true,
+        "freshClone": true,
+        "completeByteComparison": true
+      },
+      "driveMirror": {
+        "fileId": "1EOQegljlUoKOMzC1ObDZmHfUY91NaqlK6ixinLcjhDw",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "folderName": "Project Wikis",
+        "rereadVerified": true
+      },
+      "evidence": {
+        "shippingGameSyncMain": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "gameSyncNextMain": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+        "performancePr": 7,
+        "performancePrHead": "964e947fc92cf9175112d436d2d7ddb74677159a",
+        "performancePrState": "open-draft-unmerged",
+        "performancePrRelation": "125 commits ahead / 0 behind current main",
+        "latestVerifiedFerrumProduct": "7cbf7f5d972f5e27a58ced7b0f32d9d816ef54f1",
+        "ferrumCi": "32462095769 success",
+        "exactHeadSecretScan": "32632851894 failure before executable steps",
+        "durableDrivePerformanceState": "1ihaBjEQJ5h-AIe9RcUWkD08RPaOkhC_tyWxGVSDaobs"
+      }
+    }
+  ],
+  "noChangeRechecks": [
+    {"projectId": "PRJ-002", "reason": "Feature Foundry v24 production authority remains e1ba080b5c7590f1c844a6ed13b3a471709920b9 and the umbrella wiki already reflects the released repository, historical V33/V2 boundaries, current counts, build/package workflow, and open migration gaps."},
+    {"projectId": "PRJ-004", "reason": "Living Room wiki remains aligned with shipping GameSync 0.6.3 and GameSync Next shared ownership contract; no newer project-owned Living Room source delta was resolved."},
+    {"projectId": "PRJ-005", "reason": "Mascot umbrella already records current GameSync Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and universal mascot lineage 60940e8479af518f3373a79efa091902f4843842; no newer mascot-core delta justified source churn."},
+    {"projectId": "PRJ-006", "reason": "ACS parity page already records current GameSync/GameSync Next host authorities, queue initialization repair, universal mascot path, and the remaining GestureAt/Think/request-object parity gaps."}
+  ],
+  "publicationBacklogAtEnd": "clear",
+  "nextCursor": ["PRJ-007", "PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011"],
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Draft branches remain proposal evidence until exact-head acceptance passes. A material wiki update is complete only after actual Wiki full-set publication proof and durable Drive mirror verification."
+}
