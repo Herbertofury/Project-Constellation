@@ -1,21 +1,21 @@
 {
   "schema": "project-constellation.research-cursor/2",
-  "updatedAt": "2026-08-22T20:59:00Z",
+  "updatedAt": "2026-08-22T22:32:20Z",
   "completedCursor": [
-    "PCX-055",
-    "PCX-056",
-    "PCX-057",
-    "PCX-058",
-    "PCX-059"
-  ],
-  "nextCursor": [
     "PCX-060",
     "PCX-061",
     "PCX-062",
     "PCX-063",
     "PRJ-001"
   ],
-  "selectionReason": "Dynamic publication backlog was clear at run start. The latest material wikis/** source commit 35ca7d734a91071e82fcc104fc4af41e85e6c8b7 is publication-proven by Sync GitHub Wiki run 32593090575/job 97079830808, which pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, completed the full page-set byte comparison, and recorded Wiki master 2b226728ef9bc9535903880b073b9cfa4b38eb26. PCX-055, PCX-056, PCX-057, and PCX-059 were rechecked without a stronger project-owned source delta justifying wiki-source churn. PCX-058 had a real dual-publication durability gap: its complete GitHub Wiki page had no dedicated Project Wikis Drive mirror. A complete Drive mirror was created at file ID 1b1QrHcgZyAkkK188tCW0bmnu026-6tJTkqx5NJHWbsY, moved into Project Wikis folder 1KzPLGRNubIHA4aedEEOj85vKj225zG4E, independently re-read, and Markdown-exported at 5568 bytes with SHA-256 34daef2a3e602b07b6be1987d85916f328d1637c75b7541abb1769a4597cee6f.",
-  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T2058Z-wiki-drive-durability-pcx-055-059.json",
+  "nextCursor": [
+    "PRJ-002",
+    "PRJ-003",
+    "PRJ-004",
+    "PRJ-005",
+    "PRJ-006"
+  ],
+  "selectionReason": "Publication backlog remained clear: current wikis/ tree 0ff5cf3767db48c740dc61bbb271ba9e4e09f7c0 is the same tree covered by successful full-set Sync GitHub Wiki run 32593090575/job 97079830808 at source commit 35ca7d734a91071e82fcc104fc4af41e85e6c8b7, which fresh-cloned the actual Wiki, byte-compared the complete page set, and recorded Wiki master 2b226728ef9bc9535903880b073b9cfa4b38eb26. PCX-060 through PRJ-001 were rechecked against current project-owned GitHub/Drive evidence. No material wiki-source delta justified page churn. PCX-062 still lacks recovered canonical QA Cockpit bytes despite a fresh Drive search; its external RuneLite compatibility baseline remains 1.12.36 even though Plugin Hub master advanced. PCX-061 PR #10 remains draft/unmerged at 2612396804b44399b7b23b4f32f21217325da79c. Feature Foundry and GameSync Next authority heads used by PCX-063 remain unchanged. PRJ-001 still lacks resolved canonical installable skill/bundle bytes. A durable Drive checkpoint was created at file ID 13Jd_h-ctQpZwxqizR-H0CpMLUZ3oTjsHsITeUVPO43Y in the canonical Project Constellation folder.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-22T2232Z-wiki-maintenance-pcx-060-prj-001.json",
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
 }
