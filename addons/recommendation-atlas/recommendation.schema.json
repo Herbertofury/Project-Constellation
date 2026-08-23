@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "project-constellation/addons/recommendation-atlas/recommendation.schema.json",
+  "title": "Constellation Recommendation Record",
+  "type": "object",
+  "required": [
+    "recommendationId",
+    "name",
+    "canonicalUrl",
+    "category",
+    "scope",
+    "state",
+    "reason",
+    "source",
+    "confidence"
+  ],
+  "properties": {
+    "recommendationId": {"type":"string"},
+    "name": {"type":"string"},
+    "aliases": {"type":"array","items":{"type":"string"}},
+    "canonicalUrl": {"type":"string","format":"uri"},
+    "secondaryUrls": {"type":"array","items":{"type":"string","format":"uri"}},
+    "category": {"type":"string"},
+    "scope": {
+      "type":"object",
+      "properties": {
+        "project": {"type":["string","null"]},
+        "domain": {"type":["string","null"]},
+        "platform": {"type":["string","null"]},
+        "gameVersion": {"type":["string","null"]},
+        "loader": {"type":["string","null"]}
+      },
+      "additionalProperties": true
+    },
+    "state": {
+      "type":"string",
+      "enum":["suggested","verified","installed","tested_good","tested_bad","superseded","rejected","stale"]
+    },
+    "reason": {"type":"string"},
+    "evidenceExcerpt": {"type":["string","null"]},
+    "source": {
+      "type":"object",
+      "required":["sourceLinkStatus"],
+      "properties": {
+        "sourceChatUrl": {"type":["string","null"]},
+        "sourceConversationId": {"type":["string","null"]},
+        "sourceChatTitle": {"type":["string","null"]},
+        "sourceMessageFingerprint": {"type":["string","null"]},
+        "sourceTimestamp": {"type":["string","null"]},
+        "sourceExcerpt": {"type":["string","null"]},
+        "sourceLinkStatus": {"type":"string","enum":["resolved","unresolved","partial"]}
+      },
+      "additionalProperties": false
+    },
+    "firstRecommendedAt": {"type":["string","null"]},
+    "lastVerifiedAt": {"type":["string","null"]},
+    "compatibilityNotes": {"type":["string","null"]},
+    "confidence": {"type":"string","enum":["low","medium","high"]},
+    "tags": {"type":"array","items":{"type":"string"}},
+    "supersedes": {"type":"array","items":{"type":"string"}},
+    "supersededBy": {"type":"array","items":{"type":"string"}},
+    "userDecision": {"type":["string","null"]},
+    "stale": {"type":"boolean","default":false},
+    "staleReason": {"type":["string","null"]}
+  },
+  "additionalProperties": false
+}
