@@ -47,6 +47,18 @@
     {"projectId": "PRJ-005", "reason": "Mascot umbrella already records current GameSync Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and universal mascot lineage 60940e8479af518f3373a79efa091902f4843842; no newer mascot-core delta justified source churn."},
     {"projectId": "PRJ-006", "reason": "ACS parity page already records current GameSync/GameSync Next host authorities, queue initialization repair, universal mascot path, and the remaining GestureAt/Think/request-object parity gaps."}
   ],
+  "driveDurability": {
+    "checkpoint": {
+      "fileId": "1pERfwSqucDJpQJDUFp8N4HRhC6Jb3tad_tBga9zx-5Q",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "remoteReread": "pass"
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "remoteReread": "pass"
+    }
+  },
   "publicationBacklogAtEnd": "clear",
   "nextCursor": ["PRJ-007", "PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011"],
   "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Draft branches remain proposal evidence until exact-head acceptance passes. A material wiki update is complete only after actual Wiki full-set publication proof and durable Drive mirror verification."
