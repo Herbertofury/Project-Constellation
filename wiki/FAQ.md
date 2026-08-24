@@ -24,6 +24,10 @@ Not when the stable manifest key/extension ID is preserved and the existing exte
 
 No. Live capture is DOM-based and network-free. Zero-tab provider reads use the authenticated web surface only where configured, governed, and supported; no official history API is claimed for ChatGPT.
 
+## Does Output Vault preserve every image or download forever?
+
+Output Vault durably preserves captured response text, code, links, file metadata, revision history, and bounded inline `data:` media. Remote and temporary `blob:` media are recorded as references without silently downloading provider content; those URLs can expire. For an irreplaceable remote image, video, audio clip, or build, use its download/save control while it is still available. The vault will never label an expiring reference as a locally preserved file.
+
 ## Can I disable the starfield?
 
 Reduced-motion disables animation automatically; constrained devices use a static/absent effect. The Starlight theme remains accessible. The effect exists only on Constellation-owned UI, never over the full ChatGPT page.
@@ -34,4 +38,4 @@ Browsers throttle hidden/minimized pages, which made deep capture unreliable. Th
 
 ## Where should future agents start?
 
-Read [AGENTS.md](https://github.com/Herbertofury/Project-Constellation/blob/main/AGENTS.md), [Contributor continuation](Contributor-and-Agent-Continuation), the latest release receipt, and [`brain/v0.13.0/COMPASS.json`](https://github.com/Herbertofury/Project-Constellation/blob/main/brain/v0.13.0/COMPASS.json), then run `npm run verify` before changing state.
+Read [AGENTS.md](https://github.com/Herbertofury/Project-Constellation/blob/main/AGENTS.md), [Contributor continuation](Contributor-and-Agent-Continuation), the latest release receipt, and [`brain/v0.14.0/COMPASS.json`](https://github.com/Herbertofury/Project-Constellation/blob/main/brain/v0.14.0/COMPASS.json), then run `npm run verify` before changing state.

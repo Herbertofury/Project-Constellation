@@ -19,6 +19,12 @@ The page HUD correlates mounted DOM progress, passive provider network evidence,
 
 The HUD never sends provider requests and never claims access to hidden model reasoning. Site-background/history/session traffic stays visible as auxiliary activity but cannot be used as proof that an agent is working. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
 
+### Output Vault
+
+The permanent **⇄ Output Vault** control opens a second owned surface beside Execution Pulse. A shared dock temporarily compacts Pulse and always stacks the vault above or below it according to the configured corner; live resize measurements reserve Pulse space in normal, collapsed, mobile, and full-workspace modes. The vault lists every captured assistant output with searchable text, code blocks, links, generated media, files/builds, and distinct revision history. Reader mode reconstructs captured semantic headings, paragraphs, emphasis, lists, quotes, tables, inline/fenced code, links, and compact agent-activity groups; Raw mode preserves the exact flattened text view. Older output cards stay collapsed and defer rich-text construction until opened. Media preview is lazy: opening the vault does not fetch remote images, video, or audio. Inline `data:` media is retained in a bounded embedded file record; ordinary remote and `blob:` media keeps its captured reference and dimensions.
+
+At a hydrated conversation bottom, outside active generation, Constellation compares a bounded fingerprint of the mounted tail against its durable best revisions. If a refresh removes a response or replaces a complete answer with a shorter/tool-only state, the Pulse becomes **Saved output is missing**, Needs Attention includes the chat, and affected vault cards show **Saved richest revision** beside **Currently rendered**. The saved version can be copied individually, exported with the complete vault as Markdown, or used to branch into a continuation. Constellation never writes the saved copy back into the provider DOM.
+
 **Branch & continue** is always available in the Pulse, so a conversation can be continued early instead of waiting for a provider limit. It creates a durable checkpoint, opens a fresh chat for the same provider, transfers bounded continuation context through the provider's native composer, and links the child chat to its parent/project. The button gains urgency at the secure-handoff threshold but is never hidden before it. Constellation will not overwrite an occupied composer and reports `sent`, `prefilled`, or `copied` according to the outcome it can actually observe.
 
 Needs Attention settings use accessible ON/OFF switches. Every change is autosaved through a serialized background mutation, while each section also offers an explicit Save Settings button and live saved/saving/error feedback. Reloaded Home pages render directly from the persisted settings response.
@@ -28,6 +34,7 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 - Two-phase browser-refresh recovery for delivery failures (never a blind Retry click).
 - Approval Recovery for ChatGPT connected-app prompts with explicit risk acknowledgement.
 - Safe handoff Markdown/checkpoints plus one-click branch-and-continue before or after a long conversation reaches proactive thresholds.
+- Immutable per-turn revision capture, bounded rendered-tail snapshots, and Output Vault compare/export/branch recovery for provider-side output loss.
 - Google Drive full snapshot plus incremental journal, SHA-256 descriptions, metadata verification, byte-size verification, and round-trip reads.
 - Optional GitHub mirror with device OAuth, refresh rotation, repository discovery, and verified commit receipts.
 

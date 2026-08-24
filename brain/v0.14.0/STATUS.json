@@ -13,7 +13,8 @@
     "Google Chrome Identity OAuth using drive.file, granted-scope checks, account verification, cached-token eviction, and one safe 401 retry",
     "GitHub device OAuth with repository/user scopes, interval and slow_down handling, restart-safe pending state, account verification, rotating refresh-token support, proactive refresh, one safe 401 retry, and explicit revoke/disconnect cleanup",
     "production-only OAuth configuration injection with stable extension identity and hard failure on missing or placeholder client IDs",
-    "browser-safe Needs Attention and organizer persistence with an in-place IndexedDB v8-to-v9 migration, valid numeric derived flag indexes, serialized settings mutations, accessible ON/OFF switches, autosave plus explicit Save Settings confirmation, stale-service-worker storage/count fallback, confirmed-response UI updates, verified local counters, and truthful action feedback",
+    "browser-safe Needs Attention and organizer persistence with an in-place IndexedDB v8-to-v10 migration, valid numeric derived flag indexes, serialized settings mutations, accessible ON/OFF switches, autosave plus explicit Save Settings confirmation, stale-service-worker storage/count fallback, confirmed-response UI updates, verified local counters, and truthful action feedback",
+    "always-available collapsible and full-workspace Output Vault with a collision-free measured Pulse dock, semantic ChatGPT-like Reader plus exact Raw modes, deferred older-card rendering, immutable assistant revisions, richest-copy preservation, authoritative rendered-tail comparison, output-regressed health, text/code/link/file/build/media recovery, lazy preview, Markdown export, and branch-from-saved continuation",
     "complete README, changelog, privacy policy, release process, OAuth provisioning checklist, and living GitHub Wiki source",
     "deterministic production packaging with release receipt, source and installable archives, SHA-256 checksums, unsafe-path checks, and clean-tree enforcement"
   ],
@@ -24,6 +25,7 @@
     "Execution Pulse browser coverage verifies current tertiary/loading-shimmer agent steps, expanded-by-default compact HUD, evidence sources, request lifecycle privacy, tool-running/quiet/stalled transitions, always-present early branching, capacity urgency, safe handoff, and stale-page refresh recovery",
     "performance coverage preserves 320 turns and native controls through a 120-node stream burst, coalesces the burst to one runtime message, applies pressure relief only to decorative aria-hidden effects, and proves chat-history traffic cannot fake model activity",
     "browser-accurate IndexedDB regression coverage upgrades legacy v8 flag indexes and records, rejects boolean key ranges, and passes pinned, favorite, archive, concurrent settings, verified counts, and post-save Home summary workflows",
+    "browser-accurate Output Vault coverage proves that a later shortened or tool-only observation cannot erase richer saved text, semantic formatting, code, links, files, or media; regression state, collision-free Pulse stacking, Reader/Raw modes, comparison, collapse, expand, revision history, export data, and recovery controls all render from durable state",
     "canonical local main and origin/main match and GitHub Verify succeeds on the same commit",
     "production build reports Google and GitHub OAuth configured and stable extension identity",
     "production archives match RELEASE-RECEIPT.json and SHA256SUMS.txt and contain no unsafe archive paths",
@@ -42,5 +44,5 @@
     "client_secrets_required": false,
     "real_signed_in_acceptance_complete": false
   },
-  "updated_at": "2026-08-24T21:06:30Z"
+  "updated_at": "2026-08-24T22:12:55Z"
 }

@@ -11,7 +11,7 @@ const knowledge = globalThis.ProjectConstellationKnowledgeCore;
 const health = globalThis.ProjectConstellationHealthCore;
 
 const DB_NAME = 'project-constellation-brain';
-const DB_VERSION = 9;
+const DB_VERSION = 10;
 const SETTINGS_KEY = 'projectConstellationBrainSettings';
 const GITHUB_SECRET_KEY = 'projectConstellationGithubSecret';
 const GITHUB_REFRESH_KEY = 'projectConstellationGithubRefresh';
@@ -83,6 +83,8 @@ const STORE_DEFS = Object.freeze({
   smartCollections: [['updatedAt','updatedAt'],['groupId','groupId'],['pinned','pinnedKey']],
   chats: [['updatedAt','updatedAt'],['projectId','projectId'],['workspaceProjectId','workspaceProjectId'],['providerId','providerId'],['status','status'],['workspaceProjectStatus',['workspaceProjectId','status']],['pinned','pinnedKey'],['favorite','favoriteKey'],['organizedArchived','organizedArchivedKey'],['tags','tags',{multiEntry:true}]],
   turns: [['updatedAt','updatedAt'],['chatId','chatId'],['providerId','providerId'],['chatOrdinal',['chatId','ordinal']],['chatUpdatedAt',['chatId','updatedAt']]],
+  turnRevisions: [['updatedAt','updatedAt'],['chatId','chatId'],['turnId','turnId'],['chatOrdinal',['chatId','ordinal']],['turnUpdatedAt',['turnId','updatedAt']]],
+  outputSnapshots: [['updatedAt','updatedAt'],['chatId','chatId'],['chatUpdatedAt',['chatId','updatedAt']],['fingerprint','fingerprint']],
   files: [['updatedAt','updatedAt'],['chatId','chatId'],['workspaceProjectId','workspaceProjectId'],['providerId','providerId']],
   events: [['updatedAt','updatedAt'],['chatId','chatId'],['type','type']],
   checkpoints: [['updatedAt','updatedAt']],
@@ -211,6 +213,16 @@ async function getOne(storeName, id) {
   finally { db.close(); }
 }
 
+async function getManyInOrder(storeName, ids = []) {
+  const keys = ids.filter(isValidIndexedDbKey);
+  if (!keys.length) return [];
+  const db = await openDb();
+  try {
+    const store = db.transaction(storeName, 'readonly').objectStore(storeName);
+    return await Promise.all(keys.map((id) => requestResult(store.get(id))));
+  } finally { db.close(); }
+}
+
 async function getAll(storeName) {
   const db = await openDb();
   try { return await requestResult(db.transaction(storeName, 'readonly').objectStore(storeName).getAll()); }
@@ -291,7 +303,7 @@ async function latestTurnsForChat(chatId, limit = 5) {
 
 async function recentTurnRecordsForChat(chatId, limit = 12) {
   if (!chatId) return [];
-  const safeLimit = Math.max(1, Math.min(Number(limit) || 12, 24));
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 12, 96));
   const db = await openDb();
   try {
     const store = db.transaction('turns', 'readonly').objectStore('turns');
@@ -350,11 +362,168 @@ async function liveHealthContext(chatId, tabId) {
       findings = (await getAllByIndex('integrityFindings', 'projectId', projectId)).filter((row) => !row.resolved && (!row.chatId || row.chatId === id)).slice(0, 24);
       baseline = await getOne('projectBaselines', projectId);
     }
-    cached = { at: now, chat: chat ? { id: chat.id, title: chat.title || '', status: chat.status || 'idle', statusDetail: chat.statusDetail || '', projectId: chat.projectId || '', projectName: chat.projectName || '', workspaceProjectId: chat.workspaceProjectId || '', workspaceProjectName: chat.workspaceProjectName || '', lastActivityAt: chat.lastActivityAt || 0, updatedAt: chat.updatedAt || 0, integrityHealth: chat.integrityHealth || '', coverage: chat.coverage || '', source: chat.source || '', catalogFetchedAt: chat.catalogFetchedAt || 0 } : null, latestTurns, capacity: { storedTurns }, findings, baseline: baseline ? { projectId: baseline.projectId || projectId, projectName: baseline.projectName || '', latestVersion: baseline.latestVersion || '', health: baseline.health || '', counts: baseline.counts || {}, updatedAt: baseline.updatedAt || 0 } : null };
+    cached = { at: now, chat: chat ? { id: chat.id, title: chat.title || '', status: chat.status || 'idle', statusDetail: chat.statusDetail || '', projectId: chat.projectId || '', projectName: chat.projectName || '', workspaceProjectId: chat.workspaceProjectId || '', workspaceProjectName: chat.workspaceProjectName || '', lastActivityAt: chat.lastActivityAt || 0, updatedAt: chat.updatedAt || 0, integrityHealth: chat.integrityHealth || '', coverage: chat.coverage || '', source: chat.source || '', catalogFetchedAt: chat.catalogFetchedAt || 0, outputRegression:chat.outputRegression || null } : null, latestTurns, capacity: { storedTurns }, findings, baseline: baseline ? { projectId: baseline.projectId || projectId, projectName: baseline.projectName || '', latestVersion: baseline.latestVersion || '', health: baseline.health || '', counts: baseline.counts || {}, updatedAt: baseline.updatedAt || 0 } : null };
     liveHealthContextCache.set(id, cached);
   }
   const cfg = await settings();
   return { ok: true, now, chat: cached.chat, latestTurns: cached.latestTurns, capacity: cached.capacity || { storedTurns: 0 }, integrityFindings: cached.findings, baseline: cached.baseline, network: networkStateForTab(tabId), settings: cfg.liveHealth };
+}
+
+function boundedOutputObservation(message = {}) {
+  const chatId = String(message.chatId || '').slice(0, 900);
+  const turns = (Array.isArray(message.turns) ? message.turns : []).slice(-64).map((turn) => ({
+    id:String(turn?.id || '').slice(0, 900), messageId:String(turn?.messageId || '').slice(0, 500),
+    role:brain.normalizeText(turn?.role || 'unknown', 24), ordinal:Number(turn?.ordinal || 0),
+    fingerprint:String(turn?.fingerprint || '').slice(0, 180), score:Math.max(0, Number(turn?.score || 0)),
+    textLength:Math.max(0, Number(turn?.textLength || 0)), excerpt:String(turn?.excerpt || '').slice(0, 6000),
+    links:(Array.isArray(turn?.links) ? turn.links : []).slice(0, 64).map((item) => ({ href:String(item?.href || '').slice(0,8000), text:brain.normalizeText(item?.text || '',320) })).filter((item)=>item.href),
+    assets:(Array.isArray(turn?.assets) ? turn.assets : []).slice(0, 32).map((item) => ({ kind:brain.normalizeText(item?.kind || 'media',32), url:String(item?.url || '').slice(0,8000), alt:brain.normalizeText(item?.alt || '',320) })).filter((item)=>item.url),
+    codeBlocks:Math.max(0, Number(turn?.codeBlocks || 0))
+  })).filter((turn) => turn.id);
+  return {
+    chatId, providerId:String(message.providerId || '').slice(0,80), url:String(message.url || '').slice(0,8000),
+    hydrated:Boolean(message.hydrated), atBottom:Boolean(message.atBottom), running:Boolean(message.running),
+    turns, fingerprint:String(message.fingerprint || brain.outputObservationFingerprint(turns)).slice(0,180), observedAt:Number(message.observedAt || Date.now())
+  };
+}
+
+function outputTurnKey(turn = {}) { return `${String(turn.role || '')}:${Number(turn.ordinal || 0)}`; }
+
+function compareObservedOutput(storedTurns = [], observation = {}) {
+  const observed = Array.isArray(observation.turns) ? observation.turns : [];
+  const observedById = new Map(observed.map((turn) => [turn.id, turn]));
+  const observedByOrdinal = new Map(observed.map((turn) => [outputTurnKey(turn), turn]));
+  const observedOrdinals = observed.map((turn) => Number(turn.ordinal || 0));
+  const observedMin = observedOrdinals.length ? Math.min(...observedOrdinals) : Number.MAX_SAFE_INTEGER;
+  const observedMax = observedOrdinals.length ? Math.max(...observedOrdinals) : -1;
+  const relevant = storedTurns.filter((turn) => turn.role === 'assistant' && (Number(turn.ordinal || 0) >= observedMin || Number(turn.ordinal || 0) > observedMax));
+  const missingTurns = [];
+  const changedTurns = [];
+  let missingAssets = 0;
+  let missingLinks = 0;
+  let missingCodeBlocks = 0;
+  for (const saved of relevant) {
+    const current = observedById.get(saved.id) || observedByOrdinal.get(outputTurnKey(saved));
+    const savedFingerprint = String(saved.bestRevisionFingerprint || saved.contentFingerprint || brain.turnFingerprint(saved));
+    const savedScore = Number(saved.bestRevisionScore || saved.richnessScore || brain.turnRichnessScore(saved));
+    if (!current) {
+      missingTurns.push({ turnId:saved.id, ordinal:Number(saved.ordinal || 0), savedFingerprint, savedScore, textLength:String(saved.text || '').length, assetCount:(saved.assets || []).length, linkCount:(saved.links || []).length, codeBlocks:(saved.codeBlocks || []).length });
+      missingAssets += (saved.assets || []).length; missingLinks += (saved.links || []).length; missingCodeBlocks += (saved.codeBlocks || []).length;
+      continue;
+    }
+    const currentScore = Number(current.score || 0);
+    const fingerprintChanged = Boolean(current.fingerprint && current.fingerprint !== savedFingerprint);
+    const meaningfulLoss = savedScore - currentScore >= Math.max(180, Math.round(savedScore * 0.08));
+    if (fingerprintChanged && meaningfulLoss) {
+      const currentAssets = new Set((current.assets || []).map((item) => item.url));
+      const currentLinks = new Set((current.links || []).map((item) => item.href));
+      const lostAssets = (saved.assets || []).filter((item) => !currentAssets.has(item.url)).length;
+      const lostLinks = (saved.links || []).filter((item) => !currentLinks.has(item.href)).length;
+      const lostCode = Math.max(0, (saved.codeBlocks || []).length - Number(current.codeBlocks || 0));
+      missingAssets += lostAssets; missingLinks += lostLinks; missingCodeBlocks += lostCode;
+      changedTurns.push({ turnId:saved.id, ordinal:Number(saved.ordinal || 0), savedFingerprint, currentFingerprint:current.fingerprint, savedScore, currentScore, savedTextLength:String(saved.text || '').length, currentTextLength:current.textLength, currentExcerpt:current.excerpt || '', lostAssets, lostLinks, lostCode });
+    }
+  }
+  const active = Boolean(missingTurns.length || changedTurns.length);
+  const parts = [];
+  if (missingTurns.length) parts.push(`${missingTurns.length} missing response${missingTurns.length === 1 ? '' : 's'}`);
+  if (changedTurns.length) parts.push(`${changedTurns.length} shortened response${changedTurns.length === 1 ? '' : 's'}`);
+  if (missingAssets) parts.push(`${missingAssets} media item${missingAssets === 1 ? '' : 's'}`);
+  if (missingLinks) parts.push(`${missingLinks} link${missingLinks === 1 ? '' : 's'}`);
+  return { active, missingTurns, changedTurns, missingAssets, missingLinks, missingCodeBlocks, title:active ? 'Saved output is missing from this page' : 'Output matches the saved vault', detail:active ? parts.join(' · ') : `${observed.length} mounted turn${observed.length === 1 ? '' : 's'} match the durable capture.` };
+}
+
+async function pruneOutputSnapshots(chatId, limit = 24) {
+  const rows = await getAllByIndex('outputSnapshots', 'chatId', chatId);
+  for (const row of rows.slice(limit)) await deleteOneRecord('outputSnapshots', row.id);
+}
+
+async function observeOutput(message = {}) {
+  const observation = boundedOutputObservation(message);
+  if (!observation.chatId || observation.chatId.endsWith(':home') || !observation.hydrated || !observation.atBottom || observation.running || !observation.turns.length) return { ok:true, ignored:true, reason:'not-authoritative' };
+  const storedTurns = (await recentTurnRecordsForChat(observation.chatId, 96)).sort((a,b)=>Number(a.ordinal||0)-Number(b.ordinal||0));
+  if (!storedTurns.length) return { ok:true, ignored:true, reason:'no-saved-turns' };
+  const comparison = compareObservedOutput(storedTurns, observation);
+  const snapshotId = `${observation.chatId}:output:${observation.fingerprint}`;
+  await upsert('outputSnapshots', { id:snapshotId, ...observation, comparison, updatedAt:observation.observedAt });
+  pruneOutputSnapshots(observation.chatId).catch(() => {});
+  const chat = await getOne('chats', observation.chatId);
+  const previous = chat?.outputRegression || null;
+  const signature = brain.hashString(JSON.stringify([comparison.missingTurns.map((row)=>row.turnId),comparison.changedTurns.map((row)=>[row.turnId,row.currentFingerprint]),comparison.missingAssets,comparison.missingLinks]));
+  const outputRegression = {
+    ...comparison, signature, detectedAt:comparison.active ? Number(previous?.active && previous?.signature === signature ? previous.detectedAt : observation.observedAt) : 0,
+    checkedAt:observation.observedAt, observationFingerprint:observation.fingerprint, snapshotId
+  };
+  await upsert('chats', { id:observation.chatId, providerId:observation.providerId || chat?.providerId || '', url:observation.url || chat?.url || '', outputRegression, outputVaultCheckedAt:observation.observedAt, updatedAt:Math.max(Number(chat?.updatedAt||0),observation.observedAt) });
+  if (comparison.active && (!previous?.active || previous.signature !== signature)) {
+    await addEvent('output-regression-detected', 'chat', observation.chatId, observation.chatId, { signature, missingTurns:comparison.missingTurns.length, changedTurns:comparison.changedTurns.length, missingAssets:comparison.missingAssets, missingLinks:comparison.missingLinks, snapshotId });
+  } else if (!comparison.active && previous?.active) {
+    await addEvent('output-regression-cleared', 'chat', observation.chatId, observation.chatId, { previousSignature:previous.signature || '', snapshotId });
+  }
+  liveHealthContextCache.delete(observation.chatId);
+  updateAttentionBadge().catch(() => {});
+  if (comparison.active) markDriveDirty().catch(() => {});
+  return { ok:true, regression:outputRegression };
+}
+
+function markdownSafeLabel(value) { return brain.normalizeText(value || '', 320).replace(/[\[\]]/g, '') || 'Open saved output'; }
+
+function outputTurnMarkdown(turn = {}) {
+  const lines = [`## ${turn.role === 'user' ? 'User' : 'Assistant'} · turn ${Number(turn.ordinal || 0) + 1}`, '', String(turn.formattedText || turn.text || '').trim() || '_No rendered text was captured._'];
+  for (const block of turn.codeBlocks || []) lines.push('', `\`\`\`${brain.normalizeText(block.language || '', 40)}`, String(block.text || ''), '\`\`\`');
+  if ((turn.links || []).length) {
+    lines.push('', '### Links', '');
+    for (const link of turn.links) lines.push(`- [${markdownSafeLabel(link.text || link.href)}](${String(link.href || '').replace(/\)/g,'%29')})`);
+  }
+  if ((turn.assets || []).length) {
+    lines.push('', '### Media and outputs', '');
+    for (const asset of turn.assets) lines.push(`- ${brain.normalizeText(asset.kind || 'media',32)}: [${markdownSafeLabel(asset.alt || asset.url)}](${String(asset.url || '').replace(/\)/g,'%29')})`);
+  }
+  return lines.join('\n');
+}
+
+async function outputVaultReport(chatId, options = {}) {
+  const id = String(chatId || '');
+  if (!id) throw new Error('A chat is required to open Output Vault.');
+  const [chat, allTurns, files, snapshots] = await Promise.all([getOne('chats', id), getAllByIndex('turns','chatId',id), getAllByIndex('files','chatId',id), getAllByIndex('outputSnapshots','chatId',id)]);
+  const assistantTurns = allTurns.filter((turn)=>turn.role === 'assistant').sort((a,b)=>Number(a.ordinal||0)-Number(b.ordinal||0));
+  const offset = Math.max(0, Number(options.offset || 0));
+  const limit = Math.max(20, Math.min(Number(options.limit || 120), 200));
+  const start = Math.max(0, assistantTurns.length - offset - limit);
+  const end = assistantTurns.length - offset;
+  const pageTurns = assistantTurns.slice(start, Math.max(start,end));
+  const latestSnapshot = snapshots[0] || null;
+  const currentById = new Map((latestSnapshot?.turns || []).map((turn)=>[turn.id,turn]));
+  const currentByOrdinal = new Map((latestSnapshot?.turns || []).map((turn)=>[outputTurnKey(turn),turn]));
+  const embeddedByTurn = new Map();
+  for (const file of files) if (file.parentTurnId && file.embeddedDataUrl) {
+    const list=embeddedByTurn.get(file.parentTurnId)||[]; list.push(file); embeddedByTurn.set(file.parentTurnId,list);
+  }
+  const affected = new Set([...(chat?.outputRegression?.missingTurns || []).map((row)=>row.turnId),...(chat?.outputRegression?.changedTurns || []).map((row)=>row.turnId)]);
+  const items = pageTurns.map((turn)=>{
+    const embeddedFiles=embeddedByTurn.get(turn.id)||[];
+    const assets=(turn.assets||[]).map((asset)=>{const file=embeddedFiles.find((row)=>row.href===asset.url||row.sourceUrl===asset.sourceUrl)||(embeddedFiles.length===1?embeddedFiles[0]:null);return file?{...asset,embeddedDataUrl:file.embeddedDataUrl,embeddedMimeType:file.embeddedMimeType||''}:asset;});
+    return { ...turn, assets, current:currentById.get(turn.id) || currentByOrdinal.get(outputTurnKey(turn)) || null, affected:affected.has(turn.id) };
+  });
+  const markdownParts = [`# Project Constellation Output Vault`, '', `Chat: ${chat?.title || id}`, `Source: ${chat?.url || ''}`, `Captured: ${new Date().toISOString()}`, '', `This export contains the richest saved assistant revision for every captured response.`, ''];
+  let markdownLength = markdownParts.join('\n').length;
+  for (const turn of assistantTurns) {
+    const section = outputTurnMarkdown(turn);
+    if (markdownLength + section.length > 5_000_000) { markdownParts.push('', '_Export stopped at the 5 MB safety boundary. Earlier output remains available inside Output Vault._'); break; }
+    markdownParts.push(section, ''); markdownLength += section.length;
+  }
+  if (files.length) {
+    markdownParts.push('## Captured files', '');
+    for (const file of files.slice(0,1000)) markdownParts.push(`- [${markdownSafeLabel(file.name || file.href || file.kind)}](${String(file.href || file.externalUrl || '').replace(/\)/g,'%29')})`);
+  }
+  return { ok:true, chat:chat || { id, title:'Captured chat', url:'' }, regression:chat?.outputRegression || { active:false, title:'Output Vault ready', detail:`${assistantTurns.length} saved assistant outputs.` }, items, files:files.slice(0,500), total:assistantTurns.length, offset, hasMore:start > 0, nextOffset:offset + pageTurns.length, latestSnapshot:latestSnapshot ? { id:latestSnapshot.id, observedAt:latestSnapshot.observedAt, fingerprint:latestSnapshot.fingerprint } : null, markdown:markdownParts.join('\n') };
+}
+
+async function outputTurnRevisions(turnId) {
+  const id = String(turnId || '');
+  if (!id) return { ok:false, revisions:[] };
+  const [turn, revisions] = await Promise.all([getOne('turns',id),getAllByIndex('turnRevisions','turnId',id)]);
+  return { ok:true, turn, revisions:revisions.sort((a,b)=>Number(b.capturedAt||b.updatedAt||0)-Number(a.capturedAt||a.updatedAt||0)) };
 }
 
 async function putMany(storeName, records) {
@@ -376,6 +545,90 @@ async function putMany(storeName, records) {
     });
     return merged;
   } finally { db.close(); }
+}
+
+function boundedTurnForVault(record = {}) {
+  const links = (Array.isArray(record.links) ? record.links : []).slice(0, 64).map((item) => ({
+    href:String(item?.href || item?.url || '').slice(0, 8000),
+    text:brain.normalizeText(item?.text || item?.name || '', 320),
+    context:brain.normalizeText(item?.context || '', 900)
+  })).filter((item) => item.href);
+  const codeBlocks = (Array.isArray(record.codeBlocks) ? record.codeBlocks : []).slice(0, 24).map((item) => ({
+    language:brain.normalizeText(item?.language || '', 40), text:String(item?.text || '').slice(0, 32000)
+  })).filter((item) => item.text);
+  const assets = (Array.isArray(record.assets) ? record.assets : []).slice(0, 32).map((item) => ({
+    id:String(item?.id || '').slice(0, 180), kind:brain.normalizeText(item?.kind || 'media', 32),
+    url:String(item?.url || item?.href || '').slice(0, 8000), sourceUrl:String(item?.sourceUrl || '').slice(0, 8000),
+    alt:brain.normalizeText(item?.alt || item?.name || '', 320), width:Math.max(0, Number(item?.width || 0)), height:Math.max(0, Number(item?.height || 0))
+  })).filter((item) => item.url);
+  const next = { ...record, text:String(record.text || '').slice(0, 120000), formattedText:String(record.formattedText || '').slice(0, 120000), links, codeBlocks, assets };
+  next.contentFingerprint = brain.turnFingerprint(next);
+  next.richnessScore = brain.turnRichnessScore(next);
+  return next;
+}
+
+function turnRevisionRecord(turn = {}, capturedAt = Date.now()) {
+  const bounded = boundedTurnForVault(turn);
+  return {
+    ...bounded,
+    id:`${bounded.id}:revision:${bounded.contentFingerprint}`,
+    turnId:bounded.id,
+    capturedAt:Number(capturedAt || Date.now()),
+    updatedAt:Number(capturedAt || Date.now())
+  };
+}
+
+async function pruneTurnRevisions(turnId, keepId = '', limit = 12) {
+  const rows = await getAllByIndex('turnRevisions', 'turnId', turnId);
+  if (rows.length <= limit) return;
+  const keep = new Set(rows.slice(0, Math.max(1, limit - 1)).map((row) => row.id));
+  if (keepId) keep.add(keepId);
+  for (const row of rows) if (!keep.has(row.id)) await deleteOneRecord('turnRevisions', row.id);
+}
+
+async function preserveTurnRevisions(records = []) {
+  const unique = [...new Map(records.filter((record) => record?.id).map((record) => [record.id, boundedTurnForVault(record)])).values()];
+  if (!unique.length) return { turns:[], revisions:[], regressions:[] };
+  const previousRows = await getManyInOrder('turns', unique.map((record) => record.id));
+  const revisions = [];
+  const canonical = [];
+  const regressions = [];
+  for (let index = 0; index < unique.length; index += 1) {
+    const incoming = unique[index];
+    const previous = previousRows[index] ? boundedTurnForVault(previousRows[index]) : null;
+    const incomingRevision = turnRevisionRecord(incoming, incoming.updatedAt || Date.now());
+    const previousRevision = previous ? turnRevisionRecord(previous, previous.bestRevisionCapturedAt || previous.updatedAt || Date.now()) : null;
+    if (previousRevision) revisions.push(previousRevision);
+    revisions.push(incomingRevision);
+    const previousScore = Number(previous?.bestRevisionScore || previous?.richnessScore || 0);
+    const incomingScore = Number(incoming.richnessScore || 0);
+    const previousFingerprint = String(previous?.bestRevisionFingerprint || previous?.contentFingerprint || '');
+    const different = Boolean(previous && previousFingerprint && previousFingerprint !== incoming.contentFingerprint);
+    const meaningfulLoss = different && previousScore - incomingScore >= Math.max(180, Math.round(previousScore * 0.08));
+    const keepPrevious = Boolean(previous && incoming.role === 'assistant' && previous.role === 'assistant' && previousScore > incomingScore);
+    const best = keepPrevious ? previous : incoming;
+    const bestFingerprint = keepPrevious ? previousFingerprint : incoming.contentFingerprint;
+    const bestScore = keepPrevious ? previousScore : incomingScore;
+    const bestRevisionId = `${incoming.id}:revision:${bestFingerprint}`;
+    const newObservation = !previous || String(previous.lastObservedFingerprint || previous.contentFingerprint || '') !== incoming.contentFingerprint;
+    const revisionCount = Math.max(Number(previous?.revisionCount || 0), previous ? 1 : 0) + (newObservation ? 1 : 0);
+    canonical.push({
+      ...(previous || {}), ...incoming,
+      text:best.text || '', formattedText:best.formattedText || '', links:best.links || [], codeBlocks:best.codeBlocks || [], assets:best.assets || [],
+      contentFingerprint:bestFingerprint, richnessScore:bestScore,
+      bestRevisionId, bestRevisionFingerprint:bestFingerprint, bestRevisionScore:bestScore,
+      bestRevisionCapturedAt:keepPrevious ? Number(previous?.bestRevisionCapturedAt || previous?.updatedAt || Date.now()) : Number(incoming.updatedAt || Date.now()),
+      lastObservedRevisionId:incomingRevision.id, lastObservedFingerprint:incoming.contentFingerprint, lastObservedScore:incomingScore,
+      lastObservedAt:Number(incoming.updatedAt || Date.now()), revisionCount,
+      outputRegressionCandidate:Boolean(meaningfulLoss), updatedAt:Number(incoming.updatedAt || Date.now())
+    });
+    if (meaningfulLoss && incoming.role === 'assistant') regressions.push({ turnId:incoming.id, chatId:incoming.chatId || '', ordinal:Number(incoming.ordinal || 0), savedScore:previousScore, currentScore:incomingScore, savedFingerprint:previousFingerprint, currentFingerprint:incoming.contentFingerprint });
+  }
+  const existingRevisionIds = new Set((await getMany('turnRevisions', revisions.map((record) => record.id))).filter(Boolean).map((record) => record.id));
+  const savedRevisions = await putMany('turnRevisions', revisions.filter((record) => !existingRevisionIds.has(record.id)));
+  const savedTurns = await putMany('turns', canonical);
+  for (const turn of savedTurns.slice(-40)) pruneTurnRevisions(turn.id, turn.bestRevisionId, 12).catch(() => {});
+  return { turns:savedTurns, revisions:savedRevisions, regressions };
 }
 
 async function putManyChunked(storeName, records, chunkSize = 500) {
@@ -725,7 +978,8 @@ async function chatsForStatuses(statuses = ATTENTION_STATUSES) {
 }
 
 async function updateAttentionBadge() {
-  const chats = await chatsForStatuses(ATTENTION_STATUSES);
+  const [statusChats, allChats] = await Promise.all([chatsForStatuses(ATTENTION_STATUSES), getAll('chats')]);
+  const chats = [...new Map([...statusChats, ...allChats.filter((chat)=>chat.outputRegression?.active)].map((chat)=>[chat.id,chat])).values()];
   const count = chats.length;
   const text = count > 99 ? '99+' : count ? String(count) : '';
   try { await chrome.action?.setBadgeText?.({ text }); } catch (_) {}
@@ -1309,30 +1563,37 @@ async function ingestBatch(items) {
       const projectId = data.projectId || `${data.providerId || 'unknown'}:inbox`;
       projects.push({ id: projectId, providerId: data.providerId || '', name: data.projectName || (projectId.endsWith(':inbox') ? 'Inbox' : projectId), sourceType: 'provider', updatedAt: now });
     } else if (type === 'TURN_UPSERT' && data.id) turns.push({ ...data, updatedAt: data.updatedAt || now });
-    else if (type === 'FILE_UPSERT' && data.id) files.push({ ...data, updatedAt: data.updatedAt || now });
+    else if (type === 'FILE_UPSERT' && data.id) {
+      const file = { ...data, id:String(data.id).slice(0,900), name:brain.normalizeText(data.name || '',500), href:String(data.href || '').slice(0,8000), externalUrl:String(data.externalUrl || '').slice(0,8000), sourceUrl:String(data.sourceUrl || '').slice(0,8000), updatedAt:data.updatedAt || now };
+      if (typeof data.embeddedDataUrl === 'string' && /^data:[^;,]{1,160}(?:;[^,]{0,120})?,/i.test(data.embeddedDataUrl) && data.embeddedDataUrl.length <= 12 * 1024 * 1024) file.embeddedDataUrl = data.embeddedDataUrl;
+      else delete file.embeddedDataUrl;
+      files.push(file);
+    }
     else if (type === 'STATUS_EVENT' && data.chatId) statusEvents.push(data);
     else if (type === 'STATUS_HEARTBEAT' && data.chatId) chats.push({ id: data.chatId, providerId: data.providerId || '', status: data.status || 'running', lastActivityAt: data.lastActivityAt || now, lastSeenAt: now, url: data.url || '', updatedAt: now });
     else if (type === 'ROUTE_EVENT') routeEvents.push(data);
   }
 
   await Promise.all([
-    putMany('providers', providerRecords), putMany('projects', projects), putMany('chats', chats), putMany('turns', turns), putMany('files', files)
+    putMany('providers', providerRecords), putMany('projects', projects), putMany('chats', chats), putMany('files', files)
   ]);
+  const preserved = await preserveTurnRevisions(turns);
+  const canonicalTurns = preserved.turns;
 
   // Maintain a dedicated multi-entry inverted index asynchronously inside IndexedDB.
   // This keeps full-history search off AI pages and avoids transcript-wide scans in the UI.
   await putSearchDocs([
     ...projects.map((record) => searchDoc('project', record)),
     ...chats.map((record) => searchDoc('chat', record)),
-    ...turns.map((record) => searchDoc('turn', record)),
+    ...canonicalTurns.map((record) => searchDoc('turn', record)),
     ...files.map((record) => searchDoc('file', record))
   ]);
-  if (turns.length) await enqueueKnowledgeExtraction(turns);
+  if (canonicalTurns.length) await enqueueKnowledgeExtraction(canonicalTurns);
   if (files.length) await updateContinuityFromFiles(files);
 
-  if (turns.length) {
+  if (canonicalTurns.length) {
     const latestByChat = new Map();
-    for (const turn of turns) {
+    for (const turn of canonicalTurns) {
       if (!turn.chatId) continue;
       const previous = latestByChat.get(turn.chatId);
       if (!previous || (turn.ordinal ?? 0) >= (previous.ordinal ?? 0)) latestByChat.set(turn.chatId, turn);
@@ -1361,7 +1622,7 @@ async function ingestBatch(items) {
   }
   pruneEvents().catch(() => {});
   if (statusEvents.length) updateAttentionBadge().catch(() => {});
-  return { ok: true, counts: { providers: providerRecords.length, projects: projects.length, chats: chats.length, turns: turns.length, files: files.length, statuses: statusEvents.length } };
+  return { ok: true, counts: { providers: providerRecords.length, projects: projects.length, chats: chats.length, turns: turns.length, turnRevisions: preserved.revisions.length, files: files.length, statuses: statusEvents.length } };
 }
 
 async function ingest(payload) { return ingestBatch([payload]); }
@@ -1700,7 +1961,7 @@ async function homeSummary() {
   return {
     counts: { providers: providerCount, projects: projectCount, chats: chatCount, turns: turnCount, files: fileCount, knowledge: knowledgeCount }, statusCounts,
     recentChats, recentFiles, recentProjects, recentEvents,
-    attention: attentionGroups.flat().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
+    attention: [...new Map([...attentionGroups.flat(), ...topicChats.filter((chat)=>chat.outputRegression?.active)].map((chat)=>[chat.id,chat])).values()].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
     live: liveGroups.flat().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
     topics: buildTopicHints(topicChats, recentProjects),
     catalog: publicCatalogState(catalog), fullCapture: publicFullCaptureState(fullCapture), discovery: { browserHistoryGranted: historyGranted, mode: 'zero-tab-default', hiddenTabs: false, manualFullCapture: true },
@@ -1749,12 +2010,12 @@ async function groupedHomeSearch(query, limit = 40) {
 }
 
 async function snapshot() {
-  const [providerRecords, groups, projects, smartCollections, chats, turns, files, knowledgeItems, knowledgeSources, projectContinuity, events, checkpoints, syncReceipts, catalogRuns, baselines, integrityFindings, governor, cfg, dirty] = await Promise.all([
-    getAll('providers'), getAll('groups'), getAll('projects'), getAll('smartCollections'), getAll('chats'), getAll('turns'), getAll('files'), getAll('knowledgeItems'), getAll('knowledgeSources'), getAll('projectContinuity'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), getAll('projectBaselines'), getAll('integrityFindings'), requestGovernorState(), settings(), chrome.storage.local.get(DIRTY_KEY)
+  const [providerRecords, groups, projects, smartCollections, chats, turns, turnRevisions, outputSnapshots, files, knowledgeItems, knowledgeSources, projectContinuity, events, checkpoints, syncReceipts, catalogRuns, baselines, integrityFindings, governor, cfg, dirty] = await Promise.all([
+    getAll('providers'), getAll('groups'), getAll('projects'), getAll('smartCollections'), getAll('chats'), getAll('turns'), getAll('turnRevisions'), getAll('outputSnapshots'), getAll('files'), getAll('knowledgeItems'), getAll('knowledgeSources'), getAll('projectContinuity'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), getAll('projectBaselines'), getAll('integrityFindings'), requestGovernorState(), settings(), chrome.storage.local.get(DIRTY_KEY)
   ]);
   const manifest = chrome.runtime.getManifest();
   const out = brain.makeSnapshot({
-    providers: providerRecords, projects, chats, turns, files, knowledgeItems, knowledgeSources, projectContinuity, events, checkpoints, syncReceipts, catalogRuns,
+    providers: providerRecords, projects, chats, turns, turnRevisions, outputSnapshots, files, knowledgeItems, knowledgeSources, projectContinuity, events, checkpoints, syncReceipts, catalogRuns,
     meta: {
       extension: { name: manifest.name, version: manifest.version },
       github: { ...cfg.github, configured: Boolean(cfg.github.owner && cfg.github.repo) },
@@ -2116,7 +2377,7 @@ async function restoreFromDrive({ interactive = false } = {}) {
     const recovered = full.parsed;
     if (recovered?.schema !== 'project-constellation' || !Number(recovered.schemaVersion)) throw new Error('Remote file is not a valid Project Constellation snapshot.');
 
-    const storeNames = ['providers','groups','projects','smartCollections','chats','turns','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'];
+    const storeNames = ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'];
     const counts = Object.fromEntries(storeNames.map((name) => [name, 0]));
     for (const storeName of storeNames) {
       counts[storeName] += await mergeRemoteNewer(storeName, Array.isArray(recovered[storeName]) ? recovered[storeName] : []);
@@ -2202,7 +2463,7 @@ async function getUpdatedSince(storeName, since) {
 }
 
 async function deltaSnapshotSince(since) {
-  const names = ['providers','groups','projects','smartCollections','chats','turns','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'];
+  const names = ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'];
   const values = await Promise.all(names.map((name) => getUpdatedSince(name, since)));
   const delta = Object.fromEntries(names.map((name, index) => [name, values[index]]));
   return { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: since, exportedAt: new Date().toISOString(), ...delta };
@@ -2221,7 +2482,7 @@ async function uploadDriveIndex({ cfg, folderId, summary, snapshotMeta, journalM
 }
 
 function recordCountFromDelta(delta) {
-  return ['providers','groups','projects','smartCollections','chats','turns','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'].reduce((sum, key) => sum + (Array.isArray(delta[key]) ? delta[key].length : 0), 0);
+  return ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'].reduce((sum, key) => sum + (Array.isArray(delta[key]) ? delta[key].length : 0), 0);
 }
 
 async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
@@ -2270,7 +2531,7 @@ async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
 
     // Reset the cumulative journal to the new full-checkpoint boundary. Subsequent automatic
     // syncs replace it with all records changed since this full checkpoint.
-    const emptyJournal = { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: now, exportedAt: new Date(now).toISOString(), providers: [], groups: [], projects: [], smartCollections: [], chats: [], turns: [], files: [], knowledgeItems: [], knowledgeSources: [], projectContinuity: [], events: [], checkpoints: [], syncReceipts: [], catalogRuns: [], projectBaselines: [], integrityFindings: [] };
+    const emptyJournal = { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: now, exportedAt: new Date(now).toISOString(), providers: [], groups: [], projects: [], smartCollections: [], chats: [], turns: [], turnRevisions: [], outputSnapshots: [], files: [], knowledgeItems: [], knowledgeSources: [], projectContinuity: [], events: [], checkpoints: [], syncReceipts: [], catalogRuns: [], projectBaselines: [], integrityFindings: [] };
     const journalPacked = await gzipText(JSON.stringify(emptyJournal) + '\n');
     const journalSha256 = await sha256Blob(journalPacked.blob);
     const journalDescription = `Project Constellation cumulative journal; sha256=${journalSha256}; baseFullSyncAt=${now}; exportedAt=${emptyJournal.exportedAt}`;
@@ -3342,6 +3603,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_BRANCH_CONTINUATION_CLAIM': return claimBranchContinuation(message.providerId || providers.detectProvider(sender?.tab?.url || message.url || '')?.id || '', sender);
       case 'PC_BRANCH_CONTINUATION_COMPLETE': return completeBranchContinuation(message, sender);
       case 'PC_BRANCH_LINEAGE_RESOLVE': return resolveBranchLineage(message, sender);
+      case 'PC_OUTPUT_OBSERVE': return observeOutput({ ...message, chatId:message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt') });
+      case 'PC_OUTPUT_COMPARE': return outputVaultReport(message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt'), { offset:message.offset, limit:message.limit });
+      case 'PC_OUTPUT_TURN_REVISIONS': return outputTurnRevisions(message.turnId);
       case 'PC_OPEN_CONSTELLATION_PAGE': {
         const allowedViews = new Set(['overview','search','knowledge','projects','chats','files','integrity','attention','connections','sources','durability']);
         const view = allowedViews.has(String(message.view || '')) ? String(message.view) : 'overview';

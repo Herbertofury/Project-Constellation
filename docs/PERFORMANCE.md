@@ -14,6 +14,10 @@ The main risk is doing too much work on rapidly mutating AI pages. v0.14 reduces
 - Default Execution Pulse cadence is 2.5 seconds while active and 12 seconds while idle.
 - Service-worker health context is cached for five seconds.
 - HUD text/chips are changed only when their values differ; its activity ledger is capped at seven visible rows and rebuilt only when evidence or a five-second display bucket changes.
+- Output-tail comparison runs only after hydration, at the conversation bottom, and outside active generation. The page sends at most the last 64 mounted turn summaries when their combined fingerprint changes or after a 60-second confirmation interval; normal calls are gated to at least 10 seconds apart.
+- Output snapshots keep only the latest 24 states per chat and turn history keeps at most 12 distinct revisions per turn while pinning the richest revision. The Output Vault initially returns at most 120 outputs and loads older pages only on demand.
+- Passive loss comparison reads only the latest 96 canonical turn records in one indexed pass. Older collapsed cards defer rich Reader construction until opened, and the shared Vault/Pulse dock uses one `ResizeObserver` plus coalesced animation-frame positioning instead of polling.
+- Remote media is never prefetched by Output Vault. Image/video/audio bytes load only after an explicit Preview click. Already-inline bounded `data:` media is copied during idle time without a provider request; large inline data and remote/`blob:` bytes remain reference-only.
 
 ## Starfield budget
 
@@ -31,4 +35,4 @@ Background provider reads are serialized per provider, enforce minimum intervals
 
 ## Verification
 
-`content_smoke.py` exercises 320 mounted turns, a 120-node streaming burst, automatic decorative-pressure relief, native-control preservation, one-message coalescing for the burst, full retention, and zero page errors. `background_smoke.py` proves auxiliary history traffic cannot count as agent-bearing work. `live_health_smoke.py` verifies current agent-step markup, request lifecycle, the expanded ledger, progress/stall transitions, and stale-page recovery at configured fast test cadence. The default production cadence remains slower.
+`content_smoke.py` exercises 320 mounted turns, a 120-node streaming burst, automatic decorative-pressure relief, native-control preservation, one-message coalescing for the burst, full retention, and zero page errors. `background_smoke.py` proves auxiliary history traffic cannot count as agent-bearing work and that a later tool-only revision cannot overwrite richer saved text/code/links/media. `live_health_smoke.py` verifies current agent-step markup, request lifecycle, the expanded ledger, progress/stall transitions, stale-page recovery, the critical output-regression state, and the collapsible/full-workspace Output Vault. The default production cadence remains slower.

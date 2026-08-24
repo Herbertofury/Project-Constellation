@@ -16,15 +16,16 @@
     healthy:'running','tool-running':'running',running:'running',
     'tool-quiet':'waiting-user','request-stalled':'stalled','tool-stalled':'stalled',stalled:'stalled',
     'tool-dead':'errored',dead:'errored',errored:'errored','refresh-required':'refresh-required','blocked-approval':'blocked-approval','rate-limited':'rate-limited',
-    'waiting-user':'waiting-user','auth-required':'auth-required',paused:'paused'
+    'waiting-user':'waiting-user','auth-required':'auth-required',paused:'paused','output-regressed':'errored'
   });
   const statusClass = (s) => esc(HEALTH_CLASS[String(s || '').toLowerCase()] || s || 'idle');
   const liveHealthFresh = (chat) => {
     const at=Number(chat?.liveHealthUpdatedAt||0);
     return Boolean(chat?.liveHealthState && at && Date.now()-at <= LIVE_HEALTH_STALE_MS);
   };
-  const chatHealthStatus = (chat) => liveHealthFresh(chat) ? chat.liveHealthState : (chat?.status || 'idle');
+  const chatHealthStatus = (chat) => chat?.outputRegression?.active ? 'output-regressed' : liveHealthFresh(chat) ? chat.liveHealthState : (chat?.status || 'idle');
   const chatHealthDetail = (chat) => {
+    if(chat?.outputRegression?.active)return chat.outputRegression.detail||'Saved output is missing from the currently rendered chat.';
     if(!liveHealthFresh(chat)) return chat?.statusDetail || chat?.lastExcerpt || '';
     const bits=[];
     if(chat.liveHealthDetail)bits.push(chat.liveHealthDetail);

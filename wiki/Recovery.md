@@ -18,6 +18,18 @@ Execution Pulse’s Secure Handoff creates a local checkpoint and copies bounded
 
 Execution Pulse’s always-present **Branch & continue** action builds that checkpoint on demand, opens the provider's normal new-chat page, transfers the bounded continuation through the visible native composer, and records parent/child/checkpoint lineage after the provider assigns a new chat ID. It never writes over existing composer text. If the provider changes its composer or send control, Constellation leaves the handoff visibly prefilled or copies it for manual paste and labels the outcome honestly; the original checkpoint remains recoverable.
 
+## Recover output lost after refresh
+
+Open **⇄ Output Vault** from either the expanded Execution Pulse footer or its collapsed quick controls. A red/rose alert and affected cards mean the hydrated page tail is missing a saved assistant response or now exposes a meaningfully poorer revision.
+
+1. Expand the affected card and compare **Saved richest revision** with **Currently rendered**.
+2. Open **Versions** to inspect every retained distinct revision for that turn.
+3. Use **Copy** for one output, **Copy full vault** for every richest assistant response, or **Download Markdown** for an offline recovery file.
+4. Open captured files/links directly. Images, video, and audio preview only when clicked; inline embedded media can preview from its local record.
+5. Use **Branch from saved** to create a normal continuation checkpoint and transfer the recovered context to a fresh provider chat.
+
+Do not refresh repeatedly hoping the provider will restore the answer. Output Vault never claims the current provider transcript was repaired and never writes saved content back into it. Remote and `blob:` URLs are preserved as evidence, but only embedded inline media or independently durable external artifacts guarantee locally retained bytes.
+
 ## Repository recovery assets
 
 - `releases/v0.13.0/` contains the original v0.13 receipts/evidence.

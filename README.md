@@ -7,9 +7,10 @@ The v0.14 line is the standalone successor to v0.13.0. This repository is now th
 ## What it does
 
 - Organizes chats, projects, groups, files, links, decisions, recommendations, and follow-ups across supported AI providers.
-- Preserves a local IndexedDB “brain,” full-text index, continuity cards, integrity baselines, and recovery events.
+- Preserves a local IndexedDB “brain,” immutable assistant-output revisions, full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.
 - Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, safe handoff guidance, and an always-available **Branch & continue** action.
+- Adds an always-available, collapsible and full-workspace **Output Vault** beside Execution Pulse. The two surfaces share a collision-free corner dock, with Vault stacked above a compact live Pulse. It keeps the richest captured revision when a provider refresh replaces it with a shorter/tool-only state, reconstructs ChatGPT-like headings/lists/quotes/tables/code/links in Reader mode (with Raw text one click away), and recovers media references, inline media, files, builds, and revision history through copy, Markdown download, or a continuation branch.
 - Branches any supported conversation into a fresh provider chat with a durable checkpoint, automatic native-composer context transfer, parent/child lineage, and truthful prefilled/copied fallbacks when automatic sending is unavailable.
 - Syncs verified snapshots and journals to a user-owned Google Drive folder.
 - Optionally mirrors snapshots to a selected GitHub repository.
@@ -56,6 +57,7 @@ No OAuth client secret belongs in this repository or extension package.
 ## Safety and privacy
 
 - The content script performs no `fetch` or XHR requests.
+- Output comparison is local and change-gated. Remote media never auto-loads in the vault; previews load only after an explicit click. Inline `data:` media can be embedded in the durable file record within a bounded size limit.
 - Google uses `chrome.identity` with the narrow `drive.file` scope.
 - GitHub uses device authorization, honors polling backoff, rotates refresh tokens, and retries one authenticated request after refresh.
 - OAuth tokens are never included in Drive/GitHub snapshots or exported brain files.

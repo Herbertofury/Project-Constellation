@@ -16,6 +16,8 @@ All notable Project Constellation changes are recorded here.
 - Exact OAuth provisioning/acceptance and production release runbooks, a tracked non-secret environment template, and a public privacy policy.
 - An expanded Execution Pulse with a real-time **Observed now** card, bounded activity ledger, proof-source/confidence display, categorized provider-request lifecycle, and explicit response/tool/status/page events.
 - An always-present **Branch & continue** Pulse action that prepares a durable handoff, opens a fresh provider chat, transfers the continuation through the native composer, and links the new chat to its parent checkpoint. Capacity pressure changes its urgency, not its availability.
+- A collapsible/expandable **Output Vault** companion to Execution Pulse with a shared collision-free corner dock, full-workspace mode that reserves Pulse space, ChatGPT-like semantic Reader rendering plus optional Raw view, per-output collapsing, saved/current comparison, loss highlighting, search, revision history, text/code/link/media/file/build cards, lazy media preview, per-output copy, full Markdown export, and branch-from-saved recovery.
+- Immutable `turnRevisions` and bounded `outputSnapshots` stores. Every distinct captured turn revision survives, while the canonical turn retains the richest assistant output instead of allowing a later truncated or tool-only DOM state to erase it.
 
 ### Fixed
 
@@ -37,6 +39,7 @@ All notable Project Constellation changes are recorded here.
 - Current ChatGPT agent-step summaries and loading-shimmer activity are recognized directly, replacing vague generic `Called tool` reporting with the specific observable step label.
 - Ordinary chat-history, session, and sidebar traffic is separated from agent-bearing response/tool/search/file traffic, so background site requests cannot create a fake “chat is working” state or an alarming undifferentiated request count.
 - Continuation transfer never overwrites a nonempty composer or reports a send without observable confirmation; changed provider markup falls back to an honestly labeled prefilled or copied handoff.
+- Refresh-time output regression is detected only after hydration, at the conversation bottom, and outside active generation. Missing/shortened responses, code blocks, links, and media become a first-class `output-regressed` health state and Needs Attention item; the actual saved material remains immediately recoverable.
 
 ### Performance
 
@@ -50,6 +53,7 @@ All notable Project Constellation changes are recorded here.
 - Long-task observation no longer replays buffered entries after tab visibility changes, and pressure recovery no longer writes metrics to extension storage every 500 ms.
 - The real provider page automatically sheds only decorative `aria-hidden` animation/blur work during measured pressure; native content and controls are preserved.
 - HUD rendering updates only changed text/chips and rebuilds its bounded seven-row timeline only when evidence or displayed time buckets change.
+- Output-tail comparison runs only when the mounted fingerprint changes or at a slow confirmation interval; snapshots are bounded per chat, revision history is capped per turn, and remote media is never fetched automatically.
 
 ## 0.13.0
 

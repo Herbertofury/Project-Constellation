@@ -18,13 +18,19 @@ If ChatGPT changed markup, follow [ChatGPT compatibility](CHATGPT-COMPATIBILITY.
 
 ## Settings or organizer actions show an `IDBKeyRange.only` error
 
-Reload the unpacked extension from the current v0.14.0 build. An earlier candidate queried boolean organization flags as IndexedDB keys, so a setting could be written successfully and then appear to fail when Home refreshed. The repaired build upgrades the local brain from v8 to v9, rewrites those indexes to valid numeric derived keys, migrates existing records in place, serializes rapid settings changes, and preserves pinned/favorite/archive state. Do not clear storage: the settings and captured chats are retained by the migration.
+Reload the unpacked extension from the current v0.14.0 build. An earlier candidate queried boolean organization flags as IndexedDB keys, so a setting could be written successfully and then appear to fail when Home refreshed. The repaired build upgrades the local brain from v8 through v10: v9 rewrites those indexes to valid numeric derived keys and migrates existing flags in place, while v10 adds Output Vault revision/snapshot stores. Rapid settings changes are serialized and pinned/favorite/archive state is preserved. Do not clear storage: settings and captured chats are retained by the migration.
 
 Home’s status bar reports verified local IndexedDB counts. While the index is loading it shows a loading marker, and if an outdated service worker cannot answer it requests one extension reload instead of claiming there are zero chats.
 
 ## HUD says stale or degraded
 
 “This tab is behind” means the local catalogue has a newer authoritative revision while the visible page is at the conversation bottom. Use the HUD’s Refresh action. “Page render degraded” means semantic content is present but not visibly rendered; refresh after ensuring important work is checkpointed.
+
+## Pulse says Saved output is missing
+
+This is a specific local comparison result, not a generic error string. After the page finished hydrating at the conversation bottom, the rendered tail was missing a saved assistant turn or exposed a meaningfully poorer text/code/link/media revision. Open **⇄ Output Vault**, review the highlighted side-by-side card and its **Versions**, then copy, download, or branch from the saved copy. Refreshing again is optional; it is not required to access the durable revision.
+
+If the vault shows a remote image/video/audio reference but Preview no longer loads, the provider or remote host may have expired the URL. Inline bounded `data:` media is embedded locally; remote and `blob:` references are preserved as evidence but are not silently re-downloaded. Save important generated files to a durable external location while their original link is still live.
 
 ## High CPU or jank
 

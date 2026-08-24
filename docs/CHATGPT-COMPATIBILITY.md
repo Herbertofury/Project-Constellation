@@ -13,15 +13,18 @@ The selector strategy prefers top-level conversation-turn containers, then falls
 ## What Constellation observes
 
 - chat links and route changes;
-- rendered user/assistant turn containers and structured links/code;
+- rendered user/assistant turn containers plus structured text, links, code, images, video, audio, documents, and generated-output metadata;
 - attachment/download/link evidence;
 - visible status, approval, delivery failure, rate-limit, auth, and unavailable surfaces;
 - visible agent/tool step summaries, tool-state evidence, and sanitized passive request lifecycle from the service worker;
 - a bounded local activity ledger for response DOM changes, page status, tool progress, handoff/recovery, and request start/response/completion.
+- a hydrated, bottom-of-conversation output-tail fingerprint used to detect missing or meaningfully shortened assistant revisions after a refresh.
 
 The content script makes no network calls, does not patch ChatGPT JavaScript, does not remove messages, and does not depend on undocumented ChatGPT backend APIs. It cannot see private chain-of-thought and never pretends otherwise. Request URLs and prompt content are not placed in the HUD ledger; only a sanitized category, lifecycle phase, method/status, and duration are exposed. History/sidebar/session traffic is auxiliary and cannot prove that the model is alive.
 
 The Pulse's **Branch & continue** control uses only an explicit user click, the normal ChatGPT new-chat route, and the visible native composer. It waits for the usable composer/send control, dispatches native input events, confirms a send from observable composer/route changes, and then links the resulting chat ID to the source checkpoint. It does not call a hidden conversation API, overwrite existing draft text, or claim success from a click alone.
+
+The Pulse's permanent **⇄ Output Vault** control reads only Constellation's captured IndexedDB state. The service worker keeps each distinct turn revision and prevents a lower-richness assistant observation from replacing the richest canonical output. During changed-turn ingestion, the content runtime also serializes the mounted semantic answer container into bounded Markdown so Reader mode can reproduce ChatGPT-like headings, emphasis, lists, quotes, tables, code, and links without storing executable HTML. Comparison is suppressed during streaming, before hydration, and while browsing away from the bottom. Vault and Pulse use coordinated isolated shadow DOMs, share a measured collision-free dock, and never insert recovered content into ChatGPT's conversation tree. Remote media preview is user-triggered so simply opening the vault creates no ChatGPT or media traffic.
 
 ## Approval and recovery
 

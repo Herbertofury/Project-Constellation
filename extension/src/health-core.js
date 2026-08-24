@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 4;
+  const VERSION = 5;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -134,7 +134,7 @@
       if (Number(input.lastTurnProgressAt || 0)) proofSources.push({ kind:'response', label:'rendered response progress', active:running, at:Number(input.lastTurnProgressAt || 0) });
       if (Number(input.lastDomProgressAt || 0)) proofSources.push({ kind:'dom', label:'page DOM progress', active:running, at:Number(input.lastDomProgressAt || 0) });
       if (rawStatus !== 'idle') proofSources.push({ kind:'status', label:`page reports ${rawStatus.replaceAll('-', ' ')}`, active:running, at:Number(input.lastStatusChangeAt || 0) });
-      if (page.catalogAhead || page.staleRevision || page.renderDegraded || page.refreshRequired) proofSources.push({ kind:'page', label:'page integrity signal', active:false, at:now });
+      if (page.catalogAhead || page.staleRevision || page.renderDegraded || page.refreshRequired || page.outputRegression?.active) proofSources.push({ kind:'page', label:page.outputRegression?.active ? 'saved output differs from page' : 'page integrity signal', active:false, at:now });
       const uniqueProof = [...new Map(proofSources.map((item) => [`${item.kind}:${item.label}`, item])).values()].slice(0, 8);
       const freshProof = uniqueProof.filter((item) => item.active || (item.at && now - item.at <= cfg.hardStallMs));
       merged.proof = {
@@ -145,7 +145,7 @@
       };
       if (capacity.score >= LEVEL.warning) {
         merged.chips = [...new Set([...(merged.chips || []), ...(capacity.chips || []).slice(0, 2)])].slice(0, 8);
-        if (capacity.score > Number(merged.score || 0) && !['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','degraded','stale-page','project-rollback','tool-dead','dead'].includes(merged.state)) {
+        if (capacity.score > Number(merged.score || 0) && !['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','output-regressed','degraded','stale-page','project-rollback','tool-dead','dead'].includes(merged.state)) {
           merged.level = capacity.level; merged.score = capacity.score;
         }
         if (['healthy','follow-up'].includes(merged.state)) {
@@ -167,6 +167,9 @@
     }
     if (rawStatus === 'auth-required') return emit(result('auth-required','danger','Sign-in required','This provider session is no longer authenticated.',{ chips, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
     if (rawStatus === 'unavailable') return emit(result('unavailable','critical','Chat unavailable','The provider no longer exposes this conversation, but Constellation keeps its captured history and artifact lineage.',{ chips, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
+    if (page.outputRegression?.active) {
+      return emit(result('output-regressed','critical','Saved output is missing',page.outputRegression.detail || 'One or more richer assistant responses, links, files, code blocks, or media items are missing from the currently rendered page. Open Output Vault to compare and recover them.',{ recommendedAction:'compare-output', chips:[...chips,'durable copy preserved'], pageRisk:true, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
+    }
 
     if (page.renderDegraded) {
       return emit(result('degraded','critical','Page render degraded','Conversation content exists in the page structure but is no longer rendering normally. A clean refresh is recommended; Constellation preserves the catalogued copy.',{ recommendedAction:'refresh', chips:[...chips,'render mismatch'], pageRisk:true, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));

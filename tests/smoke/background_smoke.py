@@ -98,6 +98,16 @@ with sync_playwright() as p:
         {type:'FILE_UPSERT',data:{id:'chatgpt:test:file1',chatId:'chatgpt:test',providerId:'chatgpt',name:'Project-Constellation-Checkpoint.json',href:'https://drive.google.com/file/d/demo/view',externalUrl:'https://drive.google.com/file/d/demo/view',externalProvider:'google-drive',kind:'google-drive',updatedAt:now}}
       ];
       const ingest=await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:items});
+      const richVaultTurn={id:'chatgpt:test:t1',chatId:'chatgpt:test',providerId:'chatgpt',role:'assistant',ordinal:1,text:'Final production result. The complete release is ready with every requested fix, recovery note, and verification detail.\\n\\nDownload the full build and keep the generated constellation image.',links:[{href:'https://example.com/Project-Constellation-v0.14.0.zip',text:'Full release build'}],codeBlocks:[{language:'json',text:'{"release":"verified","complete":true}'}],assets:[{id:'result-image',kind:'image',url:'https://example.com/constellation-result.png',alt:'Generated constellation result',width:1024,height:1024}],url:'https://chatgpt.com/c/test',updatedAt:now+1};
+      richVaultTurn.formattedText='## Final production result\\n\\nThe complete release is ready with **every requested fix**.\\n\\n- Recovery note retained\\n- Verification detail retained';
+      await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[{type:'TURN_UPSERT',data:richVaultTurn},{type:'FILE_UPSERT',data:{id:'chatgpt:test:embedded-image',chatId:'chatgpt:test',parentTurnId:'chatgpt:test:t1',providerId:'chatgpt',name:'Generated constellation result',href:'https://example.com/constellation-result.png',kind:'image',embedded:true,embeddedMimeType:'image/png',embeddedDataUrl:'data:image/png;base64,iVBORw0KGgo=',updatedAt:now+1}}]});
+      const poorVaultTurn={id:'chatgpt:test:t1',chatId:'chatgpt:test',providerId:'chatgpt',role:'assistant',ordinal:1,text:'Called tool\\nCalled tool\\nSearched 2 websites\\nUsed browser skill',links:[],codeBlocks:[],assets:[],url:'https://chatgpt.com/c/test',updatedAt:now+2};
+      await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[{type:'TURN_UPSERT',data:poorVaultTurn}]});
+      const poorFingerprint=ProjectConstellationBrainCore.turnFingerprint(poorVaultTurn);
+      const outputObserve=await __pcSend({type:'PC_OUTPUT_OBSERVE',chatId:'chatgpt:test',providerId:'chatgpt',url:'https://chatgpt.com/c/test',hydrated:true,atBottom:true,running:false,observedAt:now+3,fingerprint:ProjectConstellationBrainCore.outputObservationFingerprint([{id:poorVaultTurn.id,ordinal:1,fingerprint:poorFingerprint}]),turns:[{id:poorVaultTurn.id,messageId:'t1',role:'assistant',ordinal:1,fingerprint:poorFingerprint,score:ProjectConstellationBrainCore.turnRichnessScore(poorVaultTurn),textLength:poorVaultTurn.text.length,excerpt:poorVaultTurn.text,links:[],assets:[],codeBlocks:0}]});
+      const outputVault=await __pcSend({type:'PC_OUTPUT_COMPARE',chatId:'chatgpt:test',offset:0,limit:120});
+      const outputRevisions=await __pcSend({type:'PC_OUTPUT_TURN_REVISIONS',turnId:'chatgpt:test:t1'});
+      const outputCanonical=structuredClone(__pcDbStores.get('turns').rows.get('chatgpt:test:t1'));
       const group=await __pcSend({type:'PC_ORG_GROUP_CREATE',input:{name:'Modding',icon:'M'}});
       const project=await __pcSend({type:'PC_ORG_PROJECT_CREATE',input:{name:'Minecraft Mods',groupId:group.item.id,icon:'C',description:'All Minecraft mod repairs'}});
       await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[
@@ -150,15 +160,24 @@ with sync_playwright() as p:
       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
-      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
+      return {ingest,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
     }""")
     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
     assert result['ingest']['ok']
-    assert result['summary']['chats']==5 and result['summary']['turns']==3 and result['summary']['files']==3
+    assert result['outputObserve']['regression']['active'] is True and len(result['outputObserve']['regression']['changedTurns'])==1
+    assert 'Final production result' in result['outputCanonical']['text'] and result['outputCanonical']['lastObservedFingerprint']!=result['outputCanonical']['bestRevisionFingerprint']
+    assert result['outputCanonical']['assets'][0]['url']=='https://example.com/constellation-result.png'
+    assert result['outputCanonical']['formattedText'].startswith('## Final production result')
+    assert len(result['outputRevisions']['revisions'])>=3
+    assert result['outputVault']['regression']['active'] is True and result['outputVault']['items'][-1]['affected'] is True
+    assert result['outputVault']['items'][-1]['assets'][0]['embeddedDataUrl'].startswith('data:image/png;base64,')
+    assert 'Project-Constellation-v0.14.0.zip' in result['outputVault']['markdown'] and 'constellation-result.png' in result['outputVault']['markdown'] and '**every requested fix**' in result['outputVault']['markdown']
+    assert result['snapshot']['summary']['turnRevisions']>=3 and result['snapshot']['summary']['outputSnapshots']>=1
+    assert result['summary']['chats']==5 and result['summary']['turns']==3 and result['summary']['files']==4
     assert result['summary']['searchDocs']>=4
     assert any(r['chatId']=='chatgpt:test' for r in result['search'])
     assert result['org']['projects'][0]['name']=='Minecraft Mods'
-    assert result['org']['projects'][0]['chatCount']==3 and result['org']['projects'][0]['fileCount']==3
+    assert result['org']['projects'][0]['chatCount']==3 and result['org']['projects'][0]['fileCount']==4
     assert result['orgChats'][0]['workspaceProjectName']=='Minecraft Mods'
     assert 'minecraft' in result['orgChats'][0]['tags'] and result['orgChats'][0]['pinned'] and result['orgChats'][0]['favorite']
     assert any(row['id']=='chatgpt:test' for row in result['pinnedChats'])

@@ -28,7 +28,7 @@ After reload:
 2. Open **Accounts & Connections** and verify provider sessions.
 3. Reconnect Google/GitHub only if verification reports authorization missing/expired.
 4. Run **Round-trip verify** for Drive.
-5. Open an existing ChatGPT chat and confirm the Execution Pulse appears.
+5. Open an existing ChatGPT chat and confirm Execution Pulse plus its permanent **⇄ Output Vault** control appear.
 
 ## Development install
 
