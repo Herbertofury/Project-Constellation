@@ -3,7 +3,7 @@
 
   const PROVIDERS = Object.freeze([
     {
-      id: 'chatgpt', name: 'ChatGPT', home: 'https://chatgpt.com/', login: 'https://chatgpt.com/', connection: { type: 'browser-session', historyAccess: 'browser-session+export', oauthHistory: false }, hosts: ['chatgpt.com', 'chat.openai.com'],
+      id: 'chatgpt', name: 'ChatGPT', home: 'https://chatgpt.com/', login: 'https://chatgpt.com/', guestAccess: true, connection: { type: 'browser-session', historyAccess: 'browser-session+export', oauthHistory: false }, hosts: ['chatgpt.com', 'chat.openai.com'],
       chatPatterns: [/\/c\/([a-zA-Z0-9-]+)/, /\/share\/([a-zA-Z0-9-]+)/],
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'chatgpt-data-export', officialHistoryApi: false, manualFullCapture: true }
     },
@@ -18,7 +18,7 @@
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'google-takeout', officialHistoryApi: false, manualFullCapture: true }
     },
     {
-      id: 'grok', name: 'Grok', home: 'https://grok.com/', login: 'https://grok.com/', connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['grok.com'],
+      id: 'grok', name: 'Grok', home: 'https://grok.com/', login: 'https://grok.com/', guestAccess: true, connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['grok.com'],
       chatPatterns: [/\/(?:c|chat|conversation)\/([a-zA-Z0-9_-]+)/],
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
     },
@@ -28,12 +28,12 @@
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
     },
     {
-      id: 'perplexity', name: 'Perplexity', home: 'https://www.perplexity.ai/', login: 'https://www.perplexity.ai/', connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['perplexity.ai', 'www.perplexity.ai'],
+      id: 'perplexity', name: 'Perplexity', home: 'https://www.perplexity.ai/', login: 'https://www.perplexity.ai/', guestAccess: true, connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['perplexity.ai', 'www.perplexity.ai'],
       chatPatterns: [/\/(?:search|page)\/([^/?#]+)/],
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
     },
     {
-      id: 'copilot', name: 'Microsoft Copilot', home: 'https://copilot.microsoft.com/', login: 'https://copilot.microsoft.com/', connection: { type: 'browser-session', historyAccess: 'browser-session+account-export', oauthHistory: false }, hosts: ['copilot.microsoft.com'],
+      id: 'copilot', name: 'Microsoft Copilot', home: 'https://copilot.microsoft.com/', login: 'https://copilot.microsoft.com/', guestAccess: true, connection: { type: 'browser-session', historyAccess: 'browser-session+account-export', oauthHistory: false }, hosts: ['copilot.microsoft.com'],
       chatPatterns: [/\/(?:chats?|conversation)\/([a-zA-Z0-9_-]+)/],
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'microsoft-account-export', officialHistoryApi: false, manualFullCapture: true }
     },
@@ -46,6 +46,46 @@
       id: 'poe', name: 'Poe', home: 'https://poe.com/', login: 'https://poe.com/', connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['poe.com'],
       chatPatterns: [/\/chat\/([a-zA-Z0-9_-]+)/],
       catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'metaai', name: 'Meta AI', home: 'https://www.meta.ai/', login: 'https://www.meta.ai/', connection: { type: 'browser-session', historyAccess: 'browser-session+account-export', oauthHistory: false }, hosts: ['meta.ai', 'www.meta.ai'],
+      chatPatterns: [/\/(?:chat|conversation|prompt)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: false, livePassive: true, exportImport: 'meta-account-export', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'qwen', name: 'Qwen Chat', home: 'https://chat.qwen.ai/', login: 'https://chat.qwen.ai/', guestAccess: true, connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['chat.qwen.ai'],
+      chatPatterns: [/\/(?:c|chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'kimi', name: 'Kimi', home: 'https://www.kimi.com/', login: 'https://www.kimi.com/', connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['kimi.com', 'www.kimi.com'],
+      chatPatterns: [/\/(?:chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'characterai', name: 'Character.AI', home: 'https://character.ai/', login: 'https://character.ai/', connection: { type: 'browser-session', historyAccess: 'browser-session+account-export', oauthHistory: false }, hosts: ['character.ai', 'www.character.ai'],
+      chatPatterns: [/\/(?:chat|chats|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: false, livePassive: true, exportImport: 'account-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'huggingchat', name: 'HuggingChat', home: 'https://huggingface.co/chat/', login: 'https://huggingface.co/chat/', connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['huggingface.co'],
+      chatPatterns: [/\/chat\/(?:conversation\/)?([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'huggingface-account-export', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'you', name: 'You.com Chat', home: 'https://you.com/chat', login: 'https://you.com/signin?redirectUrl=/chat', connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['you.com', 'www.you.com'],
+      chatPatterns: [/\/(?:chat|search|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'pi', name: 'Pi', home: 'https://pi.ai/', login: 'https://pi.ai/', guestAccess: true, connection: { type: 'browser-session', historyAccess: 'browser-session', oauthHistory: false }, hosts: ['pi.ai', 'www.pi.ai'],
+      chatPatterns: [/\/(?:talk|chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: false, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'duckai', name: 'Duck.ai', home: 'https://duck.ai/', login: 'https://duck.ai/', guestOnly: true, connection: { type: 'local-browser-session', historyAccess: 'browser-session-local', oauthHistory: false }, hosts: ['duck.ai'],
+      chatPatterns: [/\/(?:chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: false, backgroundHtml: false, livePassive: true, exportImport: 'none', officialHistoryApi: false, manualFullCapture: true }
     }
   ]);
 

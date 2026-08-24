@@ -36,7 +36,20 @@
     "https://www.perplexity.ai/*",
     "https://copilot.microsoft.com/*",
     "https://chat.mistral.ai/*",
-    "https://poe.com/*"
+    "https://poe.com/*",
+    "https://meta.ai/*",
+    "https://www.meta.ai/*",
+    "https://chat.qwen.ai/*",
+    "https://kimi.com/*",
+    "https://www.kimi.com/*",
+    "https://character.ai/*",
+    "https://www.character.ai/*",
+    "https://huggingface.co/*",
+    "https://you.com/*",
+    "https://www.you.com/*",
+    "https://pi.ai/*",
+    "https://www.pi.ai/*",
+    "https://duck.ai/*"
   ],
   "oauth2": {
     "client_id": "PROJECT_CONSTELLATION_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
@@ -68,7 +81,20 @@
         "https://www.perplexity.ai/*",
         "https://copilot.microsoft.com/*",
         "https://chat.mistral.ai/*",
-        "https://poe.com/*"
+        "https://poe.com/*",
+        "https://meta.ai/*",
+        "https://www.meta.ai/*",
+        "https://chat.qwen.ai/*",
+        "https://kimi.com/*",
+        "https://www.kimi.com/*",
+        "https://character.ai/*",
+        "https://www.character.ai/*",
+        "https://huggingface.co/chat/*",
+        "https://you.com/*",
+        "https://www.you.com/*",
+        "https://pi.ai/*",
+        "https://www.pi.ai/*",
+        "https://duck.ai/*"
       ],
       "js": [
         "src/core.js",

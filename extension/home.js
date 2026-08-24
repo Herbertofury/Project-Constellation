@@ -367,7 +367,7 @@
     if(approvalRecoveryPoll){clearTimeout(approvalRecoveryPoll);approvalRecoveryPoll=0;}if(running)approvalRecoveryPoll=setTimeout(()=>loadHome().catch(()=>{}),1100);
   }
 
-  function connectionStateClass(state) { return state === 'connected' ? 'connected' : state === 'login-required' || state === 'setup-required' ? 'required' : state === 'error' ? 'error' : ''; }
+  function connectionStateClass(state) { return state === 'connected' ? 'connected' : state === 'guest' ? 'guest' : state === 'login-required' || state === 'setup-required' ? 'required' : state === 'error' ? 'error' : ''; }
 
   function renderConnections(){
     const data=connections||{}; const google=data.google||{}; const github=data.github||{}; const rows=data.providers||[];
@@ -391,13 +391,14 @@
     $('disconnectGithubAccount').disabled=!github.connected;
     if(github.pending?.userCode){$('githubOauthFlow').classList.remove('hidden');$('githubUserCode').textContent=github.pending.userCode;githubVerificationUrl=github.pending.verificationUri||githubVerificationUrl;}else{$('githubOauthFlow').classList.add('hidden');}
 
-    const connectedCount=rows.filter((r)=>r.state==='connected').length;
-    $('connectionSummary').textContent=`${connectedCount}/${rows.length} AI browser sessions confirmed · Google ${gState} · GitHub ${github.connected?'connected':'not connected'}`;
+    const connectedCount=rows.filter((r)=>r.state==='connected').length; const guestCount=rows.filter((r)=>r.state==='guest').length;
+    $('connectionSummary').textContent=`${connectedCount}/${rows.length} signed-in AI sessions confirmed${guestCount?` · ${guestCount} guest-ready`:''} · Google ${gState} · GitHub ${github.connected?'connected':'not connected'}`;
     const rowMap=new Map(rows.map((r)=>[r.providerId,r]));
     $('providerConnections').innerHTML=providers.map((provider)=>{
       const s=rowMap.get(provider.id)||{state:'unknown',source:'none'};
-      const label=s.state==='connected'?'CONNECTED':s.state==='login-required'?'SIGN IN REQUIRED':'CHECK SESSION';
-      return `<article class="provider-connection"><div class="provider-title"><h3>${esc(provider.name)}</h3><span class="connection-badge ${connectionStateClass(s.state)}">${label}</span></div><p>${esc(provider.connection?.historyAccess||'browser-session')} · ${s.source==='open-tab'?'verified from an open signed-in tab':s.source==='background-html'?'verified from authenticated background response':'session not verified yet'}.</p><div class="button-row"><button data-provider-login="${esc(provider.id)}">${s.state==='connected'?'Open':'Sign in / Open'}</button><button data-provider-check="${esc(provider.id)}">Check</button><button data-provider-capture="${esc(provider.id)}" ${s.state==='login-required'?'disabled':''}>Capture</button></div></article>`;
+      const label=s.state==='connected'?'SIGNED IN':s.state==='guest'?'GUEST READY':s.state==='login-required'?'SIGN IN REQUIRED':'CHECK SESSION';
+      const detail=s.state==='guest'?'open tab is usable without an authenticated account':s.source==='open-tab'?'verified from an open signed-in tab':s.source==='background-html'?'verified from authenticated background response':'session not verified yet';
+      return `<article class="provider-connection"><div class="provider-title"><h3>${esc(provider.name)}</h3><span class="connection-badge ${connectionStateClass(s.state)}">${label}</span></div><p>${esc(provider.connection?.historyAccess||'browser-session')} · ${detail}.</p><div class="button-row"><button data-provider-login="${esc(provider.id)}">${s.state==='connected'||s.state==='guest'?'Open':'Sign in / Open'}</button><button data-provider-check="${esc(provider.id)}">Check</button><button data-provider-capture="${esc(provider.id)}" ${s.state==='login-required'?'disabled':''}>Capture</button></div></article>`;
     }).join('');
   }
 

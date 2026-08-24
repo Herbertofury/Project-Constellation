@@ -14,7 +14,7 @@ The v0.14 line is the standalone successor to v0.13.0. This repository is now th
 - Optionally mirrors snapshots to a selected GitHub repository.
 - Uses a restrained purple-and-blue night-sky interface with reduced-motion and constrained-device fallbacks.
 
-Supported surfaces currently include ChatGPT, Claude, Gemini, Grok, DeepSeek, Perplexity, Microsoft Copilot, Le Chat, and Poe. Provider sessions remain browser-session based; Constellation does not invent unsupported provider APIs.
+Supported surfaces currently include ChatGPT, Claude, Gemini, Grok, DeepSeek, Perplexity, Microsoft Copilot, Le Chat, Poe, Meta AI, Qwen Chat, Kimi, Character.AI, HuggingChat, You.com Chat, Pi, and Duck.ai. Provider sessions remain browser-session based; Constellation distinguishes signed-in, guest-ready, sign-in-required, and unverified states instead of inventing unsupported provider APIs.
 
 ## Install
 
@@ -87,6 +87,7 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 - [Installation](docs/INSTALLATION.md)
 - [Features](docs/FEATURES.md)
 - [OAuth and providers](docs/OAUTH.md)
+- [AI provider support](docs/PROVIDERS.md)
 - [ChatGPT compatibility](docs/CHATGPT-COMPATIBILITY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Performance](docs/PERFORMANCE.md)
@@ -99,6 +100,6 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 
 ## Verification status
 
-The repository runs six deterministic core suites, sixteen browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
+The repository runs six deterministic core suites, seventeen browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).

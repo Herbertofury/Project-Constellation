@@ -76,7 +76,7 @@
   function currentChatId() {
     const routed = providers.chatIdFromUrl(location.href, provider.id);
     if (routed) return routed;
-    const hasConversation = Boolean(document.querySelector?.('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id]'));
+    const hasConversation = turnNodes(document).length > 0;
     if (hasConversation) {
       if (!transientChatId) transientChatId = `${provider.id}:session:${hashText(`${Date.now()}|${Math.random()}|${document.title}`)}`;
       return transientChatId;
@@ -198,14 +198,15 @@
   }
 
   function roleForTurn(node) {
-    const direct = node.getAttribute?.('data-message-author-role') || node.getAttribute?.('data-author');
+    const direct = node.getAttribute?.('data-message-author-role') || node.getAttribute?.('data-author') || node.getAttribute?.('data-role');
     if (direct) return direct;
     const nested = node.querySelector?.('[data-message-author-role],[data-author]');
     const nestedRole = nested?.getAttribute('data-message-author-role') || nested?.getAttribute('data-author');
     if (nestedRole) return nestedRole;
-    const label = `${node.getAttribute?.('data-testid') || ''} ${node.getAttribute?.('aria-label') || ''}`;
-    if (/user|human|prompt/i.test(label)) return 'user';
+    const label = `${node.getAttribute?.('data-testid') || ''} ${node.getAttribute?.('aria-label') || ''} ${node.getAttribute?.('data-role') || ''} ${typeof node.className === 'string' ? node.className : ''}`.trim();
+    if (/user|human|prompt/i.test(label) || /^(you|me)$/i.test(label)) return 'user';
     if (/assistant|ai|bot|response/i.test(label)) return 'assistant';
+    if (provider.name && label.toLowerCase().includes(provider.name.toLowerCase())) return 'assistant';
     return 'unknown';
   }
 
@@ -221,8 +222,18 @@
     const selectorsByProvider = {
       claude: '[data-testid*="user-message" i],[data-testid*="assistant-message" i],[data-is-streaming],article[data-testid*="conversation" i]',
       gemini: 'user-query,model-response,[data-test-id*="response" i],[data-message-id]',
+      grok: '[data-testid="user-message"],[data-testid="assistant-message"],[data-testid="response-message"],[role="article"][aria-label]',
+      deepseek: '[data-message-id],[data-role="user"],[data-role="assistant"],[data-testid*="message" i],[role="article"][aria-label]',
       copilot: '[data-content="user-message"],[data-content="ai-message"],[data-message-id]',
-      poe: '[data-message-id],[class*="Message_row" i]'
+      poe: '[data-message-id],[class*="Message_row" i]',
+      metaai: '[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]',
+      qwen: '.qwen-chat-message-user,.qwen-chat-message-assistant,[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]',
+      kimi: '[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]',
+      characterai: '[data-message-id],[data-testid*="message" i],[data-author],[role="article"][aria-label]',
+      huggingchat: '[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]',
+      you: '[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]',
+      pi: '[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]',
+      duckai: '[data-message-id],[data-testid*="message" i],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]'
     };
     const selector = selectorsByProvider[provider.id] || '[data-message-id],[data-author],article[data-testid*="conversation" i]';
     return nodesWithin(scope, selector);
@@ -1024,7 +1035,7 @@
     const chatRoute = providers.isLikelyChatUrl(location.href, provider.id);
     const chatLinks = collectChatLinks(document).length;
     const connectedSignal = Boolean(composer || chatRoute || chatLinks > 0);
-    const state = connectedSignal ? 'connected' : loginSignal ? 'login-required' : 'unknown';
+    const state = connectedSignal && provider.guestOnly ? 'guest' : connectedSignal && loginSignal ? (provider.guestAccess ? 'guest' : 'login-required') : connectedSignal ? 'connected' : loginSignal ? 'login-required' : 'unknown';
     return { ok: true, state, providerId: provider.id, name: provider.name, url: location.href, title: document.title || provider.name, chatLinks, composer: Boolean(composer), loginSignal, checkedAt: Date.now() };
   }
 

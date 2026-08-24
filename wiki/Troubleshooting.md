@@ -14,7 +14,7 @@ Confirm device flow is enabled on the GitHub OAuth App and the client ID is corr
 
 Open the exact conversation and verify Constellation is enabled in the popup. Reload the extension and page after an update. Current ChatGPT turns should expose `conversation-turn-*` or `data-message-author-role`/`data-message-id`. Root anonymous conversations are session-only and will not have a reopenable `/c/` URL.
 
-If ChatGPT changed markup, follow [ChatGPT compatibility](CHATGPT-COMPATIBILITY.md) and add a sanitized regression fixture before changing selectors.
+If ChatGPT changed markup, follow [ChatGPT compatibility](ChatGPT-Integration) and add a sanitized regression fixture before changing selectors.
 
 ## HUD says stale or degraded
 
@@ -34,4 +34,4 @@ This is intentional for production. Use `npm run build:dev` for credential-free 
 
 ## Reset/recover
 
-Before clearing anything, export the local brain or complete Drive round-trip verification. See [Recovery](RECOVERY.md). Removing the extension may delete browser storage.
+Before clearing anything, export the local brain or complete Drive round-trip verification. See [Recovery](Recovery). Removing the extension may delete browser storage.

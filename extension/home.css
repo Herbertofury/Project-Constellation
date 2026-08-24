@@ -160,3 +160,4 @@ body[data-theme="light"] .workspace::before{opacity:.07}body[data-atmosphere="st
 .primary-link,.brand-star,.window-brand strong{filter:drop-shadow(0 0 12px color-mix(in srgb,var(--accent) 20%,transparent))}
 @keyframes pc-star-drift{to{transform:translate3d(26px,-34px,0)}}
 @media(prefers-reduced-motion:reduce){.workspace::before{animation:none!important;will-change:auto!important}}
+.connection-badge.guest{color:#a9d5ff;border-color:#345b84}

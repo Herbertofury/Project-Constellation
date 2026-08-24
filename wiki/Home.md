@@ -8,6 +8,7 @@ Version **0.14.0 “Nightfall”** is the production upgrade from the canonical 
 
 - [Install Project Constellation](Installation)
 - [Configure Google Drive and GitHub](OAuth-and-Provider-Setup)
+- [Review AI provider support](AI-Provider-Support)
 - [Understand the features](Features)
 - [Troubleshoot a problem](Troubleshooting)
 - [Recover or restore data](Recovery)
@@ -17,6 +18,7 @@ Version **0.14.0 “Nightfall”** is the production upgrade from the canonical 
 - [Architecture](Architecture)
 - [Folder structure](Folder-Structure)
 - [ChatGPT integration](ChatGPT-Integration)
+- [AI provider support](AI-Provider-Support)
 - [Performance behavior](Performance)
 - [Development and building](Development-and-Building)
 - [Updating](Updating)
@@ -24,4 +26,3 @@ Version **0.14.0 “Nightfall”** is the production upgrade from the canonical 
 - [Contributor and agent continuation](Contributor-and-Agent-Continuation)
 
 The canonical source is [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation). ProjectDump is retained only as historical provenance; Project Constellation no longer depends on it.
-

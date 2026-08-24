@@ -34,4 +34,4 @@ Browsers throttle hidden/minimized pages, which made deep capture unreliable. Th
 
 ## Where should future agents start?
 
-Read `AGENTS.md`, [Continuation](CONTINUATION.md), the latest release receipt, and `brain/v0.13.0/COMPASS.json`, then run `npm run verify` before changing state.
+Read [AGENTS.md](https://github.com/Herbertofury/Project-Constellation/blob/main/AGENTS.md), [Contributor continuation](Contributor-and-Agent-Continuation), the latest release receipt, and [`brain/v0.13.0/COMPASS.json`](https://github.com/Herbertofury/Project-Constellation/blob/main/brain/v0.13.0/COMPASS.json), then run `npm run verify` before changing state.

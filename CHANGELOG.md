@@ -6,6 +6,7 @@ All notable Project Constellation changes are recorded here.
 
 ### Added
 
+- Truthful browser-session coverage for 17 common AI chat sites, including Meta AI, Qwen Chat, Kimi, Character.AI, HuggingChat, You.com Chat, Pi, and Duck.ai; anonymous guest sessions are kept distinct from authenticated accounts.
 - Standalone canonical repository and professional source/build/release/docs/recovery layout.
 - Cohesive purple-and-blue night-sky identity across Home, popup, side panel, and Execution Pulse.
 - Sparse GPU-composited starfield with reduced-motion and constrained-device fallbacks.

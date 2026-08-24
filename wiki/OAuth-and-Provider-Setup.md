@@ -36,7 +36,9 @@ For least privilege, choose a dedicated repository mirror. The `repo` scope is r
 
 ## AI providers
 
-ChatGPT, Claude, Gemini, Grok, DeepSeek, Perplexity, Copilot, Le Chat, and Poe use the browser’s existing authenticated web session. Constellation does not collect their passwords and does not claim unsupported OAuth/history APIs. Session checks prefer already-open tabs and perform network checks only when explicitly requested.
+ChatGPT, Claude, Gemini, Grok, DeepSeek, Perplexity, Copilot, Le Chat, Poe, Meta AI, Qwen Chat, Kimi, Character.AI, HuggingChat, You.com Chat, Pi, and Duck.ai use the browser’s existing web session. Constellation does not collect their passwords and does not claim unsupported OAuth/history APIs. Session checks prefer already-open tabs, distinguish signed-in sessions from usable guest sessions, and perform network checks only when explicitly requested.
+
+An AI service’s own “Continue with Google/Apple/Microsoft” login button authenticates the user to that service; it is not an OAuth integration granted to Project Constellation. Provider API keys are likewise separate developer credentials and are intentionally not requested or stored by this browser-session capture architecture. See [AI provider support](AI-Provider-Support) for the verified capability boundary.
 
 ## Build configuration
 

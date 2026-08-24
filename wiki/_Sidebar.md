@@ -3,6 +3,7 @@
 - [Home](Home)
 - [Installation](Installation)
 - [OAuth & provider setup](OAuth-and-Provider-Setup)
+- [AI provider support](AI-Provider-Support)
 - [Features](Features)
 - [ChatGPT integration](ChatGPT-Integration)
 - [Architecture](Architecture)
@@ -15,4 +16,3 @@
 - [Security & privacy](Security-and-Privacy)
 - [FAQ](FAQ)
 - [Contributor continuation](Contributor-and-Agent-Continuation)
-
