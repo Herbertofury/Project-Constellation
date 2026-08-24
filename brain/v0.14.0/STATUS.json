@@ -7,6 +7,7 @@
     "cohesive midnight, violet, and electric-blue UI system with a restrained GPU-friendly starfield, reduced-motion behavior, and constrained-device fallback",
     "current ChatGPT DOM compatibility coverage plus bounded mutation work, idle scheduling, visibility-aware health observation, and cached service-worker health context",
     "truthful expanded Execution Pulse with current ChatGPT agent-step labels, observable-now detail, proof confidence, bounded local activity ledger, sanitized request lifecycle, agent-bearing versus auxiliary traffic separation, and no hidden-reasoning claims",
+    "always-available Branch & continue with durable checkpoints, native-composer transfer, observable send confirmation, parent-child lineage, capacity-aware urgency, and non-destructive prefilled/copied fallbacks",
     "provider-page QoL performance repair with coalesced semantic upserts, pressure-aware bounded capture, non-buffered long-task observation, change-gated HUD rendering, storage-write suppression during recovery ticks, and automatic decorative-only pressure relief",
     "truthful provider adapters for ChatGPT, Claude, Gemini, Grok, DeepSeek, Perplexity, Copilot, Le Chat, Poe, Meta AI, Qwen, Kimi, Character.AI, HuggingChat, You.com, Pi, and Duck.ai",
     "Google Chrome Identity OAuth using drive.file, granted-scope checks, account verification, cached-token eviction, and one safe 401 retry",
@@ -19,8 +20,8 @@
   "verified": [
     "six deterministic core suites pass",
     "static validation, UI ownership, and 50-message contract validation pass",
-    "17 browser workflows pass, including service-worker load, OAuth backend behavior, current ChatGPT DOM, provider matrix, 320-turn preservation, Full Capture, Home, Recovery, and Workbench",
-    "Execution Pulse browser coverage verifies current tertiary/loading-shimmer agent steps, expanded-by-default compact HUD, evidence sources, request lifecycle privacy, tool-running/quiet/stalled transitions, safe handoff, and stale-page refresh recovery",
+    "18 browser workflows pass, including service-worker load, OAuth backend behavior, current ChatGPT DOM, branch continuation, provider matrix, 320-turn preservation, Full Capture, Home, Recovery, and Workbench",
+    "Execution Pulse browser coverage verifies current tertiary/loading-shimmer agent steps, expanded-by-default compact HUD, evidence sources, request lifecycle privacy, tool-running/quiet/stalled transitions, always-present early branching, capacity urgency, safe handoff, and stale-page refresh recovery",
     "performance coverage preserves 320 turns and native controls through a 120-node stream burst, coalesces the burst to one runtime message, applies pressure relief only to decorative aria-hidden effects, and proves chat-history traffic cannot fake model activity",
     "browser-accurate IndexedDB regression coverage upgrades legacy v8 flag indexes and records, rejects boolean key ranges, and passes pinned, favorite, archive, concurrent settings, verified counts, and post-save Home summary workflows",
     "canonical local main and origin/main match and GitHub Verify succeeds on the same commit",
@@ -41,5 +42,5 @@
     "client_secrets_required": false,
     "real_signed_in_acceptance_complete": false
   },
-  "updated_at": "2026-08-24T20:41:54Z"
+  "updated_at": "2026-08-24T21:06:30Z"
 }

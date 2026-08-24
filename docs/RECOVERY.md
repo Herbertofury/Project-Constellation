@@ -16,6 +16,8 @@ Drive restore validates metadata size, downloads bytes, checks SHA-256 when pres
 
 Execution Pulse’s Secure Handoff creates a local checkpoint and copies bounded Markdown containing the latest project/chat continuity. When Drive is available, it attempts a verified sync and reports whether remote verification succeeded; local checkpoint success is not misreported as Drive success.
 
+Execution Pulse’s always-present **Branch & continue** action builds that checkpoint on demand, opens the provider's normal new-chat page, transfers the bounded continuation through the visible native composer, and records parent/child/checkpoint lineage after the provider assigns a new chat ID. It never writes over existing composer text. If the provider changes its composer or send control, Constellation leaves the handoff visibly prefilled or copies it for manual paste and labels the outcome honestly; the original checkpoint remains recoverable.
+
 ## Repository recovery assets
 
 - `releases/v0.13.0/` contains the original v0.13 receipts/evidence.

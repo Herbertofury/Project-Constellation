@@ -4,6 +4,7 @@
     "Project Constellation is a standalone, recoverable product with one canonical local workspace and one canonical GitHub repository",
     "performance work is bounded, visibility-aware, idle-scheduled, and never adds provider-page network traffic",
     "execution reporting names only observable browser activity, distinguishes agent-bearing work from ordinary site traffic, and never invents hidden reasoning or fake-success health",
+    "conversation continuation is user-triggered, checkpointed, non-destructive, lineage-preserving, and available before provider capacity becomes an emergency",
     "provider support is truthful, selector-resilient, permission-minimal, and tested against current public site behavior",
     "OAuth is explicit, refresh-safe, least-privilege, secret-free in source, and never reports success before account verification",
     "local storage, Google Drive continuity, GitHub backup, recovery, and upgrade paths preserve exact source lineage",

@@ -21,6 +21,8 @@ The selector strategy prefers top-level conversation-turn containers, then falls
 
 The content script makes no network calls, does not patch ChatGPT JavaScript, does not remove messages, and does not depend on undocumented ChatGPT backend APIs. It cannot see private chain-of-thought and never pretends otherwise. Request URLs and prompt content are not placed in the HUD ledger; only a sanitized category, lifecycle phase, method/status, and duration are exposed. History/sidebar/session traffic is auxiliary and cannot prove that the model is alive.
 
+The Pulse's **Branch & continue** control uses only an explicit user click, the normal ChatGPT new-chat route, and the visible native composer. It waits for the usable composer/send control, dispatches native input events, confirms a send from observable composer/route changes, and then links the resulting chat ID to the source checkpoint. It does not call a hidden conversation API, overwrite existing draft text, or claim success from a click alone.
+
 ## Approval and recovery
 
 Approval Recovery searches accessible dialogs/menus for connected-app approval semantics. Always-allow behavior is disabled until the user explicitly acknowledges its risk. Delivery failures request a controlled browser refresh; Constellation never loops on ChatGPT’s Retry button. Rate-limit signals enter the provider request governor and stop Constellation-originated background work during cooldown.

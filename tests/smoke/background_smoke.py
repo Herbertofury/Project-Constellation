@@ -62,12 +62,12 @@ mock=f"""
    alarms:{{create:async()=>{{}},clear:async()=>true,onAlarm:{{addListener:(fn)=>listeners.alarm=fn}}}},
    sidePanel:{{setPanelBehavior:async()=>{{}}}},action:{{setBadgeText:async()=>{{}},setTitle:async()=>{{}}}},
    identity:{{getAuthToken:async()=>({{token:'test-token'}}),removeCachedAuthToken:async()=>{{}},clearAllCachedAuthTokens:async()=>{{}}}},
-   idle:{{queryState:async()=> 'idle'}},tabs:{{query:async()=>[],onRemoved:{{addListener:(fn)=>listeners.tabRemoved=fn}}}},downloads:{{}},
+   idle:{{queryState:async()=> 'idle'}},tabs:{{query:async()=>[],create:async(options)=>{{globalThis.__pcCreatedTabs.push(options);return {{id:88,...options}};}},onRemoved:{{addListener:(fn)=>listeners.tabRemoved=fn}}}},downloads:{{}},
    webRequest:{{onBeforeRequest:{{addListener:(fn)=>listeners.webBefore=fn}},onResponseStarted:{{addListener:(fn)=>listeners.webResponse=fn}},onCompleted:{{addListener:(fn)=>listeners.webComplete=fn}},onErrorOccurred:{{addListener:(fn)=>listeners.webError=fn}}}}
  }};
  globalThis.__pcFetchCount=0;
  globalThis.fetch=async(url)=>{{globalThis.__pcFetchCount++;return {{ok:false,status:429,url:String(url),headers:{{get:(name)=>String(name).toLowerCase()==='retry-after'?'120':String(name).toLowerCase()==='content-type'?'text/html':''}},text:async()=>''}};}};
- globalThis.__pcBag=bag; globalThis.__pcListeners=listeners; globalThis.__pcDbStores=dbStores;
+ globalThis.__pcBag=bag; globalThis.__pcListeners=listeners; globalThis.__pcDbStores=dbStores; globalThis.__pcCreatedTabs=[];
  globalThis.__pcSend=(message,sender={{}})=>new Promise((resolve,reject)=>{{try{{const keep=listeners.message(message,sender,resolve);if(!keep&&keep!==true)setTimeout(()=>resolve(undefined),0);}}catch(e){{reject(e)}}}});
 }})();
 """
@@ -140,16 +140,21 @@ with sync_playwright() as p:
       __pcListeners.webComplete({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
       const healthQuiet=await __pcSend({type:'PC_LIVE_HEALTH_CONTEXT',chatId:'chatgpt:test'},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
       const handoff=await __pcSend({type:'PC_PREPARE_CHAT_HANDOFF',chatId:'chatgpt:test',url:'https://chatgpt.com/c/test',capacity:{turnCount:260,capturedChars:410000}},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
+      const branch=await __pcSend({type:'PC_BRANCH_CHAT',chatId:'chatgpt:test',url:'https://chatgpt.com/c/test',capacity:{turnCount:260,capturedChars:410000}},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
+      const wrongBranchClaim=await __pcSend({type:'PC_BRANCH_CONTINUATION_CLAIM',providerId:'chatgpt'},{tab:{id:77,url:'https://chatgpt.com/'}});
+      const branchClaim=await __pcSend({type:'PC_BRANCH_CONTINUATION_CLAIM',providerId:'chatgpt'},{tab:{id:88,url:'https://chatgpt.com/'}});
+      const branchComplete=await __pcSend({type:'PC_BRANCH_CONTINUATION_COMPLETE',branchId:branch.branchId,status:'sent'},{tab:{id:88,url:'https://chatgpt.com/'}});
+      const branchResolve=await __pcSend({type:'PC_BRANCH_LINEAGE_RESOLVE',chatId:'chatgpt:continued',url:'https://chatgpt.com/c/continued'},{tab:{id:88,url:'https://chatgpt.com/c/continued'}});
       await processKnowledgeWork(); await processKnowledgeWork();
       const knowledgeSummary=await __pcSend({type:'PC_KNOWLEDGE_SUMMARY',limit:30});
       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
-      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff};
+      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
     }""")
     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
     assert result['ingest']['ok']
-    assert result['summary']['chats']==4 and result['summary']['turns']==3 and result['summary']['files']==3
+    assert result['summary']['chats']==5 and result['summary']['turns']==3 and result['summary']['files']==3
     assert result['summary']['searchDocs']>=4
     assert any(r['chatId']=='chatgpt:test' for r in result['search'])
     assert result['org']['projects'][0]['name']=='Minecraft Mods'
@@ -192,5 +197,10 @@ with sync_playwright() as p:
     assert '# Project Constellation Safe Handoff' in result['handoff']['markdown'] and 'https://chatgpt.com/c/test' in result['handoff']['markdown']
     assert result['handoff']['drive']['verified'] is False and result['handoff']['capacity']['turnCount']==260
     assert any(row.get('kind')=='safe-chat-handoff' for row in result['snapshot']['checkpoints'])
+    assert result['branch']['ok'] and result['branch']['targetTabId']==88 and result['createdTabs'][-1]['url']=='https://chatgpt.com/'
+    assert result['wrongBranchClaim']['state']=='not-for-this-tab' and result['branchClaim']['ok'] and 'Continue this work as the direct continuation' in result['branchClaim']['prompt']
+    assert result['branchComplete']['status']=='sent' and result['branchResolve']['ok'] and result['branchResolve']['childChatId']=='chatgpt:continued'
+    assert result['branchParent']['branchChildChatId']=='chatgpt:continued' and result['branchChild']['branchParentChatId']=='chatgpt:test'
+    assert result['branchCheckpoint']['branchStatus']=='continued' and result['branchCheckpoint']['branchChatId']=='chatgpt:continued'
     assert not errors
     browser.close()

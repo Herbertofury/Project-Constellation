@@ -38,6 +38,8 @@ const KNOWLEDGE_INDEX_ALARM = 'project-constellation-knowledge-index';
 const KNOWLEDGE_BACKFILL_KEY = 'projectConstellationKnowledgeBackfill';
 const LIVE_HEALTH_CONTEXT_TTL_MS = 5000;
 const LIVE_NETWORK_TTL_MS = 10 * 60 * 1000;
+const BRANCH_CONTINUATION_KEY = 'projectConstellationPendingBranch';
+const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
 const liveNetworkByTab = new Map();
 const liveHealthContextCache = new Map();
 
@@ -3152,6 +3154,98 @@ async function prepareChatHandoff(chatId, input = {}) {
   return { ok: true, checkpointId, markdown, drive, capacity, sourceUrl: resolvedChat.url || String(input.url || '') };
 }
 
+function branchContinuationPrompt(markdown, sourceUrl = '', checkpointId = '') {
+  const raw = String(markdown || '').trim();
+  const max = 42000;
+  const bounded = raw.length <= max ? raw : `${raw.slice(0, 30000).trimEnd()}\n\n[Middle of handoff compacted by Project Constellation; durable checkpoint ${checkpointId} retains the complete captured index.]\n\n${raw.slice(-11000).trimStart()}`;
+  return [
+    'Continue this work as the direct continuation of my previous chat. Do not restart the project, discard established decisions, or merely summarize the handoff.',
+    'Use the Project Constellation checkpoint below as the working context. Briefly confirm the restored objective and exact next action, then continue the unfinished work immediately. Ask only if a genuinely blocking choice is missing.',
+    sourceUrl ? `Parent chat: ${sourceUrl}` : '',
+    checkpointId ? `Continuation checkpoint: ${checkpointId}` : '',
+    '', bounded
+  ].filter((line) => line !== '').join('\n') + '\n';
+}
+
+async function branchChat(chatId, input = {}, sender = {}) {
+  const handoff = await prepareChatHandoff(chatId, input);
+  const sourceChat = await getOne('chats', String(chatId || ''));
+  const providerId = sourceChat?.providerId || providers.detectProvider(input.url || sender?.tab?.url || '')?.id || '';
+  const provider = providers.byId[providerId];
+  if (!provider) throw new Error('Constellation could not identify the provider for this continuation.');
+  const now = Date.now();
+  const branchId = `branch:${handoff.checkpointId}`;
+  const pending = {
+    id:branchId, checkpointId:handoff.checkpointId, sourceChatId:String(chatId || ''), sourceUrl:handoff.sourceUrl || String(input.url || ''),
+    sourceTitle:sourceChat?.title || 'Previous chat', providerId, prompt:branchContinuationPrompt(handoff.markdown, handoff.sourceUrl, handoff.checkpointId),
+    createdAt:now, expiresAt:now + 15 * 60 * 1000, targetTabId:0, claimedAt:0
+  };
+  const area = transientStorage();
+  await area.set({ [BRANCH_CONTINUATION_KEY]: pending });
+  let tab;
+  try {
+    tab = await chrome.tabs.create({ url:provider.home, active:true, ...(Number(sender?.tab?.id) >= 0 ? { openerTabId:Number(sender.tab.id) } : {}) });
+  } catch (error) {
+    await area.remove(BRANCH_CONTINUATION_KEY);
+    throw error;
+  }
+  pending.targetTabId = Number(tab?.id || 0);
+  if (!Number.isInteger(pending.targetTabId) || pending.targetTabId <= 0) {
+    await area.remove(BRANCH_CONTINUATION_KEY);
+    throw new Error('The provider opened without a usable browser tab. Try Branch & continue again.');
+  }
+  await area.set({ [BRANCH_CONTINUATION_KEY]: pending });
+  await upsert('checkpoints', { id:handoff.checkpointId, branchId, branchStatus:'opened', branchTargetTabId:pending.targetTabId, branchOpenedAt:Date.now(), updatedAt:Date.now() });
+  await upsert('chats', { id:String(chatId || ''), branchCheckpointId:handoff.checkpointId, branchStatus:'opened', branchTargetTabId:pending.targetTabId, updatedAt:Date.now() });
+  await addEvent('chat-branch-opened', 'chat', String(chatId || ''), String(chatId || ''), { branchId, checkpointId:handoff.checkpointId, providerId, targetTabId:pending.targetTabId });
+  return { ok:true, branchId, checkpointId:handoff.checkpointId, targetTabId:pending.targetTabId, drive:handoff.drive, expiresAt:pending.expiresAt };
+}
+
+async function claimBranchContinuation(providerId, sender = {}) {
+  const area = transientStorage();
+  const pending = (await area.get(BRANCH_CONTINUATION_KEY))[BRANCH_CONTINUATION_KEY];
+  if (!pending) return { ok:false, state:'none' };
+  if (Date.now() >= Number(pending.expiresAt || 0)) { await area.remove(BRANCH_CONTINUATION_KEY); return { ok:false, state:'expired' }; }
+  const tabId = Number(sender?.tab?.id || 0);
+  if (!Number(pending.targetTabId || 0)) return { ok:false, state:'not-ready' };
+  if (String(pending.providerId || '') !== String(providerId || '') || Number(pending.targetTabId) !== tabId) return { ok:false, state:'not-for-this-tab' };
+  pending.claimedAt = Date.now(); pending.claimedTabId = tabId;
+  await area.set({ [BRANCH_CONTINUATION_KEY]: pending });
+  return { ok:true, state:'ready', branchId:pending.id, checkpointId:pending.checkpointId, sourceChatId:pending.sourceChatId, sourceTitle:pending.sourceTitle, sourceUrl:pending.sourceUrl, prompt:pending.prompt, expiresAt:pending.expiresAt };
+}
+
+async function completeBranchContinuation(message = {}, sender = {}) {
+  const area = transientStorage(); const stored = await area.get([BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]);
+  const pending = stored[BRANCH_CONTINUATION_KEY]; const tabId = Number(sender?.tab?.id || 0);
+  if (!pending || String(pending.id || '') !== String(message.branchId || '') || (Number(pending.targetTabId || 0) && Number(pending.targetTabId) !== tabId)) return { ok:false, state:'not-pending' };
+  const status = ['sent','prefilled','copied'].includes(String(message.status || '')) ? String(message.status) : 'failed';
+  await upsert('checkpoints', { id:pending.checkpointId, branchStatus:status, branchTargetTabId:tabId, branchTransferredAt:Date.now(), updatedAt:Date.now() });
+  await upsert('chats', { id:pending.sourceChatId, branchStatus:status, branchTargetTabId:tabId, updatedAt:Date.now() });
+  await addEvent('chat-branch-transfer', 'chat', pending.sourceChatId, pending.sourceChatId, { branchId:pending.id, checkpointId:pending.checkpointId, status, targetTabId:tabId });
+  if (status === 'failed') { pending.claimedAt = 0; await area.set({ [BRANCH_CONTINUATION_KEY]: pending }); return { ok:true, retryable:true }; }
+  const lineage = { ...(stored[BRANCH_LINEAGE_KEY] || {}) };
+  if (status === 'sent' || status === 'prefilled') lineage[String(tabId)] = { branchId:pending.id, checkpointId:pending.checkpointId, sourceChatId:pending.sourceChatId, sourceTitle:pending.sourceTitle, providerId:pending.providerId, createdAt:Date.now(), expiresAt:Date.now() + 60 * 60 * 1000 };
+  await area.set({ [BRANCH_LINEAGE_KEY]: lineage });
+  await area.remove(BRANCH_CONTINUATION_KEY);
+  return { ok:true, status };
+}
+
+async function resolveBranchLineage(message = {}, sender = {}) {
+  const childChatId = String(message.chatId || ''); const tabId = Number(sender?.tab?.id || 0);
+  if (!childChatId || childChatId.endsWith(':home') || !tabId) return { ok:false, state:'not-a-chat' };
+  const area = transientStorage(); const stored = await area.get(BRANCH_LINEAGE_KEY); const lineage = { ...(stored[BRANCH_LINEAGE_KEY] || {}) }; const row = lineage[String(tabId)];
+  if (!row || Date.now() >= Number(row.expiresAt || 0)) { if (row) { delete lineage[String(tabId)]; await area.set({ [BRANCH_LINEAGE_KEY]: lineage }); } return { ok:false, state:'none' }; }
+  if (childChatId === row.sourceChatId) return { ok:false, state:'same-chat' };
+  const parent = await getOne('chats', row.sourceChatId);
+  const now = Date.now();
+  await upsert('chats', { id:row.sourceChatId, branchStatus:'continued', branchChildChatId:childChatId, branchResolvedAt:now, updatedAt:now });
+  await upsert('chats', { id:childChatId, providerId:row.providerId || parent?.providerId || '', providerName:parent?.providerName || providers.byId[row.providerId]?.name || '', title:`Continuation of ${row.sourceTitle || parent?.title || 'previous chat'}`, url:String(message.url || sender?.tab?.url || ''), projectId:parent?.projectId || '', projectName:parent?.projectName || '', workspaceProjectId:parent?.workspaceProjectId || '', workspaceProjectName:parent?.workspaceProjectName || '', branchParentChatId:row.sourceChatId, branchCheckpointId:row.checkpointId, source:'constellation-branch', updatedAt:now });
+  await upsert('checkpoints', { id:row.checkpointId, branchStatus:'continued', branchChatId:childChatId, branchUrl:String(message.url || sender?.tab?.url || ''), updatedAt:now });
+  await addEvent('chat-branch-resolved', 'chat', childChatId, childChatId, { branchId:row.branchId, checkpointId:row.checkpointId, sourceChatId:row.sourceChatId, targetTabId:tabId });
+  delete lineage[String(tabId)]; await area.set({ [BRANCH_LINEAGE_KEY]: lineage }); liveHealthContextCache.delete(row.sourceChatId); liveHealthContextCache.delete(childChatId); await markDriveDirty();
+  return { ok:true, sourceChatId:row.sourceChatId, childChatId, checkpointId:row.checkpointId };
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     switch (message?.type) {
@@ -3244,6 +3338,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_REFRESH_RECOVERY_REQUEST': return recoverTabByRefresh(sender?.tab?.id, message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', 'chatgpt'), message.url || sender?.tab?.url || '', message.detail || '', 'live-content');
       case 'PC_REFRESH_RECOVERY_STATUS': return { ok: true, state: publicRefreshRecoveryState(await refreshRecoveryState()) };
       case 'PC_PREPARE_CHAT_HANDOFF': return prepareChatHandoff(message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt'), { url: message.url || sender?.tab?.url || '', capacity: message.capacity || {} });
+      case 'PC_BRANCH_CHAT': return branchChat(message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt'), { url:message.url || sender?.tab?.url || '', capacity:message.capacity || {} }, sender);
+      case 'PC_BRANCH_CONTINUATION_CLAIM': return claimBranchContinuation(message.providerId || providers.detectProvider(sender?.tab?.url || message.url || '')?.id || '', sender);
+      case 'PC_BRANCH_CONTINUATION_COMPLETE': return completeBranchContinuation(message, sender);
+      case 'PC_BRANCH_LINEAGE_RESOLVE': return resolveBranchLineage(message, sender);
       case 'PC_OPEN_CONSTELLATION_PAGE': {
         const allowedViews = new Set(['overview','search','knowledge','projects','chats','files','integrity','attention','connections','sources','durability']);
         const view = allowedViews.has(String(message.view || '')) ? String(message.view) : 'overview';
@@ -3256,7 +3354,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_INTEGRITY_SCAN': return runProjectIntegrityScan({ projectIds: Array.isArray(message.projectIds) ? message.projectIds : [], force: message.force !== false });
       case 'PC_INTEGRITY_STATUS': return { ok: true, integrity: await integritySummary() };
       case 'PC_REQUEST_GOVERNOR_STATUS': return { ok: true, requestGovernor: publicRequestGovernor(await requestGovernorState()) };
-      case 'PC_BRAIN_CLEAR': await deleteAllStores(); await chrome.storage.local.remove([CATALOG_STATE_KEY, FULL_CAPTURE_STATE_KEY, APPROVAL_RECOVERY_STATE_KEY, REFRESH_RECOVERY_KEY, REQUEST_GOVERNOR_KEY, KNOWLEDGE_BACKFILL_KEY, DIRTY_KEY]); await chrome.alarms.clear(KNOWLEDGE_INDEX_ALARM).catch(() => {}); await updateAttentionBadge(); return { ok: true };
+      case 'PC_BRAIN_CLEAR': await deleteAllStores(); await chrome.storage.local.remove([CATALOG_STATE_KEY, FULL_CAPTURE_STATE_KEY, APPROVAL_RECOVERY_STATE_KEY, REFRESH_RECOVERY_KEY, REQUEST_GOVERNOR_KEY, KNOWLEDGE_BACKFILL_KEY, DIRTY_KEY, BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await transientStorage().remove([BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await chrome.alarms.clear(KNOWLEDGE_INDEX_ALARM).catch(() => {}); await updateAttentionBadge(); return { ok: true };
       default: return { ok: false, error: 'Unknown message' };
     }
   })().then(sendResponse).catch((error) => sendResponse({ ok: false, error: String(error?.message || error) }));

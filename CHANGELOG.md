@@ -15,6 +15,7 @@ All notable Project Constellation changes are recorded here.
 - GitHub OAuth refresh-token rotation and authenticated retry coverage.
 - Exact OAuth provisioning/acceptance and production release runbooks, a tracked non-secret environment template, and a public privacy policy.
 - An expanded Execution Pulse with a real-time **Observed now** card, bounded activity ledger, proof-source/confidence display, categorized provider-request lifecycle, and explicit response/tool/status/page events.
+- An always-present **Branch & continue** Pulse action that prepares a durable handoff, opens a fresh provider chat, transfers the continuation through the native composer, and links the new chat to its parent checkpoint. Capacity pressure changes its urgency, not its availability.
 
 ### Fixed
 
@@ -35,6 +36,7 @@ All notable Project Constellation changes are recorded here.
 - Release/update documentation now names the actual generated unpacked archive and validation prevents required OAuth/release support files from silently disappearing.
 - Current ChatGPT agent-step summaries and loading-shimmer activity are recognized directly, replacing vague generic `Called tool` reporting with the specific observable step label.
 - Ordinary chat-history, session, and sidebar traffic is separated from agent-bearing response/tool/search/file traffic, so background site requests cannot create a fake “chat is working” state or an alarming undifferentiated request count.
+- Continuation transfer never overwrites a nonempty composer or reports a send without observable confirmation; changed provider markup falls back to an honestly labeled prefilled or copied handoff.
 
 ### Performance
 

@@ -9,7 +9,8 @@ The v0.14 line is the standalone successor to v0.13.0. This repository is now th
 - Organizes chats, projects, groups, files, links, decisions, recommendations, and follow-ups across supported AI providers.
 - Preserves a local IndexedDB “brain,” full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.
-- Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, and safe handoff guidance.
+- Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, safe handoff guidance, and an always-available **Branch & continue** action.
+- Branches any supported conversation into a fresh provider chat with a durable checkpoint, automatic native-composer context transfer, parent/child lineage, and truthful prefilled/copied fallbacks when automatic sending is unavailable.
 - Syncs verified snapshots and journals to a user-owned Google Drive folder.
 - Optionally mirrors snapshots to a selected GitHub repository.
 - Uses a restrained purple-and-blue night-sky interface with reduced-motion and constrained-device fallbacks.
@@ -102,6 +103,6 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 
 ## Verification status
 
-The repository runs six deterministic core suites, seventeen browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
+The repository runs six deterministic core suites, eighteen browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).

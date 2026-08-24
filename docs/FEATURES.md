@@ -19,13 +19,15 @@ The page HUD correlates mounted DOM progress, passive provider network evidence,
 
 The HUD never sends provider requests and never claims access to hidden model reasoning. Site-background/history/session traffic stays visible as auxiliary activity but cannot be used as proof that an agent is working. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
 
+**Branch & continue** is always available in the Pulse, so a conversation can be continued early instead of waiting for a provider limit. It creates a durable checkpoint, opens a fresh chat for the same provider, transfers bounded continuation context through the provider's native composer, and links the child chat to its parent/project. The button gains urgency at the secure-handoff threshold but is never hidden before it. Constellation will not overwrite an occupied composer and reports `sent`, `prefilled`, or `copied` according to the outcome it can actually observe.
+
 Needs Attention settings use accessible ON/OFF switches. Every change is autosaved through a serialized background mutation, while each section also offers an explicit Save Settings button and live saved/saving/error feedback. Reloaded Home pages render directly from the persisted settings response.
 
 ## Recovery and durability
 
 - Two-phase browser-refresh recovery for delivery failures (never a blind Retry click).
 - Approval Recovery for ChatGPT connected-app prompts with explicit risk acknowledgement.
-- Safe handoff Markdown/checkpoints before a long conversation reaches proactive thresholds.
+- Safe handoff Markdown/checkpoints plus one-click branch-and-continue before or after a long conversation reaches proactive thresholds.
 - Google Drive full snapshot plus incremental journal, SHA-256 descriptions, metadata verification, byte-size verification, and round-trip reads.
 - Optional GitHub mirror with device OAuth, refresh rotation, repository discovery, and verified commit receipts.
 

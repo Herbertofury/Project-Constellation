@@ -53,6 +53,7 @@
   let lastToolScanAt = 0;
   let toolEvidenceDirty = true;
   let handoffClipboardArea = null;
+  let branchResumeBusy = false;
   let navCleanup = null;
   let transientChatId = '';
   let lastSemanticActivityAt = Date.now();
@@ -754,6 +755,123 @@
     }
   }
 
+  async function branchConversation(button) {
+    if (!button || button.dataset.busy === '1') return;
+    const prior = button.textContent; button.dataset.busy = '1'; button.disabled = true; button.textContent = '✦ Preparing branch…';
+    noteLiveActivity('checkpoint', 'Preparing a continuation branch', 'Securing context and opening a fresh provider chat', 'branch:current');
+    try {
+      const result = await chrome.runtime.sendMessage({ type:'PC_BRANCH_CHAT', chatId:currentChatId(), url:location.href, capacity:liveHealthSnapshot?.capacity || conversationCapacityEvidence({}) });
+      if (!result?.ok) throw new Error(result?.error || 'Could not open the continuation branch.');
+      button.textContent = '✓ New chat opened'; button.title = `Continuation checkpoint ${result.checkpointId || 'ready'}`;
+      noteLiveActivity('checkpoint', 'Continuation branch opened', 'The new chat will receive the recoverable continuation brief automatically', 'branch:current');
+      setTimeout(() => { if (button.isConnected) { button.textContent = prior || '✦ Branch & continue'; button.disabled = false; button.dataset.busy = '0'; } }, 5200);
+    } catch (error) {
+      button.textContent = 'Branch failed'; button.title = String(error?.message || error);
+      noteLiveActivity('error', 'Continuation branch failed', String(error?.message || error), 'branch:current');
+      setTimeout(() => { if (button.isConnected) { button.textContent = prior || '✦ Branch & continue'; button.disabled = false; button.dataset.busy = '0'; } }, 4200);
+    }
+  }
+
+  function showBranchTransferToast(title, detail, level = 'active') {
+    document.getElementById('projectConstellationBranchToast')?.replaceWith();
+    const host = document.createElement('div'); host.id = 'projectConstellationBranchToast'; host.style.cssText = 'all:initial;position:fixed;z-index:2147483001;left:50%;bottom:24px;transform:translateX(-50%);pointer-events:none';
+    const shadow = host.attachShadow({ mode:'closed' });
+    const accent = level === 'error' ? '#ff8f8f' : level === 'ready' ? '#63d6a7' : '#8b7cff';
+    const box = document.createElement('div'); box.setAttribute('role','status'); box.setAttribute('aria-live','polite'); box.style.cssText = `min-width:280px;max-width:min(520px,calc(100vw - 32px));box-sizing:border-box;border:1px solid color-mix(in srgb,${accent} 48%,rgba(255,255,255,.16));border-radius:14px;padding:11px 14px;background:linear-gradient(145deg,rgba(17,18,48,.98),rgba(8,11,31,.98));box-shadow:0 18px 60px rgba(0,0,18,.55),0 0 24px color-mix(in srgb,${accent} 18%,transparent);color:#f7f8ff;font:600 12px/1.35 Inter,system-ui,sans-serif`;
+    const heading = document.createElement('div'); heading.textContent = title; heading.style.cssText = 'font-weight:750';
+    const copy = document.createElement('div'); copy.textContent = detail; copy.style.cssText = 'margin-top:3px;color:#abb4ce;font-size:10px;font-weight:500';
+    box.append(heading, copy); shadow.appendChild(box); document.documentElement.appendChild(host); setTimeout(() => host.replaceWith(), 7200);
+  }
+
+  function branchComposer() {
+    const selectors = provider.id === 'chatgpt'
+      ? ['#prompt-textarea','[contenteditable="true"][role="textbox"]','textarea[placeholder]']
+      : ['textarea','[contenteditable="true"][role="textbox"]','[contenteditable="true"]'];
+    for (const selector of selectors) for (const node of document.querySelectorAll(selector)) {
+      if (!(node instanceof HTMLElement) || node.getAttribute('aria-disabled') === 'true') continue;
+      const style = getComputedStyle(node); const rect = node.getBoundingClientRect();
+      if (style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 20 && rect.height > 10) return node;
+    }
+    return null;
+  }
+
+  function branchComposerText(node) {
+    return brain.normalizeText(node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement ? node.value : node?.innerText || node?.textContent || '', 50000);
+  }
+
+  function fillBranchComposer(node, prompt) {
+    if (!node || !prompt) return false;
+    const existing = branchComposerText(node);
+    if (existing && !String(prompt).startsWith(existing.slice(0, 160))) return false;
+    node.focus();
+    if (node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement) {
+      const prototype = node instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+      if (setter) setter.call(node, prompt); else node.value = prompt;
+    } else {
+      let inserted = false;
+      try { document.execCommand?.('selectAll', false, null); inserted = Boolean(document.execCommand?.('insertText', false, prompt)); } catch (_) {}
+      if (!inserted || branchComposerText(node).length < Math.min(80, prompt.length / 2)) {
+        const fragment = document.createDocumentFragment();
+        for (const line of String(prompt).split('\n')) { const p = document.createElement('p'); if (line) p.textContent = line; else p.appendChild(document.createElement('br')); fragment.appendChild(p); }
+        node.replaceChildren(fragment);
+      }
+    }
+    try { node.dispatchEvent(new InputEvent('input', { bubbles:true, inputType:'insertText', data:null })); } catch (_) { node.dispatchEvent(new Event('input', { bubbles:true })); }
+    node.dispatchEvent(new Event('change', { bubbles:true }));
+    return branchComposerText(node).length >= Math.min(80, prompt.length / 2);
+  }
+
+  function branchSendButton(composer) {
+    const scope = composer?.closest('form') || composer?.parentElement?.parentElement || document;
+    const candidates = [...scope.querySelectorAll?.('[data-testid="send-button"],button[aria-label*="send" i],button[data-testid*="send" i],button[type="submit"]') || []];
+    return candidates.find((node) => isUsableControl(node) && !/stop|cancel/i.test(elementLabel(node, 120))) || null;
+  }
+
+  async function resolveBranchLineage() {
+    const chatId = currentChatId();
+    if (!chatId || chatId.endsWith(':home')) return;
+    await chrome.runtime.sendMessage({ type:'PC_BRANCH_LINEAGE_RESOLVE', chatId, url:location.href }).catch(() => null);
+  }
+
+  async function resumePendingBranch() {
+    if (branchResumeBusy) return;
+    branchResumeBusy = true;
+    try {
+      let claim = null;
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        claim = await chrome.runtime.sendMessage({ type:'PC_BRANCH_CONTINUATION_CLAIM', providerId:provider.id, url:location.href }).catch(() => null);
+        if (claim?.ok || claim?.state !== 'not-ready') break;
+        await sleep(250);
+      }
+      if (!claim?.ok || !claim.prompt) { await resolveBranchLineage(); return; }
+      showBranchTransferToast('Restoring previous-chat context…', `Continuation of ${claim.sourceTitle || 'your previous chat'}`);
+      let composer = null;
+      for (let attempt = 0; attempt < 50 && !composer; attempt += 1) { composer = branchComposer(); if (!composer) await sleep(300); }
+      let status = 'failed';
+      if (composer && fillBranchComposer(composer, claim.prompt)) {
+        await sleep(450);
+        let send = null;
+        for (let attempt = 0; attempt < 24 && !send; attempt += 1) { send = branchSendButton(composer); if (!send) await sleep(250); }
+        if (send) {
+          send.click();
+          for (let attempt = 0; attempt < 32; attempt += 1) {
+            await sleep(250);
+            if (!composer.isConnected || branchComposerText(composer).length < 8 || !currentChatId().endsWith(':home')) { status = 'sent'; break; }
+          }
+        }
+        if (status !== 'sent') status = 'prefilled';
+      } else {
+        try { await copyHandoffText(claim.prompt); status = 'copied'; } catch (_) { status = 'failed'; }
+      }
+      await chrome.runtime.sendMessage({ type:'PC_BRANCH_CONTINUATION_COMPLETE', branchId:claim.branchId, status, url:location.href }).catch(() => null);
+      if (status === 'sent') { showBranchTransferToast('Continuation sent', 'The new chat is now linked to its parent checkpoint.', 'ready'); await resolveBranchLineage(); }
+      else if (status === 'prefilled') showBranchTransferToast('Continuation ready', 'Context is in the composer. Press Send when you are ready.', 'ready');
+      else if (status === 'copied') showBranchTransferToast('Continuation copied', 'The provider composer changed. Paste the recovered context to continue.', 'error');
+      else showBranchTransferToast('Could not transfer context', 'Return to the parent chat and choose Branch & continue again.', 'error');
+    } finally { branchResumeBusy = false; }
+  }
+
   function pageHealthEvidence(context = {}) {
     const latestMounted = latestMountedTurnEvidence();
     if (latestMounted) healthEvidence.latestMountedTurn = latestMounted;
@@ -776,10 +894,10 @@
       :host([data-corner="bottom-right"]){right:18px;bottom:18px}:host([data-corner="bottom-left"]){left:18px;bottom:18px}:host([data-corner="top-right"]){right:18px;top:18px}:host([data-corner="top-left"]){left:18px;top:18px}
       :host([data-level="active"]),:host([data-level="info"]){--pc-level:#7f92ff}:host([data-level="warning"]){--pc-level:#f0c567}:host([data-level="danger"]){--pc-level:#ff8f8f}:host([data-level="critical"]){--pc-level:#ff676f}
       *{box-sizing:border-box}.hud{pointer-events:auto;width:388px;box-sizing:border-box;border:1px solid color-mix(in srgb,var(--pc-level) 32%,var(--pc-line));border-radius:18px;background:radial-gradient(circle at 92% 4%,rgba(79,118,240,.14),transparent 38%),linear-gradient(145deg,color-mix(in srgb,var(--pc-bg) 92%,var(--pc-level) 8%),var(--pc-bg));box-shadow:var(--pc-shadow);backdrop-filter:blur(18px) saturate(1.12);overflow:hidden;transition:width .18s ease,transform .18s ease,border-color .18s ease}
-      .top{display:flex;align-items:center;gap:9px;padding:11px 12px 9px}.orb{width:9px;height:9px;border-radius:50%;background:var(--pc-level);box-shadow:0 0 0 4px color-mix(in srgb,var(--pc-level) 14%,transparent),0 0 18px color-mix(in srgb,var(--pc-level) 50%,transparent);flex:0 0 auto}.brand{min-width:0;flex:1}.eyebrow{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--pc-muted);line-height:1.2}.state{font-size:12px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.substate{font-size:8.5px;color:#9099a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.tools{display:flex;gap:4px}.icon{appearance:none;border:0;background:transparent;color:#adb5c4;border-radius:7px;width:27px;height:27px;cursor:pointer;font:600 14px/1 system-ui}.icon:hover{background:rgba(255,255,255,.08);color:white}
-      .body{padding:0 12px 11px;max-height:min(620px,calc(100vh - 96px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(126,144,255,.38) transparent}.detail{font-size:10px;line-height:1.45;color:#b8bfcc;margin:0 0 9px}.now{position:relative;border:1px solid color-mix(in srgb,var(--pc-level) 30%,rgba(255,255,255,.08));border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--pc-level) 10%,rgba(255,255,255,.025)),rgba(255,255,255,.018));padding:10px 11px;margin-bottom:8px;overflow:hidden}.now:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--pc-level)}.sectionHead,.nowHead{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#858eaa;font-size:7.5px;letter-spacing:.11em;text-transform:uppercase}.nowTitle{font-size:11.5px;line-height:1.35;color:#f5f7ff;font-weight:720;margin-top:5px}.nowDetail{font-size:9px;line-height:1.4;color:#aeb6c8;margin-top:3px}.proof{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 8px;border-radius:8px;background:rgba(98,114,190,.08);color:#aeb7ce;font-size:8px;line-height:1.3}.proofDot{width:5px;height:5px;border-radius:50%;background:#7990ff;box-shadow:0 0 9px rgba(121,144,255,.6);flex:none}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}.chip{font-size:8px;line-height:1;border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:5px 6px;color:#aeb7c6;background:rgba(255,255,255,.035)}.timelineWrap{margin:0 0 9px}.timeline{display:grid;gap:3px;margin-top:5px}.event{display:grid;grid-template-columns:7px minmax(0,1fr) auto;gap:7px;align-items:start;padding:5px 3px;border-radius:7px}.event:hover{background:rgba(255,255,255,.025)}.eventDot{width:6px;height:6px;margin-top:3px;border-radius:50%;background:#7787aa}.event[data-kind="tool"] .eventDot{background:#9a7cff}.event[data-kind="network"] .eventDot{background:#56a8ff}.event[data-kind="response"] .eventDot{background:#55d0a0}.event[data-kind="warning"] .eventDot,.event[data-kind="error"] .eventDot{background:#ff8f8f}.eventBody{min-width:0}.eventTitle,.eventDetail{display:block}.eventTitle{font-size:9px;color:#dce1ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.eventDetail{font-size:7.5px;color:#818ba2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.eventTime{font-size:7.5px;color:#707990;white-space:nowrap;margin-top:1px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px}.metric{border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.025);padding:7px 8px}.metric span{display:block;color:#7f8898;font-size:7.5px;text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;color:#e7ebf2;font-size:10px;margin-top:3px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.truth{font-size:7.5px;line-height:1.35;color:#737d94;margin:8px 1px 0}.actions{display:flex;gap:6px;margin-top:9px}.btn{appearance:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#cbd2de;border-radius:8px;padding:7px 9px;font:600 9px/1.1 system-ui;cursor:pointer}.btn:hover{background:rgba(255,255,255,.085);color:white}.btn.primary{background:color-mix(in srgb,var(--pc-level) 16%,rgba(255,255,255,.04));border-color:color-mix(in srgb,var(--pc-level) 42%,rgba(255,255,255,.12));color:#fff}.btn[hidden]{visibility:hidden;position:absolute;pointer-events:none;opacity:0}
+      .top{display:flex;align-items:center;gap:9px;padding:11px 12px 9px}.orb{width:9px;height:9px;border-radius:50%;background:var(--pc-level);box-shadow:0 0 0 4px color-mix(in srgb,var(--pc-level) 14%,transparent),0 0 18px color-mix(in srgb,var(--pc-level) 50%,transparent);flex:0 0 auto}.brand{min-width:0;flex:1}.eyebrow{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--pc-muted);line-height:1.2}.state{font-size:12px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.substate{font-size:8.5px;color:#9099a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.tools{display:flex;gap:4px}.icon{appearance:none;border:0;background:transparent;color:#adb5c4;border-radius:7px;width:27px;height:27px;cursor:pointer;font:600 14px/1 system-ui}.icon:hover{background:rgba(255,255,255,.08);color:white}.quickBranch{appearance:none;width:29px;height:29px;border:1px solid rgba(148,125,255,.5);border-radius:9px;color:#fff;background:linear-gradient(135deg,rgba(114,76,232,.94),rgba(51,126,235,.92));box-shadow:0 6px 18px rgba(67,75,213,.24);cursor:pointer;font:760 14px/1 system-ui}.quickBranch:hover{filter:brightness(1.12)}.quickBranch[data-urgent="1"]{box-shadow:0 0 0 2px color-mix(in srgb,var(--pc-level) 18%,transparent),0 7px 22px color-mix(in srgb,var(--pc-level) 34%,transparent)}
+      .body{padding:0 12px;max-height:min(590px,calc(100vh - 128px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(126,144,255,.38) transparent}.detail{font-size:10px;line-height:1.45;color:#b8bfcc;margin:0 0 9px}.now{position:relative;border:1px solid color-mix(in srgb,var(--pc-level) 30%,rgba(255,255,255,.08));border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--pc-level) 10%,rgba(255,255,255,.025)),rgba(255,255,255,.018));padding:10px 11px;margin-bottom:8px;overflow:hidden}.now:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--pc-level)}.sectionHead,.nowHead{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#858eaa;font-size:7.5px;letter-spacing:.11em;text-transform:uppercase}.nowTitle{font-size:11.5px;line-height:1.35;color:#f5f7ff;font-weight:720;margin-top:5px}.nowDetail{font-size:9px;line-height:1.4;color:#aeb6c8;margin-top:3px}.proof{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 8px;border-radius:8px;background:rgba(98,114,190,.08);color:#aeb7ce;font-size:8px;line-height:1.3}.proofDot{width:5px;height:5px;border-radius:50%;background:#7990ff;box-shadow:0 0 9px rgba(121,144,255,.6);flex:none}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}.chip{font-size:8px;line-height:1;border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:5px 6px;color:#aeb7c6;background:rgba(255,255,255,.035)}.timelineWrap{margin:0 0 9px}.timeline{display:grid;gap:3px;margin-top:5px}.event{display:grid;grid-template-columns:7px minmax(0,1fr) auto;gap:7px;align-items:start;padding:5px 3px;border-radius:7px}.event:hover{background:rgba(255,255,255,.025)}.eventDot{width:6px;height:6px;margin-top:3px;border-radius:50%;background:#7787aa}.event[data-kind="tool"] .eventDot{background:#9a7cff}.event[data-kind="network"] .eventDot{background:#56a8ff}.event[data-kind="response"] .eventDot{background:#55d0a0}.event[data-kind="warning"] .eventDot,.event[data-kind="error"] .eventDot{background:#ff8f8f}.eventBody{min-width:0}.eventTitle,.eventDetail{display:block}.eventTitle{font-size:9px;color:#dce1ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.eventDetail{font-size:7.5px;color:#818ba2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.eventTime{font-size:7.5px;color:#707990;white-space:nowrap;margin-top:1px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px}.metric{border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.025);padding:7px 8px}.metric span{display:block;color:#7f8898;font-size:7.5px;text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;color:#e7ebf2;font-size:10px;margin-top:3px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.truth{font-size:7.5px;line-height:1.35;color:#737d94;margin:8px 1px 9px}.actions{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:9px 12px 11px;border-top:1px solid rgba(255,255,255,.07);background:linear-gradient(180deg,rgba(8,11,31,.72),rgba(8,11,31,.97))}.btn{appearance:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#cbd2de;border-radius:8px;padding:7px 9px;font:600 9px/1.1 system-ui;cursor:pointer}.btn:hover{background:rgba(255,255,255,.085);color:white}.btn.primary{background:color-mix(in srgb,var(--pc-level) 16%,rgba(255,255,255,.04));border-color:color-mix(in srgb,var(--pc-level) 42%,rgba(255,255,255,.12));color:#fff}.btn.branch{position:relative;overflow:hidden;color:#fff;border-color:rgba(148,125,255,.52);background:linear-gradient(112deg,rgba(114,76,232,.92),rgba(51,126,235,.9));box-shadow:0 7px 22px rgba(67,75,213,.22);font-weight:760}.btn.branch:hover{background:linear-gradient(112deg,rgba(132,91,246,.98),rgba(62,142,248,.96));box-shadow:0 9px 28px rgba(75,88,232,.34)}.btn.branch[data-urgent="1"]{border-color:color-mix(in srgb,var(--pc-level) 70%,white 12%);box-shadow:0 0 0 2px color-mix(in srgb,var(--pc-level) 13%,transparent),0 8px 28px color-mix(in srgb,var(--pc-level) 32%,transparent)}.btn[hidden]{visibility:hidden;position:absolute;pointer-events:none;opacity:0}
       :host([data-level="active"]) .orb{animation:pc-health-pulse 1.35s ease-in-out infinite}:host([data-state="tool-stalled"]) .orb,:host([data-state="request-stalled"]) .orb,:host([data-state="stalled"]) .orb{animation:pc-health-alert 1.1s ease-in-out infinite}:host([data-state="tool-dead"]) .orb,:host([data-state="dead"]) .orb{box-shadow:0 0 0 5px color-mix(in srgb,var(--pc-level) 18%,transparent),0 0 24px color-mix(in srgb,var(--pc-level) 68%,transparent)}
-      :host([data-density="compact"]) .detail,:host([data-density="compact"]) .chips{display:none}:host([data-density="compact"][data-collapsed="1"]) .hud{width:320px;border-radius:999px}:host([data-collapsed="1"]) .body{height:0;overflow:hidden;padding:0}:host([data-collapsed="1"]) .top{padding:9px 10px}:host([data-collapsed="1"]) .eyebrow{font-size:7px}:host([data-collapsed="1"]) .state{font-size:10.5px}:host([data-collapsed="1"]) .substate{font-size:7.5px}
+      :host([data-density="compact"]) .detail,:host([data-density="compact"]) .chips{display:none}:host([data-density="compact"][data-collapsed="1"]) .hud{width:320px;border-radius:999px}:host([data-collapsed="1"]) .body{height:0;overflow:hidden;padding:0}:host([data-collapsed="1"]) .actions{display:none}:host([data-collapsed="0"]) .quickBranch{display:none}:host([data-collapsed="1"]) .top{padding:9px 10px}:host([data-collapsed="1"]) .eyebrow{font-size:7px}:host([data-collapsed="1"]) .state{font-size:10.5px}:host([data-collapsed="1"]) .substate{font-size:7.5px}
       :host([data-visible="0"]){visibility:hidden;opacity:0;pointer-events:none}
       @keyframes pc-health-pulse{0%,100%{transform:scale(.92);opacity:.72}50%{transform:scale(1.18);opacity:1}}@keyframes pc-health-alert{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
       @media (max-width:620px){:host([data-corner$="right"]){right:8px}:host([data-corner$="left"]){left:8px}:host([data-corner^="bottom"]){bottom:8px}:host([data-corner^="top"]){top:8px}.hud{width:min(388px,calc(100vw - 16px))}:host([data-density="compact"][data-collapsed="1"]) .hud{width:min(320px,calc(100vw - 16px))}}
@@ -793,7 +911,7 @@
     host.id = 'projectConstellationHealthHud';
     host.dataset.corner = liveHealthSettings.corner || 'bottom-right'; host.dataset.density = liveHealthSettings.density || 'compact'; host.dataset.collapsed = '0'; host.dataset.visible = '1';
     const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Last proof</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p><div class="actions"><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></div></section>`;
+    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="quickBranch" id="pcHealthBranchQuick" title="Branch early into a linked continuation chat" aria-label="Branch and continue in a new chat">✦</button><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Last proof</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p></div><div class="actions"><button class="btn branch" id="pcHealthBranch" title="Create a recoverable continuation in a new chat">✦ Branch &amp; continue</button><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></section>`;
     document.documentElement.appendChild(host);
     liveHealthHost = host; liveHealthShadow = shadow;
     shadow.getElementById('pcHealthCollapse').addEventListener('click', () => { host.dataset.collapsed = host.dataset.collapsed === '1' ? '0' : '1'; const collapsed = host.dataset.collapsed === '1'; const button = shadow.getElementById('pcHealthCollapse'); button.textContent = collapsed ? '+' : '−'; button.setAttribute('aria-label', collapsed ? 'Expand execution pulse' : 'Collapse execution pulse'); });
@@ -801,6 +919,8 @@
     shadow.getElementById('pcHealthSettings').addEventListener('click', () => chrome.runtime.sendMessage({ type:'PC_OPEN_CONSTELLATION_PAGE', view:'attention', focus:'live-health' }).catch(() => {}));
     shadow.getElementById('pcHealthRefresh').addEventListener('click', () => location.reload());
     shadow.getElementById('pcHealthHandoff').addEventListener('click', (event) => secureConversationHandoff(event.currentTarget));
+    shadow.getElementById('pcHealthBranch').addEventListener('click', (event) => branchConversation(event.currentTarget));
+    shadow.getElementById('pcHealthBranchQuick').addEventListener('click', (event) => branchConversation(event.currentTarget));
     return host;
   }
 
@@ -908,6 +1028,8 @@
     const turns = Number(capacity.turnCount || 0);
     setHealthText(shadow, 'pcHealthCapacity', capacity.state === 'reached' ? 'provider limit' : capacity.state === 'handoff' ? `${turns || 'large'} turns · secure` : capacity.state === 'watch' ? `${turns || 'large'} turns · watch` : turns ? `${turns} turns · clear` : 'clear');
     setHealthText(shadow, 'pcHealthHandoffState', capacity.recommendedAction === 'handoff' ? 'checkpoint now' : 'armed');
+    const branchUrgent = ['handoff','reached'].includes(capacity.state) ? '1' : '0'; const branchTitle = capacity.state === 'reached' ? 'Provider limit reached — branch into a linked continuation chat' : capacity.state === 'handoff' ? 'Capacity threshold reached — branch safely before the chat breaks' : 'Branch early into a linked continuation chat';
+    for (const branch of [shadow.getElementById('pcHealthBranch'), shadow.getElementById('pcHealthBranchQuick')]) { branch.dataset.urgent = branchUrgent; branch.title = branchTitle; }
     shadow.getElementById('pcHealthRefresh').hidden = snapshot.recommendedAction !== 'refresh';
     shadow.getElementById('pcHealthHandoff').hidden = capacity.recommendedAction !== 'handoff';
   }
@@ -1052,6 +1174,7 @@
     schedulePersist();
     sendBrain('ROUTE_EVENT', { providerId: provider.id, chatId: currentChatId(), url: location.href, title: document.title, updatedAt: Date.now() });
     noteLiveActivity('route', 'Conversation route changed', 'Capture and health evidence reset for this page', 'route:current', routeStartedAt);
+    resolveBranchLineage().catch(() => {});
     scheduleCapture(document);
   }
 
@@ -1416,6 +1539,8 @@
   sendBrain('ROUTE_EVENT', { providerId: provider.id, chatId: currentChatId(), url: location.href, title: document.title, updatedAt: Date.now() });
   scheduleStatusPulse(1800);
   scheduleLiveHealthPulse(2200);
+  setTimeout(() => resumePendingBranch().catch(() => {}), 900);
+  setTimeout(() => resolveBranchLineage().catch(() => {}), 1600);
 
   window.addEventListener('pagehide', () => {
     stopPerformanceObserver(); captureObserver?.disconnect(); navCleanup?.();
