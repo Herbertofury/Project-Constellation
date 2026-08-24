@@ -1,0 +1,70 @@
+{
+  "schema": "project-constellation.recovery-checkpoint/1",
+  "timestamp": "2026-08-18T19:57:06Z",
+  "projectId": "PCX-042",
+  "project": "GameSync Next",
+  "sourceTask": "stale draft PR #1 - universal Game Tracker, Google dropdown fidelity, Bounty and Animation Tracker",
+  "recovery": {
+    "repository": "Herbertofury/GameSync-Next",
+    "pullRequest": 1,
+    "proposalHead": "0522104f2f482a8d66117cf6efcbf5d08096e8f3",
+    "proposalMergeBase": "60940e8479af518f3373a79efa091902f4843842",
+    "preMergeMain": "9e337c720f0180cffa577f140b181c699f0a1650",
+    "mergeCommit": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+    "mergeTree": "987751b6175d90a4f4a5e14f8752158c30193421",
+    "prState": "merged",
+    "recoveredAt": "2026-08-18T19:57:06Z"
+  },
+  "scope": [
+    "schema-driven universal Game Tracker with Sims 4 baseline",
+    "DOCX/XLSX/XLS/CSV/TSV/JSON and Google Docs/Sheets portability",
+    "native Word/Google dropdown option, selected-value, shading and inline-pill fidelity",
+    "worker-owned document/spreadsheet parsing and exports",
+    "Bounty vertical slice with reminder/background integration",
+    "Animation Tracker vertical slice with polling/update detection",
+    "existing command-center and universal mascot parity preserved"
+  ],
+  "exactFeatureHeadEvidence": {
+    "productionWxtBuildAndOffscreenRuntimeIdentity": "passed",
+    "configuredLintMetadataDiffUtf8Checks": "passed",
+    "independentGitleaksStagedAndFullHistory": "zero leaks recorded in proposal acceptance",
+    "freshIsolatedOpera": {
+      "records": 181,
+      "relationships": 75,
+      "images": 124,
+      "pills": 836,
+      "persistentEdit": "Cleaned -> Dirty",
+      "rootMountCount": 1,
+      "consolePageRequestErrors": 0
+    },
+    "imports": ["supplied 43 MB local DOCX", "supplied live Google Doc"],
+    "exportsVerified": ["JSON", "XLSX", "DOCX", "CSV"],
+    "bountyRuntime": "107 live GamerPower records plus calendar/background flow verified",
+    "animationRuntime": "HTTPS source polling, semantic version detection and installed-pack update rendering verified"
+  },
+  "baseDriftReview": {
+    "aheadBy": 1,
+    "behindBy": 15,
+    "mainChangesSinceProposalBase": "CI/secret-scan permission, parity verification, Opera test-fixture hardening and a one-line Opera discovery retry fix; no conflicting feature-product implementation changes",
+    "githubMergeabilityBeforePromotion": true
+  },
+  "ciRecovery": {
+    "originalPrScanFailure": "Gitleaks action could not read PR commits because pull-requests: read permission was absent; current main later fixed that permission",
+    "recoveryRerun": {
+      "workflowRun": 32097811318,
+      "job": 95848739108,
+      "result": "failure-before-execution",
+      "workflowSteps": 0,
+      "classification": "private hosted-runner infrastructure blocker, not a security finding"
+    }
+  },
+  "decision": "Merged after exact feature-head real-browser/import/export/runtime evidence was revalidated against a current main whose intervening changes were non-conflicting verification/CI fixes. The zero-step private runner check was not treated as product failure.",
+  "durability": {
+    "githubCanonicalSource": "GameSync-Next main at cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+    "driveTarget": "PCX-042 GameSync Next Wiki",
+    "driveDocumentId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+    "drivePublication": "verified by round-trip text lookup in the same recovery run",
+    "driveRevisionId": "AIroW366nhnEukqkjThnxz2ig3kPX6SPF-qqhDJUG5h3mknD2A6opFw74vamJFdQXqPD25cmXu7Qas9Ckrni3o7vndTIP1ud1uf3k9Is2m8",
+    "roundTripMatchedHeading": "## Recovery checkpoint - 2026-08-18 19:57Z"
+  }
+}

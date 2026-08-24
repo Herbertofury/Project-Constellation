@@ -1,0 +1,120 @@
+{
+  "schema": "project-constellation.wiki-publication-recovery/1",
+  "updatedAt": "2026-08-19T14:10:00Z",
+  "state": "BLOCKED_WIKI_PR_RECOVERY_QUEUED",
+  "publicationBacklog": [
+    {
+      "projectId": "PRJ-014",
+      "sourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
+      "sourcePath": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "wikiPublicationStatus": "MISSING"
+    },
+    {
+      "projectId": "PRJ-018",
+      "sourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "sourcePath": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "wikiPublicationStatus": "MISSING"
+    }
+  ],
+  "publisherEvidence": {
+    "canonicalWorkflowPath": ".github/workflows/sync-github-wiki.yml",
+    "canonicalWorkflowConfigVerified": true,
+    "canonicalWorkflowPushFiltersVerified": [
+      "wikis/**",
+      "tools/github-wiki/**",
+      ".github/workflows/sync-github-wiki.yml"
+    ],
+    "canonicalWorkflowPermissionsVerified": [
+      "contents: write",
+      "statuses: write"
+    ],
+    "publisherContractHardeningCommit": "acb5a0b2521d4c784320bad6ba7fba7282985e5d",
+    "publisherContractHardeningStatus": "MISSING",
+    "issueTriggeredRecoveryWorkflowCommit": "02ff80f2903be6668215299eebef306090144ce7",
+    "issueTriggeredRecoveryIssue": 7,
+    "issueTriggeredRecoveryObservedState": "OPEN_NO_WORKFLOW_COMMENT_OR_CLOSURE",
+    "issueTriggeredRecoveryHeadStatus": "MISSING",
+    "scheduledSafetyNetCommit": "e207d8ea1e1a36a4582f722fd3f3296312fb6afd",
+    "scheduledSafetyNetWorkflowBlob": "4b6bc2d42b74e5e47496d24ae1cc4dd7f11251c3",
+    "scheduledSafetyNetCron": "11 * * * *",
+    "scheduledSafetyNetFirstWindowObservedAt": "2026-08-19T12:15:33Z",
+    "scheduledSafetyNetSecondWindowObservedAt": "2026-08-19T12:50:52Z",
+    "scheduledSafetyNetHeadStatus": "MISSING_AFTER_TWO_SCHEDULE_WINDOWS",
+    "actionsExecutionControl": {
+      "runId": 32245667123,
+      "jobId": 96045502127,
+      "workflowName": "Recover Project Constellation v0.5.1 via merge trigger",
+      "classification": "UNRELATED_TO_WIKI_PUBLICATION_CONTROL_EVIDENCE",
+      "finalStatus": "completed",
+      "finalConclusion": "cancelled",
+      "runnerStarted": true,
+      "runnerStartedAt": "2026-08-19T13:45:47Z",
+      "workflowDispatchCreatedRun": 32259960502,
+      "evidence": "This run is not a Wiki publisher. It proves that a same-repository pull_request Actions job received a hosted runner and that its GITHUB_TOKEN successfully created a workflow_dispatch run. The child v0.5.1 publication run remained unfinished and the parent was cancelled at its timeout."
+    },
+    "pullRequestWikiRecovery": {
+      "workflowPath": ".github/workflows/sync-github-wiki-pr-recovery.yml",
+      "installedOnMainCommit": "765641e7350bcc814378335bd010c3c0d839c92b",
+      "installationPullRequest": 8,
+      "activationPullRequest": 9,
+      "activationPullRequestUrl": "https://github.com/Herbertofury/ProjectDump/pull/9",
+      "activationHeadCommit": "126b2c17aeea894ad87b2bea7b925aeefd8e3bed",
+      "activationMergeCommit": "45a2e66fb190c84be3c87ae963d8e3eed5c555fc",
+      "runId": 32262312888,
+      "jobId": 96098240784,
+      "runStatus": "queued",
+      "jobStatus": "queued",
+      "runnerExecutionVerified": false,
+      "publicationContract": [
+        "checkout current main rather than PR source bytes",
+        "run existing tools/github-wiki/wiki-sync.sh publisher",
+        "push complete current wikis/ tree to ProjectDump.wiki.git",
+        "fresh-clone reader-facing Wiki",
+        "complete byte comparison against wikis/",
+        "capture Wiki master commit",
+        "record wiki-publication on exact checked-out current-main SHA"
+      ]
+    },
+    "actionsPullRequestRunnerExecutionVerified": true,
+    "wikiRecoveryRunnerExecutionVerified": false,
+    "currentMainStatusCheckedAt": "2026-08-19T14:10:00Z",
+    "currentMainCommit": "765641e7350bcc814378335bd010c3c0d839c92b",
+    "currentMainStatusCount": 0,
+    "knownGoodStatusReadControlCommit": "b444e28a0afc0b4aa17a2abc9cc7436868999225",
+    "knownGoodStatusReadControl": "wiki-publication success remains readable through connected GitHub status API"
+  },
+  "diagnosis": "The prior recovery-state diagnosis was too broad because run 32245667123 belongs to Project Constellation v0.5.1 artifact publication, not Wiki publication. Its logs now prove pull_request Actions runner execution and workflow_dispatch creation are functioning. Wiki-specific push, issue, and scheduled paths still lack publication proof. A dedicated same-repository pull_request Wiki recovery workflow is now installed on main and activation PR #9 has created run 32262312888, currently queued. Keep publication fail-closed until that Wiki recovery job actually runs the existing publisher, captures the Wiki master commit, and passes the publisher's fresh-clone complete byte comparison.",
+  "dualPublication": {
+    "github": {
+      "recoveryStatePath": "project-constellation/Wiki-Publication-Recovery-State.json",
+      "researchCursorPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+      "canonicalWorkflowPath": ".github/workflows/sync-github-wiki.yml",
+      "pullRequestRecoveryWorkflowPath": ".github/workflows/sync-github-wiki-pr-recovery.yml",
+      "reReadVerified": true
+    },
+    "drive": {
+      "recoveryStateDocumentId": "1jmVY8fmw6j1h8WJFqKkSK0EQ0ZgbEWrS7wc6Nvdj2FA",
+      "researchCursorDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "recoveryCheckpointDocumentId": "14_8OaexIG9QVdESaeQ72SnirOKZquuYMrR6930hH3JQ",
+      "parentProjectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "priorVerifiedRecoveryStateExportSha256": "fa087935a4d02584b64b6bf330ec2888ccded4fe992f6359bec9220655de485d",
+      "priorVerifiedResearchCursorExportSha256": "b0cd4713b86d189478df98a3914360a7c01019971544a07e2466f531d08ddfd9",
+      "currentMirrorReReadRequired": true,
+      "currentMirrorReReadVerified": false
+    }
+  },
+  "rules": {
+    "failClosed": true,
+    "newWikiSourceDeltasAllowed": false,
+    "advanceDocumentationCursorAllowed": false,
+    "completionRequires": [
+      "successful Wiki publication recovery or Sync GitHub Wiki run",
+      "ProjectDump.wiki.git push",
+      "fresh clone of reader-facing Wiki",
+      "complete byte comparison against wikis/",
+      "captured Wiki master commit"
+    ]
+  },
+  "nextAction": "Recheck pull-request Wiki recovery run 32262312888 and job 96098240784. If it executes successfully, capture the Wiki master commit and exact current-main wiki-publication success, then clear PRJ-014 and PRJ-018 only because the complete current wikis/ tree was republished and fresh-clone byte-verified. If it remains queued or fails before remote verification, keep the backlog and cursor pinned without creating new project wiki deltas.",
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

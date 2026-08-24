@@ -1,0 +1,57 @@
+{
+  "schema": "project-constellation.wiki-checkpoint/1",
+  "checkpointAt": "2026-08-20T22:15:00Z",
+  "projectId": "PCX-045",
+  "projectName": "Feature Foundry Object Intelligence",
+  "materialChange": true,
+  "canonicalProject": {
+    "repository": "Herbertofury/Feature-Foundry",
+    "branch": "main",
+    "head": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "version": "24.0.0"
+  },
+  "wikiSource": {
+    "repository": "Herbertofury/ProjectDump",
+    "path": "wikis/PCX-045-feature-foundry-object-intelligence.md",
+    "commit": "1a49ba84e6c3f731e970062d391ba4bd6b581456",
+    "blob": "7e3b7c50a7e55af9c3367447ea2d904a439a4315"
+  },
+  "wikiPublication": {
+    "status": "verified",
+    "workflowRun": 32423576077,
+    "job": 96600648507,
+    "wikiMasterCommit": "cf1f2634e22155482309c6369a578d9ba74d9f18",
+    "freshCloneByteCompare": "pass",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-045-feature-foundry-object-intelligence"
+  },
+  "driveMirror": {
+    "fileId": "1t5cUCBPMh1Y8cok63a02aNh2dRCVQFcBmyAYY4-1sp4",
+    "title": "PCX-045 Feature Foundry Object Intelligence Wiki",
+    "markdownBytes": 33097,
+    "markdownSha256": "ecd53c00167f0be834b294e75f36ad60880a16f7e589a5fccd5f9c61a734b323",
+    "reread": "pass"
+  },
+  "driveCheckpoint": {
+    "fileId": "1JSyyRSjEqNiwye_kctLtZTwvY5jzIDxzlKPbxV0heaw",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 3034,
+    "markdownSha256": "db73de3863999987576b9c68457714c6e7e2577eca61eed5ae0b85acace71451",
+    "reread": "pass"
+  },
+  "researchCursor": {
+    "githubBlob": "1f4c0ec63c235a272d78596aba496216b96664cf",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "markdownBytes": 1863,
+    "markdownSha256": "47b72ebf539b0795851b94b3404b845290a875897b63df830af383f573aa0365",
+    "reread": "pass"
+  },
+  "changeSummary": [
+    "Promoted released Feature Foundry v24.0.0 to current production application authority for Object Intelligence.",
+    "Preserved V23 schema 13 as the strongest detailed historical Object Atlas database and interaction contract instead of erasing its 178-object, FTS, spatial, provenance, and context-command evidence.",
+    "Documented the current typed WorldObjectRecord and ObjectEcologyLayer runtime, protected V24 compatibility runtime, build/verify/package workflow, troubleshooting, and a V23-to-v24 coverage-ledger qualification plan.",
+    "Distinguished the 85 current production ecology objects from the richer historical 178-record Object Atlas contract so count differences are not silently treated as either migration proof or data loss."
+  ],
+  "nextCursor": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "publicationBacklog": "clear",
+  "obligation": "ongoing"
+}

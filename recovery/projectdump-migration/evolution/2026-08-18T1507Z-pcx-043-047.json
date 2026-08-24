@@ -1,0 +1,81 @@
+{
+  "schema": "project-constellation.wiki-checkpoint/1",
+  "checkpointAt": "2026-08-18T15:07:00Z",
+  "range": [
+    "PCX-043",
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047"
+  ],
+  "recurringObligation": "ONGOING",
+  "materialUpdates": [
+    {
+      "projectId": "PCX-043",
+      "project": "Feature Foundry Production App",
+      "sourceCommit": "5fe311761d5a30380361fe184564fa80894a6f39",
+      "sourceBlob": "0b9b94aa36bab723563383f9b2b031ad9a6f08ac",
+      "wikiWorkflowRun": 32152510476,
+      "wikiMasterCommit": "3b319ec9f939150be29fe69f1bd94633cd64b9d7",
+      "wikiPublication": "success; ProjectDump.wiki.git push plus fresh-clone full-tree byte comparison passed",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-043-feature-foundry-production-app",
+      "driveWikiDocumentId": "1DDpn4uhmaKjcroZUNMM23WWEapS2Ul9jKKItrcr20AI",
+      "driveWikiMarkdownBytes": 28117,
+      "driveWikiMarkdownSha256": "15b1e72ed9e21363e675639d80e2a8b9db3c73c80bb8fb4ee395416b8dbd9eda",
+      "summary": "Reconciled two verified authority lanes instead of treating the older runnable artifact as the only current state: V33 FINAL_READY remains the strongest runnable browser-verified product artifact, while the remotely byte-verified GameSync/Feature Foundry V2-253 recovery lineage is now documented as the newest maintainable source authority. The page now includes V2-242 through V2-253 source evolution, exact V2-253 recovery hashes/fingerprint, Project Vault and Improvement Radar architecture, ACP/OpenHands/agent operations, repository discovery/health/dependency/release-integrity evidence, schema-v7 13-gate launch readiness, current BLOCKED 6/13 gate state, exact Node/pnpm/Vite source floors, browser/desktop smoke requirements, strict-parity blocker counts, recovery/troubleshooting guidance and the V33 non-regression benchmark. V2-254 Aesthetic Vault artifacts remain subsystem evidence under PCX-063 and do not silently supersede the whole production-app source lane."
+    }
+  ],
+  "recheckedNoChurn": [
+    {
+      "projectId": "PCX-044",
+      "reason": "Living Ecology already records the V33 ecology guarantees, no-culling/content-parity contract and current replay experiment; no newer whole-ecology authority justified rewriting it."
+    },
+    {
+      "projectId": "PCX-045",
+      "reason": "Object Intelligence remains grounded in Object Atlas semantics and the current KHR_interactivity interchange experiment; no stronger verified object-schema/runtime checkpoint was resolved in this pass."
+    },
+    {
+      "projectId": "PCX-046",
+      "reason": "Source Hubs already contains the verified six-provider V33 soundtrack hub plus current provider auth/account/quota/refresh-token research and truthful capability boundaries."
+    },
+    {
+      "projectId": "PCX-047",
+      "reason": "Favorite Artist Worlds Database remains correctly anchored to the verified v4.0.1 data line and SQLite validation experiment; no newer validated database lineage was found."
+    }
+  ],
+  "featureFoundrySourceEvidence": {
+    "recoveryLedgerDriveId": "1AES2lZ6GFfpdBFZdSX4XXy-FbGQxPKGrXFLJjM67Smg",
+    "v2253FullCheckpointBytes": 278378882,
+    "v2253FullCheckpointSha256": "a74d90679015cb5da01777bca9e32578d639bbbf299861a6a6cecf86db6b2c07",
+    "v2253SourceFingerprint": "de24e9a03470ee397072b2ffcec0b8aee46529abbd9a3422e62cec24f404214d",
+    "v2253SourceFiles": 6379,
+    "v2253SourceBytes": 485619841,
+    "v2253IncrementalBytes": 136149,
+    "v2253IncrementalSha256": "4c35d6087548378451401e9fe7748ec8ef0afb60625a5a88c800f08fe8f78efc",
+    "v2253DeltaDriveId": "1vDJ4IDn2FvTS5hYH4-A_HC80VgaNe9poBmIOOo9JGyk",
+    "readiness": "BLOCKED 6/13 hard gates",
+    "strictParity": {
+      "discoveredIdentifiers": 433,
+      "highConfidenceCandidates": 417,
+      "migratedRequestContracts": 239,
+      "pendingCandidates": 178,
+      "ambiguousIdentifiers": 16
+    }
+  },
+  "nextCursor": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
+  "persistence": {
+    "github": "ProjectDump source, real GitHub Wiki and this checkpoint committed and re-read",
+    "drive": "PCX-043 wiki mirrored into Project Wikis and independently re-read/exported",
+    "driveCheckpointDocumentId": "13Lff9OaUxdcz3e9gXNS493WwgTT4pVqy5_2cKeEydeA",
+    "driveCheckpointMarkdownBytes": 5759,
+    "driveCheckpointMarkdownSha256": "eefb4ec80cee7bb5a1e5250ed7f1c4e17dd12007f83fc54c5a36dfbd1dff9d77",
+    "driveCheckpointVerification": "document moved into canonical Project Constellation folder, re-read in full, exported to Markdown and SHA-256 verified",
+    "automation": "Recurring wiki-maintenance obligation remains open and ongoing"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "project": "Project Constellation",
+  "project_id": "project-constellation-extension",
+  "version": "0.13.0",
+  "release": "Execution Pulse + Tool Watchdog",
+  "created_at": "2026-08-24T16:41:47.154025Z",
+  "drive_first_base": {
+    "version": "0.12.0",
+    "folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "source_file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
+    "source_sha256": "41f3ef8c5c3734f7d33670179722e7c2b3518804528eeda14f68060661013e6b"
+  },
+  "release_folder": {
+    "id": "10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
+    "url": "https://drive.google.com/drive/folders/10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu"
+  },
+  "artifacts": {
+    "source": {
+      "name": "Project-Constellation-v0.13.0-source.zip",
+      "size": 232749,
+      "sha256": "779a8dcb7ad11bcb826f6d71cf134cdbd675e0819f6281409675bc264a842ad1",
+      "drive_file_id": "1BE4BxzKCr-sjVnFiwE-cv50vwhGM6GZI",
+      "remote_verification": "full redownload byte-identical"
+    },
+    "unpacked": {
+      "name": "Project-Constellation-v0.13.0-unpacked.zip",
+      "size": 159179,
+      "sha256": "95dd2b1b9451f5061942981dcc4c245ac4319ac6fd87f3e21d55e9d8d3f2d60c",
+      "drive_file_id": "1j5p_9MeJhz2yF6kWjZb4l8d1LY1YIwvv",
+      "remote_verification": "full redownload byte-identical"
+    },
+    "evidence": {
+      "name": "Project-Constellation-v0.13.0-Evidence.zip",
+      "size": 1293451,
+      "sha256": "a5aed9593a45b23c5860568d531c1d03283d11dbdd2475449265f364d8157b5c",
+      "drive_file_id": "1ewvzPJXWmOnRTZXsw1PL9wuSpppHbt4R",
+      "remote_verification": "full redownload byte-identical"
+    },
+    "ui_proof": {
+      "name": "Project-Constellation-v0.13.0-Execution-Pulse.png",
+      "size": 131349,
+      "sha256": "c4b804d53e205cdefaea46be1aa42d76b78a0f087e52ebd44d946d363b905cc5",
+      "drive_file_id": "1-JsY58YQgLP2TwtoEmKx1fqeosAVknz9",
+      "remote_verification": "full redownload byte-identical"
+    }
+  },
+  "installable_identity": {
+    "manifest_version": 3,
+    "extension_version": "0.13.0",
+    "extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig",
+    "file_count": 21,
+    "tree_sha256": "f80475cf97db4a7c6b4ee24925ccc987cf77ca5085db94555a9029e3b3276bbf"
+  },
+  "acceptance": {
+    "execution_pulse": "PASS - bottom-right HUD exposes last proof, network, activity phase, tool pulse, project/page/capacity/handoff state; collapsed HUD retains phase/proof signal",
+    "repeated_generic_tool_steps": "PASS - repeated Called tool rows increment timeline/tool-step proof even when the visible label repeats",
+    "tool_watchdog": "PASS - fresh tool-running, quiet/stalled/dead thresholds, request-stalled and dead zombie-request classification covered; tool-stalled exercised in browser smoke",
+    "no_false_forever_active": "PASS - oldest pending request and latest actual network/DOM/tool progress are aged independently",
+    "home_projection": "PASS - fresh liveHealthState/activity/tool-step evidence overrides coarse status across Home/Attention/Inspector/Recovery/Search/Organizer views",
+    "no_provider_fetch": "PASS - content script static gate rejects fetch/XMLHttpRequest and watchdog adds no provider request",
+    "no_retry": "PASS - delivery/connection recovery still uses browser refresh only; approval/rate-limit regression produced zero Retry clicks",
+    "knowledge_integrity_capacity": "PASS - Knowledge Vault, Project Integrity, request governor, Capacity Guard + Safe Handoff retained",
+    "large_history": "PASS - 320/320 mounted messages retained and 320/320 turns catalogued; deep walker reached both boundaries",
+    "full_capture": "PASS - two-chat completion plus pause/resume/cancel",
+    "fresh_installable": "PASS - fresh extracted build byte-equal to build output; background, Execution Pulse, 320-turn content, Home, approval recovery, Full Capture, popup, sidepanel, offscreen critical paths passed"
+  },
+  "tests": {
+    "npm_test": "PASS",
+    "npm_validate": "PASS - 49 UI message types owned",
+    "all_existing_browser_smokes": "PASS",
+    "fresh_installable_smokes": "PASS"
+  },
+  "external_runtime_gate": "True unpacked-extension execution in this container remains blocked before extension startup by the system Chromium administrator policy that disables unpacked extensions. The exact extension ID/tree is recorded; signed-in provider/OAuth acceptance remains external.",
+  "superseded_incident": "The reconstructed ProjectDump v0.11.1 Atlas + Chat Guardian lineage remains NONCANONICAL_SUPERSEDED and was not merged.",
+  "publication_control_files": [
+    "Project-Constellation-v0.13.0-CHECKPOINT.json",
+    "Project-Constellation-v0.13.0-SHA256SUMS.txt",
+    "Project-Constellation-v0.13.0-PUBLICATION-RECEIPT.json"
+  ]
+}

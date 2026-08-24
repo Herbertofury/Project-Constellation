@@ -1,0 +1,80 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T09:10:00Z",
+  "projects": ["PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023"],
+  "publicationBacklogAtStart": "clear",
+  "publicationBacklogAtClose": "clear",
+  "materialUpdate": {
+    "projectId": "PRJ-019",
+    "wikiSourcePath": "wikis/PRJ-019-mo2-performance-accelerator.md",
+    "sourceCommit": "547d599689dae5aad0f1e112b577cd329712210d",
+    "sourceBlob": "7ff33e04d19efea7e2f9c11b4df7d4e9cef7eb97",
+    "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-019-mo2-performance-accelerator",
+    "change": "Revalidated the stable MO2 v2.5.2 host and unchanged upstream master watermark, then added upstream issue #2420 as a source-backed differential regression lane covering top-separator anchor/collapse/position state across F5 refresh with Creation Club entries. Expanded the measurement contract, host probes, qualification matrix, next action, and evidence boundary so accelerator work cannot hide, worsen, or later reintroduce the host defect.",
+    "currentHostEvidence": {
+      "mo2Stable": "v2.5.2",
+      "mo2Master": "efe2a02d5dc641946baaa8db1440800f38d07837",
+      "qtPyQt": "6.7.1",
+      "python": "3.12.3",
+      "upstreamRegression": "ModOrganizer2/modorganizer#2420"
+    }
+  },
+  "wikiPublication": {
+    "status": "verified",
+    "workflowRun": 32564171391,
+    "job": 97010238717,
+    "checkedOutSource": "547d599689dae5aad0f1e112b577cd329712210d",
+    "wikiMasterCommit": "1e9ea8444c6ade92731659a1c9eedba26d943493",
+    "proof": "ProjectDump.wiki.git push succeeded; actual Wiki was fresh-cloned; complete remote page set byte-compared successfully against wikis/; wiki-publication status recorded success."
+  },
+  "driveDurability": {
+    "projectWikiFileId": "1GUEH1ZfKRHnDMGA5reQ6xA4A1HlrnfLLdyv3rg_qVMQ",
+    "projectWikiParent": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "rereadVerified": true,
+    "markdownExportBytes": 13851,
+    "markdownSha256": "147f10f73de69000405777370a810a64b2736306537693925f440cdd9272e7c3",
+    "verifiedContent": [
+      "Current MO2 host baseline, revalidated 2026-08-22",
+      "Current host regression to protect: separator state across F5 refresh",
+      "F5 / Creation Club separator regression qualification row"
+    ],
+    "checkpoint": {
+      "fileId": "1_Qn4X2qXONttJxEB82ubjt3yilCIQSrMWygC5WfBjuU",
+      "parent": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "rereadVerified": true,
+      "markdownExportBytes": 3817,
+      "markdownSha256": "7446d85e98873fb7e39586c78cb8c2d150d433b791aa84c4b9ce3fab55e45a9f"
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "parent": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "rereadVerified": true,
+      "markdownExportBytes": 2215,
+      "markdownSha256": "886d8d53322be28b573b047cd7667e752d6689827337923b8d0d71954cc1807e"
+    }
+  },
+  "otherProjects": [
+    {
+      "projectId": "PRJ-020",
+      "decision": "no-source-churn",
+      "reason": "Current wiki already records the recovered consolidated master, v10/v14/v9/v7 lineage, NeurolingsCE architecture benchmark, canonicalization boundary and exact next action. No stronger project-owned delta was resolved this pass."
+    },
+    {
+      "projectId": "PRJ-021",
+      "decision": "no-source-churn",
+      "reason": "Fresh connected Drive search still did not recover GX-Slim-1.0.0-FULL.zip, a README, or canonical source. Recovery-first identity boundary remains correct."
+    },
+    {
+      "projectId": "PRJ-022",
+      "decision": "no-source-churn",
+      "reason": "Current wiki already resolves Feral as a generated Feature Foundry foundation, preserves shippable=false, toolchain migration sequencing and anti-degradation rules. No stronger project-owned runtime evidence was resolved."
+    },
+    {
+      "projectId": "PRJ-023",
+      "decision": "no-source-churn",
+      "reason": "Current wiki was freshly improved on 2026-08-21 with reproducibility, floating-version drift and two-clean-environment acceptance gates; no newer material project-owned delta justified churn."
+    }
+  ],
+  "nextCursor": ["PRJ-024", "PRJ-025", "PCX-026", "PCX-027", "PCX-028"],
+  "ongoing": true
+}

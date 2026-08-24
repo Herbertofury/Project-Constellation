@@ -1,0 +1,70 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-21T08:24:00Z",
+  "group": ["PRJ-006", "PRJ-007", "PRJ-008", "PRJ-009", "PRJ-010"],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "d9d39c346fa89c38d640d1d3bc3c7aac88b6ba6d",
+    "wikiPublicationStatus": "success",
+    "syncRunId": 32462759772,
+    "syncJobId": 96712902826,
+    "wikiMasterCommit": "62fee7bbc4df3c6d3edf38e9796300b8e7b001a7",
+    "verification": "exact source checkout, ProjectDump.wiki.git push, fresh clone, complete byte comparison"
+  },
+  "materialUpdate": {
+    "projectId": "PRJ-007",
+    "sourcePath": "wikis/PRJ-007-pf-magic-petz-runtime-integration.md",
+    "sourceBlob": "c1f7b6cdf62c9ee13f634e48398058fd04c7c12e",
+    "summary": "Refreshed the Petz integration wiki around current GameSync Next PR #10 acceptance state, canonicalized the run-65 Ferrum lane, retained the source-proven main persistence defect, and kept exact-head private runner non-execution fail-closed.",
+    "driveMirror": {
+      "fileId": "1vr1K0Sou4QQuTT82COdViPK-TMlG5fYvFedBKiUZXyU",
+      "title": "PRJ-007 PF Magic Petz Runtime Integration Wiki",
+      "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "repairedThisPass": true,
+      "reason": "Drive still carried the superseded long-form recovery history and did not contain the current Canonical acceptance lane section after the GitHub/wiki publication update.",
+      "markdownExportBytes": 19368,
+      "markdownExportSha256": "58eee55818da4facaa344fff8ef17b92d5bccbabe40d34487b52d5c88c553f33",
+      "rereadProof": "Canonical acceptance lane and current PR #10 head 2612396804b44399b7b23b4f32f21217325da79c were re-read after replacement."
+    }
+  },
+  "rechecks": [
+    {
+      "projectId": "PRJ-006",
+      "result": "NO_SOURCE_CHURN",
+      "reason": "Current ACS parity page already reflects shipping GameSync 0.6.3, GameSync Next 0.8.0/current head cd906ff0831bf7fc33b41fea31b6f0c004cc1562, and the remaining classic parity gaps."
+    },
+    {
+      "projectId": "PRJ-008",
+      "result": "NO_SOURCE_CHURN",
+      "reason": "Current Mascot Games page still matches the strongest shipping GameSync 0.6.3 implementation evidence and truthfully keeps Golf as unresolved rather than invented shipping behavior."
+    },
+    {
+      "projectId": "PRJ-009",
+      "result": "NO_SOURCE_CHURN",
+      "reason": "Exact Drive and connected GitHub searches still do not resolve a canonical Skill Atlas / QA Cockpit source repository or release archive; recovery-first documentation remains correct."
+    },
+    {
+      "projectId": "PRJ-010",
+      "result": "NO_SOURCE_CHURN",
+      "reason": "Herbertofury/FlipForge remains the one-commit placeholder at 03cb2057c480929831852fed8fd866954e3ad5c0; the wiki correctly preserves the known-good hitchless reference and release blocker without inventing source/build commands."
+    }
+  ],
+  "nextCursor": ["PRJ-011", "PRJ-012", "PRJ-013", "PRJ-014", "PRJ-015"],
+  "persistence": {
+    "github": "verified",
+    "drive": "verified",
+    "driveCheckpoint": {
+      "fileId": "1cM2eZeh4hiC2jm09zZpj-gQcOUOan2otzZ118wHLPeI",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 4026,
+      "markdownExportSha256": "d0528d5c582620a9379d216e22d7323e2467abb9f85636929f212422dd52eb24"
+    },
+    "driveResearchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "plainTextExportBytes": 2283,
+      "plainTextExportSha256": "7c7a289757494b4f3b788f273b18520494203733092475aad09196409ebeaeb0",
+      "jsonValidation": "pass"
+    }
+  },
+  "serviceState": "ONGOING"
+}

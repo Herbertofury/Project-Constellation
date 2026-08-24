@@ -1,0 +1,47 @@
+{
+  "schema": "project-constellation.wiki-checkpoint/1",
+  "checkpointAt": "2026-08-21T04:55:00Z",
+  "projectId": "PCX-063",
+  "projectName": "Feature Foundry Aesthetic Vault",
+  "status": "VERIFIED_DUAL_PUBLISHED",
+  "materialChange": "Reconciled the Aesthetic Vault wiki with released Feature Foundry v24 production Asset Vault while preserving GameSync Next Inspiration Vault as the browser capture/provenance lane; documented the source-proven imported-asset restart durability gap and a non-destructive bridge contract.",
+  "projectEvidence": {
+    "featureFoundryRepository": "Herbertofury/Feature-Foundry",
+    "featureFoundryHead": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "featureFoundryVersion": "24.0.0",
+    "gameSyncNextRepository": "Herbertofury/GameSync-Next",
+    "gameSyncNextHead": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562"
+  },
+  "github": {
+    "sourcePath": "wikis/PCX-063-feature-foundry-aesthetic-vault.md",
+    "sourceCommit": "a57d77e1017dcf3b372496bff9181a1bc4f114b3",
+    "sourceBlob": "e639ab477354ce230e7ac3ed3975adcedb3e758f",
+    "wikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-063-feature-foundry-aesthetic-vault",
+    "workflowRun": 32448353814,
+    "workflowJob": 96672015129,
+    "wikiMasterCommit": "c5f3b6f1e441082cbc5b0cacfa468a92308c0bda",
+    "freshCloneByteCompare": "pass"
+  },
+  "drive": {
+    "wikiFileId": "10pKds457uLXnh1wQYq1TCY8sZxTKq3gtUgIBbjKEwc4",
+    "wikiTitle": "PCX-063 Feature Foundry Aesthetic Vault Wiki",
+    "projectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "wikiMarkdownExportBytes": 31006,
+    "wikiMarkdownExportSha256": "543549c15a4dc2e2c6c6185efdaa1039fc2577f82b7dd1b8389de2df266cb093",
+    "wikiReread": "pass",
+    "checkpointFileId": "1j3C9wsv-AZmGlk20DVmFkpI21Hm6dx4VGJVlFyxU7ko",
+    "projectConstellationFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "checkpointMarkdownExportBytes": 2231,
+    "checkpointMarkdownExportSha256": "fbb5083fb1ee3cefffd4f82c7be70c2a01573dcff7dd1601222c691989d7dd51",
+    "checkpointReread": "pass"
+  },
+  "cursor": {
+    "githubBlobAfterUpdate": "8b0a72512e15c001ac6a4ca884675d400173674a",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveMarkdownExportBytes": 2421,
+    "driveMarkdownExportSha256": "fce10f2ec5fb1a82fec6099e562b8a07762c3c914710e5cc7d887909f289259a",
+    "nextCursor": ["PRJ-001", "PRJ-002", "PRJ-003", "PRJ-004", "PRJ-005"]
+  },
+  "verifiedGap": "Feature Foundry v24 handleFile() creates user imports only in the in-memory asset catalog, while ff-scrapbook-layout persists assetId and restore skips missing asset definitions. Arbitrary imported asset bytes/definitions are therefore not yet restart-proven durable.",
+  "nextAction": "Add content-addressed durable storage for imported asset originals/metadata, add a clean-restart durability gate, then bridge the existing GameSync FeatureFoundryCaptureEnvelope into production v24 without losing provenance."
+}

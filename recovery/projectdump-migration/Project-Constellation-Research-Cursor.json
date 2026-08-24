@@ -1,0 +1,21 @@
+{
+  "schema": "project-constellation.research-cursor/2",
+  "updatedAt": "2026-08-23T16:31:00Z",
+  "completedCursor": [
+    "PRJ-002",
+    "PRJ-003",
+    "PRJ-004",
+    "PRJ-005",
+    "PRJ-006"
+  ],
+  "nextCursor": [
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011"
+  ],
+  "selectionReason": "Publication backlog remained clear at run start. PRJ-003 received one material umbrella-level update: current GameSync Next Performance PR #7 is now tracked as branch-only proposal evidence at exact head 964e947fc92cf9175112d436d2d7ddb74677159a, with its historical build benchmark, current indexed Ferrum provenance resolver optimization, exact-head pre-execution Secret Scan blocker, and fail-closed acceptance surface documented without promoting the branch into main product authority. Source commit 5653f2806a04ea89018e8fae75654c4e141bfb97 was publication-proven by Sync GitHub Wiki run 32651821308/job 97224520061, which pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, completed the full page-set byte comparison, and recorded Wiki master 4e71e36517c6ff10dc5132e61bc6e6aed85514ea. The canonical PRJ-003 Drive wiki mirror was updated in place and re-read in Project Wikis. PRJ-002, PRJ-004, PRJ-005, and PRJ-006 were rechecked without a stronger project-owned source delta justifying additional wiki-source churn.",
+  "sourceCheckpoint": "project-constellation/evolution/2026-08-23T1631Z-wiki-prj-002-006.json",
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. Treat draft branches as proposal evidence until exact-head acceptance passes. Treat a material wiki update as published when its exact source commit has wiki-publication success or a later full-set Sync GitHub Wiki run includes it and fresh-clone byte verification succeeds. Require durable Drive mirrors for material wiki pages and checkpoints."
+}

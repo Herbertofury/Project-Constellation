@@ -1,0 +1,83 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-21T13:15:00Z",
+  "repository": "Herbertofury/ProjectDump",
+  "branch": "main",
+  "group": [
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "58960b6dcffe5740f1cc21ea3d7a257aaf419ecd",
+    "syncRunId": 32485734005,
+    "syncJobId": 96781692920,
+    "wikiMasterCommit": "76f9d1751a9fdb94fe9a3e3647aa37e0e4382882",
+    "verification": "pass: exact source checkout, ProjectDump.wiki.git push, fresh clone, complete remote Wiki byte comparison, wiki-publication success"
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-023",
+      "project": "Feature Foundry Portable Feature Starter",
+      "reason": "Fresh primary package evidence materially strengthened the starter's floating-version reproducibility warning and corrected stale prerelease-version notes.",
+      "technologyEvidence": {
+        "checked": "2026-08-21",
+        "stable": {
+          "vite": "8.2.2",
+          "tauriCli": "2.11.4",
+          "biome": "2.5.9",
+          "typescript": "7.0.2",
+          "vitest": "4.1.10",
+          "vue": "3.5.41"
+        },
+        "preRelease": {
+          "vue": "3.6.0-rc.4",
+          "vitest": "5.0.0-beta.7"
+        },
+        "decision": "Pin package-manager and floating dependency state before migration. Keep Vue 3.6 and Vitest 5 outside the stable baseline until separately qualified."
+      },
+      "wikiSource": {
+        "path": "wikis/PRJ-023-feature-foundry-portable-feature-starter.md",
+        "commit": "58960b6dcffe5740f1cc21ea3d7a257aaf419ecd",
+        "blob": "c8825012be75f8e2e7ed8384f50c5c16370f20ba"
+      },
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-023-feature-foundry-portable-feature-starter",
+      "driveMirror": {
+        "fileId": "17sISQkxtUUIE9oTzyL6vra6RlTaOYjuX3zgOyztEjpU",
+        "title": "PRJ-023 Feature Foundry Portable Feature Starter Wiki",
+        "markdownExportBytes": 10246,
+        "markdownSha256": "ab37c6830a2dc17169c672b935fe2e769bfc254143ee225c0e8ca45dcbd0c867",
+        "reRead": "pass: Biome 2.5.9, Vue 3.6.0-rc.4, Vitest 5.0.0-beta.7, refreshed migration order and reproducibility rationale present"
+      }
+    }
+  ],
+  "reviewedNoSourceChange": [
+    {
+      "projectId": "PRJ-021",
+      "reason": "Exact-name Drive/GitHub recovery still does not locate GX-Slim-1.0.0-FULL.zip, README or canonical source. Recovery-first wiki remains truthful."
+    },
+    {
+      "projectId": "PRJ-022",
+      "reason": "Feral Unified Native Base remains a generated non-shippable Feature Foundry foundation. Current stable React 19.2.8, Vite 8.2.2, Tauri 2.11.4, TypeScript 7.0.2 and Vitest 4.1.10 do not change the page's sequenced migration boundary."
+    },
+    {
+      "projectId": "PRJ-024",
+      "reason": "MO2 Drag/Column Compatibility Pack remains aligned to Image Column 1.4.12, Bethesda Plugin Info 1.5.3, Version Tracker 2.4.3 and current stable MO2 v2.5.2 live-stack qualification."
+    },
+    {
+      "projectId": "PRJ-025",
+      "reason": "UltraDeck main remains v8.6.0 at d9278d4a0fd33d184e9c6f928556262668af4125 with no newer project-owned source delta after the verified site-regression/challenge-safe loading merge."
+    }
+  ],
+  "nextCursor": [
+    "PCX-026",
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030"
+  ],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

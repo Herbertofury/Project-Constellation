@@ -1,0 +1,69 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-18T12:12:00Z",
+  "result": "MATERIAL_WIKI_DELTA",
+  "automationObligation": "OPEN_AND_ONGOING",
+  "reviewed": [
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-030",
+      "project": "Reliable Artifact Publisher",
+      "reason": "The prior page stopped at early GitHub Wiki publication proof. ProjectDump and Project Constellation now contain materially stronger dual-publication, Drive round-trip hash, catalog-integrity receipt, and preserved publication-debt evidence that belongs in the publisher contract.",
+      "verifiedEvidence": [
+        "ProjectDump GitHub Wiki publication remains gated on a successful fresh-clone byte comparison and exact wiki-publication commit status.",
+        "The PRJ-025 wiki-maintainer checkpoint joins source identity, ProjectDump source commit, GitHub Wiki workflow run/master commit, Drive wiki document ID, Drive Markdown size/SHA-256, and a separately hash-verified Project Constellation checkpoint.",
+        "Project-Constellation-Catalog-Integrity.json records exact catalog bytes/SHA-256/Git blob plus independent GitHub and Drive verification states and semantic invariants.",
+        "Project-Constellation-Publication-Debt.json preserves blocked candidate hashes/sizes and explicitly forbids promotion until remote replacement and re-read/re-download verification succeed."
+      ],
+      "projectDumpSourceCommit": "54fd9c6cd3933f79c3bf48cdebf4efb2181baf3e",
+      "projectDumpSourceBlobSha": "2ddb1920ebff2725bb02e4347efb17e6855d20dd",
+      "wikiWorkflowRun": 32135531196,
+      "wikiMasterCommit": "b0e14cfa10c0679c6abbb70cdcd1e947ee217f5b",
+      "wikiPublication": "fresh-clone byte-verified",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-030-reliable-artifact-publisher",
+      "driveWikiDocumentId": "1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4",
+      "driveWikiRoundTripRead": "pass",
+      "driveWikiMarkdownSize": 18264,
+      "driveWikiMarkdownSha256": "e1d7aff09772f9092f78414c6d9ddf524906cb1503461f4f630890b4fc5e3b66"
+    }
+  ],
+  "unchanged": [
+    {
+      "projectId": "PCX-028",
+      "reason": "Canonical DirectoryMonitor source remains unresolved. The existing wiki already documents the lossless watcher/reconciliation contract, notify 9.0.0-rc.4 and Watchman adapter candidates, overflow/restart scenarios, and the unresolved implementation boundary; no newer project-owned source was recovered."
+    },
+    {
+      "projectId": "PCX-029",
+      "reason": "Canonical standalone PC/MCP Bridge source remains unresolved. The existing wiki already reflects MCP 2026-07-28 transport/version-negotiation requirements, legacy fallback, conformance boundaries, and real tool-call proof; no newer bridge-owned implementation evidence was recovered."
+    },
+    {
+      "projectId": "PCX-031",
+      "reason": "Auralis remains source-repository unresolved. The existing page already captures the durable MASTER_BUILD_PROMPT/IMPLEMENTATION authority, current Rust 1.97.1/Slint 1.17/windows-rs 0.62.2/Rubato 4.0 stack, Windows audio architecture, DSP/recovery gates, and the correct no-replacement-repo boundary."
+    },
+    {
+      "projectId": "PCX-032",
+      "reason": "Profit Nova remains production-repository unresolved. The existing wiki already captures v39 strict-spec lineage, native Tauri/Bevy architecture, Hermes release-pinned donor boundary, current donor/version research, room/workflow/memory/economic contracts, and the no-prototype-as-canonical rule."
+    }
+  ],
+  "driveCheckpoint": {
+    "documentId": "1xgmMGdoJ5rGZOG4EmVRKzZSyEkV3GAeZnrOlaA2cH5E",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "roundTripRead": "pass",
+    "markdownSize": 4503,
+    "markdownSha256": "72d3c44bd29c739cdbd98de25b81b81345cc60bfbf01001eb0f7f93eea478be0"
+  },
+  "nextCursor": [
+    "PCX-033",
+    "PCX-034",
+    "PCX-035",
+    "PCX-036",
+    "PCX-037"
+  ],
+  "persistenceRule": "This checkpoint records one recurring documentation pass only. The Wiki Maintainer obligation remains open and ongoing; PCX-036 is a preserved control-plane reference and is not a normal documentation target unless a real control-plane continuity change requires it."
+}

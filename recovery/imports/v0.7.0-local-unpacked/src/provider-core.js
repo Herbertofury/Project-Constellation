@@ -1,0 +1,134 @@
+(() => {
+  'use strict';
+
+  const PROVIDERS = Object.freeze([
+    {
+      id: 'chatgpt', name: 'ChatGPT', home: 'https://chatgpt.com/', hosts: ['chatgpt.com', 'chat.openai.com'],
+      chatPatterns: [/\/c\/([a-zA-Z0-9-]+)/, /\/share\/([a-zA-Z0-9-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'chatgpt-data-export', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'claude', name: 'Claude', home: 'https://claude.ai/', hosts: ['claude.ai'],
+      chatPatterns: [/\/chat\/([a-zA-Z0-9-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'gemini', name: 'Gemini', home: 'https://gemini.google.com/app', hosts: ['gemini.google.com'],
+      chatPatterns: [/\/app\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'google-takeout', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'grok', name: 'Grok', home: 'https://grok.com/', hosts: ['grok.com'],
+      chatPatterns: [/\/(?:c|chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'deepseek', name: 'DeepSeek', home: 'https://chat.deepseek.com/', hosts: ['chat.deepseek.com'],
+      chatPatterns: [/\/a\/chat\/s\/([a-zA-Z0-9_-]+)/, /\/(?:chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'perplexity', name: 'Perplexity', home: 'https://www.perplexity.ai/', hosts: ['perplexity.ai', 'www.perplexity.ai'],
+      chatPatterns: [/\/(?:search|page)\/([^/?#]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'copilot', name: 'Microsoft Copilot', home: 'https://copilot.microsoft.com/', hosts: ['copilot.microsoft.com'],
+      chatPatterns: [/\/(?:chats?|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'microsoft-account-export', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'mistral', name: 'Le Chat', home: 'https://chat.mistral.ai/', hosts: ['chat.mistral.ai'],
+      chatPatterns: [/\/(?:chat|conversation)\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    },
+    {
+      id: 'poe', name: 'Poe', home: 'https://poe.com/', hosts: ['poe.com'],
+      chatPatterns: [/\/chat\/([a-zA-Z0-9_-]+)/],
+      catalog: { browserHistory: true, backgroundHtml: true, livePassive: true, exportImport: 'manual-export-if-available', officialHistoryApi: false, manualFullCapture: true }
+    }
+  ]);
+
+  const byId = Object.freeze(Object.fromEntries(PROVIDERS.map((provider) => [provider.id, provider])));
+
+  function safeUrl(value) {
+    try { return new URL(value); } catch (_) { return null; }
+  }
+
+  function detectProvider(value) {
+    const url = safeUrl(value);
+    if (!url) return null;
+    const host = url.hostname.toLowerCase();
+    return PROVIDERS.find((provider) => provider.hosts.includes(host)) || null;
+  }
+
+  function chatIdFromUrl(value, explicitProviderId = '') {
+    const url = safeUrl(value);
+    if (!url) return '';
+    const provider = explicitProviderId ? byId[explicitProviderId] : detectProvider(value);
+    if (!provider) return '';
+    for (const pattern of provider.chatPatterns) {
+      const match = url.pathname.match(pattern);
+      if (match?.[1]) return `${provider.id}:${decodeURIComponent(match[1])}`;
+    }
+    if (provider.id === 'chatgpt') {
+      const projectChat = url.pathname.match(/\/g\/[^/]+\/c\/([a-zA-Z0-9-]+)/);
+      if (projectChat?.[1]) return `${provider.id}:${projectChat[1]}`;
+    }
+    const path = url.pathname.replace(/\/+$/, '');
+    if (!path || path === '/app') return '';
+    return `${provider.id}:route:${hashString(`${url.hostname}${path}${url.search}`)}`;
+  }
+
+  function isLikelyChatUrl(value, providerId = '') {
+    const url = safeUrl(value);
+    if (!url) return false;
+    const provider = providerId ? byId[providerId] : detectProvider(value);
+    if (!provider || !provider.hosts.includes(url.hostname.toLowerCase())) return false;
+    return provider.chatPatterns.some((pattern) => pattern.test(url.pathname)) || /\/(chat|chats|conversation|search|app|c)\//i.test(url.pathname);
+  }
+
+  function canonicalChatUrl(value, providerId = '') {
+    const url = safeUrl(value);
+    if (!url) return '';
+    const provider = providerId ? byId[providerId] : detectProvider(value);
+    if (!provider) return '';
+    url.hash = '';
+    for (const key of [...url.searchParams.keys()]) {
+      if (/^(utm_|ref$|source$|share$)/i.test(key)) url.searchParams.delete(key);
+    }
+    return url.toString();
+  }
+
+  function providerForHost(hostname) {
+    const host = String(hostname || '').toLowerCase();
+    return PROVIDERS.find((provider) => provider.hosts.includes(host)) || null;
+  }
+
+  function hashString(value) {
+    const text = String(value || '');
+    let h = 2166136261;
+    for (let i = 0; i < text.length; i += 1) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(36);
+  }
+
+  function classifyExternalUrl(value) {
+    const url = safeUrl(value);
+    if (!url) return { kind: 'local', provider: '', external: false };
+    const host = url.hostname.toLowerCase();
+    if (/^(drive|docs)\.google\.com$/.test(host)) return { kind: 'google-drive', provider: 'google-drive', external: true };
+    if (host === 'github.com' || host.endsWith('.githubusercontent.com')) return { kind: 'github', provider: 'github', external: true };
+    if (host.endsWith('dropbox.com')) return { kind: 'dropbox', provider: 'dropbox', external: true };
+    if (host.endsWith('sharepoint.com') || host === '1drv.ms' || host.endsWith('onedrive.live.com')) return { kind: 'onedrive', provider: 'onedrive', external: true };
+    if (host === 'huggingface.co') return { kind: 'huggingface', provider: 'huggingface', external: true };
+    if (host.endsWith('notion.so') || host.endsWith('notion.site')) return { kind: 'notion', provider: 'notion', external: true };
+    return { kind: 'external', provider: host, external: true };
+  }
+
+  const api = Object.freeze({ PROVIDERS, byId, detectProvider, chatIdFromUrl, isLikelyChatUrl, canonicalChatUrl, providerForHost, classifyExternalUrl, hashString });
+  globalThis.ProjectConstellationProviders = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})();

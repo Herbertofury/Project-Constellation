@@ -1,0 +1,89 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-21T06:40:00Z",
+  "projectId": "PRJ-002",
+  "projectName": "Feature Foundry",
+  "materialUpdate": true,
+  "summary": "Reconciled the Feature Foundry umbrella wiki from the obsolete placeholder/V2-253-as-current authority model to the released Feature Foundry v24.0.0 production repository while preserving V33, V2-253, V23, standalone V24, and V11 as explicit historical/regression evidence lanes.",
+  "canonicalProject": {
+    "repository": "Herbertofury/Feature-Foundry",
+    "branch": "main",
+    "verifiedHead": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "releasedSourceLine": "v24.0.0",
+    "packageVersion": "24.0.0",
+    "packageJsonBlob": "46e0a282f5e65d87b456e12a0cab90e1ac967947",
+    "readmeBlob": "88ef33a62191701b1c6e017cfc064ffac464a33f",
+    "packageLockPresent": true
+  },
+  "wikiSource": {
+    "repository": "Herbertofury/ProjectDump",
+    "path": "wikis/PRJ-002-feature-foundry.md",
+    "sourceCommit": "382dc4669105539770acfb9f4c5b0aae7a5ed1a9",
+    "sourceBlob": "98135c0478f8b6680a80f2cd0a47ee57c1b1c78c",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-002-feature-foundry"
+  },
+  "wikiPublication": {
+    "status": "VERIFIED",
+    "workflowRunId": 32454920940,
+    "jobId": 96690257088,
+    "checkedOutSourceCommit": "382dc4669105539770acfb9f4c5b0aae7a5ed1a9",
+    "publisher": "tools/github-wiki/wiki-sync.sh",
+    "remote": "Herbertofury/ProjectDump.wiki.git",
+    "freshCloneByteCompare": "pass",
+    "wikiMasterCommit": "eb570429e4a257c343ca5e12c5fc7a0d21beaeca"
+  },
+  "driveMirror": {
+    "title": "PRJ-002 Feature Foundry Wiki",
+    "fileId": "1kRUF8kA-0aj04gSW71olFrBwc9mXK4IItVb7iyr9v6I",
+    "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "parentFolderTitle": "Project Wikis",
+    "reread": "pass",
+    "markdownExportBytes": 31761,
+    "markdownExportSha256": "a7c574fa00ac5599c64d0e9dc116d0c4b3c5bb68469daa2495a1005fdab5992c"
+  },
+  "driveCheckpoint": {
+    "title": "Project Constellation Wiki Checkpoint - PRJ-002 v24 Authority - 2026-08-21T0640Z",
+    "fileId": "17arkLM5HGvvj7Zr1d1Q0MjL-zPhbvh8yxIbfW6d0NpU",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "parentFolderTitle": "Project Constellation",
+    "reread": "pass",
+    "markdownExportBytes": 5513,
+    "markdownExportSha256": "bc3e6e1a9c932e07720646625918561ef78fe3c7a191120c11dc60999380d589"
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubCommit": "00489f3792021145d6cb4a178952bd2a3aae9feb",
+    "githubBlob": "a322778aa068c147dcd983d4dcc6cd192b729832",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveReread": "pass",
+    "driveTextExportBytes": 2562,
+    "driveTextExportSha256": "d816a82803eb3f8f9f3af4cd5494219bc1442f7a8d2de3c8f5b2e5b2dc0817b3"
+  },
+  "authorityCorrections": [
+    "Herbertofury/Feature-Foundry is no longer a placeholder; it is the current released production source authority.",
+    "V33 FINAL_READY is preserved as a historical high-confidence runnable/non-regression benchmark rather than current source authority.",
+    "GameSync / Feature Foundry V2-253 is preserved as project-operations/recovery architecture and exact recovery history rather than the default current application tree.",
+    "The historical V2 16-world/80-object mismatch is not a current production blocker because v24 verifies 17 approved themes/worlds and 85 ecology objects.",
+    "The V2 pnpm-lock/toolchain blockers remain historical V2 facts; current v24 has package-lock.json and a different npm/Tauri toolchain."
+  ],
+  "currentKnownGaps": [
+    "Arbitrary user-imported Asset Vault bytes/definitions are not yet restart-proven durable in v24; PCX-063 owns the repair contract.",
+    "Feature Foundry v24 and GameSync Next theme-package setting schemas still require an explicit verified adapter before direct interchange is claimed.",
+    "V23 Object Atlas semantic breadth still requires an explicit coverage ledger against the current 85-object production ecology.",
+    "V2-253 Project Vault/Improvement Radar/agent and supply-chain features must be explicitly ported and tested before being claimed as current v24 functionality."
+  ],
+  "groupRecheck": {
+    "projects": ["PRJ-001", "PRJ-002", "PRJ-003", "PRJ-004", "PRJ-005"],
+    "noChurnProjects": ["PRJ-001", "PRJ-003", "PRJ-004", "PRJ-005"],
+    "notes": {
+      "PRJ-001": "Current continuity wiki remains truthful about unresolved exact installable Project Brain/AGENTS bundle bytes.",
+      "PRJ-003": "Current GameSync Platform wiki already reflects shipping GameSync and the current typed GameSync Next platform line; no material umbrella delta was resolved in this pass.",
+      "PRJ-004": "Current Living Room wiki remains grounded in shipping GameSync plus GameSync Next shared contract ownership; no stronger current delta was resolved.",
+      "PRJ-005": "Mascot umbrella remains materially accurate; its displayed GameSync Next observation watermark is older, but no newer mascot-specific behavior change was resolved that justified source churn."
+    }
+  },
+  "nextCursor": ["PRJ-006", "PRJ-007", "PRJ-008", "PRJ-009", "PRJ-010"],
+  "publicationBacklog": "clear",
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

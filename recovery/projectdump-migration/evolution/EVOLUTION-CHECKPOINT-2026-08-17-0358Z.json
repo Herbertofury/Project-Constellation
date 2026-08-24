@@ -1,0 +1,74 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-17T03:58:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "trackedProjectCount": 63,
+  "reviewedProjects": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
+  "projectFindings": {
+    "PCX-041": {
+      "name": "ChatGPT Ultimate Optimizer",
+      "verified": "Drive release manifest resolves v1.0.1 at commit 78a92c68a07b49e152723457fcfb80fb03baf564 with exact artifact hashes and static/test evidence.",
+      "proposal": "Build a current ChatGPT surface capability matrix and run real browser drift tests before changing selectors."
+    },
+    "PCX-042": {
+      "name": "GameSync Next",
+      "verified": "Current main revalidated at 9e337c720f0180cffa577f140b181c699f0a1650; existing parity/runtime wiki remains current.",
+      "proposal": "No stack change this pass; preserve current verified main until material repository/upstream evidence changes."
+    },
+    "PCX-043": {
+      "name": "Feature Foundry Production App",
+      "verified": "V33 FINAL_READY is the strongest durable runnable lineage: remotely byte-verified, 101/101 V33 runtime, 117/117 legacy runtime, 22/22 static, zero missing legacy handlers, zero console/page errors.",
+      "proposal": "Resolve maintainable V33-equivalent source/worktree and verify source-manifest identity before new migrations."
+    },
+    "PCX-044": {
+      "name": "Feature Foundry Living Ecology",
+      "verified": "V33 preserves content parity across presentation tiers plus causal signal/replay, persistent state, reduced-motion equivalence, and no artificial caps.",
+      "proposal": "Add a fixed cross-tier ecology replay fixture and keep physics behind an adapter before considering engine changes."
+    },
+    "PCX-045": {
+      "name": "Feature Foundry Object Intelligence",
+      "verified": "Object Atlas/object-semantics lineage remains canonical; V33 proves runtime interaction/replay behavior for authored objects.",
+      "proposal": "Prototype a three-object KHR_interactivity round trip as an interchange experiment without replacing canonical object storage."
+    }
+  },
+  "documentation": {
+    "created": [
+      "wikis/PCX-041-chatgpt-ultimate-optimizer.md",
+      "wikis/PCX-043-feature-foundry-production-app.md",
+      "wikis/PCX-044-feature-foundry-living-ecology.md",
+      "wikis/PCX-045-feature-foundry-object-intelligence.md"
+    ],
+    "revalidated": [
+      "wikis/PCX-042-gamesync-next.md"
+    ],
+    "indexedDetailedWikiCoverage": 27,
+    "remoteReadbackVerified": true
+  },
+  "publication": {
+    "githubMain": "published and remote-readback verified",
+    "drivePresentationBytes": "unchanged; older byte-verified artifacts remain canonical",
+    "candidatePresentationPublication": "pending connector local-file egress support",
+    "lastAutomationHashPromoted": false
+  },
+  "validation": {
+    "projectCount63": true,
+    "sourceAuthorityReview": true,
+    "wikiReadback": true,
+    "presentationBytesChanged": false,
+    "browserRuntimeRerun": false,
+    "browserRuntimeReason": "No presentation/runtime bytes changed; prior failed-environment Chromium evidence remains the truthful runtime status."
+  },
+  "nextResearchCursor": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ]
+}

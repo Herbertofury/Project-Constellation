@@ -1,0 +1,72 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T21:14:00Z",
+  "automation": "Constellation Wiki Maintainer",
+  "projectId": "PCX-042",
+  "projectName": "GameSync Next",
+  "result": "MATERIAL_WIKI_UPDATE_DUAL_PUBLISHED",
+  "sourceEvidence": {
+    "repository": "Herbertofury/GameSync-Next",
+    "branch": "main",
+    "verifiedHead": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+    "previousWikiHead": "9e337c720f0180cffa577f140b181c699f0a1650",
+    "shippingParityRepository": "Herbertofury/Gamesync",
+    "shippingParityHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+    "extensionVersion": "0.8.0",
+    "materialDelta": [
+      "Universal Game Tracker is verified current-main capability with lossless DOCX/XLSX/XLS/CSV/TSV/JSON and Google Docs/Sheets import plus JSON/XLSX/DOCX/CSV export.",
+      "Bounty is verified on current main; isolated Opera evidence synchronized 107 live GamerPower records and rendered the calendar with one React root mount.",
+      "Animation Tracker is verified on current main; isolated Opera evidence covered exact HTTPS source persistence, version detection, polling and installed-pack update rendering.",
+      "Bounty and Animation Tracker were removed from the current GameSync Next parity gap list; remaining explicit gaps are mascot arcade catalog parity and expanded Petz/ACS content/offscreen intelligence parity.",
+      "Current Game Tracker architecture, Dexie ownership, worker/binary-data boundaries, editable Word dropdown schema fidelity, background message contracts and tab/deep-link behavior are now documented.",
+      "The stale root test:e2e-opera entrypoint remains truthfully documented as broken; verify:extension-v2:opera remains the maintained current path."
+    ]
+  },
+  "githubSource": {
+    "repository": "Herbertofury/ProjectDump",
+    "path": "wikis/PCX-042-gamesync-next.md",
+    "commit": "709b26baefc4dc9cf2288af3516879cbb375c998",
+    "blob": "1905987f54852d498a29efbce5f0200bc1e2a685"
+  },
+  "githubWikiPublication": {
+    "workflow": "Sync GitHub Wiki",
+    "runId": 32186179651,
+    "jobId": 95870205781,
+    "conclusion": "success",
+    "publisherPushVerified": true,
+    "freshCloneByteCompare": "pass",
+    "wikiMasterCommit": "36377c828be2723eef74f799f092eb2c9f3a1939",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-042-gamesync-next"
+  },
+  "googleDrivePublication": {
+    "title": "PCX-042 GameSync Next Wiki",
+    "fileId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "reReadVerified": true,
+    "markdownExportBytes": 42407,
+    "markdownExportSha256": "298855e3033f387521863088b912fd2fe6fdc1445e82b8fd94e2bb730ca21704"
+  },
+  "catalogCursorReview": {
+    "cheapRechecks": [
+      "PRJ-007",
+      "PRJ-008",
+      "PRJ-009",
+      "PRJ-010",
+      "PRJ-011"
+    ],
+    "result": "No separate material PRJ-007 through PRJ-011 wiki delta justified this run. PRJ-009 remains blocked on canonical Skill Atlas/QA Cockpit source recovery; PRJ-010 remains blocked on real Jagex-launched plugin persistence proof; PRJ-011 remains without a canonical runnable Accelerator repository/artifact. The newer GameSync Next merge was a cross-catalog material delta and was corrected immediately.",
+    "nextCursor": [
+      "PRJ-012",
+      "PRJ-013",
+      "PRJ-014",
+      "PRJ-015",
+      "PRJ-016"
+    ]
+  },
+  "followUp": [
+    "Reconcile PCX-053 Bounty / Rewards Runtime with the verified GameSync Next typed Bounty slice while preserving the richer shipping Gamesync provider/runtime detail.",
+    "Continue the rotating tracked-project documentation pass at PRJ-012 through PRJ-016.",
+    "Keep the recurring Constellation Wiki Maintainer obligation open and ongoing."
+  ],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

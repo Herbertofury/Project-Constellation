@@ -1,0 +1,82 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "updatedAt": "2026-08-19T10:15:00Z",
+  "reviewedProjects": [
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-018",
+      "name": "MO2 Drag-and-Drop Line Restorer",
+      "wikiSourcePath": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "sourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "sourceBlob": "dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3",
+      "summary": "Expanded the 1.1.0 wiki into a practical operations and qualification guide using the recovered project-owned README, test report, package hash, and coordinated drag/drop root-cause evidence. Added exact native-renderer source references, renderer/customizer controls, install/replace workflow, view-discovery and overlay ownership boundaries, the full visual-only safety contract, all 15 verified offscreen checks, the 100,000-calculation performance sample, coordinated synthetic-column failure context, a complete real-host acceptance matrix, Host Drag Contract Recorder design, troubleshooting, source-recovery priorities, and explicit v2.5.2 stable versus 2.5.3 beta 12 development-source qualification lanes.",
+      "sourceEvidence": {
+        "version": "1.1.0",
+        "packageSha256": "615b3b05e081ce6c529b4e9e117dbdc207f30e0dca5c858c31739a0981da7b56",
+        "developmentHostSource": "MO2 2.5.3 beta 12",
+        "currentStableHostGate": "MO2 v2.5.2",
+        "stableHostCheckedAt": "2026-08-19",
+        "offscreenValidation": "pass",
+        "indicatorCalculations": 100000,
+        "averageIndicatorCalculationMicroseconds": 3.318
+      },
+      "driveMirror": {
+        "fileId": "1SfPZROUniOq2xy1PaBHpU3zHW-wgwpFfs2w3JXNx0rg",
+        "folderPurpose": "Project Wikis",
+        "markdownExportBytes": 21842,
+        "markdownExportSha256": "5c43eda49ce93edd666d8d908d47e67f97784291d760c9d94e598ef1c2febe8c",
+        "contentReread": "pass"
+      },
+      "githubWikiPublication": {
+        "sourceCommitStatusObserved": "no wiki-publication status returned",
+        "complete": false,
+        "requiredNextVerification": "Restore an observable Sync GitHub Wiki run, then supersede this source head only with a newer meaningful PRJ-018 source commit whose exact run proves ProjectDump.wiki.git push, fresh clone, complete byte comparison, and Wiki master commit."
+      }
+    }
+  ],
+  "publicationPathRecovery": {
+    "workflowPath": ".github/workflows/sync-github-wiki.yml",
+    "workflowBlob": "a729295564dc5dc0cba5993a2389371df503d2b3",
+    "eligibleSourcePathConfirmed": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+    "workflowConfigurationReread": "pass; push main paths include wikis/** and tools/github-wiki/**; contents/write and statuses/write remain configured",
+    "recoveryContractCommit": "acb5a0b2521d4c784320bad6ba7fba7282985e5d",
+    "recoveryContractBlob": "8f7b13b43b74d3cf8b8055110ef9fc996be3ccfb",
+    "recoveryContractSummary": "Added durable exact-head missing-run recovery semantics to tools/github-wiki/README.md as a meaningful eligible publisher-path change, explicitly prohibiting retroactive publication claims and cosmetic trigger commits.",
+    "recoveryContractDriveMirror": {
+      "fileId": "1qKEfry5VXAPLRrKn3wDGIm64dNWqnMqFtHjXx1iE_4Q",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 5267,
+      "markdownExportSha256": "4ac51da4eef0c679c80d26676d109d1736b68a9b64d9e6bd8aef9d740eb9e620",
+      "contentReread": "pass"
+    },
+    "result": "The eligible publisher-path recovery commit also returned no wiki-publication status. This confirms an Actions trigger/execution observability blocker rather than a PRJ-018 path-filter mistake. Publication remains fail-closed."
+  },
+  "noChangeReviews": {
+    "PRJ-015": "Bethesda Plugin Info 1.5.3 already preserves the shared drag/drop correction, v1.5.0 validation history, current MO2 v2.5.2 stable-host gate, coordinated-stack acceptance matrix, and unresolved real Windows qualification boundary. No newer canonical project-owned source was resolved.",
+    "PRJ-016": "Bethesda Creations Version Tracker 2.4.3 already preserves the v2.3.1 central-state migration, shared drag/drop correction, current stable-host gate, and real-host migration/conflict/restart requirements. No newer verified implementation delta was resolved.",
+    "PRJ-017": "MO2 Image Column 1.4.12 already preserves broad multi-source image resolution, compact-row behavior, current stable-host gate, delegate/drop-contract safeguards, and the unresolved canonical-source/live-stack boundary. No material newer project-owned delta was found.",
+    "PRJ-019": "MO2 Performance Accelerator 4.0.1 already documents the v4.0.0 deleted-wrapper crash, exact-widget 4.0.1 correction, event-driven design, current MO2 v2.5.2 gate, and real Windows acceptance matrix. Complete source remains unresolved, so no speculative rewrite was made."
+  },
+  "carriedOpenObligations": [
+    "PRJ-014 Grim Dawn Cairn Codex source commit 5a3a56155406dacbf5ac6ca9f4e5674e1df883b5 also still has no wiki-publication status; its actual GitHub Wiki publication remains unverified."
+  ],
+  "nextResearchCursor": [
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024"
+  ],
+  "openObligations": [
+    "Repair or observe the GitHub Actions publication trigger before claiming PRJ-018 or PRJ-014 fully published.",
+    "After the trigger is healthy, create a newer meaningful source head only when justified and require its own exact successful Sync GitHub Wiki proof.",
+    "Continue tracked-project wiki maintenance with PRJ-020 through PRJ-024 while preserving publication debt.",
+    "Keep the recurring wiki-maintenance service open and ongoing."
+  ]
+}

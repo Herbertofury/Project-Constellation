@@ -1,0 +1,151 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-21T14:54:00Z",
+  "group": [
+    "PCX-026",
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030"
+  ],
+  "publicationBacklogBefore": {
+    "state": "CLEAR",
+    "lastMaterialWikiCommit": "58960b6dcffe5740f1cc21ea3d7a257aaf419ecd",
+    "wikiPublicationRun": 32485734005,
+    "laterMainComparison": "58960b6dcffe5740f1cc21ea3d7a257aaf419ecd..main",
+    "laterWikiSourceChanges": 0,
+    "note": "The three later commits before this pass changed only Project Constellation cursor/supervisor/checkpoint state, so the previous full-set Wiki verification remained current before the PCX-028 source update."
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PCX-028",
+      "name": "DirectoryMonitor",
+      "reason": "The prior page correctly required overflow reconciliation but remained too shallow for platform-specific correctness qualification. Current primary-source evidence materially strengthens the fail-closed contract without inventing unresolved implementation details.",
+      "wikiSource": {
+        "path": "wikis/PCX-028-directorymonitor.md",
+        "commit": "37ec14e4e65d0eba1e848cfad33b876c83e13392",
+        "blob": "d1bad5fd04254cda2f9438b75e5f7f1d3e52d75b"
+      },
+      "publication": {
+        "state": "VERIFIED_PUBLISHED",
+        "workflow": "Sync GitHub Wiki",
+        "runId": 32494453585,
+        "jobId": 96809459945,
+        "wikiMasterCommit": "9d6bff512af551e36abe128cc0ff134a0cf1e044",
+        "sourceCheckoutVerified": true,
+        "wikiPushVerified": true,
+        "freshCloneVerified": true,
+        "completeByteComparison": true,
+        "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-028-directorymonitor"
+      },
+      "driveMirror": {
+        "fileId": "1B6qkI0yYhF_4bDbKxOvVP2_Ec6LnPorh8Nyo2gEdhn4",
+        "title": "PCX-028 DirectoryMonitor Wiki",
+        "roundTripRead": "PASS",
+        "markdownExportBytes": 17631,
+        "markdownExportSha256": "a7050d455e5f8be59423d3f11b3515bbe7e994da6b40a0cc7f28d84fec8dc72b"
+      },
+      "researchEvidence": [
+        {
+          "source": "https://github.com/notify-rs/notify/releases",
+          "checked": "2026-08-21",
+          "finding": "notify 8.2.0 is the current stable notify release and notify 9.0.0-rc.4 is the current prerelease; the RC contains directly relevant watch-replacement/path/Windows/Linux behavior and remains qualification-only."
+        },
+        {
+          "source": "https://github.com/facebook/watchman/releases/tag/v2026.08.10.00",
+          "checked": "2026-08-21",
+          "finding": "Watchman v2026.08.10.00 is the current service-backed qualification lane."
+        },
+        {
+          "source": "https://learn.microsoft.com/windows/win32/api/winbase/nf-winbase-readdirectorychangesw",
+          "checked": "2026-08-21",
+          "finding": "ReadDirectoryChangesW overflow/ERROR_NOTIFY_ENUM_DIR requires authoritative enumeration; network buffers above 64 KiB are invalid."
+        },
+        {
+          "source": "https://learn.microsoft.com/windows/win32/fileio/change-journals",
+          "checked": "2026-08-21",
+          "finding": "USN is a persistent volume change log useful for catch-up, but journal identifiers/history loss must force re-index/reconciliation when completeness cannot be proven."
+        },
+        {
+          "source": "https://man7.org/linux/man-pages/man7/inotify.7.html",
+          "checked": "2026-08-21",
+          "finding": "IN_Q_OVERFLOW is explicit Linux watcher state loss and must invalidate the current model until reconciliation."
+        }
+      ],
+      "documentationDelta": [
+        "stable notify 8.2.0 versus notify 9.0.0-rc.4 qualification lanes",
+        "Watchman v2026.08.10.00 service lane",
+        "ReadDirectoryChangesW overflow and SMB buffer correctness requirements",
+        "optional Windows USN catch-up integrity rules",
+        "Linux IN_Q_OVERFLOW recovery semantics",
+        "backend-neutral event and continuity model",
+        "28-case deterministic mutation/overflow/restart/filesystem corpus",
+        "acceptance, reconciliation, performance and troubleshooting contracts"
+      ],
+      "unresolved": [
+        "canonical DirectoryMonitor source repository/artifact",
+        "implementation language/runtime",
+        "current backend and consumers",
+        "supported filesystems/platforms",
+        "project-owned build/install/package commands and runtime baseline"
+      ]
+    }
+  ],
+  "recheckedNoSourceChange": [
+    {
+      "projectId": "PCX-026",
+      "reason": "Current ProjectDump governance contract remains the strongest verified source; no standalone machine-enforced Project Governance implementation was resolved."
+    },
+    {
+      "projectId": "PCX-027",
+      "reason": "The current Archive Doctor page already captures the strongest recovered 0.25.12/V2-289 support-tool and checkpoint evidence; standalone source remains unresolved."
+    },
+    {
+      "projectId": "PCX-029",
+      "reason": "The current page already reflects the released MCP 2026-07-28 server/discovery/stateless transport contract and preserves the unresolved standalone bridge boundary."
+    },
+    {
+      "projectId": "PCX-030",
+      "reason": "The current page already captures the strongest v0.5.1 deterministic recovery/publication and dual-target proof model; no newer standalone publisher source was resolved."
+    }
+  ],
+  "publicationBacklogAfter": {
+    "state": "CLEAR",
+    "latestMaterialWikiCommit": "37ec14e4e65d0eba1e848cfad33b876c83e13392",
+    "wikiPublicationRun": 32494453585,
+    "wikiMasterCommit": "9d6bff512af551e36abe128cc0ff134a0cf1e044",
+    "completeByteComparison": true,
+    "driveDurability": "VERIFIED"
+  },
+  "durableState": {
+    "driveCheckpoint": {
+      "fileId": "1XfiHtztnWKYHjc3_SmbEY2cCc42d7i5qIzVANmH6Khc",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "roundTripRead": "PASS",
+      "markdownExportBytes": 4131,
+      "markdownExportSha256": "1e8d6ab23310db8d5d2fd8215111b36ad558b48eab144f57980aa05365998984"
+    },
+    "driveResearchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "roundTripRead": "PASS",
+      "textExportBytes": 2770,
+      "textExportSha256": "3f11c0fe4983c29451c5604408c036c37f3472f06563aed5cbc72c62ea4d8a19",
+      "jsonValidation": "PASS",
+      "nextCursor": [
+        "PCX-031",
+        "PCX-032",
+        "PCX-033",
+        "PCX-034",
+        "PCX-035"
+      ]
+    }
+  },
+  "nextCursor": [
+    "PCX-031",
+    "PCX-032",
+    "PCX-033",
+    "PCX-034",
+    "PCX-035"
+  ],
+  "ongoing": true
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "project-constellation.wiki-publication-recovery/1",
+  "checkedAt": "2026-08-19T15:52:08Z",
+  "status": "CLEARED",
+  "sourceRepository": "Herbertofury/ProjectDump",
+  "sourceBranch": "main",
+  "verifiedSourceSha": "2fcf3cc8274af6d12671b05739dcc582a1077a65",
+  "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki",
+  "wikiMasterCommit": "da62a375c722055b3b5f4bcd43119589de4dcc9d",
+  "canonicalWorkflow": {
+    "name": "Sync GitHub Wiki",
+    "runId": 32266598462,
+    "jobId": 96112497746,
+    "conclusion": "success",
+    "sourceStatus": "wiki-publication success",
+    "publisherResult": "Wiki already matches source; nothing to publish.",
+    "freshCloneVerification": "pass: complete remote Wiki byte-compared against wikis/"
+  },
+  "recoveryWorkflow": {
+    "runId": 32262312888,
+    "jobId": 96098240784,
+    "conclusion": "success",
+    "verifiedSourceSha": "2fcf3cc8274af6d12671b05739dcc582a1077a65",
+    "wikiMasterCommit": "da62a375c722055b3b5f4bcd43119589de4dcc9d",
+    "freshCloneVerification": "pass"
+  },
+  "clearedBacklog": [
+    {
+      "projectId": "PRJ-014",
+      "name": "Grim Dawn Cairn Codex",
+      "materialSourceCommit": "5a3a56155406dacbf5ac6ca9f4e5674e1df883b5",
+      "sourcePage": "wikis/PRJ-014-grim-dawn-cairn-codex.md",
+      "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-014-grim-dawn-cairn-codex",
+      "publicationProof": "covered by complete-current-tree fresh-clone byte verification at current main"
+    },
+    {
+      "projectId": "PRJ-018",
+      "name": "MO2 Drag-and-Drop Line Restorer",
+      "materialSourceCommit": "37bf614da57d40d09d541f7804e7ba5ea87c3ac1",
+      "sourcePage": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-018-mo2-drag-and-drop-line-restorer",
+      "publicationProof": "covered by complete-current-tree fresh-clone byte verification at current main"
+    }
+  ],
+  "historicalStatusNote": "The older individual PRJ-014 and PRJ-018 source commits still have no historical wiki-publication status object. That absence no longer represents publication debt because the canonical publisher independently verified the complete current source tree against the actual Wiki and recorded success on the current source head.",
+  "githubState": {
+    "cursorUpdateCommit": "dfe44a31bd57e6f491aa057e1f19a97662e3c3c7",
+    "recoveryCheckpointCreateCommit": "95db23c67cbd80d9fb18b84735f5686f7697c803",
+    "recoveryCheckpointDualPublishCommit": "b2a27c8f397afe2d09e91011bf05543be014ad59"
+  },
+  "triggerCloseout": {
+    "recoveryPullRequest": 9,
+    "recoveryPullRequestState": "closed-unmerged-after-successful-execution",
+    "recoveryIssue": 7,
+    "recoveryIssueState": "closed-completed",
+    "closedAt": "2026-08-19T15:52:08Z",
+    "reason": "Both independent recovery and canonical publisher paths passed complete fresh-clone Wiki byte verification; the execution-only PR and one-shot recovery issue no longer carry unresolved acceptance criteria."
+  },
+  "driveDurability": {
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "textExportBytes": 1637,
+      "textExportSha256": "76394c59be6155cb783097b73dabaf1db9142fbb1a6a94cb1039ff164f295a57",
+      "remoteReread": "pass"
+    },
+    "recoveryCheckpoint": {
+      "fileId": "1Wsdw-mrAm5We_aMpCDuRzPSTeipfkm3yTndDBgnF56k",
+      "textExportBytes": 3667,
+      "textExportSha256": "9e38af05ea1746d57c54868fc581af798a6c98985ed5b6c4c02c0094a068f61d",
+      "remoteReread": "pass"
+    }
+  },
+  "nextDocumentationCursor": ["PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023", "PRJ-024"],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

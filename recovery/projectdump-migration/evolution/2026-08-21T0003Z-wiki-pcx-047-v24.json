@@ -1,0 +1,103 @@
+{
+  "schema": "project-constellation.wiki-checkpoint/1",
+  "checkpointAt": "2026-08-21T00:03:00Z",
+  "projectId": "PCX-047",
+  "projectName": "Favorite Artist Worlds Database",
+  "status": "PUBLISHED_AND_DURABLE",
+  "wiki": {
+    "sourcePath": "wikis/PCX-047-favorite-artist-worlds-database.md",
+    "sourceCommit": "65073c8d29e6770a275f82e1bddf9eac6daf7ff1",
+    "sourceBlob": "42dc20f2fa5f78f289fc7258d8858d5bfcd09aba",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-047-favorite-artist-worlds-database",
+    "publicationRunId": 32431029483,
+    "publicationJobId": 96622429774,
+    "wikiMasterCommit": "49dbbcb5471b4924945cced0f16ef8c0c2e945a8",
+    "publicationVerification": "pass: exact source checkout, ProjectDump.wiki.git push, fresh clone, complete byte comparison, wiki-publication success"
+  },
+  "curationAuthority": {
+    "lineage": "feature-foundry-favorite-artist-worlds-v4.0.1",
+    "workbookFileId": "1BLxXdbNN0hJggKDJ16fBFv86OOep1Q40",
+    "workbookSha256": "fbed5880cc3440e983ad7d418b36258c824808454a8109c52470238ec393b60e",
+    "canonicalJsonSha256": "9865ef491c5baeec39702a0a6724df1bf9c9a29ed062a30e6bb6af270dd6b00a",
+    "canonicalSqliteSha256": "a825ad348280342a92b713146375999ab18d3e8067dcac531d177c7636deac78",
+    "status": "CURATION_AUTHORITY"
+  },
+  "productionConsumer": {
+    "repository": "Herbertofury/Feature-Foundry",
+    "head": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "version": "24.0.0",
+    "embeddedArtistAuthority": {
+      "path": "src/data/artist-worlds-v4.0.1.json",
+      "blob": "aeb91447df265ae816b82a37ea1ea31bf3b76997"
+    },
+    "authorityTest": {
+      "path": "tests/authority.test.ts",
+      "blob": "7e53258e065239fc5351d6d0d842eac6940eb95b"
+    },
+    "nativeDependencies": {
+      "path": "src-tauri/Cargo.toml",
+      "blob": "f849c4a0d1ddd6e98bb0884f6a2c4b7eb4c6124c",
+      "rusqlite": "0.40.2 bundled modern_sqlite"
+    }
+  },
+  "verifiedCounts": {
+    "artists": 5,
+    "worlds": 10,
+    "districts": 20,
+    "aestheticDna": 25,
+    "weather": 20,
+    "timeflow": 20,
+    "interactions": 25,
+    "musicRoutes": 21,
+    "discoveryLinks": 75,
+    "provenance": 50,
+    "glossary": 9
+  },
+  "materialDelta": [
+    "Separated Favorite Artist Worlds v4.0.1 durable curation authority from Feature Foundry v24 production-consumer authority.",
+    "Documented exact workbook/JSON/SQLite hashes and embedded production source identity.",
+    "Documented v24 authority-test enforcement of counts, artist identities, Azure Save Coast stable-ID correction, music-route states, native catalog commands, and canonical JSON hash.",
+    "Documented native SQLite seeding, catalog_summary runtime identity/integrity reporting, and bundled rusqlite boundary.",
+    "Documented the 17 durable-theme plus 10 favorite-artist-world production authority split and 27-world Theme Atlas acceptance surface.",
+    "Added end-to-end workbook-to-production validation ledger, runtime troubleshooting, and round-trip qualification requirements."
+  ],
+  "sqliteResearch": {
+    "checkedAt": "2026-08-20",
+    "currentOfficialRelease": "3.53.4",
+    "released": "2026-07-24",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "rule": "Do not infer Feature Foundry native SQLite version from upstream latest; read catalog_summary.sqliteVersion or resolved bundled rusqlite SQLite."
+  },
+  "drivePublication": {
+    "documentId": "1HJCfaUlidkhnvEsS_p7ZCdzfK9k5Zh61l1fWOIE5dtE",
+    "title": "PCX-047 Favorite Artist Worlds Database Wiki",
+    "reread": "pass",
+    "markdownExportBytes": 16523,
+    "markdownExportSha256": "b520177c36e6748871e0c757c270b7175a9a7505ded070062e1d6b8c71b37446"
+  },
+  "checkpointDurability": {
+    "githubPath": "project-constellation/evolution/2026-08-21T0003Z-wiki-pcx-047-v24.json",
+    "driveDocumentId": "1BeRS2hoaQ_ufmIs_9K4-lm7FKPOsPkSeuaW0U42fwLI",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveReread": "pass",
+    "driveMarkdownExportBytes": 3482,
+    "driveMarkdownExportSha256": "259c57f6f9d8c4cfdb26e532090fde2eecc29ad0cfefa9a34ad552e7e89b7d0e"
+  },
+  "cursorDurability": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubBlob": "6151deeb7915c542f81514eaaeb9e3768acbd741",
+    "driveDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveSemanticReread": "pass",
+    "driveMarkdownExportBytes": 2057,
+    "driveMarkdownExportSha256": "8801748229b93946dfee03148999663bbfff614c3efaea9d30d0a1d6c3304f0e"
+  },
+  "nextAction": "Run a v4.0.1 production round-trip qualification in Feature Foundry v24, including workbook/JSON/SQLite hashes, embedded authority counts, native catalog_summary SQLite version and integrity, all 10 artist worlds and Azure Save Coast in Theme Atlas, music-route state preservation, and restart persistence for user mappings without mutating curation rows.",
+  "nextDocumentationCursor": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ]
+}

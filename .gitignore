@@ -1,0 +1,27 @@
+.venv/
+node_modules/
+.env
+.env.*
+!.env.example
+!*.env.example
+
+build/*
+!build/README.md
+logs/*
+!logs/README.md
+
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+__pycache__/
+*.py[cod]
+.pytest_cache/
+output/playwright/
+
+# Generated release payloads live locally and as GitHub Release/Drive assets.
+releases/v*/Project-Constellation-*-unpacked.zip
+releases/v*/Project-Constellation-*-source.zip
+releases/v*/SHA256SUMS.txt
+releases/v*/RELEASE-RECEIPT.json

@@ -1,0 +1,57 @@
+{
+  "schema": "project-constellation.evolution/1",
+  "checkpointAt": "2026-08-18T03:09:00Z",
+  "scope": [
+    "PCX-037",
+    "PCX-038",
+    "PCX-039",
+    "PCX-040"
+  ],
+  "controlPlaneExcluded": "PCX-036",
+  "summary": "Reviewed the next tracked-project wiki slice while excluding Project Constellation itself from normal documentation targeting. PCX-037 received a material architecture/parity update from current primary-source evidence. PCX-038 and PCX-039 were rechecked against the current GameSync head and already-current detailed wiki content, so no churn was introduced. PCX-040 had already been materially refreshed to verified 2.0.0 source/runtime state and published before this pass.",
+  "projects": {
+    "PCX-037": {
+      "result": "material wiki update",
+      "sourceCommit": "2193bffe1142513178ca0d36bf4d4f1d6c1adda7",
+      "sourceBlob": "0c5ff4a66830a591e6ae7e2dd37a26bef33dfc9a",
+      "actualWikiCommit": "b6a0d4d8f7432b00e20e138d66185e867c1d974b",
+      "wikiWorkflowRun": 32094305954,
+      "publicationVerification": "pass: ProjectDump.wiki.git push plus fresh-clone complete page-set byte comparison",
+      "materialChange": "Added qingchenyouforcc/NeurolingsCE at commit 00adb430efd13b70db8791af3566eae7b4e8aa17 as the current Rust+Flutter architecture/parity benchmark while preserving DalekCraft2/Shimeji-Desktop as the Java compatibility benchmark. Documented source-verified engine/runtime/platform/pack/CLI boundaries, build and smoke commands, validation limitations, and a three-runtime differential compatibility corpus. Canonical user-owned Shimeji Desktop source remains unresolved and no replacement claim was made.",
+      "driveWikiDocumentId": "1jkzAi0SAr1z4fkkIykiFHPHDvS0tI2hH-mqCuc80Tlc",
+      "driveWikiFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "driveMarkdownExportSize": 10091,
+      "driveMarkdownExportSha256": "063403ecfc910f983f19b6cf85463e2cbc7c2d409b7820465449c5c90152ec4e"
+    },
+    "PCX-038": {
+      "result": "reviewed, no material wiki delta",
+      "evidence": "Herbertofury/Gamesync current head a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 matches the already-inspected wiki source boundary; existing page remains detailed and current."
+    },
+    "PCX-039": {
+      "result": "reviewed, no material wiki delta",
+      "evidence": "Existing page already captures unresolved standalone source, current lars-rooij/webmeji reference, and current GameSync Webmeji contract at head a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928."
+    },
+    "PCX-040": {
+      "result": "already materially refreshed before this pass",
+      "sourceCommit": "f764b8a086611d6d69ed2ce7ec04e02eb6dc86ad",
+      "actualWikiCommitAtRefresh": "152afca34731e0835138b508013813678de8d06b",
+      "note": "2.0.0 canonical repository, Drive artifacts, three browser targets, sidebar behavior, epik regression boundary, and publication blocker are already documented."
+    }
+  },
+  "driveCheckpoint": {
+    "documentId": "1HG8kYJWV7e_VqVVGjdaRlmRQ1RI4s1EWQNRNlOqcagk",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownExportSize": 3858,
+    "markdownExportSha256": "8b2a5b7ed8e5391ee5e2fc676005fcce72a59aa0e4a802dc44e12331bfbadf28",
+    "verification": "pass: checkpoint re-read from Drive after move; exported Markdown hashed locally"
+  },
+  "nextCursor": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
+  "nextDirective": "Continue tracked-project wiki maintenance with PCX-041 through PCX-045, prioritizing repositories with current source evidence and material documentation gaps. Keep PCX-036 excluded unless the user explicitly requests Project Constellation's own control-plane wiki.",
+  "recurringServiceState": "ONGOING"
+}

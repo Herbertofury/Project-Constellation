@@ -1,0 +1,70 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T14:10:00Z",
+  "scope": [
+    "PCX-038",
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-038",
+      "project": "Shimeji Browser Extension",
+      "reason": "GameSync Next now has verified universal all-site mascot parity that materially supersedes the previous wiki boundary which documented only the shipping GameSync embedded Shimeji implementation.",
+      "evidence": {
+        "gamesyncRepository": "Herbertofury/Gamesync",
+        "gamesyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "gamesyncNextRepository": "Herbertofury/GameSync-Next",
+        "gamesyncNextHead": "9e337c720f0180cffa577f140b181c699f0a1650",
+        "gamesyncNextExtensionVersion": "0.8.0",
+        "universalMascotParityCommit": "60940e8479af518f3373a79efa091902f4843842",
+        "verifiedFiles": [
+          "apps/extension-v2/src/entrypoints/page-mascot.content.ts",
+          "apps/extension-v2/src/content/universalPageMascot.ts",
+          "apps/extension-v2/src/content/features/pageMascot.ts",
+          "apps/extension-v2/src/content/runtimeCoordination.ts",
+          "scripts/verify-extension-v2-opera.js"
+        ]
+      },
+      "wikiPublication": {
+        "sourcePath": "wikis/PCX-038-shimeji-browser-extension.md",
+        "sourceCommit": "d0daf1f690d0b4e5e9ebcf300ceccfec28218849",
+        "workflowRun": 32146331461,
+        "workflowConclusion": "success",
+        "wikiMasterCommit": "228cdb919a54c7de80b6532e677aeee6a359cef6",
+        "freshCloneByteVerification": "pass"
+      },
+      "drivePublication": {
+        "documentId": "17q_kSyrQHzU-yonaJdafEJJ8TRxKbr7K_0uUkm8QcrE",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 33060,
+        "markdownSha256": "a17e1a8089581faaafa217aed67c3765942d6ae715ad8c157669f7c68c754e43",
+        "reread": "pass"
+      },
+      "documentationBoundary": "The all-site GameSync Next parity proof covers the lightweight ordinary-page mascot host and SPA/full-runtime coordination. It does not yet prove parity for every historical standalone Shimeji Browser Extension surface such as the shimejis.xyz external install protocol or the embedded GameSync context-menu contract."
+    }
+  ],
+  "checkpointDrivePublication": {
+    "documentId": "1dpVX5N1mYESJ5mm7Zjg1FyocyJS5iczI-f2gcOy4kY8",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownExportBytes": 3877,
+    "markdownSha256": "d45794827921d5696d527fd287135b4a107ae281a979cef605601f77de664f34",
+    "reread": "pass"
+  },
+  "recheckedWithoutChurn": [
+    "PCX-039 Webmeji",
+    "PCX-040 Pinterest Nocturne",
+    "PCX-041 ChatGPT Ultimate Optimizer",
+    "PCX-042 GameSync Next"
+  ],
+  "nextCursor": [
+    "PCX-043",
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047"
+  ],
+  "recurringObligation": "OPEN_ONGOING"
+}

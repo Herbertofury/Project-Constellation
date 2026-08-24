@@ -1,0 +1,121 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T20:12:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "materialUpdate": {
+    "id": "PRJ-006",
+    "name": "ACS Agent Parity Runtime",
+    "decision": "MATERIAL_WIKI_RECONCILIATION",
+    "reason": "The prior wiki treated Herbertofury/Gamesync 0.6.3 as the sole verified implementation host. Current Herbertofury/GameSync-Next Extension V2 0.8.0 source proves a second typed browser host with a real Clippy-compatible queue/balloon/animation runtime, universal all-site mascot mounting, SPA continuity, typed surface integration, timeline diagnostics and an isolated Opera verifier. The same source also exposes important remaining parity gaps that must remain explicit.",
+    "evidence": {
+      "shippingHost": "Herbertofury/Gamesync 0.6.3",
+      "shippingSourceBaseline": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "nextHost": "Herbertofury/GameSync-Next Extension V2 0.8.0",
+      "nextHeadObserved": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "parityCommit": "60940e8479af518f3373a79efa091902f4843842",
+      "verifiedNextImplementation": [
+        "apps/extension-v2/assets/content/mascot/clippy-compat.js",
+        "apps/extension-v2/src/ui/lib/surfaceMascot.ts",
+        "apps/extension-v2/src/content/features/pageMascot.ts",
+        "apps/extension-v2/src/content/runtimeCoordination.ts",
+        "apps/extension-v2/src/content/universalPageMascot.ts",
+        "apps/extension-v2/src/background/bootstrap.ts",
+        "apps/extension-v2/package.json",
+        "scripts/verify-extension-v2-opera.js"
+      ],
+      "sourceProvenGaps": [
+        "gestureAt() is a stub returning true",
+        "no separate think() method is verified in the compatibility layer",
+        "visible balloon speak() does not by itself prove audible TTS",
+        "stopCurrent()/stop() are primitives rather than classic request objects",
+        "Wait/Interrupt/StopAll/Get request-object semantics remain absent",
+        "CommandsWindow, speech recognition grammar, exact lip-sync and desktop-host parity remain unproven"
+      ]
+    }
+  },
+  "githubPublication": {
+    "repository": "Herbertofury/ProjectDump",
+    "sourcePath": "wikis/PRJ-006-acs-agent-parity-runtime.md",
+    "sourceCommit": "b3c8bfbe72ce5dcf543a018c017b28645ff62a30",
+    "sourceBlob": "42ffab5ec0bf64f9d4f5532f38b0f8550abcdd2f",
+    "workflowRun": 32180620786,
+    "workflowConclusion": "success",
+    "wikiRepositoryPush": "pass",
+    "freshCloneByteCompare": "pass",
+    "wikiMasterCommit": "3b34a791fab0fbcb444bebe6d3c87ce2b9f18e3c",
+    "readerFacingUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-006-acs-agent-parity-runtime"
+  },
+  "drivePublication": {
+    "wiki": {
+      "fileId": "1gENIgz8mjLRjjFXPDUFSO9DJ-S8JDEnsSrAGPC8ESkE",
+      "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "title": "PRJ-006 ACS Agent Parity Runtime Wiki",
+      "markdownBytes": 39003,
+      "markdownSha256": "fd7e867d1d98226f375c6c8a9cdc13504b16051727e901118eee61df7eb25a59",
+      "roundTrip": "pass"
+    },
+    "checkpoint": {
+      "fileId": "1NvwV7X-CviruFQ0TRkEe-gX9iwj5Ti4FYcUAs_NZa38",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "title": "Project Constellation Evolution Checkpoint - PRJ-006 - 2026-08-18T2012Z",
+      "markdownBytes": 4816,
+      "markdownSha256": "8e38a960fa018a637229fc33184136603faed6b2877688bbf72e22c5fb028f87",
+      "roundTrip": "pass"
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownBytes": 1745,
+      "markdownSha256": "427a22d9f20ddcb76d60cb7748c9b8eff55ed2cd0d6086fd8e6c680a6d94b3c7",
+      "roundTrip": "pass"
+    }
+  },
+  "researchCursorPublication": {
+    "githubCommit": "aff943f6b5dba14d33e055af5791ca5f7fae7f3e",
+    "githubContentBlob": "4c913fcdcdd164189fb47b78a106fd919d043337",
+    "nextCursor": [
+      "PRJ-007",
+      "PRJ-008",
+      "PRJ-009",
+      "PRJ-010",
+      "PRJ-011"
+    ],
+    "githubRoundTrip": "pass",
+    "driveRoundTrip": "pass"
+  },
+  "adjacentReview": [
+    {
+      "id": "PRJ-007",
+      "decision": "NO_ADDITIONAL_WIKI_CHANGE",
+      "reason": "Recent documentation already records the typed Petz core and persistence defect/repair contract."
+    },
+    {
+      "id": "PRJ-008",
+      "decision": "NO_ADDITIONAL_WIKI_CHANGE",
+      "reason": "Current documentation remains aligned with the verified mascot-game runtime and truthfully keeps Golf as unresolved."
+    },
+    {
+      "id": "PRJ-009",
+      "decision": "SOURCE_RECOVERY_BLOCKER_UNCHANGED",
+      "reason": "Canonical current Skill Atlas / QA Cockpit repository or ZIP remains unresolved; speculative implementation claims remain prohibited."
+    }
+  ],
+  "antiRegressionGate": {
+    "projectCount": 63,
+    "projectCountStatus": "PRESERVED",
+    "userEdits": "PRESERVED",
+    "canonicalPresentationArtifacts": "UNCHANGED",
+    "projectCatalog": "UNCHANGED",
+    "reason": "This pass corrected project documentation and continuity state only."
+  },
+  "nextCursor": [
+    "PRJ-007",
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011"
+  ],
+  "endOfRunPersistence": "Recurring Project Constellation wiki maintenance remains open and ongoing; this checkpoint does not complete, pause, retire or disable the recurring obligation."
+}

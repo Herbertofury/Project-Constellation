@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "project": "Project Constellation",
+  "migrationDate": "2026-08-24",
+  "canonicalBaseVersion": "0.13.0",
+  "sourceRepository": "https://github.com/Herbertofury/ProjectDump",
+  "sourceRepositoryHead": "422df68c1b30259f72e6d75a5a3b48f57e6c6c",
+  "sourcePrefix": "project-constellation",
+  "filteredHistoryHead": "6191af5e390c80da017ab0e97259d19893e10e0e",
+  "destinationRepository": "https://github.com/Herbertofury/Project-Constellation",
+  "preservedSnapshot": "recovery/projectdump-migration",
+  "historyStrategy": "git-subtree-filtered ancestry merged into the standalone repository with the organized tree retained",
+  "unrelatedProjectDumpContentImported": false,
+  "unrelatedProjectDumpContentModified": false
+}

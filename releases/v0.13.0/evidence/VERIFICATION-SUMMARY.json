@@ -1,0 +1,26 @@
+{
+  "project": "Project Constellation",
+  "version": "0.13.0",
+  "release": "Execution Pulse + Tool Watchdog",
+  "verified_at": "2026-08-24T16:38:57.436451Z",
+  "installable": {
+    "file_count": 21,
+    "tree_sha256": "f80475cf97db4a7c6b4ee24925ccc987cf77ca5085db94555a9029e3b3276bbf",
+    "extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig",
+    "manifest_version": 3
+  },
+  "acceptance": {
+    "unit_tests": "PASS",
+    "static_validate": "PASS - 49 UI message types owned",
+    "build": "PASS",
+    "execution_pulse": "PASS - repeated generic Called tool rows increment Tool pulse; active tool stays healthy with fresh proof; static busy tool becomes tool-stalled after hard threshold",
+    "home_projection": "PASS - fresh liveHealthState overrides coarse status and renders watchdog detail",
+    "background": "PASS - passive request lifecycle + knowledge + governor + recovery backend",
+    "content_320": "PASS - 320/320 DOM messages retained and 320/320 turns catalogued; deep walk reached both boundaries",
+    "approval_recovery": "PASS - Always Allow / browser-refresh-only timeout / 429 cooldown / resume regressions",
+    "full_capture": "PASS - reusable capture surface, completion, pause/resume/cancel",
+    "fresh_installable": "PASS - exact build/extracted bytes match; background, Execution Pulse, 320-turn content, Home, approval recovery, Full Capture, popup, sidepanel, offscreen smokes pass"
+  },
+  "external_gate": "True unpacked-extension launch in this container remains blocked by the system Chromium administrator policy that disables unpacked extensions. This is preserved as an external gate, not reported as a pass.",
+  "drive_policy": "Publish complete v0.13.0 source, unpacked build, evidence, screenshot, checkpoint, checksums, and receipt to the canonical Project Constellation Drive folder and verify remote bytes."
+}

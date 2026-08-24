@@ -1,0 +1,242 @@
+{
+  "schema": "project-constellation.technology-radar/1",
+  "updatedAt": "2026-08-17T05:45:00Z",
+  "purpose": "Durable current-technology candidates with explicit adopt/experiment/observe/reject decisions so Project Constellation stays current without blind upgrades.",
+  "records": [
+    {
+      "projectIds": [
+        "PCX-036"
+      ],
+      "candidate": "@sqlite.org/sqlite-wasm",
+      "currentVersion": "3.53.0-build1",
+      "maturity": "stable/current",
+      "status": "PROPOSE_ISOLATED_PWA_EXPERIMENT",
+      "source": "https://www.npmjs.com/package/@sqlite.org/sqlite-wasm",
+      "checked": "2026-08-17",
+      "fact": "The current npm package is 3.53.0-build1. SQLite WASM supports OPFS persistence and current SQLite docs expose opfs, opfs-sahpool, and opfs-wl choices with different concurrency/header tradeoffs. Worker1/Promiser1 APIs are deprecated as of 2026-04-15.",
+      "fit": "Project Constellation already has a PWA/website line and needs stronger local durability without weakening the permanent single-file Quick View.",
+      "benefit": "A PWA-only SQLite/OPFS mirror could provide indexed durable project/research history and explicit migration/version evidence while the zero-setup HTML continues to work unchanged.",
+      "integrationCost": "medium",
+      "risks": "COOP/COEP and worker requirements vary by VFS; multi-tab locking semantics differ; embedding it into the permanent single HTML would add unacceptable weight/complexity.",
+      "migrationPath": "Keep localStorage plus snapshot import/export as the baseline. Build a PWA-only adapter behind capability detection and one-way import/export before considering bidirectional sync.",
+      "experiment": "Prototype an isolated PWA branch that imports the 63-record catalog into SQLite WASM using a selected OPFS VFS and exports byte-identical project JSON back out.",
+      "acceptance": "All 63 project records and user state round-trip; two-tab behavior is explicitly tested; unavailable OPFS falls back cleanly; Quick View remains dependency-free and unchanged; no canonical data is deleted or rewritten silently."
+    },
+    {
+      "projectIds": [
+        "PCX-037"
+      ],
+      "candidate": "DalekCraft2/Shimeji-Desktop",
+      "currentVersion": "main@dea89528c10c066626a09609f0e742cbe6405a8d",
+      "maturity": "active upstream benchmark",
+      "status": "ADOPT_AS_COMPATIBILITY_BENCHMARK_ONLY",
+      "source": "https://github.com/DalekCraft2/Shimeji-Desktop",
+      "checked": "2026-08-17",
+      "fact": "The project ports Shimeji-ee from JRE 6 to JDK 25, uses Maven/Launch4j, adds proper DPI scaling and Windows/macOS/Linux support, and explicitly attempts backward compatibility. Recent July 2026 commits include settings reload work and dependency maintenance.",
+      "fit": "PCX-037 requires modernization without breaking XML actions/behaviors, pack layout, window interactions, or DPI behavior.",
+      "benefit": "Provides a maintained modern-Java reference for compatibility tests and packaging without forcing a rewrite.",
+      "integrationCost": "low for reference tests; high for direct migration",
+      "risks": "It is not the user-owned canonical source; direct replacement could discard custom behavior.",
+      "migrationPath": "Resolve canonical user source first, then run identical packs/XML/window/DPI fixtures against both runtimes and port only evidence-backed improvements.",
+      "experiment": "Create a compatibility corpus from existing packs and compare action/behavior selection, required actions, image-set discovery, drag/throw, window interaction, DPI, startup, and memory.",
+      "acceptance": "Canonical runtime retains all existing packs and behavior; any borrowed change improves a measured problem; no pack semantic regression; Windows behavior remains correct and cross-platform additions stay optional."
+    },
+    {
+      "projectIds": [
+        "PCX-037"
+      ],
+      "candidate": "pixelomer/Shijima-Qt",
+      "currentVersion": "archived repository",
+      "maturity": "discontinued/archived",
+      "status": "REJECT_AS_NEW_BASE",
+      "source": "https://github.com/pixelomer/Shijima-Qt",
+      "checked": "2026-08-17",
+      "fact": "The repository is archived. Its own current status says the Qt implementation is discontinued.",
+      "fit": "It remains useful historical research for libshijima and platform behavior but is a poor new base for a continuity-critical modernization.",
+      "benefit": "Reference only.",
+      "integrationCost": "high",
+      "risks": "Archived/discontinued base would create maintenance debt and can lag newer compatibility fixes.",
+      "migrationPath": "Do not migrate the canonical project onto it; preserve useful architectural lessons only.",
+      "experiment": "None unless a specific isolated behavior needs comparison.",
+      "acceptance": "No canonical dependency is introduced from the archived base."
+    },
+    {
+      "projectIds": [
+        "PCX-038"
+      ],
+      "candidate": "pixelomer/Shijima-Web",
+      "currentVersion": "experimental main, pushed 2026-01-12",
+      "maturity": "experimental",
+      "status": "OBSERVE_AS_REFERENCE",
+      "source": "https://github.com/pixelomer/Shijima-Web",
+      "checked": "2026-08-17",
+      "fact": "Shijima-Web is an experimental web version of Shijima. It is small, JavaScript-based, and not archived, but has minimal adoption and has not been pushed since January 2026.",
+      "fit": "PCX-038 can compare browser-host behavior and pack/runtime architecture without replacing its current GameSync bridge/parser/runtime.",
+      "benefit": "Provides an independent implementation reference for web-host edge cases.",
+      "integrationCost": "low for research",
+      "risks": "Experimental maturity and low adoption make it unsuitable as replacement authority.",
+      "migrationPath": "Use only differential fixtures and behavior comparisons.",
+      "experiment": "Run the same small Shimeji pack through current GameSync browser runtime and Shijima-Web, comparing actions, anchors, drag, fall, edge behavior, persistence, and host-page interference.",
+      "acceptance": "Any borrowed behavior has a reproducible failing case and passes the existing GameSync browser/runtime gates; no bridge/storage/pack semantics are removed."
+    },
+    {
+      "projectIds": [
+        "PCX-039"
+      ],
+      "candidate": "lars-rooij/webmeji",
+      "currentVersion": "main source last updated 2026-01-27",
+      "maturity": "current hobby/reference implementation",
+      "status": "ADOPT_AS_BEHAVIOR_REFERENCE",
+      "source": "https://github.com/lars-rooij/webmeji",
+      "checked": "2026-08-17",
+      "fact": "The current source is a dependency-light three-file web runtime using webmeji.css, config.js, and webmeji.js. It supports bottom/side/top movement, pet interaction, pointer/touch dragging, jumping, falling, recovery, and requestAnimationFrame movement.",
+      "fit": "PCX-039 is specifically a low-setup website-embedded companion and GameSync already contains explicit Webmeji settings/allowances.",
+      "benefit": "Strong direct behavioral reference with minimal integration assumptions.",
+      "integrationCost": "low",
+      "risks": "Upstream README notes the core JS is messy/unoptimized and primarily developed on desktop Chrome-based browsers; it is not the user-owned canonical source.",
+      "migrationPath": "Resolve canonical user source, diff behavior and config, then port isolated fixes/features rather than wholesale replacement.",
+      "experiment": "Prototype arbitrary element-edge attachment and momentum as optional modules while preserving the existing three-file embed path.",
+      "acceptance": "Existing bottom/top/left/right, pet, drag, jump, fall and multi-instance behavior remains; touch and desktop input work; host page click/scroll/navigation remains unaffected; optional features disable cleanly."
+    },
+    {
+      "projectIds": [
+        "PCX-040"
+      ],
+      "candidate": "Scheduler.yield() / Prioritized Task Scheduling API",
+      "currentVersion": "web platform API",
+      "maturity": "limited-availability web API",
+      "status": "PROPOSE_FEATURE_DETECTED_EXPERIMENT",
+      "source": "https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield",
+      "checked": "2026-08-17",
+      "fact": "scheduler.yield() yields main-thread work and resumes as a prioritized task, but MDN marks it Limited availability and not Baseline because some major browsers do not support it.",
+      "fit": "Pinterest Nocturne v1.9 is explicitly built around input priority and bounded deferred page-engine work.",
+      "benefit": "On supporting Chromium builds, it may reduce bespoke scheduling overhead and improve cooperative yielding during non-input slices.",
+      "integrationCost": "low to medium",
+      "risks": "Firefox coverage is incomplete, browser scheduling semantics can change benchmarks, and incorrect use could delay required feed/media work.",
+      "migrationPath": "Feature-detect scheduler.yield and retain the exact existing fallback path. Never make the API required for correctness.",
+      "experiment": "On a proposal branch, replace only one bounded background slice boundary with feature-detected scheduler.yield and compare the existing exact 1.9 interaction/feed benchmarks.",
+      "acceptance": "Median/p95 interaction does not regress, organic card/media counts and full fidelity remain identical, Firefox follows the existing fallback, Lean Off/Performance Off remain reversible, and live Pinterest smoke has no new console/network/runtime errors."
+    },
+    {
+      "projectIds": [
+        "PCX-040"
+      ],
+      "candidate": "web-vitals",
+      "currentVersion": "6.0.0",
+      "maturity": "stable/current",
+      "status": "REJECT_FOR_RUNTIME_DEPENDENCY",
+      "source": "https://www.npmjs.com/package/web-vitals",
+      "checked": "2026-08-17",
+      "fact": "web-vitals 6.0.0 is current and was published in August 2026.",
+      "fit": "It could provide standard page performance metrics, but Pinterest Nocturne is intentionally dependency-light and already owns targeted interaction/feed fixtures.",
+      "benefit": "Potential supplementary measurement only.",
+      "integrationCost": "low",
+      "risks": "Adds a runtime/package dependency and generic metrics that do not directly prove Pinterest Nocturne correctness or its specialized interaction objectives.",
+      "migrationPath": "Do not add to runtime. If useful, evaluate as an external benchmark-only dev tool.",
+      "experiment": "Optional benchmark harness only, never production extension dependency.",
+      "acceptance": "No production dependency added unless a specific metric materially improves release gating beyond existing tests."
+    },
+    {
+      "projectIds": [
+        "PCX-046"
+      ],
+      "candidate": "Provider capability/auth matrix using OAuth BCP 240 and provider-owned authorization flows",
+      "currentVersion": "RFC 9700 / Spotify February 2026 API regime / current Apple MusicKit",
+      "maturity": "current standards and provider APIs",
+      "status": "PROPOSE_ADAPTER_CAPABILITY_MATRIX",
+      "source": "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "checked": "2026-08-17",
+      "fact": "Feature Foundry V33 already has a real six-provider soundtrack hub with per-theme persisted provider/URL mappings and truthful external-navigation fallback. Spotify recommends Authorization Code with PKCE for public clients and changed Development Mode behavior in February/March 2026. Apple Music web apps can use MusicKit-managed Music User Tokens while developer-token requests are separately authenticated and rate limited.",
+      "fit": "PCX-046 needs provider-specific auth, capability, rate-limit, fallback, provenance, and review-date state without scattering assumptions across workspaces.",
+      "benefit": "Makes UI promises capability-driven and allows authenticated provider functions to grow without breaking the verified V33 fallback path.",
+      "integrationCost": "medium",
+      "risks": "Provider APIs, quotas and auth policies change; credential mishandling could leak secrets; capability drift can create misleading UI.",
+      "migrationPath": "Wrap the existing V33 provider IDs in a capability/auth schema first. Keep external navigation as fallback. Add authenticated provider lanes one at a time behind real runtime verification.",
+      "experiment": "Exercise one Spotify PKCE lane and one Apple MusicKit web user-auth lane while preserving all six V33 external-navigation providers.",
+      "acceptance": "All existing provider mappings survive; no secret/signing key enters browser-exportable project state; authenticated actions are only shown when actually supported; errors remain provider-local; fallback navigation remains functional."
+    },
+    {
+      "projectIds": [
+        "PCX-047"
+      ],
+      "candidate": "SQLite 3.53.4",
+      "currentVersion": "3.53.4 (2026-07-24)",
+      "maturity": "stable/current",
+      "status": "PROPOSE_VALIDATION_AND_QUERY_PLAN_BENCHMARK",
+      "source": "https://www2.sqlite.org/releaselog/3_53_4.html",
+      "checked": "2026-08-17",
+      "fact": "SQLite 3.53.4 is the current stable release. The 3.53 line contains large-join query-planner improvements, EXISTS-to-JOIN improvements, omit-noop-join enhancements and other fixes relevant to relational discovery workloads.",
+      "fit": "The verified Favorite Artist Worlds v4.0.1 dataset already depends on SQLite integrity, foreign keys and FTS and has relationship-heavy artist/world/district/weather/discovery data.",
+      "benefit": "Could improve discovery/query behavior and records the current database engine identity without changing the curated dataset.",
+      "integrationCost": "low to medium",
+      "risks": "Planner changes can alter performance in both directions; engine churn is not useful if the current workload does not benefit.",
+      "migrationPath": "Run the exact v4.0.1 validation and representative query corpus against 3.53.4 before changing any durable database artifact.",
+      "experiment": "Compare integrity/FK/FTS results, entity counts, stable IDs, query plans and discovery latency on v4.0.1 under current engine versus 3.53.4.",
+      "acceptance": "All data and IDs remain identical, all validation passes, no query regresses materially, and any adoption has measured benefit or needed correctness fixes."
+    },
+    {
+      "projectIds": [
+        "PCX-048"
+      ],
+      "candidate": "Design Tokens Format Module 2025.10 interchange adapter",
+      "currentVersion": "2025.10 stable final report",
+      "maturity": "stable community specification",
+      "status": "PROPOSE_INTERCHANGE_ADAPTER_ONLY",
+      "source": "https://www.w3.org/community/reports/design-tokens/CG-FINAL-format-20251028/",
+      "checked": "2026-08-17",
+      "fact": "Design Tokens 2025.10 is the first stable Design Tokens Community Group format and is intended for cross-tool token interoperability. CSS Color 4 remains a Candidate Recommendation Draft and provides modern color-space definitions including Oklab/OKLCH.",
+      "fit": "GameSync Theme Foundry needs a portable exchange surface without replacing its richer Feature Foundry world/theme contract.",
+      "benefit": "Can reduce token-schema drift between authoring and host runtimes while preserving namespaced GameSync/Feature Foundry metadata.",
+      "integrationCost": "medium",
+      "risks": "Forcing world/object/ecology semantics into generic design tokens would lose information; color-space migration can cause visual drift.",
+      "migrationPath": "Export/import only the semantic token subset; preserve non-token data under explicit namespaced extensions and retain the canonical existing package.",
+      "experiment": "Round-trip one existing theme through 2025.10 tokens and both GameSync host adapters, then compare stable IDs, colors, accessibility variants, assets and runtime behavior.",
+      "acceptance": "No source-contract data is lost, visual/token semantics remain equivalent, reduced-motion/effects variants survive, no-cap gates pass, and host parity is unchanged."
+    },
+    {
+      "projectIds": [
+        "PCX-049"
+      ],
+      "candidate": "Native mascot room-capability adapter contract",
+      "currentVersion": "GameSync 0.25.9 Live Mascot Tavern verified checkpoint",
+      "maturity": "verified internal architecture direction",
+      "status": "ADOPT_AS_PRESERVATION_CONTRACT",
+      "source": "https://drive.google.com/file/d/1eU9lIq1MYBu03Ify8uqqzoRXkS1ziqFM/view",
+      "checked": "2026-08-17",
+      "fact": "The verified checkpoint uses real Clippy/ACS, Shimeji, WebMeji and Petz engine bridges, removes fake mascot simulation and preserves native movement, speech, context menus, spawn, persistence and swarm controls while reducing duplicate/stale bundle bytes by 14.45%.",
+      "fit": "PCX-049 must make mascots room-aware without flattening heterogeneous native engines into one generic runtime.",
+      "benefit": "A declared capability contract lets each engine expose truthful room interactions while retaining native semantics and clear gaps.",
+      "integrationCost": "medium",
+      "risks": "Over-generalizing the contract can erase engine-specific behavior; runtime validation remains blocked in the historical managed Chromium environment.",
+      "migrationPath": "Keep native engines authoritative and standardize only room-level capability descriptors and test fixtures.",
+      "experiment": "Run a deterministic spawn -> room entry -> furnishing -> native interaction -> persistence/restart sequence across one representative of every available engine.",
+      "acceptance": "Every representative remains a real native engine, unsupported capabilities remain explicit, swarm/room state stays consistent, restart restores promised state and no fake simulator path reappears."
+    },
+    {
+      "projectIds": [
+        "PCX-050"
+      ],
+      "candidate": "SQLite WASM 3.53.4 OPFS VFS matrix",
+      "currentVersion": "SQLite 3.53.4 with opfs, opfs-wl and opfs-sahpool",
+      "maturity": "stable/current",
+      "status": "PROPOSE_REAL_LIBRARY_A_B_AFTER_LIVE_BASELINE",
+      "source": "https://sqlite.org/wasm/doc/tip/persistence.md",
+      "checked": "2026-08-17",
+      "fact": "Current shipping GameSync pins @sqlite.org/sqlite-wasm ^3.53.0-build1. SQLite 3.53.4 is current stable. Official WASM guidance says opfs-sahpool offers the highest documented OPFS batch performance but no transparent simultaneous connections, while opfs-wl uses Web Locks for fairer multi-context locking and performs broadly on par with opfs.",
+      "fit": "PCX-050 already records full-library sync telemetry and strictly forbids culling, caps and quality reduction.",
+      "benefit": "A fixture- and live-account-based VFS comparison may reduce persistence/indexing overhead without doing less work or reducing the library.",
+      "integrationCost": "medium",
+      "risks": "Choosing a single-owner VFS for a multi-context architecture can break concurrency; browser support/header requirements differ; storage migration can risk persistence if not reversible.",
+      "migrationPath": "Capture current RESYNC_STEAM and gsLastSteamSyncPerformance first. Benchmark current storage against 3.53.4 VFS candidates on the same complete library and keep rollback available.",
+      "experiment": "Compare current path, current-equivalent 3.53.4, opfs-sahpool where single-owner is safe, and opfs-wl/opfs where concurrency is required.",
+      "acceptance": "Identical library count, identity/provenance and media quality; repeated median/p95 gains beyond noise; no restart/concurrency regression; real browser sync and persistence pass before adoption."
+    }
+  ],
+  "nextReview": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ]
+}

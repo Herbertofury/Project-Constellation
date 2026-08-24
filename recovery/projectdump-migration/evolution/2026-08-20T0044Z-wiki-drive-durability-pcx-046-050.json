@@ -1,0 +1,96 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T00:44:00Z",
+  "scope": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ],
+  "operation": "DRIVE_WIKI_DURABILITY_REPAIR",
+  "sourceWikiChanged": false,
+  "publicationBacklog": {
+    "githubWikiMissing": false,
+    "driveMirrorMissingOrIncomplete": true,
+    "resolvedThisCheckpoint": true
+  },
+  "githubWikiPublicationProof": {
+    "laterFullSetSourceCommit": "8f0b22828e8db5af2f4bfdcd9f2a2b741a1de398",
+    "workflowRunId": 32310775792,
+    "workflowJobId": 96253130166,
+    "conclusion": "success",
+    "publisher": "tools/github-wiki/wiki-sync.sh",
+    "freshCloneByteVerified": true,
+    "wikiMasterCommit": "513fde0edaf6659e83d322a8af0c7a805f76f6bd",
+    "rule": "This successful later full-set Wiki sync checked out a repository state containing PCX-046 through PCX-050 and byte-compared the complete published Wiki against wikis/, so it supersedes older per-page status metadata for these unchanged pages."
+  },
+  "driveProjectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+  "driveRepairs": [
+    {
+      "projectId": "PCX-046",
+      "title": "PCX-046 Feature Foundry Source Hubs Wiki",
+      "driveFileId": "1tOHMMgIzjBuswYf8JJF3NRB83F90953qsDPbVNa1sp8",
+      "action": "replaced incomplete summary with complete current GitHub wiki source",
+      "githubSourceBlob": "5082f890da7ca419a6dca8d3b0f37ac977b9b9ff",
+      "driveMarkdownBytes": 15019,
+      "driveMarkdownSha256": "7be5ee0e73d165809b62dcefbdddccd8c28d69fc871041a1082142b104abaca7",
+      "reread": "pass"
+    },
+    {
+      "projectId": "PCX-047",
+      "title": "PCX-047 Favorite Artist Worlds Database Wiki",
+      "driveFileId": "1HJCfaUlidkhnvEsS_p7ZCdzfK9k5Zh61l1fWOIE5dtE",
+      "action": "created complete Drive mirror",
+      "githubSourceBlob": "e965261edaa3de6c9835c08d45749e68aff92ac6",
+      "driveMarkdownBytes": 5795,
+      "driveMarkdownSha256": "4fb4ff531a3eb1da6ba6e3ecfc9b5af661ef7917d227dc118f7ed1cfb9b33eec",
+      "reread": "pass"
+    },
+    {
+      "projectId": "PCX-048",
+      "title": "PCX-048 GameSync Theme Foundry Wiki",
+      "driveFileId": "1_WCTi7vrX6UwnWvRqrH11pIqND30BwApNTdCCk2snt0",
+      "action": "created complete Drive mirror",
+      "githubSourceBlob": "39652ba51a004eedd623c493cc16a7c0dc7ebed4",
+      "driveMarkdownBytes": 11789,
+      "driveMarkdownSha256": "acbe665ce811237bc732ee3d77f0fbfc092c76c7ee06032163c853d090bdd4e9",
+      "reread": "pass"
+    },
+    {
+      "projectId": "PCX-049",
+      "title": "PCX-049 GameSync Live Mascot Tavern Wiki",
+      "driveFileId": "1xj6xus1cjuKPul9WXWGFnvX37iSudjWekuVlzSMUFi8",
+      "action": "created complete Drive mirror",
+      "githubSourceBlob": "e9a70a6f04365ccbd251b31455137a10413201dc",
+      "driveMarkdownBytes": 10527,
+      "driveMarkdownSha256": "24991cc2a8650a91368ff0157c4962be6b8820b2d77855c84e9d79d50c5f1eda",
+      "reread": "pass"
+    },
+    {
+      "projectId": "PCX-050",
+      "title": "PCX-050 GameSync Real Library Performance Wiki",
+      "driveFileId": "1KM47KV37hOY_BVfcSvJ4ehkL0HuAr3_f4jEMYNZYoxU",
+      "action": "created complete Drive mirror",
+      "githubSourceBlob": "ae4b6f43951239a172f3a587da4920ee363d9389",
+      "driveMarkdownBytes": 6898,
+      "driveMarkdownSha256": "7a21577f52ba1e772d8ddeb5c33804eee9290dc2d14a377231248f257191d62d",
+      "reread": "pass"
+    }
+  ],
+  "reviewResult": {
+    "PCX-046": "source page remains materially current; durability mirror repaired",
+    "PCX-047": "source page remains materially current; missing Drive mirror created",
+    "PCX-048": "source page remains materially current; current GameSync Next head adds no theme-package delta; missing Drive mirror created",
+    "PCX-049": "source page remains materially current; missing Drive mirror created",
+    "PCX-050": "source page remains materially current; missing Drive mirror created"
+  },
+  "nextCursor": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

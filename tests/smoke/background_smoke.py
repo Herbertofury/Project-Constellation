@@ -1,0 +1,149 @@
+from playwright.sync_api import sync_playwright
+import pathlib, json, re, os
+root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation'))
+manifest=json.loads((root/'manifest.json').read_text())
+brain=(root/'src/brain-core.js').read_text()
+providers=(root/'src/provider-core.js').read_text()
+integrity=(root/'src/integrity-core.js').read_text()
+knowledge=(root/'src/knowledge-core.js').read_text()
+health=(root/'src/health-core.js').read_text()
+bg=(root/'background.js').read_text()
+bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
+mock=f"""
+(() => {{
+ const bag={{}}; const listeners={{}};
+ const dbStores=new Map();
+ if(!globalThis.crypto?.randomUUID) Object.defineProperty(globalThis.crypto,'randomUUID',{{value:()=>`pc-${{Date.now()}}-${{Math.random().toString(16).slice(2)}}`,configurable:true}});
+ const only=(value)=>({{kind:'only',value}}), lowerBound=(value,open)=>({{kind:'lower',value,open}}), bound=(lower,upper,lowerOpen=false,upperOpen=false)=>({{kind:'bound',lower,upper,lowerOpen,upperOpen}});
+ Object.defineProperty(globalThis,'IDBKeyRange',{{value:{{only,lowerBound,bound}},configurable:true}});
+ const names=(map)=>({{contains:(name)=>map.has(name)}});
+ const makeReq=(fn)=>{{const r={{result:undefined,error:null,onsuccess:null,onerror:null}};setTimeout(()=>{{try{{r.result=fn();r.onsuccess&&r.onsuccess();}}catch(e){{r.error=e;r.onerror&&r.onerror();}}}},0);return r;}};
+ const cursorReq=(values)=>{{const r={{result:null,error:null,onsuccess:null,onerror:null}};let i=0;const step=()=>setTimeout(()=>{{try{{if(i>=values.length){{r.result=null;r.onsuccess&&r.onsuccess();return;}}const value=values[i++];r.result={{value,continue:step}};r.onsuccess&&r.onsuccess();}}catch(e){{r.error=e;r.onerror&&r.onerror();}}}},0);step();return r;}};
+ function eq(a,b){{return Array.isArray(a)&&Array.isArray(b)?JSON.stringify(a)===JSON.stringify(b):a===b;}} function cmp(a,b){{if(Array.isArray(a)&&Array.isArray(b)){{for(let i=0;i<Math.max(a.length,b.length);i++){{if(a[i]===b[i])continue;return a[i]>b[i]?1:-1;}}return 0;}}return a===b?0:(a>b?1:-1);}} function matches(v,q){{if(!q)return true;if(q.kind==='only')return eq(v,q.value);if(q.kind==='lower')return q.open?cmp(v,q.value)>0:cmp(v,q.value)>=0;if(q.kind==='bound'){{const lo=cmp(v,q.lower),hi=cmp(v,q.upper);return (q.lowerOpen?lo>0:lo>=0)&&(q.upperOpen?hi<0:hi<=0);}}return eq(v,q);}} function keyVal(v,keyPath){{return Array.isArray(keyPath)?keyPath.map(k=>v?.[k]):v?.[keyPath];}}
+ function storeApi(meta){{
+   const api={{
+    indexNames:names(meta.indexes),
+    createIndex:(name,keyPath,opts={{}})=>{{meta.indexes.set(name,{{keyPath,multiEntry:!!opts.multiEntry}});return indexApi(meta,name);}},
+    index:(name)=>indexApi(meta,name),
+    get:(id)=>makeReq(()=>meta.rows.get(id)),
+    getAll:(query,count)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query)).slice(0,count||Infinity)),
+    put:(record)=>{{meta.rows.set(record[meta.keyPath],structuredClone(record));return makeReq(()=>record[meta.keyPath]);}},
+    clear:()=>{{meta.rows.clear();return makeReq(()=>undefined);}},
+    delete:(id)=>{{meta.rows.delete(id);return makeReq(()=>undefined);}},
+    count:(query)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query)).length),
+    openCursor:(query,direction)=>{{let values=Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query));if(direction==='prev')values=values.reverse();return cursorReq(values);}}
+   }}; return api;
+ }}
+ function indexApi(meta,name){{const idx=meta.indexes.get(name);return {{
+   getAll:(query,count)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>{{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))return val.some(x=>matches(x,query));return matches(val,query);}}).slice(0,count||Infinity)),
+   count:(query)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>{{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))return val.some(x=>matches(x,query));return matches(val,query);}}).length),
+   openCursor:(query,direction)=>{{let values=Array.from(meta.rows.values()).filter(v=>{{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))return val.some(x=>matches(x,query));return matches(val,query);}}).sort((a,b)=>{{const av=keyVal(a,idx.keyPath),bv=keyVal(b,idx.keyPath);return av===bv?0:av>bv?1:-1;}});if(direction==='prev')values=values.reverse();return cursorReq(values);}},
+   openKeyCursor:(query,direction)=>{{let keys=[];for(const v of meta.rows.values()){{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))keys.push(...val);else keys.push(val);}}keys=keys.filter(v=>v!==undefined&&v!==null&&matches(v,query)).sort();if(direction==='nextunique')keys=[...new Set(keys.map(k=>String(k)))];const r={{result:null,error:null,onsuccess:null,onerror:null}};let i=0;const step=()=>setTimeout(()=>{{if(i>=keys.length){{r.result=null;r.onsuccess&&r.onsuccess();return;}}const key=keys[i++];r.result={{key,continue:step}};r.onsuccess&&r.onsuccess();}},0);step();return r;}}
+ }};}}
+ const fakeDb={{
+   objectStoreNames:names(dbStores),
+   createObjectStore:(name,opt={{}})=>{{const meta={{keyPath:opt.keyPath||'id',rows:new Map(),indexes:new Map()}};dbStores.set(name,meta);return storeApi(meta);}},
+   transaction:(storeNames,mode)=>{{const tx={{oncomplete:null,onerror:null,error:null,objectStore:(name)=>storeApi(dbStores.get(name))}};setTimeout(()=>tx.oncomplete&&tx.oncomplete(),4);return tx;}},
+   close:()=>{{}}
+ }};
+ Object.defineProperty(globalThis,'indexedDB',{{value:{{open:(name,version)=>{{const req={{result:fakeDb,transaction:{{objectStore:(n)=>storeApi(dbStores.get(n))}},onupgradeneeded:null,onsuccess:null,onerror:null,error:null}};setTimeout(()=>{{try{{req.onupgradeneeded&&req.onupgradeneeded();setTimeout(()=>req.onsuccess&&req.onsuccess(),0);}}catch(e){{req.error=e;req.onerror&&req.onerror();}}}},0);return req;}}}},configurable:true}});
+ const normalizeGet=(keys)=>{{ if(keys===null||keys===undefined)return {{...bag}}; if(typeof keys==='string')return {{[keys]:bag[keys]}}; if(Array.isArray(keys))return Object.fromEntries(keys.map(k=>[k,bag[k]])); return Object.fromEntries(Object.keys(keys||{{}}).map(k=>[k,bag[k]??keys[k]])); }};
+ globalThis.chrome={{
+   runtime:{{id:'geljambmkfjkhodgkpjhnmfojkpcamig',getManifest:()=>({json.dumps(manifest)}),onMessage:{{addListener:(fn)=>listeners.message=fn}},onInstalled:{{addListener:(fn)=>listeners.installed=fn}},onStartup:{{addListener:(fn)=>listeners.startup=fn}}}},
+   storage:{{local:{{get:async(keys)=>normalizeGet(keys),set:async(obj)=>Object.assign(bag,obj),remove:async(keys)=>{{for(const k of (Array.isArray(keys)?keys:[keys]))delete bag[k];}}}}}},
+   alarms:{{create:async()=>{{}},clear:async()=>true,onAlarm:{{addListener:(fn)=>listeners.alarm=fn}}}},
+   sidePanel:{{setPanelBehavior:async()=>{{}}}},action:{{setBadgeText:async()=>{{}},setTitle:async()=>{{}}}},
+   identity:{{getAuthToken:async()=>({{token:'test-token'}}),removeCachedAuthToken:async()=>{{}},clearAllCachedAuthTokens:async()=>{{}}}},
+   idle:{{queryState:async()=> 'idle'}},tabs:{{query:async()=>[],onRemoved:{{addListener:(fn)=>listeners.tabRemoved=fn}}}},downloads:{{}},
+   webRequest:{{onBeforeRequest:{{addListener:(fn)=>listeners.webBefore=fn}},onResponseStarted:{{addListener:(fn)=>listeners.webResponse=fn}},onCompleted:{{addListener:(fn)=>listeners.webComplete=fn}},onErrorOccurred:{{addListener:(fn)=>listeners.webError=fn}}}}
+ }};
+ globalThis.__pcFetchCount=0;
+ globalThis.fetch=async(url)=>{{globalThis.__pcFetchCount++;return {{ok:false,status:429,url:String(url),headers:{{get:(name)=>String(name).toLowerCase()==='retry-after'?'120':String(name).toLowerCase()==='content-type'?'text/html':''}},text:async()=>''}};}};
+ globalThis.__pcBag=bag; globalThis.__pcListeners=listeners;
+ globalThis.__pcSend=(message,sender={{}})=>new Promise((resolve,reject)=>{{try{{const keep=listeners.message(message,sender,resolve);if(!keep&&keep!==true)setTimeout(()=>resolve(undefined),0);}}catch(e){{reject(e)}}}});
+}})();
+"""
+
+with sync_playwright() as p:
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    page=browser.new_page(); errors=[]; page.on('pageerror',lambda exc: errors.append(str(exc)))
+    page.set_content('<!doctype html><html><body></body></html>')
+    page.add_script_tag(content=mock)
+    page.add_script_tag(content=brain)
+    page.add_script_tag(content=providers)
+    page.add_script_tag(content=integrity)
+    page.add_script_tag(content=knowledge)
+    page.add_script_tag(content=health)
+    page.add_script_tag(content=bg)
+    page.wait_for_timeout(100)
+    result=page.evaluate("""async()=>{
+      const now=Date.now();
+      const items=[
+        {type:'PROVIDER_SEEN',data:{id:'chatgpt',name:'ChatGPT',home:'https://chatgpt.com/',updatedAt:now}},
+        {type:'CHAT_UPSERT',data:{id:'chatgpt:test',providerId:'chatgpt',providerName:'ChatGPT',title:'Drive approval recovery project',url:'https://chatgpt.com/c/test',projectId:'chatgpt:section:recovery',projectName:'Recovery',status:'blocked-approval',statusDetail:'Allow Google Drive access to continue',updatedAt:now}},
+        {type:'TURN_UPSERT',data:{id:'chatgpt:test:t1',chatId:'chatgpt:test',providerId:'chatgpt',role:'assistant',ordinal:1,text:'Generated the recovery checkpoint and uploaded the database to Google Drive.',url:'https://chatgpt.com/c/test',updatedAt:now}},
+        {type:'FILE_UPSERT',data:{id:'chatgpt:test:file1',chatId:'chatgpt:test',providerId:'chatgpt',name:'Project-Constellation-Checkpoint.json',href:'https://drive.google.com/file/d/demo/view',externalUrl:'https://drive.google.com/file/d/demo/view',externalProvider:'google-drive',kind:'google-drive',updatedAt:now}}
+      ];
+      const ingest=await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:items});
+      const group=await __pcSend({type:'PC_ORG_GROUP_CREATE',input:{name:'Modding',icon:'M'}});
+      const project=await __pcSend({type:'PC_ORG_PROJECT_CREATE',input:{name:'Minecraft Mods',groupId:group.item.id,icon:'C',description:'All Minecraft mod repairs'}});
+      await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[
+        {type:'CHAT_UPSERT',data:{id:'chatgpt:old',providerId:'chatgpt',title:'Minecraft Mods v1.2.0 compatibility work',url:'https://chatgpt.com/c/old',status:'running',lastExcerpt:'Working from Minecraft Mods v1.2.0',updatedAt:now+10}},
+        {type:'CHAT_UPSERT',data:{id:'chatgpt:new',providerId:'chatgpt',title:'Minecraft Mods v1.3.0 release',url:'https://chatgpt.com/c/new',status:'idle',lastExcerpt:'Minecraft Mods v1.3.0 release',updatedAt:now+20}},
+        {type:'TURN_UPSERT',data:{id:'chatgpt:new:t1',chatId:'chatgpt:new',providerId:'chatgpt',role:'assistant',ordinal:1,text:'I recommend ModernFix for this Minecraft project: https://github.com/embeddedt/ModernFix\\nDecision: we will use ModernFix v5.20.0 as the baseline.\\n```java\\npublic class CreatureSelector { public void applyFix() {} }\\n```\\nImplemented creature selector and verified creature selector working.',updatedAt:now+20}},
+        {type:'TURN_UPSERT',data:{id:'chatgpt:new:t2',chatId:'chatgpt:new',providerId:'chatgpt',role:'assistant',ordinal:2,text:'Creature selector is broken after the latest change.',updatedAt:now+21}},
+        {type:'FILE_UPSERT',data:{id:'release:a',chatId:'chatgpt:new',providerId:'chatgpt',workspaceProjectId:project.item.id,name:'Minecraft-Mods-v1.3.0-source.zip',sha256:'aaa',size:100,updatedAt:now+20}},
+        {type:'FILE_UPSERT',data:{id:'release:b',chatId:'chatgpt:new',providerId:'chatgpt',workspaceProjectId:project.item.id,name:'Minecraft-Mods-v1.3.0-source.zip',sha256:'bbb',size:100,updatedAt:now+21}}
+      ]});
+      await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:old','chatgpt:new'],patch:{workspaceProjectId:project.item.id,tags:['minecraft','mods']}});
+      const smart=await __pcSend({type:'PC_ORG_SMART_CREATE',input:{name:'Forge crashes',groupId:group.item.id,query:'forge crash'}});
+      const patch=await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:test'],patch:{workspaceProjectId:project.item.id,tags:['minecraft','forge'],pinned:true,favorite:true}});
+      const org=await __pcSend({type:'PC_ORG_SUMMARY'});
+      const orgChats=await __pcSend({type:'PC_ORG_CHATS',filters:{workspaceProjectId:project.item.id,limit:20}});
+      const search=await __pcSend({type:'PC_BRAIN_SEARCH',query:'Google Drive recovery',limit:20});
+      const integrityScan={ok:true,summary:{findings:[]}};
+      const [providerCheck1,providerCheck2]=await Promise.all([
+        __pcSend({type:'PC_PROVIDER_SESSION_STATUS',providerId:'chatgpt',network:true}),
+        __pcSend({type:'PC_PROVIDER_SESSION_STATUS',providerId:'chatgpt',network:true})
+      ]);
+      const governor=await __pcSend({type:'PC_REQUEST_GOVERNOR_STATUS'});
+      __pcListeners.webBefore({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',initiator:'https://chatgpt.com'});
+      const healthActive=await __pcSend({type:'PC_LIVE_HEALTH_CONTEXT',chatId:'chatgpt:test'},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
+      __pcListeners.webResponse({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
+      __pcListeners.webComplete({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
+      const healthQuiet=await __pcSend({type:'PC_LIVE_HEALTH_CONTEXT',chatId:'chatgpt:test'},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
+      const handoff=await __pcSend({type:'PC_PREPARE_CHAT_HANDOFF',chatId:'chatgpt:test',url:'https://chatgpt.com/c/test',capacity:{turnCount:260,capturedChars:410000}},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
+      await processKnowledgeWork(); await processKnowledgeWork();
+      const knowledgeSummary=await __pcSend({type:'PC_KNOWLEDGE_SUMMARY',limit:30});
+      const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
+      const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
+      const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
+      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff};
+    }""")
+    print(json.dumps({'result':result,'errors':errors},sort_keys=True))
+    assert result['ingest']['ok']
+    assert result['summary']['chats']==3 and result['summary']['turns']==3 and result['summary']['files']==3
+    assert result['summary']['searchDocs']>=4
+    assert any(r['chatId']=='chatgpt:test' for r in result['search'])
+    assert result['org']['projects'][0]['name']=='Minecraft Mods'
+    assert result['org']['projects'][0]['chatCount']==3 and result['org']['projects'][0]['fileCount']==3
+    assert result['orgChats'][0]['workspaceProjectName']=='Minecraft Mods'
+    assert 'minecraft' in result['orgChats'][0]['tags'] and result['orgChats'][0]['pinned'] and result['orgChats'][0]['favorite']
+    assert len(result['snapshot']['groups'])==1 and len(result['snapshot']['smartCollections'])==1
+    assert result['knowledgeSummary']['total']>=3 and result['knowledgeSummary']['kinds']['recommendation']>=1 and result['knowledgeSummary']['kinds']['repository']>=1
+    assert any(row['kind']=='repository' and 'github.com/embeddedt/ModernFix' in row.get('url','') for row in result['knowledgeSearch'])
+    assert any(row['kind']=='recommendation' and row.get('chat',{}).get('url')=='https://chatgpt.com/c/new' for row in result['knowledgeSearch'])
+    assert any(row.get('workspaceProjectId')==result['project']['id'] for row in result['knowledgeSearch'])
+    assert result['snapshot']['summary']['knowledgeItems']>=result['knowledgeSummary']['total'] and len(result['snapshot']['projectContinuity'])>=1
+    assert result['fetchCount']==1 and result['governor']['totalThrottles']==1 and result['governor']['providers']['chatgpt']['waitMs']>0
+    checks=[result['providerCheck1'],result['providerCheck2']]
+    assert any(c.get('coolingDown') is True and c.get('source')=='request-governor' and c.get('retryAfterMs',0)>0 for c in checks)
+    assert result['healthActive']['network']['pending']==1 and result['healthActive']['network']['streamLikely'] is True
+    assert result['healthQuiet']['network']['pending']==0 and result['healthQuiet']['network']['observed'] is True
+    assert result['healthActive']['capacity']['storedTurns']==1
+    assert result['handoff']['ok'] and result['handoff']['checkpointId'].startswith('handoff:chatgpt:test:')
+    assert '# Project Constellation Safe Handoff' in result['handoff']['markdown'] and 'https://chatgpt.com/c/test' in result['handoff']['markdown']
+    assert result['handoff']['drive']['verified'] is False and result['handoff']['capacity']['turnCount']==260
+    assert any(row.get('kind')=='safe-chat-handoff' for row in result['snapshot']['checkpoints'])
+    assert not errors
+    browser.close()

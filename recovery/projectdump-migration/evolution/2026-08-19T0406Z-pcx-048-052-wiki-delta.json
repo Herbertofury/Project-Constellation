@@ -1,0 +1,102 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-19T04:06:00Z",
+  "projectGroup": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-051",
+      "name": "GameSync Capability Truth / UI QoL",
+      "readerWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-051-gamesync-capability-truth-ui-qol",
+      "sourcePath": "wikis/PCX-051-gamesync-capability-truth-ui-qol.md",
+      "sourceCommit": "b444e28a0afc0b4aa17a2abc9cc7436868999225",
+      "sourceBlob": "63d29cc2641bd9821d626a94f21bb307e60fbca2",
+      "wikiWorkflowRun": 32214436121,
+      "wikiMasterCommit": "2522c2ceb34e8aee8d46c1b8618f2c1757fa5efc",
+      "wikiPublication": "passed: ProjectDump.wiki.git push + fresh-clone complete byte comparison",
+      "driveWiki": {
+        "fileId": "1wlACkKMc_koevIkimKRW4SVx9N1Fm6PpH_HUsGJykWY",
+        "title": "PCX-051 GameSync Capability Truth UI QoL Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 17349,
+        "markdownSha256": "f44c2b83252b86d574d8cc8c62ffc30d0ac082830a85c93d770a06af3449e363",
+        "roundTrip": "passed"
+      },
+      "verifiedDelta": {
+        "shippingGameSyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "gameSyncNextPreviousWatermark": "9e337c720f0180cffa577f140b181c699f0a1650",
+        "gameSyncNextHead": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+        "gameSyncNextVersion": "0.8.0",
+        "merge": "Merge universal Game Tracker, Bounty, and Animation Tracker recovery",
+        "parityTransitions": {
+          "bounty": "verified",
+          "animation-tracker": "verified",
+          "universal-game-tracker": "verified"
+        },
+        "bountyEvidence": "clean isolated Opera synchronized 107 live GamerPower records with zero rejected rows, persisted healthy source state, rendered the calendar, and kept one React root mount",
+        "animationTrackerEvidence": "isolated Opera verified exact HTTPS source persistence, semantic-version detection, polling, an installed-pack update, and one React root mount",
+        "universalGameTrackerEvidence": "clean isolated Opera imported both a supplied 43 MB DOCX and its live Google Docs source into 181 active records: 75 households, 4 populated Sims, 67 lots, 35 worlds, 75 relationships, and 124 schema-bound images; 836 inline pills rendered; Cleaned-to-Dirty persisted; root mount count one; zero extension console/page/request errors; JSON/XLSX/DOCX/CSV exports passed content-level checks",
+        "documentationCorrection": "removed stale claims that Bounty and Animation Tracker were parity gaps; added current verified status transitions, Universal Game Tracker evidence, transition provenance, and dependency-aware stale-evidence rules"
+      }
+    }
+  ],
+  "recheckedWithoutMaterialWikiChange": [
+    {
+      "projectId": "PCX-048",
+      "name": "GameSync Theme Foundry",
+      "note": "Current page remains source-grounded in the modular theme package family and known theme-core/theme-schema contract drift. The cd906ff tracker recovery does not materially change the theme contract."
+    },
+    {
+      "projectId": "PCX-049",
+      "name": "GameSync Live Mascot Tavern",
+      "note": "Current page already documents the current Petz bridge persistence/count-policy gaps. The cd906ff merge preserved mascot/command-center work but did not supersede the native-engine contract enough to justify churn."
+    },
+    {
+      "projectId": "PCX-050",
+      "name": "GameSync Real Library Performance",
+      "note": "Current page remains centered on complete-library Steam synchronization, no-cap behavior, and storage/VFS benchmarking. No new real-library performance measurement was resolved this pass."
+    },
+    {
+      "projectId": "PCX-052",
+      "name": "GameSync Release Factory",
+      "note": "Release commands and publication discipline remain current. The new GameSync Next head changes feature payload but does not establish a new release-factory procedure or artifact publication contract by itself."
+    }
+  ],
+  "durableCheckpoint": {
+    "githubPath": "project-constellation/evolution/2026-08-19T0406Z-pcx-048-052-wiki-delta.json",
+    "driveFileId": "1jVHCutYGDXSaRhjOt6xCksX530TE8zxNQrxYPhKkoB4",
+    "driveTitle": "Project Constellation Wiki Maintainer Checkpoint - PCX-048-052 - 2026-08-19T0406Z",
+    "driveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveRevisionId": "AIroW36AvJfAveJXXVTi9uzTHRFmIjBM3jerCBkbz-NAA-LBYhrx2SsQjb4KWxm3VvSLByi7GFT90XOGLOz-LGo4onUEIc_L0g5lkvuqSI8",
+    "driveMarkdownBytes": 4293,
+    "driveMarkdownSha256": "09efdbd13099752f61862060501090feae0ccfd67403647a140e230408977aae",
+    "roundTrip": "passed"
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubCommit": "316db41c55594b17fc91ed20dda5d8c844fb6ccf",
+    "githubBlob": "c10c54719848cb0410401097c17cda1d738701fd",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveRevisionId": "AIroW37rAMsY4uxq0L3OQz5z7AitxFXhHxFp0lxY7MRP2XQX88mirnKxTsikoqw_oWmPuEhbyz1vszJAqlBqV_dnNAf6gBS56ZujcfpyPPo",
+    "driveTextBytes": 1774,
+    "driveTextSha256": "d76a6797d5b447cca6933545926560aed863ef4a099b37ab8c3226c8e030e5c0",
+    "jsonParse": "passed after UTF-8 BOM handling",
+    "roundTrip": "passed"
+  },
+  "nextCursor": [
+    "PCX-053",
+    "PCX-054",
+    "PCX-055",
+    "PCX-056",
+    "PCX-057"
+  ],
+  "persistence": {
+    "recurringObligation": "OPEN_AND_ONGOING",
+    "automationDisposition": "remain enabled; successful or no-op project passes never retire the service"
+  }
+}

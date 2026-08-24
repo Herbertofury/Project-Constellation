@@ -1,0 +1,78 @@
+{
+  "schema": "project-constellation.recovery-checkpoint/1",
+  "projectId": "PCX-040",
+  "project": "Pinterest Nocturne",
+  "checkedAt": "2026-08-19T09:08:00Z",
+  "updatedAt": "2026-08-19T09:19:00Z",
+  "status": "SOURCE_RUNTIME_RECOVERED_DEEP_HORIZON_REGRESSION_FOUND_GITHUB_PUBLISH_BLOCKED",
+  "canonical": {
+    "repository": "Herbertofury/Pinterest-Nocturne",
+    "branch": "main",
+    "head": "6167038fac5f362dbabb83c2497edb64e588ad01",
+    "tree": "8b5068b3f8d99266f9bf2ca3c43e879b9fb5e9e7",
+    "version": "2.0.0"
+  },
+  "driveSource": {
+    "fileId": "1v0hZ76qcfzGvn1aoq5MgeJyDiWrWvL5b",
+    "name": "Pinterest-Nocturne-2.0.0-Source.zip",
+    "sizeBytes": 410707,
+    "sha256": "e5a592b20be11b48459754999db96e3d2949a882b13362fa9f47be89f14ee5fa",
+    "manifestFileId": "1X5AhqaaVQUlAk6EvSJiGs0HIoceKaLDD",
+    "archiveIntegrity": "pass"
+  },
+  "recoveredVerification": {
+    "sourceArchiveFiles": 115,
+    "npmRunBuild": "pass: Chromium, Opera GX and Firefox targets built",
+    "npmRunTestStatic": "pass",
+    "npmRunPackage": "pass",
+    "realChromiumExtension": "pass: unpacked extension loaded, theme/background behavior exercised, theme persisted across reload, performance mode persisted across browser restart, zero observed console/popup errors",
+    "feedTurbo": "pass: regression gate passed; source coverage preserved and materialization timing improved versus retained baseline",
+    "leanBrowsing": "pass: sponsored/tracking surfaces filtered while organic/essential content remained; pause/off restored behavior; setting persisted across browser restart",
+    "leanPerf": "pass: 3000-card regression gate passed",
+    "engineTamer": "pass with PN_ENGINE_RUNS=1: event/scroll throttling, drag/local/custom behavior, promoted-payload filtering, XHR and JSON processing regression gate passed",
+    "aggregateNpmTest": "partial: build/static/core real-runtime stages passed before the outer execution budget expired; individual remaining gates were then executed separately",
+    "deepHorizon": {
+      "state": "regression reproduced on exact source after isolated per-case diagnosis",
+      "command": "PN_DEEP_HORIZON_RUNS=1 PN_DEEP_HORIZON_BASELINE_RUNS=1 python3 tests/runtime/deep_horizon.py",
+      "result": "failure",
+      "failure": "adaptive: 3s runway contains unfinished media",
+      "adaptive": {
+        "baselineCards1500": 84,
+        "currentCards1500": 168,
+        "baselineCards3000": 84,
+        "currentCards3000": 240,
+        "baselineLoaded3000": 84,
+        "currentLoaded3000": 233,
+        "currentDeepTargetReadyMs": 6.646
+      },
+      "maximum": {
+        "baselineCards1500": 108,
+        "currentCards1500": 156,
+        "baselineCards3000": 108,
+        "currentCards3000": 240,
+        "baselineLoaded3000": 108,
+        "currentLoaded3000": 240,
+        "currentDeepTargetReadyMs": 6.94
+      },
+      "diagnosis": "The timeout was not the root defect. Isolated cases complete in roughly 4-7 seconds each. The complete reduced-run benchmark finishes and exposes a real Adaptive media-completion regression: card materialization can outrun image readiness at the 3-second gate. Experimental warm-concurrency and pipeline-serialization variants were rejected because they either retained unfinished media or reduced Maximum early-runway throughput. The exact source was restored after those experiments."
+    }
+  },
+  "existingPublicationPath": {
+    "workflow": ".github/workflows/publish-v2.yml",
+    "bootstrapDirectory": ".release-bootstrap",
+    "bootstrapManifestSha256": "02d7aa2f92485a71b9f1b95e98a8c94776b55c9d9d29988d3f5d91fa777f6d36",
+    "state": "complete source bootstrap remains staged on private GitHub main; do not create a duplicate reconstructed source tree while the canonical bootstrap is intact"
+  },
+  "releaseHashesFromDrive": {
+    "Pinterest-Nocturne-2.0.0-Release.zip": "5bb685b30f15dab885aa6516480ff105bf1988c2f623f090c77bc0f512623f47",
+    "Pinterest-Nocturne-2.0.0-Source.zip": "e5a592b20be11b48459754999db96e3d2949a882b13362fa9f47be89f14ee5fa",
+    "chromium": "680a05a40344dc6808ef46da7ad96c001081a7ee98a6bb7eb3a91764f7ab82c7",
+    "opera": "07555faaeab2a96523b9440313306d870539a27707e9c4331f2dd841fc9d9162",
+    "firefox": "9779dae05cb2564388872e1c34919f0660e3da5976bd609592341c97dd0267d3"
+  },
+  "remaining": [
+    "Repair the Adaptive Deep Horizon media-completion regression without reducing runway depth, image quality, source coverage, constrained-link backoff, first-row performance, observer semantics, or Maximum throughput; rerun the default multi-run Deep Horizon benchmark plus the full runtime suite.",
+    "Expand the already-staged source onto canonical GitHub main, rerun the repository's complete build/static/runtime/package gate from that exact GitHub checkout, and publish/round-trip verify the GitHub v2.0.0 release once private hosted-runner execution is available."
+  ],
+  "blocker": "Canonical GitHub publication workflow is on a private repository and remains unable to obtain hosted runner execution under the already-established account payment/spending-limit condition. This checkpoint does not treat that infrastructure non-execution as a product failure and does not weaken the release gate."
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"></head>
+<body><main class="panel">
+  <div class="hero"><div><div class="brand-line"><span class="brand-mark">✦</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Performance Engine</h1></div><span id="pressure" class="badge">offline</span></div>
+  <p class="status" id="status">Performance protection and continuity monitoring.</p>
+  <div class="launch-actions">
+    <button id="openHome" class="primary">Open Project Constellation</button>
+    <button id="openConstellation">Open Command Center</button>
+    <button id="openAccounts">Accounts & Connections</button>
+  </div>
+  <section class="controls">
+    <label class="row"><span><strong>Performance engine</strong><small>Long-task pressure governor and jank protection</small></span><input id="enabled" type="checkbox"></label>
+    <label class="row"><span><strong>Responsive scrolling</strong><small>Prevent smooth-scroll frame pileups</small></span><input id="responsiveScrolling" type="checkbox"></label>
+    <label class="row"><span><strong>Adaptive motion relief</strong><small>Decorative-only relief during measured pressure</small></span><input id="adaptiveMotionRelief" type="checkbox"></label>
+  </section>
+  <section class="metrics"><div><span>Provider</span><strong id="provider">—</strong></div><div><span>Chat state</span><strong id="chatState">—</strong></div><div><span>Long tasks</span><strong id="longTasks">0</strong></div><div><span>Max task</span><strong id="maxTask">0 ms</strong></div></section>
+  <button id="resetMetrics">Reset session metrics</button>
+</main><script src="popup.js"></script></body></html>

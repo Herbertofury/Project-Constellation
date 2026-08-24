@@ -1,0 +1,84 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T16:13:00Z",
+  "scope": ["PCX-053", "PCX-054", "PCX-055", "PCX-056", "PCX-057"],
+  "canonicalRepository": "Herbertofury/ProjectDump",
+  "result": "MATERIAL_UPDATE",
+  "projects": {
+    "PCX-053": {
+      "name": "GameSync Bounty / Rewards Runtime",
+      "result": "RECHECKED_NO_CHURN",
+      "note": "Existing detailed wiki remains aligned with current GameSync evidence; no material documentation delta justified in this pass."
+    },
+    "PCX-054": {
+      "name": "GameSync Source Finder / Entity Resolver",
+      "result": "RECHECKED_NO_CHURN",
+      "note": "Recently refreshed wiki remains current; no additional material source delta found in this pass."
+    },
+    "PCX-055": {
+      "name": "GameSync Script Polling Runtime",
+      "result": "RECHECKED_NO_CHURN",
+      "note": "Recently refreshed wiki remains current; no additional material source delta found in this pass."
+    },
+    "PCX-056": {
+      "name": "GameSync Mod Health",
+      "result": "MATERIAL_WIKI_UPDATE",
+      "projectSource": {
+        "repository": "Herbertofury/Gamesync",
+        "branch": "main",
+        "observedCommit": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "version": "0.6.3"
+      },
+      "finding": "Current source proves that MODHEALTH_RUN_BACKGROUND collects and analyzes evidence directly but does not currently prove an append into the overlay evidence cache. The background job builds and clears a source-URL-shaped evidenceCacheKey, then analyzes allCollected directly, while the overlay owns MODHEALTH_EVIDENCE_APPEND/GET/CLEAR with a game/mod/URL logical key. Background job result/AutoNotes output and overlay cache continuity are therefore separate verified behaviors until a shared canonical key/append path is implemented and exercised.",
+      "wikiSource": {
+        "path": "wikis/PCX-056-gamesync-mod-health.md",
+        "documentationCommit": "dd541eb0b3d04b97f96e85aab6bc3afa327e5242",
+        "blob": "ce4eb4e5f3509ea0b06ac462f9d048b293832448"
+      },
+      "publicationRepair": {
+        "problem": "A temporary one-shot cleanup wrapper in tools/github-wiki/wiki-sync.sh blocked normal Wiki publication. One run failed git diff --check and the next failed because the Actions token could not push a workflow-file mutation.",
+        "repairCommit": "965bfacab779d48c95a71691e13cee712ad61d4d",
+        "restoredPublisherBlob": "348f43caa7f2649d8a533cf940951156e089857e",
+        "workflowRun": 32158805255,
+        "workflowConclusion": "success",
+        "wikiMasterCommit": "ed45bdb48253f31c45ae1d76cb265e89f278b2db",
+        "freshCloneByteCompare": "pass"
+      },
+      "driveWiki": {
+        "fileId": "1BYHbXcb2KbwP3l6mA_jzQjnfv_0QrkK3jg-_9ipHvTQ",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 31563,
+        "markdownSha256": "8d0402559344279189d7f9677cf0a956a57ac1cfb037507ac1ec7a7e61756908",
+        "reread": "pass"
+      },
+      "runtimeBoundary": "No fresh live Opera/Nexus/AutoNotes end-to-end run was performed during this documentation pass. The newly documented continuity gap is source-proven; its user-visible runtime impact remains an explicit qualification item."
+    },
+    "PCX-057": {
+      "name": "Project Catalog / Cross-Chat Database",
+      "result": "RECHECKED_NO_CHURN",
+      "note": "Recently refreshed catalog-integrity documentation remains current; no additional material delta justified in this pass."
+    }
+  },
+  "publication": {
+    "githubSourceCurrent": true,
+    "githubWikiCurrent": true,
+    "githubWikiVerifiedByFreshCloneByteCompare": true,
+    "driveWikiCurrent": true,
+    "driveCheckpoint": {
+      "fileId": "151EBqNzXlmFiyNGojJhjwQASDxTYHkb2IpEHfmBZ5l8",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownBytes": 4478,
+      "markdownSha256": "6d267a6e1a27787573d05e7c24383e0ed612ef3143f609df84ca26308d955e91",
+      "reread": "pass"
+    },
+    "researchCursorDriveMirror": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "textBytes": 1866,
+      "textSha256": "147e1ba9bc6b19488a30c86e24c8d3248fb7e4b5f62da787bb32d9b0fb100efc",
+      "reread": "pass"
+    },
+    "dualPublication": "VERIFIED"
+  },
+  "nextCursor": ["PCX-058", "PCX-059", "PCX-060", "PCX-061", "PCX-062"],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

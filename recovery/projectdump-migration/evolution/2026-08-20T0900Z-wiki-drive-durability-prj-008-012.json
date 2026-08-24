@@ -1,0 +1,99 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T09:00:00Z",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "scope": ["PRJ-008", "PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012"],
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "f5c3a5f1145de31c65611b5fd78059a0790f367f",
+    "wikiPublicationStatus": "success",
+    "syncWorkflowRunId": 32329772340,
+    "laterRepositoryHeadChecked": "cc36397c51ed9883c8ac2d7fb2769a0c46625637",
+    "laterWikisDelta": false,
+    "ruleApplied": "The successful full-set publisher covers the complete wikis/ source at the latest material source checkpoint; comparison from that source commit through the checked later repository head contains only Project Constellation state files and no newer wikis/** delta."
+  },
+  "projects": {
+    "PRJ-008": {
+      "decision": "REPAIRED_DRIVE_DURABILITY",
+      "sourcePath": "wikis/PRJ-008-mascot-games-sports-golf.md",
+      "sourceBlobSha": "5cedb1ffa29bb3b55adfa0075f8f1675b98e68fa",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-008-mascot-games-sports-golf",
+      "drive": {
+        "fileId": "1mBR8np9fWeB6y2nep7oc8f958Xx6a87hKMgtYU_iIrI",
+        "title": "PRJ-008 Mascot Games Sports Golf Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 25605,
+        "markdownExportSha256": "647650d4fd7885c9c9e13f099a34bcb729d45c038b663e14f6920e446755e367",
+        "reread": "pass"
+      },
+      "notes": "A complete Project Wikis Drive mirror was missing. The current detailed shipping-runtime wiki was mirrored in full and re-read through its Golf boundary, game registry, build/test, troubleshooting, relationship, unresolved-items, and maintenance sections. No wikis/ source churn was required."
+    },
+    "PRJ-009": {
+      "decision": "REPAIRED_DRIVE_DURABILITY",
+      "sourcePath": "wikis/PRJ-009-berts-skill-atlas.md",
+      "sourceBlobSha": "03ff21fb65d5a5d554c2f5a1887d789dd67b6203",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-009-berts-skill-atlas",
+      "drive": {
+        "fileId": "1TqYIHz6UiuXHVjRFqlDJfgz6pSyurpPqX35g_w3imnQ",
+        "title": "PRJ-009 Berts Skill Atlas Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 4281,
+        "markdownExportSha256": "690e30d79258d3079e4dc3fbf75d688be05f6c8b02ff74af9de2880cfa47eb2c",
+        "reread": "pass"
+      },
+      "notes": "The canonical current Skill Atlas/QA Cockpit source remains unresolved, but the current truthful recovery wiki now has a complete durable Drive mirror."
+    },
+    "PRJ-010": {
+      "decision": "REPAIRED_DRIVE_DURABILITY",
+      "sourcePath": "wikis/PRJ-010-runelite-flipforge-family.md",
+      "sourceBlobSha": "5d4901bca8b399f339bc5b0804f56e306db772a7",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-010-runelite-flipforge-family",
+      "drive": {
+        "fileId": "18En2mm2o9RzY-_rx8BEzQREGGRWE8agdW-mfgC7MmQ8",
+        "title": "PRJ-010 RuneLite FlipForge Family Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 14338,
+        "markdownExportSha256": "1925ec7412b1fb0c23d8d9b865c99ad4723986323e97bbf3ef70ee72b579ee08",
+        "reread": "pass"
+      },
+      "notes": "The connected Herbertofury/FlipForge repository remains a placeholder at 03cb2057c480929831852fed8fd866954e3ad5c0. The recovery/qualification wiki was mirrored completely without inventing missing implementation details."
+    },
+    "PRJ-011": {
+      "decision": "REPAIRED_DRIVE_DURABILITY",
+      "sourcePath": "wikis/PRJ-011-sims-4-accelerator.md",
+      "sourceBlobSha": "19ffb246d7331a27f95399b7858a58e7f8af30f8",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-011-sims-4-accelerator",
+      "drive": {
+        "fileId": "1A0ssRj2ns0hXgTqD71Ga8TeRBj_-9GkjdLUNOGeljBU",
+        "title": "PRJ-011 Sims 4 Accelerator Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 5728,
+        "markdownExportSha256": "7eb02aadd0859eb2c480016f54e0e1743a2d3ba2bd8eae9b6d2bd9c892f5bfe5",
+        "reread": "pass"
+      },
+      "notes": "The current scaffold/recovery and measurement wiki was mirrored completely. No canonical runnable TS4 Accelerator repository was resolved in this pass, so no speculative source update was made."
+    },
+    "PRJ-012": {
+      "decision": "REPAIRED_DRIVE_DURABILITY",
+      "sourcePath": "wikis/PRJ-012-sims-4-native-dx11-overlay.md",
+      "sourceBlobSha": "2465ec9979124d4d95f7e9ac1b60642c697c0dd0",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-012-sims-4-native-dx11-overlay",
+      "drive": {
+        "fileId": "1BMrKEpTKVhjrR-W5mpV3-ClGeqsl-r635m-fH5st9zI",
+        "title": "PRJ-012 Sims 4 Native DX11 Overlay Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 5126,
+        "markdownExportSha256": "08c1c25fb25193b766fb4641a6c791718ee6dc0aedf1179dacebbd6f7e6f7fb0",
+        "reread": "pass"
+      },
+      "notes": "The current relationship-unresolved DX11 overlay research/qualification wiki was mirrored completely. No canonical DLL/source was resolved, so no implementation claim was added."
+    }
+  },
+  "sourceHeadsObserved": {
+    "Herbertofury/Gamesync": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+    "Herbertofury/GameSync-Next": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+    "Herbertofury/FlipForge": "03cb2057c480929831852fed8fd866954e3ad5c0"
+  },
+  "nextCursor": ["PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017"],
+  "stopPoint": "Drive durability is repaired and independently verified for PRJ-008 through PRJ-012. The actual GitHub Wiki remains publication-current with no newer wikis/** delta. Continue with PRJ-013 through PRJ-017 on the next pass."
+}

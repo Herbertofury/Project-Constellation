@@ -1,0 +1,76 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/2",
+  "checkedAt": "2026-08-18T07:12:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCount": 63,
+  "reviewed": [
+    {
+      "projectId": "PRJ-003",
+      "name": "GameSync Platform",
+      "decision": "OBSERVE",
+      "source": "Herbertofury/Gamesync main@a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "finding": "The current wiki already reflects the shipping 0.6.3 app/dist source contract, host/parity model, current package scripts, credentials boundary, performance rules, and GameSync Next relationship. No newer canonical source delta justified documentation churn this pass."
+    },
+    {
+      "projectId": "PRJ-004",
+      "name": "Aesthetic Media Companion / Living Room Platform",
+      "decision": "OBSERVE",
+      "source": "Herbertofury/Gamesync main@a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 plus Herbertofury/GameSync-Next main@9e337c720f0180cffa577f140b181c699f0a1650",
+      "finding": "The existing detailed wiki already resolves the historical precursor into the shipping GameSync Living Room runtime and GameSync Next shared ownership contract. No stronger newer source evidence required correction."
+    },
+    {
+      "projectId": "PRJ-005",
+      "name": "Mascot / Screenmate Platform",
+      "decision": "OBSERVE",
+      "source": "Herbertofury/Gamesync main@a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "finding": "The current wiki already documents the verified browser mascot implementation, ACS/Shimeji/Petz relationships, settings/message contracts, manifest integration, and the unresolved broader umbrella ownership boundary. No newer canonical owner or runtime change was found."
+    },
+    {
+      "projectId": "PRJ-006",
+      "name": "ACS Agent Parity Runtime",
+      "decision": "OBSERVE",
+      "source": "Herbertofury/Gamesync main@a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "finding": "The existing ACS wiki remains aligned with the current parser/conversion/service-worker implementation and clearly separates implemented source from unresolved Microsoft Agent parity. No newer ACS-specific source delta justified churn."
+    },
+    {
+      "projectId": "PRJ-007",
+      "name": "PF Magic Petz Runtime Integration",
+      "decision": "MATERIAL_WIKI_UPDATE",
+      "source": "Herbertofury/GameSync-Next main@9e337c720f0180cffa577f140b181c699f0a1650",
+      "finding": "packages/petz-bridge/src/mascot-bridge.ts reads persistence with loadPetData(breedId), saves with savePetData(pet.id, data), ignores returned loaded state, and serializes the whole engine for each pet during destroy(). This is a source-proven cross-host persistence identity and restore blocker, not merely a generic TODO.",
+      "issue": "https://github.com/Herbertofury/GameSync-Next/issues/9",
+      "wikiSourceCommit": "169a6171dc18f64b8563f2a11bf236cde0709d00",
+      "wikiSourceBlob": "22b3db44c124ce241ebcfb7ea1e7fe92f5dc95af",
+      "wikiPublicationRun": 32110041202,
+      "wikiMasterCommit": "57a16b05b2b1a5de9e7b8eacfe36654f4c795734",
+      "wikiPublicationVerification": "Sync GitHub Wiki succeeded; publisher pushed ProjectDump.wiki.git, fresh-cloned the remote Wiki, and byte-compared it successfully against wikis/.",
+      "driveWiki": {
+        "documentId": "1vr1K0Sou4QQuTT82COdViPK-TMlG5fYvFedBKiUZXyU",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownExportBytes": 27347,
+        "markdownExportSha256": "2ac95270d45830cd03c96718adb29b5dfcea8d99a7aaf7482c54f733f08b855a"
+      },
+      "acceptance": "The wiki now records the stable persistence identity requirement, non-destructive single-pet restore, same-breed multi-pet independence, corrupt-save fallback, affected-host build/typecheck gates, restart proof, and changed-build identity verification."
+    }
+  ],
+  "publication": {
+    "github": "PRJ-007 source committed and reader-facing GitHub Wiki fresh-clone byte verification passed",
+    "drive": "PRJ-007 full wiki copied into the Project Wikis Drive folder and exported/re-read at 27347 bytes with SHA-256 2ac95270d45830cd03c96718adb29b5dfcea8d99a7aaf7482c54f733f08b855a",
+    "driveCheckpoint": {
+      "documentId": "1xwMZP02z1mGCxGNjUd1qY_i0vPfjjmGIhWKDCbGc7qg",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 4141,
+      "markdownExportSha256": "c26bc396c5b8e0ea0df0bcb0c0491912e6921bdbab57b7e1a9e5e33d385e9685"
+    },
+    "presentationArtifactsChanged": false,
+    "presentationPublicationDebt": "unchanged presentation bytes were not regenerated solely for documentation checkpoint churn"
+  },
+  "nextCursor": [
+    "PRJ-008",
+    "PRJ-009",
+    "PRJ-010",
+    "PRJ-011",
+    "PRJ-012"
+  ],
+  "recurringServiceState": "OPEN_AND_ONGOING"
+}

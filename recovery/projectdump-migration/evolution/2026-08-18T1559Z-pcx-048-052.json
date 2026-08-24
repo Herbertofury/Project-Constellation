@@ -1,0 +1,65 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "createdAt": "2026-08-18T15:59:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "slice": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
+  "catalogInvariant": {
+    "projectConstellationControlPlaneExcludedFromTargetRotation": true,
+    "noArtificialCapsOrViewportCullingIntroduced": true
+  },
+  "findings": [
+    {
+      "project": "PCX-048",
+      "decision": "OBSERVE_NO_NEW_WRITE",
+      "finding": "The current Theme Foundry wiki already documents the source-backed theme-core/theme-schema field-type and select-option contract drift, package-local verification requirement, and Design Tokens 2025.10 interchange experiment. No newer source delta justified cosmetic churn."
+    },
+    {
+      "project": "PCX-049",
+      "decision": "OBSERVE_NO_NEW_WRITE",
+      "finding": "The current Live Mascot Tavern wiki already documents the Petz bridge maxPets ceiling, unfinished restore path, save/load identity mismatch, and cross-engine restart/parity acceptance contract. No newer source delta justified cosmetic churn."
+    },
+    {
+      "project": "PCX-050",
+      "decision": "OBSERVE_NO_NEW_WRITE",
+      "finding": "The current Real Library Performance wiki still correctly requires a real RESYNC_STEAM baseline before SQLite/WASM VFS migration and preserves complete-library/no-cap behavior. No newer verified runtime measurement was available."
+    },
+    {
+      "project": "PCX-051",
+      "decision": "OBSERVE_NO_NEW_WRITE",
+      "finding": "The current Capability Truth wiki remains aligned with the machine parity matrix and executable audit: the presentation layer stays read-only and cannot promote itself to verified."
+    },
+    {
+      "project": "PCX-052",
+      "decision": "PROPOSE_SIGNED_PROVENANCE_LAYER",
+      "finding": "The Release Factory wiki was materially extended with GitHub artifact attestations as an additive provenance layer for the exact final release bytes, including optional SBOM attestation, consumer verification, subject-digest matching, and remote GitHub/Drive re-download verification. Existing build, parity, same-ID upgrade, Opera, regression, SHA-256, and remote-byte gates remain mandatory.",
+      "githubSourceCommit": "e1ea778a0d49a27d824a291f3eedd853fc519d03",
+      "githubSourcePath": "wikis/PCX-052-gamesync-release-factory.md",
+      "driveWikiDocumentId": "1xVd7khJrHVFQ6gf7tBX25jA4qGkVN3YXvGc8wNScM1A"
+    }
+  ],
+  "publicationRepair": {
+    "project": "PCX-046",
+    "reason": "The pre-existing Drive wiki object was discovered with no readable paragraph content. It was repaired with a non-empty current Source Hubs summary covering Spotify six-month refresh-token expiry/reauthorization and developer-account-scoped Development Mode quota identity, then moved into Project Wikis.",
+    "driveWikiDocumentId": "1tOHMMgIzjBuswYf8JJF3NRB83F90953qsDPbVNa1sp8",
+    "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "githubSourceCommit": "a15fa5cdc5fab0ef2b62039b736805ca468fd19d"
+  },
+  "antiRegression": [
+    "No product source code was changed by this documentation/research pass.",
+    "No existing runtime, parity, identity, regression, hash, publication, or no-cap gate was weakened.",
+    "Concurrent Project Constellation cleanup commits after the wiki changes were preserved and not overwritten."
+  ],
+  "nextCursor": [
+    "PCX-053",
+    "PCX-054",
+    "PCX-055",
+    "PCX-056",
+    "PCX-057"
+  ]
+}

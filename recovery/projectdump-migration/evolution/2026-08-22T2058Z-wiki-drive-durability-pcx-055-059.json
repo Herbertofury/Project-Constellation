@@ -1,0 +1,64 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T20:58:00Z",
+  "group": ["PCX-055", "PCX-056", "PCX-057", "PCX-058", "PCX-059"],
+  "publicationBacklog": {
+    "state": "clear",
+    "latestMaterialWikiSourceCommit": "35ca7d734a91071e82fcc104fc4af41e85e6c8b7",
+    "syncRunId": 32593090575,
+    "syncJobId": 97079830808,
+    "wikiMasterCommit": "2b226728ef9bc9535903880b073b9cfa4b38eb26",
+    "verification": "Sync GitHub Wiki checked out the exact material source commit, pushed ProjectDump.wiki.git, fresh-cloned the actual Wiki, and completed the full wikis/ byte comparison successfully. No later wikis/** source changes exist before this durability checkpoint."
+  },
+  "projects": {
+    "PCX-055": {
+      "result": "rechecked-no-source-churn",
+      "reason": "Current detailed Script Polling Runtime page and Drive mirror remain aligned with the verified GameSync 0.6.3 scheduler source and its documented stop/start listener re-arm defect; no newer project-owned implementation delta was resolved."
+    },
+    "PCX-056": {
+      "result": "rechecked-no-source-churn",
+      "reason": "Current Mod Health wiki and dedicated Drive mirror remain present; no stronger current project-owned implementation evidence justified changing wikis/** this pass."
+    },
+    "PCX-057": {
+      "result": "rechecked-no-source-churn",
+      "reason": "Current Project Catalog / Cross-Chat Database wiki and dedicated Drive mirror remain present; the previously repaired complete catalog publication state remains the current documented authority."
+    },
+    "PCX-058": {
+      "result": "drive-durability-repaired",
+      "githubWikiSourcePath": "wikis/PCX-058-project-compass-northpoints.md",
+      "githubWikiSourceBlob": "16c78b7857937dec980cf3c4fe937048f2464ff5",
+      "readerWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-058-project-compass-northpoints",
+      "driveFileId": "1b1QrHcgZyAkkK188tCW0bmnu026-6tJTkqx5NJHWbsY",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveExportMime": "text/markdown",
+      "driveExportSizeBytes": 5568,
+      "driveExportSha256": "34daef2a3e602b07b6be1987d85916f328d1637c75b7541abb1769a4597cee6f",
+      "verification": "Dedicated complete Project Wikis Drive mirror was missing. A complete mirror was created from the current GitHub wiki source, moved into the canonical Project Wikis folder, independently re-read through the final Exact current next action, then exported and SHA-256 verified."
+    },
+    "PCX-059": {
+      "result": "rechecked-no-source-churn",
+      "reason": "Current Feature Foundry Project Brain Bridge wiki and dedicated Drive mirror remain present and aligned with released Feature Foundry v24 production-host evidence; no newer material source delta was resolved."
+    }
+  },
+  "driveDurability": {
+    "checkpoint": {
+      "fileId": "19gUqP3O3HcZpscT9MHasxnJbhivOpcgotRQU2d3oOHc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "exportMime": "text/markdown",
+      "exportSizeBytes": 3306,
+      "exportSha256": "5c42697f67df46ae28712b4363673a0bbc832e5b331ffa2ba104e1aad1aac52d",
+      "verification": "Moved into the canonical Project Constellation folder, independently re-read through the ongoing-service statement, then exported and hashed."
+    },
+    "researchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "exportMime": "text/plain",
+      "exportSizeBytes": 1763,
+      "exportSha256": "77d00dd1d55f51e84762376261345414878eea8441cd868367c723a78ad2c74a",
+      "verification": "Drive cursor was replaced from the verified GitHub cursor content, re-read from Drive, exported, and hashed."
+    }
+  },
+  "nextCursor": ["PCX-060", "PCX-061", "PCX-062", "PCX-063", "PRJ-001"],
+  "ongoing": true,
+  "notes": "This run repaired Drive durability only. No wikis/** source page changed, so no new Wiki sync was required. The recurring tracked-project wiki-maintenance obligation remains active."
+}

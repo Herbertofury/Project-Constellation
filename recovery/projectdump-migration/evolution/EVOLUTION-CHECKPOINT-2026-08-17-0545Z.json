@@ -1,0 +1,111 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "createdAt": "2026-08-17T05:45:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "catalogProjectCount": 63,
+  "repoHeadAtStart": "fd976f482177a0d657632bfeacf7e5310d51e684",
+  "repoHeadBeforeCheckpoint": "f6208fd4a2bb10ee908055a282decde2a6312962",
+  "reviewedProjects": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ],
+  "findings": [
+    {
+      "projectId": "PCX-046",
+      "summary": "Feature Foundry V33 contains a functional six-provider soundtrack hub with per-theme provider and URL persistence, real external navigation, and a truthful no-remote-playback-without-authorized-host boundary.",
+      "proposal": "Add a provider capability/auth matrix and exercise Spotify PKCE plus Apple MusicKit web authorization while preserving all existing navigation fallbacks.",
+      "evidence": [
+        "https://drive.google.com/file/d/1QL4u4MTrpATCVQxFrt4scEq32ky8hqvk/view",
+        "https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow",
+        "https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide",
+        "https://developer.apple.com/documentation/applemusicapi/user-authentication-for-musickit",
+        "https://www.rfc-editor.org/rfc/rfc9700.html"
+      ]
+    },
+    {
+      "projectId": "PCX-047",
+      "summary": "Favorite Artist Worlds v4.0.1 is a verified preservation-first database line with 5 artists, 10 world variants, 20 districts, 20 weather systems, 25 interaction rules, 21 music routes, 75 discovery links and 50 provenance records; JSON/SQLite/FTS/workbook/archive integrity is documented.",
+      "proposal": "Run the unchanged v4.0.1 fixture/query corpus against SQLite 3.53.4 and record engine/source identity and query-plan deltas before any database migration.",
+      "evidence": [
+        "https://drive.google.com/file/d/1UulWpSH2wvIq4Zj08SPdlqKtxpalPuAM/view",
+        "https://sqlite.org/",
+        "https://www2.sqlite.org/releaselog/3_53_4.html"
+      ]
+    },
+    {
+      "projectId": "PCX-048",
+      "summary": "GameSync 0.25.9 preserves a verified 0.25.8 base plus Feature Foundry theme/workspace adoption. North Star Pass 2 reports 9 tests, 568 JS syntax checks, 179 JSON checks, 689 HTML resource checks, 78 manifest resource checks, 615 no-cap runtime-file checks, 264/264 entry controls, 213/213 static actions, and 18/18 workspaces with 54 distinct actions; browser runtime remained unproven in that environment.",
+      "proposal": "Prototype a one-theme Design Tokens 2025.10 interchange round trip as an adapter only, preserving all richer Feature Foundry/GameSync metadata and no-cap guarantees.",
+      "evidence": [
+        "https://drive.google.com/file/d/1urgN5SucgvyPeLSmMNGsk27v8C7D-gpD/view",
+        "https://drive.google.com/file/d/1GXjj44gdetrXvAjmIpctnrY7Qwd5ePzr/view",
+        "https://www.w3.org/community/reports/design-tokens/CG-FINAL-format-20251028/",
+        "https://www.w3.org/TR/css-color-4/"
+      ]
+    },
+    {
+      "projectId": "PCX-049",
+      "summary": "The 0.25.9 Live Mascot Tavern line uses real Clippy/ACS, Shimeji, WebMeji and Petz engines, preserves native behavior/state features, removes fake mascot simulation, and reduces duplicate/stale bundle work by 711857 bytes (14.45%). The full archive is 247583122 bytes with SHA-256 87c4380af9e5bf405dca67c07160086a79cb2e9e3f1381cc23120ffaac7678f4. Managed Chromium runtime was blocked and is not counted as passed.",
+      "proposal": "Treat room integration as a capability adapter over native engines and add a deterministic cross-engine room/restart fixture rather than a replacement mascot engine.",
+      "evidence": [
+        "https://drive.google.com/file/d/1Y3kpuwq5kwqqSFQAdG9MRZhhCEN_DFEp/view",
+        "https://drive.google.com/file/d/1eU9lIq1MYBu03Ify8uqqzoRXkS1ziqFM/view"
+      ]
+    },
+    {
+      "projectId": "PCX-050",
+      "summary": "Real Library Performance Pass 1 added an O(n) Steam title merge, portrait-first cover selection and complete-library telemetry while explicitly preserving no virtualization, no viewport admission and full quality. Current shipping GameSync pins @sqlite.org/sqlite-wasm ^3.53.0-build1. Live RESYNC_STEAM remains the required baseline.",
+      "proposal": "After the real RESYNC_STEAM baseline, compare current storage with SQLite 3.53.4 opfs/opfs-wl/opfs-sahpool candidates on the identical full library, selecting VFS by actual concurrency requirements.",
+      "evidence": [
+        "https://drive.google.com/file/d/1KflWhKa4Bz1Bteom5yN9NgBvdiyMRY0T/view",
+        "https://github.com/Herbertofury/Gamesync/blob/main/package.json",
+        "https://sqlite.org/wasm/doc/tip/persistence.md"
+      ]
+    }
+  ],
+  "appImprovement": {
+    "name": "Compatibility Matrix Lens",
+    "status": "PROPOSE",
+    "purpose": "Expose cross-project compatibility truth for shared providers, theme contracts, host/runtime coverage, storage backends, verified tests and unresolved live gates without mutating canonical project data.",
+    "smallestExperiment": "Generate a read-only matrix from Project Constellation records and detailed wikis for PCX-046 through PCX-050, then confirm it reveals duplicate or conflicting provider/theme/storage assumptions without hiding any project record.",
+    "acceptance": "All 63 projects remain available and searchable; matrix cells link to evidence/source and verified date; unknown values remain unknown rather than guessed; filtering never changes project data; user edits continue to win."
+  },
+  "published": {
+    "wikiCommits": [
+      "bbc3048bdf96c1c40b519171674d48882c31f2d2",
+      "b57e3f3d41ed3456da7b1dd87e4e48b9150dce6b",
+      "884c3c72a7dd4299786383a3c7d0bf82e7964605",
+      "c0b334d4b9246ec4be4854d8a441a2dec668dd2e",
+      "e81a8e401dec043d5485f2987366eb39a0b8fece"
+    ],
+    "wikiIndexCommit": "4658ad388b67b9fdb07766bcb048799cc2525dcc",
+    "technologyRadarCommit": "f6208fd4a2bb10ee908055a282decde2a6312962",
+    "remoteWikiReadback": "pass for PCX-046 through PCX-050",
+    "detailedTargetWikiCoverage": 33
+  },
+  "presentationPublicationDebt": {
+    "status": "UNCHANGED_PENDING_REMOTE_BYTE_PUBLICATION",
+    "reason": "This pass changed source-controlled detailed wikis and technology research, not the 63-record presentation catalog. The existing coherent six-file presentation candidate remains pending exact remote byte publication and must not be regenerated ceremonially or partially promoted.",
+    "lastAutomationHashPromoted": false
+  },
+  "validation": {
+    "projectCount63": "pass from canonical automation state and byte-verified v0.5.0 Quick View",
+    "sourceAuthorityReview": "pass for PCX-046 through PCX-050",
+    "wikiRemoteReadback": "pass for all five new wikis",
+    "wikiCoverage": "33 detailed target-project wikis after index update",
+    "technologyRadarJson": "updated with explicit decision/risk/migration/acceptance records for PCX-046 through PCX-050",
+    "presentationBytesChanged": false,
+    "lastAutomationHashChanged": false,
+    "browserRuntime": "not rerun because no Project Constellation presentation/runtime bytes changed this pass"
+  },
+  "nextResearchCursor": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T04:15:00Z",
+  "projectGroup": ["PRJ-004", "PRJ-005", "PRJ-006", "PRJ-007", "PRJ-008"],
+  "publicationBacklogAtStart": "clear",
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-005",
+      "page": "wikis/PRJ-005-mascot-screenmate-platform.md",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-005-mascot-screenmate-platform",
+      "sourceCommit": "ca3f687167813756408e18c67ab3b6410322b443",
+      "sourceBlob": "d7157bc7eb43a94c966b006f2cb7c5b56b2c9e5c",
+      "change": "Refreshed the umbrella's GameSync Next authority from stale 9e337c... to current main cd906ff... while preserving 60940e... as the universal mascot implementation lineage; directly reverified all-site WXT bootstrap and universal mascot lifecycle at current main.",
+      "wikiPublication": {
+        "runId": 32551137107,
+        "jobId": 96977957514,
+        "state": "success",
+        "wikiMasterCommit": "eaf172f2d627f7c793060fff9577bd0c7811c196",
+        "exactSourceCheckout": true,
+        "wikiPush": true,
+        "freshClone": true,
+        "completeByteComparison": true
+      },
+      "driveMirror": {
+        "fileId": "1IUcZHSHDndWjBrVrpUvElKMhANNbQ11HMPOkpeazpDE",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "folderName": "Project Wikis",
+        "markdownBytes": 39748,
+        "markdownSha256": "11e757122a999080d4ea3d350192497aa0b7194e0a8bdccdfb8d37a586763776",
+        "rereadVerified": true
+      },
+      "evidence": {
+        "shippingGameSyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "gameSyncNextHead": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+        "universalMascotImplementationCommit": "60940e8479af518f3373a79efa091902f4843842",
+        "currentMainEntrypoint": "apps/extension-v2/src/entrypoints/page-mascot.content.ts",
+        "currentMainRuntime": "apps/extension-v2/src/content/universalPageMascot.ts"
+      }
+    }
+  ],
+  "noChangeRechecks": [
+    {
+      "projectId": "PRJ-004",
+      "reason": "Current Living Room page remains aligned with shipping GameSync runtime and GameSync Next shared contract; no stronger project-owned delta was resolved."
+    },
+    {
+      "projectId": "PRJ-006",
+      "reason": "ACS parity page already records current GameSync Next main cd906ff... and the verified 60940e... mascot parity lineage."
+    },
+    {
+      "projectId": "PRJ-007",
+      "reason": "Petz integration page already records current main cd906ff... and current draft PR #10 head 26123968... with exact-head execution still fail-closed."
+    },
+    {
+      "projectId": "PRJ-008",
+      "reason": "Mascot Games page remains detailed and current against shipping GameSync; fresh Drive/GitHub searching did not resolve a shipping Golf implementation or newer canonical Golf source."
+    }
+  ],
+  "driveCheckpoint": {
+    "fileId": "1IYgTy7K7QIzxYnloC3_epkCzq7BisexbEfQ2pFrrjCY",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 2683,
+    "markdownSha256": "cdb6b10bb25d0fe5d22ee26edf1adce1ee401dff82e3419b10e3fc36cd5abb9c",
+    "rereadVerified": true
+  },
+  "driveResearchCursor": {
+    "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "textBytes": 1845,
+    "textSha256": "4f0fa69d4b7699fd364e68085ba685fa925aa4f3b499ede934c4b1edfd25ad98",
+    "jsonValid": true,
+    "rereadVerified": true
+  },
+  "publicationBacklogAtEnd": "clear",
+  "nextCursor": ["PRJ-009", "PRJ-010", "PRJ-011", "PRJ-012", "PRJ-013"],
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries. A material wiki update is complete only after actual Wiki full-set publication proof and durable Drive mirror verification."
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T02:15:00Z",
+  "group": ["PCX-051", "PCX-052", "PCX-053", "PCX-054", "PCX-055"],
+  "publicationBacklogAtStart": {
+    "state": "clear",
+    "newestVerifiedFullSetSource": "8f0b22828e8db5af2f4bfdcd9f2a2b741a1de398",
+    "newestVerifiedFullSetWikiCommit": "513fde0edaf6659e83d322a8af0c7a805f76f6bd",
+    "evidence": "Sync GitHub Wiki run 32310775792 had successful wiki-publication status and full-set fresh-clone byte verification; no later wikis/** source delta existed before this pass."
+  },
+  "materialUpdate": {
+    "projectId": "PCX-052",
+    "page": "wikis/PCX-052-gamesync-release-factory.md",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-052-gamesync-release-factory",
+    "sourceCommit": "877c132f7dc4047d14a67d7271de2375f23954fc",
+    "sourceBlob": "9020f4053048df0df743c277e97b0a1a8891e22d",
+    "whyMaterial": [
+      "GameSync Next release-factory baseline was stale at 9e337c720f0180cffa577f140b181c699f0a1650; current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562.",
+      "Current main merges Universal Game Tracker, Bounty, and Animation Tracker and changes extension dependencies, lockfile, background bootstrap, route shell, parity matrix, and Opera verifier.",
+      "The declared test:e2e-opera script still targets absent file opera-extension/app/tests/e2e.opera-gx.test.js and must not be counted as a working release gate.",
+      "The Drive mirror was an incomplete short summary and was replaced with the complete current wiki content."
+    ],
+    "projectEvidence": {
+      "shippingGamesyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "gameSyncNextHead": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+      "extensionV2Version": "0.8.0",
+      "gameSyncNextComparedFrom": "9e337c720f0180cffa577f140b181c699f0a1650",
+      "gameSyncNextAheadBy": 2,
+      "mergedReleaseSurfaces": ["Universal Game Tracker", "Bounty", "Animation Tracker"],
+      "newPortabilityDependencies": ["docx ^9.7.1", "linkedom ^0.18.12", "mammoth ^1.12.0", "xlsx 0.20.3 CDN tarball"],
+      "projectOwnedOperaEvidence": {
+        "gameTracker": "181 active records, 75 relationships, 124 schema-bound images, JSON/XLSX/DOCX/CSV export content checks",
+        "bounty": "107 live GamerPower records with healthy source state and calendar rendering",
+        "animationTracker": "exact HTTPS poll, semantic-version detection, available installed-pack update, single React root"
+      }
+    },
+    "githubWikiPublication": {
+      "status": "verified",
+      "workflowRun": 32323810372,
+      "workflowJob": 96290942974,
+      "checkedOutSource": "877c132f7dc4047d14a67d7271de2375f23954fc",
+      "wikiMasterCommit": "7c7e82977c85adcff7966be4d12858696c270829",
+      "freshCloneByteCompare": "pass",
+      "wikiPublicationStatus": "success"
+    },
+    "driveMirror": {
+      "documentId": "1xVd7khJrHVFQ6gf7tBX25jA4qGkVN3YXvGc8wNScM1A",
+      "title": "PCX-052 GameSync Release Factory Wiki",
+      "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "parentFolderName": "Project Wikis",
+      "markdownExportBytes": 30016,
+      "markdownSha256": "ee7e752109a2e43056e91e7cfdd692143aeadb2ab18d8351a1843f75e44cb0b7",
+      "distinctiveReread": "Current observed main head cd906ff0831bf7fc33b41fea31b6f0c004cc1562 resolved in the updated Drive document."
+    },
+    "currentExternalDocumentation": {
+      "source": "https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations",
+      "checked": "2026-08-20",
+      "fact": "GitHub currently documents actions/attest@v4 with id-token: write, contents: read, attestations: write and gh attestation verify for consumer verification."
+    }
+  },
+  "reviewedNoSourceDelta": [
+    {
+      "projectId": "PCX-051",
+      "reason": "Already tracks GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and the merged verified capability transitions."
+    },
+    {
+      "projectId": "PCX-053",
+      "reason": "Already tracks shipping GameSync 0.6.3 and typed GameSync Next Bounty at cd906ff0831bf7fc33b41fea31b6f0c004cc1562."
+    },
+    {
+      "projectId": "PCX-054",
+      "reason": "Page's observed GameSync Next watermark predates current main, but the two newer commits do not materially change source discovery/entity resolution; timestamp/head-only churn was avoided."
+    },
+    {
+      "projectId": "PCX-055",
+      "reason": "Canonical implementation remains shipping GameSync 0.6.3 at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928; no newer Script Polling Runtime delta was resolved."
+    }
+  ],
+  "nextCursor": ["PCX-056", "PCX-057", "PCX-058", "PCX-059", "PCX-060"],
+  "persistentObligation": "Wiki maintenance remains recurring and open; do not disable or retire the automation."
+}

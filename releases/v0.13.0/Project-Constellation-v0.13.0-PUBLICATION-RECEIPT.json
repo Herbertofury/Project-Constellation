@@ -1,0 +1,86 @@
+{
+  "schema": "project-constellation-publication-receipt",
+  "version": 1,
+  "project": "Project Constellation",
+  "release_version": "0.13.0",
+  "release_name": "Execution Pulse + Tool Watchdog",
+  "published_at": "2026-08-24T16:42:32.080465Z",
+  "drive": {
+    "status": "VERIFIED_FULL_PUBLICATION",
+    "folder_id": "10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
+    "folder_url": "https://drive.google.com/drive/folders/10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
+    "parent_project_folder_id": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "files": {
+      "source": {
+        "name": "Project-Constellation-v0.13.0-source.zip",
+        "drive_file_id": "1BE4BxzKCr-sjVnFiwE-cv50vwhGM6GZI",
+        "size": 232749,
+        "sha256": "779a8dcb7ad11bcb826f6d71cf134cdbd675e0819f6281409675bc264a842ad1",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "unpacked": {
+        "name": "Project-Constellation-v0.13.0-unpacked.zip",
+        "drive_file_id": "1j5p_9MeJhz2yF6kWjZb4l8d1LY1YIwvv",
+        "size": 159179,
+        "sha256": "95dd2b1b9451f5061942981dcc4c245ac4319ac6fd87f3e21d55e9d8d3f2d60c",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "evidence": {
+        "name": "Project-Constellation-v0.13.0-Evidence.zip",
+        "drive_file_id": "1ewvzPJXWmOnRTZXsw1PL9wuSpppHbt4R",
+        "size": 1293451,
+        "sha256": "a5aed9593a45b23c5860568d531c1d03283d11dbdd2475449265f364d8157b5c",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "ui_proof": {
+        "name": "Project-Constellation-v0.13.0-Execution-Pulse.png",
+        "drive_file_id": "1-JsY58YQgLP2TwtoEmKx1fqeosAVknz9",
+        "size": 131349,
+        "sha256": "c4b804d53e205cdefaea46be1aa42d76b78a0f087e52ebd44d946d363b905cc5",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "checkpoint": {
+        "name": "Project-Constellation-v0.13.0-CHECKPOINT.json",
+        "drive_file_id": "1R9jLbcOPQvZrq4z4m7bWSemj1BLfVrhw",
+        "size": 4668,
+        "sha256": "261954a05a17f305845541f05c513d10e3318a6cf8d096e05a324b40ceab870f",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "checksums": {
+        "name": "Project-Constellation-v0.13.0-SHA256SUMS.txt",
+        "drive_file_id": "1EgNfRGL0hwNT6GOzAq7yTs7xmPXdNRGU",
+        "size": 553,
+        "sha256": "8c178bd86022eacc519536aeaefe0c8e605dc622a0fc82302beccc3217ec5c56",
+        "verification": "full Drive redownload byte-identical"
+      }
+    }
+  },
+  "source_lineage": {
+    "base_version": "0.12.0",
+    "base_folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "base_source_file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
+    "base_source_sha256": "41f3ef8c5c3734f7d33670179722e7c2b3518804528eeda14f68060661013e6b",
+    "noncanonical_v0111": "quarantined/superseded; not merged"
+  },
+  "installable_identity": {
+    "file_count": 21,
+    "tree_sha256": "f80475cf97db4a7c6b4ee24925ccc987cf77ca5085db94555a9029e3b3276bbf",
+    "extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig"
+  },
+  "quality_gate": {
+    "unit": "PASS",
+    "static_validation": "PASS",
+    "ui_message_contract": "PASS - 49 owned",
+    "execution_pulse_smoke": "PASS",
+    "repeated_called_tool_progress": "PASS",
+    "tool_stalled_watchdog": "PASS",
+    "home_live_health_projection": "PASS",
+    "background": "PASS",
+    "content_320": "PASS",
+    "approval_recovery": "PASS",
+    "full_capture": "PASS",
+    "fresh_installable_critical_paths": "PASS"
+  },
+  "external_gate": "True unpacked-extension runtime remains blocked by system Chromium administrator policy disabling unpacked extensions; signed-in provider/OAuth verification remains external. No false runtime success is claimed.",
+  "drive_first_compliance": "Base bytes were fetched from Drive first. Complete current source/build/evidence/proof/checkpoint/checksums are published to Drive and were fully redownloaded/hash-verified before this receipt."
+}

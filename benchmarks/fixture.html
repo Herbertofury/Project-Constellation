@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Constellation Synthetic Long Chat</title>
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; }
+  header { position: sticky; top: 0; padding: 10px; background: white; border-bottom: 1px solid #ddd; z-index: 2; }
+  main { max-width: 900px; margin: 0 auto; padding: 20px; }
+  article { padding: 18px 0; border-bottom: 1px solid #eee; }
+  pre { white-space: pre-wrap; padding: 12px; background: #f6f7f8; }
+  .decor { display:inline-block; animation:pulse .8s infinite alternate; }
+  @keyframes pulse { from { opacity: .45; transform: scale(.96); } to { opacity: 1; transform: scale(1.04); } }
+</style>
+</head>
+<body>
+<header><span aria-hidden="true" class="decor animate-pulse">synthetic streaming indicator</span></header>
+<main id="thread" data-virtualized-list></main>
+<script>
+  const thread = document.getElementById('thread');
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < 320; i++) {
+    const article = document.createElement('article');
+    article.dataset.testid = `conversation-turn-${i}`;
+    article.innerHTML = `<h2>Turn ${i + 1}</h2><p>${'Long conversation content '.repeat(28)}</p><pre>${'const value = Math.random(); // code\n'.repeat(18)}</pre>`;
+    fragment.appendChild(article);
+  }
+  thread.appendChild(fragment);
+  window.__fixtureReady = true;
+</script>
+</body>
+</html>

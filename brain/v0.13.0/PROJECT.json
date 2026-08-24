@@ -1,0 +1,10 @@
+{
+  "project_id": "project-constellation-extension",
+  "name": "Project Constellation",
+  "version": "0.13.0",
+  "canonical_path": "/mnt/data/project-constellation-v0130-work",
+  "runtime": "Chromium MV3 extension",
+  "status": "published-v0.13.0-execution-pulse",
+  "updated_at": "2026-08-24T16:41:08.609655Z",
+  "canonical_drive_base": "v0.13.0 Execution Pulse + Tool Watchdog / 10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu"
+}

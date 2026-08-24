@@ -1,0 +1,72 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T12:10:00Z",
+  "group": [
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022"
+  ],
+  "sourceHeadBeforeCheckpoint": "137586d965501ef1740709dd620929319eb9d7ce",
+  "publicationBacklog": {
+    "state": "clear",
+    "latestMaterialWikiSourceCommit": "23a5d694a64f8c114ca729ea8158905555df6a92",
+    "syncRun": 32359556184,
+    "syncJob": 96396011827,
+    "wikiMasterCommit": "0702d79dac14e84d057e4a998f79dc1e5eec179d",
+    "proof": "Exact source commit checked out; ProjectDump.wiki.git pushed; actual Wiki fresh-cloned; complete remote Wiki byte-compared against wikis/ with success; wiki-publication status recorded success."
+  },
+  "projects": {
+    "PRJ-018": {
+      "wikiSource": "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+      "sourceBlob": "dfffa052a01e10fc15542ae1cf0cd68d6d7c1ae3",
+      "decision": "no source churn",
+      "driveState": "current mirror rechecked; current MO2 host-baseline section present"
+    },
+    "PRJ-019": {
+      "wikiSource": "wikis/PRJ-019-mo2-performance-accelerator.md",
+      "sourceBlob": "60c1e72e3d5a72fd83299d520c6b1e5f04bc585e",
+      "decision": "no source churn",
+      "driveState": "current mirror rechecked; current MO2 host-baseline section present"
+    },
+    "PRJ-020": {
+      "wikiSource": "wikis/PRJ-020-master-desktop-pet-research.md",
+      "sourceBlob": "d38a02dceeb8cef6cbdf9e2abc02effd34c9f640",
+      "decision": "Drive durability repaired; no source churn",
+      "driveFileId": "1n8HYbENodTeFyf0WksAJYvXd0BghzwiRatEraW74hO0",
+      "driveMarkdownBytes": 11928,
+      "driveMarkdownSha256": "6d6ee52d78d1d975757692beb5531dc11a186d318c80380634a3f12225520e95",
+      "verification": "Full current Wiki source replaced the older condensed Drive copy; NeurolingsCE Rust + Flutter section independently re-read after update."
+    },
+    "PRJ-021": {
+      "wikiSource": "wikis/PRJ-021-gx-slim.md",
+      "sourceBlob": "1c25c8a65ab02a9acce9c0425afdfcfda7c1d2ee",
+      "decision": "Drive durability repaired; no source churn",
+      "driveFileId": "1o29wA2EjPSMXKQVSaEeB9lKPNJdiHbOc5MQ8XJVQfAM",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveMarkdownBytes": 3230,
+      "driveMarkdownSha256": "8b71421dd7535177600caae7d52c08701830fa4b094f452c5c3aec4007ace76a",
+      "verification": "Missing complete Project Wikis mirror created, moved into canonical Project Wikis folder, independently re-read, and Markdown-exported. Exact-name Drive and Herbertofury GitHub repository searches still did not recover GX-Slim-1.0.0-FULL.zip or a canonical source repository."
+    },
+    "PRJ-022": {
+      "wikiSource": "wikis/PRJ-022-feral-unified-native-base.md",
+      "sourceBlob": "547e6edcdaa4ddf754dcab49b77f170101ea2422",
+      "decision": "Drive durability repaired; no source churn",
+      "driveFileId": "1fhjyrOHlAAS_KW8o4jE9UbwCeQDoum6F7I60_3C37MY",
+      "driveMarkdownBytes": 5335,
+      "driveMarkdownSha256": "17dd42dbfef03df647c467e827f53ee6af115cf2cc47b18a2a668cb15d7409ff",
+      "verification": "Full current Wiki source replaced the older condensed Drive copy; current technology-delta section independently re-read after update."
+    }
+  },
+  "driveProjectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+  "projectConstellationDriveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+  "nextCursor": [
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026",
+    "PCX-027"
+  ],
+  "notes": "PRJ-018 and PRJ-019 required no source changes. PRJ-020 and PRJ-022 had materially incomplete Drive mirrors and were replaced with their complete current Wiki source. PRJ-021 had no complete Project Wikis Drive mirror and now does. The recurring Wiki-maintenance obligation remains open."
+}

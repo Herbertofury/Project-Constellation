@@ -1,0 +1,105 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T03:55:00Z",
+  "scope": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ],
+  "status": "MATERIAL_WIKI_DELTA_DUAL_PUBLISHED",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "publicationBacklogAtStart": {
+    "state": "CLEAR",
+    "lastMaterialWikiCommit": "877c132f7dc4047d14a67d7271de2375f23954fc",
+    "lastMaterialWikiRun": 32323810372,
+    "reason": "The prior material wiki commit had successful wiki-publication proof. Comparing it to main showed only research-cursor/checkpoint state changes and no newer wikis/** source delta."
+  },
+  "projects": {
+    "PCX-056": {
+      "result": "RECHECKED_NO_MATERIAL_SOURCE_DELTA",
+      "evidence": "Shipping GameSync main remains a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928; no newer shipping Mod Health implementation commit supersedes the existing page."
+    },
+    "PCX-057": {
+      "result": "MATERIAL_WIKI_UPDATE",
+      "reason": "The page still described the GitHub catalog mirror as truncated, while current GitHub and Drive catalog bytes have already converged.",
+      "catalog": {
+        "path": "project-constellation/Project-Constellation-Project-Catalog.json",
+        "driveFileId": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
+        "bytes": 116737,
+        "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+        "githubBlobSha": "0cbd23ef565c5ea61c26c978142d2b1f434c6bbf",
+        "gitBlobMatchesRedownloadedDriveBytes": true,
+        "jsonParse": "pass",
+        "projectCount": 63,
+        "projectArrayLength": 63,
+        "uniqueProjectIds": 63,
+        "requiredContinuityFields": "pass"
+      },
+      "historicalDivergence": {
+        "status": "RESOLVED_AND_PRESERVED",
+        "previousGitHubBlobSha": "297284ad1417e5b8b9dd8f6d16fbb3a28906e6ed",
+        "previousGitHubBytes": 48132,
+        "previousGitHubSha256": "e222fc0aadf0c653c1f87af2d790994235d9f30fb350b77a51274a7ad6ab5a45",
+        "previousCondition": "truncated inside PRJ-019"
+      },
+      "integrityReceipt": {
+        "githubEvidenceCommit": "7e9791beeb4546a2230c8029724b3fe08e899ca0",
+        "githubBlobSha": "b787c61e3e9fb7c32fb6e8ce01649048e64e9313",
+        "driveDocumentId": "1UuioOvWXImaSLwsdaJWu0OGpVIPhum3N12CdVvnYUw0",
+        "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+        "driveMarkdownBytes": 2169,
+        "driveMarkdownSha256": "a4d06e6f02379e970ea10cf2db8accd9b1fea071670287ea3678a8cc27c8af74"
+      },
+      "wikiSource": {
+        "path": "wikis/PCX-057-project-catalog-cross-chat-database.md",
+        "commit": "f5c3a5f1145de31c65611b5fd78059a0790f367f",
+        "blobSha": "4ade680644e27ae5e75b3bd8d4c217481ad542b3"
+      },
+      "actualWikiPublication": {
+        "readerFacingUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-057-project-catalog-cross-chat-database",
+        "workflowRun": 32329772340,
+        "job": 96308067223,
+        "sourceCheckedOut": "f5c3a5f1145de31c65611b5fd78059a0790f367f",
+        "wikiMasterCommit": "b0dc35ce2820ebec64c788afdcc276e6bc32a772",
+        "push": "pass",
+        "freshClone": "pass",
+        "completeByteComparison": "pass",
+        "wikiPublicationStatus": "success"
+      },
+      "driveWiki": {
+        "documentId": "152UrTZclCJS3yBQ8QOYmXQHTeMSA9ShhPabTPHcGP8M",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "reread": "pass",
+        "markdownBytes": 14589,
+        "markdownSha256": "a8368edc1e9d04152e60c9411e6dcf5ffd5518c3a3e8547dcebf5ee8317d9d1a"
+      }
+    },
+    "PCX-058": {
+      "result": "RECHECKED_NO_MATERIAL_SOURCE_DELTA",
+      "evidence": "Current page remains a practical intent/supersession contract and no newer verified project-owned Compass artifact superseded its documented evidence in this pass."
+    },
+    "PCX-059": {
+      "result": "RECHECKED_NO_MATERIAL_SOURCE_DELTA",
+      "evidence": "Current bridge contract remains truthful about unresolved current portable package/native integration; no stronger canonical bridge artifact was resolved in this pass."
+    },
+    "PCX-060": {
+      "result": "RECHECKED_NO_MATERIAL_SOURCE_DELTA",
+      "evidence": "Shipping GameSync remains a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 and GameSync Next current main is cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The later GameSync Next merge does not supersede the source-proven ACS voice/speech boundaries already documented, so no metadata-only churn was created."
+    }
+  },
+  "nextCursor": [
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-001",
+    "PRJ-002"
+  ],
+  "rules": {
+    "projectConstellationItselfIsNotDocumentationTarget": true,
+    "actualWikiPublicationRequired": true,
+    "dualPublishRequired": true,
+    "recurringAutomationMustRemainEnabled": true
+  }
+}

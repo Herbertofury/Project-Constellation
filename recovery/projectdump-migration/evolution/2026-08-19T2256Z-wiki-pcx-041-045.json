@@ -1,0 +1,52 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-19T22:56:00Z",
+  "scope": ["PCX-041", "PCX-042", "PCX-043", "PCX-044", "PCX-045"],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-042",
+      "page": "wikis/PCX-042-gamesync-next.md",
+      "sourceCommit": "8f0b22828e8db5af2f4bfdcd9f2a2b741a1de398",
+      "sourceBlob": "930db810eb38c4ebd951416c10437e36098d2ce5",
+      "reason": "Connected GameSync Next PR evidence materially outgrew the stale two-proposal wiki section. The page now tracks the current draft proposal matrix for PRs #7, #8, and #10 through #15, current exact heads, proposed dependency/runtime versions, the staged test:e2e-opera compatibility repair, composition rules, and the private exact-head Actions/lock-authority blocker without promoting any proposal into current-main behavior.",
+      "wikiPublication": {
+        "status": "verified",
+        "workflowRun": 32310775792,
+        "job": 96253130166,
+        "wikiMasterCommit": "513fde0edaf6659e83d322a8af0c7a805f76f6bd",
+        "proof": "Sync GitHub Wiki checked out exact source commit 8f0b22828e8db5af2f4bfdcd9f2a2b741a1de398, pushed ProjectDump.wiki.git, fresh-cloned the Wiki, byte-compared the complete remote page set against wikis/, and recorded wiki-publication success."
+      },
+      "driveMirror": {
+        "documentId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+        "title": "PCX-042 GameSync Next Wiki",
+        "verifiedMarkers": [
+          "## Current open proposal matrix, not current main",
+          "3046883c2575be72c320ff25364a71a46f328629"
+        ],
+        "markdownExportBytes": 47795,
+        "markdownSha256": "d65969fa00b36266752a3586955b13ccb3fa5ded9a6dc3a142a8160af0f6a181"
+      }
+    }
+  ],
+  "recheckedNoChurn": [
+    {
+      "projectId": "PCX-041",
+      "reason": "No newer verified ChatGPT Ultimate Optimizer release/source evidence than the current v1.0.1 documentation was resolved."
+    },
+    {
+      "projectId": "PCX-043",
+      "reason": "The current wiki already separates V33 FINAL_READY runnable-product evidence from V2-253 maintainable source authority; no newer complete production-app authority was resolved."
+    },
+    {
+      "projectId": "PCX-044",
+      "reason": "The page and its Drive durability were just verified in the immediately preceding checkpoint; no newer project-owned delta justified churn."
+    },
+    {
+      "projectId": "PCX-045",
+      "reason": "V23 Object Atlas schema 13 remains the strongest recovered object-specific contract and no later object-specific schema/runtime evidence superseded it."
+    }
+  ],
+  "publicationBacklogAfterRun": [],
+  "nextCursor": ["PCX-046", "PCX-047", "PCX-048", "PCX-049", "PCX-050"],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

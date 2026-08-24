@@ -1,0 +1,81 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T17:11:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "reviewedProjects": [
+    {
+      "id": "PCX-058",
+      "name": "Project Compass Northpoints",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki already documents durable intent, stable northpoint identities, supersession rules, measurable acceptance signals, publication targets, and the JSON Schema / canonicalization experiment. No newer project-owned implementation evidence justified churn in this pass."
+    },
+    {
+      "id": "PCX-059",
+      "name": "Feature Foundry Project Brain Bridge",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki already preserves the bridge contract and correctly distinguishes portable/project-brain artifacts from proven native Feature Foundry runtime integration. No newer canonical bridge implementation was verified in this pass."
+    },
+    {
+      "id": "PCX-060",
+      "name": "ACS Voice / Speech Runtime",
+      "decision": "MATERIAL_WIKI_UPDATE",
+      "sourceCommit": "64229ef99c9d31afcc910d67538d53443f21b19d",
+      "wikiMasterCommit": "ee059fd6f943c0a5797c6de5c0e7dc2a685ca6b8",
+      "wikiWorkflowRun": 32163975940,
+      "readerWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-060-acs-voice-speech-runtime",
+      "evidence": {
+        "shippingHost": "Herbertofury/Gamesync 0.6.3 at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "nextHost": "Herbertofury/GameSync-Next Extension V2 0.8.0; main observed at 9e337c720f0180cffa577f140b181c699f0a1650",
+        "materialParityCommit": "60940e8479af518f3373a79efa091902f4843842",
+        "sourceFinding": "Extension V2 now has a repaired clippy queue initialization order and a source-proven queued visible speech-balloon path. ClippyBalloon.speak types visible text and does not itself prove audible TTS. stopCurrent and stop have distinct queue/balloon effects."
+      },
+      "publication": {
+        "githubSource": "VERIFIED",
+        "githubWiki": "PUSHED_FRESH_CLONED_BYTE_VERIFIED",
+        "driveWikiFileId": "1cglaNdTV5i6Xgy3koNqbCyZnClwdZzoEXv1H8FO3_54",
+        "driveWikiFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "driveMarkdownSize": 25717,
+        "driveMarkdownSha256": "34351280a96aea689f3c1080b42f380436f73705b187f06cd26c97b8cea45afc",
+        "driveContentReread": "VERIFIED"
+      },
+      "nextAction": "Build a deterministic two-host browser fixture that compares shipping GameSync ACS audio/request behavior with GameSync Next Extension V2 queue/balloon behavior before changing speech providers."
+    },
+    {
+      "id": "PCX-061",
+      "name": "Petz Shared Core",
+      "decision": "NO_MATERIAL_WIKI_CHANGE",
+      "reason": "Current wiki already documents the typed petz-engine/petz-compat/petz-formats/petz-bridge architecture, the shipping JavaScript parity baseline, and the known typed-bridge restore/environment boundaries. No newer source delta superseded it in this pass."
+    },
+    {
+      "id": "PCX-062",
+      "name": "RuneLite QA Cockpit",
+      "decision": "BLOCKER_UNCHANGED",
+      "reason": "Canonical current QA Cockpit repository/ZIP bytes remain unresolved. Connected GitHub search returned no canonical repository and exact Drive search continues to surface continuity/index material rather than the runnable QA Cockpit artifact. The existing recovery-first wiki remains truthful."
+    }
+  ],
+  "publicationVerification": {
+    "wikiSourceCommit": "64229ef99c9d31afcc910d67538d53443f21b19d",
+    "syncWorkflowRun": 32163975940,
+    "workflowConclusion": "success",
+    "wikiPush": "verified",
+    "freshClone": "verified",
+    "completeByteComparison": "verified",
+    "wikiMasterCommit": "ee059fd6f943c0a5797c6de5c0e7dc2a685ca6b8"
+  },
+  "driveCheckpoint": {
+    "fileId": "1LuGrYNa0Yxj0ba4qgbjO96GuYt7CE0szd5M5wDFc4Ek",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "contentReread": "VERIFIED",
+    "markdownSize": 4140,
+    "markdownSha256": "4dc8d8d8999cf7499b9586ddf55a96b0bd85430a73c27581bacf36d605d77390"
+  },
+  "nextCursor": [
+    "PCX-063",
+    "PRJ-001",
+    "PRJ-002",
+    "PRJ-003",
+    "PRJ-004"
+  ]
+}

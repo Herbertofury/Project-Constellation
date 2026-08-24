@@ -1,0 +1,7 @@
+
+> project-constellation-extension@0.13.0 validate
+> node scripts/validate.mjs && node scripts/ui-contract.mjs && node scripts/message-contract.mjs
+
+validate.mjs: PASS
+ui-contract.mjs: PASS
+message-contract.mjs: PASS (49 UI message types owned)

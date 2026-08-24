@@ -1,0 +1,1238 @@
+{
+  "schema": "project-constellation.catalog/2",
+  "version": "0.5.0",
+  "generatedAt": "2026-08-16T03:59:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCount": 63,
+  "source": {
+    "artifact": "Bert_Project_Constellation_Quick_View.html",
+    "sha256": "1aeaaa510ffd75a457bece24ab630d0595c155dcb10c05bc806d55015fa0a654",
+    "driveFileId": "1up9K9DTdUVg_fnW-v8bHVAIbjEWX7l77"
+  },
+  "projects": [
+    {
+      "id": "PRJ-001",
+      "name": "Project Compass Orchestrator / project second brain",
+      "status": "ACTIVE",
+      "confidence": "High",
+      "latest": "Skill v3.3.0, artifact-library storage manager, master project/version catalog, portable AGENTS bundle, project-memory and cross-chat artifact reconciliation",
+      "nextAction": "Keep installed skill and portable bundle synchronized; export after every policy or memory-system change.",
+      "goal": "Continue Project Compass Orchestrator / project second brain from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Keep installed skill and portable bundle synchronized; export after every policy or memory-system change."
+      ],
+      "recoveryHistory": "## PRJ-001 — Project Compass Orchestrator / Cross-Chat Second Brain\n\n**Status:** ACTIVE  \n**Confidence:** High  \n**Purpose:** Apply the full AGENTS execution contract across chats and agents, preserve project identity and progress, remember sourced research, prevent accidental restarts, and export a portable Codex/agent bundle.\n\n### Latest recovered state\n\n- Current-chat release: **v3.3.0 — Artifact Library and Storage Manager**.\n- Trigger phrases include `agent`, `agent:`, direct agent requests, and substantive project work.\n- Maintains all-in-one and modular AGENTS forms.\n- Adds project-owned `.agents-memory/`, a durable cross-project catalog and Markdown database, an organized artifact-library vault, storage warnings, hash-proven duplicate cleanup, reversible quarantine, project bundle folders, identity checks, handoffs, research memory, artifact reconciliation, controlled learning, anti-poisoning, and export tools.\n- Known handoff artifacts:\n  - `skill.zip`\n  - `AGENTS-workflow-bundle.zip`\n  - `AGENTS-all-in-one.md`\n  - `AGENTS-modular.md`\n  - `Feature-Foundry-Project-Brain.zip`\n  - `USER-PROJECTS-DATABASE.md`\n  - `project-catalog.json` and portable catalog ZIP\n  - `library-catalog.json`, `LIBRARY-DATABASE.md`, organized project bundles, and portable library catalog ZIP\n\n### Preservation rules\n\n- Installed skill packages do not silently update themselves; regenerate and reinstall after changes.\n- Repository/project memory is separate from the installed skill.\n- Never claim cross-chat persistence unless a durable store accepted and reread the update.\n- Always preserve version lineage when same-name artifacts are replaced.\n\n### Open work\n\n- Keep the master project and artifact-library catalogs synchronized after every checkpoint, artifact reconciliation, rename, merge, version change, cleanup, or bundle export.\n- Revalidate ambiguous latest-version claims before promotion and preserve every prior version.\n- Export the catalog whenever the live durable store cannot be shared with another chat or agent.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-002",
+      "name": "Feature Foundry",
+      "status": "ACTIVE, major production rebuild",
+      "confidence": "High",
+      "latest": "V11 production data platform and living-world directive; V11 database bundle validated",
+      "nextAction": "Locate the canonical app repository and reconcile it against V11 before any coding.",
+      "goal": "A professional, deeply moddable authoring application for living theme worlds, UI skins, rooms, objects, weather, time, soundtracks, UI sounds, mascots, interactions, assets, research, mixing, packaging, and exports to multiple hosts.",
+      "requirements": [
+        "Locate canonical repo and branch.",
+        "Hash and import the V11 bundle without overwriting newer repository data.",
+        "Reproduce the current Room Studio/Explorer/Vault failures.",
+        "Build a migration ledger from current implementation to V11.",
+        "Establish exact production/runtime proof rather than relying on database validation or HTML prototypes."
+      ],
+      "recoveryHistory": "## PRJ-002 — Feature Foundry\n\n**Status:** ACTIVE — production application not yet proven complete  \n**Confidence:** High  \n**Aliases:** Theme Home, Theme Lab, living aesthetic worlds, Feature Foundry Theme Studio\n\n### Mission\n\nA professional, deeply moddable authoring application for living theme worlds, UI skins, rooms, objects, weather, time, soundtracks, UI sounds, mascots, interactions, assets, research, mixing, packaging, and exports to multiple hosts.\n\n### Current canonical document\n\n- `feature-foundry-aesthetic-worlds-codex-master-directive.md`\n- Internal revision marker: **V11**, researched 2026-08-02.\n- The V11 directive calls itself the single canonical implementation contract.\n- The final implementation directive says the standalone HTML is not the finished product and the real application must implement and persist the workflows.\n\n### Version and artifact lineage\n\n1. Early standalone living-world HTML concept.\n2. V4 standalone HTML.\n3. V7 HTML.\n4. V8 HTML.\n5. V9 HTML.\n6. V10 production-stack directive.\n7. **V11 production data platform and bundle reference**.\n\nCurrent V11 artifacts recovered:\n\n- `feature-foundry-aesthetic-worlds-codex-master-directive.md`\n- `feature-foundry-codex-final-implementation-directive-v11.md`\n- `feature-foundry-aesthetic-world-guide-v11.md`\n- `feature-foundry-living-world-prototype-v11-bundle-reference.html`\n- `V11-VALIDATION-REPORT.md`\n- Object Atlas SQLite database\n- Theme Worlds SQLite database\n\n### V11 validation facts\n\nThe V11 validation report records **61 passed, 0 failed** for the supplied data/schema bundle, including:\n\n- 178 object archetypes and families\n- 52 materials\n- 178 behavior profiles\n- 12 affordances\n- 17 themes and versions\n- 72 districts\n- 17 room presets\n- 51 weather profiles\n- 17 soundtrack profiles\n- 17 mascot profiles\n- 170 object-pool members\n- database integrity, foreign keys, FTS, RTree, cross-database references, manifest hashes\n\n**Critical boundary:** the report explicitly does **not** claim that final artwork, production runtime integration, Blender conversion, provider authentication, or the complete app is implemented.\n\n### Approved theme set\n\nV11 preserves **17 full themes**:\n\n1. Frutiger Aero\n2. Utopian Scholastic\n3. Wacky Pomo\n4. Contempo Eclectic\n5. Vaporwave\n6. Neo-Y2K\n7. Liminal Leisure\n8. Diner Kitsch\n9. Cassette Futurism\n10. Googie Kitsch\n11. French Synthpop\n12. Memphis\n13. Ethereal CGI\n14. Divine Machinery\n15. Dark Fantasy\n16. Atomic Age\n17. Jazz / Solo Jazz\n\nThe broader aesthetics guide is research-only and must not silently promote every entry to a shipping theme.\n\n### Major subsystems\n\n- Professional application surface\n- Living left/right worlds\n- Focused Full UI\n- Performance Mode\n- Theme Studio\n- Aesthetic Explorer and Mixer\n- Asset Vault\n- World Studio and Room Studio\n- Object Studio and semantic affordance/rig system\n- Weather, time, lighting, soundtrack, UI sound, mascot and interaction studios\n- Package/export system\n- Object Atlas and Theme Worlds databases\n- Opera-style multi-provider Music Hub\n- GameSync migration and host adapters\n\n### Current failure/repair focus\n\n- Room Studio is currently documented as an unconvincing mostly empty scene with pasted objects and weak editing tools.\n- Aesthetic Explorer is documented as generic, flat, and not a real mixing/research workflow.\n- Asset Vault is documented as an empty or underbuilt drawer rather than a real asset operating system.\n- The desired Aesthetic Explorer/media base may be a branch before v23; do not assume the numerically highest old branch is the latest-good base.\n\n### Canonical repository\n\n**Not yet recovered in this chat.** Do not edit the prototypes or initialize a new project in their place. Locate the existing Feature Foundry repo/worktree/branch first.\n\n### Related artifacts\n\n- `ui-theme-agent-spec.md` and historical v48/v49/v51 variants\n- `FEATURE_FOUNDRY_CODEX_MASTER_PROMPT.md`\n- `LIVE_DEVELOPMENT_WORKBENCH.md`\n- `TECH_STACK_PHYSICS_RENDERING_ATLAS.md`\n- `Feature_Foundry_Portable_Feature_Starter.zip`\n- visual targets for Frutiger Aero, Wacky Pomo, and Neo-Y2K\n\n### Immediate next checkpoint\n\n1. Locate canonical repo and branch.\n2. Hash and import the V11 bundle without overwriting newer repository data.\n3. Reproduce the current Room Studio/Explorer/Vault failures.\n4. Build a migration ledger from current implementation to V11.\n5. Establish exact production/runtime proof rather than relying on database validation or HTML prototypes.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-003",
+      "name": "GameSync platform",
+      "status": "ACTIVE, multiple hosts",
+      "confidence": "High",
+      "latest": "Opera extension, extension-v2, desktop app; theme system and several game/runtime subprojects",
+      "nextAction": "Preserve the three host roots and make one host/version/parity ledger.",
+      "goal": "Continue GameSync platform from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Create a host matrix:",
+        "`feature/version -> Opera v1 -> extension-v2 -> desktop -> Feature Foundry source -> evidence -> parity gap`",
+        "Three hosts can drift.",
+        "Feature Foundry theme exports and GameSync theme implementations can diverge.",
+        "Old checked boxes may not match current runtime.",
+        "Generated or copied extensions can be mistaken for canonical source."
+      ],
+      "recoveryHistory": "## PRJ-003 — GameSync Platform\n\n**Status:** ACTIVE  \n**Confidence:** High\n\n### Known canonical roots\n\n- Opera/v1 extension: `C:\\Users\\Owner\\Desktop\\GameSync\\opera-extension`\n- v2 extension: `C:\\Users\\Owner\\Desktop\\GameSync\\apps\\extension-v2`\n- Desktop app: `C:\\Users\\Owner\\Desktop\\GameSync\\apps\\desktop`\n\n### Main tracks\n\n#### A. Core GameSync product and theme runtime\n\nThe current theme checklist documents:\n\n- original 16-theme registration and world packs\n- theme engine, interactions, sounds, object ecology, collectibles, weather, timeflow, media surfaces, library interactions, districts, and Spotify architecture\n- v1 and v2 parity work\n- Feature Foundry editors and portable theme packages\n\nTreat the checklist as claimed implementation history, not proof that every feature works in the current loaded build. The newer Feature Foundry V11 contract supersedes the theme catalogue with 17 themes and stronger production requirements.\n\n#### B. Search, source finder, and entity resolution\n\nRecovered goals:\n\n- game and mod title search\n- source discovery\n- strong identity and anti-normalization matching\n- Typesense and Meilisearch exploration\n- SQL-centered extension data\n- direct source links\n- append-only upgrade behavior\n\nKnown hotspots from prior work:\n\n- `background/background.js`\n- title normalization and fuzzy match functions\n- `src/modsources/discovery.js`\n- AutoNotes\n- FolderMonitor\n- ModAuthors\n\nKnown artifacts:\n\n- `checklist-updated.md`\n- `opera-extension-analyzed.zip`\n\n#### C. HyperBowl original reconstruction\n\n- Original assets are expected under `C:\\Users\\Owner\\Desktop\\GameSync\\hyperbowl\\HYPERBOWL ORGINAL`.\n- Original assets are read-only reference material.\n- Unity extracts are not the canonical behavior source.\n- Control work should follow `HYPERBOWL_ORIGINAL_RECONSTRUCTION_MASTER.md` when found.\n\n#### D. Petz / PF Magic runtime\n\nSee PRJ-007.\n\n### Preservation risks\n\n- Three hosts can drift.\n- Feature Foundry theme exports and GameSync theme implementations can diverge.\n- Old checked boxes may not match current runtime.\n- Generated or copied extensions can be mistaken for canonical source.\n\n### Immediate next checkpoint\n\nCreate a host matrix:\n\n`feature/version -> Opera v1 -> extension-v2 -> desktop -> Feature Foundry source -> evidence -> parity gap`\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-004",
+      "name": "Aesthetic Media Companion / Living Room platform",
+      "status": "PRECURSOR / MERGED",
+      "confidence": "Medium",
+      "latest": "`master-living-room-aesthetic-plan-v3.md`",
+      "nextAction": "Treat as a Feature Foundry predecessor unless a separate canonical repo proves otherwise.",
+      "goal": "room runtime asset vault aesthetic catalogue/explorer media companion mystery/progression world orchestration",
+      "requirements": [
+        "Treat as a Feature Foundry predecessor unless a separate canonical repo proves otherwise."
+      ],
+      "recoveryHistory": "## PRJ-004 — Aesthetic Media Companion / Living Room Platform\n\n**Status:** PRECURSOR / MERGED candidate  \n**Confidence:** Medium\n\n### Latest known plan\n\n- `master-living-room-aesthetic-plan-v3.md`\n\n### Scope\n\n- room runtime\n- asset vault\n- aesthetic catalogue/explorer\n- media companion\n- mystery/progression\n- world orchestration\n\n### Recovered technical direction\n\n- Rapier2D\n- PixiJS v8\n- ECS\n- Web Animations + GSAP\n- local-first persistence with JSON export/import\n\n### Relationship decision\n\nMost of this scope now appears inside Feature Foundry. Preserve the v3 plan as source history and research. Do not maintain a parallel implementation unless a distinct repository and product identity are confirmed.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-005",
+      "name": "Mascot / Screenmate platform",
+      "status": "ACTIVE umbrella",
+      "confidence": "High",
+      "latest": "Shimeji engine, ACS engine, mascot runtime, desktop build, research base",
+      "nextAction": "Resolve which repository currently owns the shared mascot core.",
+      "goal": "A shared browser/desktop mascot runtime combining Shimeji-style packs, classic ACS agents, screenmates, desktop companions, Petz-style creatures, overlays, voices, interactions, games, and future Feature Foundry/GameSync integrations.",
+      "requirements": [
+        "Resolve which repository currently owns the shared mascot core."
+      ],
+      "recoveryHistory": "## PRJ-005 — Mascot / Screenmate Platform\n\n**Status:** ACTIVE umbrella  \n**Confidence:** High\n\n### Purpose\n\nA shared browser/desktop mascot runtime combining Shimeji-style packs, classic ACS agents, screenmates, desktop companions, Petz-style creatures, overlays, voices, interactions, games, and future Feature Foundry/GameSync integrations.\n\n### Known systems\n\n- Real Shimeji pack ingestion\n- XML action graphs\n- anchors, borders, frame durations, velocities and hotspots\n- carry/throw behavior\n- wall and ceiling traversal\n- graph-driven animation reuse\n- WXT + React + Vite migration track\n- browser extension and future desktop build\n- ACS compatibility runtime\n- Petz runtime integration\n- mascot games and sports\n\n### Latest broad implementation artifact\n\n- `mascotgames_master_agent_ordered_wxt_react_vite_v2_aligned_playable_contract_glorious_sports_golf_flagship.md`\n\n### Critical preservation rule\n\nDo not replace authentic pack/state/action semantics with a generic sprite animation system. Preserve current smooth dragging, browser safety, existing pack conversion, and working runtime behavior while adding parity.\n\n### Canonical repository\n\nNot recovered. Resolve before any new scaffold.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-006",
+      "name": "ACS Agent parity runtime",
+      "status": "SPEC / ACTIVE implementation track",
+      "confidence": "High",
+      "latest": "`acs-agent-parity-checklist-generalized-v3.md`",
+      "nextAction": "Audit the current runtime against the checklist before claiming classic Microsoft Agent parity.",
+      "goal": "Restore classic Microsoft Agent, Office Assistant, MASH/TMAFE, and Double Agent behavior across the whole mascot runtime without regressing modern browser improvements.",
+      "requirements": [
+        "Audit the current runtime against the checklist before claiming classic Microsoft Agent parity."
+      ],
+      "recoveryHistory": "## PRJ-006 — ACS Agent Parity Runtime\n\n**Status:** SPEC / ACTIVE track  \n**Confidence:** High\n\n### Latest artifact\n\n- `acs-agent-parity-checklist-generalized-v3.md`\n\n### Mission\n\nRestore classic Microsoft Agent, Office Assistant, MASH/TMAFE, and Double Agent behavior across the whole mascot runtime without regressing modern browser improvements.\n\n### Existing foundation documented in the checklist\n\n- ACS parser\n- ACS-to-runtime conversion\n- spritesheets and audio export\n- `pack.acsAgent` metadata\n- state and return maps\n- voice and balloon metadata\n- queued playback, movement, speech, dragging and idle transitions\n- Shimeji compatibility\n\n### Primary gaps documented\n\n- true `GestureAt()` direction selection\n- true `Think()` path\n- request objects and queue semantics such as Wait/Interrupt/StopAll/Get\n- classic popup/Commands/CommandsWindow/Voice Commands Window parity\n- speech recognition/voice grammar\n- deeper state semantics\n- lip-sync/audio timing\n- local AI, local STT/TTS and voice switching\n- inspector, parity scoring and authoring tools\n\n### Version note\n\nMultiple same-name v3 copies exist. The latest content-rich version includes Phases 0–6, local packaged intelligence/voices, page-element attachment, browser/app reactions, and desktop readiness. Preserve all copies until their content hashes are reconciled.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-007",
+      "name": "PF Magic Petz runtime integration",
+      "status": "ACTIVE GameSync/Mascot subproject",
+      "confidence": "Medium",
+      "latest": "`gamesync_petz_build_checklist.md`; PF Magic source path known",
+      "nextAction": "Keep one shared Petz core, then roll out GameSync v1 → v2 → desktop.",
+      "goal": "Continue PF Magic Petz runtime integration from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "One shared core engine with host adapters, not three divergent reimplementations."
+      ],
+      "recoveryHistory": "## PRJ-007 — PF Magic Petz Runtime Integration\n\n**Status:** ACTIVE subproject  \n**Confidence:** Medium\n\n### Known source\n\n- `C:\\Users\\Owner\\Desktop\\GameSync\\PF Magic`\n\n### Goal\n\nBuild a fully playable Petz/Dogz/Catz/Oddballz-compatible runtime integrated with the shared mascot system.\n\n### Rollout order\n\n1. GameSync v1\n2. GameSync v2\n3. Desktop app\n\n### Architecture rule\n\nOne shared core engine with host adapters, not three divergent reimplementations.\n\n### Known artifacts\n\n- `gamesync_petz_build_checklist.md`\n- earlier `pf_petz_playable_methods.md`\n\n### Continuity risks\n\n- PF Magic source and extracted assets must remain preserved.\n- Petz behavior should not be flattened into ordinary mascot animation.\n- GameSync, mascot, and Feature Foundry object/room systems may overlap; define ownership explicitly.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-008",
+      "name": "Mascot Games / sports and Golf flagship",
+      "status": "ACTIVE design/implementation track",
+      "confidence": "Medium",
+      "latest": "`mascotgames_master_agent_ordered_wxt_react_vite_v2_aligned_playable_contract_glorious_sports_golf_flagship.md`",
+      "nextAction": "Reconcile against current mascot repository and verify real playable flows.",
+      "goal": "Continue Mascot Games / sports and Golf flagship from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Reconcile against current mascot repository and verify real playable flows."
+      ],
+      "recoveryHistory": "## PRJ-008 — Mascot Games / Golf and Sports\n\n**Status:** ACTIVE design/implementation track  \n**Confidence:** Medium\n\n### Latest known artifact\n\n- `mascotgames_master_agent_ordered_wxt_react_vite_v2_aligned_playable_contract_glorious_sports_golf_flagship.md`\n\n### Direction\n\n- Golf as flagship\n- sports experiences playable in popup, panel, and full view\n- aligned with the WXT/React/Vite v2 mascot runtime\n- real playable loops, not decorative sports screens\n\n### Needed reconciliation\n\nLocate the repository and verify what is implemented versus specified. Keep the sports game layer modular so it does not corrupt the core mascot runtime.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-009",
+      "name": "Bert's Skill Atlas / Skill Guide",
+      "status": "ACTIVE RuneLite project",
+      "confidence": "Medium",
+      "latest": "QA Cockpit after Unified Cockpit; earlier Master plugin README recovered",
+      "nextAction": "Find the newest ZIP and repository, then record its hash and build status.",
+      "goal": "Continue Bert's Skill Atlas / Skill Guide from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Find the newest QA Cockpit ZIP, compute SHA-256, extract cleanly, run Gradle build/tests, launch RuneLite developer mode, and verify sidebar, routes, overlays, links, and persistence."
+      ],
+      "recoveryHistory": "## PRJ-009 — Bert's Skill Atlas / Skill Guide\n\n**Status:** ACTIVE RuneLite plugin family  \n**Confidence:** Medium\n\n### Recovered lineage\n\n1. `Bert's Skill Guide Master`\n2. `bert-skill-guide-master.zip`\n3. `bert-skill-atlas-ultra.zip`\n4. `bert-skill-atlas-unified-cockpit.zip`\n5. `bert-skill-atlas-qa-cockpit.zip`\n\n### Known earlier Master plugin scope\n\n- RuneLite sidebar guide\n- all 24 current skills including Sailing\n- multiple routes and steps\n- money-making tabs\n- object/NPC/tile/inventory/bank/equipment highlights\n- Wiki and Prices actions\n- data-driven `GuideRepository.java`\n\n### Prior-chat recovered counts\n\nThe Unified Cockpit was described as preserving:\n\n- 24 skills\n- 144 routes\n- 404 money-makers\n- 211 quest entries\n- 4,877 quest steps\n\nThe QA Cockpit added True Content QA and consolidated guide/prep/map/money/settings workflows.\n\n### Build status warning\n\nAn earlier artifact explicitly had not been locally built. Do not assume later ZIPs compile or load until the latest package is found and tested in RuneLite developer mode.\n\n### Immediate next checkpoint\n\nFind the newest QA Cockpit ZIP, compute SHA-256, extract cleanly, run Gradle build/tests, launch RuneLite developer mode, and verify sidebar, routes, overlays, links, and persistence.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-010",
+      "name": "RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD family",
+      "status": "ACTIVE, release blocker",
+      "confidence": "Medium",
+      "latest": "Multiple master prompts; known-good hitchless RuneLite JAR identity; Farm Material Ranker v1.1.0",
+      "nextAction": "Prove external plugins load in the actual Jagex-launched client and persist after restart.",
+      "goal": "Continue RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD family from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Prove external plugins load in the actual Jagex-launched client and persist after restart."
+      ],
+      "recoveryHistory": "## PRJ-010 — RuneLite FlipForge / Farm Material Ranker / No-Hitch / 117HD\n\n**Status:** ACTIVE, external-plugin loading is a release blocker  \n**Confidence:** Medium\n\n### Components\n\n- `flipfore-osrs` / user-facing FlipForge naming\n- Farm Material Ranker\n- Rust dashboard/bridge\n- No-Hitch RuneLite launcher/runtime\n- 117HD / RLHD integration\n\n### Farm Material Ranker\n\nLatest known standalone version: **v1.1.0**.\n\nRecovered features:\n\n- searchable sidebar\n- OSRS/GE pricing\n- item icons\n- sorting\n- monster metadata\n- shortest-path routing\n\nArtifact: `farm-material-ranker.zip`\n\n### Known-good hitchless reference identity\n\n- Artifact: `hitchless-runelite-main.jar`\n- SHA-256: `80d99e72d82ad28a5fe7779d7325450b487edb2c9c1f617b2e75acfa39f61d89`\n- Size: 57,842,944 bytes\n- Main class: `com.bertsplugins.hitchless.HitchlessRuneLiteMain`\n- Embedded RuneLite: 1.12.29.1\n- Commit: `68ff80e`\n\n### Main unresolved release gate\n\nThe actual Jagex-launched client must prove that both external plugins are visible, enabled, functional, and persistent after restart. A build, JAR inspection, or developer-mode load is not enough.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-011",
+      "name": "The Sims 4 Accelerator",
+      "status": "SPEC / SCAFFOLD",
+      "confidence": "High",
+      "latest": "`TS4_ACCELERATOR_AGENT_PLAN.md`; starter workspace README",
+      "nextAction": "Benchmark the exact game/mod setup before deeper hooks; preserve the real Mods folder.",
+      "goal": "A Windows-only TS4 performance project targeting: 1. large Mods/Overrides startup cost 2. zone-load hitching and asset warmup 3. DX11 frame pacing and render-thread overhead",
+      "requirements": [
+        "Measure before internal patching.",
+        "Preserve the real Mods library.",
+        "Start with pass-through projection and externalized bottlenecks.",
+        "Benchmark DX9/DX11 and Memory Boost states where relevant.",
+        "Stop if projection is slower, content compatibility breaks, or the DLL crashes with hooks disabled."
+      ],
+      "recoveryHistory": "## PRJ-011 — The Sims 4 Accelerator\n\n**Status:** SPEC / STARTER SCAFFOLD  \n**Confidence:** High\n\n### Latest recovered plan\n\n- `TS4_ACCELERATOR_AGENT_PLAN.md`\n- Updated plan variants from 2026-04-20 through 2026-04-27\n- Starter `README.md`\n\n### Mission\n\nA Windows-only TS4 performance project targeting:\n\n1. large Mods/Overrides startup cost\n2. zone-load hitching and asset warmup\n3. DX11 frame pacing and render-thread overhead\n\n### Architecture\n\n- Rust launcher/control plane\n- C++23 provider and injected telemetry/acceleration DLL\n- ProjFS first, WinFsp fallback, staged/hardlink fallback\n- SQLite manifests and baselines\n- ETW, PresentMon and Tracy\n- Detours/MinHook\n- DBPF and `.ts4script` optimization\n- libdeflate/zlib-ng only after profiling proves a decompression bottleneck\n\n### Strict rules\n\n- Measure before internal patching.\n- Preserve the real Mods library.\n- Start with pass-through projection and externalized bottlenecks.\n- Benchmark DX9/DX11 and Memory Boost states where relevant.\n- Stop if projection is slower, content compatibility breaks, or the DLL crashes with hooks disabled.\n\n### Current status\n\nThe README explicitly describes the workspace as a **blueprint and scaffold, not a finished optimizer**.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-012",
+      "name": "Sims 4 native DX11 overlay mod",
+      "status": "SPEC / possibly related to Accelerator",
+      "confidence": "Medium",
+      "latest": "Native C++/DX11/Dear ImGui architecture prompt",
+      "nextAction": "Decide whether this is a TS4 Accelerator module or a separate repo before implementation.",
+      "goal": "Continue Sims 4 native DX11 overlay mod from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Decide whether this is a TS4 Accelerator module or a separate repo before implementation."
+      ],
+      "recoveryHistory": "## PRJ-012 — Sims 4 Native DX11 Overlay Mod\n\n**Status:** SPEC / relationship unresolved  \n**Confidence:** Medium\n\n### Recovered requirements\n\n- native C++\n- DirectX 11 overlay\n- Dear ImGui\n- F11 toggle\n- architecture, folder structure, build, hooking, input, configuration and runtime variables\n- explicitly excludes XML, Python, HTML, CAS and a separate app\n\n### Relationship question\n\nThis may be:\n\n- a UI/telemetry module within TS4 Accelerator, or\n- a separate native mod project.\n\nDo not merge repositories or duplicate hooks until the original prompt/artifact is located and the user intent is reconciled.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-013",
+      "name": "Money App / AI Monetization Station",
+      "status": "SPEC / PLAN",
+      "confidence": "Medium",
+      "latest": "`money_app_plan_v38_no_meta_prompts.md`",
+      "nextAction": "Locate canonical plan and implementation repo; separate real working rooms from aspirational modules.",
+      "goal": "Continue Money App / AI Monetization Station from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Locate canonical plan and implementation repo; separate real working rooms from aspirational modules."
+      ],
+      "recoveryHistory": "## PRJ-013 — Money App / AI Monetization Station\n\n**Status:** SPEC / PLAN  \n**Confidence:** Medium\n\n### Latest known plan\n\n- `money_app_plan_v38_no_meta_prompts.md`\n\n### Recovered version lineage\n\nv9 → v17 → v19 → v25 → v26 → v27 → v28 → v36 → v37 → **v38**\n\n### Scope in v38\n\nAn interconnected creation and monetization station with rooms/pipelines such as:\n\n- Game Asset Foundry\n- Mod Garage\n- Music Foundry\n- Logo Lab\n- Etsy\n- Fiverr\n- TikTok\n- YouTube\n- Vault\n- Patreon\n- SubscribeStar\n- Boosty\n- Afdian\n- OnlyFans\n- Bandcamp\n- BeatStars\n- ecommerce and automation pipelines\n\n### Status boundary\n\nThe plan is substantial, but current implementation, repository, integrations, credentials, and real revenue workflows were not recovered. Treat it as a plan until proven in a runtime.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-014",
+      "name": "Grim Dawn Cairn Codex",
+      "status": "ARTIFACT PRESENT",
+      "confidence": "Medium",
+      "latest": "`Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html`",
+      "nextAction": "Open the latest HTML, verify all navigation/state in-browser, and record a hash.",
+      "goal": "Continue Grim Dawn Cairn Codex from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Open the v6.1 artifact in a browser, test every navigation/filter/state path, verify save/migration/reload behavior, inspect console errors, and record the file hash."
+      ],
+      "recoveryHistory": "## PRJ-014 — Grim Dawn Cairn Codex\n\n**Status:** ARTIFACT PRESENT; functional status unverified  \n**Confidence:** Medium\n\n### Latest known artifact\n\n- `Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html`\n\n### Recovered characteristics\n\n- standalone HTML guide/codex\n- quest and area data\n- localStorage schema associated with Cairn Codex Ultimate v5\n- legacy v4/v3 migration awareness\n\n### Immediate next checkpoint\n\nOpen the v6.1 artifact in a browser, test every navigation/filter/state path, verify save/migration/reload behavior, inspect console errors, and record the file hash.\n\n---\n\n# 4. Mod Organizer 2 project family",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [
+        {
+          "source": "https://forums.crateentertainment.com/t/grim-dawn-version-v1-3-0-0/155979/1",
+          "checked": "2026-08-15",
+          "maturity": "current",
+          "fact": "Crate Entertainment released Grim Dawn v1.3.0.0 in July 2026 with backend changes for Fangs of Asterkarn and a complete UI visual overhaul.",
+          "fit": "The Cairn Codex is a standalone quest/area guide whose current artifact predates this game baseline, so version-sensitive data and UI terminology may now be stale.",
+          "goal": "Keep the standalone Cairn Codex accurate and usable against the current game while preserving its localStorage migration path.",
+          "experiment": "Add a version-evidence panel and run a data-diff audit against v1.3.0.0 areas/quests/UI labels before changing any guide content.",
+          "risks": "Patch data may require manual reconciliation; do not ingest community-derived values as official facts.",
+          "acceptance": "Codex declares its supported game baseline, all changed quest/area references are source-backed, existing saves migrate and reload, and navigation/state tests still pass.",
+          "newNotable": "Crate Entertainment released Grim Dawn v1.3.0.0 in July 2026 with backend changes for Fangs of Asterkarn and a complete UI visual overhaul.",
+          "proposal": "Add a version-evidence panel and run a data-diff audit against v1.3.0.0 areas/quests/UI labels before changing any guide content."
+        }
+      ],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-015",
+      "name": "Bethesda Plugin Info for MO2",
+      "status": "VALIDATED ARTIFACT, live test pending",
+      "confidence": "High",
+      "latest": "v1.5.3 shared drag/drop correction; v1.5.0 full validation available",
+      "nextAction": "Install in exact Windows MO2 and verify dedicated column, tooltips, warnings, categories, drag/drop, DPI, and restart.",
+      "goal": "Continue Bethesda Plugin Info for MO2 from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "exact Windows MO2 2.5.3 beta 12 or compatible build",
+        "installed theme and DPI",
+        "full plugin stack",
+        "dedicated column and native columns",
+        "drag/drop insertion indicator",
+        "tooltips",
+        "enable warning",
+        "categories"
+      ],
+      "recoveryHistory": "## PRJ-015 — Bethesda Plugin Info\n\n**Status:** VALIDATED ARTIFACT; final Windows MO2 test pending  \n**Confidence:** High\n\n### Version lineage recovered\n\nv1.0.0 → v1.1.0 → v1.2.0 → v1.3.0 → v1.4.0 → v1.5.0 → v1.5.1/v1.5.2 patch work → **v1.5.3 compatibility correction**\n\n### Strongest full validation recovered\n\nv1.5.0:\n\n- 69 automated tests passed\n- clean ZIP and release hygiene\n- dedicated column, header movement, resize safety, branch restoration, selection/model preservation\n- rich and classic tooltip modes\n- warning and category behavior\n- 22 ICO + 22 PNG assets\n- no networking, subprocesses, per-mod sidecars, game Data or Overwrite writes\n\n### Latest correction\n\nThe shared drag/drop root-cause report records Bethesda Plugin Info **v1.5.3** with native-column-zero drop capability and paint-barrier corrections. It retained 76 tests plus four subtests in that compatibility pass.\n\n### Final live test needed\n\n- exact Windows MO2 2.5.3 beta 12 or compatible build\n- installed theme and DPI\n- full plugin stack\n- dedicated column and native columns\n- drag/drop insertion indicator\n- tooltips\n- enable warning\n- categories\n- restart persistence\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "Live/canonical runtime proof pending",
+      "research": [
+        {
+          "source": "https://github.com/ModOrganizer2/modorganizer/releases",
+          "checked": "2026-08-15",
+          "maturity": "current",
+          "fact": "The official MO2 release page identifies v2.5.2 as the latest release and documents Qt 6/Python changes plus new third-party plugin interface capabilities.",
+          "fit": "Bethesda Plugin Info is waiting on a real MO2 live compatibility pass, so testing against the current released host is more meaningful than relying on the older beta target alone.",
+          "goal": "Prove dedicated column, tooltips, warnings, categories, drag/drop, DPI behavior, and restart persistence in a current real MO2 runtime.",
+          "experiment": "Create a two-lane live test: v2.5.2 release first, then a separately isolated forward-compatibility lane against current upstream only after release proof passes.",
+          "risks": "Theme/DPI/plugin-stack differences can hide regressions; do not weaken tests to fit host changes.",
+          "acceptance": "All promised controls and column behavior work in v2.5.2 with the full plugin stack, native drag/drop remains unchanged, and state survives restart.",
+          "newNotable": "The official MO2 release page identifies v2.5.2 as the latest release and documents Qt 6/Python changes plus new third-party plugin interface capabilities.",
+          "proposal": "Create a two-lane live test: v2.5.2 release first, then a separately isolated forward-compatibility lane against current upstream only after release proof passes."
+        }
+      ],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-016",
+      "name": "Bethesda Creations Version Tracker for MO2",
+      "status": "VALIDATED ARTIFACT, live test pending",
+      "confidence": "High",
+      "latest": "v2.4.3 shared drag/drop correction",
+      "nextAction": "Install in exact Windows MO2 and verify migration, metadata, conflicts, column behavior, and restart.",
+      "goal": "Continue Bethesda Creations Version Tracker for MO2 from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Verify migration, metadata, version/source data, dedicated column behavior, no false conflicts, drag/drop, and persistence inside the real Windows MO2 installation."
+      ],
+      "recoveryHistory": "## PRJ-016 — Bethesda Creations Version Tracker\n\n**Status:** VALIDATED ARTIFACT; final Windows MO2 test pending  \n**Confidence:** High\n\n### Version lineage recovered\n\nv2.0.0 → v2.1.0 → v2.2.0 → v2.3.0 → v2.3.1 → v2.4.0 → v2.4.1 → v2.4.2 patch → **v2.4.3 compatibility correction**\n\n### Important migration history\n\nv2.3.1 stopped creating `.bethesda-creation-sorter.json` in every Creation mod, migrated ownership to MO2 metadata/central plugin data, quarantined corrupt legacy marker data, and preserved user metadata.\n\n### Latest correction\n\nThe shared root-cause report records v2.4.3 with the same dedicated-column drop flag and repaint corrections as the other synthetic-column plugins.\n\n### Final live test needed\n\nVerify migration, metadata, version/source data, dedicated column behavior, no false conflicts, drag/drop, and persistence inside the real Windows MO2 installation.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "Live/canonical runtime proof pending",
+      "research": [
+        {
+          "source": "https://github.com/ModOrganizer2/modorganizer/releases",
+          "checked": "2026-08-15",
+          "maturity": "current",
+          "fact": "MO2 v2.5.2 includes updated Starfield Creation handling and third-party plugin interface changes in the current official release line.",
+          "fit": "The Version Tracker exists specifically to reason about Bethesda Creations metadata/version state inside MO2, so current Creation behavior is directly relevant.",
+          "goal": "Verify migration, metadata, version/source data, conflict behavior, dedicated column interaction, and persistence in the current MO2 host.",
+          "experiment": "Build a deterministic fixture set covering legacy marker migration, Starfield Creation metadata, corrupt marker quarantine, and restart persistence on MO2 v2.5.2.",
+          "risks": "Creation metadata semantics differ by game and may evolve; avoid inferring versions from display text alone.",
+          "acceptance": "Fixtures migrate without data loss, no per-mod sidecars reappear, false conflicts remain zero, drag/drop is unaffected, and results persist after restart.",
+          "newNotable": "MO2 v2.5.2 includes updated Starfield Creation handling and third-party plugin interface changes in the current official release line.",
+          "proposal": "Build a deterministic fixture set covering legacy marker migration, Starfield Creation metadata, corrupt marker quarantine, and restart persistence on MO2 v2.5.2."
+        }
+      ],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-017",
+      "name": "MO2 Image Column / MO2R image automation",
+      "status": "ACTIVE, corrected build",
+      "confidence": "High",
+      "latest": "Image Column v1.4.12; AI Automation Master Prompt",
+      "nextAction": "Verify v1.4.12 live with the complete plugin stack; do not regress image identity or drag/drop behavior.",
+      "goal": "Continue MO2 Image Column / MO2R image automation from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Verify v1.4.12 with Bethesda Plugin Info and Version Tracker installed together, including insertion line, download-to-mod-list drag, thumbnails, tooltips, identity matching, scrolling and separator preservation."
+      ],
+      "recoveryHistory": "## PRJ-017 — MO2 Image Column / MO2R Image Automation\n\n**Status:** ACTIVE corrected build  \n**Confidence:** High\n\n### Version lineage recovered\n\n- restored v1.4.10 base\n- rejected/avoided v1.4.11 delegate-substitution path for final compatibility fix\n- **v1.4.12** shared drag/drop correction\n\n### Related master prompt\n\n- `MO2R_Image_Column_AI_Automation_Master_Prompt.md`\n\n### Major requirements\n\n- exact image identity and duplicate isolation\n- local/remote source resolution\n- bounded caching and invalidation\n- context-aware repair actions\n- no mod-list state regression\n- preserve scroll, selection, separators, column state, search/filter, profile and drag/drop\n- compact row height by default\n\n### Final live test needed\n\nVerify v1.4.12 with Bethesda Plugin Info and Version Tracker installed together, including insertion line, download-to-mod-list drag, thumbnails, tooltips, identity matching, scrolling and separator preservation.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-018",
+      "name": "MO2 Drag-and-Drop Line Restorer",
+      "status": "VALIDATED ARTIFACT, live visual test pending",
+      "confidence": "High",
+      "latest": "v1.1.0",
+      "nextAction": "Run final visual/target smoke test in MO2 2.5.3 beta 12 with active theme and plugins.",
+      "goal": "A visual-only overlay that restores an always-visible MO2 drop indicator without accepting, rejecting, rerouting or executing drag/drop.",
+      "requirements": [
+        "Exact appearance and insertion target in Windows MO2 with the active theme and full plugin stack."
+      ],
+      "recoveryHistory": "## PRJ-018 — MO2 Drag-and-Drop Line Restorer\n\n**Status:** VALIDATED ARTIFACT; visual live test pending  \n**Confidence:** High\n\n### Latest version\n\n- **v1.1.0**\n- SHA-256: `615b3b05e081ce6c529b4e9e117dbdc207f30e0dca5c858c31739a0981da7b56`\n\n### Function\n\nA visual-only overlay that restores an always-visible MO2 drop indicator without accepting, rejecting, rerouting or executing drag/drop.\n\n### v1.1.0 additions\n\n- exact MO2 native renderer mode\n- Enhanced v1 and Fully Custom modes\n- live preview\n- presets\n- target tests\n- native indicator positioning\n\n### Automated evidence\n\nOffscreen tests passed for native/custom rendering, model/view discovery, safety, settings, drag event non-interference, performance, ZIP layout and compilation.\n\n### Final live test needed\n\nExact appearance and insertion target in Windows MO2 with the active theme and full plugin stack.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "Live/canonical runtime proof pending",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-019",
+      "name": "MO2 Performance Accelerator",
+      "status": "ACTIVE / corrected after crash",
+      "confidence": "High",
+      "latest": "v4.0.1",
+      "nextAction": "Replace v4.0.0, then live-test startup, drag, filtering, viewport restoration, and shutdown in Windows MO2.",
+      "goal": "Continue MO2 Performance Accelerator from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Install v4.0.1, not v4.0.0. Verify startup, drag, filtering, sorting, viewport/separators, fail-safes, restoration and shutdown in the real Windows process."
+      ],
+      "recoveryHistory": "## PRJ-019 — MO2 Performance Accelerator\n\n**Status:** ACTIVE / corrected after a reproduced crash  \n**Confidence:** High\n\n### Version lineage\n\nv2.0.0 → v3.0.0 → v4.0.0 → **v4.0.1**\n\n### v4 design\n\n- event-driven only\n- no recurring workers or scans\n- transactional proxy updates\n- drag fast path\n- lossless filter batching\n- viewport/separator preservation\n- passive reversible tuning\n\n### v4.0.0 failure\n\nA deleted `QTabWidget` wrapper could enter the discovery path and raise `RuntimeError: wrapped C/C++ object ... has been deleted`.\n\n### v4.0.1 fix\n\n- removed generic discovery implementation\n- binds only after `setParentWidget()`\n- exact `modList` targeting\n- exception containment and circuit breaker\n- no workers, recurring timers, filesystem traversal or arbitrary view binding\n- synthetic benchmark showed about 8.3–8.6× for the targeted proxy recomputation pattern, not a promise for whole MO2 performance\n\n### Final live test needed\n\nInstall v4.0.1, not v4.0.0. Verify startup, drag, filtering, sorting, viewport/separators, fail-safes, restoration and shutdown in the real Windows process.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [
+        {
+          "source": "https://github.com/ModOrganizer2/usvfs",
+          "checked": "2026-08-15",
+          "maturity": "current/alpha-core",
+          "fact": "The official USVFS repository still describes the virtual filesystem as an alpha work in progress while noting it is a core MO2 component receiving real-world testing.",
+          "fit": "The Performance Accelerator changes MO2 hot paths and must not destabilize the host or filesystem virtualization, so performance wins need explicit isolation from USVFS behavior.",
+          "goal": "Improve startup/filter/drag responsiveness without recurring workers, lost state, crashes, or interference with MO2/USVFS behavior.",
+          "experiment": "Add an instrumentation-only benchmark mode that timestamps accelerator hooks and MO2 model/proxy phases while leaving USVFS untouched; compare enabled/disabled runs on the same library.",
+          "risks": "Synthetic proxy speedups can overstate real gains; instrumentation itself can perturb timings.",
+          "acceptance": "Repeated real-library runs show a statistically meaningful UI latency improvement, identical mod/file results, zero new USVFS errors, preserved viewport/separators, and clean shutdown.",
+          "newNotable": "The official USVFS repository still describes the virtual filesystem as an alpha work in progress while noting it is a core MO2 component receiving real-world testing.",
+          "proposal": "Add an instrumentation-only benchmark mode that timestamps accelerator hooks and MO2 model/proxy phases while leaving USVFS untouched; compare enabled/disabled runs on the same library."
+        }
+      ],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-020",
+      "name": "Master Desktop Pet Research",
+      "status": "RESEARCH BASE",
+      "confidence": "High",
+      "latest": "Consolidated master containing v10, v14, v9, and v7 material",
+      "nextAction": "Append future verified research to the master rather than creating drifting numbered copies.",
+      "goal": "Continue Master Desktop Pet Research from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Append future verified research to the master rather than creating drifting numbered copies."
+      ],
+      "recoveryHistory": "## PRJ-020 — Master Desktop Pet Research\n\n**Status:** RESEARCH BASE  \n**Confidence:** High\n\n### Canonical master\n\n- `master desktop pet research.md`\n- Primary consolidation date: 2026-04-01\n\n### Consolidated content\n\n- exhaustive ecosystem catalogue\n- host map\n- creator/linktree/hub research\n- Discord/community map\n- Microsoft Agent / ACS / Bonzi / Peedy / Clippy / XP Search branch\n- KinitoPET addendum\n- embedded v10 and v14 passes\n- retained v9 and v7 appendices\n\n### Rule\n\nAppend future verified passes to this master rather than creating unrelated numbered files, unless a snapshot is intentionally versioned.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [
+        {
+          "source": "https://github.com/DalekCraft2/Shimeji-Desktop",
+          "checked": "2026-08-15",
+          "maturity": "bleeding-edge/current",
+          "fact": "DalekCraft2/Shimeji-Desktop is a 2026-active Shimeji-ee port to JDK 25 that explicitly targets backward compatibility while adding DPI scaling, bug fixes, Maven packaging, and Windows/macOS/Linux support.",
+          "fit": "The master desktop-pet research should track modern implementations that preserve Shimeji semantics instead of only cataloguing older forks.",
+          "goal": "Keep one verified desktop-pet research master covering current engines, compatibility approaches, host support, and reusable implementation lessons.",
+          "experiment": "Add a compatibility matrix row comparing pack/action XML behavior, DPI handling, packaging, platform support, and migration cost against the preserved Shimeji reference sources.",
+          "risks": "A newer fork can still diverge subtly from legacy behavior; Java 25 raises deployment requirements.",
+          "acceptance": "The master records exact source/revision/date, verified compatibility claims, tested pack behaviors, platform/runtime requirements, and a clear keep/adapt/reject decision without spawning a separate research file.",
+          "newNotable": "DalekCraft2/Shimeji-Desktop is a 2026-active Shimeji-ee port to JDK 25 that explicitly targets backward compatibility while adding DPI scaling, bug fixes, Maven packaging, and Windows/macOS/Linux support.",
+          "proposal": "Add a compatibility matrix row comparing pack/action XML behavior, DPI handling, packaging, platform support, and migration cost against the preserved Shimeji reference sources."
+        }
+      ],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-021",
+      "name": "GX Slim",
+      "status": "UNRESOLVED IDENTITY",
+      "confidence": "Low",
+      "latest": "`GX-Slim-1.0.0-FULL.zip`, SHA-256 sidecar recovered",
+      "nextAction": "Find the ZIP/README and identify purpose, source repo, validation, and relationship to other projects.",
+      "goal": "Continue GX Slim from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Find the ZIP/README and identify purpose, source repo, validation, and relationship to other projects."
+      ],
+      "recoveryHistory": "## PRJ-021 — GX Slim\n\n**Status:** UNRESOLVED IDENTITY  \n**Confidence:** Low\n\n### Recovered artifact\n\n- `GX-Slim-1.0.0-FULL.zip`\n- SHA-256: `5ad8aa6d13a898af1ead4d50b7922829ec94d427199475f17522b2ed1a4a9717`\n\n### Missing\n\n- README/purpose\n- canonical source repository\n- validation report\n- relationship to Opera GX, GameSync, Feature Foundry or another project\n\nDo not guess or merge it until the archive is found and inspected.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "Live/canonical runtime proof pending",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-022",
+      "name": "Feral Unified Native Base",
+      "status": "UNRESOLVED / Feature Foundry-generated base",
+      "confidence": "Medium",
+      "latest": "`Feral_Unified_Native_Base.zip`",
+      "nextAction": "Determine whether this is a standalone product base or a generated Feature Foundry starter; validation was not run.",
+      "goal": "Continue Feral Unified Native Base from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Determine whether this is a standalone product base or a generated Feature Foundry starter; validation was not run."
+      ],
+      "recoveryHistory": "## PRJ-022 — Feral Unified Native Base\n\n**Status:** UNRESOLVED / generated base  \n**Confidence:** Medium\n\n### Recovered artifact\n\n- `Feral_Unified_Native_Base.zip`\n\n### Evidence\n\nThe archive contains Feature Foundry-style App DNA, mod-cartridge, preview-runtime, validation, promotion, and golden-fleet structures. Generated validation scenarios were marked not run and `shippable: false`.\n\n### Needed decision\n\nDetermine whether Feral is:\n\n- a standalone application project,\n- a generic native app base,\n- a generated Feature Foundry experiment,\n- or a precursor to another product.\n\n---",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "Live/canonical runtime proof pending",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-023",
+      "name": "Feature Foundry Portable Feature Starter",
+      "status": "GENERATED STARTER, not shippable",
+      "confidence": "High",
+      "latest": "v0.1.0 starter ZIP",
+      "nextAction": "Keep as a template; its generated validation scenarios were not run and report `shippable: false`.",
+      "goal": "Continue Feature Foundry Portable Feature Starter from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Keep as a template; its generated validation scenarios were not run and report `shippable: false`."
+      ],
+      "recoveryHistory": "## PRJ-023 — Feature Foundry Portable Feature Starter\n\n**Status:** GENERATED STARTER / TEMPLATE  \n**Confidence:** High\n\n### Version\n\n- package version `0.1.0`\n\n### Stack and capabilities recovered\n\n- Vite\n- Vue 3 in the recovered package manifest\n- Tauri 2\n- TypeScript\n- Vitest\n- Playwright\n- Biome\n- portable feature capsule operations\n- upgrade, rollback, validation and golden-fleet scaffolding\n\n### Validation boundary\n\nThe included validation report had zero scenarios run and `shippable: false`. Preserve it as a starter/template, not a completed application.\n\n---\n\n# 6. Changelog and version-reconciliation rules\n\n## 6.1 Never overwrite history silently\n\nFor each project, keep:\n\n- stable project ID\n- aliases\n- canonical repository/path\n- artifact filename\n- embedded version\n- content hash\n- source chat/file location\n- created/recovered date\n- predecessor and successor links\n- validation status\n- live-runtime status\n- known regressions\n- next action\n\n## 6.2 Version trust order\n\nUse this order when deciding the latest usable state:\n\n1. Current explicit user correction.\n2. Current canonical repository and runtime evidence.\n3. Embedded version and changelog inside the artifact.\n4. Content hash and verified lineage.\n5. Validation report tied to the exact artifact hash.\n6. File Library upload time.\n7. Filename alone.\n\nA higher filename number does not automatically beat a known-good branch or artifact.\n\n## 6.3 Required statuses per artifact\n\nUse separate fields:\n\n- **Discovered**\n- **Preserved**\n- **Parsed/inspected**\n- **Build passed**\n- **Automated tests passed**\n- **Packaged**\n- **Fresh extraction passed**\n- **Installed in target**\n- **Real workflow passed**\n- **Restart persistence passed**\n- **Canonical/latest-good confirmed**\n\nDo not collapse these into one “done” checkbox.\n\n## 6.4 Append-only project changelog template\n\n```markdown\n### YYYY-MM-DD — Project name — version/artifact\n\n- Project ID:\n- Canonical repo/worktree/branch:\n- Previous version/hash:\n- New version/hash:\n- Source chat/file:\n- What changed:\n- What was preserved:\n- What was removed intentionally:\n- Automated checks:\n- Real-runtime checks:\n- Known regressions or risks:\n- Latest-good status:\n- Next exact step:\n```\n\n---\n\n# 7. Highest-priority organization work\n\n1. **Create canonical IDs and paths** for Feature Foundry, GameSync, Mascot, RuneLite, MO2, TS4, Money App, Grim Dawn and GX Slim.\n2. **Find and hash the latest artifact** for every Medium/Low confidence record.\n3. **Separate project families from subprojects** so one subsystem is not restarted as a new app.\n4. **Preserve latest-good builds before changes**, especially Feature Foundry Explorer/media work, MO2 v4.0.1, RuneLite hitchless reference, and GameSync hosts.\n5. **Add a per-project `PROJECT.md` and `.agents-memory/` folder** to every active repository.\n6. **Checkpoint after each meaningful chat** with what changed, artifact hashes, current blockers and next exact steps.\n7. **Re-run this cross-chat inventory periodically** and append deltas instead of regenerating an unrelated list.\n\n---\n\n# 8. Source evidence index\n\nThis database was assembled from available current-chat files, File Library search results and prior-chat personal context. Key recovered source documents include:\n\n## Feature Foundry\n\n- `feature-foundry-aesthetic-worlds-codex-master-directive.md` — V11 canonical marker\n- `feature-foundry-codex-final-implementation-directive-v11.md`\n- `feature-foundry-aesthetic-world-guide-v11.md`\n- `feature-foundry-living-world-prototype-v11-bundle-reference.html`\n- `V11-VALIDATION-REPORT.md`\n- `ui-theme-agent-spec.md`\n- `ui-theme-agent-spec-v48.md`, `v49.md`, `v51.md`\n- `aesthetics-guide.md`\n- `Feature_Foundry_Portable_Feature_Starter.zip`\n\n## GameSync and Mascot\n\n- `AGENTS.md` records for GameSync\n- `acs-agent-parity-checklist-generalized-v3.md`\n- `mascot_engine_rebuild_directive (2).md`\n- `master desktop pet research.md`\n- `gamesync_petz_build_checklist.md`\n- `pf_petz_playable_methods.md`\n- mascot games Golf/sports master directive\n\n## RuneLite\n\n- `README.md` for Bert's Skill Guide Master\n- Bert's Skill Atlas prior-chat artifacts\n- `RuneLite_Master_Prompt_Smart_No_BS.md`\n- `RuneLite_Codex_Master_Prompt_No_Logging.md`\n- `runelite_flipping_codex_master_prompt(4).md`\n- `RuneLite_External_Plugins_Codex_Prompt_CLEANED(7).md`\n\n## Sims 4\n\n- `TS4_ACCELERATOR_AGENT_PLAN.md`\n- TS4 Accelerator `README.md`\n- prior-chat native DX11 overlay architecture prompt\n\n## MO2\n\n- Bethesda Plugin Info validation reports v1.0.0 through v1.5.0\n- Bethesda Creations Version Tracker validation/hash records\n- `MO2-Drag-Drop-Audit-and-Fix-Report.md`\n- `MO2-Drag-Drop-Root-Cause-and-Fix-Report.md`\n- `MO2-Drag-Drop-Line-Restorer-v1.1.0-README.md`\n- `MO2-Drag-Drop-Line-Restorer-v1.1.0-TEST-REPORT.md`\n- `MO2-Performance-Accelerator-v4.0.1-TEST-REPORT.md`\n- `MO2R_Image_Column_AI_Automation_Master_Prompt.md`\n\n## Other\n\n- `money_app_plan_v38_no_meta_prompts.md`\n- `Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html`\n- `GX-Slim-1.0.0-FULL.zip.sha256`\n- `Feral_Unified_Native_Base.zip`\n\n---\n\n# 9. Known gaps in this recovery\n\n- Chat history is not exposed as one complete export, so some one-off or unnamed projects may be missing.\n- Several latest artifacts were recovered from prior-chat context but not rediscovered as current File Library files.\n- Canonical repository paths are known only for GameSync and the PF Magic source branch.\n- “Implemented” checklists may describe repository work that has not been revalidated in the current runtime.\n- Some version relationships are inferred from explicit changelog/report text but still need artifact hashes and repository confirmation.\n- GX Slim and Feral Unified Native Base need identity reconciliation.\n\n**Do not treat these gaps as permission to start over. Search, identify, preserve and reconcile first.**",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-024",
+      "name": "MO2 Drag/Column Compatibility Pack",
+      "status": "VALIDATED COMPATIBILITY WORK",
+      "confidence": "High",
+      "latest": "Image Column 1.4.12 + Bethesda Plugin Info 1.5.3 + Version Tracker 2.4.3",
+      "nextAction": "Treat as a coordinated compatibility release and live-test all three together.",
+      "goal": "Continue MO2 Drag/Column Compatibility Pack from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Treat as a coordinated compatibility release and live-test all three together."
+      ],
+      "recoveryHistory": "## PRJ-024 — MO2 Drag/Column Compatibility Pack\n\n**Status:** VALIDATED COMPATIBILITY WORK; live stack test pending  \n**Confidence:** High\n\n### Coordinated versions\n\n- Image Column 1.4.12\n- Bethesda Plugin Info 1.5.3\n- Bethesda Creations Version Tracker 2.4.3\n\n### Root cause corrected\n\n1. Synthetic columns inherited drag/drop flags from the wrong native column.\n2. Queued plugin repaints could erase native insertion feedback and add drag-path work.\n\n### Required live proof\n\nAll three plugins loaded together in the exact MO2 build with:\n\n- installed-mod moves\n- separator moves\n- download-to-list drags\n- top/bottom auto-scroll\n- full insertion-line visibility\n- unchanged native drop behavior\n\n---\n\n# 5. Research and supporting projects",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PRJ-025",
+      "name": "UltraDeck",
+      "status": "ACTIVE",
+      "confidence": "High",
+      "latest": "7.5.0",
+      "nextAction": "Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B.",
+      "goal": "Continue UltraDeck from its preserved durable project record without losing lineage or completed work.",
+      "requirements": [
+        "Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B."
+      ],
+      "recoveryHistory": "### PRJ-025 — UltraDeck\n\n- **Status:** ACTIVE\n- **Confidence:** High\n- **Latest:** 7.5.0\n- **Last checkpoint:** 2026-08-09T23:36:57.954646+00:00\n- **Next action:** Balanced v7.5 versus v8 Tumblr startup/hotpath/mutation A/B.\n- **Aliases:** UltraDeck-Project\n- **Known roots:** `/mnt/data/UltraDeck-Project`\n\n#### Version and artifact lineage\n- 7.5.0 — UltraDeck-v7.5.0-fresh-artifact-verification.json **LATEST**; status=verified; confidence=high; observed=2026-08-09T00:29:33.030892+00:00\n\n#### Tracked artifacts\n- `UltraDeck-Tumblr-Extension-v7.5.0-source.zip` — version=7.5.0 — hash=7529de42c7a8ddf2af468e01bab3de8b2651a787aa114dac972e8f28f534a06f — source=7529de42c7a8ddf2af468e01\n- `Tumblr-UltraWide-Deck-preview-v7.5.0.html` — version=7.5.0 — hash=df79ba6d8c227de15d9036e6dd6bb319ee7cd9cadd4139ff0d164df4d64a66e4 — source=df79ba6d8c227de15d9036e6\n- `UltraDeck-Extension-v7.5.0-popup.png` — version=7.5.0 — hash=8bf4daa1c7cc01614a8c2c151dcaf7774903128a0643e91208a7cfb0cf3a1f67 — source=8bf4daa1c7cc01614a8c2c15\n- `UltraDeck-v7.5.0-verification-report.md` — version=7.5.0 — hash=4eb8fde893cb919aa77d10bdfa023a29d1f67d078f6fb6311babd67f55d39454 — source=4eb8fde893cb919aa77d10bd\n- `UltraDeck-v7.5.0-performance-summary.json` — version=7.5.0 — hash=bc0d6f481c2bee6378ab5827208e6565a72a19b152c5a10333413916f0d15da1 — source=bc0d6f481c2bee6378ab5827\n- `UltraDeck-v7.5.0-saturation-log.json` — version=7.5.0 — hash=adc5ad1c473f10885a7767ad120f66506d6d1a0f45ccac08a44145e0364c80a1 — source=adc5ad1c473f10885a7767ad\n- `UltraDeck-v7.5.0-startup-reload-ab.json` — version=7.5.0 — hash=599b94b76b84864d074976635979d05dc9922ae5f9fde3c87d257bb99041d2f3 — source=599b94b76b84864d07497663\n- `UltraDeck-v7.5.0-startup-reload-ab-reverse.json` — version=7.5.0 — hash=09f730bd0dc7852dfa497494bf23706443bd594fe6d705d96e55102437d87103 — source=09f730bd0dc7852dfa497494\n- `UltraDeck-v7.5.0-mutation-hotpath-ab.json` — version=7.5.0 — hash=1124e22ae28dfb9ba6301bedd54d206789c7822e67e1620309a272904b60a648 — source=1124e22ae28dfb9ba6301bed\n- `UltraDeck-v7.5.0-mutation-hotpath-ab-reverse.json` — version=7.5.0 — hash=9b472f67cad7d15cecad88fdd3a0a1173bc48137561d11c4e89cd8784119ae4f — source=9b472f67cad7d15cecad88fd\n- `UltraDeck-v7.5.0-hotpaths-ab.json` — version=7.5.0 — hash=70ec41f95de061530674f85b112e44d698aafb25e5b71c340b88ac5190916347 — source=70ec41f95de061530674f85b\n- `UltraDeck-v7.5.0-hotpaths-ab-reverse.json` — version=7.5.0 — hash=b94b114918bc7e32887780dfca4648ebe02f93007de3c02b774d74a04f965bb1 — source=b94b114918bc7e32887780df\n- `UltraDeck-v7.5.0-intent-prewarm-ab.json` — version=7.5.0 — hash=1df56501e6e58d858064492aa71c27b19243199ba91ad6b64ddd32a23aae05ab — source=1df56501e6e58d858064492a\n- `UltraDeck-v7.5.0-intent-prewarm-ab-reverse.json` — version=7.5.0 — hash=c292e2de07d3f44ed64f805c27cc10a33dcc465e42912b43836fc19fc3c1e482 — source=c292e2de07d3f44ed64f805c\n- `UltraDeck-v7.5.0-offscreen-interaction.json` — version=7.5.0 — hash=021b165f9cc2669632905932d1ee0f1a97d4c1ed150fb72aea1b021d8808f8cf — source=021b165f9cc2669632905932\n- `UltraDeck-v7.5.0-no-cap-scale.json` — version=7.5.0 — hash=de56d25c3ebb511bff979f3063b44b246b00ef112416cafad83312bd6e224349 — source=de56d25c3ebb511bff979f30\n- `UltraDeck-v7.5.0-real-mv3.json` — version=7.5.0 — hash=bf06665fd3adf32be40c87a31c1880e09cb21dd64984e66012ecb3adc7b37841 — source=bf06665fd3adf32be40c87a3\n- `UltraDeck-v7.5.0-media-network.json` — version=7.5.0 — hash=2de7e0a3505d77a2a67427c603398c21edde84b7ff6c45e4dfc78707b4c00594 — source=2de7e0a3505d77a2a67427c6\n- `UltraDeck-v7.5.0-release.zip` — version=7.5.0 — hash=97f6943eac9ae22e53e67ea641994a0f2e9f5fa82a2406d9ba68693676134ccd — source=97f6943eac9ae22e53e67ea641994a0f2e9f5fa82a2406d9ba68693676134ccd\n- `UltraDeck-v7.5.0-fresh-artifact-verification.json` — version=7.5.0 — hash=unavailable — source=local-build\n\n---\n\n## Catalog update protocol\n\n1. Search cross-chat sources and recent uploads before continuing a named project.\n2. Open plausible newer artifacts and compare content, not filenames alone.\n3. Reconcile project, version, artifact, hash, source, checkpoint, confidence, and supersession into the JSON catalog.\n4. Render this Markdown mirror and reread the changed project record before editing code.\n5. Export the catalog when no writable durable store is available.",
+      "sourceStatus": "Durable historical project record from USER-PROJECTS-DATABASE.md",
+      "updated": "2026-08-09",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Durable record imported; newer project-specific evidence should supersede this record when verified."
+    },
+    {
+      "id": "PCX-026",
+      "name": "Project Governance",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Project Governance evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Keep project execution rules, acceptance contracts, and cross-project workflow policy current and enforceable.",
+      "requirements": [
+        "Maintain canonical policy state, preserve user steering, and verify changes before publication."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-027",
+      "name": "GameSync Archive Doctor",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Archive Doctor evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Diagnose and repair GameSync archives and continuity artifacts without destructive rewrites.",
+      "requirements": [
+        "Preserve source bytes, verify hashes, provide native and browser fallback paths, and record provenance."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-028",
+      "name": "DirectoryMonitor",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical DirectoryMonitor evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Provide reliable low-latency filesystem change awareness without silently losing events.",
+      "requirements": [
+        "Detect overflow/stale watcher state and reconcile against authoritative filesystem state."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-029",
+      "name": "PC Bridge / MCP Bridge",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical PC Bridge / MCP Bridge evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Bridge local PC capabilities into MCP-compatible tools with truthful capability discovery.",
+      "requirements": [
+        "Preserve tool identity, authenticated state, and prove real tool calls rather than handshake-only success."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-030",
+      "name": "Reliable Artifact Publisher",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Reliable Artifact Publisher evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Publish complete artifacts with deterministic packaging and byte-level remote verification.",
+      "requirements": [
+        "Verify local hash/size, remote hash/size or re-download, and preserve resumable state."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-031",
+      "name": "Auralis",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Auralis evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Build the local audio capture/routing and speech-capable runtime without fake device support.",
+      "requirements": [
+        "Use real Windows audio/session APIs, explicit routing, and measurable latency/error handling."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-032",
+      "name": "Profit Nova",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Profit Nova evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Build the interconnected creation and monetization station with real working rooms, agent workflows, and durable local state.",
+      "requirements": [
+        "Separate behavior contracts from donor implementations; every borrowed subsystem maps to Profit Nova service/event/permission/memory contracts."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-033",
+      "name": "Sims4CreatorStudio",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Sims4CreatorStudio evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Build a verified Sims 4 creator studio from the preserved alpha repository lineage.",
+      "requirements": [
+        "Preserve the verified repository snapshot, manifest identity, source assets, and real creator workflows."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-034",
+      "name": "Ferrum Browser",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Ferrum Browser evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Build a browser with persistent Tab Islands and user-owned workspace behavior.",
+      "requirements": [
+        "Use stable Ferrum-owned identities for persistence and verify restart/reorder/native-group event behavior."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-035",
+      "name": "MO2R",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical MO2R evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Evolve Mod Organizer 2 workflows with richer relationships, changelog, metadata, and media intelligence while preserving native MO2 behavior.",
+      "requirements": [
+        "Keep compatibility with current upstream MO2 and prove columns, relationships, drag/drop, state, and restart behavior."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-036",
+      "name": "Project Constellation",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Project Constellation evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Provide the fast human-facing second-brain control surface across all tracked projects.",
+      "requirements": [
+        "Exactly 63 tracked records, exact next action/stop point, durable provenance, safe user edits, research decisions, and normal active operation."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-037",
+      "name": "Shimeji Desktop",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Shimeji Desktop evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Maintain and modernize the desktop Shimeji runtime while preserving pack/action compatibility.",
+      "requirements": [
+        "Preserve XML behavior/action graphs, window interactions, DPI behavior, and pack compatibility."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-038",
+      "name": "Shimeji Browser Extension",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Shimeji Browser Extension evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Run Shimeji-style mascots in the browser with faithful packs and safe page interaction.",
+      "requirements": [
+        "Preserve pack semantics, anchors/actions/physics, browser isolation, and extension persistence."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-039",
+      "name": "Webmeji",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Webmeji evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Embed Shimeji companions directly into websites as a lightweight web runtime.",
+      "requirements": [
+        "Preserve zero/low-setup embedding, character behavior, and host-page safety."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-040",
+      "name": "Pinterest Nocturne",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Pinterest Nocturne evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Maintain the Pinterest Nocturne extension/theme line as a polished, versioned browser project.",
+      "requirements": [
+        "Preserve current visual behavior and verify each release against real Pinterest runtime changes."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-041",
+      "name": "ChatGPT Ultimate Optimizer",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical ChatGPT Ultimate Optimizer evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Maintain the ChatGPT optimization tooling as a versioned product rather than a loose patch set.",
+      "requirements": [
+        "Preserve releases, verify changes in the real product UI, and avoid brittle selectors."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-042",
+      "name": "GameSync Next",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Next evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Advance the next-generation GameSync implementation while preserving validated GameSync behavior and host parity.",
+      "requirements": [
+        "Track parity against current GameSync and prove migrations rather than assuming replacement equivalence."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-043",
+      "name": "Feature Foundry Production App",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Feature Foundry Production App evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Turn Feature Foundry from prototypes/data bundles into the actual production authoring application.",
+      "requirements": [
+        "Real workspaces, persistent editors, production assets, package/export paths, and runtime proof."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-044",
+      "name": "Feature Foundry Living Ecology",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Feature Foundry Living Ecology evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Implement theme-native living-world interactions and bounded cross-element causality.",
+      "requirements": [
+        "Preserve user-input sovereignty, accessibility/performance variants, and measurable interaction behavior."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-045",
+      "name": "Feature Foundry Object Intelligence",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Feature Foundry Object Intelligence evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Provide semantic object, material, affordance, rig, and behavior intelligence.",
+      "requirements": [
+        "Immutable originals, reversible derivation lineage, evidence-backed object identity and capabilities."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-046",
+      "name": "Feature Foundry Source Hubs",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Feature Foundry Source Hubs evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Manage external media/asset providers through explicit source adapters.",
+      "requirements": [
+        "Track auth mode, limits, cache, fallback, evidence, review dates, and provider capability changes."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-047",
+      "name": "Favorite Artist Worlds Database",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Favorite Artist Worlds Database evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Preserve and operationalize favorite-artist worldbuilding data for Feature Foundry.",
+      "requirements": [
+        "Keep the database source-backed, searchable, versioned, and separate research from shipping themes."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-048",
+      "name": "GameSync Theme Foundry",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Theme Foundry evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Author and package GameSync themes without drifting from Feature Foundry source contracts.",
+      "requirements": [
+        "One source-of-truth theme contract, host adapters, migration evidence, and parity checks."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-049",
+      "name": "GameSync Live Mascot Tavern",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Live Mascot Tavern evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Run live mascot engines inside GameSync as real interactive systems.",
+      "requirements": [
+        "Keep native mascot engines faithful, stateful, and modular rather than decorative."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-050",
+      "name": "GameSync Real Library Performance",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Real Library Performance evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Optimize GameSync against the complete real library without culling or hiding off-screen cards.",
+      "requirements": [
+        "Measure full-data behavior, preserve quantity/quality, and prohibit viewport-based correctness regressions."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-051",
+      "name": "GameSync Capability Truth / UI QoL",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Capability Truth / UI QoL evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Keep GameSync UI claims aligned with actual implemented capabilities.",
+      "requirements": [
+        "Every visible control must execute its real promise end-to-end and show truthful failures."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-052",
+      "name": "GameSync Release Factory",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Release Factory evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Create reproducible GameSync app/extension release artifacts from canonical source.",
+      "requirements": [
+        "Build, package, test, hash, and prove exact artifact identity before publication."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-053",
+      "name": "GameSync Bounty / Rewards Runtime",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Bounty / Rewards Runtime evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Track eligible game/reward campaigns with authoritative ownership/progress data and explicit claim behavior.",
+      "requirements": [
+        "No synthetic progress; authorized source truth, clean stop/resume, notifications, and persistence."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-054",
+      "name": "GameSync Source Finder / Entity Resolver",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Source Finder / Entity Resolver evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Resolve game/mod identity and strongest source pages across providers without false merges.",
+      "requirements": [
+        "Strong identity, duplicate isolation, source provenance, confidence, and user-correctable matches."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-055",
+      "name": "GameSync Script Polling Runtime",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Script Polling Runtime evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Run bounded background script/poll workflows with reliable catch-up and state persistence.",
+      "requirements": [
+        "Explicit scheduling, startup catch-up, truthful progress, and no runaway workers."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-056",
+      "name": "GameSync Mod Health",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical GameSync Mod Health evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Detect meaningful mod health/version/source changes without destructive automation.",
+      "requirements": [
+        "Preserve current mod state, evidence every finding, and make repairs explicit/reversible."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-057",
+      "name": "Project Catalog / Cross-Chat Database",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Project Catalog / Cross-Chat Database evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Maintain the durable cross-project locator, version lineage, artifact hashes, and next actions.",
+      "requirements": [
+        "Never promote by timestamp alone; preserve supersession and same-name-different-content lineage."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-058",
+      "name": "Project Compass Northpoints",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Project Compass Northpoints evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Preserve durable product intent, goals, guardrails, and measurable acceptance signals.",
+      "requirements": [
+        "Supersede rather than silently rewrite foundational intent; sync meaningful checkpoints."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-059",
+      "name": "Feature Foundry Project Brain Bridge",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Feature Foundry Project Brain Bridge evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Keep Feature Foundry second-brain import/export portable and additive.",
+      "requirements": [
+        "Do not claim native integration until the actual runtime is wired and exercised."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-060",
+      "name": "ACS Voice / Speech Runtime",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical ACS Voice / Speech Runtime evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Preserve classic agent speech/voice interaction expectations in the modern mascot runtime.",
+      "requirements": [
+        "Use real speech/audio services, maintain agent state/animation coordination, and prove interruption/cancellation."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-061",
+      "name": "Petz Shared Core",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Petz Shared Core evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Preserve PF Magic Petz behavior in one shared core for GameSync hosts.",
+      "requirements": [
+        "One engine with adapters, preserved assets/source, and no flattening into ordinary mascot animation."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-062",
+      "name": "RuneLite QA Cockpit",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical RuneLite QA Cockpit evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Provide one verified RuneLite cockpit for guides, preparation, map, money, settings, and content QA.",
+      "requirements": [
+        "Build/test the actual plugin, verify routes/overlays/links/persistence, and keep data-driven content."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    },
+    {
+      "id": "PCX-063",
+      "name": "Feature Foundry Aesthetic Vault",
+      "status": "ACTIVE / TRACKED",
+      "confidence": "Medium",
+      "latest": "Durable evidence track; exact earlier 63-entry UI bytes unavailable",
+      "nextAction": "Re-read the newest canonical Feature Foundry Aesthetic Vault evidence, record the exact stop point, then execute the smallest verified next step.",
+      "goal": "Operate a real searchable asset/aesthetic vault rather than an empty drawer.",
+      "requirements": [
+        "Persistent assets, source provenance, visual DNA, hot-drop/capture flows, and reversible organization."
+      ],
+      "recoveryHistory": "This tracked record is reconstructed from durable project evidence and prior verified Project Constellation continuity. It preserves the 63-record invariant without claiming unavailable historical UI bytes. Future verified project-owned memory supersedes this summary.",
+      "sourceStatus": "Durable evidence-backed continuity record",
+      "updated": "2026-08-15",
+      "blocker": "",
+      "research": [],
+      "stopPoint": "Continuity record established; await next verified project-specific checkpoint."
+    }
+  ]
+}

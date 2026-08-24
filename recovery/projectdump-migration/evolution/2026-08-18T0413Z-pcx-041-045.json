@@ -1,0 +1,64 @@
+{
+  "schema": "project-constellation.wiki-evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T04:13:30Z",
+  "range": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-042",
+      "name": "GameSync Next",
+      "sourceRepository": "Herbertofury/GameSync-Next",
+      "verifiedMain": "9e337c720f0180cffa577f140b181c699f0a1650",
+      "shippingParitySource": "Herbertofury/Gamesync@a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+      "wikiSourcePath": "wikis/PCX-042-gamesync-next.md",
+      "wikiSourceCommit": "31b6a8ab75545b684dfb956fa02750466c29f27a",
+      "wikiSourceBlob": "12d96c9fd148eb3c63cf7666bfa78ad3192a1718",
+      "wikiPublicationRun": 32098112158,
+      "wikiMasterCommit": "349f92caa7914263d415a69778c5b862d1f920f4",
+      "publicationVerification": "Sync GitHub Wiki succeeded; publisher pushed ProjectDump.wiki.git, fresh-cloned the remote Wiki, and byte-compared the complete remote page set successfully.",
+      "driveWikiDocumentId": "1AHIrJ2ZrjwIHZxBT0GR2XS1fwfv-aq-ZB8NGEPpVZk4",
+      "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "driveExportMime": "text/plain",
+      "driveExportSize": 30578,
+      "driveExportSha256": "ca740232e2ec5ac56ca1df06410f4716fde6a688065fabbc5117319aa43246b6",
+      "documentedChanges": [
+        "Recorded Extension V2 0.8.0 identity, WXT MV3 popup/options/sidebar/side-panel/background surfaces, commands, permissions, and source-layer ownership.",
+        "Added current React surface routing/tabs, persistence/backup ownership, desktop/Tauri host, WebSocket server protocol, Feature Foundry workspace boundary, native integration boundary, and contribution/testing workflows.",
+        "Expanded the machine-readable shipping parity contract with representative verified, implemented-unverified, and explicit gap examples.",
+        "Documented the current-main root script defect where test:e2e-opera points to an absent file and the maintained verify:extension-v2:opera path.",
+        "Separated current main from open Vite 8.2.1 PR #8 and TypeScript incremental-build PR #7, including exact-head verification blocker boundaries."
+      ]
+    }
+  ],
+  "recheckedNoMaterialChange": [
+    {
+      "projectId": "PCX-041",
+      "reason": "Existing ChatGPT Ultimate Optimizer page already reflects its current recovered release/runtime boundary; no newer authoritative project-owned evidence was resolved that justified churn."
+    },
+    {
+      "projectId": "PCX-043",
+      "reason": "Existing Feature Foundry Production App page remains based on the stronger current verified production lineage; older V2-253 Drive continuity artifacts did not supersede it."
+    },
+    {
+      "projectId": "PCX-044",
+      "reason": "Existing Feature Foundry Living Ecology page remains detailed and current against the strongest resolved production evidence."
+    },
+    {
+      "projectId": "PCX-045",
+      "reason": "Existing Feature Foundry Object Intelligence page remains detailed and no stronger newer source/runtime delta was resolved this pass."
+    }
+  ],
+  "nextCursor": [
+    "PCX-046",
+    "PCX-047",
+    "PCX-048",
+    "PCX-049",
+    "PCX-050"
+  ],
+  "automationObligation": "ONGOING"
+}

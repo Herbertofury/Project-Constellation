@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "checkpointType": "stale-task-recovery-in-progress",
+  "project": "Ferrum Browser",
+  "sourceTask": {
+    "repository": "Herbertofury/Ferrum-Browser",
+    "pullRequest": 47,
+    "title": "Qualify real Tauri applications through Ferrum WebDriver",
+    "branch": "evolution/tauri-webdriver"
+  },
+  "canonicalState": {
+    "main": "04cbc5ed45e6344821b5b9b45942aad59351ca00",
+    "exactRecoveryHead": "5d19656a6b7ee6e021da51e0ceee7c0649f70ad1",
+    "headIncludesCurrentMain": true
+  },
+  "recoveredFailureChain": [
+    {
+      "problem": "Embedded Tauri provider resolved a mixed runtime family before Ferrum runtime execution",
+      "observed": [
+        "tauri 2.10.3",
+        "tauri-runtime 2.11.3",
+        "tauri-runtime-wry 2.10.1"
+      ],
+      "repair": "Align the temporary fixture to Tauri 2.11.5, tauri-runtime 2.11.3, tauri-runtime-wry 2.11.4, and tauri-plugin-wdio-webdriver 1.3.0"
+    },
+    {
+      "problem": "The first alignment pinned tauri-build 2.6.0 although Tauri 2.11.5 requires tauri-build ^2.6.3",
+      "repair": "Pin tauri-build 2.6.3 and explicitly resolve/print the coherent Cargo runtime family before build"
+    },
+    {
+      "problem": "Cargo target dependency used cfg(debug_assertions), which Cargo does not support for dependency selection",
+      "repair": "Keep plugin dependency in the normal dependency section while retaining runtime registration behind #[cfg(debug_assertions)]"
+    }
+  ],
+  "mandatoryAcceptance": [
+    "Ubuntu real Tauri v2 build and launch",
+    "Windows real Tauri v2 build and launch",
+    "bounded embedded WebDriver /status readiness with terminal process attribution",
+    "Ferrum provider-neutral W3C session",
+    "real UI fill/click",
+    "real Rust greet IPC round trip",
+    "screenshot and page-source evidence",
+    "application SHA-256 and runtime/session identity",
+    "clean process teardown",
+    "full affected Ferrum CI and regression benchmarks"
+  ],
+  "exactHeadRuns": {
+    "tauriWebDriver": 32190288186,
+    "ferrumCi": 32190288208,
+    "serviceFixture": 32190288225,
+    "statefulApi": 32190288212,
+    "serviceNetworkFault": 32190288252,
+    "stateAtCheckpoint": "queued"
+  },
+  "truthBoundary": "This checkpoint records recovered implementation and root-cause repairs, not Tauri merge proof. PR #47 must remain unmerged until the final exact head passes mandatory embedded Linux and Windows runtime acceptance plus the full affected Ferrum gates.",
+  "driveMirror": {
+    "document": "Ferrum Stack Upgrade CURRENT",
+    "documentId": "13QKt4FBmQLu6BYIBfB3UQrz5ouJnP5oYGW12fkr7TwU",
+    "revisionAfterWrite": "AIroW36aGMHDObAYhMw6YQsYyOCYD37lm8T13wE5LWEpTfdPuJuflqZ2JXfIkUhWpAFdo5CUV8FMvgxPU-__dFPEhXVDMQ1wlm8mHQ6L-z0",
+    "roundTripMarkerFound": true
+  },
+  "recurringRecoveryWatchRemainsOpen": true
+}

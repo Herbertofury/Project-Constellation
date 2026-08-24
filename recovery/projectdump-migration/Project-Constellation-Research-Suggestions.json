@@ -1,0 +1,151 @@
+{
+  "schema": "project-constellation.research-suggestions/1",
+  "version": "0.5.0",
+  "generatedAt": "2026-08-16T03:59:00Z",
+  "projectSuggestions": [
+    {
+      "projectId": "PRJ-014",
+      "projectName": "Grim Dawn Cairn Codex",
+      "suggestions": [
+        {
+          "source": "https://forums.crateentertainment.com/t/grim-dawn-version-v1-3-0-0/155979/1",
+          "checked": "2026-08-15",
+          "maturity": "current",
+          "fact": "Crate Entertainment released Grim Dawn v1.3.0.0 in July 2026 with backend changes for Fangs of Asterkarn and a complete UI visual overhaul.",
+          "fit": "The Cairn Codex is a standalone quest/area guide whose current artifact predates this game baseline, so version-sensitive data and UI terminology may now be stale.",
+          "goal": "Keep the standalone Cairn Codex accurate and usable against the current game while preserving its localStorage migration path.",
+          "experiment": "Add a version-evidence panel and run a data-diff audit against v1.3.0.0 areas/quests/UI labels before changing any guide content.",
+          "risks": "Patch data may require manual reconciliation; do not ingest community-derived values as official facts.",
+          "acceptance": "Codex declares its supported game baseline, all changed quest/area references are source-backed, existing saves migrate and reload, and navigation/state tests still pass.",
+          "newNotable": "Crate Entertainment released Grim Dawn v1.3.0.0 in July 2026 with backend changes for Fangs of Asterkarn and a complete UI visual overhaul.",
+          "proposal": "Add a version-evidence panel and run a data-diff audit against v1.3.0.0 areas/quests/UI labels before changing any guide content."
+        }
+      ]
+    },
+    {
+      "projectId": "PRJ-015",
+      "projectName": "Bethesda Plugin Info for MO2",
+      "suggestions": [
+        {
+          "source": "https://github.com/ModOrganizer2/modorganizer/releases",
+          "checked": "2026-08-15",
+          "maturity": "current",
+          "fact": "The official MO2 release page identifies v2.5.2 as the latest release and documents Qt 6/Python changes plus new third-party plugin interface capabilities.",
+          "fit": "Bethesda Plugin Info is waiting on a real MO2 live compatibility pass, so testing against the current released host is more meaningful than relying on the older beta target alone.",
+          "goal": "Prove dedicated column, tooltips, warnings, categories, drag/drop, DPI behavior, and restart persistence in a current real MO2 runtime.",
+          "experiment": "Create a two-lane live test: v2.5.2 release first, then a separately isolated forward-compatibility lane against current upstream only after release proof passes.",
+          "risks": "Theme/DPI/plugin-stack differences can hide regressions; do not weaken tests to fit host changes.",
+          "acceptance": "All promised controls and column behavior work in v2.5.2 with the full plugin stack, native drag/drop remains unchanged, and state survives restart.",
+          "newNotable": "The official MO2 release page identifies v2.5.2 as the latest release and documents Qt 6/Python changes plus new third-party plugin interface capabilities.",
+          "proposal": "Create a two-lane live test: v2.5.2 release first, then a separately isolated forward-compatibility lane against current upstream only after release proof passes."
+        }
+      ]
+    },
+    {
+      "projectId": "PRJ-016",
+      "projectName": "Bethesda Creations Version Tracker for MO2",
+      "suggestions": [
+        {
+          "source": "https://github.com/ModOrganizer2/modorganizer/releases",
+          "checked": "2026-08-15",
+          "maturity": "current",
+          "fact": "MO2 v2.5.2 includes updated Starfield Creation handling and third-party plugin interface changes in the current official release line.",
+          "fit": "The Version Tracker exists specifically to reason about Bethesda Creations metadata/version state inside MO2, so current Creation behavior is directly relevant.",
+          "goal": "Verify migration, metadata, version/source data, conflict behavior, dedicated column interaction, and persistence in the current MO2 host.",
+          "experiment": "Build a deterministic fixture set covering legacy marker migration, Starfield Creation metadata, corrupt marker quarantine, and restart persistence on MO2 v2.5.2.",
+          "risks": "Creation metadata semantics differ by game and may evolve; avoid inferring versions from display text alone.",
+          "acceptance": "Fixtures migrate without data loss, no per-mod sidecars reappear, false conflicts remain zero, drag/drop is unaffected, and results persist after restart.",
+          "newNotable": "MO2 v2.5.2 includes updated Starfield Creation handling and third-party plugin interface changes in the current official release line.",
+          "proposal": "Build a deterministic fixture set covering legacy marker migration, Starfield Creation metadata, corrupt marker quarantine, and restart persistence on MO2 v2.5.2."
+        }
+      ]
+    },
+    {
+      "projectId": "PRJ-019",
+      "projectName": "MO2 Performance Accelerator",
+      "suggestions": [
+        {
+          "source": "https://github.com/ModOrganizer2/usvfs",
+          "checked": "2026-08-15",
+          "maturity": "current/alpha-core",
+          "fact": "The official USVFS repository still describes the virtual filesystem as an alpha work in progress while noting it is a core MO2 component receiving real-world testing.",
+          "fit": "The Performance Accelerator changes MO2 hot paths and must not destabilize the host or filesystem virtualization, so performance wins need explicit isolation from USVFS behavior.",
+          "goal": "Improve startup/filter/drag responsiveness without recurring workers, lost state, crashes, or interference with MO2/USVFS behavior.",
+          "experiment": "Add an instrumentation-only benchmark mode that timestamps accelerator hooks and MO2 model/proxy phases while leaving USVFS untouched; compare enabled/disabled runs on the same library.",
+          "risks": "Synthetic proxy speedups can overstate real gains; instrumentation itself can perturb timings.",
+          "acceptance": "Repeated real-library runs show a statistically meaningful UI latency improvement, identical mod/file results, zero new USVFS errors, preserved viewport/separators, and clean shutdown.",
+          "newNotable": "The official USVFS repository still describes the virtual filesystem as an alpha work in progress while noting it is a core MO2 component receiving real-world testing.",
+          "proposal": "Add an instrumentation-only benchmark mode that timestamps accelerator hooks and MO2 model/proxy phases while leaving USVFS untouched; compare enabled/disabled runs on the same library."
+        }
+      ]
+    },
+    {
+      "projectId": "PRJ-020",
+      "projectName": "Master Desktop Pet Research",
+      "suggestions": [
+        {
+          "source": "https://github.com/DalekCraft2/Shimeji-Desktop",
+          "checked": "2026-08-15",
+          "maturity": "bleeding-edge/current",
+          "fact": "DalekCraft2/Shimeji-Desktop is a 2026-active Shimeji-ee port to JDK 25 that explicitly targets backward compatibility while adding DPI scaling, bug fixes, Maven packaging, and Windows/macOS/Linux support.",
+          "fit": "The master desktop-pet research should track modern implementations that preserve Shimeji semantics instead of only cataloguing older forks.",
+          "goal": "Keep one verified desktop-pet research master covering current engines, compatibility approaches, host support, and reusable implementation lessons.",
+          "experiment": "Add a compatibility matrix row comparing pack/action XML behavior, DPI handling, packaging, platform support, and migration cost against the preserved Shimeji reference sources.",
+          "risks": "A newer fork can still diverge subtly from legacy behavior; Java 25 raises deployment requirements.",
+          "acceptance": "The master records exact source/revision/date, verified compatibility claims, tested pack behaviors, platform/runtime requirements, and a clear keep/adapt/reject decision without spawning a separate research file.",
+          "newNotable": "DalekCraft2/Shimeji-Desktop is a 2026-active Shimeji-ee port to JDK 25 that explicitly targets backward compatibility while adding DPI scaling, bug fixes, Maven packaging, and Windows/macOS/Linux support.",
+          "proposal": "Add a compatibility matrix row comparing pack/action XML behavior, DPI handling, packaging, platform support, and migration cost against the preserved Shimeji reference sources."
+        }
+      ]
+    }
+  ],
+  "appSuggestions": [
+    {
+      "source": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/managing-your-views",
+      "checked": "2026-08-15",
+      "maturity": "current",
+      "fact": "GitHub Projects supports persistent named views that preserve different filtered/sorted perspectives of the same underlying work items.",
+      "proposal": "Add Project Constellation Continuity Lenses: persistent views for Today, Blocked, Version Proof, Research Stale, Changed Since Last Visit, plus user-created lenses. Lenses never alter the canonical project data; they only change the working perspective.",
+      "fit": "The core problem is instantly finding where work stopped and what deserves attention without losing the full 63-project catalogue.",
+      "goal": "Make exact next actions, blockers, stale work, and changes since the last visit immediately visible while keeping all projects available.",
+      "experiment": "Ship built-in lenses plus one user-created lens stored in local state, and a per-project change journal watermark.",
+      "risks": "Too many lenses can become another navigation burden; defaults must stay small and deletable custom lenses must never delete project data.",
+      "acceptance": "Switching lenses changes only the visible perspective; all 63 projects remain searchable; custom lenses survive reload; Changed Since Last Visit updates after viewing; clearing a lens never changes project content."
+    },
+    {
+      "source": "https://github.com/Herbertofury/ProjectDump/wiki",
+      "checked": "2026-08-18",
+      "maturity": "current project-owned evidence",
+      "fact": "Project Constellation now has complete source-controlled wiki coverage plus independently published Drive checkpoints, while the 63-record machine catalog intentionally preserves historical lineage and can lag newer project-specific evidence.",
+      "proposal": "Add a read-only Current Evidence Overlay to the presentation layer that labels the 63-record catalog as the preservation base, shows the newest research cursor/checkpoint, and directs project freshness review to source-controlled wiki evidence without rewriting historical recovery records.",
+      "fit": "This prevents stale catalog summaries from being mistaken for the newest verified project state while preserving all prior lineage.",
+      "goal": "Make freshness, evidence authority, and next research rotation visible without deleting or silently rewriting historical project data.",
+      "experiment": "Ship the overlay in v0.5.1 and verify all 63 records remain searchable, snapshot import/export still works, and historical recoveryHistory bytes remain semantically intact.",
+      "risks": "The overlay must not claim that wiki presence alone proves runtime behavior, and it must not overwrite user edits or project-owned verification evidence.",
+      "acceptance": "Exactly 63 projects remain; old recovery history remains present; the newest cursor is visible; source-controlled wiki is clearly identified as the freshness layer; no project status is promoted by presentation code."
+    }
+  ],
+  "updatedAt": "2026-08-18T22:04:30Z",
+  "presentationVersion": "0.5.1",
+  "schedulingAuthority": {
+    "schema": "project-constellation.research-cursor/1",
+    "updatedAt": "2026-08-18T22:04:30Z",
+    "completedCursor": [
+      "PRJ-017",
+      "PRJ-018",
+      "PRJ-019",
+      "PRJ-020",
+      "PRJ-021"
+    ],
+    "nextCursor": [
+      "PRJ-022",
+      "PRJ-023",
+      "PRJ-024",
+      "PRJ-025",
+      "PCX-026"
+    ],
+    "selectionReason": "PRJ-017 through PRJ-021 were rechecked as a delta pass. PRJ-017/018/019 already contain the current MO2 v2.5.2 host contracts, exact preserved version lineages and explicit source/live-host qualification boundaries; connected Drive search exposed no stronger canonical source archives. PRJ-020 already contains the current NeurolingsCE Rust+Flutter architecture benchmark. PRJ-021 exact Drive search still resolves continuity material only, so its unresolved GX Slim identity and preserved 1.0.0 hash remain correct. Continue the tracked catalog rotation at PRJ-022 through PCX-026.",
+    "sourceCheckpoint": "project-constellation/evolution/2026-08-18T2204Z-prj-017-021-wiki-delta.json",
+    "authorityRule": "When newer than Project-Constellation-Automation-State.json, this cursor supersedes only researchCursor/nextResearchCursor scheduling fields. It does not supersede project records, lastAutomationHash, user edits, or project-owned verification evidence."
+  }
+}

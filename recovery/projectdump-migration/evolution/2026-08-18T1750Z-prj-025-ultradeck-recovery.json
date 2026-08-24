@@ -1,0 +1,47 @@
+{
+  "baseCommit": "e1da516a7aad9a254443e4a3e48830b98a1c772b",
+  "behavior": [
+    "Tumblr false top-offset dead-band repair",
+    "Patreon permalink-first semantic post capture",
+    "isolated WXT content-script conditional main-world injection",
+    "X/Cloudflare challenge-safe inactivity",
+    "Surround mode preserved",
+    "no-culling/no-virtualization contract preserved"
+  ],
+  "checkedAt": "2026-08-18T17:50:00Z",
+  "checkpointContentSha256": "b6590125953271ce035229ebaefb871731a8474813cdea1499bd144cd6c475cc",
+  "checkpointType": "stale-chat-recovery",
+  "mergedMainCommit": "d9278d4a0fd33d184e9c6f928556262668af4125",
+  "mergedMainTree": "151e1a2eb6ca47f5189e33b72942050e5fccb005",
+  "packageVersion": "8.6.0",
+  "project": "UltraDeck",
+  "projectId": "PRJ-025",
+  "pullRequest": 2,
+  "repository": "Herbertofury/UltraDeck",
+  "schemaVersion": 1,
+  "sourceTask": "Fix Tumblr gap, Patreon capture, and X challenge-safe loading",
+  "toolchain": {
+    "typescript": "7.0.2",
+    "wxt": "0.21.3"
+  },
+  "verifiedCoverage": [
+    "npm install",
+    "TypeScript typecheck",
+    "Chromium WXT production build",
+    "Firefox WXT production build",
+    "portable Chromium/Firefox builds",
+    "Python compile checks",
+    "JavaScript syntax checks",
+    "site regression contract",
+    "Surround contract",
+    "real Chromium Surround runtime",
+    "headed cross-site visual verification",
+    "site options/browser verification"
+  ],
+  "verifiedProposalHead": "0e7b68f9e0cf3c3a908b366c4088384c5a0edd24",
+  "verifiedWorkflow": {
+    "conclusion": "success",
+    "id": 32159116689,
+    "name": "verify"
+  }
+}

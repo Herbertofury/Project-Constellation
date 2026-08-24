@@ -1,0 +1,76 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-18T11:08:00Z",
+  "result": "MATERIAL_WIKI_DELTA",
+  "automationObligation": "OPEN_AND_ONGOING",
+  "reviewed": [
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026",
+    "PCX-027"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PRJ-025",
+      "project": "UltraDeck",
+      "reason": "Current UltraDeck main contains a verified post-release Surround-mode implementation not represented in the prior wiki page.",
+      "canonicalRepository": "Herbertofury/UltraDeck",
+      "packageVersion": "8.5.0",
+      "currentMainCommit": "e1da516a7aad9a254443e4a3e48830b98a1c772b",
+      "mergedPullRequest": 1,
+      "verifiedRecoveryHead": "d08cd7d9e80d2e96e0f2db973e9865b47c59733d",
+      "upstreamVerifyRun": 32087223402,
+      "verifiedBehavior": [
+        "Surround mode defaults off.",
+        "Native center feed remains visible and interactive while Surround is enabled.",
+        "UltraDeck retains two adaptive side lanes around the center feed.",
+        "Per-site Surround preferences persist independently for Tumblr, Patreon, X/Twitter and TikTok through ultradeckSurroundSites.",
+        "Full-deck behavior, retained interactions, TikTok playback recovery, site boot gates and no-culling behavior remain preserved.",
+        "A real headless-Chromium test using the built Tumblr userscript exercised Surround off -> on -> off and verified retained content, two side columns, interactive native source and full-deck restoration."
+      ],
+      "projectDumpSourceCommit": "4495b34d0d44ae4b9fe92387751ee54dc0c61124",
+      "wikiWorkflowRun": 32130161996,
+      "wikiMasterCommit": "58f62221836b6101c62e5a6650ac5ddd52bfefe1",
+      "wikiPublication": "fresh-clone byte-verified",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-025-ultradeck",
+      "driveWikiDocumentId": "1DqCCTuM3Ax8rjmNYN09xd5zuY1NDE8oztateaOmPN3M",
+      "driveWikiMarkdownSize": 18502,
+      "driveWikiMarkdownSha256": "9cf732dfc9b2474ccd3023c43d363da9f322664215812bf5eac23e0bcecbe4da"
+    }
+  ],
+  "unchanged": [
+    {
+      "projectId": "PRJ-023",
+      "reason": "No current canonical starter archive was recovered from Drive; the existing wiki already captures the v0.1.0 Vue/Tauri starter, stack-identity defect, reproducibility defect, current toolchain deltas and native validation boundary."
+    },
+    {
+      "projectId": "PRJ-024",
+      "reason": "No newer coordinated compatibility versions or current-host live proof were recovered beyond Image Column 1.4.12, Bethesda Plugin Info 1.5.3 and Version Tracker 2.4.3; the existing wiki already has the current MO2 v2.5.2 live test matrix."
+    },
+    {
+      "projectId": "PCX-026",
+      "reason": "ProjectDump AGENTS.md remains the same governance authority documented by the page.",
+      "sourceBlobSha": "9fb2101aa9a96855133fb23b394699755e2aa8b4"
+    },
+    {
+      "projectId": "PCX-027",
+      "reason": "Drive still resolves the documented 15,693-byte Browser Fallback artifacts and historical recovery/hash evidence rather than a newer canonical Archive Doctor source repository."
+    }
+  ],
+  "driveCheckpoint": {
+    "documentId": "1B5FqKxLti3-4nZhNjvPcK3ZLgNbffGqE5gJToQmqaj8",
+    "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "roundTripRead": "pass",
+    "markdownSize": 4350,
+    "markdownSha256": "399a7b2e303fae082027085dd1b67a178ded03f9d6a33937ef1be5248485c2ae"
+  },
+  "nextCursor": [
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032"
+  ],
+  "persistenceRule": "This checkpoint records one recurring documentation pass only. The Wiki Maintainer obligation remains open and ongoing."
+}

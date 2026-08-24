@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Project Constellation</title>
+  <link rel="stylesheet" href="home.css">
+</head>
+<body data-theme="graphite" data-density="comfortable">
+<svg class="svg-sprite" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.7 12 3.8l8.5 6.9v9a1 1 0 0 1-1 1h-5.1v-6.1H9.6v6.1H4.5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
+  <symbol id="i-project" viewBox="0 0 24 24"><path d="M4 5.5h6l1.5 2H20v11H4z"/><path d="M4 9h16"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 3 9 17H3z"/><path d="M12 9v5M12 17.5h.01"/></symbol>
+  <symbol id="i-source" viewBox="0 0 24 24"><path d="M7 7h10M14 4l3 3-3 3M17 17H7M10 14l-3 3 3 3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.6-2.7 8.1-7 10-4.3-1.9-7-5.4-7-10V6z"/><path d="m9 12 2 2 4-5"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M8 4v16M15.5 4v16"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 15h17"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M19 12a7.5 7.5 0 1 1-2.2-5.3L20 9"/></symbol>
+  <symbol id="i-command" viewBox="0 0 24 24"><path d="M8 7H6a3 3 0 1 1 3-3v16a3 3 0 1 1-3-3h12a3 3 0 1 1-3 3V4a3 3 0 1 1 3 3z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="m8 4 8 8M6 10l8 8M10 4l7 7-3 2 1 4-2 2-4-1-2 3"/></symbol>
+</svg>
+
+<div id="workbench" class="workbench">
+  <header class="titlebar">
+    <div class="titlebar-left">
+      <button id="togglePrimarySidebar" class="chrome-button square" title="Toggle Explorer" aria-label="Toggle Explorer"><svg><use href="#i-layout"/></svg></button>
+      <div class="window-brand"><span class="brand-star">✦</span><strong>Project Constellation</strong><span class="edition">Workbench</span></div>
+      <button id="workspaceMenuButton" class="menu-button">Workspace</button>
+      <button id="viewMenuButton" class="menu-button">View</button>
+    </div>
+    <div class="masthead">
+      <div class="searchbox" role="search"><svg><use href="#i-search"/></svg><input id="globalSearch" autocomplete="off" spellcheck="false" placeholder="Search chats, projects, messages, files, links…"><kbd>Ctrl K</kbd></div>
+    </div>
+    <div class="titlebar-actions">
+      <span id="workbenchSyncState" class="sync-state"><span class="sync-dot"></span><span>Local</span></span>
+      <button id="refreshHome" class="chrome-button" title="Refresh"><svg><use href="#i-refresh"/></svg><span>Refresh</span></button>
+      <button id="layoutButton" class="chrome-button" title="Customize layout"><svg><use href="#i-layout"/></svg><span>Layout</span></button>
+      <button id="openPanel" class="chrome-button" title="Open Command Center"><svg><use href="#i-panel"/></svg><span>Command Center</span></button>
+    </div>
+  </header>
+
+  <aside class="activity-bar" aria-label="Primary navigation">
+    <nav id="activityNav">
+      <button class="active" data-view="overview" title="Home"><svg><use href="#i-home"/></svg></button>
+      <button data-view="search" title="Universal search"><svg><use href="#i-search"/></svg></button>
+      <button data-view="projects" title="Projects & groups"><svg><use href="#i-project"/></svg></button>
+      <button data-view="chats" title="Chat library"><svg><use href="#i-chat"/></svg></button>
+      <button data-view="files" title="Artifacts"><svg><use href="#i-file"/></svg></button>
+      <button data-view="attention" title="Needs attention"><svg><use href="#i-alert"/></svg><span id="activityAttentionDot" class="activity-badge">0</span></button>
+      <button data-view="sources" title="Sources & import"><svg><use href="#i-source"/></svg></button>
+      <button data-view="durability" title="Durability"><svg><use href="#i-shield"/></svg></button>
+    </nav>
+    <div class="activity-bottom">
+      <button id="commandPaletteButton" title="Command palette"><svg><use href="#i-command"/></svg></button>
+      <button id="activityLayoutButton" title="Customize layout"><svg><use href="#i-layout"/></svg></button>
+    </div>
+  </aside>
+
+  <aside id="primarySidebar" class="primary-sidebar">
+    <div class="sidebar-title"><div><span>EXPLORER</span><strong>CONSTELLATION</strong></div><button id="sidebarMore" class="icon-button" title="Layout menu"><svg><use href="#i-more"/></svg></button></div>
+    <div class="sidebar-scroll">
+      <section class="sidebar-section open">
+        <button class="sidebar-section-head" data-sidebar-section="navigate"><span>Navigate</span><b>⌄</b></button>
+        <nav id="homeNav" class="sidebar-nav">
+          <button class="active" data-view="overview"><svg><use href="#i-home"/></svg><span>Home</span></button>
+          <button data-view="search"><svg><use href="#i-search"/></svg><span>Search everything</span></button>
+          <button data-view="projects"><svg><use href="#i-project"/></svg><span>Projects & Groups</span></button>
+          <button data-view="chats"><svg><use href="#i-chat"/></svg><span>Chats</span><b id="sidebarChatCount">0</b></button>
+          <button data-view="files"><svg><use href="#i-file"/></svg><span>Artifacts</span><b id="sidebarFileCount">0</b></button>
+          <button data-view="attention"><svg><use href="#i-alert"/></svg><span>Needs attention</span><b id="attentionPill">0</b></button>
+          <button data-view="sources"><svg><use href="#i-source"/></svg><span>Sources & Import</span></button>
+          <button data-view="durability"><svg><use href="#i-shield"/></svg><span>Durability</span></button>
+        </nav>
+      </section>
+      <section class="sidebar-section open">
+        <button class="sidebar-section-head" data-sidebar-section="workspace"><span>Workspace</span><b>⌄</b></button>
+        <div id="sidebarPinnedProjects" class="sidebar-dynamic"><div class="sidebar-empty">Pinned projects appear here</div></div>
+      </section>
+      <section class="sidebar-section open">
+        <button class="sidebar-section-head" data-sidebar-section="smart"><span>Smart collections</span><b>⌄</b></button>
+        <div id="sidebarSmartCollections" class="sidebar-dynamic"><div class="sidebar-empty">Saved searches appear here</div></div>
+      </section>
+      <section class="sidebar-section open">
+        <button class="sidebar-section-head" data-sidebar-section="system"><span>System</span><b>⌄</b></button>
+        <nav class="sidebar-nav compact">
+          <button data-view="sources"><svg><use href="#i-source"/></svg><span>Sources & Import</span></button>
+          <button data-view="durability"><svg><use href="#i-shield"/></svg><span>Durability</span></button>
+        </nav>
+      </section>
+    </div>
+    <div class="sidebar-health"><span class="health-dot"></span><div><strong id="railHealth">Local brain online</strong><small id="railSub">Loading catalog…</small></div></div>
+  </aside>
+
+  <div id="primaryResizer" class="resizer vertical primary-resizer" title="Resize Explorer"></div>
+
+  <section class="editor-region">
+    <div class="editor-tabs-bar">
+      <div id="editorTabs" class="editor-tabs" role="tablist"></div>
+      <div class="editor-tab-actions">
+        <button id="toggleBottomPanel" class="icon-button" title="Toggle bottom panel"><svg><use href="#i-panel"/></svg></button>
+        <button id="toggleInspector" class="icon-button" title="Toggle inspector"><svg><use href="#i-layout"/></svg></button>
+        <button id="editorMore" class="icon-button" title="Command palette"><svg><use href="#i-more"/></svg></button>
+      </div>
+    </div>
+
+    <main class="workspace">
+      <section id="overview" class="view active">
+        <div class="welcome"><div><p class="eyebrow">CONSTELLATION HOME</p><h1>Your entire AI life,<br><em>organized and recoverable.</em></h1><p>Chats, ideas, project state, generated files, failures, approvals, and remote copies remain connected across providers.</p><div class="welcome-actions"><button class="primary" data-jump="search">Search everything</button><button data-jump="projects">Open workspace</button></div></div><div class="durability-orb"><span id="orbLabel">LOCAL</span><strong id="orbValue">…</strong><small>durability</small></div></div>
+        <div class="metric-grid" id="homeMetrics"></div>
+        <div class="section-title"><div><p>NOW</p><h2>Live work</h2></div><button data-jump="attention">See attention queue</button></div>
+        <div id="liveWork" class="cards"></div>
+        <div class="section-title"><div><p>PINNED WORKSPACE</p><h2>Your project launchpad</h2></div><button data-jump="projects">Organize projects</button></div><div id="pinnedProjects" class="project-grid home-project-shelf"></div>
+        <div class="section-title"><div><p>RECOVER FAST</p><h2>Recently touched</h2></div><button data-jump="chats">Browse all chats</button></div>
+        <div id="recentChats" class="cards triple"></div>
+        <div class="section-title"><div><p>IDEA MAP</p><h2>Things you keep working on</h2></div><small>Generated locally from project and chat titles</small></div>
+        <div id="topicCloud" class="topic-cloud"></div>
+        <div class="section-title"><div><p>ARTIFACTS</p><h2>Recent files</h2></div><button data-jump="files">Browse all files</button></div>
+        <div id="recentFiles" class="file-grid"></div>
+      </section>
+
+      <section id="search" class="view"><div class="view-heading"><p>UNIVERSAL SEARCH</p><h1>Find the work, not just the words.</h1><span>Matches are grouped back into their originating chats with related files and destinations.</span></div><div id="searchSummary" class="result-summary"></div><div id="searchResults" class="search-groups"></div></section>
+
+      <section id="projects" class="view">
+        <div class="view-heading org-heading"><div><p>PROJECTS, GROUPS & IDEAS</p><h1>Organize the entire AI workspace your way.</h1><span>Provider-independent projects, nested groups, smart collections, tags, pins, favorites, archives, and drag/drop chat organization.</span></div><div class="org-create-actions"><button id="newGroup">+ Group</button><button id="newSmart">+ Smart collection</button><button id="newProject" class="primary">+ Project</button></div></div>
+        <div class="organizer-shell"><aside class="organizer-rail"><div class="org-rail-title"><strong>Workspace</strong><span id="orgWorkspaceCount">0 projects</span></div><div class="org-quick" id="orgQuickFilters"></div><div class="org-section-label">Groups</div><div id="orgGroupTree" class="org-tree"></div><div class="org-section-label">Smart collections</div><div id="orgSmartList" class="org-tree"></div><div class="org-section-label">Tags</div><div id="orgTagCloud" class="org-tags"></div></aside><div class="organizer-main"><div class="organizer-toolbar"><div><strong id="orgScopeTitle">All organized chats</strong><small id="orgScopeMeta">Cross-provider workspace</small></div><div class="org-controls"><select id="orgFilter"><option value="all">All active</option><option value="unassigned">Unassigned</option><option value="pinned">Pinned</option><option value="favorites">Favorites</option><option value="attention">Needs attention</option><option value="archived">Archived</option></select><select id="orgSort"><option value="recent">Recent</option><option value="title">Title</option><option value="oldest">Oldest</option></select></div></div><div id="orgProjectGrid" class="project-grid"></div><div id="orgBulkBar" class="org-bulk hidden"><strong><span id="orgSelectedCount">0</span> selected</strong><select id="orgBulkProject"></select><button id="orgBulkMove" class="primary">Move</button><button id="orgBulkPin">Pin</button><button id="orgBulkArchive">Archive</button><button id="orgBulkClear">Clear</button></div><div id="orgChatList" class="organization-chat-list"></div></div></div>
+        <div class="provider-projects"><div class="section-title"><div><p>SOURCE MIRRORS</p><h2>Provider projects retained for lineage</h2></div><small>Read-only; your Constellation organization sits above these.</small></div><div id="providerProjectBrowser" class="library-grid compact"></div></div>
+      </section>
+
+      <section id="chats" class="view"><div class="view-heading"><p>CHAT LIBRARY</p><h1>Every conversation Constellation knows.</h1><span>Newest first, with direct return links and state.</span></div><div id="chatBrowser" class="library-list"></div><button id="moreChats" class="load-more">Load more</button></section>
+      <section id="files" class="view"><div class="view-heading"><p>ARTIFACT LIBRARY</p><h1>Generated, attached, downloaded, and external outputs.</h1><span>Each artifact remains linked to the conversation that produced it.</span></div><div id="fileBrowser" class="library-list"></div><button id="moreFiles" class="load-more">Load more</button></section>
+      <section id="attention" class="view"><div class="view-heading"><p>RECOVERY QUEUE</p><h1>Nothing silently gets stuck.</h1><span>Approvals, errors, stalls, expired authentication, missing chats, and paused work.</span></div><div id="attentionBrowser" class="library-list"></div></section>
+
+      <section id="sources" class="view">
+        <div class="view-heading"><p>ZERO-TAB CATALOG</p><h1>Deep discovery without wrecking your browser.</h1><span>No automatic hidden tabs. Constellation combines browser-history URL discovery, authenticated background HTML fetch, true offscreen DOM parsing, passive capture, and provider exports.</span></div>
+        <div class="source-grid" id="sourceGrid"></div>
+        <article class="panel-card accent-card"><div><p class="eyebrow">BROWSER HISTORY DISCOVERY</p><h2>Recover conversation URLs you already visited</h2><p>This finds old conversation routes directly from Chrome history without loading them.</p></div><button id="enableHistory" class="primary">Enable history discovery</button></article>
+        <article class="panel-card"><div class="row-title"><div><p class="eyebrow">ZERO-TAB SWEEP</p><h2>Catalogue known provider history</h2></div><span class="mode-pill">NO CRAWLER TABS</span></div><p id="catalogHomeStatus">Ready.</p><div class="button-row"><button id="runCatalog" class="primary">Run zero-tab catalogue</button><button id="stopCatalogHome">Stop</button></div></article>
+        <article class="panel-card heavy-capture-card"><div class="row-title"><div><p class="eyebrow">FULL CAPTURE</p><h2>Capture every reachable chat</h2></div><span class="mode-pill heavy">MANUAL HEAVY MODE</span></div><p>Use this when exports and zero-tab collection cannot recover the full transcript. Constellation opens exactly one dedicated minimized capture window, discovers chat links from the provider sidebar, reuses that same tab for every conversation, walks virtualized transcripts in both directions, records files, then closes the window. It never runs automatically.</p><div class="capture-controls"><label>Capture speed<select id="fullCaptureSpeed"><option value="gentle">Gentle</option><option value="balanced" selected>Balanced</option><option value="fast">Fast</option></select></label><div class="button-row"><button id="startFullCapture" class="primary">Capture all chats</button><button id="pauseFullCapture">Pause</button><button id="resumeFullCapture">Resume</button><button id="stopFullCapture">Cancel</button></div></div><div class="capture-progress"><div id="fullCaptureBar"></div></div><p id="fullCaptureStatus" class="progress-note">Idle. Zero-tab catalog remains the normal/default collector.</p></article>
+        <article class="panel-card import-card"><div><p class="eyebrow">COMPLETE HISTORY IMPORT</p><h2>Import a ChatGPT data export</h2><p>Drop the official ZIP, <code>conversations.json</code>, or numbered conversation JSON exports. Constellation imports the conversation graph directly into its local index without opening any chats.</p></div><label class="file-picker"><input id="historyImport" type="file" accept=".zip,.json,application/json,application/zip"><span>Choose export file</span></label><div id="importProgress" class="progress-note"></div></article>
+      </section>
+
+      <section id="durability" class="view"><div class="view-heading"><p>DURABILITY</p><h1>Local speed. Remote survival.</h1><span>The hot database stays local; Google Drive receives asynchronous verified checkpoints and journals.</span></div><div id="durabilityCards" class="library-grid"></div><div class="button-row"><button id="homeDriveSync" class="primary">Sync + verify Drive now</button><button id="homeDriveRestore">Restore / merge from Drive</button></div><p id="durabilityStatus" class="progress-note"></p></section>
+    </main>
+
+    <section id="bottomPanel" class="bottom-panel" aria-label="Operations panel">
+      <div id="bottomPanelResizer" class="resizer horizontal panel-resizer" title="Resize panel"></div>
+      <div class="panel-tabs"><button class="active" data-panel-tab="activity">Activity</button><button data-panel-tab="sync">Sync</button><button data-panel-tab="recovery">Recovery</button><span class="panel-spacer"></span><button id="maximizeBottomPanel" class="icon-button" title="Maximize panel">□</button><button id="closeBottomPanel" class="icon-button" title="Close panel"><svg><use href="#i-close"/></svg></button></div>
+      <div id="bottomPanelBody" class="bottom-panel-body"></div>
+    </section>
+  </section>
+
+  <div id="inspectorResizer" class="resizer vertical inspector-resizer" title="Resize Inspector"></div>
+  <aside id="inspectorPane" class="inspector-pane">
+    <div class="inspector-head"><div><span>INSPECTOR</span><strong id="inspectorTitle">Workspace</strong></div><button id="closeInspector" class="icon-button" title="Close inspector"><svg><use href="#i-close"/></svg></button></div>
+    <div class="inspector-tabs"><button class="active" data-inspector-tab="details">Details</button><button data-inspector-tab="activity">Activity</button><button data-inspector-tab="links">Links</button></div>
+    <div id="inspectorBody" class="inspector-body"></div>
+  </aside>
+
+  <footer class="statusbar">
+    <button id="statusBrain" title="Local brain status"><span class="status-dot online"></span><span id="statusBrainText">Brain online</span></button>
+    <button id="statusDrive" data-view="durability" title="Drive durability"><svg><use href="#i-shield"/></svg><span id="statusDriveText">Drive local</span></button>
+    <button id="statusCapture" data-view="sources" title="Capture status"><svg><use href="#i-source"/></svg><span id="statusCaptureText">Catalog idle</span></button>
+    <span class="status-spacer"></span>
+    <button id="statusCounts" data-view="overview"><span id="statusCountsText">0 chats · 0 files</span></button>
+    <button id="statusLayout" title="Customize layout"><svg><use href="#i-layout"/></svg><span id="statusDensityText">Comfortable</span></button>
+  </footer>
+</div>
+
+<div id="layoutPopover" class="popover layout-popover hidden" role="dialog" aria-label="Customize layout">
+  <div class="popover-head"><strong>Customize layout</strong><button id="closeLayoutPopover" class="icon-button"><svg><use href="#i-close"/></svg></button></div>
+  <div class="layout-section"><span>Regions</span><div class="layout-toggle-grid"><button data-layout-toggle="primary">Explorer</button><button data-layout-toggle="inspector">Inspector</button><button data-layout-toggle="panel">Panel</button><button data-layout-toggle="focus">Focus</button></div></div>
+  <div class="layout-section"><span>Workspace preset</span><div class="preset-grid"><button data-layout-preset="balanced"><b>Balanced</b><small>Explorer + Inspector</small></button><button data-layout-preset="research"><b>Research</b><small>Wide editor + panel</small></button><button data-layout-preset="operations"><b>Operations</b><small>All telemetry visible</small></button><button data-layout-preset="focus"><b>Focus</b><small>Editor only</small></button></div></div>
+  <div class="layout-section"><span>Position</span><div class="position-grid"><label><small>Explorer</small><div class="segmented two"><button data-primary-side="left">Left</button><button data-primary-side="right">Right</button></div></label><label><small>Panel</small><div class="segmented two"><button data-panel-position="bottom">Bottom</button><button data-panel-position="top">Top</button></div></label></div></div>
+  <div class="layout-section"><span>Density</span><div class="segmented"><button data-density="compact">Compact</button><button data-density="comfortable">Comfortable</button><button data-density="spacious">Spacious</button></div></div>
+  <div class="layout-section"><span>Theme</span><div class="segmented"><button data-theme-choice="graphite">Graphite</button><button data-theme-choice="midnight">Midnight</button><button data-theme-choice="light">Light</button></div></div>
+  <div class="layout-section"><span>Saved layouts</span><div class="saved-layout-row"><select id="savedLayoutSelect"><option value="">Choose saved layout…</option></select><button id="applySavedLayout">Apply</button></div><div class="button-row"><button id="saveCurrentLayout" class="primary">Save current</button><button id="resetLayout">Reset</button></div></div>
+</div>
+
+<div id="commandPalette" class="command-palette hidden" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="command-input"><span>&gt;</span><input id="commandInput" autocomplete="off" spellcheck="false" placeholder="Type a command or search Constellation…"><kbd>Esc</kbd></div>
+  <div id="commandResults" class="command-results"></div>
+</div>
+
+<dialog id="orgDialog" class="org-dialog"><form id="orgDialogForm"><div class="dialog-head"><div><p class="eyebrow" id="orgDialogEyebrow">ORGANIZE</p><h2 id="orgDialogTitle">Create project</h2></div><button type="button" data-dialog-close class="icon-button" aria-label="Close">×</button></div><input type="hidden" id="orgDialogMode"><input type="hidden" id="orgDialogId"><div class="dialog-grid"><label id="orgNameField">Name<input id="orgName" maxlength="160" autocomplete="off"></label><label id="orgIconField">Icon<input id="orgIcon" maxlength="8" value="✦"></label><label id="orgColorField">Color<input id="orgColor" type="color" value="#7d92ff"></label><label id="orgParentField">Parent / group<select id="orgParent"></select></label><label id="orgQueryField" class="wide">Saved search query<input id="orgQuery" maxlength="600" placeholder="minecraft forge crash"></label><label id="orgTagsField" class="wide">Tags<input id="orgTags" maxlength="800" placeholder="minecraft, modding, forge"></label><label id="orgDescriptionField" class="wide">Description / notes<textarea id="orgDescription" maxlength="4000" rows="4"></textarea></label></div><div class="dialog-actions"><button type="button" id="orgDialogDelete" class="danger-button hidden">Remove</button><span class="dialog-spacer"></span><button type="button" data-dialog-close>Cancel</button><button id="orgDialogSave" type="submit" class="primary">Save</button></div></form></dialog>
+<div id="orgToast" class="org-toast" role="status" aria-live="polite"></div>
+<script src="home.js"></script>
+</body>
+</html>

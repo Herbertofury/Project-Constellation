@@ -1,0 +1,87 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-18T00:44:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCountInvariant": 63,
+  "reviewedProjects": [
+    "PCX-026",
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030"
+  ],
+  "concurrentInputWatermark": {
+    "priorResearchCursor": "project-constellation/evolution/2026-08-17T2338Z-prj-020-025.json",
+    "newerProjectDumpEvidenceReadBeforeMutation": [
+      "9bb798006e34c1122e40eae1037144a1247f2001",
+      "73b154d97562aea56403964a45bd200489b47c2e",
+      "f5453dad11b9f247ecbebca86cb9f1c0c0aab178",
+      "030e080c6600e365d7443b4e28658b23d9631277"
+    ],
+    "rule": "Newer user/concurrent edits were treated as authoritative inputs. This pass touched only the scoped wiki/checkpoint/cursor paths."
+  },
+  "findings": {
+    "PCX-026": "Delta-reviewed without a write. ProjectDump AGENTS/governance remains the verified operating source, standalone implementation identity remains unresolved, and the existing read-only policy-engine experiment remains appropriately scoped. No new source evidence justified policy churn.",
+    "PCX-027": "Delta-reviewed without a write. Browser fallback and v0.25.9 hash evidence remain intact, canonical desktop/source identity remains unresolved, and the existing libarchive 3.8.9 experiment remains a sufficient next step. No archive-engine migration was applied.",
+    "PCX-028": "Delta-reviewed without a write. Canonical DirectoryMonitor source remains unresolved; notify 9.0.0-rc.4 and Watchman remain adapter/reconciliation research inputs only. No watcher backend was promoted without the required overflow/final-state fixture.",
+    "PCX-029": "Updated the MCP Bridge wiki with current 2026-07-28 release and SDK migration evidence. The new gate requires recording the actually negotiated protocol revision, preserving legacy lifecycle fallback, proving stateless Streamable HTTP behavior for the new revision, and running official conformance tests only as an additive protocol check after real tool execution proof.",
+    "PCX-030": "Updated Reliable Artifact Publisher with a verified user-owned implementation pattern: ProjectDump wiki-publication status is emitted only after remote Wiki fresh-clone byte comparison and is anchored to the exact source commit, Actions run, and published Wiki master. Added digest-bound provenance verification, explicit missing-provenance state, and a joined publication-evidence receipt model."
+  },
+  "research": {
+    "PCX-029": [
+      "https://blog.modelcontextprotocol.io/posts/2026-07-28/",
+      "https://github.com/modelcontextprotocol/go-sdk/blob/main/README.md",
+      "https://github.com/modelcontextprotocol/go-sdk/blob/main/docs/protocol.md",
+      "https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/migration/support-2026-07-28.md",
+      "https://github.com/modelcontextprotocol/conformance"
+    ],
+    "PCX-030": [
+      "https://github.com/Herbertofury/ProjectDump/commit/9bb798006e34c1122e40eae1037144a1247f2001",
+      "https://docs.sigstore.dev/cosign/verifying/verify/",
+      "https://github.com/sigstore/cosign/issues/4818"
+    ]
+  },
+  "projectConstellationImprovement": {
+    "name": "Publication Evidence Join",
+    "status": "PROPOSE_READ_ONLY",
+    "goal": "Join existing publication-debt, supervisor, GitHub source/status/run/remote-object proof, Drive file identity, remote reread/hash, and optional provenance into one evidence view rather than creating another independent success flag.",
+    "acceptance": "The view is derived only; every displayed success links to the exact source/artifact and independently verified remote evidence; missing signature/attestation is distinct from byte-verification failure; it cannot promote or mutate project verification authority."
+  },
+  "antiRegression": {
+    "projectCountChanged": false,
+    "runtimeCodeChanged": false,
+    "presentationArtifactsChanged": false,
+    "lastAutomationHashChanged": false,
+    "testsWeakened": false,
+    "dataOrFeatureCapsAdded": false
+  },
+  "presentationDecision": "No Quick View/master/PWA/wiki-pack/catalog presentation promotion was attempted. The byte-verified v0.5.0 presentation line remains authoritative because rebuilding from an older presentation base could omit newer concurrent checkpoints. lastAutomationHash remains untouched.",
+  "wikiCoverageAfterPass": 62,
+  "nextResearchCursor": [
+    "PCX-031",
+    "PCX-032",
+    "PCX-033",
+    "PCX-034",
+    "PCX-035"
+  ],
+  "publication": {
+    "githubMain": "RE_READ_VERIFIED",
+    "githubWiki": {
+      "sourceCommit": "721824d90cd28b546f7f1b78a4f58efaa84bb687",
+      "workflowRunId": 32085575122,
+      "workflowConclusion": "success",
+      "wikiPublicationStatus": "success",
+      "publishedWikiMaster": "09c5b8fc26cc88dc0477b6f57b2f6d07d3c8b2e2",
+      "freshCloneByteComparison": "passed"
+    },
+    "googleDrive": {
+      "status": "RE_READ_VERIFIED",
+      "pcx029WikiDocumentId": "15wLrITVo7GWwG7XL47dzRiUyfLrqNaYaqmzjPxy4INE",
+      "pcx030WikiDocumentId": "1Of5O9EfqTC3zkrxzESYibRy062oZy23RfZ7BSu4yFc4",
+      "checkpointDocumentId": "1kpocVeVldmINxXTbZ4U66_WTj7DgMgtlZgNTvhsN6TY",
+      "researchCursorDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "verification": "Both updated wiki mirrors, checkpoint, and cursor were fetched back non-empty after write."
+    },
+    "durability": "DUAL_PUBLISHED_RE_READ_VERIFIED"
+  }
+}

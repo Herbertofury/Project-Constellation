@@ -1,0 +1,17 @@
+/* Project Constellation Performance Engine. Preserve all conversation content and native AI functionality. */
+html[data-project-constellation-enabled="1"][data-project-constellation-responsive-scroll="1"],
+html[data-project-constellation-enabled="1"][data-project-constellation-responsive-scroll="1"] body,
+html[data-project-constellation-enabled="1"][data-project-constellation-responsive-scroll="1"] main,
+html[data-project-constellation-enabled="1"][data-project-constellation-responsive-scroll="1"] [data-scroll-root] {
+  scroll-behavior: auto !important;
+}
+
+/* Adaptive relief is pressure-gated and only targets decorative aria-hidden motion. */
+html[data-project-constellation-enabled="1"][data-project-constellation-motion-relief="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"][class*="animate-"],
+html[data-project-constellation-enabled="1"][data-project-constellation-motion-relief="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"] [class*="animate-"] {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

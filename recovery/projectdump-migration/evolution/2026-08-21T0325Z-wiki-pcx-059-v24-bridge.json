@@ -1,0 +1,75 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-21T03:25:34Z",
+  "projectId": "PCX-059",
+  "projectName": "Feature Foundry Project Brain Bridge",
+  "result": "MATERIAL_WIKI_IMPROVEMENT_DUAL_PUBLISHED",
+  "source": {
+    "repository": "Herbertofury/ProjectDump",
+    "branch": "main",
+    "path": "wikis/PCX-059-feature-foundry-project-brain-bridge.md",
+    "commit": "9af43337d1cbf24ada015127d2b30cffaa9dc4e7",
+    "blob": "193ee077e4ce1039ad4ce99606f412df606cb2fa"
+  },
+  "implementationEvidence": {
+    "repository": "Herbertofury/Feature-Foundry",
+    "branch": "main",
+    "head": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+    "version": "24.0.0",
+    "packagePath": "package.json",
+    "browserRuntimePath": "src/premium.ts",
+    "nativeRuntimePath": "src-tauri/src/lib.rs",
+    "nativeDatabasePath": "src-tauri/src/database.rs",
+    "verifiedPersistence": [
+      "browser localStorage key ff.browser-snapshot.v1",
+      "Tauri save_world_snapshot/load_world_snapshot commands",
+      "app-data living-world-snapshot.json",
+      "feature-foundry.sqlite3 with generic native history events"
+    ],
+    "boundary": "Feature Foundry v24 is now a verified receiving production host, but its current snapshots and generic history storage are living-world/application persistence, not a verified native Project Brain import/export implementation."
+  },
+  "materialChanges": [
+    "Replaced the stale unresolved-receiving-host boundary with the released Feature Foundry v24.0.0 repository and exact current production head.",
+    "Documented the real browser and Tauri living-world snapshot persistence surfaces and the native SQLite ownership relevant to a future Project Brain bridge.",
+    "Separated current living-world/runtime snapshots from the Project Brain contract so JSON persistence cannot be mistaken for identity, stop-point, next-action, blocker, artifact, research, Compass, or supersession parity.",
+    "Added a production-aligned bridge architecture using a separate versioned envelope, validation before persistence, dedicated storage ownership, conflict-aware authority precedence, unknown-field preservation, and independently hashed host artifacts.",
+    "Added deterministic portable, stale-conflict, and host-extension fixtures plus a native integration acceptance matrix covering restart, round-trip, conflict safety, provenance, and non-regression of existing v24 snapshot storage.",
+    "Added current Feature Foundry build, verify, desktop, packaging, modification-map, troubleshooting, and anti-degradation guidance while keeping missing native Project Brain integration fail-closed."
+  ],
+  "publication": {
+    "actualWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-059-feature-foundry-project-brain-bridge",
+    "statusContext": "wiki-publication",
+    "status": "success",
+    "workflowRun": 32443186596,
+    "workflowJob": 96657794392,
+    "checkedOutSourceCommit": "9af43337d1cbf24ada015127d2b30cffaa9dc4e7",
+    "wikiMasterCommit": "6e6dd09d057fc4b14c3d09d0a4ec052ae2ca3810",
+    "publisherPush": "pass",
+    "freshClone": "pass",
+    "completeByteComparison": "pass"
+  },
+  "driveDurability": {
+    "title": "PCX-059 Feature Foundry Project Brain Bridge Wiki",
+    "fileId": "1qBTCWryghe32PGfIgS1H-CdILzMHnV2pCXGdcrKCblM",
+    "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "reread": "pass",
+    "markdownExportBytes": 21761,
+    "markdownSha256": "b63af005c4bfd2b1942d961660657fa8271353e80bc3a3701b42a3026b11d0fc"
+  },
+  "groupReview": {
+    "projects": ["PCX-058", "PCX-059", "PCX-060", "PCX-061", "PCX-062"],
+    "materialUpdate": "PCX-059",
+    "noChurn": [
+      "PCX-058 remains aligned with its recovered revision-16 Project Compass evidence and additive machine-mirror proposal; no newer canonical Compass artifact was resolved in this pass.",
+      "PCX-060 remains aligned with its two-host ACS voice/speech boundary. GameSync Next main has advanced to cd906ff0831bf7fc33b41fea31b6f0c004cc1562, but that merge scope does not materially alter the source-proven voice/TTS/STT acceptance boundary, so no head-only wiki churn was made.",
+      "PCX-061 already records GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and the unmerged preservation-first Petz persistence repair boundary; no stronger merged/runtime evidence was resolved.",
+      "PCX-062 remains truthfully recovery-first because the canonical RuneLite QA Cockpit repository/ZIP is still unresolved; no implementation details were invented."
+    ]
+  },
+  "nextCursor": ["PCX-063", "PRJ-001", "PRJ-002", "PRJ-003", "PRJ-004"],
+  "openWork": [
+    "Build an isolated schema-validated Project Brain envelope and round-trip fixture against Feature Foundry v24 without reusing living-world-snapshot.json or ff.browser-snapshot.v1.",
+    "Prove stale-conflict safety, unknown-field preservation, reproducible canonical hashing, dedicated durable persistence, restart recovery, and import/supersession provenance before claiming native Feature Foundry Project Brain integration.",
+    "Preserve Project Constellation/project-owned durable memory as authority and keep Feature Foundry runtime state an optional linked artifact rather than a cross-project schema dependency."
+  ]
+}

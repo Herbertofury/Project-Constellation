@@ -1,0 +1,64 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-19T06:11:39Z",
+  "status": "ACTIVE",
+  "operatingMode": "NORMAL_OPERATION",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "reviewedProjects": [
+    "PCX-058",
+    "PCX-059",
+    "PCX-060",
+    "PCX-061",
+    "PCX-062"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-061",
+      "project": "Petz Shared Core",
+      "wikiSourcePath": "wikis/PCX-061-petz-shared-core.md",
+      "sourceCommit": "833a3e51537c2a6a42b470ed4160ea8f44ef635a",
+      "sourceBlob": "907d4126aa05fc1c1e29056c93360cedaefac8af",
+      "readerWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-061-petz-shared-core",
+      "wikiWorkflowRun": 32222118258,
+      "wikiMasterCommit": "84354054da26b193ff4a717fb4b0f92f34bc9cd3",
+      "wikiPublication": "success: ProjectDump.wiki.git pushed, fresh-cloned, complete byte comparison passed",
+      "driveWikiFileId": "1z36OOqMO2OY6cu2Ip0Y996n0jxy5jVh00aoQZo7RZUY",
+      "driveWikiFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveMarkdownBytes": 45260,
+      "driveMarkdownSha256": "e66359960e3f50cb731084e590ef7ce0a1ceca027a40deab43ccc5d1fd0fe156",
+      "evidence": {
+        "gameSyncNextMain": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+        "issue": "Herbertofury/GameSync-Next#9 remains open and source-proves load/save key mismatch plus ignored loaded payload on current main",
+        "stagingPullRequest": "Herbertofury/GameSync-Next#10 is draft, unmerged, current head 72669096280904eb0f210d49d3a3e3163f42b106",
+        "stagedRepair": "stable persistenceId; additive serializePet/restorePet; legacy save fallback; host-visible persistence diagnostics; awaited async per-pet teardown saves",
+        "executionBoundary": "exact-head package, regression, Extension V2, parity, Ferrum, patch-integrity, and Secret Scan gates remain unexecuted because private hosted-runner allocation fails before executable steps; no pass/fail is inferred"
+      }
+    }
+  ],
+  "noMaterialChange": [
+    {
+      "projectId": "PCX-058",
+      "reason": "Project Compass Northpoints remains aligned with the verified revision-16 PROJECT-COMPASS.md durable artifact; no newer project-owned intent artifact was resolved."
+    },
+    {
+      "projectId": "PCX-059",
+      "reason": "No newer standalone Feature Foundry project-brain bridge artifact or verified runtime integration superseded the existing boundary."
+    },
+    {
+      "projectId": "PCX-060",
+      "reason": "ACS Voice / Speech Runtime remains current after its recent GameSync Next 0.8.0 dual-host reconciliation; no newer voice-specific implementation delta was resolved."
+    },
+    {
+      "projectId": "PCX-062",
+      "reason": "RuneLite QA Cockpit remains truthfully blocked on recovery of the canonical current repository or latest QA Cockpit ZIP; continuity searches did not resolve source bytes."
+    }
+  ],
+  "nextCursor": [
+    "PCX-063",
+    "PRJ-001",
+    "PRJ-002",
+    "PRJ-003",
+    "PRJ-004"
+  ]
+}

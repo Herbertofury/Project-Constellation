@@ -1,0 +1,159 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-20T18:58:00Z",
+  "group": [
+    "PCX-039",
+    "PCX-040",
+    "PCX-041",
+    "PCX-042",
+    "PCX-043"
+  ],
+  "publicationBacklogAtStart": "CLEAR",
+  "publicationBacklogEvidence": {
+    "previousMaterialWikiCommit": "adfd06cef393b0b5bb198a3f93e5d979e8a7946e",
+    "previousWikiPublicationStatus": "success",
+    "previousWorkflowRun": 32396274360,
+    "noNewerWikiSourceDeltaBeforeRun": true
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PCX-043",
+      "name": "Feature Foundry Production App",
+      "reason": "The connected canonical Feature Foundry repository advanced materially from the old placeholder/recovery-only boundary to a complete released v24.0.0 application with project-owned source, browser/native verification evidence, release packaging, and dual GitHub/Drive release publication.",
+      "projectAuthority": {
+        "repository": "Herbertofury/Feature-Foundry",
+        "branch": "main",
+        "latestObservedMain": "e1ba080b5c7590f1c844a6ed13b3a471709920b9",
+        "releasedVersion": "24.0.0",
+        "releaseImplementationCommit": "7dced5c61b83ce2478acee135b784abdbc5b3df5",
+        "completeReleaseBundleCommit": "f6ee83bdea159b1409954399a4b54cb1442dc104",
+        "taggedRelease": "https://github.com/Herbertofury/Feature-Foundry/releases/tag/v24.0.0",
+        "driveReleaseFolderId": "1eU95XQZNq-3mc9HvY08JbClSBTu7tXYY",
+        "authorityLanes": {
+          "currentCanonicalSourceAndRelease": "Feature Foundry v24.0.0",
+          "historicalRunnableBenchmark": "V33 FINAL_READY",
+          "historicalParallelProjectOperationsRecovery": "GameSync / Feature Foundry V2-253"
+        }
+      },
+      "verifiedDelta": {
+        "canonicalRepositoryNoLongerPlaceholder": true,
+        "productStack": [
+          "TypeScript 7",
+          "Vite 8",
+          "Three.js/WebGL",
+          "Tauri 2",
+          "Rust",
+          "bundled SQLite"
+        ],
+        "runtimeAuthority": {
+          "approvedThemePackages": 17,
+          "themeWorlds": 17,
+          "rooms": 34,
+          "weatherSystems": 17,
+          "ecologyObjects": 85,
+          "artistWorlds": 10,
+          "verificationCatalogWorlds": 27
+        },
+        "projectOwnedVerification": [
+          "V24 source contract",
+          "data authority",
+          "TypeScript",
+          "Rust",
+          "optimized production build",
+          "1536x1024 browser interaction/screenshot"
+        ],
+        "nativeRuntime": {
+          "tauriIdentifier": "com.featurefoundry.livingworld",
+          "rustFloor": "1.88",
+          "tauri": "2.11.5",
+          "rusqlite": "0.40.2"
+        },
+        "publishedDriveArtifacts": [
+          {
+            "name": "Feature-Foundry-v24.0.0-source.zip",
+            "fileId": "1tKvfMHe4bYV_tlZy_WLe4vaDeMECTkrq",
+            "bytes": 6998572,
+            "sha256": "b8701b37328277667820af9f6ea630f33d13d1c9ffaa9827b914328895fc97c2"
+          },
+          {
+            "name": "Feature-Foundry-v24.0.0-web.zip",
+            "fileId": "1SsDrkQxct_-DCB_qqWDrsBgA6rDsdt7y",
+            "bytes": 328556,
+            "sha256": "99f3714e5cae72e726711ebed0821ed09dbc1cadd7ab470afa2c3ad5f9f48726"
+          },
+          {
+            "name": "Feature-Foundry-v24.0.0-windows-x64-setup.exe",
+            "fileId": "1TH-uZzg6r4ef0Qos6AjR5ZFjuSn10kV7",
+            "bytes": 2003721,
+            "sha256": "b4ac90edf1213f3e5a9a1a8724184ae2e97bc30da3f69f877aadfe71819dc49a"
+          },
+          {
+            "name": "Feature-Foundry-v24.0.0-windows-x64.msi",
+            "fileId": "1S7bOwzr3by8vAbEYiqxKE62vKy7ze5-g",
+            "bytes": 2633728,
+            "sha256": "29a42693cc630d3aec72d137297063eab8f7c08ec21828cb8efd3871e025b157"
+          },
+          {
+            "name": "Feature-Foundry-v24.0.0-complete-release.zip",
+            "fileId": "1PvBdu6sD8bm3AYnLmCnR4Hdo_HUNCbF2",
+            "bytes": 11716663,
+            "sha256": "593b3e0be60ab694ddd8fbe9e3bc48c3b2c443a542d0eb41390b09596707f54b"
+          }
+        ]
+      },
+      "githubSource": {
+        "repository": "Herbertofury/ProjectDump",
+        "path": "wikis/PCX-043-feature-foundry-production-app.md",
+        "commit": "8f7569e1bd1c9a61a7df244719c80301433791c7",
+        "blob": "724ff59bab327b455ca619684de7c7cbb6618aae"
+      },
+      "actualWikiPublication": {
+        "status": "success",
+        "workflowRun": 32405841257,
+        "job": 96544603544,
+        "sourceCheckout": "8f7569e1bd1c9a61a7df244719c80301433791c7",
+        "wikiMasterCommit": "eaf21cc619e85426693931931da0b304f812eccc",
+        "freshCloneByteComparison": "pass",
+        "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-043-feature-foundry-production-app"
+      },
+      "driveMirror": {
+        "fileId": "1DDpn4uhmaKjcroZUNMM23WWEapS2Ul9jKKItrcr20AI",
+        "title": "PCX-043 Feature Foundry Production App Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "reread": "pass",
+        "markdownExportBytes": 34004,
+        "markdownExportSha256": "142a32682745d1ac6a0fe37f0f3e95a018dca752ee4aa502fe60ba2793d4b07e"
+      }
+    }
+  ],
+  "rechecks": [
+    {
+      "projectId": "PCX-039",
+      "result": "no material wiki source change",
+      "evidence": "No newer canonical standalone Webmeji project source was resolved beyond the already documented Shijima-Web differential reference and existing GameSync host evidence."
+    },
+    {
+      "projectId": "PCX-040",
+      "result": "no material wiki source change",
+      "evidence": "Pinterest Nocturne current project-owned repository remains on the documented 2.0.0 bootstrap/release line; no newer main-source delta justified churn."
+    },
+    {
+      "projectId": "PCX-041",
+      "result": "no material wiki source change",
+      "evidence": "No newer verified project-owned ChatGPT Ultimate Optimizer source/release evidence was resolved beyond the current v1.0.1 documentation boundary."
+    },
+    {
+      "projectId": "PCX-042",
+      "result": "no material wiki source change",
+      "evidence": "GameSync Next current merged authority remains cd906ff0831bf7fc33b41fea31b6f0c004cc1562; later connected work remains proposal/draft branches rather than a newer merged product authority."
+    }
+  ],
+  "publicationState": "DUAL_PUBLISHED_VERIFIED",
+  "nextCursor": [
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047",
+    "PCX-048"
+  ]
+}

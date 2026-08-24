@@ -1,0 +1,37 @@
+{
+  "schema": "project-constellation.v0.11-checkpoint/2",
+  "version": "0.11.1",
+  "status": "verified-static",
+  "continuity": {
+    "predecessor": "v0.11.0 checksum manifest recovered from Google Drive",
+    "predecessorChecksumFileId": "19_RIzyDoJjt0rTXAk8gYgStqP_7fsV60",
+    "predecessorPayloadStatus": "referenced source/unpacked/png/checkpoint payloads not located in current accessible Drive search",
+    "policy": "do not claim byte identity; continue as patch release v0.11.1"
+  },
+  "artifact": "Project-Constellation-v0.11.1-Atlas-Chat-Guardian.zip",
+  "artifactSha256": "e8bad053b611497884cf79356533df88cffec17fa7528a56becb12e254009924",
+  "contracts": {
+    "knowledgeGraph": "implemented",
+    "entityTypes": ["recommendation","url","artifact","repository","package","code","decision","todo","version","command","project_state","checkpoint"],
+    "searchPopup": "implemented",
+    "incrementalIngestion": "implemented-newly-completed-assistant-turns",
+    "existingCapturePipelineIntegration": "documented",
+    "contentFingerprintDedupe": "implemented",
+    "boundedResumableBackfill": "implemented-contract-plus-current-loaded-chat-action",
+    "allHistoryBackfillExecuted": false,
+    "fullHistoryRescanOnHome": false,
+    "globalPromptInjection": false,
+    "chatGuardianHud": "implemented-configurable-bottom-corner",
+    "thinkingAndToolActivity": "implemented-best-effort-dom-signals",
+    "stallWarnings": "implemented",
+    "autoRetryOrResubmit": false,
+    "runwayGuard": "implemented-estimated-visible-content",
+    "automaticLocalHandoffCheckpoint": "implemented",
+    "copyHandoff": "implemented",
+    "degradationSignal": "implemented-conservative",
+    "newPageBuildSignal": "implemented-best-effort"
+  },
+  "validation": ["npm test: 4/4 pass","npm run verify: pass","node --check background.js/content.js/atlas.js/options.js: pass","ZIP integrity: pass"],
+  "visualRuntime": "Chromium preview attempt was blocked by container D-Bus timeout; live logged-in ChatGPT visual/runtime success is not claimed",
+  "notes": ["Runway is deliberately labeled an estimate because ChatGPT may virtualize/unload older DOM turns.","The standalone extension does not independently crawl thousands of historical chats; the existing Project Constellation capture/headless pipeline is the bounded resumable backfill source.","Exactly 63 tracked projects remains invariant; Atlas is an addon/evidence index, not a 64th project."]
+}

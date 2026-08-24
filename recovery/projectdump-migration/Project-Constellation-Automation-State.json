@@ -1,0 +1,316 @@
+{
+  "schema": "project-constellation.automation-state/3",
+  "version": "0.5.1",
+  "operatingMode": "NORMAL_OPERATION",
+  "recoveryMode": false,
+  "updatedAt": "2026-08-19T08:00:00Z",
+  "catalogProjectCount": 63,
+  "canonical": {
+    "repository": "Herbertofury/ProjectDump",
+    "branch": "main",
+    "path": "project-constellation/",
+    "driveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "startup": "Read GitHub project-constellation state and Drive active artifacts; recovery is fallback-only after verified integrity failure."
+  },
+  "mergeBase": {
+    "quickViewDriveFileId": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5",
+    "masterCommandCenterDriveFileId": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci",
+    "quickViewMatchedPriorLastAutomationHash": true,
+    "masterMatchedPriorLastAutomationHash": true,
+    "userEditedArtifactDetected": false,
+    "historical25ProjectDatabase": "historical source detail only; never promote over current 63-record catalogue",
+    "lastVerifiedPresentationLineage": "0.5.1"
+  },
+  "lastAutomationHash": {
+    "Bert_Project_Second_Brain_Website.zip": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c",
+    "Bert_Project_Constellation_Quick_View.html": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8",
+    "Bert_Project_Wiki_Pack.zip": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891",
+    "Project-Constellation-Project-Catalog.json": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+    "Project-Constellation-Research-Suggestions.json": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6"
+  },
+  "driveArtifacts": {
+    "Bert_Project_Second_Brain_Website.zip": {
+      "id": "1R2GM6-BqDDCJPEpjtGDx6AiOrpDzY_4u",
+      "sha256": "f49eb085c230da9ea2c62b2d4e91770be0b2638bf47a188fa43f6ff2b537893c",
+      "size": 144481,
+      "verification": "canonical Drive remote re-download SHA-256 and size matched before GitHub publication"
+    },
+    "Bert_Project_Constellation_Quick_View.html": {
+      "id": "1DQIrgE7feVdUKfan2QhExRL4BGqRXYT5",
+      "sha256": "8234e889c6b8cae67158c3cec525e3607bb8403173cf095e80c1b7ffd597ffe1",
+      "size": 128283,
+      "verification": "canonical Drive remote re-download SHA-256 and size matched before GitHub publication"
+    },
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+      "id": "1cCgiPwBYhUFnsjPcz6uZwngGJafLHMci",
+      "sha256": "dd1f852bf4f7d677d3a499a7238359dff55aa6a3bc3f338c534dca2c89faa1a8",
+      "size": 143064,
+      "verification": "canonical Drive remote re-download SHA-256 and size matched before GitHub publication"
+    },
+    "Bert_Project_Wiki_Pack.zip": {
+      "id": "1yFHcbRzkH857STKviZTH_aXb4LG9Lc24",
+      "sha256": "9be52cefe088ef3b4dbdac906073c21f3b48c4265f25bff02aec5a0010163891",
+      "size": 183831,
+      "verification": "canonical Drive remote re-download SHA-256 and size matched before GitHub publication"
+    },
+    "Project-Constellation-Project-Catalog.json": {
+      "id": "1-ks_2aRKgKQ-O7Y9LHte7w_Xk5t16egq",
+      "sha256": "79c43dde274c7e4420a27d35ff58fdea4b7bdfc4c5cc412ad527c995eb8977ab",
+      "size": 116737,
+      "verification": "canonical Drive remote re-download SHA-256 and size matched before GitHub publication"
+    },
+    "Project-Constellation-Research-Suggestions.json": {
+      "id": "1wHu3owwVTXI7akLfq4Vwqph_Da4vong8",
+      "sha256": "c20f76e5eba87a21769dfe582ce8690e0b3dc62570e05ea8e5be87b9a610cac6",
+      "size": 13295,
+      "verification": "canonical Drive remote re-download SHA-256 and size matched before GitHub publication"
+    }
+  },
+  "researchCursor": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ],
+  "nextResearchCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ],
+  "appResearch": "Propose a read-only Capability Truth Lens generated from project-owned evidence that summarizes verified, implemented-unverified, gap, and stale-verification states with exact evidence destinations, while never allowing the Project Constellation presentation layer to mutate verification authority.",
+  "changes": [
+    "Project Constellation remains ACTIVE / NORMAL_OPERATION with exactly 63 projects.",
+    "PCX-036 Project Constellation: added a detailed control-plane wiki and materialized Project-Constellation-Project-Catalog.json as a current 63-record machine source using the byte-verified v0.5.0 Quick View plus additive current evidence overlays; old recoveryHistory fields were preserved.",
+    "Added Project-Constellation-Technology-Radar.json and a current Project-Constellation-Research-Suggestions.json with explicit propose/observe/reject decisions rather than blind upgrades.",
+    "PCX-037 Shimeji Desktop: resolved DalekCraft2/Shimeji-Desktop as an active JDK 25/Maven/DPI/backward-compatibility benchmark at dea89528c10c066626a09609f0e742cbe6405a8d; user-owned canonical source remains unresolved; archived Shijima-Qt is rejected as a new base.",
+    "PCX-038 Shimeji Browser Extension: reconfirmed the documented GameSync implementation against current Gamesync main a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928; standalone source remains unresolved and the current detailed wiki stays valid.",
+    "PCX-039 Webmeji: resolved lars-rooij/webmeji as the current direct behavior reference and current Gamesync mascot-contract Webmeji settings as integration evidence; published a detailed Webmeji wiki; user-owned standalone source remains unresolved.",
+    "PCX-040 Pinterest Nocturne: v1.9.0 remains latest-good. scheduler.yield is recorded only as a feature-detected proposal because it is not Baseline; web-vitals 6.0.0 is rejected as a production dependency because targeted project fixtures already provide stronger correctness evidence.",
+    "Published new detailed wikis for PCX-036, PCX-037 and PCX-039 and updated the wiki index to 23 tracked projects.",
+    "PCX-041 ChatGPT Ultimate Optimizer: resolved Drive release manifest v1.0.1 at commit 78a92c68a07b49e152723457fcfb80fb03baf564 with exact artifact hashes and test evidence; published a detailed wiki and recorded current ChatGPT Work/Projects/Search/desktop UI drift as the next runtime-compatibility target.",
+    "PCX-042 GameSync Next: revalidated current main at 9e337c720f0180cffa577f140b181c699f0a1650 and preserved the existing detailed parity/runtime wiki; no unverified stack churn was applied.",
+    "PCX-043 Feature Foundry Production App: promoted the durable V33 FINAL_READY checkpoint as the strongest verified runnable lineage while keeping the minimal GitHub repository explicitly non-authoritative for production source; published a detailed production-app wiki.",
+    "PCX-044 Feature Foundry Living Ecology: documented V33 ecology/runtime guarantees, presentation-tier content parity, causal signal/replay behavior, and a deterministic replay-fixture next experiment; published a detailed wiki.",
+    "PCX-045 Feature Foundry Object Intelligence: documented the Object Atlas/object-semantics contract and recorded Khronos KHR_interactivity as a release-candidate interchange experiment rather than a replacement for the internal model; published a detailed wiki.",
+    "Detailed source-controlled wiki coverage increased from 23 to 27 tracked projects.",
+    "PCX-046 Feature Foundry Source Hubs: verified the V33 functional six-provider soundtrack hub and preserved its truthful external-navigation/no-remote-playback boundary; documented a capability/auth matrix using current Spotify PKCE, Apple MusicKit and OAuth BCP 240 evidence.",
+    "PCX-047 Favorite Artist Worlds Database: resolved v4.0.1 as the verified current preservation-first data line with 5 artists, 10 world variants, 20 districts, 20 weather systems, 25 interaction rules, 21 music routes, 75 discovery links and 50 provenance records; proposed SQLite 3.53.4 fixture/query-plan validation without changing curated content.",
+    "PCX-048 GameSync Theme Foundry: recovered the 0.25.9 Theme Foundry/Feature Foundry checkpoint and North Star no-cap validation; proposed a Design Tokens 2025.10 interchange adapter instead of replacing the richer canonical theme/world contract.",
+    "PCX-049 GameSync Live Mascot Tavern: recovered the Moonwake Rest House native-engine line, exact full archive hash 87c4380af9e5bf405dca67c07160086a79cb2e9e3f1381cc23120ffaac7678f4, 14.45% duplicate/stale bundle reduction, native engine capability preservation and blocked browser-runtime boundary; proposed a deterministic cross-engine room/restart fixture.",
+    "PCX-050 GameSync Real Library Performance: recovered the O(n) Steam merge, portrait-first cover and complete-library telemetry pass; revalidated shipping @sqlite.org/sqlite-wasm ^3.53.0-build1 and proposed a SQLite 3.53.4 OPFS VFS A/B only after a real RESYNC_STEAM baseline.",
+    "Published detailed source-controlled wikis for PCX-046 through PCX-050, fetched all five back successfully, and increased detailed target-project wiki coverage from 28 to 33.",
+    "Advanced Project-Constellation-Technology-Radar.json through PCX-050 and preserved the six-file presentation publication debt without changing lastAutomationHash or regenerating unchanged presentation bytes.",
+    "PCX-051 GameSync Capability Truth / UI QoL: resolved the GameSync Next parity matrix plus executable parity audit as the current machine truth authority and published a detailed wiki for a generated read-only Capability Truth surface with stale-evidence detection and no presentation-layer verification override.",
+    "PCX-052 GameSync Release Factory: recorded GitHub artifact attestations and release-asset digest verification as an additive provenance layer after existing deterministic manifest/hash/fresh-extraction gates, never as a substitute for runtime verification.",
+    "PCX-053 GameSync Bounty / Rewards Runtime: preserved the deterministic local proof ledger and ready-to-claim versus externally-claimed boundary after confirming Twitch Drops Entitlements is an organization/game-owner integration surface rather than a universal viewer-side truth API.",
+    "PCX-054 GameSync Source Finder / Entity Resolver: verified Typesense 30.2 and Meilisearch 1.53.1 directly from their current GitHub Releases API endpoints and recorded SQLite FTS5 as a local candidate for a backend-neutral Search Backend Arena focused on false merges, recall, latency, provenance, offline behavior, and update cost; no backend migration was applied.",
+    "PCX-055 GameSync Script Polling Runtime: identified a restart-resilience gap in the current ScriptPollScheduler and proposed idempotent startup alarm recreation plus persisted due-time catch-up using current Chrome alarms/service-worker lifecycle guidance; no runtime code was changed without Opera/Ferrum verification.",
+    "Added the missing PCX-051 detailed wiki, updated the wiki index to 35 tracked projects, recorded the PCX-051 through PCX-055 evolution checkpoint, and advanced the research cursor to PCX-056 through PCX-060.",
+    "Corrected an initially stale Meilisearch v1.45.1 web-search result after the connected GitHub Releases API proved v1.53.1, published 2026-08-13, is current; durable checkpoint/state evidence now uses v1.53.1.",
+    "Preserved the six-file presentation publication debt and all prior lastAutomationHash values because no presentation candidate was remotely byte-published or verified this pass.",
+    "Recovered and verified Project Constellation v0.5.1 publication to canonical GitHub bytes after exact browser and Drive acceptance; all six GitHub objects were independently re-read from the published commit before lastAutomationHash promotion."
+  ],
+  "researchDecisions": [
+    {
+      "project": "PCX-041",
+      "decision": "PROPOSE",
+      "source": "OpenAI ChatGPT release notes",
+      "checked": "2026-08-17",
+      "finding": "ChatGPT now exposes Work, desktop Projects, unified Recents, broader cross-content search and a changed desktop information architecture.",
+      "nextExperiment": "Build a surface capability matrix and run real current-browser drift tests before selector changes."
+    },
+    {
+      "project": "PCX-042",
+      "decision": "OBSERVE",
+      "source": "Herbertofury/GameSync-Next main",
+      "checked": "2026-08-17",
+      "finding": "Current main remains 9e337c720f0180cffa577f140b181c699f0a1650; existing parity/runtime documentation remains current.",
+      "nextExperiment": "Preserve current main and revisit only when repository or upstream dependency evidence changes."
+    },
+    {
+      "project": "PCX-043",
+      "decision": "OBSERVE",
+      "source": "Feature Foundry V33 FINAL_READY Drive checkpoint",
+      "checked": "2026-08-17",
+      "finding": "V33 is remotely byte-verified and passes 101/101 V33 runtime, 117/117 legacy runtime and 22/22 static assertions with zero missing legacy handlers.",
+      "nextExperiment": "Resolve maintainable V33-equivalent source/worktree before migration work."
+    },
+    {
+      "project": "PCX-044",
+      "decision": "PROPOSE",
+      "source": "PixiJS releases + Rapier repositories/npm",
+      "checked": "2026-08-17",
+      "finding": "PixiJS 8.18.1 is current stable; rapier.js is archived while the Rust core remains active and npm JS bindings remain 0.19.3.",
+      "nextExperiment": "Keep physics behind an adapter and add a fixed cross-tier ecology replay fixture before any physics-stack change."
+    },
+    {
+      "project": "PCX-045",
+      "decision": "PROPOSE",
+      "source": "Khronos glTF KHR_interactivity",
+      "checked": "2026-08-17",
+      "finding": "KHR_interactivity is a Release Candidate submitted for ratification and supports portable behavior graphs; related physics/collision extensions are less mature.",
+      "nextExperiment": "Prototype a three-object import/export round trip without changing the canonical Object Atlas model."
+    },
+    {
+      "project": "PCX-046",
+      "decision": "PROPOSE",
+      "source": "Feature Foundry V33 + Spotify/Apple Music/OAuth current primary docs",
+      "checked": "2026-08-17",
+      "finding": "V33 already has a functional six-provider persisted navigation hub; current authenticated provider behavior requires provider-specific capability/auth handling, including Spotify PKCE and Apple MusicKit user authorization.",
+      "nextExperiment": "Add a non-destructive provider capability/auth matrix and exercise Spotify PKCE plus Apple MusicKit web auth while retaining all six existing navigation fallbacks."
+    },
+    {
+      "project": "PCX-047",
+      "decision": "PROPOSE",
+      "source": "Favorite Artist Worlds v4.0.1 + SQLite 3.53.4",
+      "checked": "2026-08-17",
+      "finding": "v4.0.1 is the verified data line and SQLite 3.53.4 is current stable with planner/fix changes relevant to relationship-heavy discovery workloads.",
+      "nextExperiment": "Run unchanged v4.0.1 integrity/FK/FTS/stable-ID/query fixtures under 3.53.4 and compare query plans and latency before adopting any engine change."
+    },
+    {
+      "project": "PCX-048",
+      "decision": "PROPOSE",
+      "source": "GameSync 0.25.9 North Star evidence + Design Tokens 2025.10 + CSS Color 4",
+      "checked": "2026-08-17",
+      "finding": "The GameSync/Feature Foundry theme line has strong complete-data/no-cap validation. Design Tokens 2025.10 is a stable interchange format while CSS Color 4 remains a candidate-recommendation draft.",
+      "nextExperiment": "Round-trip one theme through a Design Tokens 2025.10 adapter without changing the canonical richer theme package or host behavior."
+    },
+    {
+      "project": "PCX-049",
+      "decision": "ADOPT_AS_PRESERVATION_CONTRACT",
+      "source": "GameSync 0.25.9 Live Mascot Tavern durable status",
+      "checked": "2026-08-17",
+      "finding": "The verified line bridges real ACS/Shimeji/WebMeji/Petz engines and explicitly removes fake mascot simulation while preserving native state and reducing duplicate/stale bundle bytes.",
+      "nextExperiment": "Create a capability-by-capability room interaction and full-restart fixture across one representative from every available engine before bridge refactoring."
+    },
+    {
+      "project": "PCX-050",
+      "decision": "PROPOSE",
+      "source": "GameSync Real Library Performance Pass 1 + current Gamesync package.json + SQLite WASM persistence docs",
+      "checked": "2026-08-17",
+      "finding": "Shipping GameSync uses sqlite-wasm ^3.53.0-build1; SQLite 3.53.4 is current stable and offers opfs/opfs-wl/opfs-sahpool tradeoffs. The project already captures full-library performance telemetry and forbids culling/quality reduction.",
+      "nextExperiment": "Capture real RESYNC_STEAM/gsLastSteamSyncPerformance first, then A/B 3.53.4 VFS choices on the identical complete library with concurrency/restart gates."
+    },
+    {
+      "project": "PCX-051",
+      "decision": "PROPOSE",
+      "source": "GameSync Next parity matrix + audit script",
+      "checked": "2026-08-17",
+      "finding": "GameSync Next already models verified, implemented-unverified and gap states and enforces evidence/source/test semantics with an executable parity audit.",
+      "nextExperiment": "Generate a read-only Capability Truth surface one-to-one from the matrix and assert exact status/evidence parity plus stale-source detection."
+    },
+    {
+      "project": "PCX-052",
+      "decision": "PROPOSE",
+      "source": "GitHub artifact attestation + release asset API documentation",
+      "checked": "2026-08-17",
+      "finding": "GitHub supports Sigstore-backed build provenance and release-asset digest identity that can supplement GameSync's existing internal release evidence.",
+      "nextExperiment": "Attest one already-verified release candidate and require internal SHA-256, GitHub asset digest and attestation subject to match before promotion."
+    },
+    {
+      "project": "PCX-053",
+      "decision": "PRESERVE_BOUNDARY",
+      "source": "Twitch Get Drops Entitlements API documentation",
+      "checked": "2026-08-17",
+      "finding": "Drops entitlement access is designed around game-owner/organization authorization and cannot replace all viewer-side browser/session reward evidence.",
+      "nextExperiment": "Fixture separate manual, browser-session, provider-entitlement and external-claim evidence classes and prove contradictory/missing evidence cannot become a false claim."
+    },
+    {
+      "project": "PCX-054",
+      "decision": "PROPOSE",
+      "source": "Typesense 30.2 + Meilisearch 1.53.1 + SQLite FTS5 primary sources",
+      "checked": "2026-08-17",
+      "finding": "Connected GitHub Releases API confirms Typesense 30.2 and Meilisearch 1.53.1 are the current stable server releases; local/remote backends have materially different retrieval, offline and provenance tradeoffs while shipping GameSync already has a backend-normalizing boundary.",
+      "nextExperiment": "Run a labeled-corpus Search Backend Arena and require no increase in false entity merges before any migration."
+    },
+    {
+      "project": "PCX-055",
+      "decision": "PROPOSE",
+      "source": "Chrome alarms + extension service worker lifecycle documentation",
+      "checked": "2026-08-17",
+      "finding": "Required alarms should be checked/recreated at service-worker startup because alarm persistence across restart is not guaranteed; current ScriptPollScheduler installs a listener and creates its poll alarm but does not visibly ensure the alarm exists on every worker startup.",
+      "nextExperiment": "Add idempotent ensure-alarm logic on a proposal branch, preserve ScriptDb due times as truth, then test worker/browser restart and overdue catch-up in real Opera/Ferrum before promotion."
+    }
+  ],
+  "candidatePresentationRefresh": {
+    "status": "COHERENT_CANDIDATE_GENERATED_STATIC_VALIDATION_PASS_REMOTE_PUBLICATION_PENDING",
+    "requiresRegeneration": false,
+    "reason": "A coherent six-artifact candidate line was regenerated from the current 63-record machine catalog while preserving every record recoveryHistory. JSON, JavaScript syntax, local links and ZIP integrity passed. Chromium runtime execution was attempted but the environment again timed out during D-Bus/zygote initialization with zero DOM bytes, so browser interaction success is not claimed. Raw connector egress for generated local files is blocked, so remote Drive byte publication remains pending. The 06:48Z pass added source-controlled detailed Markdown documentation and research/checkpoint evidence without changing the 63-record presentation catalog, so the candidate presentation bytes were not ceremonially regenerated.",
+    "candidate": {
+      "Bert_Project_Second_Brain_Website.zip": {
+        "sha256": "da3565a01ded83eb427971ce0e541ee553eb64652c6c5aab6ffbad507c632594",
+        "size": 63670
+      },
+      "Bert_Project_Constellation_Quick_View.html": {
+        "sha256": "0cbd6c1f606c9f327138317dc8a3e98ddce93c2e3cbfe438e6c5e9e8a28d26",
+        "size": 133622
+      },
+      "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": {
+        "sha256": "d51e989ad7604316d8a24e5401d7ac8344d3d976bd238bebbf58b29c27f41afa",
+        "size": 147441
+      },
+      "Bert_Project_Wiki_Pack.zip": {
+        "sha256": "c99ab3ced0af7ed4aeaab1152e225f64cac73014ac3a4940e44dd496e85b3ddd",
+        "size": 127507
+      },
+      "Project-Constellation-Project-Catalog.json": {
+        "sha256": "9b333438bd2113eee994ec7130a56e82d2f2610cc880f054962fdb14cf8ee63f",
+        "size": 123738
+      },
+      "Project-Constellation-Research-Suggestions.json": {
+        "sha256": "29914a090a0171fe83bc55709a794f554fa39c4f4ad574c9feaff03cb6c33b4f",
+        "size": 12583
+      }
+    }
+  },
+  "publicationDebt": {
+    "status": "PENDING_REMOTE_BYTE_PUBLICATION",
+    "reason": "The coherent current candidate set exists and passed static/package integrity gates. Connector egress blocks generated local files from Drive upload/replace in this runtime, so the older byte-verified Drive artifacts remain canonical until the new six-file set can be uploaded and remotely hashed.",
+    "sourceCheckpoint": "EVOLUTION-CHECKPOINT-2026-08-17-0545Z",
+    "nextAction": "Publish the exact candidate bytes recorded here to Drive and GitHub presentation storage, re-read or re-download all six remote objects, verify SHA-256/size, exercise browser runtime in a functioning graphical/headless environment, then promote lastAutomationHash."
+  },
+  "validation": {
+    "projectCount63": "pass: canonical automation state and byte-verified v0.5.0 Quick View retain exactly 63 records",
+    "sourceAuthorityReview": "pass: PCX-051 through PCX-055 compared against current shipping GameSync, GameSync Next, connected current GitHub Releases API, parity/audit source and current primary GitHub/Twitch/SQLite/Chrome documentation",
+    "wikiPublication": "pass by remote reread: PCX-051 complete intended wiki content present and wiki index reports 35 detailed target-project wikis",
+    "machineCatalogJson": "pass from prior candidate: JSON parsed, 63 records, existing recoveryHistory preserved",
+    "researchSuggestionsJson": "pass from prior candidate; not overwritten this run because the presentation candidate remains publication-pending",
+    "technologyRadarJson": "unchanged this run; research decisions are preserved in the corrected 06:48Z evolution checkpoint and automation state rather than partially rewriting the existing radar",
+    "presentationRegeneration": "not required this run: source-controlled wiki/research evidence changed without changing the 63-record presentation catalog; existing coherent candidate remains publication-pending",
+    "driveRemoteHashRoundTrip": "pending for six candidate presentation/machine artifacts because generated local-file egress is blocked; older canonical Drive bytes remain previously verified",
+    "javascriptSyntax": "pass from prior regenerated candidate",
+    "jsonParse": "pass by remote reread for corrected automation state/evolution checkpoint structures",
+    "localLinks": "pass by remote reread of PCX-051 wiki and updated wiki index",
+    "wikiPages63": "pass from prior generated Wiki Pack candidate",
+    "zipIntegrity": "pass from prior candidate",
+    "driveCheckpoint": "pass: ACTIVE CHECKPOINT updated and remotely reread with the 06:48:36Z run entry and next cursor",
+    "browserRuntime": "not rerun because no Project Constellation presentation/runtime bytes changed this pass; no GameSync runtime code was changed without the required Opera/Ferrum verification environment"
+  },
+  "browserRuntime": "prior regenerated Quick View Chromium attempt timed out rc=124 with 0 DOM bytes after D-Bus/zygote initialization failures; interaction success is not claimed and no Project Constellation runtime bytes changed this pass",
+  "nextRunContract": {
+    "classifyProjectConstellationAs": "ACTIVE",
+    "operatingMode": "NORMAL_OPERATION",
+    "performBroadRecoverySweep": false,
+    "locateAndHashCanonicalArtifactsFirst": true,
+    "preserveNewerUserEdits": true,
+    "preserveAll63Projects": true,
+    "rotateResearchBatchAboutFive": true,
+    "nextResearchCursor": [
+      "PCX-056",
+      "PCX-057",
+      "PCX-058",
+      "PCX-059",
+      "PCX-060"
+    ],
+    "researchAppQolWhenFresh": true,
+    "onlyWriteArtifactsForMeaningfulChange": true,
+    "resolveEvidenceCoverageBeforeStackMigration": true,
+    "retryPublicationDebtWhenCapable": true,
+    "publishMeaningfulCheckpointToDrive": true,
+    "verifyRemoteCheckpointBytes": true
+  }
+}

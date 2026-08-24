@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=fs.readFileSync(new URL('../extension/src/core.js',import.meta.url),'utf8');
+const context={globalThis:{},module:{exports:{}},Date};context.globalThis=context;vm.createContext(context);vm.runInContext(source,context);
+const { PressureWindow }=context.ProjectConstellationPerformance;
+const p=new PressureWindow({pressureWindowMs:5000,highPressureLongTaskMs:300,highPressureLongTaskCount:4,recoveryQuietMs:3000});
+assert.equal(p.snapshot(1000).pressure,'normal');
+p.addLongTask(120,1000);p.addLongTask(120,1200);p.addLongTask(120,1400);assert.equal(p.snapshot(1400).pressure,'high');
+assert.equal(p.tick(5000).pressure,'high');assert.equal(p.tick(7000).pressure,'normal');
+p.reset();assert.equal(p.snapshot().pressure,'normal');
+console.log('core.test.mjs: PASS');

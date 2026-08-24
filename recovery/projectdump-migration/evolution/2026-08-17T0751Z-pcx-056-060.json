@@ -1,0 +1,142 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-17T07:51:50Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCountInvariant": 63,
+  "baseProjectDumpMain": "7100b414fa5798e64da171de6670c803b19fed51",
+  "reviewedProjects": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ],
+  "findings": [
+    {
+      "project": "PCX-056",
+      "name": "GameSync Mod Health",
+      "decision": "PROPOSE_PROVIDER_METADATA_EVIDENCE_LANE",
+      "fact": "Nexus Mods states that API v3 is its current actively developed public API. Current v3 endpoints expose mod, mod-file, mod-file-version, and dependency data. The existing GameSync Mod Health implementation already preserves a separate Posts/Bugs community evidence pipeline.",
+      "sources": [
+        "https://github.com/Nexus-Mods",
+        "https://api.nexusmods.com/v3"
+      ],
+      "benefit": "Add authoritative provider metadata/version/dependency evidence without replacing community problem reports or enabling destructive automatic repair.",
+      "integrationCost": "medium",
+      "risks": "Authentication/rate limits/provider outages; provider metadata cannot prove community runtime compatibility; false automation if evidence classes are collapsed.",
+      "migrationPath": "Add provider metadata as a distinct evidence class behind the existing source/evidence boundary. Preserve Posts/Bugs analysis and user-visible provenance.",
+      "experiment": "For a labeled set of Nexus mods, compare API v3 version/dependency metadata with current community findings and verify contradictory signals remain separately visible.",
+      "acceptance": "No mod state is changed automatically; mod/file/version IDs and provenance survive; auth/provider failure is isolated; community evidence remains visible; real Opera/Ferrum flow is required before promotion."
+    },
+    {
+      "project": "PCX-057",
+      "name": "Project Catalog / Cross-Chat Database",
+      "decision": "FIX_CONTINUITY_GAP_AND_PROPOSE_CANONICAL_HASHING",
+      "fact": "The current Project Constellation handoff references a standalone Project-Constellation-Project-Catalog.json, but this pass found no such file in ProjectDump main and no exact-name Drive object. The active v0.5.0 Quick View still embeds the 63-record dataset, while USER-PROJECTS-DATABASE.md is historical 25-project evidence only.",
+      "sources": [
+        "Herbertofury/ProjectDump project-constellation directory",
+        "Project Constellation v0.5.0 Quick View",
+        "USER-PROJECTS-DATABASE.md",
+        "https://json-schema.org/specification",
+        "https://www.rfc-editor.org/rfc/rfc8785.html"
+      ],
+      "benefit": "Restore an explicit machine catalog with schema validation and deterministic hashes without losing the active 63-record lineage.",
+      "integrationCost": "medium",
+      "risks": "Rebuilding from the historical 25-project source or stale presentation bytes would regress continuity.",
+      "migrationPath": "Recover from the active embedded 63-record set plus newer project-owned overlays; preserve recoveryHistory; validate with JSON Schema 2020-12; RFC-8785 canonicalize and SHA-256; publish and remote-verify both GitHub and Drive copies.",
+      "experiment": "Restore one standalone catalog candidate and run 63-count, forbidden-project, field-preservation, schema, canonical-hash, and remote-byte gates.",
+      "acceptance": "Exactly 63 records, user edits win, all recovery history preserved, deterministic hashes reproduce, and remote bytes match."
+    },
+    {
+      "project": "PCX-058",
+      "name": "Project Compass Northpoints",
+      "decision": "ADOPT_CURRENT_CONTRACT_AND_PROPOSE_HASHED_SUPERSESSION_LEDGER",
+      "fact": "Drive contains a real PROJECT-COMPASS.md at revision 16 with stable IDs, source attribution, priorities, and explicit proof conditions across Northpoints, Goals, Feature Pillars, Wants, Guardrails, Acceptance Signals, and Publication Targets. No standalone COMPASS.json was located in Drive this pass.",
+      "sources": [
+        "Google Drive PROJECT-COMPASS.md revision 16",
+        "https://json-schema.org/specification",
+        "https://www.rfc-editor.org/rfc/rfc8785.html"
+      ],
+      "benefit": "Preserve user-authored intent while enabling deterministic machine comparison and append-only supersession evidence.",
+      "integrationCost": "low to medium",
+      "risks": "A generated machine mirror could accidentally become authority or rewrite nuanced user intent.",
+      "migrationPath": "Keep Markdown as authoritative; derive a schema-validated mirror and record JCS/SHA-256 fingerprints plus append-only supersession events.",
+      "experiment": "Round-trip the revision-16 Compass into a derived machine mirror and prove stable IDs, source, status, priority, prose intent, and proof conditions are preserved.",
+      "acceptance": "No entry loss or silent rewrite; reproducible hashes; explicit supersession history; user correction remains highest authority."
+    },
+    {
+      "project": "PCX-059",
+      "name": "Feature Foundry Project Brain Bridge",
+      "decision": "PRESERVE_BOUNDARY_AND_PROPOSE_PORTABLE_SCHEMA",
+      "fact": "Historical continuity references Feature-Foundry-Project-Brain.zip and the host-neutral feature-foundry.project-brain/1 concept, but this pass did not locate a current standalone brain package or schema object in connected GitHub/Drive. MCP 2026-07-28 is current and introduces a stateless core, discovery, routing headers, cacheable list results, formal extensions, and authorization hardening.",
+      "sources": [
+        "USER-PROJECTS-DATABASE.md",
+        "Project Constellation continuity contract",
+        "https://modelcontextprotocol.io/specification/2026-07-28",
+        "https://json-schema.org/specification",
+        "https://www.rfc-editor.org/rfc/rfc8785.html"
+      ],
+      "benefit": "Keep second-brain import/export portable and merge-safe while allowing future real Feature Foundry or MCP adapters.",
+      "integrationCost": "medium",
+      "risks": "Transport success could be mistaken for native Feature Foundry persistence; stale snapshots could overwrite newer user state.",
+      "migrationPath": "Define a host-neutral versioned envelope with provenance, supersedes metadata, schema validation, and deterministic fingerprinting. Treat MCP only as an optional transport adapter after native runtime discovery.",
+      "experiment": "Round-trip one project through an isolated bridge harness, preserve unknown extension fields, then prove an older conflicting snapshot cannot overwrite newer canonical/user state.",
+      "acceptance": "All identity/progress/stop/next/blocker/provenance fields survive; unknown fields survive; stale import is rejected or merged safely; no native integration claim until real Feature Foundry restart persistence passes."
+    },
+    {
+      "project": "PCX-060",
+      "name": "ACS Voice / Speech Runtime",
+      "decision": "PROPOSE_LOCAL_SPEECH_ADAPTER_MATRIX",
+      "fact": "The current standalone ACS voice source remains unresolved. Current primary release evidence identifies Piper v1.7.0 (2026-08-15) as a local TTS candidate and whisper.cpp v1.9.2 (2026-08-04) as a local STT candidate. Historical ACS parity evidence requires queue/request semantics, interruption/cancellation, thought versus speech paths, voice switching, and lip-sync/audio timing.",
+      "sources": [
+        "https://github.com/OHF-Voice/piper1-gpl/releases/tag/v1.7.0",
+        "https://github.com/ggml-org/whisper.cpp/releases/tag/v1.9.2",
+        "historical ACS parity continuity record"
+      ],
+      "benefit": "Modern local speech quality and offline recognition without replacing classic agent request/state semantics.",
+      "integrationCost": "medium to high after canonical source recovery",
+      "risks": "A direct TTS/STT integration could bypass Wait/Interrupt/StopAll, balloon, animation, privacy, or authorization semantics.",
+      "migrationPath": "Resolve the owning ACS runtime and request queue first; add TTS/STT through capability adapters; retain existing provider as control; test deterministic queue, animation, cancellation, restart, and offline behavior.",
+      "experiment": "Run the same fixed speech/recognition fixture against the existing provider plus Piper/whisper.cpp adapters after source recovery.",
+      "acceptance": "Queue order, Wait/Interrupt/StopAll, actual provider cancellation, thought/speech distinction, balloon cleanup, animation return, voice persistence, failure recovery, and local/offline paths all pass in the real runtime."
+    }
+  ],
+  "projectConstellationImprovement": {
+    "name": "Evidence Availability Lens",
+    "status": "PROPOSE_READ_ONLY",
+    "goal": "Flag records whose declared canonical artifact is missing from current GitHub/Drive, whose only evidence is historical/embedded, or whose source-resolution confidence has fallen behind newer evidence.",
+    "reason": "PCX-057 exposed a concrete continuity risk: a handoff can refer to a machine artifact that is not actually present in the canonical stores.",
+    "experiment": "Generate the lens from evidence-coverage/source-presence facts only; link each flag to the exact repository/Drive lookup and smallest recovery step.",
+    "acceptance": "Lens cannot mutate project records, all 63 remain searchable, false presence claims are prevented, and clearing/filtering the lens never changes canonical data."
+  },
+  "writes": {
+    "wikisAdded": [
+      "wikis/PCX-057-project-catalog-cross-chat-database.md",
+      "wikis/PCX-058-project-compass-northpoints.md",
+      "wikis/PCX-059-feature-foundry-project-brain-bridge.md",
+      "wikis/PCX-060-acs-voice-speech-runtime.md"
+    ],
+    "wikiIndexCoverage": 40,
+    "researchCursorFile": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "presentationArtifactsRegenerated": false,
+    "lastAutomationHashChanged": false
+  },
+  "antiRegression": {
+    "projectCountChanged": false,
+    "presentationCandidatePromoted": false,
+    "historical25ProjectDatabasePromoted": false,
+    "runtimeCodeChanged": false
+  },
+  "publication": {
+    "github": "source-controlled wiki/checkpoint publication in progress; remote reread required before closeout",
+    "drive": "ACTIVE CHECKPOINT append required; existing byte-verified presentation artifacts remain canonical",
+    "presentationPublicationDebt": "unchanged; no coherent presentation bytes changed this pass"
+  },
+  "nextResearchCursor": [
+    "PCX-061",
+    "PCX-062",
+    "PCX-063",
+    "PRJ-021",
+    "PRJ-009"
+  ]
+}

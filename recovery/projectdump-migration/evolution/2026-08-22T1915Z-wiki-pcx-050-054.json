@@ -1,0 +1,91 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-22T19:15:00Z",
+  "scope": ["PCX-050", "PCX-051", "PCX-052", "PCX-053", "PCX-054"],
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "publicationBacklogAtStart": {
+    "state": "CLEAR",
+    "latestMaterialWikiSource": "585c6c52035a0f2f8a11a33cccebc263ea45c83d",
+    "proof": {
+      "workflowRunId": 32583276795,
+      "workflowJobId": 97055710272,
+      "wikiMasterCommit": "b3960d733d80fa845a3fedd0e8751e9628ca51dd",
+      "freshCloneByteCompare": "PASS"
+    }
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PCX-050",
+      "page": "wikis/PCX-050-gamesync-real-library-performance.md",
+      "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-050-gamesync-real-library-performance",
+      "sourceCommit": "35ca7d734a91071e82fcc104fc4af41e85e6c8b7",
+      "sourceBlob": "e08bc0873aba13d2091f14af5215aa8328db2973",
+      "summary": "Separated SQLite core version from the npm-distributed sqlite-wasm wrapper, corrected the 3.53.4 benchmark contract, added Worker1/Promiser1 deprecation qualification, and split VFS-only, wrapper/core-upgrade, and API-migration lanes so performance claims remain attributable and reproducible.",
+      "projectEvidence": {
+        "shippingGameSyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "shippingGameSyncVersion": "0.6.3",
+        "declaredSqliteWasmRange": "^3.53.0-build1",
+        "sqliteCoreLatestStable": "3.53.4",
+        "sqliteWasmPublishedLatest": "3.53.0-build1",
+        "workerPromiserDeprecationDate": "2026-04-15"
+      },
+      "publicationProof": {
+        "workflowRunId": 32593090575,
+        "workflowJobId": 97079830808,
+        "wikiMasterCommit": "2b226728ef9bc9535903880b073b9cfa4b38eb26",
+        "freshCloneByteCompare": "PASS",
+        "wikiPublicationStatus": "success"
+      },
+      "driveMirror": {
+        "fileId": "1KM47KV37hOY_BVfcSvJ4ehkL0HuAr3_f4jEMYNZYoxU",
+        "projectWikisParent": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 11281,
+        "sha256": "170d033b611f2e66820ed96c96a5f3579aa83678fb902bc1f831b6f57a553829",
+        "reread": "PASS"
+      }
+    }
+  ],
+  "recheckedWithoutWikiSourceChurn": [
+    {
+      "projectId": "PCX-051",
+      "result": "Current detailed Capability Truth page already uses GameSync Next cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and reflects the current verified Bounty, Animation Tracker, and Universal Game Tracker transitions."
+    },
+    {
+      "projectId": "PCX-052",
+      "result": "Current detailed Release Factory page already reflects the present shipping/Next authorities, npm-12 proposal policy, Opera compatibility defect, parity and publication gates."
+    },
+    {
+      "projectId": "PCX-053",
+      "result": "Current detailed Bounty page already separates richer shipping GameSync provider breadth from the verified typed GameSync Next single-source slice at cd906ff0831bf7fc33b41fea31b6f0c004cc1562."
+    },
+    {
+      "projectId": "PCX-054",
+      "result": "Source-discovery load-bearing files are unchanged between the older 9e337c720f0180cffa577f140b181c699f0a1650 evidence watermark and current GameSync Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562. The page remains technically accurate on the verified capability and still correctly flags the source-proven Found Mods limit: 5000 completeness regression; current-main watermark refresh is non-load-bearing and deferred to avoid cosmetic churn."
+    }
+  ],
+  "publicationBacklogAtEnd": {
+    "state": "CLEAR",
+    "latestMaterialWikiSource": "35ca7d734a91071e82fcc104fc4af41e85e6c8b7",
+    "workflowRunId": 32593090575,
+    "wikiMasterCommit": "2b226728ef9bc9535903880b073b9cfa4b38eb26",
+    "freshCloneByteCompare": "PASS"
+  },
+  "durableStateProof": {
+    "driveCheckpoint": {
+      "fileId": "1anfD9Y2Gko_Cxd9thjmN5_OlucLJfWmwO3AsYTCIt0E",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownBytes": 3700,
+      "sha256": "6d068458a8b2339eb3c8090f3a47b50058f278367b5993c09272837bf1b71410",
+      "reread": "PASS"
+    },
+    "driveResearchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "plainTextBytes": 1812,
+      "sha256": "47469ebeec21d12cc013d1445b279f0da6c1707c48d92fb122f7f31e8785f377",
+      "jsonParse": "PASS",
+      "nextCursor": ["PCX-055", "PCX-056", "PCX-057", "PCX-058", "PCX-059"]
+    }
+  },
+  "nextCursor": ["PCX-055", "PCX-056", "PCX-057", "PCX-058", "PCX-059"],
+  "notes": "Project Constellation remains the catalog/control plane and is excluded as a normal documentation target. Do not disable the recurring wiki-maintenance obligation."
+}

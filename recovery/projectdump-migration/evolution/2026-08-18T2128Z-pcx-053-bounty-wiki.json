@@ -1,0 +1,56 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-18T21:28:00Z",
+  "result": "MATERIAL_WIKI_UPDATE_DUAL_PUBLISHED",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "project": {
+    "id": "PCX-053",
+    "name": "GameSync Bounty / Rewards Runtime"
+  },
+  "catalogRotation": {
+    "reviewed": ["PRJ-012", "PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016"],
+    "reviewDecision": "No separate material documentation delta justified for the scheduled PRJ-012 through PRJ-016 group in this short delta window. The known cross-project follow-up from the prior PCX-042 checkpoint was materially actionable and was completed instead.",
+    "next": ["PRJ-017", "PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021"]
+  },
+  "canonicalEvidence": {
+    "shippingGameSyncRepository": "Herbertofury/Gamesync",
+    "shippingGameSyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+    "shippingExtensionVersion": "0.6.3",
+    "gameSyncNextRepository": "Herbertofury/GameSync-Next",
+    "gameSyncNextHead": "cd906ff0831bf7fc33b41fea31b6f0c004cc1562",
+    "gameSyncNextExtensionVersion": "0.8.0"
+  },
+  "materialDocumentationDelta": [
+    "Reconciled the richer shipping GameSync Bounty runtime with the newly verified typed GameSync Next Bounty implementation instead of treating GameSync Next as architecture-only evidence.",
+    "Documented the current Next Bounty type model, gs_bounty_v1 chrome.storage.local persistence, reminder alarm, BOUNTY_* background contract, React routes/views, live GamerPower synchronization and isolated Opera acceptance evidence.",
+    "Recorded the current cross-host parity boundary: shipping GameSync includes Twitch viewer/miner, Steam, Battle.net, richer IndexedDB persistence, artwork provenance and multi-provider partial-success semantics, while current Next Bounty is a verified single-source typed GamerPower slice.",
+    "Added safe migration rules, host-specific build/verification paths, troubleshooting and a paired cross-host provider/parity matrix as the next verification checkpoint."
+  ],
+  "github": {
+    "repository": "Herbertofury/ProjectDump",
+    "branch": "main",
+    "wikiSourcePath": "wikis/PCX-053-gamesync-bounty-rewards-runtime.md",
+    "sourceCommit": "e740dc115e8e43433e79dd398a4691fa647fe951",
+    "sourceBlobSha": "5662a504d747782fb1bcc22284a4e83252bcafaa",
+    "wikiWorkflowRun": 32187550047,
+    "wikiWorkflowConclusion": "success",
+    "wikiMasterCommit": "54300b8bb2eac65cf245fae1dd4f391d508939c4",
+    "wikiRemote": "Herbertofury/ProjectDump.wiki.git",
+    "freshCloneByteComparison": "pass",
+    "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-053-gamesync-bounty-rewards-runtime"
+  },
+  "drive": {
+    "projectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "wikiDocumentId": "1LMURRNWVAj5UPZ-v00cVHRMyprzerLBIeaQqr_gyMug",
+    "wikiDocumentTitle": "PCX-053 GameSync Bounty Rewards Runtime Wiki",
+    "contentReread": "pass: GameSync Next typed Bounty parity slice found in the native Drive document",
+    "markdownExportBytes": 38443,
+    "markdownExportSha256": "28f5f042036f82ccc68802b20551316b908bfe42bfde82d0a205507fafd62664"
+  },
+  "verificationBoundary": {
+    "gameSyncNextAcceptance": "Verified current-main isolated Opera evidence synchronized 107 live GamerPower records, rejected zero rows, persisted healthy source state, rendered the Bounty calendar and retained one React root mount.",
+    "notClaimed": "Provider-by-provider GameSync Next parity with shipping Twitch, Steam, Battle.net, Twitch mining, artwork provenance or the richer shipping IndexedDB/multi-provider model."
+  },
+  "nextAction": "Continue the rotating tracked-project wiki completeness pass at PRJ-017 through PRJ-021 while retaining the paired Bounty cross-host provider/parity matrix as the next PCX-053 runtime qualification target.",
+  "stopPoint": "PCX-053 source wiki, actual GitHub Wiki and Google Drive project-wiki mirror are all current and independently verified. Recurring wiki maintenance remains open and ongoing."
+}

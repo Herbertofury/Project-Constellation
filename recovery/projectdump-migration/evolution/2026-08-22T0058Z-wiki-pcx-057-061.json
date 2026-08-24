@@ -1,0 +1,71 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T00:58:00Z",
+  "group": ["PCX-057", "PCX-058", "PCX-059", "PCX-060", "PCX-061"],
+  "publicationBacklogAtStart": {
+    "state": "CLEAR",
+    "latestMaterialWikiSourceCommit": "7571b2db54a5ee5dff55454bb4061cea85a7e549",
+    "wikiPublicationStatus": "success",
+    "wikiRunId": 32536118360
+  },
+  "materialUpdate": {
+    "projectId": "PCX-061",
+    "projectName": "Petz Shared Core",
+    "sourcePath": "wikis/PCX-061-petz-shared-core.md",
+    "sourceCommit": "0e42b6bd565989cd440cae6585a57b72f6e6d07e",
+    "sourceBlob": "a254f12de73e4e2e251a56b56ef7743505658f44",
+    "readerFacingWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-061-petz-shared-core",
+    "whatChanged": [
+      "Updated draft GameSync Next PR #10 from stale head 72669096280904eb0f210d49d3a3e3163f42b106 to exact current head 2612396804b44399b7b23b4f32f21217325da79c.",
+      "Recorded fresh private Petz verify run 32459020450/job 96701992871 and Secret Scan run 32459020441/job 96701992684 as zero-step infrastructure non-executions rather than product failures.",
+      "Recorded public Ferrum recovery PR #62 head 3e9e5371c03f4aac5be27c5e128a0cd60e1fa037 and successful runner/registry/lock/CI evidence while preserving the private GameSync read-token preflight as the remaining acceptance blocker.",
+      "Kept PR #10 draft, unmerged and fail-closed until the exact current head executes the complete Petz package, regression, Extension V2, parity, Ferrum, restart, integrity and security gates."
+    ],
+    "actualWikiPublication": {
+      "state": "VERIFIED",
+      "workflowRun": 32541788362,
+      "workflowJob": 96953068575,
+      "wikiMasterCommit": "4c588cb0c20cfa7185177e30abf344e85294cecb",
+      "freshCloneByteCompare": "pass",
+      "exactSourceStatus": "wiki-publication success"
+    },
+    "driveMirror": {
+      "fileId": "1z36OOqMO2OY6cu2Ip0Y996n0jxy5jVh00aoQZo7RZUY",
+      "title": "PCX-061 Petz Shared Core Wiki",
+      "markdownExportBytes": 46504,
+      "markdownExportSha256": "4b4e6a51c725673969fda94d04ddc20b2f6e92cb9bef1a095b1cd835492c5efe",
+      "rereadChecks": ["2612396804b44399b7b23b4f32f21217325da79c", "32459020450", "32460964252"]
+    }
+  },
+  "rechecks": {
+    "PCX-057": "Catalog remains converged at Git blob 0cbd23ef565c5ea61c26c978142d2b1f434c6bbf with 63-record authority; no material wiki delta justified.",
+    "PCX-058": "No stronger verified project-owned implementation evidence resolved in this pass; no wiki-source churn justified.",
+    "PCX-059": "Feature Foundry production authority remains v24 at e1ba080b5c7590f1c844a6ed13b3a471709920b9; no material bridge delta since the current wiki refresh.",
+    "PCX-060": "GameSync Next main remains cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and no new voice/speech runtime implementation delta supersedes the current wiki.",
+    "PCX-061": "Material exact-head persistence-evidence refresh completed and dual-published."
+  },
+  "durableStateVerification": {
+    "driveCheckpoint": {
+      "fileId": "1sBSis6-UR-jisY39aF3XBIyX8LlFHMAAzyIEgzvsb7I",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 3466,
+      "markdownExportSha256": "32e69ddcade4922824846f95c4e83efaaa57df1a88fe41c8ec86df2a17dfbd69"
+    },
+    "driveResearchCursor": {
+      "fileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "plainTextExportBytes": 1897,
+      "plainTextExportSha256": "8b6f20a8c07b0cd0615b6dbd7befe921a3c0ba7116e017ca4237c5eff2b839e3",
+      "jsonParse": "pass",
+      "nextCursor": ["PCX-062", "PCX-063", "PRJ-001", "PRJ-002", "PRJ-003"]
+    },
+    "oneShotWorkflowCleanupCommit": "356621f6b4f8a725fa28894d35ace6068b9fa1b0"
+  },
+  "publicationBacklogAtEnd": {
+    "state": "CLEAR",
+    "materialWikiSourceCommit": "0e42b6bd565989cd440cae6585a57b72f6e6d07e",
+    "wikiMasterCommit": "4c588cb0c20cfa7185177e30abf344e85294cecb"
+  },
+  "nextCursor": ["PCX-062", "PCX-063", "PRJ-001", "PRJ-002", "PRJ-003"],
+  "recurringObligation": "OPEN_AND_ONGOING"
+}

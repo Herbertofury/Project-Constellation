@@ -1,0 +1,46 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-19T21:36:47Z",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "mode": "PUBLICATION_BACKLOG_ONLY",
+  "project": {
+    "id": "PCX-044",
+    "name": "Feature Foundry Living Ecology"
+  },
+  "materialWikiSource": {
+    "repository": "Herbertofury/ProjectDump",
+    "path": "wikis/PCX-044-feature-foundry-living-ecology.md",
+    "commit": "fe4f261bfbe1762ee56e2ff5bc498c80f61a12e7",
+    "blob": "18a5416a1564967937868595e267f9af6f9b0ded"
+  },
+  "githubWikiPublication": {
+    "status": "VERIFIED",
+    "workflowRun": 32303842702,
+    "job": 96232187212,
+    "wikiMasterCommit": "3b8e3f1488f9aedcd01753eb26aff8fa5dbb9b65",
+    "proof": [
+      "exact source commit checked out",
+      "ProjectDump.wiki.git pushed",
+      "fresh clone completed",
+      "complete remote Wiki byte comparison against wikis/ passed",
+      "wiki-publication status recorded success"
+    ]
+  },
+  "googleDrivePublication": {
+    "status": "VERIFIED",
+    "documentId": "1BZL8SOs4DaTUgjT5LKBxY7205nUlgk7c71UYaxlEMcc",
+    "title": "PCX-044 Feature Foundry Living Ecology Wiki",
+    "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+    "markdownExportBytes": 26376,
+    "markdownExportSha256": "746c9647bd51e1a98eb993e5073b7a10d6b778f8d49bec37135ae3e6bc1884f8",
+    "proof": [
+      "Drive document created in Project Wikis folder",
+      "complete wiki content inserted from current GitHub source",
+      "Drive document independently re-read",
+      "Markdown export independently hashed"
+    ]
+  },
+  "backlogResult": "CLEARED_FOR_PCX_044",
+  "cursorPolicy": "Hold PCX-041 through PCX-045 for the next run. This run was reserved for publication-backlog durability repair and created no new wikis/** source delta.",
+  "automationPersistence": "Remain enabled. Successful publication repair is not task completion."
+}

@@ -1,0 +1,10 @@
+
+> project-constellation-extension@0.13.0 test
+> node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/health-core.test.mjs
+
+core.test.mjs: PASS
+brain-core.test.mjs: PASS
+provider-core.test.mjs: PASS
+integrity-core.test.mjs: PASS
+knowledge-core.test.mjs: PASS
+health-core.test.mjs: PASS

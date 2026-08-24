@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="sidepanel.css"></head>
+<body><main class="shell">
+<header class="topbar">
+  <div class="side-brand"><div class="side-brand-line"><span class="brand-mark">✦</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Command Center</h1><p id="subtitle">Continuity, recovery, status intelligence, and performance</p></div>
+  <div class="top-actions"><button id="openHome" title="Open full Constellation Home">Home</button><button id="refresh" class="icon" title="Refresh">↻</button></div>
+</header>
+<section class="stats" id="stats"></section>
+<section class="universal-search" aria-label="Search entire catalog">
+  <div class="search-line"><input id="universalSearch" autocomplete="off" placeholder="Search every chat turn, project, file, provider, or transcript phrase"><span id="searchIndexState">INDEX READY</span></div>
+  <div id="universalSearchResults" class="search-results"></div>
+</section>
+<nav id="tabs">
+  <button data-tab="command" class="active">Command</button><button data-tab="chats">Chats</button><button data-tab="projects">Projects</button><button data-tab="files">Files</button><button data-tab="activity">Activity</button><button data-tab="sync">Sync</button>
+</nav>
+
+<section id="command" class="view active">
+  <div class="hero-grid">
+    <article class="hero-card"><span>Continuity</span><strong id="health">Loading catalog…</strong><small id="durability">Checking remote durability…</small></article>
+    <article class="hero-card"><span>Catalog engine</span><strong id="catalogHeadline">Idle</strong><small id="catalogDetail">Ready to sweep supported AI history.</small></article>
+  </div>
+  <div class="section-head"><h2>Live work</h2><span id="liveCount">0</span></div>
+  <div id="liveList" class="list"></div>
+  <div class="section-head"><h2>Needs attention</h2><span id="attentionCount">0</span></div>
+  <div id="attentionList" class="list"></div>
+  <div class="section-head"><h2>Provider coverage</h2><span id="providerCount">0</span></div>
+  <div id="providerGrid" class="provider-grid"></div>
+  <article class="card catalog-card">
+    <div class="card-title"><div><h2>Deep catalogue</h2><p>Zero-tab history discovery using browser-history URLs, authenticated background fetches, true offscreen DOM parsing, passive capture from tabs you already opened, and importable provider exports.</p></div><span class="system-badge">ZERO TAB</span></div>
+    <div id="catalogProviders" class="provider-select"></div>
+    <div class="catalog-prefs">
+      <label class="switch-row"><span><strong>Automatic history maintenance</strong><small>Re-scan provider history on a bounded background schedule</small></span><input id="autoCatalog" type="checkbox"></label>
+      <label class="switch-row"><span><strong>Run automatic sweeps only while idle</strong><small>Never compete with active AI work</small></span><input id="idleCatalog" type="checkbox"></label>
+      <label class="interval-row"><span>Maintenance interval</span><select id="catalogInterval"><option value="12">12 hours</option><option value="24">24 hours</option><option value="48">48 hours</option><option value="168">7 days</option></select></label>
+    </div>
+    <div class="actions four"><button id="startCatalog" class="primary">Start zero-tab sweep</button><button id="pauseCatalog">Pause</button><button id="resumeCatalog">Resume</button><button id="stopCatalog">Stop</button></div>
+    <div class="progress"><div id="catalogBar"></div></div><p id="catalogStatus" class="status"></p>
+  </article>
+</section>
+
+<section id="chats" class="view">
+  <div class="toolbar"><input id="chatSearch" placeholder="Search chat title, project, provider, or excerpt"><select id="statusFilter"><option value="">All states</option><option>running</option><option>blocked-approval</option><option>stalled</option><option>errored</option><option>paused</option><option>idle</option><option>auth-required</option><option>unavailable</option></select></div>
+  <div id="chatList" class="list"></div>
+</section>
+
+<section id="projects" class="view"><div id="projectList" class="project-grid"></div></section>
+
+<section id="files" class="view">
+  <div class="toolbar"><input id="fileSearch" placeholder="Search generated, attached, downloaded, Drive, GitHub, or external files"><button id="enableDownloads">Enable download capture</button></div>
+  <div id="fileList" class="list"></div>
+</section>
+
+<section id="activity" class="view"><div id="eventList" class="list"></div></section>
+
+<section id="sync" class="view">
+  <article class="card">
+    <div class="card-title"><div><h2>Google Drive durable brain</h2><p>The local database remains the fast working set. Meaningful changes are asynchronously checkpointed to Drive and verified without blocking AI page rendering.</p></div><span id="driveBadge" class="system-badge">OFFLINE</span></div>
+    <div id="oauthSetup" class="setup-note"></div>
+    <label class="switch-row"><span><strong>Automatic Drive checkpoints</strong><small>Debounced, background-only sync after captured changes</small></span><input id="driveAutoSync" type="checkbox"></label>
+    <div class="actions"><button id="connectDrive">Connect Google</button><button id="syncDrive" class="primary">Sync now</button></div>
+    <div class="actions"><button id="restoreDrive">Restore / merge from Drive</button><button id="verifyDrive">Round-trip verify</button></div>
+    <div class="actions"><button id="openDrive">Open Drive snapshot</button><button id="storageHealth">Verify local persistence</button></div>
+    <p id="driveStatus" class="status"></p>
+  </article>
+
+  <article class="card">
+    <div class="card-title"><div><h2>GitHub brain mirror</h2><p>Optional repository snapshot for project agents, source control, recovery, and external tooling.</p></div><span class="system-badge">REST</span></div>
+    <label>Owner<input id="ghOwner" autocomplete="off"></label><label>Repository<input id="ghRepo" autocomplete="off"></label><label>Branch<input id="ghBranch" value="main" autocomplete="off"></label><label>Snapshot path<input id="ghPath" value=".project-constellation/constellation.json" autocomplete="off"></label><label>Fine-grained token<input id="ghToken" type="password" placeholder="Leave blank to keep saved token" autocomplete="off"></label>
+    <div class="actions"><button id="saveGithub">Save connection</button><button id="syncGithub" class="primary">Sync now</button></div><p id="syncStatus" class="status"></p>
+  </article>
+
+  <article class="card"><h2>Portable recovery checkpoint</h2><p>Export a complete machine-readable snapshot containing providers, projects, chats, turns, files, status history, catalog runs, and remote receipts.</p><button id="exportBrain">Export Project-Constellation.json</button></article>
+  <article class="card danger"><h2>Reset local catalog</h2><p>Clears this browser's local continuity database. Remote Drive/GitHub checkpoints are untouched.</p><button id="clearBrain">Clear local catalog</button></article>
+</section>
+</main><script src="sidepanel.js"></script></body></html>

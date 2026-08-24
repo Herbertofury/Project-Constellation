@@ -1,0 +1,26 @@
+{
+  "schema": "project-constellation.v0.11-checkpoint/1",
+  "version": "0.11.0",
+  "status": "verified-static",
+  "artifact": "Project-Constellation-v0.11.0-Atlas-Chat-Guardian.zip",
+  "artifactSha256": "36f9c37eee9a76ef61dbe1a58eb2e759fcbdfead7f4a62d8ae24a0ad41a1d16f",
+  "contracts": {
+    "knowledgeGraph": "implemented",
+    "searchPopup": "implemented",
+    "incrementalIngestion": "implemented",
+    "existingCapturePipelineIntegration": "documented",
+    "contentFingerprintDedupe": "implemented",
+    "boundedResumableBackfill": "implemented-contract+current-chat-button",
+    "fullHistoryRescanOnHome": false,
+    "globalPromptInjection": false,
+    "chatGuardianHud": "implemented",
+    "stallWarnings": "implemented",
+    "autoRetry": false,
+    "runwayGuard": "implemented-estimate",
+    "automaticHandoffCheckpoint": "implemented",
+    "degradationSignal": "implemented-conservative",
+    "newBuildSignal": "implemented-best-effort"
+  },
+  "validation": ["npm test: 4/4 pass", "npm run verify: pass", "node --check: pass", "ZIP integrity: pass"],
+  "visualRuntime": "Chromium preview attempt blocked by container D-Bus timeout; live ChatGPT runtime not claimed"
+}

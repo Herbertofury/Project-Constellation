@@ -1,0 +1,113 @@
+{
+  "schema": "project-constellation.wiki-maintenance-checkpoint/2",
+  "checkpointAt": "2026-08-21T18:15:00Z",
+  "repository": "Herbertofury/ProjectDump",
+  "branch": "main",
+  "trackedProjects": ["PCX-037", "PCX-038", "PCX-039", "PCX-040", "PCX-041"],
+  "publicationBacklogAtStart": {
+    "state": "clear",
+    "lastVerifiedMaterialSource": "37ec14e4e65d0eba1e848cfad33b876c83e13392",
+    "lastVerifiedRun": 32494556557,
+    "lastVerifiedWikiMaster": "9d6bff512af551e36abe128cc0ff134a0cf1e044",
+    "reason": "The previous material wiki source had wiki-publication success and no later wikis/** delta existed before this pass."
+  },
+  "materialUpdates": [
+    {
+      "projectId": "PCX-037",
+      "name": "Shimeji Desktop",
+      "kind": "material-wiki-improvement",
+      "wikiSourcePath": "wikis/PCX-037-shimeji-desktop.md",
+      "sourceCommit": "a2ded158a2f1bd33a5d1cc24188d12afc2b7ce9d",
+      "sourceBlob": "606420f5b208c0ead631b56d7bfbddda248f46a0",
+      "readerWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-037-shimeji-desktop",
+      "actualWikiPublication": {
+        "state": "verified",
+        "workflowRun": 32512001697,
+        "job": 96865053738,
+        "wikiMasterCommit": "40116139b1d2083d99a90395fa6d1b1fd030066a",
+        "freshCloneByteCompare": "pass"
+      },
+      "evidenceDelta": {
+        "neurolingsCeCurrentHead": "3f3ec7221cbc7c597b17d77e0da5082256af75ed",
+        "migrationBaseline": "C++/Qt v0.5.3 -> Rust + Flutter",
+        "milestones": "M0-M9 recorded complete upstream",
+        "laterVerification": "76 tests green, clippy -D warnings clean, flutter analyze clean, smoke 150 passing",
+        "currentHardening": [
+          "P0 behavior/store/Codex/autostart contract fixes",
+          "Store search/filter/detail/install progress and streamed retry",
+          "manager settings/home/compositions and navigation completion",
+          "dynamic tray refresh and cross-platform tray placeholders"
+        ],
+        "boundary": "NeurolingsCE remains an architecture/parity benchmark. The canonical user-owned standalone Shimeji Desktop source is still unresolved."
+      },
+      "driveMirror": {
+        "id": "1jkzAi0SAr1z4fkkIykiFHPHDvS0tI2hH-mqCuc80Tlc",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 17575,
+        "sha256": "85cf65d3930b43bdf0a8d3a0ebffb0390d526e0ed98b7f630b4d2ece5d6a6169",
+        "reread": "pass"
+      }
+    },
+    {
+      "projectId": "PCX-040",
+      "name": "Pinterest Nocturne",
+      "kind": "drive-durability-repair",
+      "wikiSourcePath": "wikis/PCX-040-pinterest-nocturne.md",
+      "sourceBlob": "14ee9e42afd61ce13456c83add047dd28f8d5ddf",
+      "readerWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-040-pinterest-nocturne",
+      "actualWikiPublication": {
+        "state": "verified-by-later-full-set",
+        "workflowRun": 32512001697,
+        "wikiMasterCommit": "40116139b1d2083d99a90395fa6d1b1fd030066a",
+        "freshCloneByteCompare": "pass",
+        "reason": "The PCX-040 source was unchanged and was included in the later complete-page-set verification for PCX-037."
+      },
+      "driveMirror": {
+        "id": "1q5KXl8X_AZJngDUApBDrGP-DFEZ3cKooRSuJ31m2ZYg",
+        "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "markdownBytes": 30691,
+        "sha256": "e4bb5a55365673589e9d818801f6f5050f76bc35ba6102a8c661b5e53834d278",
+        "reread": "pass"
+      },
+      "repairReason": "No dedicated complete PCX-040 Project Wikis Drive mirror was found. A complete mirror was created and verified."
+    }
+  ],
+  "recheckedWithoutSourceChurn": [
+    {
+      "projectId": "PCX-038",
+      "reason": "GameSync Next main advanced to cd906ff0831bf7fc33b41fea31b6f0c004cc1562 for tracker/bounty/animation recovery, but no mascot-specific source delta superseded the detailed all-site Shimeji parity page."
+    },
+    {
+      "projectId": "PCX-039",
+      "reason": "Current Webmeji documentation and Drive mirror remain aligned with the strongest verified browser/wasm compatibility evidence; no stronger project-owned implementation delta was resolved."
+    },
+    {
+      "projectId": "PCX-041",
+      "reason": "ChatGPT Ultimate Optimizer remains documented at verified v1.0.1 and no connected canonical repository/newer project-owned source was resolved."
+    }
+  ],
+  "publicationBacklogAtClose": {
+    "state": "clear",
+    "latestMaterialSource": "a2ded158a2f1bd33a5d1cc24188d12afc2b7ce9d",
+    "workflowRun": 32512001697,
+    "job": 96865053738,
+    "wikiMasterCommit": "40116139b1d2083d99a90395fa6d1b1fd030066a",
+    "freshCloneByteCompare": "pass"
+  },
+  "driveCheckpoint": {
+    "id": "1E-u4CJZTSS3cZz15Bnm8CNrIU8uXXKof6tO7vtmzzjg",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "markdownBytes": 4491,
+    "sha256": "09de4491154115f354da314cde40dddde2cdbefa15accd96f532a0b9f50e90b0",
+    "reread": "pass"
+  },
+  "driveResearchCursor": {
+    "id": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "textBytes": 2057,
+    "sha256": "9a1fcec4131d6d03fef7aec2a376cbb36a35b056210dca28b86c9c3a83f1811e",
+    "jsonValidation": "pass-with-UTF8-BOM",
+    "nextCursor": ["PCX-042", "PCX-043", "PCX-044", "PCX-045", "PCX-046"]
+  },
+  "nextCursor": ["PCX-042", "PCX-043", "PCX-044", "PCX-045", "PCX-046"],
+  "recurringObligation": "OPEN_ONGOING"
+}

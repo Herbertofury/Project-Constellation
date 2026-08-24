@@ -1,0 +1,92 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/2",
+  "checkpointAt": "2026-08-22T02:32:00Z",
+  "completedCursor": [
+    "PCX-062",
+    "PCX-063",
+    "PRJ-001",
+    "PRJ-002",
+    "PRJ-003"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-062",
+      "page": "PCX-062-runelite-qa-cockpit",
+      "wikiSourcePath": "wikis/PCX-062-runelite-qa-cockpit.md",
+      "sourceCommit": "5b45ad3e5a6d6e888aa9616b945a3f0968c55fac",
+      "sourceBlob": "ce1bb300195507980220bcd1c4c6a828127d6ba2",
+      "readerUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-062-runelite-qa-cockpit",
+      "publication": {
+        "workflowRun": 32546455294,
+        "job": 96965657441,
+        "status": "success",
+        "wikiMasterCommit": "dbf1db13adbabbe2b92bb4c9ad739ce71e6809b3",
+        "proof": "Exact source commit checked out; ProjectDump.wiki.git pushed; actual Wiki fresh-cloned; complete remote Wiki page set byte-compared against wikis/ successfully."
+      },
+      "drive": {
+        "documentId": "12_ca1-QKHpjwuJ_n6y7bJmW0nmrie5gJds_daR6bOmM",
+        "title": "PCX-062 RuneLite QA Cockpit Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "parentFolderName": "Project Wikis",
+        "markdownExportBytes": 26380,
+        "markdownSha256": "5d751083e7b487317631fdc2844f135f851d7e3d571b0b4da7fb25c2be45eca1",
+        "reread": "pass"
+      },
+      "evidence": {
+        "canonicalProjectSourceResolved": false,
+        "freshDriveSearch": "No canonical bert-skill-atlas-qa-cockpit.zip/repository bytes exposed; only wiki/checkpoint/continuity records were found.",
+        "runelitePluginHubVersion": "1.12.36",
+        "runelitePluginHubHead": "e39910dc2f8ec6549b4e30163403a9e667fbd4d5",
+        "runeliteExamplePluginHead": "5370caa0f5f6a5bba4fbb42931722ca535ad3fd5",
+        "qualificationBoundary": "Recovery-first. Java 11 / current Plugin Hub compatibility, content QA, development-client startup, and user-driven in-game verification are required; automated RuneScape input is prohibited."
+      }
+    }
+  ],
+  "recheckedWithoutSourceChurn": [
+    {
+      "projectId": "PCX-063",
+      "reason": "Feature Foundry v24 production authority remains at e1ba080b5c7590f1c844a6ed13b3a471709920b9 and the current Aesthetic Vault page already captures the verified import-durability gap and GameSync capture boundary."
+    },
+    {
+      "projectId": "PRJ-001",
+      "reason": "Fresh Drive/GitHub searches still did not resolve a newer canonical installable Project Brain Orchestrator / AGENTS workflow bundle; current page remains truthful and recovery-first."
+    },
+    {
+      "projectId": "PRJ-002",
+      "reason": "Feature Foundry v24 current production authority remains unchanged at e1ba080b5c7590f1c844a6ed13b3a471709920b9 and the umbrella page already reflects that authority."
+    },
+    {
+      "projectId": "PRJ-003",
+      "reason": "Shipping GameSync remains at a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928 and GameSync Next remains at cd906ff0831bf7fc33b41fea31b6f0c004cc1562; no stronger project-owned delta justified source churn."
+    }
+  ],
+  "publicationBacklog": {
+    "state": "clear",
+    "latestMaterialSourceCommit": "5b45ad3e5a6d6e888aa9616b945a3f0968c55fac",
+    "latestVerifiedFullSetWikiCommit": "dbf1db13adbabbe2b92bb4c9ad739ce71e6809b3"
+  },
+  "dualPublicationVerification": {
+    "driveCheckpoint": {
+      "documentId": "10PjYy0-ltH16I5Mpp-KaZn4nRojeDglA5bRDvzPFI50",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "markdownExportBytes": 4265,
+      "markdownSha256": "55a1b92f0be9d4f3d70b3cdf392b225cd7d49dc65d9db1cb8c472366fb4e282a",
+      "reread": "pass"
+    },
+    "driveResearchCursor": {
+      "documentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+      "parentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+      "textExportBytes": 2024,
+      "textSha256": "09cef5cda759ef681a5dafd954623ae87c544b660f282c3b4d8ed7be53352745",
+      "jsonValidation": "pass with UTF-8 BOM handled as utf-8-sig"
+    }
+  },
+  "nextCursor": [
+    "PRJ-004",
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007",
+    "PRJ-008"
+  ],
+  "automationState": "ONGOING"
+}

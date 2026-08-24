@@ -1,0 +1,76 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T13:55:00Z",
+  "group": [
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026",
+    "PCX-027"
+  ],
+  "sourceHeadBeforeCheckpoint": "789d0982e8f06c40547abc1def35bf75949baa13",
+  "publicationBacklog": {
+    "state": "clear",
+    "latestMaterialWikiSourceCommit": "23a5d694a64f8c114ca729ea8158905555df6a92",
+    "syncRun": 32359556184,
+    "syncJob": 96396011827,
+    "wikiMasterCommit": "0702d79dac14e84d057e4a998f79dc1e5eec179d",
+    "proof": "The exact latest material Wiki source commit has wiki-publication success. Comparison from that source to the pre-checkpoint main head shows only Project Constellation state/checkpoint files changed and no wikis/** delta, so the actual Wiki remains current under the later full-set byte-verified publication."
+  },
+  "projects": {
+    "PRJ-023": {
+      "wikiSource": "wikis/PRJ-023-feature-foundry-portable-feature-starter.md",
+      "sourceBlob": "d335dea3e762c3dccd7c98e45de42b5fbc5a8862",
+      "decision": "no source churn",
+      "driveFileId": "17sISQkxtUUIE9oTzyL6vra6RlTaOYjuX3zgOyztEjpU",
+      "driveState": "current mirror rechecked in canonical Project Wikis folder; Vue 3.5.41 current-delta text present",
+      "verification": "The page already contains the current reproducibility warning, stable package deltas, and two-clean-environment acceptance contract."
+    },
+    "PRJ-024": {
+      "wikiSource": "wikis/PRJ-024-mo2-drag-column-compatibility-pack.md",
+      "sourceBlob": "b96bf5358c543426ebd2efe9367f8fc1e6ab9fb6",
+      "decision": "Drive durability repaired; no source churn",
+      "driveFileId": "1EXxSgxN9ICdEY6yWADX1U9Vy5yUngSdw_y40_53rwbc",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveMarkdownBytes": 4748,
+      "driveMarkdownSha256": "d3eb83d5c3949c1a983bcefd35166eebe744bfebbef55baf591c7f52cefb20fe",
+      "verification": "Missing complete Project Wikis mirror created, moved into canonical Project Wikis folder, independently re-read, and Markdown-exported. Official MO2 releases still identify v2.5.2 as the latest stable host baseline."
+    },
+    "PRJ-025": {
+      "wikiSource": "wikis/PRJ-025-ultradeck.md",
+      "sourceBlob": "4be16bd0b16cd8ec8accb77ca5a1e8df02d6bfcd",
+      "decision": "no source churn",
+      "driveFileId": "1DqCCTuM3Ax8rjmNYN09xd5zuY1NDE8oztateaOmPN3M",
+      "driveState": "current mirror rechecked in canonical Project Wikis folder; UltraDeck v8.6.0 text present",
+      "verification": "Canonical UltraDeck repository main remains d9278d4a0fd33d184e9c6f928556262668af4125, so the current detailed wiki remains authoritative."
+    },
+    "PCX-026": {
+      "wikiSource": "wikis/PCX-026-project-governance.md",
+      "sourceBlob": "d0c47fcd702f3b925b8e02b930b6bb03cc21256c",
+      "decision": "Drive durability repaired; no source churn",
+      "driveFileId": "15EMDBI6Oh2-ui3epjR2YWac1uH0cjjBDc-yJRnUB4Jo",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "driveMarkdownBytes": 5825,
+      "driveMarkdownSha256": "a2b51bd5c729910860df99278181f99ee9f7076c35a5fc2557a9eaea85bfc6f3",
+      "verification": "Missing complete Project Wikis mirror created, moved into canonical Project Wikis folder, independently re-read, and Markdown-exported."
+    },
+    "PCX-027": {
+      "wikiSource": "wikis/PCX-027-gamesync-archive-doctor.md",
+      "sourceBlob": "d54bf1a2daea5e3486e924c0023ba3a720809e88",
+      "decision": "no source churn",
+      "driveFileId": "1eHMmw15eZULbuFJA794h3gvMn5s4Jn1VkUusZ5Q6KOI",
+      "driveState": "current mirror rechecked in canonical Project Wikis folder; GameSync V2-289 integration text present",
+      "verification": "No newer project-owned Archive Doctor implementation source was resolved, so the current V2-289 support-tool and recovery-contract page remains the strongest verified documentation."
+    }
+  },
+  "driveProjectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+  "projectConstellationDriveFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+  "nextCursor": [
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031",
+    "PCX-032"
+  ],
+  "notes": "No new wikis/** source delta was justified. PRJ-024 and PCX-026 were missing complete Project Wikis Drive mirrors and now have independently re-read, hash-recorded mirrors. PRJ-023, PRJ-025, and PCX-027 were rechecked and remain current. The recurring Wiki-maintenance obligation remains open."
+}

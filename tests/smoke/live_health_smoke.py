@@ -1,0 +1,55 @@
+from playwright.sync_api import sync_playwright
+import pathlib, os, json
+root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation-v0120-work'))
+core=(root/'src/core.js').read_text(); brain=(root/'src/brain-core.js').read_text(); health=(root/'src/health-core.js').read_text(); content=(root/'src/content.js').read_text(); css=(root/'src/styles.css').read_text()
+page_html='''<!doctype html><html><head><style>html,body{margin:0;background:#08090b;color:#eceff4;font-family:Inter,system-ui,sans-serif}main{max-width:900px;margin:0 auto;padding:70px 28px 180px}.turn{padding:18px 0;border-bottom:1px solid #20242b}.muted{color:#8c949f}.tool{margin:18px 0;padding:14px;border:1px solid #2c313a;border-radius:12px;background:#0f1115}.tool p{margin:0 0 10px;color:#c3c9d2}.tool button{display:block;background:transparent;color:#aeb6c2;border:0;padding:8px 0;font:inherit}h1{font-size:24px;font-weight:650}</style></head><body><main><h1>Combat compatibility hardening</h1><article class="turn" data-message-author-role="user" data-message-id="u1">Improve the compatibility layer without regressions.</article><article class="turn" data-message-author-role="assistant" data-message-id="a1">I’m auditing the runtime state and verifying the build.</article><div class="tool" id="toolBox" aria-busy="true"><p>Working through implementation steps</p><button aria-label="tool activity">Called tool</button><button aria-label="tool activity">Inspecting configuration reset and runtime changes</button></div></main></body></html>'''
+mock=r'''(() => {
+ const changes=[]; window.__brain=[]; window.__openCalls=[];
+ window.__healthContext={ok:true,settings:{enabled:true,showHealthy:true,corner:'bottom-right',density:'comfortable',softStallMs:5000,hardStallMs:10000,deadStallMs:45000,hydrationGraceMs:1000,pollActiveMs:900,pollIdleMs:1500,toolWatchdogEnabled:true,capacityGuardEnabled:true,capacityWarningTurns:180,capacityHandoffTurns:260},capacity:{storedTurns:205},network:{pending:1,observed:true,lastStartAt:Date.now(),lastResponseAt:Date.now(),lastCompleteAt:0,lastErrorAt:0,lastStatusCode:200,rateLimited:false,streamLikely:true},latestTurns:[],integrityFindings:[],baseline:{latestVersion:'1.4.0'},chat:{coverage:'server-rendered-content',updatedAt:Date.now()}};
+ window.ProjectConstellationProviders={detectProvider:()=>({id:'chatgpt',name:'ChatGPT',home:'https://chatgpt.com/'}),chatIdFromUrl:()=> 'chatgpt:live-health',isLikelyChatUrl:()=>true,canonicalChatUrl:(u)=>u,classifyExternalUrl:(u)=>({kind:'external',provider:'example.com',external:true,url:u}),hashString:(value)=>{let h=2166136261;for(const ch of String(value||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0).toString(36);}};
+ window.chrome={storage:{local:{get:async()=>({projectConstellationPerformanceSettings:{enabled:true,responsiveScrolling:true,adaptiveMotionRelief:false},projectConstellationBrainSettings:{liveHealth:window.__healthContext.settings,approvalAutopilot:{enabled:false,acknowledged:false}},projectConstellationPerformanceMetrics:{}}),set:async()=>{}},onChanged:{addListener:(fn)=>changes.push(fn)}},runtime:{sendMessage:async(msg)=>{if(msg.type==='PC_BRAIN_INGEST_BATCH'){window.__brain.push(...(msg.payload||[]));return {ok:true};}if(msg.type==='PC_BRAIN_INGEST'){window.__brain.push(msg.payload);return {ok:true};}if(msg.type==='PC_LIVE_HEALTH_CONTEXT')return structuredClone(window.__healthContext);if(msg.type==='PC_OPEN_CONSTELLATION_PAGE'){window.__openCalls.push(msg);return {ok:true};}if(msg.type==='PC_PREPARE_CHAT_HANDOFF')return {ok:true,checkpointId:'handoff:chatgpt:live-health:test',markdown:'# Project Constellation Safe Handoff\n\nSmoke checkpoint',drive:{attempted:true,verified:true,status:'roundtrip-verified'}};return {ok:true};},onMessage:{addListener:(fn)=>window.__pcMessageListener=fn}}};
+})();'''
+with sync_playwright() as p:
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    page=browser.new_page(viewport={'width':1440,'height':920}); errors=[]; page.on('pageerror',lambda exc: errors.append(str(exc)))
+    page.set_content(page_html,wait_until='domcontentloaded')
+    page.evaluate(mock);page.add_style_tag(content=css);page.add_script_tag(content=core);page.add_script_tag(content=brain);page.add_script_tag(content=health);page.add_script_tag(content=content)
+    page.wait_for_timeout(2600)
+    active=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h?.shadowRoot;return {exists:!!h,state:s?.getElementById('pcHealthTitle')?.textContent,network:s?.getElementById('pcHealthNetwork')?.textContent,activity:s?.getElementById('pcHealthActivity')?.textContent,tool:s?.getElementById('pcHealthTool')?.textContent,project:s?.getElementById('pcHealthProject')?.textContent,capacity:s?.getElementById('pcHealthCapacity')?.textContent,handoffHidden:s?.getElementById('pcHealthHandoff')?.hidden,visible:h?.dataset.visible,level:h?.dataset.level,healthState:h?.dataset.state,articles:document.querySelectorAll('article').length}; }''')
+    assert active['exists'] and active['visible']=='1' and active['state'].startswith('Tool working ·') and active['healthState']=='tool-running'
+    assert 'active' in active['network'] and active['activity'] in ['inspecting','tool call','executing','retrieving'] and 'step' in active['tool'] and '1.4.0' in active['project']
+    assert 'watch' in active['capacity'] and active['handoffHidden'] is False and active['level']=='warning'
+    # Repeated generic "Called tool" rows must count as real timeline progress instead of looking frozen merely because the label repeats.
+    initial_steps=int(active['tool'].split()[0])
+    for idx in range(3):
+        page.evaluate('''(idx) => { const b=document.createElement('button');b.setAttribute('aria-label','tool activity');b.textContent='Called tool';b.dataset.step=String(idx);document.getElementById('toolBox').appendChild(b); }''', idx)
+        page.wait_for_timeout(1050)
+    pulse=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:h.dataset.state,title:s.getElementById('pcHealthTitle').textContent,tool:s.getElementById('pcHealthTool').textContent,activity:s.getElementById('pcHealthActivity').textContent,mini:s.getElementById('pcHealthMini').textContent}; }''')
+    assert pulse['state']=='tool-running' and int(pulse['tool'].split()[0]) >= initial_steps + 3
+    assert 'live request' in pulse['mini'] and pulse['activity']
+    # A tool card that remains on-screen and busy with no fresh request or DOM/tool progress must become explicitly stuck.
+    page.evaluate('''() => { const now=Date.now();window.__healthContext={...window.__healthContext,capacity:{storedTurns:0},network:{pending:0,observed:true,oldestPendingAt:0,lastStartAt:now-20000,lastResponseAt:now-19000,lastCompleteAt:now-18000,lastErrorAt:0,lastStatusCode:200,rateLimited:false,streamLikely:false}}; }''')
+    page.wait_for_timeout(11200)
+    stuck=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:h.dataset.state,title:s.getElementById('pcHealthTitle').textContent,detail:s.getElementById('pcHealthDetail').textContent,network:s.getElementById('pcHealthNetwork').textContent,tool:s.getElementById('pcHealthTool').textContent,level:h.dataset.level}; }''')
+    assert stuck['state']=='tool-stalled' and stuck['title'].startswith('Tool call looks stuck ·') and stuck['network']=='quiet' and stuck['level']=='danger'
+    assert 'no live provider request' in stuck['detail'].lower() and 'step' in stuck['tool']
+    capacity_shot=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_CAPACITY_SCREENSHOT',str(root/'dist/execution-pulse-v013.png'))); capacity_shot.parent.mkdir(parents=True,exist_ok=True); page.screenshot(path=str(capacity_shot),full_page=False)
+    page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthHandoff').click()")
+    page.wait_for_timeout(250)
+    handoff_label=page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthHandoff').textContent")
+    assert 'Handoff copied' in handoff_label and 'Drive verified' in handoff_label
+    # Now simulate a completed-looking but stale revision from an authoritative full export.
+    page.evaluate('''() => { document.getElementById('toolBox').remove(); window.__healthContext={...window.__healthContext,network:{pending:0,observed:true,lastStartAt:Date.now()-12000,lastResponseAt:Date.now()-11000,lastCompleteAt:Date.now()-10000,lastErrorAt:0,lastStatusCode:200,rateLimited:false,streamLikely:false},chat:{coverage:'full-export',source:'official-export',updatedAt:Date.now()+5000},latestTurns:[{id:'chatgpt:live-health:remote-a2',messageId:'remote-a2',ordinal:99,textHash:'definitely-newer'}]}; }''')
+    page.evaluate('''() => new Promise(resolve=>window.__pcMessageListener({type:'PC_RESCAN'},null,resolve))''')
+    page.wait_for_timeout(2800)
+    stale=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:s.getElementById('pcHealthTitle').textContent,detail:s.getElementById('pcHealthDetail').textContent,page:s.getElementById('pcHealthPage').textContent,refreshHidden:s.getElementById('pcHealthRefresh').hidden,level:h.dataset.level}; }''')
+    assert stale['state']=='This tab is behind' and stale['page']=='behind' and stale['refreshHidden'] is False and stale['level']=='critical'
+    # Health settings must open the exact Constellation health section rather than a generic page.
+    page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthSettings').click()")
+    page.wait_for_timeout(80)
+    open_call=page.evaluate('window.__openCalls.at(-1)')
+    assert open_call and open_call['view']=='attention' and open_call['focus']=='live-health'
+    screenshot=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_HEALTH_SCREENSHOT',str(root/'dist/live-health-v013.png'))); screenshot.parent.mkdir(parents=True,exist_ok=True); page.screenshot(path=str(screenshot),full_page=False)
+    result={'active':active,'pulse':pulse,'stuck':stuck,'stale':stale,'openCall':open_call,'handoffLabel':handoff_label,'brainEvents':page.evaluate('window.__brain.length'),'errors':errors,'screenshot':str(screenshot),'capacityScreenshot':str(capacity_shot)}
+    print(json.dumps(result,sort_keys=True)); assert not errors
+    browser.close()

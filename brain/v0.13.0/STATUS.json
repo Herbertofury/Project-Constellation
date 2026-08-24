@@ -1,0 +1,148 @@
+{
+  "version": "0.13.0",
+  "status": "v0.13.0-published-drive-verified-primary",
+  "implemented": [
+    "Knowledge Vault deterministic local graph for recommendations, links, repositories, mods/packages, commands, code, decisions, ideas, follow-ups, versions, references, files, and source-chat lineage",
+    "incremental project continuity pointers preserve latest recommendation, decision, follow-up, artifact, version, code/reference, idea, and exact chat where project work last happened",
+    "large-history knowledge extraction fingerprints unchanged turns, deduplicates canonical items, uses bounded active batches, and accelerates historical backfill only while Chrome is idle",
+    "Live Chat Health HUD runs in a Shadow DOM on supported AI pages with configurable corner, density, thresholds, healthy visibility, exact Constellation settings deep-link, and refresh action when appropriate",
+    "passive non-blocking webRequest telemetry distinguishes live provider/tool work from genuine stalls without extra provider requests or request interception",
+    "authoritative stale-tab detection warns when a rendered chat is behind a newer captured revision while protecting partial/metadata coverage from false refresh warnings",
+    "bounded render-degradation detector catches meaningful recent message text that disappeared/was hidden while preserving provider DOM",
+    "Live Health combines tool/network progress, Approval Autopilot/recovery state, Project Integrity version/rollback/conflict/regression findings, follow-up state, refresh-required, rate-limit, pause, and auth state",
+    "v0.10 request governor, 429 cooldown, browser-refresh-only delivery recovery, Project Integrity, Approval Autopilot, zero-tab default catalog, one-tab Full Capture, Workbench, OAuth, durability, and performance engine remain intact",
+    "Conversation Capacity Guard tracks indexed stored-turn count plus incrementally maintained current-session character volume without rescanning the full transcript",
+    "capacity warning/handoff thresholds are configurable and explicit provider max-context/conversation signals promote the guard immediately without pretending an exact provider ceiling is known",
+    "Live Health HUD adds Capacity and Handoff metrics plus a real Secure handoff action that stays available while tool/network work is still active",
+    "Safe Handoff creates a durable local checkpoint with source chat/project/version lineage, recent turn context, extracted knowledge, files/resources, and capacity evidence; it copies continuation-ready Markdown and requests a full round-trip-verified Drive snapshot when the extension already has Drive connected",
+    "Execution Pulse replaces ambiguous generic health wording with a premium bottom-right current-chat monitor that exposes last proof age, provider-network liveness, current activity phase, tool-step count, project/version state, page freshness, Capacity Guard, and Safe Handoff state even when collapsed.",
+    "Tool timeline detection treats repeated generic provider rows such as Called tool as real sequential progress by fingerprinting the recent tool-event timeline instead of only the visible label; informative nearby tool labels are retained for the HUD title.",
+    "Tool Watchdog distinguishes tool-running, tool-quiet, tool-stalled, tool-dead, request-stalled, and dead states from combined DOM, tool-card, and passive request-lifecycle proof; a zombie pending request can no longer keep a chat falsely green forever.",
+    "Execution Pulse never auto-clicks provider Retry: stalled/dead states are diagnostic signals, while delivery/connection recovery remains browser-refresh-only.",
+    "Home, Attention, Inspector, Recovery, Search, and Organizer cards project fresh liveHealthState/activity/tool-step evidence instead of hiding it behind the older coarse chat status.",
+    "Live Health settings now expose a Tool-call watchdog toggle and a separate appears-dead threshold while preserving zero added provider requests."
+  ],
+  "verified": [
+    "unit suite and static release gates passed with 49 literal UI message types owned",
+    "Live Health browser smoke kept a quiet tool chat active while one provider request was pending, then detected an authoritative stale tab and exposed refresh without page errors",
+    "background smoke verified passive request start/completion telemetry plus knowledge extraction/search/continuity and request governor behavior",
+    "Home smoke rendered Knowledge Vault, exact source/resource actions, continuity, Live Health settings persistence, Project Integrity, request telemetry, search, capture, and Connections flows",
+    "content regression preserved 320/320 DOM messages and catalogued 320/320 turns; deep walker observed all 320 and reached both boundaries",
+    "approval recovery regression preserved Always Allow, browser-refresh-only delivery timeout with zero Retry clicks, provider-rate-limit cooldown, and resume behavior",
+    "Full Capture regression preserved one reusable visible capture surface, two-chat completion, and pause/resume/cancel",
+    "fresh source ZIP independently passed npm test, static validation, Live Health, 320-turn content, Home/Knowledge Vault, approval recovery, and Full Capture tests",
+    "fresh installable ZIP independently passed background telemetry/knowledge, Live Health, 320-turn preservation, Home/Knowledge Vault, approval recovery, and Full Capture critical-path tests",
+    "production manifest contains no placeholder Google OAuth client block and production content code contains no provider fetch/XMLHttpRequest path",
+    "Ferrum v0.2.0 hashed the exact v0.12.0 21-file installable as f4b0f2329c312bc55770f764cdeacf158683888bc0093a3e47f6e8c207a2d01b and preserved evidence for the real-extension gate attempts",
+    "managed Chromium verbose extension logging proved the local true-unpacked-load gate is externally blocked before Project Constellation runtime startup: Loading of unpacked extensions is disabled by the administrator",
+    "health-core unit coverage proves fresh tool work, stale static tools, prolonged tool-dead classification, request-stall/dead behavior, stale-page precedence, and Capacity Guard interaction.",
+    "Execution Pulse browser smoke proves repeated generic Called tool rows increment the visible tool pulse, preserve active state while progress continues, and become tool-stalled after the configured hard threshold when requests and DOM/tool progress stop.",
+    "Home browser smoke proves a fresh liveHealthState tool-stalled projection renders as stalled with the live watchdog detail rather than the older running status.",
+    "background, 320-turn content preservation/deep-walk, Home/Knowledge, Approval Recovery, and Full Capture regression smokes remain green after the watchdog integration.",
+    "static validation still owns all 49 literal UI message types and now requires the tool-stalled/tool-dead/request-stalled/dead states, oldest pending-request timing, tool timeline markers, and watchdog settings controls."
+  ],
+  "remaining_external_gate": [
+    "true unpacked-extension acceptance in Ferrum remains externally blocked in this container because the only installed Chromium enforces an administrator policy that disables unpacked extensions; Ferrum matching Playwright Chromium is not locally cached and cannot be downloaded in this runtime",
+    "real signed-in ChatGPT/Claude/Grok provider verification remains an unrestricted-browser external gate",
+    "real Google OAuth still requires the product Chrome Extension OAuth client and GitHub device OAuth requires an OAuth App client ID"
+  ],
+  "updated_at": "2026-08-24T16:41:08.609655Z",
+  "publication": {
+    "drive_status": "VERIFIED_FULL_PRIMARY_PUBLICATION",
+    "release_folder_id": "10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
+    "release_folder_url": "https://drive.google.com/drive/folders/10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
+    "base_release_folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "files": {
+      "source": {
+        "file_id": "1BE4BxzKCr-sjVnFiwE-cv50vwhGM6GZI",
+        "note": "same Drive file ID is updated with final source bytes; final SHA/size/readback are recorded in the external checkpoint/checksum/receipt to avoid self-referential metadata"
+      },
+      "unpacked": {
+        "file_id": "1j5p_9MeJhz2yF6kWjZb4l8d1LY1YIwvv",
+        "size": 159179,
+        "sha256": "95dd2b1b9451f5061942981dcc4c245ac4319ac6fd87f3e21d55e9d8d3f2d60c",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "evidence": {
+        "file_id": "1ewvzPJXWmOnRTZXsw1PL9wuSpppHbt4R",
+        "size": 1293451,
+        "sha256": "a5aed9593a45b23c5860568d531c1d03283d11dbdd2475449265f364d8157b5c",
+        "verification": "full Drive redownload byte-identical"
+      },
+      "execution_pulse_png": {
+        "file_id": "1-JsY58YQgLP2TwtoEmKx1fqeosAVknz9",
+        "size": 131349,
+        "sha256": "c4b804d53e205cdefaea46be1aa42d76b78a0f087e52ebd44d946d363b905cc5",
+        "verification": "full Drive redownload byte-identical"
+      }
+    },
+    "installable_tree": {
+      "file_count": 21,
+      "tree_sha256": "f80475cf97db4a7c6b4ee24925ccc987cf77ca5085db94555a9029e3b3276bbf",
+      "extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig"
+    },
+    "verification": "source final readback plus external checkpoint/checksums/receipt are completed after this immutable source package is generated"
+  },
+  "ferrum_gate": {
+    "status": "blocked-external-policy",
+    "ferrumVersion": "0.2.0",
+    "candidateSha256": "f4b0f2329c312bc55770f764cdeacf158683888bc0093a3e47f6e8c207a2d01b",
+    "fileCount": 21,
+    "expectedExtensionId": "geljambmkfjkhodgkpjhnmfojkpcamig",
+    "evidenceNote": ".agents-memory/FERRUM-RUNTIME-GATE-2026-08-23.md",
+    "policyProof": "Loading of unpacked extensions is disabled by the administrator."
+  },
+  "github_mirror": {
+    "repository": "Herbertofury/ProjectDump",
+    "role": "supplemental continuity/catalog mirror only; not canonical extension source",
+    "current_pointer": "project-constellation/EXTENSION-CURRENT.json",
+    "quarantined_wrong_lineage": "project-constellation/releases/v0.11.1/README.md",
+    "rule": "Do not resume the extension from ProjectDump when newer/full Drive authority exists."
+  },
+  "previous_release": {
+    "version": "0.12.0",
+    "drive_publication": {
+      "drive_status": "VERIFIED_FULL_PUBLICATION",
+      "release_folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+      "release_folder_url": "https://drive.google.com/drive/folders/1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+      "base_release_folder_id": "1k6Z33D5D6m_79xJSJ0fosdxzM_P22f6X",
+      "files": {
+        "source": {
+          "file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
+          "note": "current full source bytes; final SHA/size are recorded in the external checkpoint/checksums/receipt to avoid self-referential source metadata"
+        },
+        "unpacked": {
+          "file_id": "1pM0MXYuUT_uF3UWvvljoqh2s672vqUng",
+          "size": 155887,
+          "sha256": "f840b5fbcacdf8e70a48c06ce518339d6aab5bb3837f12659ada9afb7680d376",
+          "verification": "full Drive redownload byte-identical"
+        },
+        "evidence": {
+          "file_id": "1AiLWskQHOVy53d2G6GioKbljQdZHMuQl",
+          "size": 559494,
+          "sha256": "2294dbb31b7e3142b587ba7d1cd782d5dc91e4f152d96b67cc18a24d30a51460",
+          "verification": "full Drive redownload byte-identical"
+        },
+        "ui_proof": {
+          "file_id": "1jR3481J42rPZP1L5k1NZCQAtHgQhiK-1",
+          "size": 129464,
+          "sha256": "e3c40a3ce82ff6cc72a0f6258786a641676a1d66d76726aadaedf8b04eabf472",
+          "verification": "full Drive redownload byte-identical"
+        },
+        "checkpoint": {
+          "file_id": "1PbbKUViNtwBlxPsc6XSGNuROobBIXSEP"
+        },
+        "checksums": {
+          "file_id": "13VbDsRjUNiw3UcflSy_mHqviROBefJ4-"
+        },
+        "receipt": {
+          "file_id": "16PGJ3UobyUTtcj-I4mgH4RweuXKdjpXi"
+        },
+        "github_continuity": {
+          "file_id": "1bSzDa8B0AaVf8Rai84prhkxLoU8a1tjy"
+        }
+      },
+      "verification": "All material Drive objects are required to be full-redownload SHA/size verified. External checkpoint/checksums/receipt hold final byte identities."
+    }
+  }
+}

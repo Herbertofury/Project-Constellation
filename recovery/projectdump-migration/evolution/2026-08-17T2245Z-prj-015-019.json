@@ -1,0 +1,93 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "timestamp": "2026-08-17T22:45:00Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "projectCountInvariant": 63,
+  "reviewedProjects": [
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017",
+    "PRJ-018",
+    "PRJ-019"
+  ],
+  "findings": {
+    "PRJ-015": "Bethesda Plugin Info 1.5.3 remains the coordinated compatibility target. Its current-host gate is real Windows MO2 v2.5.2 with exact column, tooltip, warning/category, drag/drop, theme/DPI, and restart proof; no runtime promotion was made without that evidence.",
+    "PRJ-016": "Bethesda Creations Version Tracker 2.4.3 remains the current target. Preserve the v2.3.1 migration away from per-mod.bethesda-creation-sorter.json sidecars, corrupt-marker quarantine, and user metadata while qualifying current Starfield/Creation behavior and the coordinated drag/column stack.",
+    "PRJ-017": "Current MO2 master installs a host ModListStyledItemDelegate that preserves separator indentation, background/marker painting, and readable text colors. Image Column 1.4.12 should compose with that delegate rather than replace the full list delegate. Preserve all multi-source media providers, stable mod identity, compact rows, complete off-screen availability, and no viewport caps. Add QAbstractItemModelTester only as a matching-version development harness when available, not a shipping dependency.",
+    "PRJ-018": "Current MO2 dragMoveEvent delegates semantic drag handling to QAbstractItemView after host-specific state handling, and ModList item flags define valid drop locations. Line Restorer 1.1.0 must remain rendering-only. Proposed a Host Drag Contract Recorder that compares accepted/proposed/drop action, drop indicator position, target index, item flags, and final mod order with the plugin disabled versus enabled.",
+    "PRJ-019": "Current MO2 ModListSortProxy uses dynamic sorting and invalidateFilter/filterInvalidated paths, while ModListView already coalesces one marker/plugin refresh burst with a single-shot timer. These are the exact host hot paths to instrument. Newer Qt beginFilterChange/endFilterChange APIs require Qt 6.9/6.10 and are forward-only candidates because MO2 v2.5.2 ships Qt 6.7.1. Preserve 4.0.1 exact-modList binding, reversible hooks, circuit breaker, full-list semantics, and no worker/polling shortcuts."
+  },
+  "projectConstellationImprovement": {
+    "name": "Host Contract Lens",
+    "status": "PROPOSE_READ_ONLY",
+    "goal": "Derive a read-only per-project view of current host/runtime contracts such as exact host version, model/view/delegate/API assumptions, forward-only APIs, verification freshness, and the next real-runtime proof target.",
+    "benefit": "Makes host drift and version-incompatible proposals obvious without allowing the Project Constellation presentation layer to mutate project-owned verification authority.",
+    "smallestExperiment": "Generate the lens for the five MO2 projects from their current wiki evidence and host-source references, then verify that every displayed contract links back to project-owned or primary-source evidence.",
+    "acceptance": "No project record is removed or rewritten, all 63 projects remain available, stale/unverified evidence is visibly distinct, and the lens is derived-only."
+  },
+  "researchDecisions": [
+    {
+      "project": "PRJ-017",
+      "decision": "PROPOSE_TEST_ONLY",
+      "candidate": "Qt QAbstractItemModelTester",
+      "finding": "Useful as an additive model-consistency checker when the recovered test environment exposes a matching QtTest binding.",
+      "risk": "QtTest version mismatch or accidental shipping dependency.",
+      "acceptance": "Runs only in development/CI, matches the qualified host Qt, and detects model/proxy consistency faults without changing runtime behavior."
+    },
+    {
+      "project": "PRJ-018",
+      "decision": "PROPOSE",
+      "candidate": "Host Drag Contract Recorder",
+      "finding": "Semantic trace comparison is stronger than screenshot-only verification for a visual-only drag indicator.",
+      "risk": "Instrumentation must observe rather than alter drag events.",
+      "acceptance": "Plugin-off and plugin-on semantic traces are identical for every deterministic drag fixture; only overlay-paint evidence differs."
+    },
+    {
+      "project": "PRJ-019",
+      "decision": "DEFER_UNTIL_HOST_UPGRADE",
+      "candidate": "QSortFilterProxyModel beginFilterChange/endFilterChange",
+      "finding": "Current Qt exposes more precise filter invalidation APIs, but they postdate the Qt 6.7.1 runtime shipped by stable MO2 v2.5.2.",
+      "risk": "Raising or diverging the host Qt requirement would break current compatibility.",
+      "acceptance": "Reconsider only when the actual MO2 host ships a sufficient Qt version and a same-dataset before/after test proves lower work with identical row mapping and state."
+    }
+  ],
+  "publication": {
+    "github": {
+      "repository": "Herbertofury/ProjectDump",
+      "branch": "main",
+      "wikiSources": [
+        "wikis/PRJ-015-bethesda-plugin-info-for-mo2.md",
+        "wikis/PRJ-016-bethesda-creations-version-tracker-for-mo2.md",
+        "wikis/PRJ-017-mo2-image-column-mo2r-image-automation.md",
+        "wikis/PRJ-018-mo2-drag-and-drop-line-restorer.md",
+        "wikis/PRJ-019-mo2-performance-accelerator.md"
+      ]
+    },
+    "drive": {
+      "projectWikisFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "documents": {
+        "PRJ-015": "14nHqYvx59FXTolDCA9N2Gn2MeA3aD2i2z31hp8qtAso",
+        "PRJ-016": "1mY022iTDkKBM3KTXESEO_S83pCn7p24GMpWyZOIHnXo",
+        "PRJ-017": "1wqos23hyt4Db9-N9-JPksRa7sJNHJiqsfMFoIgJInak",
+        "PRJ-018": "1SfPZROUniOq2xy1PaBHpU3zHW-wgwpFfs2w3JXNx0rg",
+        "PRJ-019": "1GUEH1ZfKRHnDMGA5reQ6xA4A1HlrnfLLdyv3rg_qVMQ"
+      }
+    }
+  },
+  "antiRegression": {
+    "projectCountChanged": false,
+    "runtimeCodeChanged": false,
+    "presentationArtifactsChanged": false,
+    "lastAutomationHashChanged": false,
+    "viewportOrDatasetCapsAdded": false,
+    "testsWeakened": false
+  },
+  "wikiCoverageAfterPass": 61,
+  "nextResearchCursor": [
+    "PRJ-020",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ]
+}

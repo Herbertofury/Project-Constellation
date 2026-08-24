@@ -1,0 +1,113 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-19T03:12:00Z",
+  "projectGroup": [
+    "PCX-043",
+    "PCX-044",
+    "PCX-045",
+    "PCX-046",
+    "PCX-047"
+  ],
+  "materialUpdates": [
+    {
+      "projectId": "PCX-045",
+      "name": "Feature Foundry Object Intelligence",
+      "readerWiki": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-045-feature-foundry-object-intelligence",
+      "sourcePath": "wikis/PCX-045-feature-foundry-object-intelligence.md",
+      "sourceCommit": "987bc1a82c3b04a2ed66cde7f8783a99f751713e",
+      "sourceBlob": "e0b3c63bcf018b987797a1b60a4e11528cd7b3b4",
+      "wikiWorkflowRun": 32211061129,
+      "wikiMasterCommit": "0f7bb038878aab1c5c2cd4f41565e456c83d7bf3",
+      "wikiPublication": "passed: ProjectDump.wiki.git push + fresh-clone complete byte comparison",
+      "driveWiki": {
+        "fileId": "1t5cUCBPMh1Y8cok63a02aNh2dRCVQFcBmyAYY4-1sp4",
+        "title": "PCX-045 Feature Foundry Object Intelligence Wiki",
+        "parentFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+        "revisionId": "AIroW34DNvB8vjw9vt-ZzZZ3aymv7eSeAPtEd7MkEmxFb_g2p6q3Al6QKprcCJMN9A727n9sgKb6wsHr9boe0-lIBQwu_Spn7cDXI4Wu0o0",
+        "markdownBytes": 21503,
+        "markdownSha256": "07d285b34fa88c5a484541cbf48eb6ed5ef52fc19e17bf5c0a8bc638e10d95ed",
+        "roundTrip": "passed"
+      },
+      "verifiedDelta": {
+        "strongestObjectAtlasEvidence": "Feature Foundry V23 / Object Atlas schema 13 / build 23.0.0",
+        "validation": "142 passed, 0 failed; Python SQLite 3.46.1",
+        "objectAtlasSha256": "dcf8e7000b6a32f3a0960e85d2b662d1d0d860e7f228975a35042f785bb56765",
+        "themeWorldsSha256": "ed4a3f97b71e5927e7a191dfc0f6dfc7f67fbc07e012bdbb4b54c8122940c468",
+        "prototypeSha256": "07b529aec512e0572630c802c431d3dd84b15f75a34746773ea726c1c506759d",
+        "directiveSha256": "5dbe307e8bd5a1e62d9968ce43f369b6223f0483993a6a2c82d0dd298da2dc5f",
+        "objectAtlasCounts": {
+          "objectArchetypes": 178,
+          "objectFamilies": 178,
+          "materials": 52,
+          "behaviorProfiles": 178,
+          "objectVariants": 178,
+          "objectAffordances": 831,
+          "roomActors": 8,
+          "objectSearch": 178,
+          "objectBounds": 178,
+          "mascotActorCapabilities": 14,
+          "actorPresentationProfiles": 2,
+          "actorContextMenuProfiles": 1,
+          "actorContextMenuCommands": 20
+        },
+        "crossDatabaseReferences": "170 resolved Theme Worlds -> Object Atlas references; 0 unresolved",
+        "chromiumRuntime": "28/28 checks passed for context menu, Duplicate, Lock/Unlock, Bring to front, Reveal in Layers, Delete + Undo/Redo, Pin/Peel, reload persistence, keyboard navigation, mascot-specific menus, normal left-drag preservation, and zero page/console errors",
+        "authorityBoundary": "V23 is the strongest recovered detailed Object Atlas schema/runtime contract; V33 is later runnable product behavior evidence; V2-253 is newer maintainable production-app source and must be reconciled before superseding V23 Object Atlas ownership"
+      }
+    }
+  ],
+  "recheckedWithoutMaterialWikiChange": [
+    {
+      "projectId": "PCX-043",
+      "name": "Feature Foundry Production App",
+      "note": "Current page already distinguishes V33 FINAL_READY from V2-253 maintainable source and documents Project Vault, Improvement Radar, agent, release-integrity, launch-readiness and recovery evidence. No newer verified product delta justified another rewrite."
+    },
+    {
+      "projectId": "PCX-044",
+      "name": "Feature Foundry Living Ecology",
+      "note": "Current page already records the later V33 ecology runtime and preservation contract. V23 evidence recovered this pass is primarily Object Atlas-specific and did not supersede the later ecology evidence enough to justify churn."
+    },
+    {
+      "projectId": "PCX-046",
+      "name": "Feature Foundry Source Hubs",
+      "note": "Current page remains detailed on V33 soundtrack/provider architecture, capability/auth truth and provider qualification. No newer source-hub implementation delta was resolved."
+    },
+    {
+      "projectId": "PCX-047",
+      "name": "Favorite Artist Worlds Database",
+      "note": "Current page remains aligned to the verified v4.0.1 database lineage, validation and source-quality corrections. No newer verified database revision was resolved."
+    }
+  ],
+  "durableCheckpoint": {
+    "githubPath": "project-constellation/evolution/2026-08-19T0312Z-pcx-043-047-wiki-delta.json",
+    "driveFileId": "1hMGpmfAtiuPJwgczYmn4-v3PqT6ywqyjKMbK8P9tV_k",
+    "driveTitle": "Project Constellation Wiki Maintainer Checkpoint - PCX-043-047 - 2026-08-19T0312Z",
+    "driveParentFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "driveRevisionId": "AIroW36OMRo4sS3_wgVSd14ZapfkIkM3o-sd_MrkNSvFftsF69pKQqOFdkatOPYePv1X0DJcQYbULY9oQgwYzhtEdE1aSzrRTjfjMQuoNo4",
+    "driveMarkdownBytes": 6140,
+    "driveMarkdownSha256": "eda96857c6ae63028416e4416a2729bfb2d2fdbab541e0497a5756a6847451c8",
+    "roundTrip": "passed"
+  },
+  "researchCursor": {
+    "githubPath": "project-constellation/Project-Constellation-Research-Cursor.json",
+    "githubCommit": "f3965b1ac29d577ecfdb36de25cf25b75a0cf94e",
+    "githubBlob": "213b92a5fcae709fa71836584280c55c8b97b309",
+    "driveFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "driveRevisionId": "AIroW37CbtSMfJaEdcHEEXznNnyIy9xIBxyRagac7zRNKMk6cZWd99sxSMby96drTAU61BrVR3f2CuqgOfI8bJlzXjdiHjt2PnpbwFmJ0F0",
+    "driveTextBytes": 1842,
+    "driveTextSha256": "fae2c2f3249e54a67fc7a432e4ab5b00444bb98fb9332d590e7428cb288671e6",
+    "jsonParse": "passed after UTF-8 BOM handling",
+    "roundTrip": "passed"
+  },
+  "nextCursor": [
+    "PCX-048",
+    "PCX-049",
+    "PCX-050",
+    "PCX-051",
+    "PCX-052"
+  ],
+  "persistence": {
+    "recurringObligation": "OPEN_AND_ONGOING",
+    "automationDisposition": "remain enabled; successful or no-op project passes never retire the service"
+  }
+}

@@ -1,0 +1,1 @@
+{"after": "0", "before": {"enabled": true, "pressure": "normal", "provider": "ChatGPT", "state": "running", "tasks": "4"}, "created": [{"active": true, "url": "chrome-extension://pc-test/home.html"}, {"active": true, "url": "chrome-extension://pc-test/sidepanel.html"}, {"active": true, "url": "chrome-extension://pc-test/home.html?view=connections"}], "errors": []}

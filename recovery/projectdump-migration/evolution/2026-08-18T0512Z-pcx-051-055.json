@@ -1,0 +1,118 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "createdAt": "2026-08-18T05:12:30Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "catalogInvariant": {
+    "trackedProjects": 63,
+    "projectConstellationControlPlaneExcludedFromTargetRotation": true
+  },
+  "slice": [
+    "PCX-051",
+    "PCX-052",
+    "PCX-053",
+    "PCX-054",
+    "PCX-055"
+  ],
+  "canonical": {
+    "projectDumpRepository": "Herbertofury/ProjectDump",
+    "projectDumpBranch": "main",
+    "shippingGameSyncRepository": "Herbertofury/Gamesync",
+    "shippingGameSyncHead": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+    "gameSyncNextRepository": "Herbertofury/GameSync-Next",
+    "gameSyncNextHead": "9e337c720f0180cffa577f140b181c699f0a1650",
+    "projectWikisDriveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E"
+  },
+  "projectFindings": [
+    {
+      "project": "PCX-051",
+      "name": "GameSync Capability Truth / UI QoL",
+      "decision": "OBSERVE_NO_WRITE",
+      "facts": [
+        "The current wiki already uses the GameSync Next parity matrix and audit as the capability-truth authority.",
+        "Current GameSync Next parity status definitions and capability evidence remain consistent with the page's core contract.",
+        "The newer shipping GameSync head changes in the reviewed delta are release/secret-scan plumbing rather than a capability-truth semantic change."
+      ],
+      "writes": []
+    },
+    {
+      "project": "PCX-052",
+      "name": "GameSync Release Factory",
+      "decision": "OBSERVE_NO_WRITE",
+      "facts": [
+        "The existing wiki already records the current shipping GameSync and GameSync Next heads, Extension V2 build/zip paths, parity audit, Opera verification, same-ID upgrade verification, and secret-scan boundary.",
+        "No newer repository head or release-factory contract change justified documentation churn in this pass."
+      ],
+      "writes": []
+    },
+    {
+      "project": "PCX-053",
+      "name": "GameSync Bounty / Rewards Runtime",
+      "decision": "OBSERVE_NO_WRITE",
+      "facts": [
+        "The existing wiki is current to the shipping GameSync head and distinguishes historical runtime proof from newer Twitch/Steam/Battle.net source additions.",
+        "The current GameSync Next parity matrix still records Bounty as a gap, so the wiki's migration boundary remains current."
+      ],
+      "writes": []
+    },
+    {
+      "project": "PCX-054",
+      "name": "GameSync Source Finder / Entity Resolver",
+      "decision": "DOCUMENT_AND_FLAG_NO_CAP_GAP",
+      "facts": [
+        "GameSync Next now has a source-backed typed discovery engine at packages/shared/src/modSourceDiscovery.ts and a React Found Mods workflow at apps/extension-v2/src/ui/app/FoundModsView.tsx.",
+        "The canonical parity matrix marks source-discovery-and-found-mods verified and records isolated Opera execution of the packaged offscreen MiniLM/WASM reranker with valid scores while keeping broader provider equivalence separate.",
+        "FoundModsView currently requests discovered rows with offset 0 and limit 5000, creating a hard source-level completeness ceiling that violates the complete-library/no-cap requirement.",
+        "The manual user-initiated Found Mods merge path accepts intelLibraryMatch confidence >= 0.45; this must remain distinct from the shipping Hybrid Matcher automatic attach threshold >= 0.86."
+      ],
+      "proposal": "Replace the 5000-row ceiling with a lossless complete-data retrieval strategy and add a >5000-discovery regression covering filtering, Add, manual Merge, Ignore, reload, and restart without viewport culling or quantity loss.",
+      "githubSourceCommit": "23c2feaa0eb90867bc649de59a0e4fe8e5df976a",
+      "wikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
+      "driveWikiFileId": "1pbwA7nHjwhdNGgy0jqTX4fiFa9vwx82q2JOyEIS2JK0",
+      "writes": [
+        "wikis/PCX-054-gamesync-source-finder-entity-resolver.md"
+      ]
+    },
+    {
+      "project": "PCX-055",
+      "name": "GameSync Script Polling Runtime",
+      "decision": "DOCUMENT_AND_FLAG_SCHEDULER_REARM_GAP",
+      "facts": [
+        "ScriptPollScheduler constructor installs an alarm listener through setupAlarms().",
+        "stopScheduledPolls() clears the alarm, removes the listener, and sets alarmListener to null.",
+        "schedulePolls() recreates the alarm but does not reinstall the listener.",
+        "In the same live service-worker instance, stop then start can therefore leave the named recurring alarm present with no registered callback until scheduler reconstruction.",
+        "Persisted lastPollAt provides overdue-source detection once runScheduledPolls executes, but this pass did not establish an explicit startup caller that guarantees missed-window catch-up after browser/service-worker restart."
+      ],
+      "proposal": "Repair the same-worker stop/start listener lifecycle, add an exact STOP -> START -> alarm-fire regression, then prove browser/service-worker restart and missed-window catch-up in the built extension.",
+      "githubSourceCommit": "f7d4f42e46ae4d07bc1041d6035ad5f8e5bef64e",
+      "wikiPublicationCommitForPageUpdate": "77f48833db28db8088e87f36f8ccd3f3a8c91f2e",
+      "finalWikiMasterCommitAfterSlice": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
+      "driveWikiFileId": "1XFGWsjfhAu9zDvUIbw04jMwegxwZdovIPz5EbpQqoIY",
+      "writes": [
+        "wikis/PCX-055-gamesync-script-polling-runtime.md"
+      ]
+    }
+  ],
+  "publicationVerification": {
+    "pcx055SourceCommit": "f7d4f42e46ae4d07bc1041d6035ad5f8e5bef64e",
+    "pcx055WikiRun": 32101635054,
+    "pcx055WikiMasterCommit": "77f48833db28db8088e87f36f8ccd3f3a8c91f2e",
+    "pcx054SourceCommit": "23c2feaa0eb90867bc649de59a0e4fe8e5df976a",
+    "pcx054WikiRun": 32101803728,
+    "finalWikiMasterCommit": "f519ae96c3ecab7a6e7a238a71a8efecf050a153",
+    "freshCloneByteVerification": "pass",
+    "driveVerification": "PCX-054 and PCX-055 wiki documents moved into Project Wikis and distinctive material sections re-read successfully"
+  },
+  "antiRegression": [
+    "No Project Constellation control-plane wiki churn was introduced.",
+    "No viewport virtualization, hidden count cap, reduced provider set, weakened identity threshold, or weaker verification was recommended as a fix.",
+    "No product source code was changed by the wiki-maintenance pass; verified defects were documented with scoped repair and runtime acceptance requirements."
+  ],
+  "nextCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ]
+}

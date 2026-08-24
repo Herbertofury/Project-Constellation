@@ -1,0 +1,53 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkedAt": "2026-08-17T00:39:15Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "recoveryMode": false,
+  "projectCount": 63,
+  "reviewedProjects": [
+    "PRJ-002",
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025"
+  ],
+  "materialChanges": {
+    "PRJ-002": "Latest verified Feature Foundry reference corrected from V11 to V24; V23/V11 lineage preserved; production repository boundary retained.",
+    "PRJ-022": "Identity resolved as generated Feature Foundry 2.0 Feral Unified App Base, package 0.1.0; not shippable.",
+    "PRJ-023": "Direct archive evidence records Feature Foundry 2.6 Tauri/Vue/Rust/SQLite starter; tauri-react metadata mismatch and floating latest dependencies tracked as blockers.",
+    "PRJ-024": "Primary live compatibility target refreshed to current MO2 v2.5.2 release while preserving prior beta evidence.",
+    "PRJ-025": "Catalog latest reconciled to canonical UltraDeck v8.1.0 evidence; complete source/release archive still unresolved."
+  },
+  "currentTechnologyEvidence": {
+    "vite": "8.2.0",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
+    "tauriCli": "2.11.4",
+    "biome": "2.5.6",
+    "react": "19.2.8",
+    "mo2": "2.5.2"
+  },
+  "appResearch": "Evidence Supersession Radar using repository blob/tree SHA watermarks to flag stale continuity fields without auto-overwriting user state.",
+  "candidateArtifacts": {
+    "Bert_Project_Second_Brain_Website.zip": "bc6afd192b2a6527f9bb6868159aaa515bf434ba39cae8b6e56de7ff3135a010",
+    "Bert_Project_Constellation_Quick_View.html": "0d9661467fa8b7ecb93fffa2d9924b48e4d2dc7cd3624a506d1cf8dcf833af5c",
+    "Bert_Project_Constellation_Recovery_Command_Center_Full_Wiki.html": "f509f84827f8c9a4525c9b50657db57a0b2d55fe32e3be85c5a434ae56c28102",
+    "Bert_Project_Wiki_Pack.zip": "a80e674fae9aa8dc9fe94c3be4ee041f9a40d44b441bf1b6ae3728e03b38a305",
+    "Project-Constellation-Project-Catalog.json": "64bdba83c8e9c0a43987d81f40f36dd42b6e9d4eab179ab7560e4632c2b4de00",
+    "Project-Constellation-Research-Suggestions.json": "3aa3d6ff15bd1fa139fe9470b08fb9daf966765424672a8570b2c7533a4e18dc"
+  },
+  "validation": {
+    "projectCount63": "pass",
+    "jsonParse": "pass",
+    "javascriptSyntax": "pass",
+    "wikiPages63": "pass",
+    "zipIntegrity": "pass",
+    "browserRuntime": "attempted; Chromium produced 0 DOM bytes and timed out after D-Bus/zygote errors; interaction success not claimed"
+  },
+  "publication": {
+    "githubMain": "published source-controlled wikis plus real HTML/JSON evolution checkpoint",
+    "driveCheckpoint": "native ACTIVE CHECKPOINT update required for this pass",
+    "driveRawArtifactRefresh": "blocked by connector local-file egress restriction; existing verified canonical Drive artifacts intentionally preserved unchanged",
+    "lastAutomationHashPromoted": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "htmlPath": "/home/runner/work/ProjectDump/ProjectDump/project-constellation/browser-gate/quick-view.html",
+  "trackedProjects": 63,
+  "checks": [
+    "load",
+    "all-63-cards",
+    "current-evidence-overlay",
+    "search",
+    "all-built-in-lenses",
+    "project-drawer",
+    "today-localStorage-reload-persistence",
+    "app-research-drawer",
+    "snapshot-export",
+    "snapshot-import-file-reader",
+    "post-import-reload-persistence",
+    "runtime-errors"
+  ]
+}

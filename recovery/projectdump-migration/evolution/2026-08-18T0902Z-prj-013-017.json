@@ -1,0 +1,61 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkpointAt": "2026-08-18T09:02:00Z",
+  "scope": [
+    "PRJ-013",
+    "PRJ-014",
+    "PRJ-015",
+    "PRJ-016",
+    "PRJ-017"
+  ],
+  "result": "NO_MATERIAL_WIKI_DELTA",
+  "projects": [
+    {
+      "id": "PRJ-013",
+      "decision": "no-change",
+      "evidence": "No newer Money App-specific repository or artifact was resolved in connected GitHub/Drive state. The current wiki already reconciles PRJ-013 as historical v38 lineage and routes active implementation authority through PCX-032 Profit Nova / v39 unless explicitly split again."
+    },
+    {
+      "id": "PRJ-014",
+      "decision": "no-change",
+      "evidence": "Exact Drive search for Grim_Dawn_Cairn_Codex_Ultimate_v6_1.html returned no recoverable artifact. The current wiki already records the v1.3.0.x / Fangs of Asterkarn freshness risk, content-freshness manifest proposal, artifact-recovery workflow, and anti-regression gate."
+    },
+    {
+      "id": "PRJ-015",
+      "decision": "no-change",
+      "evidence": "Drive search for Bethesda Plugin Info 1.5.3 resolves existing wiki/continuity material, not canonical 1.5.3 source or release bytes. The current wiki already documents the 1.5.3 compatibility correction, MO2 v2.5.2 primary host gate, coordinated 1.4.12 / 1.5.3 / 2.4.3 stack, and real-host drag/column/restart matrix."
+    },
+    {
+      "id": "PRJ-016",
+      "decision": "no-change",
+      "evidence": "Drive search for Bethesda Creations Version Tracker 2.4.3 resolves existing wiki/continuity material, not canonical 2.4.3 source or release bytes. The current wiki already documents the 2.3.1 migration contract, 2.4.3 drag/column correction, MO2 v2.5.2 host gate, migration fixtures, no-false-conflict requirement, and full restart proof."
+    },
+    {
+      "id": "PRJ-017",
+      "decision": "no-change",
+      "evidence": "Drive search for MO2 Image Column 1.4.12 resolves existing wiki/continuity material, not canonical 1.4.12 source or release bytes. The current wiki already preserves broad multi-source media support, stable mod identity/cache rules, current MO2 delegate integration evidence, anti-viewport-culling requirements, coordinated stack qualification, and exact source-recovery priorities."
+    }
+  ],
+  "publication": {
+    "wikiSourceChanged": false,
+    "githubWikiSyncRequired": false,
+    "driveWikiCopyRequired": false,
+    "reason": "No material project-wiki content changed; cosmetic or timestamp-only churn was intentionally avoided."
+  },
+  "driveCheckpoint": {
+    "fileId": "1b2LSZYUuuuPrMCQMIwKmQHnEfQp5AcZDJVyAz93wjwg",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "title": "Project Constellation Wiki Maintainer Checkpoint - PRJ-013-017 - 2026-08-18T0902Z",
+    "verification": "re-read with Google Docs API and exported as text/plain",
+    "exportBytes": 2670,
+    "exportSha256": "1294952475ccf44a9e7093672f5e7b6acce34b76262747ac5bc85abcf53a5db9"
+  },
+  "nextCursor": [
+    "PRJ-018",
+    "PRJ-019",
+    "PRJ-020",
+    "PRJ-021",
+    "PRJ-022"
+  ],
+  "automationObligation": "OPEN_AND_ONGOING"
+}

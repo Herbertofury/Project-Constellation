@@ -1,0 +1,106 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkedAt": "2026-08-19T19:10:00Z",
+  "status": "MATERIAL_WIKI_DELTA",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "reviewedProjects": [
+    "PCX-035",
+    "PCX-037",
+    "PCX-038",
+    "PCX-039",
+    "PCX-040"
+  ],
+  "publicationBacklogFirst": {
+    "result": "PASS",
+    "previousMaterialSourceCommit": "277f76615bed86ca9fdf324f6457e5afc4a337f4",
+    "previousWikiPublicationState": "success",
+    "previousWikiRun": 32285835435,
+    "previousWikiMaster": "c7f6a2f78e8ae13560001d60062f9f65551ce4ec"
+  },
+  "materialUpdate": {
+    "projectId": "PCX-039",
+    "projectName": "Webmeji",
+    "reason": "The existing page treated Shijima-Web only as a weak experimental alternative. Current source inspection proved a materially stronger Shimeji-ee/WebAssembly compatibility lane with real archive import, pointer/touch input, build/runtime boundaries, cleanup, and behavior-engine evidence useful for future canonical Webmeji recovery.",
+    "wikiSourcePath": "wikis/PCX-039-webmeji.md",
+    "wikiSourceCommit": "ca79214f116187289fe83edea168ff4b5d440201",
+    "wikiSourceBlob": "f53978c1a42baaa41316cda4c391a2bd0341f34e",
+    "readerFacingWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PCX-039-webmeji",
+    "wikiPublication": {
+      "workflowRun": 32291305100,
+      "job": 96192494377,
+      "status": "success",
+      "wikiMasterCommit": "29eb9a03de4a5a567245db6c2718094070e19f58",
+      "freshCloneByteCompare": "pass"
+    },
+    "newVerifiedEvidence": {
+      "lightweightReference": {
+        "repository": "lars-rooij/webmeji",
+        "commit": "ead02b16acb7759588d8ee52480386dac2c25898",
+        "boundary": "plain JavaScript/CSS three-file direct embed"
+      },
+      "wasmReference": {
+        "repository": "pixelomer/Shijima-Web",
+        "commit": "817237c07b5afdb4d37b4a5fc6b546045b986947",
+        "engine": "libshijima",
+        "archiveDiscovery": "libshimejifinder",
+        "build": "Emscripten + CMake + C++17",
+        "archiveImport": "drag/drop bytes -> Emscripten FS -> extractShimeji -> actions.xml/behaviors.xml -> register/spawn",
+        "input": "Pointer Events with document-level pointermove/pointerup",
+        "scheduler": "20 ms setInterval catch-up loop with MascotEnvironment subticks=2",
+        "rendering": "fixed-position image elements",
+        "environmentBoundary": "viewport-oriented; arbitrary DOM-element edge surfaces not established"
+      },
+      "gamesyncContract": {
+        "repository": "Herbertofury/Gamesync",
+        "commit": "a8e37976eb0b3ee3c4ec5e802b02d3bfa1f41928",
+        "webmejiDefaultsVerified": true,
+        "deterministicSeedSupport": true,
+        "shimejiTickMs": 40,
+        "shimejiSpawnCap": 12
+      }
+    },
+    "driveMirror": {
+      "documentId": "12updBZsOb2nkf0qT-n0rPmkoavdGclnj6RCOABeO4iU",
+      "folderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "reread": "pass",
+      "markdownExportBytes": 14508,
+      "markdownExportSha256": "524e9f0b04f600831970bc52664785ce022333f91067472932c5bc31ac10a081"
+    },
+    "documentationDelta": [
+      "Promoted Shijima-Web from a shallow experimental mention to a source-verified differential compatibility reference.",
+      "Documented CMake/Emscripten build topology and git-submodule requirements.",
+      "Documented the actual Shimeji-ee archive import pipeline and Pointer Events drag lifecycle.",
+      "Documented viewport/render/tick boundaries and explicitly separated them from the desired future DOM-element surface capability.",
+      "Added a three-lane architecture comparison across lightweight Webmeji, Shijima-Web WASM, and the GameSync mascot contract.",
+      "Added a differential compatibility matrix and source-aware troubleshooting guidance."
+    ]
+  },
+  "noChurn": {
+    "PCX-035": "MO2R connected repository still contains only its initial minimal README at 222652c89be6c0820aa34c804afe02fe0b08e294; no newly resolved canonical implementation source justified changing the existing recovery-boundary wiki.",
+    "PCX-037": "Shimeji Desktop canonical user-owned source remains unresolved. NeurolingsCE remains at inspected head 00adb430efd13b70db8791af3566eae7b4e8aa17 and the existing Java/Rust differential benchmark page remains current.",
+    "PCX-038": "GameSync Next current main advanced to cd906ff0831bf7fc33b41fea31b6f0c004cc1562, but the Shimeji-specific universal page mascot implementation remains the already-documented 60940e8479af518f3373a79efa091902f4843842 parity line; no new Shimeji-browser behavior justified churn.",
+    "PCX-040": "Pinterest Nocturne project repository remains at 6167038fac5f362dbabb83c2497edb64e588ad01 with no newer source commit; the detailed 2.0.0 wiki remains current."
+  },
+  "researchCursorMirror": {
+    "githubCommit": "03d03d0fd0a89918674898a0e7158d84f4dd73ab",
+    "driveDocumentId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "reread": "pass",
+    "markdownExportBytes": 2771,
+    "markdownExportSha256": "a6495ca618de0195ab0e036f81e1863ac74faeac49e4d9b4d89c72133b60ac29"
+  },
+  "durableCheckpointDrive": {
+    "documentId": "13fr65Ej_Ah9vL2RKKXXDvkIQpqwe5EpqImflsClv7NQ",
+    "folderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "reread": "pass",
+    "markdownExportBytes": 5426,
+    "markdownExportSha256": "7c1531a5c0fc12361ede64d84ddfe81dbe50d54ceb48ea53b8597a598f75b6a5"
+  },
+  "nextCursor": [
+    "PCX-041",
+    "PCX-042",
+    "PCX-043",
+    "PCX-044",
+    "PCX-045"
+  ],
+  "controlPlaneExclusion": "PCX-036 remains the preserved Project Constellation control-plane reference and is excluded from normal tracked-project documentation rotation."
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-20T05:36:00Z",
+  "recurringObligation": "OPEN_AND_ONGOING",
+  "projectCountInvariant": 63,
+  "publicationBacklog": {
+    "state": "CLEAR",
+    "newestVerifiedWikiSourceCommit": "f5c3a5f1145de31c65611b5fd78059a0790f367f",
+    "syncRunId": 32329772340,
+    "syncJobId": 96308067223,
+    "wikiMasterCommit": "b0dc35ce2820ebec64c788afdcc276e6bc32a772",
+    "proof": "Exact source checkout, ProjectDump.wiki.git push, fresh clone, and complete byte comparison passed. Comparing that source commit to current main shows only Project Constellation state files changed and no newer wikis/** delta."
+  },
+  "reviewedTargets": [
+    {
+      "projectId": "PCX-061",
+      "name": "Petz Shared Core",
+      "decision": "NO_MATERIAL_WIKI_SOURCE_CHANGE",
+      "driveDurability": "ALREADY_PRESENT",
+      "driveDocumentId": "1z36OOqMO2OY6cu2Ip0Y996n0jxy5jVh00aoQZo7RZUY",
+      "reason": "Current detailed source remains aligned with the verified staged Petz persistence repair boundary; no stronger merged project-owned delta was resolved."
+    },
+    {
+      "projectId": "PCX-062",
+      "name": "RuneLite QA Cockpit",
+      "decision": "DRIVE_DURABILITY_REPAIRED",
+      "driveDocumentId": "12_ca1-QKHpjwuJ_n6y7bJmW0nmrie5gJds_daR6bOmM",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "markdownExportBytes": 4152,
+      "markdownSha256": "d283c7b705412605fad7a6516fe8e0cb0500feb610c853874e62d895f934b32a",
+      "independentReread": "PASS",
+      "reason": "The current reader-facing/source page is publication-proven but lacked a complete Project Wikis Drive mirror. The mirror was created from the current source and re-read. Canonical plugin bytes remain unresolved, so no wiki source claims were changed."
+    },
+    {
+      "projectId": "PCX-063",
+      "name": "Feature Foundry Aesthetic Vault",
+      "decision": "DRIVE_DURABILITY_REPAIRED",
+      "driveDocumentId": "10pKds457uLXnh1wQYq1TCY8sZxTKq3gtUgIBbjKEwc4",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "markdownExportBytes": 20794,
+      "markdownSha256": "1566757e56945f91c12b08556c9ada077018d05b540f97043dfcaf47750e9b35",
+      "independentReread": "PASS",
+      "reason": "The current detailed Inspiration Vault page remains aligned with GameSync Next main cd906ff0831bf7fc33b41fea31b6f0c004cc1562, but a complete Project Wikis Drive mirror was missing. The full current source was mirrored and re-read without source churn."
+    },
+    {
+      "projectId": "PRJ-001",
+      "name": "Project Compass Orchestrator / Project Second Brain",
+      "decision": "DRIVE_DURABILITY_REPAIRED",
+      "driveDocumentId": "1Feb3NpXdOJwmau9a7lf_Ldn11lkqHYXQ1qOjbFpNybQ",
+      "driveFolderId": "1KzPLGRNubIHA4aedEEOj85vKj225zG4E",
+      "markdownExportBytes": 6023,
+      "markdownSha256": "c546af160142d98b7b9d7028a0ed8435919d7813387ec6d676c1e7e1e36264fa",
+      "independentReread": "PASS",
+      "reason": "The current source page truthfully preserves v3.3.0 as historical lineage and keeps the newest installable bundle unresolved. A complete Project Wikis Drive mirror was missing and has now been created and re-read."
+    },
+    {
+      "projectId": "PRJ-002",
+      "name": "Feature Foundry",
+      "decision": "NO_MATERIAL_WIKI_SOURCE_CHANGE",
+      "driveDurability": "ALREADY_PRESENT",
+      "driveDocumentId": "1kRUF8kA-0aj04gSW71olFrBwc9mXK4IItVb7iyr9v6I",
+      "reason": "The V33 runnable baseline plus V2-253 maintainable-source authority remains the strongest verified boundary; no newer project-owned source delta justified churn."
+    }
+  ],
+  "nextCursor": [
+    "PRJ-003",
+    "PRJ-004",
+    "PRJ-005",
+    "PRJ-006",
+    "PRJ-007"
+  ],
+  "notes": "No wikis/** source page changed in this pass. This checkpoint repairs missing Drive durability while preserving the already verified complete GitHub Wiki publication."
+}

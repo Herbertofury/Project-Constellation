@@ -1,0 +1,5 @@
+
+> project-constellation-extension@0.13.0 build
+> node scripts/build.mjs
+
+/mnt/data/project-constellation-v0130-work/dist/project-constellation

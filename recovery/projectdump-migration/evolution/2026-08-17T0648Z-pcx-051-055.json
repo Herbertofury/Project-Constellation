@@ -1,0 +1,130 @@
+{
+  "schema": "project-constellation.evolution-checkpoint/1",
+  "checkedAt": "2026-08-17T06:48:36Z",
+  "operatingMode": "NORMAL_OPERATION",
+  "catalogProjectCount": 63,
+  "sourceWatermarks": {
+    "projectDumpMainBeforeWrites": "8c8211288f3e7ac57da37adbdec657efc59c7c17",
+    "shippingGameSyncMain": "d84c2389b9e01dc47b7ba094c2d23a7b4cbbf9f4",
+    "gameSyncNextMain": "9e337c720f0180cffa577f140b181c699f0a1650"
+  },
+  "reviewedProjects": [
+    {
+      "id": "PCX-051",
+      "name": "GameSync Capability Truth / UI QoL",
+      "decision": "PROPOSE",
+      "sourceAuthority": [
+        "https://github.com/Herbertofury/GameSync-Next/blob/main/docs/gamesync-parity-matrix.json",
+        "https://github.com/Herbertofury/GameSync-Next/blob/main/scripts/audit-gamesync-parity.mjs"
+      ],
+      "fact": "GameSync Next already has a machine-readable parity matrix with verified, implemented-unverified, and gap states plus an executable audit that checks evidence semantics and concrete source/build invariants.",
+      "proposal": "Generate a read-only Capability Truth surface directly from the parity matrix/audit output. Include evidence/test gates, source watermarks, stale-verification detection, exact destinations, and filters for gap/unverified/stale/verified states. The UI must never promote itself to verified.",
+      "benefit": "Eliminates duplicate truth databases and makes UI claims traceable to source/test/runtime evidence.",
+      "integrationCost": "medium",
+      "risk": "A second manually maintained status store would drift; stale historical verification could be misrepresented as current proof.",
+      "migration": "Add a generator/view over the existing parity contract; do not replace the matrix or audit.",
+      "experiment": "Render one-to-one matrix rows and assert exact status/evidence counts against the audit result on the current GameSync source watermarks.",
+      "acceptance": "Every displayed capability maps to one canonical matrix record, status counts match the audit, stale source changes are flagged, filters are non-mutating, and verification cannot be escalated by the presentation layer."
+    },
+    {
+      "id": "PCX-052",
+      "name": "GameSync Release Factory",
+      "decision": "PROPOSE",
+      "sourceAuthority": [
+        "https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds",
+        "https://docs.github.com/en/rest/releases/assets"
+      ],
+      "fact": "GitHub artifact attestations use Sigstore-backed provenance, and GitHub release-asset metadata exposes a digest field that can carry SHA-256 identity.",
+      "proposal": "Add GitHub-native artifact attestation and release-asset digest verification after GameSync's existing internal manifest/hash/fresh-extraction gates. Keep internal deterministic verification as the first authority rather than outsourcing correctness to GitHub metadata.",
+      "benefit": "Adds independently verifiable provenance and stronger remote release identity without weakening current packaging verification.",
+      "integrationCost": "medium",
+      "risk": "Treating a successful upload/attestation as proof of runtime correctness would weaken the release gate.",
+      "migration": "Generate deterministic internal release evidence first, then attach/verify provenance for the exact already-verified bytes.",
+      "experiment": "Attest one non-production release candidate and verify local SHA-256 equals internal manifest, GitHub release digest, and attestation subject before any promotion.",
+      "acceptance": "All three identities agree, fresh extraction still passes, no existing release path is removed, and rollback metadata remains complete."
+    },
+    {
+      "id": "PCX-053",
+      "name": "GameSync Bounty / Rewards Runtime",
+      "decision": "PRESERVE_BOUNDARY",
+      "sourceAuthority": [
+        "https://dev.twitch.tv/docs/drops/technical-guide/#get-drops-entitlements-api"
+      ],
+      "fact": "Twitch's Get Drops Entitlements API is an organization/game-owner integration surface, not a general viewer-side source of truth that can replace all user-session reward evidence.",
+      "proposal": "Keep GameSync's proof collectors and ready-to-claim versus externally-claimed distinction. Add provider-specific entitlement adapters only where the authenticated provider contract actually grants the required authority.",
+      "benefit": "Prevents false reward claims and avoids forcing an incompatible server-side entitlement API into end-user browser flows.",
+      "integrationCost": "low-to-medium",
+      "risk": "Conflating browser-observed progress, provider entitlement, and external claim completion would corrupt the reward ledger.",
+      "migration": "Preserve the deterministic local ledger and add explicit provider evidence classes rather than a generic claimed boolean.",
+      "experiment": "Create fixtures for manual proof, browser-session watch evidence, provider entitlement evidence, and external claim acknowledgement with contradictory/missing combinations.",
+      "acceptance": "The runtime never marks externally claimed without authoritative acknowledgement, preserves BigInt-safe deterministic state, and distinguishes unsupported provider evidence visibly."
+    },
+    {
+      "id": "PCX-054",
+      "name": "GameSync Source Finder / Entity Resolver",
+      "decision": "PROPOSE",
+      "sourceAuthority": [
+        "https://github.com/typesense/typesense/releases/tag/v30.2",
+        "https://github.com/meilisearch/meilisearch/releases/tag/v1.53.1",
+        "https://www.sqlite.org/fts5.html"
+      ],
+      "fact": "Current candidate remote search engines include Typesense 30.2 and Meilisearch 1.53.1, while SQLite FTS5 remains a capable local full-text primitive. Shipping GameSync already isolates remote search behind a normalized Typesense/Meilisearch client and uses FlexSearch locally.",
+      "proposal": "Run a backend-neutral Search Backend Arena on the existing labeled game/mod/entity corpus instead of migrating because one backend is newer. Compare current local behavior, SQLite FTS5, Typesense 30.2, and Meilisearch 1.53.1.",
+      "benefit": "Selects search technology by real entity-resolution accuracy, source provenance, latency, and offline behavior while preserving backend portability.",
+      "integrationCost": "medium",
+      "risk": "Semantic/vector improvements can increase false merges, which is worse than a missed match for project identity.",
+      "migration": "Keep the normalized adapter boundary and replace/add a backend only after corpus-based evidence proves a material advantage.",
+      "experiment": "Measure top-k recall, false-merge rate, latency, explainability/provenance, offline behavior, index size, and update cost on the identical labeled corpus.",
+      "acceptance": "Any adopted backend materially improves useful recall/latency without increasing false merges or weakening exact identity/source evidence."
+    },
+    {
+      "id": "PCX-055",
+      "name": "GameSync Script Polling Runtime",
+      "decision": "PROPOSE",
+      "sourceAuthority": [
+        "https://developer.chrome.com/docs/extensions/reference/api/alarms",
+        "https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle"
+      ],
+      "fact": "Chrome documents that extension alarms may be cleared on browser restart and recommends checking/recreating required alarms whenever the service worker starts. Current Chrome also supports a persistAcrossSessions alarm option on newer versions, while service-worker termination/restart is normal lifecycle behavior.",
+      "proposal": "Persist scheduler intent, check/recreate the scriptTrackerPoll alarm during service-worker startup, feature-detect persistAcrossSessions where supported, and keep ScriptDb due-times as the canonical catch-up truth after restart.",
+      "benefit": "Makes polling resilient to service-worker/browser restarts without increasing poll frequency or losing due work.",
+      "integrationCost": "low-to-medium",
+      "risk": "Blindly recreating alarms can duplicate scheduling; trusting only alarm persistence can miss overdue scripts after restart.",
+      "migration": "Add idempotent ensure-alarm startup logic around the existing ScriptPollScheduler and preserve current due-time/jitter logic.",
+      "experiment": "In an isolated extension build, schedule mixed due/future scripts, terminate/restart the service worker/browser, verify a single alarm exists, and confirm overdue work catches up exactly once.",
+      "acceptance": "No duplicate alarm/listener, no lost overdue checks, no reduced provider/script coverage, current scheduling heuristics remain intact, and restart behavior passes in the real supported browser runtime."
+    }
+  ],
+  "projectConstellationImprovement": {
+    "name": "Capability Truth Lens",
+    "decision": "PROPOSE",
+    "description": "Add a read-only Project Constellation lens that summarizes canonical capability gaps, implemented-unverified items, stale verification, and verified items from project-owned evidence without allowing the second-brain UI to mutate verification authority.",
+    "antiDegradation": "The lens is additive, never hides canonical records, never changes capability status, and does not replace the dependency-free Quick View recovery surface.",
+    "acceptance": "Lens counts and links are generated from project-owned truth sources, stale evidence is visible, clearing/filtering the lens changes no project data, and all exact-destination links land on the promised source/evidence."
+  },
+  "implementation": {
+    "codeChangesToGameSync": false,
+    "reason": "No GameSync runtime code was changed because this connector-only run cannot execute the required install/build/test/Ferrum/Opera runtime gates. Research was recorded as proposals instead of weakening the verification contract.",
+    "projectDumpChanges": [
+      "Added the missing PCX-051 detailed wiki grounded in the live parity matrix and executable audit.",
+      "Updated the ProjectDump wiki index to include PCX-051 and report 35 detailed tracked-project wikis.",
+      "Recorded this source/research checkpoint for PCX-051 through PCX-055."
+    ]
+  },
+  "publication": {
+    "github": "checkpoint and documentation published to ProjectDump/main; remote reread verified",
+    "drive": "ACTIVE CHECKPOINT updated and remote reread verified",
+    "presentationArtifacts": "unchanged publication debt; do not modify lastAutomationHash until the exact coherent candidate bytes are remotely uploaded and byte-verified"
+  },
+  "correction": {
+    "reason": "A lower-recall web search initially surfaced stale Meilisearch v1.45.1 release data. The connected GitHub Releases API was then queried directly and proved v1.53.1, published 2026-08-13, is the current latest release. The stale version was corrected before closeout.",
+    "verifiedSource": "https://api.github.com/repos/meilisearch/meilisearch/releases/latest"
+  },
+  "nextResearchCursor": [
+    "PCX-056",
+    "PCX-057",
+    "PCX-058",
+    "PCX-059",
+    "PCX-060"
+  ]
+}

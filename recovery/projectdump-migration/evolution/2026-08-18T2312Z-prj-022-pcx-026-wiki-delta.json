@@ -1,0 +1,85 @@
+{
+  "schema": "project-constellation.wiki-maintainer-checkpoint/1",
+  "checkpointAt": "2026-08-18T23:12:00Z",
+  "automation": "Constellation Wiki Maintainer",
+  "scope": [
+    "PRJ-022",
+    "PRJ-023",
+    "PRJ-024",
+    "PRJ-025",
+    "PCX-026"
+  ],
+  "result": "MATERIAL_WIKI_UPDATE",
+  "projectFindings": [
+    {
+      "id": "PRJ-022",
+      "decision": "no-change",
+      "evidence": "Current Feral Unified Native Base wiki already distinguishes generated Feature Foundry starter evidence from a shippable standalone application and preserves the unresolved product-identity/validation boundary. No stronger current project-owned source was resolved in this delta pass."
+    },
+    {
+      "id": "PRJ-023",
+      "decision": "no-change",
+      "evidence": "Current Portable Feature Starter wiki already documents the generated starter/toolchain identity, validation-not-run boundary, reproducibility concerns, and verified template role. No source delta justified churn."
+    },
+    {
+      "id": "PRJ-024",
+      "decision": "no-change",
+      "evidence": "Current MO2 Drag/Column Compatibility Pack wiki already documents the coordinated Image Column 1.4.12, Bethesda Plugin Info 1.5.3 and Version Tracker 2.4.3 stack, current MO2 v2.5.2 host baseline, root-cause contract and real Windows live-stack qualification matrix."
+    },
+    {
+      "id": "PRJ-025",
+      "decision": "updated",
+      "evidence": "Canonical UltraDeck main advanced materially to v8.6.0 at d9278d4a0fd33d184e9c6f928556262668af4125 after exact-head verification of pull request #2. The wiki was updated from the v8.5 plus Surround boundary to document the v8.6 isolated site bootstrap, conditional MAIN-world injection, X/Cloudflare challenge inactivity, site-specific deck-top hardening, Patreon v3 semantic/permalink-first capture, exact CI gates and artifact identity while preserving Surround, TikTok, native actions and the no-culling contract."
+    },
+    {
+      "id": "PCX-026",
+      "decision": "no-change",
+      "evidence": "Current Project Governance wiki remains aligned with the ProjectDump AGENTS operating contract, machine-checkable governance proposal and unresolved standalone implementation boundary. No stronger current implementation evidence was resolved in this delta pass."
+    }
+  ],
+  "ultraDeckEvidence": {
+    "canonicalRepository": "Herbertofury/UltraDeck",
+    "packageVersion": "8.6.0",
+    "mainHead": "d9278d4a0fd33d184e9c6f928556262668af4125",
+    "verifiedPullRequest": 2,
+    "verifiedHead": "0e7b68f9e0cf3c3a908b366c4088384c5a0edd24",
+    "verificationRun": 32159116689,
+    "verificationConclusion": "success",
+    "artifact": {
+      "name": "UltraDeck-v8.6.0-regression-fixed",
+      "artifactId": 9332916315,
+      "sizeBytes": 616444,
+      "digest": "sha256:7bb11d10d12cb23b01e6456c931d205a4f1121eb4f3a2a5a09d6b354e60709b7"
+    }
+  },
+  "publication": {
+    "wikiSourceChanged": true,
+    "projectDumpSourceCommit": "f22eb56f9ac0efcc232c0dda3a07c7ebf56bf234",
+    "wikiSourcePath": "wikis/PRJ-025-ultradeck.md",
+    "wikiSourceBlob": "4be16bd0b16cd8ec8accb77ca5a1e8df02d6bfcd",
+    "githubWikiUrl": "https://github.com/Herbertofury/ProjectDump/wiki/PRJ-025-ultradeck",
+    "syncWorkflowRun": 32195958296,
+    "syncConclusion": "success",
+    "wikiMasterCommit": "f8941d718f7042b45ee62bd367ba9eee5f6f2de1",
+    "freshCloneByteComparison": "pass",
+    "driveWiki": {
+      "fileId": "1DqCCTuM3Ax8rjmNYN09xd5zuY1NDE8oztateaOmPN3M",
+      "title": "PRJ-025 UltraDeck Wiki",
+      "revisionId": "AIroW37PBnA3Hr0l1IQkyKhnBefEutZJeVULv9_6JRV-dVWPYTCgSTHbjYv4Qn9Dr-_I0LTCLiZ1DXWonhKZyEi9ssj0kbgnZAFpKOAKf2E",
+      "markdownSizeBytes": 32551,
+      "markdownSha256": "4b419c239bc82bac8519e180b0aaddc14c3427cd66ba5847e7b1e4919a033bb6",
+      "contentReread": "pass"
+    }
+  },
+  "nextCursor": [
+    "PCX-027",
+    "PCX-028",
+    "PCX-029",
+    "PCX-030",
+    "PCX-031"
+  ],
+  "persistence": {
+    "recurringObligation": "OPEN_AND_ONGOING",
+    "disableRequested": false
+  }
+}

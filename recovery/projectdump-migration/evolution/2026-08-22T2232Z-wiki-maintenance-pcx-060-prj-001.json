@@ -1,0 +1,33 @@
+{
+  "schema": "project-constellation.wiki-maintenance-checkpoint/2",
+  "checkedAt": "2026-08-22T22:32:20Z",
+  "completedCursor": ["PCX-060", "PCX-061", "PCX-062", "PCX-063", "PRJ-001"],
+  "nextCursor": ["PRJ-002", "PRJ-003", "PRJ-004", "PRJ-005", "PRJ-006"],
+  "publicationBacklog": {
+    "status": "CLEAR",
+    "projectDumpHeadAtStart": "cc5f89a46dbd3fb8df5b08dbd23cbabd847ac0f8",
+    "currentWikisTree": "0ff5cf3767db48c740dc61bbb271ba9e4e09f7c0",
+    "latestMaterialWikiSourceCommit": "35ca7d734a91071e82fcc104fc4af41e85e6c8b7",
+    "verifiedSyncRun": 32593090575,
+    "verifiedSyncJob": 97079830808,
+    "verifiedWikiMaster": "2b226728ef9bc9535903880b073b9cfa4b38eb26"
+  },
+  "projects": {
+    "PCX-060": {"result": "NO_MATERIAL_WIKI_DELTA", "reason": "Existing page already preserves the complete shipping GameSync 0.6.3 / GameSync Next Extension V2 0.8.0 speech architecture and acceptance contract. Current GameSync Next main movement does not change the load-bearing voice semantics documented there."},
+    "PCX-061": {"result": "NO_MATERIAL_WIKI_DELTA", "reason": "GameSync Next main remains cd906ff0831bf7fc33b41fea31b6f0c004cc1562 and draft PR #10 remains open, draft, unmerged, at 2612396804b44399b7b23b4f32f21217325da79c; existing page already captures the defect/staging boundary."},
+    "PCX-062": {"result": "NO_MATERIAL_WIKI_DELTA", "reason": "Plugin Hub master advanced to a84deaba6ea79fd329f9b41e0313a4cc29aefacb but runelite.version remains 1.12.36; example-plugin remains 5370caa0f5f6a5bba4fbb42931722ca535ad3fd5. Exact connected-Drive search still did not recover bert-skill-atlas-qa-cockpit.zip or canonical user-owned source bytes."},
+    "PCX-063": {"result": "NO_MATERIAL_WIKI_DELTA", "reason": "Feature Foundry main remains e1ba080b5c7590f1c844a6ed13b3a471709920b9 and GameSync Next main remains cd906ff0831bf7fc33b41fea31b6f0c004cc1562, matching the page's current authority model."},
+    "PRJ-001": {"result": "NO_MATERIAL_WIKI_DELTA", "reason": "Connected Drive still does not expose exact files named AGENTS-workflow-bundle.zip or skill.zip; existing page correctly keeps v3.3.0 historical and refuses to claim current bundle bytes."}
+  },
+  "wikiSourceChanged": false,
+  "actualWikiPublicationRequired": false,
+  "driveDurability": {
+    "status": "VERIFIED",
+    "checkpointFileId": "13Jd_h-ctQpZwxqizR-H0CpMLUZ3oTjsHsITeUVPO43Y",
+    "checkpointFolderId": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+    "checkpointRemoteReread": "pass: full checkpoint re-read through next cursor and ongoing-service statement",
+    "researchCursorFileId": "1WZ-tUhCAHpvz_V6WdDcodjPf-vyZcECboYJ_zMVRSlc",
+    "researchCursorRemoteReread": "pass: updated PCX-060-PRJ-001 completed cursor and PRJ-002-PRJ-006 next cursor re-read from Drive"
+  },
+  "authorityRule": "Prefer current project-owned source/runtime evidence over older summaries; avoid timestamp/hash-only churn; never advance past a real publication backlog; require actual-Wiki full-set proof for material wiki changes and Drive durability for persistent checkpoints."
+}
