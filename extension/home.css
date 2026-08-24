@@ -151,13 +151,21 @@ body.panel-top .workspace{order:2}body.panel-top .bottom-panel{order:1;border-to
 .workspace{position:relative;isolation:isolate;background:
   radial-gradient(circle at 82% 8%,rgba(75,92,220,.10),transparent 31%),
   radial-gradient(circle at 15% 88%,rgba(139,92,246,.08),transparent 34%),var(--editor)}
-.workspace::before{content:"";position:fixed;inset:-18vh -12vw;z-index:-1;pointer-events:none;opacity:.18;
+.workspace>.view{position:relative;z-index:1}
+.workspace::before,.workspace::after{content:"";position:fixed;inset:-18vh -12vw;z-index:0;pointer-events:none;transform:translate3d(0,0,0);transform-origin:center;will-change:transform,opacity}
+.workspace::before{opacity:.22;
   background-image:radial-gradient(circle,#dce8ff 0 1px,transparent 1.3px),radial-gradient(circle,#aebdff 0 .7px,transparent 1px),radial-gradient(circle,#d8c7ff 0 .8px,transparent 1.1px);
   background-size:181px 181px,263px 263px,347px 347px;background-position:17px 23px,71px 109px,143px 51px;
-  transform:translate3d(0,0,0);will-change:transform;animation:pc-star-drift 110s linear infinite}
-body[data-theme="light"] .workspace::before{opacity:.07}body[data-atmosphere="static"] .workspace::before{animation:none;will-change:auto;opacity:.11}body[data-atmosphere="off"] .workspace::before{display:none}
+  animation:pc-star-drift 128s linear infinite,pc-star-breathe 10s ease-in-out infinite alternate}
+.workspace::after{inset:-8vh -7vw;background:url("assets/constellation-field.svg") center/cover no-repeat;mix-blend-mode:screen;opacity:.26;animation:pc-constellation-float 58s ease-in-out infinite alternate,pc-constellation-breathe 13s ease-in-out infinite}
+body[data-theme="light"] .workspace::before{opacity:.07}body[data-theme="light"] .workspace::after{opacity:.08;mix-blend-mode:multiply}
+body[data-atmosphere="static"] .workspace::before,body[data-atmosphere="static"] .workspace::after{animation:none;will-change:auto}body[data-atmosphere="static"] .workspace::before{opacity:.11}body[data-atmosphere="static"] .workspace::after{opacity:.13}
+body[data-atmosphere="off"] .workspace::before,body[data-atmosphere="off"] .workspace::after{display:none}
 .welcome{background:linear-gradient(145deg,color-mix(in srgb,var(--bg-elevated) 91%,var(--accent) 7%),color-mix(in srgb,var(--bg-raised) 96%,var(--blue) 4%))}
 .primary-link,.brand-star,.window-brand strong{filter:drop-shadow(0 0 12px color-mix(in srgb,var(--accent) 20%,transparent))}
-@keyframes pc-star-drift{to{transform:translate3d(26px,-34px,0)}}
-@media(prefers-reduced-motion:reduce){.workspace::before{animation:none!important;will-change:auto!important}}
+@keyframes pc-star-drift{to{transform:translate3d(34px,-42px,0)}}
+@keyframes pc-star-breathe{from{opacity:.15}to{opacity:.26}}
+@keyframes pc-constellation-float{from{transform:translate3d(-8px,9px,0) scale(1)}to{transform:translate3d(18px,-14px,0) scale(1.012)}}
+@keyframes pc-constellation-breathe{0%,100%{opacity:.18}50%{opacity:.31}}
+@media(prefers-reduced-motion:reduce){.workspace::before,.workspace::after{animation:none!important;will-change:auto!important}}
 .connection-badge.guest{color:#a9d5ff;border-color:#345b84}

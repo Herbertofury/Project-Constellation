@@ -14,7 +14,8 @@ mock=f"""
  const bag={{}}; const listeners={{}};
  const dbStores=new Map();
  if(!globalThis.crypto?.randomUUID) Object.defineProperty(globalThis.crypto,'randomUUID',{{value:()=>`pc-${{Date.now()}}-${{Math.random().toString(16).slice(2)}}`,configurable:true}});
- const only=(value)=>({{kind:'only',value}}), lowerBound=(value,open)=>({{kind:'lower',value,open}}), bound=(lower,upper,lowerOpen=false,upperOpen=false)=>({{kind:'bound',lower,upper,lowerOpen,upperOpen}});
+ const validKey=(value)=>typeof value==='string'||(typeof value==='number'&&Number.isFinite(value))||(value instanceof Date&&Number.isFinite(value.getTime()))||(Array.isArray(value)&&value.every(validKey))||value instanceof ArrayBuffer||ArrayBuffer.isView(value);
+ const only=(value)=>{{if(!validKey(value))throw new DOMException('The parameter is not a valid key.','DataError');return {{kind:'only',value}};}}, lowerBound=(value,open)=>({{kind:'lower',value,open}}), bound=(lower,upper,lowerOpen=false,upperOpen=false)=>({{kind:'bound',lower,upper,lowerOpen,upperOpen}});
  Object.defineProperty(globalThis,'IDBKeyRange',{{value:{{only,lowerBound,bound}},configurable:true}});
  const names=(map)=>({{contains:(name)=>map.has(name)}});
  const makeReq=(fn)=>{{const r={{result:undefined,error:null,onsuccess:null,onerror:null}};setTimeout(()=>{{try{{r.result=fn();r.onsuccess&&r.onsuccess();}}catch(e){{r.error=e;r.onerror&&r.onerror();}}}},0);return r;}};
@@ -100,6 +101,17 @@ with sync_playwright() as p:
       const patch=await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:test'],patch:{workspaceProjectId:project.item.id,tags:['minecraft','forge'],pinned:true,favorite:true}});
       const org=await __pcSend({type:'PC_ORG_SUMMARY'});
       const orgChats=await __pcSend({type:'PC_ORG_CHATS',filters:{workspaceProjectId:project.item.id,limit:20}});
+      const pinnedChats=await __pcSend({type:'PC_ORG_CHATS',filters:{mode:'pinned',limit:20}});
+      const favoriteChats=await __pcSend({type:'PC_ORG_CHATS',filters:{mode:'favorites',limit:20}});
+      await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:test'],patch:{organizedArchived:true}});
+      const archivedChats=await __pcSend({type:'PC_ORG_CHATS',filters:{mode:'archived',limit:20}});
+      await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:test'],patch:{organizedArchived:false}});
+      const settingsWrites=await Promise.all([
+        __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{approvalAutopilot:{acknowledged:true,fallbackAllowOnce:false}}}),
+        __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{liveHealth:{showHealthy:false}}})
+      ]);
+      const settingsGet=await __pcSend({type:'PC_BRAIN_SETTINGS_GET'});
+      const homeAfterSettings=await __pcSend({type:'PC_HOME_SUMMARY'});
       const search=await __pcSend({type:'PC_BRAIN_SEARCH',query:'Google Drive recovery',limit:20});
       const integrityScan={ok:true,summary:{findings:[]}};
       const [providerCheck1,providerCheck2]=await Promise.all([
@@ -118,7 +130,7 @@ with sync_playwright() as p:
       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
-      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff};
+      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff};
     }""")
     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
     assert result['ingest']['ok']
@@ -129,6 +141,15 @@ with sync_playwright() as p:
     assert result['org']['projects'][0]['chatCount']==3 and result['org']['projects'][0]['fileCount']==3
     assert result['orgChats'][0]['workspaceProjectName']=='Minecraft Mods'
     assert 'minecraft' in result['orgChats'][0]['tags'] and result['orgChats'][0]['pinned'] and result['orgChats'][0]['favorite']
+    assert any(row['id']=='chatgpt:test' for row in result['pinnedChats'])
+    assert any(row['id']=='chatgpt:test' for row in result['favoriteChats'])
+    assert any(row['id']=='chatgpt:test' for row in result['archivedChats'])
+    assert all(row['ok'] for row in result['settingsWrites'])
+    assert result['settingsGet']['settings']['approvalAutopilot']['acknowledged'] is True
+    assert result['settingsGet']['settings']['approvalAutopilot']['fallbackAllowOnce'] is False
+    assert result['settingsGet']['settings']['liveHealth']['showHealthy'] is False
+    assert result['homeAfterSettings']['ok'] and result['homeAfterSettings']['home']['approvalAutopilot']['acknowledged'] is True
+    assert result['homeAfterSettings']['home']['liveHealth']['showHealthy'] is False
     assert len(result['snapshot']['groups'])==1 and len(result['snapshot']['smartCollections'])==1
     assert result['knowledgeSummary']['total']>=3 and result['knowledgeSummary']['kinds']['recommendation']>=1 and result['knowledgeSummary']['kinds']['repository']>=1
     assert any(row['kind']=='repository' and 'github.com/embeddedt/ModernFix' in row.get('url','') for row in result['knowledgeSearch'])

@@ -33,4 +33,4 @@ Long-task pressure measurement can disable only decorative provider motion. Muta
 
 ## Visual identity and accessibility
 
-Owned UI uses deep midnight/navy surfaces, violet/electric-blue accents, restrained glow, and high-contrast text. The starfield is a single sparse composited pseudo-element moving over 95–115 seconds. `prefers-reduced-motion` disables animation; low-core/low-memory devices use a static or absent effect. Native ChatGPT content is never recolored by the theme.
+Owned UI uses deep midnight/navy surfaces, violet/electric-blue accents, restrained glow, and high-contrast text. Sparse composited star layers drift slowly behind an equally restrained SVG constellation field; animation uses only transform/opacity and never captures pointer input. `prefers-reduced-motion` disables animation, while low-core/low-memory devices use a static or absent effect. Native ChatGPT content is never recolored by the theme.

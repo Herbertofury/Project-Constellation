@@ -15,7 +15,7 @@ ProjectDump is historical input only. Never write current Project Constellation 
 
 ## Candidate state
 
-The v0.14.0 source, tests, Nightfall UI, provider adapters, OAuth backends, documentation, wiki, workflows, production build gates, and packaging pipeline are complete. Both public OAuth client IDs are installed as GitHub Actions secrets and the credentialed local production build passes.
+The v0.14.0 source, tests, Nightfall UI, provider adapters, OAuth backends, documentation, wiki, workflows, production build gates, and packaging pipeline are complete. Both public OAuth client IDs are installed as GitHub Actions secrets and the credentialed local production build passes. The Needs Attention persistence regression is repaired: no boolean is passed to `IDBKeyRange.only`, rapid settings mutations are serialized, confirmed saves update the UI without a full dashboard reload, organizer/recovery actions report real backend failures, and browser regression coverage exercises save/readback plus pinned, favorite, and archive filters.
 
 The remaining non-simulated gate is signed-in acceptance in the user's existing Chrome profile. Do not tag a production release until Google connection, GitHub device authorization, account identity verification, token refresh/retry behavior, repository selection, sync, disconnect, service-worker restart, and persistence/recovery have been exercised with the actual production build.
 

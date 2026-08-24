@@ -153,6 +153,20 @@ function requestResult(request) {
   });
 }
 
+function isValidIndexedDbKey(value) {
+  if (typeof value === 'string') return true;
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (value instanceof Date) return Number.isFinite(value.getTime());
+  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) return true;
+  if (Array.isArray(value)) return value.every(isValidIndexedDbKey);
+  return false;
+}
+
+function indexedDbOnly(value, context = 'IndexedDB query') {
+  if (!isValidIndexedDbKey(value)) throw new TypeError(`${context} received an invalid IndexedDB key.`);
+  return IDBKeyRange.only(value);
+}
+
 async function getOne(storeName, id) {
   const db = await openDb();
   try { return await requestResult(db.transaction(storeName, 'readonly').objectStore(storeName).get(id)); }
@@ -189,22 +203,44 @@ async function getRecent(storeName, limit = 50, offset = 0) {
 }
 
 async function getByIndex(storeName, indexName, value, limit = 250) {
+  if (!isValidIndexedDbKey(value)) return [];
   const db = await openDb();
   try {
     const store = db.transaction(storeName, 'readonly').objectStore(storeName);
     if (!store.indexNames.contains(indexName)) return [];
-    const rows = await requestResult(store.index(indexName).getAll(IDBKeyRange.only(value), Math.max(1, Math.min(Number(limit) || 250, 2000))));
+    const rows = await requestResult(store.index(indexName).getAll(indexedDbOnly(value, `${storeName}.${indexName}`), Math.max(1, Math.min(Number(limit) || 250, 2000))));
     return rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   } finally { db.close(); }
 }
 
 async function getAllByIndex(storeName, indexName, value) {
+  if (!isValidIndexedDbKey(value)) return [];
   const db = await openDb();
   try {
     const store = db.transaction(storeName, 'readonly').objectStore(storeName);
     if (!store.indexNames.contains(indexName)) return [];
-    const rows = await requestResult(store.index(indexName).getAll(IDBKeyRange.only(value)));
+    const rows = await requestResult(store.index(indexName).getAll(indexedDbOnly(value, `${storeName}.${indexName}`)));
     return rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  } finally { db.close(); }
+}
+
+async function getRecentByBooleanField(storeName, field, expected = true, limit = 250) {
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 250, 2000));
+  const db = await openDb();
+  try {
+    return await new Promise((resolve, reject) => {
+      const store = db.transaction(storeName, 'readonly').objectStore(storeName);
+      const source = store.indexNames.contains('updatedAt') ? store.index('updatedAt') : store;
+      const out = [];
+      const request = source.openCursor(null, 'prev');
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor || out.length >= safeLimit) { resolve(out); return; }
+        if (Boolean(cursor.value?.[field]) === Boolean(expected)) out.push(cursor.value);
+        cursor.continue();
+      };
+      request.onerror = () => reject(request.error);
+    });
   } finally { db.close(); }
 }
 
@@ -478,18 +514,27 @@ async function saveSettings(next) {
   return merged;
 }
 
+let settingsMutationQueue = Promise.resolve();
+function mutateSettings(operation) {
+  const pending = settingsMutationQueue.catch(() => {}).then(operation);
+  settingsMutationQueue = pending.then(() => undefined, () => undefined);
+  return pending;
+}
+
 async function patchSettings(patch) {
-  const current = await settings();
-  return saveSettings({
-    ...current, ...patch,
-    github: { ...current.github, ...(patch.github || {}) },
-    drive: { ...current.drive, ...(patch.drive || {}) },
-    catalog: { ...current.catalog, ...(patch.catalog || {}) },
-    refreshRecovery: { ...current.refreshRecovery, ...(patch.refreshRecovery || {}) },
-    projectIntegrity: { ...current.projectIntegrity, ...(patch.projectIntegrity || {}) },
-    knowledge: { ...current.knowledge, ...(patch.knowledge || {}) },
-    liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(patch.liveHealth || {}) }),
-    approvalAutopilot: { ...current.approvalAutopilot, ...(patch.approvalAutopilot || {}) }
+  return mutateSettings(async () => {
+    const current = await settings();
+    return saveSettings({
+      ...current, ...patch,
+      github: { ...current.github, ...(patch.github || {}) },
+      drive: { ...current.drive, ...(patch.drive || {}) },
+      catalog: { ...current.catalog, ...(patch.catalog || {}) },
+      refreshRecovery: { ...current.refreshRecovery, ...(patch.refreshRecovery || {}) },
+      projectIntegrity: { ...current.projectIntegrity, ...(patch.projectIntegrity || {}) },
+      knowledge: { ...current.knowledge, ...(patch.knowledge || {}) },
+      liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(patch.liveHealth || {}) }),
+      approvalAutopilot: { ...current.approvalAutopilot, ...(patch.approvalAutopilot || {}) }
+    });
   });
 }
 
@@ -916,11 +961,12 @@ async function deleteSearchDocs(ids = []) {
 }
 
 async function countByIndex(storeName, indexName, value) {
+  if (!isValidIndexedDbKey(value)) return 0;
   const db = await openDb();
   try {
     const store = db.transaction(storeName, 'readonly').objectStore(storeName);
     if (!store.indexNames.contains(indexName)) return 0;
-    return Number(await requestResult(store.index(indexName).count(IDBKeyRange.only(value))) || 0);
+    return Number(await requestResult(store.index(indexName).count(indexedDbOnly(value, `${storeName}.${indexName}`))) || 0);
   } finally { db.close(); }
 }
 
@@ -1147,7 +1193,7 @@ async function knowledgeKindCounts(kinds = []) {
   const db = await openDb();
   try {
     const index = db.transaction('knowledgeItems', 'readonly').objectStore('knowledgeItems').index('kind');
-    const counts = await Promise.all(kinds.map((kind) => requestResult(index.count(IDBKeyRange.only(kind)))));
+    const counts = await Promise.all(kinds.map((kind) => requestResult(index.count(indexedDbOnly(kind, 'knowledgeItems.kind')))));
     return Object.fromEntries(kinds.map((kind, index) => [kind, Number(counts[index] || 0)]));
   } finally { db.close(); }
 }
@@ -1353,8 +1399,8 @@ async function organizationProjectMetrics(projectIds = []) {
     const attentionStatuses=['blocked-approval','refresh-required','errored','stalled','auth-required','unavailable'];
     const entries=await Promise.all(ids.map(async(id)=>{
       const [chatCount,fileCount,...attention]=await Promise.all([
-        requestResult(projectIndex.count(IDBKeyRange.only(id))),requestResult(fileIndex.count(IDBKeyRange.only(id))),
-        ...attentionStatuses.map((status)=>requestResult(statusIndex.count(IDBKeyRange.only([id,status]))))
+        requestResult(projectIndex.count(indexedDbOnly(id, 'chats.workspaceProjectId'))),requestResult(fileIndex.count(indexedDbOnly(id, 'files.workspaceProjectId'))),
+        ...attentionStatuses.map((status)=>requestResult(statusIndex.count(indexedDbOnly([id,status], 'chats.workspaceProjectStatus'))))
       ]); return [id,{chatCount,fileCount,attentionCount:attention.reduce((sum,n)=>sum+Number(n||0),0)}];
     })); return new Map(entries);
   } finally { db.close(); }
@@ -1364,13 +1410,13 @@ async function organizationTagCounts(limit=100) {
   const db=await openDb();
   try { return await new Promise((resolve,reject)=>{
     const tx=db.transaction('chats','readonly'); const index=tx.objectStore('chats').index('tags'); const out=[]; const request=index.openKeyCursor(null,'nextunique');
-    request.onsuccess=()=>{const cursor=request.result;if(!cursor||out.length>=limit){resolve(out.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)));return;}const name=String(cursor.key||'');const countReq=index.count(IDBKeyRange.only(cursor.key));countReq.onsuccess=()=>{out.push({name,count:Number(countReq.result||0)});cursor.continue();};countReq.onerror=()=>reject(countReq.error);};request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{const cursor=request.result;if(!cursor||out.length>=limit){resolve(out.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)));return;}const name=String(cursor.key||'');const countReq=index.count(indexedDbOnly(cursor.key, 'chats.tags'));countReq.onsuccess=()=>{out.push({name,count:Number(countReq.result||0)});cursor.continue();};countReq.onerror=()=>reject(countReq.error);};request.onerror=()=>reject(request.error);
   }); } finally { db.close(); }
 }
 
 async function organizationSummary() {
   const [groups, projects, smartCollections, totalChats, pinnedChats, favoriteChats, tags] = await Promise.all([
-    getAll('groups'), getAll('projects'), getAll('smartCollections'), countStore('chats'), getByIndex('chats','pinned',true,24), getByIndex('chats','favorite',true,24), organizationTagCounts(100)
+    getAll('groups'), getAll('projects'), getAll('smartCollections'), countStore('chats'), getRecentByBooleanField('chats','pinned',true,24), getRecentByBooleanField('chats','favorite',true,24), organizationTagCounts(100)
   ]);
   const workspaceProjects = projects.filter((p) => p.sourceType === 'workspace' && !p.deletedAt);
   const providerProjects = projects.filter((p) => p.sourceType !== 'workspace' && !p.deletedAt);
@@ -1495,9 +1541,9 @@ async function organizationChats(filters = {}) {
   const limit=Math.max(1,Math.min(Number(filters.limit)||120,500)); let rows;
   if(filters.workspaceProjectId) rows=await getByIndex('chats','workspaceProjectId',filters.workspaceProjectId,Math.max(limit,500));
   else if(filters.tag) rows=await getByIndex('chats','tags',String(filters.tag).toLocaleLowerCase(),Math.max(limit,500));
-  else if(filters.mode==='pinned') rows=await getByIndex('chats','pinned',true,Math.max(limit,500));
-  else if(filters.mode==='favorites') rows=await getByIndex('chats','favorite',true,Math.max(limit,500));
-  else if(filters.mode==='archived') rows=await getByIndex('chats','organizedArchived',true,Math.max(limit,500));
+  else if(filters.mode==='pinned') rows=await getRecentByBooleanField('chats','pinned',true,Math.max(limit,500));
+  else if(filters.mode==='favorites') rows=await getRecentByBooleanField('chats','favorite',true,Math.max(limit,500));
+  else if(filters.mode==='archived') rows=await getRecentByBooleanField('chats','organizedArchived',true,Math.max(limit,500));
   else rows=await getRecent('chats',Math.max(limit,300));
   if(filters.groupId) rows=rows.filter((c)=>c.workspaceGroupId===filters.groupId);
   if(filters.mode==='unassigned') rows=rows.filter((c)=>!c.workspaceProjectId);
@@ -1527,11 +1573,12 @@ function buildTopicHints(chats = [], projects = []) {
 
 
 async function deleteByIndex(storeName, indexName, value) {
+  if (!isValidIndexedDbKey(value)) return;
   const db = await openDb();
   try {
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName); const index = store.index(indexName);
-    const rows = await requestResult(index.getAll(IDBKeyRange.only(value)));
+    const rows = await requestResult(index.getAll(indexedDbOnly(value, `${storeName}.${indexName}`)));
     await new Promise((resolve, reject) => {
       for (const row of rows) if (row?.id) store.delete(row.id);
       tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
@@ -1544,12 +1591,12 @@ async function projectIntegrityInput(projectId, { maxChats = 240, maxTurnsPerCha
   try {
     const tx = db.transaction(['chats','files','turns'], 'readonly');
     const chatStore = tx.objectStore('chats'), fileStore = tx.objectStore('files'), turnStore = tx.objectStore('turns');
-    const chats = await requestResult(chatStore.index('workspaceProjectId').getAll(IDBKeyRange.only(projectId)));
-    const files = await requestResult(fileStore.index('workspaceProjectId').getAll(IDBKeyRange.only(projectId)));
+    const chats = await requestResult(chatStore.index('workspaceProjectId').getAll(indexedDbOnly(projectId, 'chats.workspaceProjectId')));
+    const files = await requestResult(fileStore.index('workspaceProjectId').getAll(indexedDbOnly(projectId, 'files.workspaceProjectId')));
     chats.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)); files.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
     const selected = chats.slice(0, Math.max(1, maxChats));
     const turnIndex = turnStore.index('chatId');
-    const chunks = await Promise.all(selected.map((chat) => requestResult(turnIndex.getAll(IDBKeyRange.only(chat.id), Math.max(1, maxTurnsPerChat))).catch(() => [])));
+    const chunks = await Promise.all(selected.map((chat) => requestResult(turnIndex.getAll(indexedDbOnly(chat.id, 'turns.chatId'), Math.max(1, maxTurnsPerChat))).catch(() => [])));
     return { chats, files, turns: chunks.flat() };
   } finally { db.close(); }
 }
@@ -1620,7 +1667,7 @@ async function homeSummary() {
   const db = await openDb();
   try {
     const tx = db.transaction('chats','readonly'); const index = tx.objectStore('chats').index('status');
-    await Promise.all(brain.CHAT_STATUSES.map(async (status) => { statusCounts[status] = await requestResult(index.count(IDBKeyRange.only(status))); }));
+    await Promise.all(brain.CHAT_STATUSES.map(async (status) => { statusCounts[status] = await requestResult(index.count(indexedDbOnly(status, 'chats.status'))); }));
   } finally { db.close(); }
   return {
     counts: { providers: providerCount, projects: projectCount, chats: chatCount, turns: turnCount, files: fileCount, knowledge: knowledgeCount }, statusCounts,
@@ -3103,17 +3150,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return { ok: true, settings: cfg, hasGithubToken, drive: await driveConnectionStatus(), catalog: publicCatalogState(await catalogState()) };
       }
       case 'PC_BRAIN_SETTINGS_SET': {
-        const current = await settings();
-        const next = await saveSettings({ ...current, ...(message.settings || {}), github: { ...current.github, ...(message.settings?.github || {}) }, drive: { ...current.drive, ...(message.settings?.drive || {}) }, catalog: { ...current.catalog, ...(message.settings?.catalog || {}) }, refreshRecovery: { ...current.refreshRecovery, ...(message.settings?.refreshRecovery || {}) }, projectIntegrity: { ...current.projectIntegrity, ...(message.settings?.projectIntegrity || {}) }, knowledge: { ...current.knowledge, ...(message.settings?.knowledge || {}) }, liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(message.settings?.liveHealth || {}) }), approvalAutopilot: { ...current.approvalAutopilot, ...(message.settings?.approvalAutopilot || {}) } });
-        if (message.settings?.projectIntegrity) {
-          await chrome.alarms.clear(INTEGRITY_MAINTENANCE_ALARM).catch(() => {});
-          if (next.projectIntegrity.enabled && next.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(next.projectIntegrity.scanIntervalMinutes || 15)) });
-        }
-        if (typeof message.githubToken === 'string' && message.githubToken) {
-          await chrome.storage.local.set({ [GITHUB_SECRET_KEY]: message.githubToken, [GITHUB_TOKEN_META_KEY]: { accessExpiresAt: 0, refreshExpiresAt: 0, tokenType: 'bearer', connectedAt: Date.now() } });
-        }
-        if (message.clearGithubToken) await chrome.storage.local.remove([GITHUB_SECRET_KEY, GITHUB_REFRESH_KEY, GITHUB_TOKEN_META_KEY]);
-        return { ok: true, settings: next };
+        return mutateSettings(async () => {
+          const current = await settings();
+          const next = await saveSettings({ ...current, ...(message.settings || {}), github: { ...current.github, ...(message.settings?.github || {}) }, drive: { ...current.drive, ...(message.settings?.drive || {}) }, catalog: { ...current.catalog, ...(message.settings?.catalog || {}) }, refreshRecovery: { ...current.refreshRecovery, ...(message.settings?.refreshRecovery || {}) }, projectIntegrity: { ...current.projectIntegrity, ...(message.settings?.projectIntegrity || {}) }, knowledge: { ...current.knowledge, ...(message.settings?.knowledge || {}) }, liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(message.settings?.liveHealth || {}) }), approvalAutopilot: { ...current.approvalAutopilot, ...(message.settings?.approvalAutopilot || {}) } });
+          if (message.settings?.projectIntegrity) {
+            await chrome.alarms.clear(INTEGRITY_MAINTENANCE_ALARM).catch(() => {});
+            if (next.projectIntegrity.enabled && next.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(next.projectIntegrity.scanIntervalMinutes || 15)) });
+          }
+          if (typeof message.githubToken === 'string' && message.githubToken) {
+            await chrome.storage.local.set({ [GITHUB_SECRET_KEY]: message.githubToken, [GITHUB_TOKEN_META_KEY]: { accessExpiresAt: 0, refreshExpiresAt: 0, tokenType: 'bearer', connectedAt: Date.now() } });
+          }
+          if (message.clearGithubToken) await chrome.storage.local.remove([GITHUB_SECRET_KEY, GITHUB_REFRESH_KEY, GITHUB_TOKEN_META_KEY]);
+          return { ok: true, settings: next };
+        });
       }
       case 'PC_GITHUB_SYNC': return githubSync();
       case 'PC_GITHUB_STATUS': return { ok: true, connection: await githubConnectionStatus({ verify: Boolean(message.verify) }) };

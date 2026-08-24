@@ -16,6 +16,10 @@ Open the exact conversation and verify Constellation is enabled in the popup. Re
 
 If ChatGPT changed markup, follow [ChatGPT compatibility](ChatGPT-Integration) and add a sanitized regression fixture before changing selectors.
 
+## Settings or organizer actions show an `IDBKeyRange.only` error
+
+Reload the unpacked extension from the current v0.14.0 build. An earlier candidate queried boolean organization flags as IndexedDB keys, so a setting could be written successfully and then appear to fail when Home refreshed. The repaired build never uses booleans as key ranges, serializes rapid settings changes, and reads pinned/favorite/archive state without discarding existing records. Do not clear storage: the setting may already have been saved.
+
 ## HUD says stale or degraded
 
 “This tab is behind” means the local catalogue has a newer authoritative revision while the visible page is at the conversation bottom. Use the HUD’s Refresh action. “Page render degraded” means semantic content is present but not visibly rendered; refresh after ensuring important work is checkpointed.

@@ -17,6 +17,9 @@ All notable Project Constellation changes are recorded here.
 
 ### Fixed
 
+- Needs Attention, pinned, favorite, and archive views no longer pass boolean values to `IDBKeyRange.only`, eliminating the IndexedDB `DataError` that interrupted Home refreshes after settings or organizer actions.
+- Approval Autopilot and Live Chat Health settings writes are serialized, immediately reflected from the confirmed storage response, and protected from rapid-toggle lost updates.
+- Recovery and organizer buttons now reject failed background actions instead of displaying success or refreshing as though the mutation worked.
 - Google OAuth builds no longer silently masquerade as production when the client is missing.
 - Google connection success now requires a real Drive API verification response and the granted `drive.file` scope.
 - GitHub access tokens now refresh safely on expiry or a 401 response.
@@ -29,6 +32,7 @@ All notable Project Constellation changes are recorded here.
 
 ### Performance
 
+- Needs Attention toggles no longer trigger a full Home/provider/connection reload after every saved setting.
 - Default active health polling increased from 1.8s to 2.5s; idle polling increased from 5s to 12s.
 - Health context caching increased and hidden-tab pulses reduced to 30s.
 - Tool scans are dirty/cached, use narrower selectors, and examine fewer nodes.

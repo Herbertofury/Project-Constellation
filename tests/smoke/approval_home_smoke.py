@@ -12,6 +12,7 @@ summary={
  'organization':{'projects':[]},
  'sync':{'drive':{'lastStatus':'not-connected','lastSyncAt':0,'oauthProvisioned':False},'github':{'configured':False,'lastSyncAt':0}},
  'approvalAutopilot':{'enabled':False,'acknowledged':False,'alwaysAllow':True,'fallbackAllowOnce':True,'autoRecoverPaused':True,'backgroundRecovery':True},
+ 'liveHealth':{'enabled':True,'showHealthy':True,'toolWatchdogEnabled':True,'capacityGuardEnabled':True,'corner':'bottom-right','density':'compact','softStallMs':45000,'hardStallMs':120000,'deadStallMs':240000,'capacityWarningTurns':180,'capacityHandoffTurns':260},
  'approvalRecovery':{'status':'idle','mode':'attention','total':0,'scanned':0,'recovered':0,'alwaysAllowed':0,'allowedOnce':0,'resumed':0,'failed':0,'startedAt':0}
 }
 providers=[{'id':'chatgpt','name':'ChatGPT','home':'https://chatgpt.com/','catalog':{'browserHistory':True,'backgroundHtml':True,'livePassive':True,'exportImport':'chatgpt-data-export'}}]
@@ -22,13 +23,13 @@ mock=f"""
    if(m.type==='PC_HOME_SUMMARY')return {{ok:true,home:summary}};
    if(m.type==='PC_PROVIDER_LIST')return {{ok:true,providers}};
    if(m.type==='PC_CONNECTIONS_STATUS')return {{ok:true,extensionId:'pc-test',google:{{oauthProvisioned:false,connected:false}},github:{{connected:false}},providers:[]}};
-   if(m.type==='PC_BRAIN_SETTINGS_SET'){{summary.approvalAutopilot={{...summary.approvalAutopilot,...(m.settings?.approvalAutopilot||{{}})}};return {{ok:true,settings:{{approvalAutopilot:summary.approvalAutopilot}}}};}}
+   if(m.type==='PC_BRAIN_SETTINGS_SET'){{summary.approvalAutopilot={{...summary.approvalAutopilot,...(m.settings?.approvalAutopilot||{{}})}};summary.liveHealth={{...summary.liveHealth,...(m.settings?.liveHealth||{{}})}};return {{ok:true,settings:{{approvalAutopilot:summary.approvalAutopilot,liveHealth:summary.liveHealth}}}};}}
    if(m.type==='PC_APPROVAL_RECOVERY_START'){{summary.approvalRecovery={{status:'running',mode:m.mode,total:3,scanned:0,recovered:0,alwaysAllowed:0,allowedOnce:0,resumed:0,failed:0,startedAt:Date.now(),currentChatId:'chatgpt:blocked'}};return {{ok:true,state:summary.approvalRecovery}};}}
    if(m.type==='PC_APPROVAL_RECOVERY_STOP'){{summary.approvalRecovery={{...summary.approvalRecovery,status:'stopped'}};return {{ok:true,state:summary.approvalRecovery}};}}
    if(m.type==='PC_BRAIN_LIST')return {{ok:true,items:[]}};
    return {{ok:true}};
  }} }},tabs:{{create:async()=>({{id:1}}),query:async()=>[]}},sidePanel:{{open:async()=>{{}}}},permissions:{{contains:async()=>false,request:async()=>true}},storage:{{local:{{get:async()=>({{}}),set:async()=>{{}}}}}}}};
- globalThis.__messages=messages;
+ globalThis.__messages=messages;globalThis.__summary=summary;
 }})();
 """
 with sync_playwright() as p:
@@ -38,8 +39,20 @@ with sync_playwright() as p:
     page.set_content(rendered); page.add_script_tag(content=mock); page.add_script_tag(content=js); page.wait_for_timeout(160)
     page.locator('[data-view="attention"]').first.click(); page.wait_for_timeout(80)
     assert page.locator('#approvalAutopilotEnabled').is_visible()
+    page.locator('#liveHealthShowHealthy').uncheck()
+    page.locator('#liveHealthToolWatchdog').uncheck()
     page.locator('#approvalRiskAcknowledged').check(); page.wait_for_timeout(80)
-    page.locator('#approvalAutopilotEnabled').check(); page.wait_for_timeout(160)
+    page.locator('#approvalFallbackAllowOnce').uncheck()
+    page.locator('#approvalAutoRecoverPaused').uncheck()
+    page.locator('#approvalAutopilotEnabled').check(); page.wait_for_timeout(400)
+    persisted=page.evaluate("()=>({approval:{...__summary.approvalAutopilot},liveHealth:{...__summary.liveHealth}})")
+    assert persisted['approval']['enabled'] is True and persisted['approval']['acknowledged'] is True
+    assert persisted['approval']['fallbackAllowOnce'] is False and persisted['approval']['autoRecoverPaused'] is False
+    assert persisted['liveHealth']['showHealthy'] is False and persisted['liveHealth']['toolWatchdogEnabled'] is False
+    assert page.locator('#approvalFallbackAllowOnce').is_checked() is False
+    assert page.locator('#approvalAutoRecoverPaused').is_checked() is False
+    assert page.locator('#liveHealthShowHealthy').is_checked() is False
+    assert page.locator('#liveHealthToolWatchdog').is_checked() is False
     msgs=page.evaluate("()=>__messages.map(m=>({type:m.type,mode:m.mode,settings:m.settings}))")
     starts=[m for m in msgs if m['type']=='PC_APPROVAL_RECOVERY_START']
     assert starts and starts[-1]['mode']=='all-known'

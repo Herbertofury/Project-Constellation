@@ -10,6 +10,7 @@
     "Google Chrome Identity OAuth using drive.file, granted-scope checks, account verification, cached-token eviction, and one safe 401 retry",
     "GitHub device OAuth with repository/user scopes, interval and slow_down handling, restart-safe pending state, account verification, rotating refresh-token support, proactive refresh, one safe 401 retry, and explicit revoke/disconnect cleanup",
     "production-only OAuth configuration injection with stable extension identity and hard failure on missing or placeholder client IDs",
+    "browser-safe Needs Attention and organizer persistence with serialized settings mutations, confirmed-response UI updates, and truthful action feedback",
     "complete README, changelog, privacy policy, release process, OAuth provisioning checklist, and living GitHub Wiki source",
     "deterministic production packaging with release receipt, source and installable archives, SHA-256 checksums, unsafe-path checks, and clean-tree enforcement"
   ],
@@ -17,6 +18,7 @@
     "six deterministic core suites pass",
     "static validation, UI ownership, and 49-message contract validation pass",
     "17 browser workflows pass, including service-worker load, OAuth backend behavior, current ChatGPT DOM, provider matrix, 320-turn preservation, Full Capture, Home, Recovery, and Workbench",
+    "browser-accurate IndexedDB regression coverage rejects boolean key ranges while pinned, favorite, archive, concurrent settings, and post-save Home summary workflows pass",
     "canonical local main and origin/main match and GitHub Verify succeeds on the same commit",
     "production build reports Google and GitHub OAuth configured and stable extension identity",
     "production archives match RELEASE-RECEIPT.json and SHA256SUMS.txt and contain no unsafe archive paths",
@@ -35,5 +37,5 @@
     "client_secrets_required": false,
     "real_signed_in_acceptance_complete": false
   },
-  "updated_at": "2026-08-24T19:12:00Z"
+  "updated_at": "2026-08-24T19:49:56Z"
 }

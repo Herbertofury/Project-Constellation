@@ -24,6 +24,10 @@ const topFiles = ['manifest.json','background.js','popup.html','popup.css','popu
 const sourceFiles = ['core.js','brain-core.js','provider-core.js','integrity-core.js','knowledge-core.js','health-core.js','content.js','styles.css'];
 for (const file of topFiles) fs.copyFileSync(path.join(sourceRoot, file), path.join(unpacked, file));
 for (const file of sourceFiles) fs.copyFileSync(path.join(sourceRoot, 'src', file), path.join(unpacked, 'src', file));
+for (const directory of ['assets']) {
+  const sourceDirectory = path.join(sourceRoot, directory);
+  if (fs.existsSync(sourceDirectory)) fs.cpSync(sourceDirectory, path.join(unpacked, directory), { recursive: true });
+}
 
 const manifestPath = path.join(unpacked, 'manifest.json');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
