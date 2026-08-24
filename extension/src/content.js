@@ -20,6 +20,9 @@
   let liveHealthSettings = { ...health.DEFAULTS };
   let approvalAutopilotBusy = false;
   let approvalAutopilotLastAt = 0;
+  let approvalAutopilotTimer = 0;
+  let approvalAutopilotRetryCount = 0;
+  let approvalAutopilotPromptKey = '';
   const pressure = new perf.PressureWindow(settings);
   const metrics = {
     sessionStartedAt: Date.now(), totalLongTasks: 0, totalLongTaskMs: 0, maxLongTaskMs: 0,
@@ -37,6 +40,7 @@
   const pendingRoots = new Set();
   let performanceObserver = null;
   let captureObserver = null;
+  let approvalObserver = null;
   let recoveryTimer = 0;
   let persistHandle = 0;
   let persistHandleKind = '';
@@ -497,19 +501,53 @@
     return true;
   }
 
-  function approvalSurface() {
-    const candidates = [...document.querySelectorAll('[role="dialog"],[role="alertdialog"],[data-state="open"],[data-testid*="dialog" i],[class*="modal" i],[class*="dialog" i]')];
-    candidates.push(document.querySelector('main'));
-    let best = null, bestScore = -1;
-    for (const node of candidates.filter(Boolean)) {
+  const APPROVAL_CONTROL_SELECTOR = 'button,[role="button"],[role="menuitem"],[role="option"],label,input[type="checkbox"]';
+
+  function isMainAllowControl(node) {
+    return node instanceof Element && /^allow(?: once)?$/i.test(elementLabel(node, 120)) && isUsableControl(node);
+  }
+
+  function isDenyControl(node) {
+    return node instanceof Element && /^(?:deny|cancel)$/i.test(elementLabel(node, 120)) && isUsableControl(node);
+  }
+
+  function approvalPromptLike(text = '') {
+    return /\ballow\s+chatgpt\s+to\s+(?:use|access)\b/i.test(text)
+      || /\ballow\b.{0,120}\b(?:github|google drive|onedrive|dropbox|sharepoint|notion|slack|connector|connected app|plugin)\b/i.test(text)
+      || /\b(?:github|google drive|onedrive|dropbox|sharepoint|notion|slack|connector|connected app|plugin)\b.{0,180}\b(?:allow|permission|access)\b/i.test(text);
+  }
+
+  function approvalCardForAllow(mainAllow) {
+    let node = mainAllow?.parentElement || null;
+    let structuralFallback = null;
+    for (let depth = 0; node && node !== document.body && depth < 11; depth += 1, node = node.parentElement) {
+      const controls = [...node.querySelectorAll(APPROVAL_CONTROL_SELECTOR)].filter(isUsableControl);
+      if (!controls.includes(mainAllow) || !controls.some(isDenyControl)) continue;
       const text = elementLabel(node, 6000);
-      const lower = text.toLowerCase();
-      if (!/\ballow\b/.test(lower)) continue;
-      if (!/(connector|connected app|plugin|app\b|access|for this chat|for this conversation|conversation)/.test(lower)) continue;
-      const controls = [...node.querySelectorAll('button,[role="button"],[role="menuitem"],label,input[type="checkbox"]')].filter(isUsableControl);
-      if (!controls.some((control) => /^allow(?: once)?$/i.test(elementLabel(control, 120)))) continue;
-      let score = controls.length + (/for this (chat|conversation)/i.test(text) ? 80 : 0) + (/connector|plugin|connected app/i.test(text) ? 60 : 0);
-      if (node.getAttribute('role')?.includes('dialog')) score += 120;
+      if (!structuralFallback && (node.querySelector('h1,h2,h3,[role="heading"]') || text.length > 40)) structuralFallback = node;
+      if (approvalPromptLike(text)) return node;
+    }
+    return structuralFallback;
+  }
+
+  function approvalSurface() {
+    const exactAllowButtons = [...document.querySelectorAll('button,[role="button"]')].slice(-240).filter(isMainAllowControl);
+    const candidates = [
+      ...exactAllowButtons.map(approvalCardForAllow),
+      ...[...document.querySelectorAll('[role="dialog"],[role="alertdialog"],[data-state="open"],[data-testid*="dialog" i],[class*="modal" i],[class*="dialog" i]')].slice(-160)
+    ];
+    let best = null, bestScore = -1;
+    for (const node of [...new Set(candidates.filter(Boolean))]) {
+      const text = elementLabel(node, 6000);
+      const controls = [...node.querySelectorAll(APPROVAL_CONTROL_SELECTOR)].filter(isUsableControl);
+      const hasAllow = controls.some(isMainAllowControl);
+      const hasDeny = controls.some(isDenyControl);
+      const promptLike = approvalPromptLike(text);
+      if (!hasAllow || (!hasDeny && !promptLike)) continue;
+      let score = (promptLike ? 180 : 0) + (hasDeny ? 120 : 0) + (/for this (chat|conversation)/i.test(text) ? 50 : 0);
+      if (node.getAttribute('role')?.includes('dialog')) score += 90;
+      score -= Math.max(0, controls.length - 6) * 4;
+      score -= Math.min(40, Math.floor(text.length / 1000));
       if (score > bestScore) { best = node; bestScore = score; }
     }
     return best;
@@ -528,20 +566,40 @@
 
   function approvalControls(surface = approvalSurface()) {
     if (!surface) return { surface: null, mainAllow: null, persistent: null, dropdown: null, checkbox: null };
-    const all = [...document.querySelectorAll('button,[role="button"],[role="menuitem"],[role="option"],label,input[type="checkbox"]')].filter(isUsableControl);
-    const within = [...surface.querySelectorAll('button,[role="button"],[role="menuitem"],[role="option"],label,input[type="checkbox"]')].filter(isUsableControl);
+    const all = [...document.querySelectorAll(APPROVAL_CONTROL_SELECTOR)].filter(isUsableControl);
+    const within = [...surface.querySelectorAll(APPROVAL_CONTROL_SELECTOR)].filter(isUsableControl);
     const persistentPattern = /(?:^|\b)(always allow|never ask|allow all|allow.*(?:this )?(?:conversation|chat))(?:\b|$)/i;
     const persistent = all.find((node) => persistentPattern.test(elementLabel(node, 260)) && !/low[- ]risk/i.test(elementLabel(node, 260))) || null;
     const checkbox = within.find((node) => {
       const label = node.matches?.('label') ? elementLabel(node, 300) : elementLabel(node.closest?.('label') || node.parentElement, 300);
       return /always allow|allow all|never ask|conversation|this chat/i.test(label) && (node.matches?.('input[type="checkbox"]') || node.querySelector?.('input[type="checkbox"]'));
     }) || null;
-    const mainAllow = within.find((node) => /^allow(?: once)?$/i.test(elementLabel(node, 120))) || null;
-    let dropdown = within.find((node) => node !== mainAllow && (node.getAttribute('aria-haspopup') === 'menu' || node.getAttribute('aria-haspopup') === 'listbox') && /allow|more|option|menu/i.test(elementLabel(node, 180))) || null;
-    if (!dropdown && mainAllow?.parentElement) {
-      const siblings = [...mainAllow.parentElement.querySelectorAll('button,[role="button"]')].filter((node) => node !== mainAllow && isUsableControl(node));
-      dropdown = siblings.find((node) => node.getAttribute('aria-haspopup') || node.querySelector('svg') || elementLabel(node, 120).length < 4) || null;
+    const mainAllow = within.find(isMainAllowControl) || null;
+    const buttonControls = within.filter((node) => node.matches?.('button,[role="button"]'));
+    const mainIndex = buttonControls.indexOf(mainAllow);
+    let dropdown = null;
+    let dropdownScore = -1;
+    for (let index = 0; index < buttonControls.length; index += 1) {
+      const node = buttonControls[index];
+      if (node === mainAllow || isDenyControl(node) || persistentPattern.test(elementLabel(node, 260))) continue;
+      const label = elementLabel(node, 180);
+      let score = 0;
+      if (/^(?:menu|listbox)$/.test(node.getAttribute('aria-haspopup') || '')) score += 120;
+      if (node.hasAttribute('aria-expanded')) score += 80;
+      if (/allow|more|option|menu/i.test(label)) score += 60;
+      if (node.querySelector('svg')) score += 45;
+      if (label.length <= 3) score += 35;
+      if (mainAllow && node.parentElement === mainAllow.parentElement) score += 110;
+      else if (mainAllow && node.parentElement?.parentElement === mainAllow.parentElement?.parentElement) score += 55;
+      if (mainIndex >= 0 && Math.abs(index - mainIndex) === 1) score += 65;
+      const a = mainAllow?.getBoundingClientRect?.(); const b = node.getBoundingClientRect?.();
+      if (a && b && (a.width || a.height) && (b.width || b.height)) {
+        const gap = Math.hypot((a.right + a.left - b.right - b.left) / 2, (a.bottom + a.top - b.bottom - b.top) / 2);
+        if (gap < 100) score += 70; else if (gap < 180) score += 30;
+      }
+      if (score > dropdownScore) { dropdown = node; dropdownScore = score; }
     }
+    if (dropdownScore < 60) dropdown = null;
     return { surface, mainAllow, persistent, dropdown, checkbox };
   }
 
@@ -559,17 +617,21 @@
     });
   }
 
+  async function confirmApprovalCleared(timeoutMs = 3600) {
+    return Boolean(await waitForDom(() => !approvalSurface() ? true : null, timeoutMs));
+  }
+
   async function settlePersistentApproval(strategy) {
     // Some ChatGPT builds make the persistent menu item approve immediately;
     // others first set the preference and leave the current Allow button active.
     // Support both without double-clicking a completed action.
-    await waitForDom(() => !approvalSurface() || approvalControls(approvalSurface()).mainAllow, 900);
+    await wait(120);
     const remaining = approvalSurface();
     if (remaining) {
       const controls = approvalControls(remaining);
-      if (controls.mainAllow) { controls.mainAllow.click(); return `${strategy}+allow`; }
+      if (controls.mainAllow) { controls.mainAllow.click(); strategy = `${strategy}+allow`; }
     }
-    return strategy;
+    return { strategy, confirmed: await confirmApprovalCleared() };
   }
 
   async function clickApprovalPersistentOption(surface, options) {
@@ -579,11 +641,16 @@
       if (input && !input.checked) controls.checkbox.click();
       await wait(80);
       controls = approvalControls(surface);
-      if (controls.mainAllow) { controls.mainAllow.click(); return { action: 'always-allow', strategy: 'checkbox+allow' }; }
+      if (controls.mainAllow) {
+        controls.mainAllow.click();
+        const confirmed = await confirmApprovalCleared();
+        return confirmed ? { action: 'always-allow', strategy: 'checkbox+allow' } : { action: 'failed', strategy: 'checkbox+allow-unconfirmed', reason: 'The approval card remained open after clicking Allow.' };
+      }
     }
     if (controls.persistent) {
       controls.persistent.click();
-      return { action: 'always-allow', strategy: await settlePersistentApproval('direct-persistent') };
+      const settled = await settlePersistentApproval('direct-persistent');
+      return settled.confirmed ? { action: 'always-allow', strategy: settled.strategy } : { action: 'failed', strategy: `${settled.strategy}-unconfirmed`, reason: 'The approval card remained open after selecting the persistent option.' };
     }
     if (controls.dropdown) {
       controls.dropdown.click();
@@ -591,10 +658,15 @@
       controls = approvalControls(approvalSurface() || surface);
       if (persistent || controls.persistent) {
         (persistent || controls.persistent).click();
-        return { action: 'always-allow', strategy: await settlePersistentApproval('dropdown-persistent') };
+        const settled = await settlePersistentApproval('dropdown-persistent');
+        return settled.confirmed ? { action: 'always-allow', strategy: settled.strategy } : { action: 'failed', strategy: `${settled.strategy}-unconfirmed`, reason: 'The approval card remained open after selecting the conversation-wide option.' };
       }
     }
-    if (options.fallbackAllowOnce !== false && controls.mainAllow) { controls.mainAllow.click(); return { action: 'allow-once', strategy: 'allow-fallback' }; }
+    if (options.fallbackAllowOnce !== false && controls.mainAllow) {
+      controls.mainAllow.click();
+      const confirmed = await confirmApprovalCleared();
+      return confirmed ? { action: 'allow-once', strategy: 'allow-fallback' } : { action: 'failed', strategy: 'allow-fallback-unconfirmed', reason: 'The approval card remained open after clicking Allow.' };
+    }
     return { action: 'none', strategy: 'persistent-option-unavailable' };
   }
 
@@ -663,16 +735,20 @@
         if (options.alwaysAllow !== false) result = await clickApprovalPersistentOption(surface, options);
         else {
           const controls = approvalControls(surface);
-          if (options.fallbackAllowOnce !== false && controls.mainAllow) { controls.mainAllow.click(); result = { action: 'allow-once', strategy: 'allow' }; }
+          if (options.fallbackAllowOnce !== false && controls.mainAllow) {
+            controls.mainAllow.click();
+            const confirmed = await confirmApprovalCleared();
+            result = confirmed ? { action: 'allow-once', strategy: 'allow' } : { action: 'failed', strategy: 'allow-unconfirmed', reason: 'The approval card remained open after clicking Allow.' };
+          }
         }
-        if (result.action !== 'none') {
+        if (result.action === 'always-allow' || result.action === 'allow-once') {
           approvalAutopilotLastAt = Date.now();
           await wait(220);
           sendBrain('STATUS_EVENT', { providerId: provider.id, chatId: currentChatId(), status: 'idle', detail: `Approval recovered automatically (${result.action})${connector ? ` · ${connector}` : ''}`, url: location.href, approvalConnector: connector, updatedAt: Date.now() });
           sendBrain('CHAT_UPSERT', { id: currentChatId(), providerId: provider.id, url: location.href, approvalRecoveredAt: Date.now(), approvalRecoveryAction: result.action, approvalConnector: connector, updatedAt: Date.now() });
           await drainBrainOutbox().catch(() => {});
         }
-        return { ok: true, action: result.action, strategy: result.strategy, connector, prompt: prompt.slice(0, 1200), reason: result.action === 'none' ? 'No persistent or current Allow control was available.' : '' };
+        return { ok: result.action !== 'failed', action: result.action, strategy: result.strategy, connector, prompt: prompt.slice(0, 1200), reason: result.reason || (result.action === 'none' ? 'No persistent or current Allow control was available.' : '') };
       }
       if (options.recoverPaused !== false) {
         const resume = findResumeControl();
@@ -688,8 +764,51 @@
 
   function maybeRunApprovalAutopilot(signals) {
     if (provider.id !== 'chatgpt' || !approvalSettings.enabled || !approvalSettings.acknowledged || !signals?.approval) return;
-    if (approvalAutopilotBusy || Date.now() - approvalAutopilotLastAt < 1200) return;
-    queueMicrotask(() => runApprovalRecoveryScan({ alwaysAllow: approvalSettings.alwaysAllow !== false, fallbackAllowOnce: approvalSettings.fallbackAllowOnce !== false, recoverPaused: approvalSettings.autoRecoverPaused !== false }).catch(() => {}));
+    scheduleApprovalAutopilotScan(30);
+  }
+
+  function approvalMutationHint(mutations = []) {
+    const hinted = (node) => {
+      if (!(node instanceof Element)) return false;
+      if (isMainAllowControl(node) || isDenyControl(node)) return true;
+      const text = elementLabel(node, 1800);
+      if (/\ballow\b/i.test(text) && /\b(?:deny|chatgpt|github|google drive|for this conversation|for this chat|connector|connected app|plugin)\b/i.test(text)) return true;
+      const controls = [...node.querySelectorAll?.('button,[role="button"]') || []].slice(-24);
+      return controls.some(isMainAllowControl) && (controls.some(isDenyControl) || approvalPromptLike(text));
+    };
+    for (const mutation of mutations.slice(0, 80)) {
+      if (mutation.type === 'attributes' && hinted(mutation.target)) return true;
+      for (const node of [...mutation.addedNodes].slice(0, 32)) if (hinted(node)) return true;
+    }
+    return false;
+  }
+
+  function scheduleApprovalAutopilotScan(delay = 90) {
+    if (provider.id !== 'chatgpt' || !approvalSettings.enabled || !approvalSettings.acknowledged) return;
+    if (approvalAutopilotTimer) return;
+    approvalAutopilotTimer = setTimeout(async () => {
+      approvalAutopilotTimer = 0;
+      const surface = approvalSurface();
+      if (!surface) { approvalAutopilotRetryCount = 0; approvalAutopilotPromptKey = ''; return; }
+      const promptKey = hashText(elementLabel(surface, 1800));
+      if (promptKey !== approvalAutopilotPromptKey) { approvalAutopilotPromptKey = promptKey; approvalAutopilotRetryCount = 0; }
+      if (approvalAutopilotBusy || Date.now() - approvalAutopilotLastAt < 800) { scheduleApprovalAutopilotScan(300); return; }
+      const result = await runApprovalRecoveryScan({ alwaysAllow: approvalSettings.alwaysAllow !== false, fallbackAllowOnce: approvalSettings.fallbackAllowOnce !== false, recoverPaused: approvalSettings.autoRecoverPaused !== false }).catch((error) => ({ ok:false, action:'failed', error:String(error?.message || error) }));
+      if (result?.action === 'always-allow' || result?.action === 'allow-once') { approvalAutopilotRetryCount = 0; approvalAutopilotPromptKey = ''; return; }
+      if (approvalSurface() && approvalAutopilotRetryCount < 6) {
+        approvalAutopilotRetryCount += 1;
+        scheduleApprovalAutopilotScan(Math.min(2400, 220 * (2 ** approvalAutopilotRetryCount)));
+      }
+    }, Math.max(20, Number(delay) || 90));
+  }
+
+  function setupApprovalObserver() {
+    if (provider.id !== 'chatgpt' || approvalObserver) return;
+    approvalObserver = new MutationObserver((mutations) => {
+      if (!approvalSettings.enabled || !approvalSettings.acknowledged) return;
+      if (approvalMutationHint(mutations)) scheduleApprovalAutopilotScan(80);
+    });
+    approvalObserver.observe(document.documentElement, { subtree:true, childList:true, attributes:true, attributeFilter:['aria-expanded','data-state','aria-disabled','disabled'] });
   }
 
 
@@ -1556,7 +1675,7 @@
       text: statusText,
       running: /stop generating|stop response|cancel generation|generating|thinking|reasoning/.test(lower) || Boolean(document.querySelector('[data-is-streaming="true"],[aria-busy="true"]')),
       paused: /continue generating|resume generation|resume response/.test(lower),
-      approval: provider.id === 'chatgpt' && Boolean(approvalSurface()) || /(allow|approve|permission|confirm).{0,180}(drive|github|connector|connected app|plugin|access|tool|use|continue)/.test(lower),
+      approval: provider.id === 'chatgpt' && (Boolean(approvalSurface()) || /(allow|approve|permission|confirm).{0,180}(drive|github|connector|connected app|plugin|access|tool|use|continue)/.test(lower)),
       refreshRequired: Boolean(refreshRequiredSurface()) || /message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message/.test(lower),
       rateLimited: Boolean(rateLimitSurface()) || /too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429/.test(lower),
       error: /something went wrong|there was an error|retry|try again|network error|failed to (generate|respond|send)/.test(lower),
@@ -1659,6 +1778,7 @@
     noteLiveActivity('route', 'Conversation route changed', 'Capture and health evidence reset for this page', 'route:current', routeStartedAt);
     resolveBranchLineage().catch(() => {});
     scheduleCapture(document);
+    scheduleApprovalAutopilotScan(180);
   }
 
   function setupNavigationTracking() {
@@ -1988,7 +2108,10 @@
       liveHealthSettings = health.normalizeSettings({ ...liveHealthSettings, ...(changes[BRAIN_SETTINGS_KEY].newValue?.liveHealth || {}) });
       if (liveHealthHost) { liveHealthHost.dataset.corner = liveHealthSettings.corner; liveHealthHost.dataset.density = liveHealthSettings.density; liveHealthHost.dataset.visible = liveHealthSettings.enabled ? '1' : '0'; }
       scheduleLiveHealthPulse(100);
-      if (approvalSettings.enabled && approvalSettings.acknowledged && provider.id === 'chatgpt') queueMicrotask(() => detectStatus());
+      if (approvalSettings.enabled && approvalSettings.acknowledged && provider.id === 'chatgpt') {
+        scheduleApprovalAutopilotScan(40);
+        queueMicrotask(() => detectStatus());
+      }
     }
   });
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -2018,7 +2141,8 @@
 
   setupNavigationTracking();
   setupCaptureObserver();
-  loadSettings();
+  setupApprovalObserver();
+  loadSettings().then(() => scheduleApprovalAutopilotScan(120));
   sendBrain('PROVIDER_SEEN', { id: provider.id, name: provider.name, home: provider.home, host: location.hostname, updatedAt: Date.now() });
   sendBrain('ROUTE_EVENT', { providerId: provider.id, chatId: currentChatId(), url: location.href, title: document.title, updatedAt: Date.now() });
   scheduleStatusPulse(1800);
@@ -2027,8 +2151,8 @@
   setTimeout(() => resolveBranchLineage().catch(() => {}), 1600);
 
   window.addEventListener('pagehide', () => {
-    stopPerformanceObserver(); captureObserver?.disconnect(); navCleanup?.(); closeOutputVault();
-    if (recoveryTimer) clearTimeout(recoveryTimer); if (statusTimer) clearTimeout(statusTimer); if (liveHealthTimer) clearTimeout(liveHealthTimer);
+    stopPerformanceObserver(); captureObserver?.disconnect(); approvalObserver?.disconnect(); navCleanup?.(); closeOutputVault();
+    if (recoveryTimer) clearTimeout(recoveryTimer); if (statusTimer) clearTimeout(statusTimer); if (liveHealthTimer) clearTimeout(liveHealthTimer); if (approvalAutopilotTimer) clearTimeout(approvalAutopilotTimer);
     cancelCapture(); cancelPendingPersist(); flushBrainOutbox();
     chrome.storage.local.set({ [METRICS_KEY]: { ...metrics } }).catch(() => {});
   }, { once: true });

@@ -17,6 +17,7 @@
     "content scripts never issue provider or OAuth network requests",
     "observation and extraction work stays bounded, deduplicated, batched, and idle-aware",
     "native provider behavior wins on failure and unsupported access is reported honestly",
+    "Approval Autopilot remains explicit opt-in, prefers the provider's conversation-wide permission control, retries only within a bounded budget, and never records recovery until the visible approval surface clears",
     "output comparison runs only on authoritative hydrated page tails, never prefetches remote media, and stays bounded during passive observation",
     "OAuth client IDs are injected at build time; client secrets, access tokens, refresh tokens, browser profiles, and user exports are never committed",
     "Google access remains limited to drive.file and GitHub access remains scoped to the user-authorized repository workflow",

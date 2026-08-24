@@ -23,6 +23,7 @@ All notable Project Constellation changes are recorded here.
 
 - The local brain upgrades in place from IndexedDB v8 to v9, migrates boolean organizer indexes to valid numeric derived keys, and preserves every existing pinned/favorite/archive flag. This eliminates the `IDBKeyRange.only` `DataError` that interrupted Home refreshes after settings or organizer actions.
 - Approval Autopilot and Live Chat Health settings writes are serialized, immediately reflected from the confirmed storage response, and protected from rapid-toggle lost updates.
+- Approval Autopilot now recognizes ChatGPT's current inline provider card without requiring dialog roles or stale generic keywords, discovers nested/icon-only split-button chevrons, selects provider-specific **Allow … for this conversation** menu items, reacts immediately through a low-overhead dedicated observer, and requires visible card clearance before reporting success.
 - Needs Attention settings now use accessible ON/OFF switches, autosave feedback, and explicit Save Settings buttons that re-submit and confirm the complete visible state.
 - Home now falls back to a direct settings read when a stale/background-mismatched service worker cannot build the full summary, so saved switches never render as unchecked startup placeholders during an extension update.
 - Home counters now come from verified IndexedDB store counts, use a lightweight count-only fallback when the full summary is unavailable, and show a loading/unavailable state instead of a fake `0 chats` result.

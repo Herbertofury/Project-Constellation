@@ -16,6 +16,12 @@ Open the exact conversation and verify Constellation is enabled in the popup. Re
 
 If ChatGPT changed markup, follow [ChatGPT compatibility](ChatGPT-Integration) and add a sanitized regression fixture before changing selectors.
 
+## ChatGPT still waits on Allow
+
+In **Needs Attention → Approval Autopilot**, turn on the risk acknowledgement and **Always allow all connected-app prompts**. Both switches autosave; the status bar must say **Saved**, and the explicit **Save settings** button can re-confirm the visible state. Reload the extension and the affected ChatGPT tab after upgrading an unpacked build so the new content script is actually active.
+
+The current build recognizes inline provider cards such as **Allow ChatGPT to use GitHub?**, opens the chevron beside **Allow**, and chooses **Allow GitHub for this conversation** (or the corresponding provider name). It records recovery only after that card disappears. Use **Fix detected blocked/stale** for known attention items or **Fix all known ChatGPT chats** for a one-window sequential sweep. If a card remains, leave it visible and check Home's recovery result; `failed`/`unconfirmed` means ChatGPT did not accept the click, not that Constellation pretended it worked.
+
 ## Settings or organizer actions show an `IDBKeyRange.only` error
 
 Reload the unpacked extension from the current v0.14.0 build. An earlier candidate queried boolean organization flags as IndexedDB keys, so a setting could be written successfully and then appear to fail when Home refreshed. The repaired build upgrades the local brain from v8 through v10: v9 rewrites those indexes to valid numeric derived keys and migrates existing flags in place, while v10 adds Output Vault revision/snapshot stores. Rapid settings changes are serialized and pinned/favorite/archive state is preserved. Do not clear storage: settings and captured chats are retained by the migration.

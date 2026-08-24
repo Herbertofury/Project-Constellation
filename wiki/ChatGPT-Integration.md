@@ -28,7 +28,9 @@ The Pulse's permanent **⇄ Output Vault** control reads only Constellation's ca
 
 ## Approval and recovery
 
-Approval Recovery searches accessible dialogs/menus for connected-app approval semantics. Always-allow behavior is disabled until the user explicitly acknowledges its risk. Delivery failures request a controlled browser refresh; Constellation never loops on ChatGPT’s Retry button. Rate-limit signals enter the provider request governor and stop Constellation-originated background work during cooldown.
+Approval Recovery recognizes both accessible dialogs and the current ordinary inline provider card (for example, **Allow ChatGPT to use GitHub?**). A narrow approval-only observer reacts when a usable prompt mounts, including in a background tab, without keeping the broad capture observer active. It finds ChatGPT's split **Allow ▾** control by semantics, DOM proximity, and geometry; opens its portalled menu; prefers the provider-specific **Allow [provider] for this conversation** option (plus equivalent Always allow/Never ask variants); and falls back to the main Allow action only when the saved setting permits it.
+
+Always-allow behavior remains off until the user explicitly acknowledges its risk. A click is not treated as success: the approval card must visibly disappear, otherwise the attempt is reported as failed and retried with a bounded backoff. Open ChatGPT tabs react immediately, and the existing single-window recovery sweep revisits known blocked/stale chats. Delivery failures request a controlled browser refresh; Constellation never loops on ChatGPT’s Retry button. Rate-limit signals enter the provider request governor and stop Constellation-originated background work during cooldown.
 
 ## Maintaining compatibility
 
@@ -41,4 +43,4 @@ When ChatGPT changes:
 5. Verify exactly-once turns, composer preservation, status/tool behavior, no content-script fetch, and bounded message counts.
 6. Run the complete suite and update the “current verified” date.
 
-`tests/smoke/chatgpt_current_dom_smoke.py` is the compatibility sentinel for the current markup.
+`tests/smoke/chatgpt_current_dom_smoke.py` is the turn/composer compatibility sentinel. `tests/smoke/approval_recovery_smoke.py` includes the current generic-card, nested icon-only split button, portalled provider menu, and mutation-triggered automatic approval contract.

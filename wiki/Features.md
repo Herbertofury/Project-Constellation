@@ -32,7 +32,7 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 ## Recovery and durability
 
 - Two-phase browser-refresh recovery for delivery failures (never a blind Retry click).
-- Approval Recovery for ChatGPT connected-app prompts with explicit risk acknowledgement.
+- Approval Recovery for ChatGPT connected-app prompts with explicit risk acknowledgement, immediate current-card detection, provider-specific conversation-wide permission selection, bounded retry, and post-click clearance confirmation.
 - Safe handoff Markdown/checkpoints plus one-click branch-and-continue before or after a long conversation reaches proactive thresholds.
 - Immutable per-turn revision capture, bounded rendered-tail snapshots, and Output Vault compare/export/branch recovery for provider-side output loss.
 - Google Drive full snapshot plus incremental journal, SHA-256 descriptions, metadata verification, byte-size verification, and round-trip reads.
@@ -40,7 +40,7 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 
 ## Performance engine
 
-Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs disconnect capture observation and use slow health/status pulses.
+Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs disconnect broad capture observation and use slow health/status pulses; a separate narrowly filtered approval observer remains available so an opted-in permission card cannot silently strand work.
 
 ## Visual identity and accessibility
 
