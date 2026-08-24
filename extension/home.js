@@ -5,6 +5,7 @@
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safeUrl = (value) => { try { const url=new URL(String(value||'')); const localHttp=url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname); return url.protocol==='https:'||localHttp||url.origin===location.origin ? url.href : ''; } catch (_) { return ''; } };
   const fmt = (n) => new Intl.NumberFormat().format(Number(n || 0));
+  const countPhrase = (n, singular, plural=`${singular}s`) => `${fmt(n)} ${Number(n)===1?singular:plural}`;
   const ago = (ms) => { const d=Date.now()-Number(ms||0); if(!ms)return 'never'; if(d<60000)return 'now'; if(d<3600000)return `${Math.floor(d/60000)}m`; if(d<86400000)return `${Math.floor(d/3600000)}h`; if(d<604800000)return `${Math.floor(d/86400000)}d`; return new Date(ms).toLocaleDateString(); };
   const link = (file) => safeUrl(file?.externalUrl || file?.href || '');
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -194,7 +195,7 @@
   }
   function renderWorkbenchStatus(){
     const c=home?.counts||{},drive=home?.sync?.drive||{},capture=home?.fullCapture||home?.catalog||{};
-    const attentionCount=Number(home?.attention?.length||0);$('sidebarChatCount').textContent=fmt(c.chats);$('sidebarFileCount').textContent=fmt(c.files);if($('sidebarKnowledgeCount'))$('sidebarKnowledgeCount').textContent=fmt(c.knowledge);$('activityAttentionDot').textContent=fmt(attentionCount);$('activityAttentionDot').hidden=attentionCount===0;$('statusCountsText').textContent=`${fmt(c.chats)} chats · ${fmt(c.files)} files · ${fmt(c.knowledge)} knowledge`;
+    const attentionCount=Number(home?.attention?.length||0);$('sidebarChatCount').textContent=fmt(c.chats);$('sidebarFileCount').textContent=fmt(c.files);if($('sidebarKnowledgeCount'))$('sidebarKnowledgeCount').textContent=fmt(c.knowledge);$('activityAttentionDot').textContent=fmt(attentionCount);$('activityAttentionDot').hidden=attentionCount===0;$('statusCountsText').textContent=`${countPhrase(c.chats,'indexed chat')} · ${countPhrase(c.files,'file')} · ${fmt(c.knowledge)} knowledge`;
     $('statusBrainText').textContent=`${fmt(c.turns)} turns · ${fmt(c.knowledge)} knowledge indexed`;$('statusDriveText').textContent=drive.lastStatus==='verified'?'Drive verified':'Drive local';$('statusCaptureText').textContent=capture.status&&capture.status!=='idle'?`Capture ${capture.status}`:'Catalog idle';
     $('workbenchSyncState').querySelector('span:last-child').textContent=drive.lastStatus==='verified'?'Drive verified':'Local';
     renderSidebarWorkspace();renderInspector();renderBottomPanel();
@@ -494,15 +495,21 @@
       call({type:'PC_CONNECTIONS_STATUS'}).catch(()=>({ok:false}))
     ]);
     if(!summary?.ok){
-      const failure=summary?.error||'Home summary failed';
-      const persisted=await call({type:'PC_BRAIN_SETTINGS_GET'}).catch(()=>({ok:false}));
+      const [persisted,countResponse]=await Promise.all([
+        call({type:'PC_BRAIN_SETTINGS_GET'}).catch(()=>({ok:false})),
+        call({type:'PC_BRAIN_COUNTS'}).catch(()=>({ok:false}))
+      ]);
       providers=providerResponse?.providers||providers;connections=connectionResponse?.ok?connectionResponse:connections;
       if(persisted?.ok){
-        home={...(home||{}),counts:home?.counts||{},attention:home?.attention||[],liveHealth:persisted.settings?.liveHealth||home?.liveHealth||{},approvalAutopilot:persisted.settings?.approvalAutopilot||home?.approvalAutopilot||{},approvalRecovery:home?.approvalRecovery||null};
-        renderAttention();if(connections)renderConnections();renderWorkbenchStatus();
-        for(const id of ['liveHealthSettingsStatus','approvalSettingsStatus']){const node=$(id);node.dataset.state='error';node.textContent=`Saved settings restored · reload the extension background to restore full Home: ${failure}`;}
+        home={...(home||{}),counts:countResponse?.ok?countResponse.counts:(home?.counts||null),attention:home?.attention||[],liveHealth:persisted.settings?.liveHealth||home?.liveHealth||{},approvalAutopilot:persisted.settings?.approvalAutopilot||home?.approvalAutopilot||{},approvalRecovery:home?.approvalRecovery||null};
+        renderAttention();if(connections)renderConnections();
+        if(countResponse?.ok)renderWorkbenchStatus();
+        else{$('sidebarChatCount').textContent='—';$('sidebarFileCount').textContent='—';if($('sidebarKnowledgeCount'))$('sidebarKnowledgeCount').textContent='—';$('statusCountsText').textContent='Local counts available after extension reload';}
+        for(const id of ['liveHealthSettingsStatus','approvalSettingsStatus']){const node=$(id);node.dataset.state='saved';node.textContent='Saved settings loaded.';}
+        $('railSub').textContent='Reload the unpacked extension once to finish applying this update.';
+        return;
       }
-      throw new Error(failure);
+      throw new Error('Project Constellation could not load settings. Reload the unpacked extension once.');
     }
     home=summary.home; providers=providerResponse?.providers||[]; connections=connectionResponse?.ok?connectionResponse:connections; organization=home?.organization||organization;
     renderOverview(); renderKnowledgeChrome(); renderIntegrity(); renderAttention(); renderConnections(); renderSources(); renderFullCapture(); renderDurability(); renderWorkbenchStatus();

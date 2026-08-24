@@ -18,7 +18,9 @@ If ChatGPT changed markup, follow [ChatGPT compatibility](CHATGPT-COMPATIBILITY.
 
 ## Settings or organizer actions show an `IDBKeyRange.only` error
 
-Reload the unpacked extension from the current v0.14.0 build. An earlier candidate queried boolean organization flags as IndexedDB keys, so a setting could be written successfully and then appear to fail when Home refreshed. The repaired build never uses booleans as key ranges, serializes rapid settings changes, and reads pinned/favorite/archive state without discarding existing records. Do not clear storage: the setting may already have been saved.
+Reload the unpacked extension from the current v0.14.0 build. An earlier candidate queried boolean organization flags as IndexedDB keys, so a setting could be written successfully and then appear to fail when Home refreshed. The repaired build upgrades the local brain from v8 to v9, rewrites those indexes to valid numeric derived keys, migrates existing records in place, serializes rapid settings changes, and preserves pinned/favorite/archive state. Do not clear storage: the settings and captured chats are retained by the migration.
+
+Home’s status bar reports verified local IndexedDB counts. While the index is loading it shows a loading marker, and if an outdated service worker cannot answer it requests one extension reload instead of claiming there are zero chats.
 
 ## HUD says stale or degraded
 

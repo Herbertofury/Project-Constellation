@@ -13,18 +13,24 @@ mock=f"""
 (() => {{
  const bag={{}}; const listeners={{}};
  const dbStores=new Map();
+ const legacyChat={{id:'legacy:v8',providerId:'chatgpt',title:'Legacy v8 flags',url:'https://chatgpt.com/c/legacy-v8',pinned:true,favorite:true,organizedArchived:true,updatedAt:1}};
+ dbStores.set('chats',{{keyPath:'id',rows:new Map([[legacyChat.id,legacyChat]]),indexes:new Map([
+   ['updatedAt',{{keyPath:'updatedAt',multiEntry:false}}],['pinned',{{keyPath:'pinned',multiEntry:false}}],['favorite',{{keyPath:'favorite',multiEntry:false}}],['organizedArchived',{{keyPath:'organizedArchived',multiEntry:false}}]
+ ])}});
+ let dbVersion=8;
  if(!globalThis.crypto?.randomUUID) Object.defineProperty(globalThis.crypto,'randomUUID',{{value:()=>`pc-${{Date.now()}}-${{Math.random().toString(16).slice(2)}}`,configurable:true}});
  const validKey=(value)=>typeof value==='string'||(typeof value==='number'&&Number.isFinite(value))||(value instanceof Date&&Number.isFinite(value.getTime()))||(Array.isArray(value)&&value.every(validKey))||value instanceof ArrayBuffer||ArrayBuffer.isView(value);
  const only=(value)=>{{if(!validKey(value))throw new DOMException('The parameter is not a valid key.','DataError');return {{kind:'only',value}};}}, lowerBound=(value,open)=>({{kind:'lower',value,open}}), bound=(lower,upper,lowerOpen=false,upperOpen=false)=>({{kind:'bound',lower,upper,lowerOpen,upperOpen}});
  Object.defineProperty(globalThis,'IDBKeyRange',{{value:{{only,lowerBound,bound}},configurable:true}});
  const names=(map)=>({{contains:(name)=>map.has(name)}});
  const makeReq=(fn)=>{{const r={{result:undefined,error:null,onsuccess:null,onerror:null}};setTimeout(()=>{{try{{r.result=fn();r.onsuccess&&r.onsuccess();}}catch(e){{r.error=e;r.onerror&&r.onerror();}}}},0);return r;}};
- const cursorReq=(values)=>{{const r={{result:null,error:null,onsuccess:null,onerror:null}};let i=0;const step=()=>setTimeout(()=>{{try{{if(i>=values.length){{r.result=null;r.onsuccess&&r.onsuccess();return;}}const value=values[i++];r.result={{value,continue:step}};r.onsuccess&&r.onsuccess();}}catch(e){{r.error=e;r.onerror&&r.onerror();}}}},0);step();return r;}};
+ const cursorReq=(values,onUpdate)=>{{const r={{result:null,error:null,onsuccess:null,onerror:null}};let i=0;const step=()=>setTimeout(()=>{{try{{if(i>=values.length){{r.result=null;r.onsuccess&&r.onsuccess();return;}}const value=values[i++];r.result={{value,update:(next)=>{{onUpdate?.(value,next);return makeReq(()=>next);}},continue:step}};r.onsuccess&&r.onsuccess();}}catch(e){{r.error=e;r.onerror&&r.onerror();}}}},0);step();return r;}};
  function eq(a,b){{return Array.isArray(a)&&Array.isArray(b)?JSON.stringify(a)===JSON.stringify(b):a===b;}} function cmp(a,b){{if(Array.isArray(a)&&Array.isArray(b)){{for(let i=0;i<Math.max(a.length,b.length);i++){{if(a[i]===b[i])continue;return a[i]>b[i]?1:-1;}}return 0;}}return a===b?0:(a>b?1:-1);}} function matches(v,q){{if(!q)return true;if(q.kind==='only')return eq(v,q.value);if(q.kind==='lower')return q.open?cmp(v,q.value)>0:cmp(v,q.value)>=0;if(q.kind==='bound'){{const lo=cmp(v,q.lower),hi=cmp(v,q.upper);return (q.lowerOpen?lo>0:lo>=0)&&(q.upperOpen?hi<0:hi<=0);}}return eq(v,q);}} function keyVal(v,keyPath){{return Array.isArray(keyPath)?keyPath.map(k=>v?.[k]):v?.[keyPath];}}
  function storeApi(meta){{
    const api={{
     indexNames:names(meta.indexes),
     createIndex:(name,keyPath,opts={{}})=>{{meta.indexes.set(name,{{keyPath,multiEntry:!!opts.multiEntry}});return indexApi(meta,name);}},
+    deleteIndex:(name)=>meta.indexes.delete(name),
     index:(name)=>indexApi(meta,name),
     get:(id)=>makeReq(()=>meta.rows.get(id)),
     getAll:(query,count)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query)).slice(0,count||Infinity)),
@@ -32,10 +38,11 @@ mock=f"""
     clear:()=>{{meta.rows.clear();return makeReq(()=>undefined);}},
     delete:(id)=>{{meta.rows.delete(id);return makeReq(()=>undefined);}},
     count:(query)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query)).length),
-    openCursor:(query,direction)=>{{let values=Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query));if(direction==='prev')values=values.reverse();return cursorReq(values);}}
+    openCursor:(query,direction)=>{{let values=Array.from(meta.rows.values()).filter(v=>matches(v?.[meta.keyPath],query));if(direction==='prev')values=values.reverse();return cursorReq(values,(previous,next)=>meta.rows.set(previous[meta.keyPath],structuredClone(next)));}}
    }}; return api;
  }}
  function indexApi(meta,name){{const idx=meta.indexes.get(name);return {{
+   keyPath:idx.keyPath,
    getAll:(query,count)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>{{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))return val.some(x=>matches(x,query));return matches(val,query);}}).slice(0,count||Infinity)),
    count:(query)=>makeReq(()=>Array.from(meta.rows.values()).filter(v=>{{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))return val.some(x=>matches(x,query));return matches(val,query);}}).length),
    openCursor:(query,direction)=>{{let values=Array.from(meta.rows.values()).filter(v=>{{const val=keyVal(v,idx.keyPath);if(idx.multiEntry&&Array.isArray(val))return val.some(x=>matches(x,query));return matches(val,query);}}).sort((a,b)=>{{const av=keyVal(a,idx.keyPath),bv=keyVal(b,idx.keyPath);return av===bv?0:av>bv?1:-1;}});if(direction==='prev')values=values.reverse();return cursorReq(values);}},
@@ -47,7 +54,7 @@ mock=f"""
    transaction:(storeNames,mode)=>{{const tx={{oncomplete:null,onerror:null,error:null,objectStore:(name)=>storeApi(dbStores.get(name))}};setTimeout(()=>tx.oncomplete&&tx.oncomplete(),4);return tx;}},
    close:()=>{{}}
  }};
- Object.defineProperty(globalThis,'indexedDB',{{value:{{open:(name,version)=>{{const req={{result:fakeDb,transaction:{{objectStore:(n)=>storeApi(dbStores.get(n))}},onupgradeneeded:null,onsuccess:null,onerror:null,error:null}};setTimeout(()=>{{try{{req.onupgradeneeded&&req.onupgradeneeded();setTimeout(()=>req.onsuccess&&req.onsuccess(),0);}}catch(e){{req.error=e;req.onerror&&req.onerror();}}}},0);return req;}}}},configurable:true}});
+ Object.defineProperty(globalThis,'indexedDB',{{value:{{open:(name,version)=>{{const req={{result:fakeDb,transaction:{{objectStore:(n)=>storeApi(dbStores.get(n))}},onupgradeneeded:null,onsuccess:null,onerror:null,error:null}};setTimeout(()=>{{try{{if(version>dbVersion){{const oldVersion=dbVersion;dbVersion=version;req.onupgradeneeded&&req.onupgradeneeded({{oldVersion,newVersion:version}});}}setTimeout(()=>req.onsuccess&&req.onsuccess(),0);}}catch(e){{req.error=e;req.onerror&&req.onerror();}}}},0);return req;}}}},configurable:true}});
  const normalizeGet=(keys)=>{{ if(keys===null||keys===undefined)return {{...bag}}; if(typeof keys==='string')return {{[keys]:bag[keys]}}; if(Array.isArray(keys))return Object.fromEntries(keys.map(k=>[k,bag[k]])); return Object.fromEntries(Object.keys(keys||{{}}).map(k=>[k,bag[k]??keys[k]])); }};
  globalThis.chrome={{
    runtime:{{id:'geljambmkfjkhodgkpjhnmfojkpcamig',getManifest:()=>({json.dumps(manifest)}),onMessage:{{addListener:(fn)=>listeners.message=fn}},onInstalled:{{addListener:(fn)=>listeners.installed=fn}},onStartup:{{addListener:(fn)=>listeners.startup=fn}}}},
@@ -60,7 +67,7 @@ mock=f"""
  }};
  globalThis.__pcFetchCount=0;
  globalThis.fetch=async(url)=>{{globalThis.__pcFetchCount++;return {{ok:false,status:429,url:String(url),headers:{{get:(name)=>String(name).toLowerCase()==='retry-after'?'120':String(name).toLowerCase()==='content-type'?'text/html':''}},text:async()=>''}};}};
- globalThis.__pcBag=bag; globalThis.__pcListeners=listeners;
+ globalThis.__pcBag=bag; globalThis.__pcListeners=listeners; globalThis.__pcDbStores=dbStores;
  globalThis.__pcSend=(message,sender={{}})=>new Promise((resolve,reject)=>{{try{{const keep=listeners.message(message,sender,resolve);if(!keep&&keep!==true)setTimeout(()=>resolve(undefined),0);}}catch(e){{reject(e)}}}});
 }})();
 """
@@ -78,6 +85,11 @@ with sync_playwright() as p:
     page.add_script_tag(content=bg)
     page.wait_for_timeout(100)
     result=page.evaluate("""async()=>{
+      // Force the v8 -> v9 upgrade to finish before the concurrent ingestion paths
+      // exercise the database. Native IndexedDB blocks those opens automatically;
+      // this lightweight fake needs the explicit warm-up.
+      await __pcSend({type:'PC_ORG_CHATS',filters:{mode:'pinned',limit:20}});
+      await new Promise((resolve)=>setTimeout(resolve,20));
       const now=Date.now();
       const items=[
         {type:'PROVIDER_SEEN',data:{id:'chatgpt',name:'ChatGPT',home:'https://chatgpt.com/',updatedAt:now}},
@@ -105,6 +117,8 @@ with sync_playwright() as p:
       const favoriteChats=await __pcSend({type:'PC_ORG_CHATS',filters:{mode:'favorites',limit:20}});
       await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:test'],patch:{organizedArchived:true}});
       const archivedChats=await __pcSend({type:'PC_ORG_CHATS',filters:{mode:'archived',limit:20}});
+      const migratedLegacy=structuredClone(__pcDbStores.get('chats').rows.get('legacy:v8'));
+      const migratedIndexes=Object.fromEntries(['pinned','favorite','organizedArchived'].map(name=>[name,__pcDbStores.get('chats').indexes.get(name)?.keyPath]));
       await __pcSend({type:'PC_ORG_CHAT_PATCH',chatIds:['chatgpt:test'],patch:{organizedArchived:false}});
       const settingsWrites=await Promise.all([
         __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{approvalAutopilot:{acknowledged:true,fallbackAllowOnce:false}}}),
@@ -130,11 +144,11 @@ with sync_playwright() as p:
       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
-      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff};
+      return {ingest,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,handoff};
     }""")
     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
     assert result['ingest']['ok']
-    assert result['summary']['chats']==3 and result['summary']['turns']==3 and result['summary']['files']==3
+    assert result['summary']['chats']==4 and result['summary']['turns']==3 and result['summary']['files']==3
     assert result['summary']['searchDocs']>=4
     assert any(r['chatId']=='chatgpt:test' for r in result['search'])
     assert result['org']['projects'][0]['name']=='Minecraft Mods'
@@ -144,6 +158,10 @@ with sync_playwright() as p:
     assert any(row['id']=='chatgpt:test' for row in result['pinnedChats'])
     assert any(row['id']=='chatgpt:test' for row in result['favoriteChats'])
     assert any(row['id']=='chatgpt:test' for row in result['archivedChats'])
+    assert result['migratedIndexes']=={'pinned':'pinnedKey','favorite':'favoriteKey','organizedArchived':'organizedArchivedKey'}
+    assert result['migratedLegacy']['pinned'] is True and result['migratedLegacy']['favorite'] is True and result['migratedLegacy']['organizedArchived'] is True
+    assert result['migratedLegacy']['pinnedKey']==1 and result['migratedLegacy']['favoriteKey']==1 and result['migratedLegacy']['organizedArchivedKey']==1
+    assert any(row['id']=='legacy:v8' for row in result['archivedChats'])
     assert all(row['ok'] for row in result['settingsWrites'])
     assert result['settingsGet']['settings']['approvalAutopilot']['acknowledged'] is True
     assert result['settingsGet']['settings']['approvalAutopilot']['fallbackAllowOnce'] is False

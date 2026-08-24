@@ -3,7 +3,7 @@ import pathlib, json, os
 root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation-v090-work'))
 html=(root/'home.html').read_text(); js=(root/'home.js').read_text(); css=(root/'home.css').read_text()
 summary={
- 'counts':{'providers':1,'projects':1,'chats':3,'turns':20,'files':1},
+ 'counts':{'providers':1,'projects':1,'chats':3,'turns':20,'files':1,'knowledge':0},
  'statusCounts':{'blocked-approval':1,'stalled':1},
  'recentChats':[], 'recentFiles':[], 'recentProjects':[], 'recentEvents':[],
  'attention':[{'id':'chatgpt:blocked','providerId':'chatgpt','title':'GitHub mod upload','url':'https://chatgpt.com/c/blocked','projectName':'Minecraft','status':'blocked-approval','statusDetail':'Allow ChatGPT to use GitHub?','approvalConnector':'GitHub','updatedAt':1760000000000}],
@@ -24,6 +24,7 @@ mock=f"""
    if(m.type==='PC_PROVIDER_LIST')return {{ok:true,providers}};
    if(m.type==='PC_CONNECTIONS_STATUS')return {{ok:true,extensionId:'pc-test',google:{{oauthProvisioned:false,connected:false}},github:{{connected:false}},providers:[]}};
    if(m.type==='PC_BRAIN_SETTINGS_GET')return {{ok:true,settings:{{approvalAutopilot:summary.approvalAutopilot,liveHealth:summary.liveHealth}}}};
+   if(m.type==='PC_BRAIN_COUNTS')return {{ok:true,counts:summary.counts}};
    if(m.type==='PC_BRAIN_SETTINGS_SET'){{summary.approvalAutopilot={{...summary.approvalAutopilot,...(m.settings?.approvalAutopilot||{{}})}};summary.liveHealth={{...summary.liveHealth,...(m.settings?.liveHealth||{{}})}};return {{ok:true,settings:{{approvalAutopilot:summary.approvalAutopilot,liveHealth:summary.liveHealth}}}};}}
    if(m.type==='PC_APPROVAL_RECOVERY_START'){{summary.approvalRecovery={{status:'running',mode:m.mode,total:3,scanned:0,recovered:0,alwaysAllowed:0,allowedOnce:0,resumed:0,failed:0,startedAt:Date.now(),currentChatId:'chatgpt:blocked'}};return {{ok:true,state:summary.approvalRecovery}};}}
    if(m.type==='PC_APPROVAL_RECOVERY_STOP'){{summary.approvalRecovery={{...summary.approvalRecovery,status:'stopped'}};return {{ok:true,state:summary.approvalRecovery}};}}
@@ -78,8 +79,9 @@ with sync_playwright() as p:
     assert reloaded.locator('#approvalAutoRecoverPaused').is_checked() is False
     assert reloaded.locator('#liveHealthShowHealthy').is_checked() is False
     assert reloaded.locator('#liveHealthToolWatchdog').is_checked() is False
-    assert 'Saved settings restored' in reloaded.locator('#liveHealthSettingsStatus').text_content()
-    assert 'Saved settings restored' in reloaded.locator('#approvalSettingsStatus').text_content()
+    assert reloaded.locator('#liveHealthSettingsStatus').text_content()=='Saved settings loaded.'
+    assert reloaded.locator('#approvalSettingsStatus').text_content()=='Saved settings loaded.'
+    assert reloaded.locator('#statusCountsText').text_content()=='3 indexed chats · 1 file · 0 knowledge'
     assert reloaded.evaluate("()=>getComputedStyle(document.querySelector('#approvalAutopilotEnabled + .toggle-switch'),'::after').content")==f'"ON"'
     assert reloaded.evaluate("()=>getComputedStyle(document.querySelector('#approvalFallbackAllowOnce + .toggle-switch'),'::after').content")==f'"OFF"'
     shot=os.environ.get('PROJECT_CONSTELLATION_APPROVAL_SCREENSHOT','/mnt/data/project-constellation-v090-work/dist/approval-autopilot-v090.png')

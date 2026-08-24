@@ -11,7 +11,7 @@ const knowledge = globalThis.ProjectConstellationKnowledgeCore;
 const health = globalThis.ProjectConstellationHealthCore;
 
 const DB_NAME = 'project-constellation-brain';
-const DB_VERSION = 8;
+const DB_VERSION = 9;
 const SETTINGS_KEY = 'projectConstellationBrainSettings';
 const GITHUB_SECRET_KEY = 'projectConstellationGithubSecret';
 const GITHUB_REFRESH_KEY = 'projectConstellationGithubRefresh';
@@ -76,10 +76,10 @@ const defaultBrainSettings = Object.freeze({
 
 const STORE_DEFS = Object.freeze({
   providers: [['updatedAt','updatedAt']],
-  groups: [['updatedAt','updatedAt'],['parentId','parentId'],['pinned','pinned']],
-  projects: [['updatedAt','updatedAt'],['groupId','groupId'],['sourceType','sourceType'],['pinned','pinned'],['archived','archived']],
-  smartCollections: [['updatedAt','updatedAt'],['groupId','groupId'],['pinned','pinned']],
-  chats: [['updatedAt','updatedAt'],['projectId','projectId'],['workspaceProjectId','workspaceProjectId'],['providerId','providerId'],['status','status'],['workspaceProjectStatus',['workspaceProjectId','status']],['pinned','pinned'],['favorite','favorite'],['organizedArchived','organizedArchived'],['tags','tags',{multiEntry:true}]],
+  groups: [['updatedAt','updatedAt'],['parentId','parentId'],['pinned','pinnedKey']],
+  projects: [['updatedAt','updatedAt'],['groupId','groupId'],['sourceType','sourceType'],['pinned','pinnedKey'],['archived','archivedKey']],
+  smartCollections: [['updatedAt','updatedAt'],['groupId','groupId'],['pinned','pinnedKey']],
+  chats: [['updatedAt','updatedAt'],['projectId','projectId'],['workspaceProjectId','workspaceProjectId'],['providerId','providerId'],['status','status'],['workspaceProjectStatus',['workspaceProjectId','status']],['pinned','pinnedKey'],['favorite','favoriteKey'],['organizedArchived','organizedArchivedKey'],['tags','tags',{multiEntry:true}]],
   turns: [['updatedAt','updatedAt'],['chatId','chatId'],['providerId','providerId'],['chatOrdinal',['chatId','ordinal']],['chatUpdatedAt',['chatId','updatedAt']]],
   files: [['updatedAt','updatedAt'],['chatId','chatId'],['workspaceProjectId','workspaceProjectId'],['providerId','providerId']],
   events: [['updatedAt','updatedAt'],['chatId','chatId'],['type','type']],
@@ -96,6 +96,23 @@ const STORE_DEFS = Object.freeze({
 const SEARCH_STORE = 'searchDocs';
 const SEARCH_MAX_TERMS = 160;
 const SEARCH_RESULT_LIMIT = 120;
+const VALID_FLAG_INDEX_KEYS = Object.freeze({
+  groups: Object.freeze({ pinned: 'pinnedKey' }),
+  projects: Object.freeze({ pinned: 'pinnedKey', archived: 'archivedKey' }),
+  smartCollections: Object.freeze({ pinned: 'pinnedKey' }),
+  chats: Object.freeze({ pinned: 'pinnedKey', favorite: 'favoriteKey', organizedArchived: 'organizedArchivedKey' })
+});
+
+function withValidFlagIndexKeys(storeName, record = {}) {
+  const fields = VALID_FLAG_INDEX_KEYS[storeName];
+  if (!fields) return record;
+  const next = { ...record };
+  for (const [field, keyField] of Object.entries(fields)) {
+    if (Boolean(next[field])) next[keyField] = 1;
+    else delete next[keyField];
+  }
+  return next;
+}
 
 function tokenizeSearch(value, limit = SEARCH_MAX_TERMS) {
   return brain.searchTerms(value, limit);
@@ -126,13 +143,20 @@ function searchDoc(entityType, record = {}) {
 function openDb() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event) => {
       const db = request.result;
+      const oldVersion = Number(event?.oldVersion || 0);
       for (const [name, indexes] of Object.entries(STORE_DEFS)) {
         let store;
         if (!db.objectStoreNames.contains(name)) store = db.createObjectStore(name, { keyPath: 'id' });
         else store = request.transaction.objectStore(name);
-        for (const [indexName, keyPath, options = {}] of indexes) if (!store.indexNames.contains(indexName)) store.createIndex(indexName, keyPath, options);
+        for (const [indexName, keyPath, options = {}] of indexes) {
+          if (store.indexNames.contains(indexName) && oldVersion > 0) {
+            const existing = store.index(indexName);
+            if (JSON.stringify(existing.keyPath) !== JSON.stringify(keyPath)) store.deleteIndex(indexName);
+          }
+          if (!store.indexNames.contains(indexName)) store.createIndex(indexName, keyPath, options);
+        }
       }
       let searchStore;
       if (!db.objectStoreNames.contains(SEARCH_STORE)) searchStore = db.createObjectStore(SEARCH_STORE, { keyPath: 'id' });
@@ -140,6 +164,18 @@ function openDb() {
       for (const [indexName, keyPath, options] of [
         ['updatedAt','updatedAt',{}], ['entityType','entityType',{}], ['chatId','chatId',{}], ['providerId','providerId',{}], ['terms','terms',{ multiEntry: true }]
       ]) if (!searchStore.indexNames.contains(indexName)) searchStore.createIndex(indexName, keyPath, options);
+      if (oldVersion > 0 && oldVersion < 9) {
+        for (const storeName of Object.keys(VALID_FLAG_INDEX_KEYS)) {
+          const store = request.transaction.objectStore(storeName);
+          const cursorRequest = store.openCursor();
+          cursorRequest.onsuccess = () => {
+            const cursor = cursorRequest.result;
+            if (!cursor) return;
+            cursor.update(withValidFlagIndexKeys(storeName, cursor.value));
+            cursor.continue();
+          };
+        }
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -221,26 +257,6 @@ async function getAllByIndex(storeName, indexName, value) {
     if (!store.indexNames.contains(indexName)) return [];
     const rows = await requestResult(store.index(indexName).getAll(indexedDbOnly(value, `${storeName}.${indexName}`)));
     return rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-  } finally { db.close(); }
-}
-
-async function getRecentByBooleanField(storeName, field, expected = true, limit = 250) {
-  const safeLimit = Math.max(1, Math.min(Number(limit) || 250, 2000));
-  const db = await openDb();
-  try {
-    return await new Promise((resolve, reject) => {
-      const store = db.transaction(storeName, 'readonly').objectStore(storeName);
-      const source = store.indexNames.contains('updatedAt') ? store.index('updatedAt') : store;
-      const out = [];
-      const request = source.openCursor(null, 'prev');
-      request.onsuccess = () => {
-        const cursor = request.result;
-        if (!cursor || out.length >= safeLimit) { resolve(out); return; }
-        if (Boolean(cursor.value?.[field]) === Boolean(expected)) out.push(cursor.value);
-        cursor.continue();
-      };
-      request.onerror = () => reject(request.error);
-    });
   } finally { db.close(); }
 }
 
@@ -338,7 +354,7 @@ async function putMany(storeName, records) {
     const existingTx = db.transaction(storeName, 'readonly');
     const existingStore = existingTx.objectStore(storeName);
     const previous = await Promise.all(unique.map((record) => requestResult(existingStore.get(record.id))));
-    const merged = unique.map((record, index) => brain.mergeRecord(previous[index], record));
+    const merged = unique.map((record, index) => withValidFlagIndexKeys(storeName, brain.mergeRecord(previous[index], record)));
     await new Promise((resolve, reject) => {
       const writeTx = db.transaction(storeName, 'readwrite');
       const store = writeTx.objectStore(storeName);
@@ -1416,7 +1432,7 @@ async function organizationTagCounts(limit=100) {
 
 async function organizationSummary() {
   const [groups, projects, smartCollections, totalChats, pinnedChats, favoriteChats, tags] = await Promise.all([
-    getAll('groups'), getAll('projects'), getAll('smartCollections'), countStore('chats'), getRecentByBooleanField('chats','pinned',true,24), getRecentByBooleanField('chats','favorite',true,24), organizationTagCounts(100)
+    getAll('groups'), getAll('projects'), getAll('smartCollections'), countStore('chats'), getByIndex('chats','pinned',1,24), getByIndex('chats','favorite',1,24), organizationTagCounts(100)
   ]);
   const workspaceProjects = projects.filter((p) => p.sourceType === 'workspace' && !p.deletedAt);
   const providerProjects = projects.filter((p) => p.sourceType !== 'workspace' && !p.deletedAt);
@@ -1541,9 +1557,9 @@ async function organizationChats(filters = {}) {
   const limit=Math.max(1,Math.min(Number(filters.limit)||120,500)); let rows;
   if(filters.workspaceProjectId) rows=await getByIndex('chats','workspaceProjectId',filters.workspaceProjectId,Math.max(limit,500));
   else if(filters.tag) rows=await getByIndex('chats','tags',String(filters.tag).toLocaleLowerCase(),Math.max(limit,500));
-  else if(filters.mode==='pinned') rows=await getRecentByBooleanField('chats','pinned',true,Math.max(limit,500));
-  else if(filters.mode==='favorites') rows=await getRecentByBooleanField('chats','favorite',true,Math.max(limit,500));
-  else if(filters.mode==='archived') rows=await getRecentByBooleanField('chats','organizedArchived',true,Math.max(limit,500));
+  else if(filters.mode==='pinned') rows=await getByIndex('chats','pinned',1,Math.max(limit,500));
+  else if(filters.mode==='favorites') rows=await getByIndex('chats','favorite',1,Math.max(limit,500));
+  else if(filters.mode==='archived') rows=await getByIndex('chats','organizedArchived',1,Math.max(limit,500));
   else rows=await getRecent('chats',Math.max(limit,300));
   if(filters.groupId) rows=rows.filter((c)=>c.workspaceGroupId===filters.groupId);
   if(filters.mode==='unassigned') rows=rows.filter((c)=>!c.workspaceProjectId);
@@ -1680,6 +1696,14 @@ async function homeSummary() {
     projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
     sync: { drive: { ...cfg.drive, oauthProvisioned: googleOAuthProvisioned() }, github: { ...cfg.github, configured: Boolean(cfg.github.owner && cfg.github.repo) } }
   };
+}
+
+async function brainCounts() {
+  const [providers, projects, chats, turns, files, knowledge] = await Promise.all([
+    countStore('providers'), countStore('projects'), countStore('chats'),
+    countStore('turns'), countStore('files'), countStore('knowledgeItems')
+  ]);
+  return { providers, projects, chats, turns, files, knowledge };
 }
 
 async function listBrainEntities(entityType, limit = 80, offset = 0) {
@@ -3126,6 +3150,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_BRAIN_SNAPSHOT': return { ok: true, snapshot: await snapshot() };
       case 'PC_BRAIN_DASHBOARD': return { ok: true, dashboard: await dashboard() };
       case 'PC_BRAIN_SEARCH': return { ok: true, results: await searchBrain(message.query || '', message.limit || 60) };
+      case 'PC_BRAIN_COUNTS': return { ok: true, counts: await brainCounts() };
       case 'PC_HOME_SUMMARY': return { ok: true, home: await homeSummary() };
       case 'PC_HOME_SEARCH': return { ok: true, result: await groupedHomeSearch(message.query || '', message.limit || 40) };
       case 'PC_KNOWLEDGE_SUMMARY': return { ok: true, knowledge: await knowledgeSummary(message.limit || 24) };
