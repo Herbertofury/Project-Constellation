@@ -13,7 +13,8 @@ Current verified Drive release folder:
 Current full-source authority:
 
 - v0.12.0 full source Drive file: `1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2`
-- source SHA-256: `51ff8d7061b0f42c509afa76bdf6bcca5090a732acbc5e2088cd1f3beaf3cf99`
+- source size: `226551` bytes
+- source SHA-256: `41f3ef8c5c3734f7d33670179722e7c2b3518804528eeda14f68060661013e6b`
 - full unpacked installable Drive file: `1pM0MXYuUT_uF3UWvvljoqh2s672vqUng`
 - installable ZIP SHA-256: `f840b5fbcacdf8e70a48c06ce518339d6aab5bb3837f12659ada9afb7680d376`
 - exact unpacked tree SHA-256 recorded by Ferrum v0.2.0: `f4b0f2329c312bc55770f764cdeacf158683888bc0093a3e47f6e8c207a2d01b`
