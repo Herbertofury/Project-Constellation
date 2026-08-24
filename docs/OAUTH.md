@@ -2,6 +2,8 @@
 
 OAuth client IDs are public application identifiers, not secrets. Access tokens, refresh tokens, and client secrets must never be committed, placed in the manifest, written to documentation, or included in release notes.
 
+For the exact existing Google Cloud project, field values, current progress, GitHub OAuth App setup, and signed-in production acceptance gate, use [OAuth provisioning and production acceptance](OAUTH-PROVISIONING-CHECKLIST.md).
+
 ## Google Drive
 
 Project Constellation uses Chrome Identity and `https://www.googleapis.com/auth/drive.file`. The scope lets the app create and manage files it creates/opens; it does not grant blanket access to every Drive file.
@@ -42,7 +44,7 @@ An AI service’s own “Continue with Google/Apple/Microsoft” login button au
 
 ## Build configuration
 
-Copy `config/oauth/.env.release.example` to an untracked `.env.release` or set the two variables in your secure CI environment. The build reads process environment variables; it does not automatically read `.env.release`.
+Copy `config/oauth/.env.release.example` to an untracked `.env.release` as a naming reference, or set the two variables in your secure CI environment. The build reads process environment variables; it does not automatically read `.env.release`.
 
 ```powershell
 $env:PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID = '...apps.googleusercontent.com'

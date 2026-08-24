@@ -4,6 +4,7 @@ node_modules/
 .env.*
 !.env.example
 !*.env.example
+!**/.env.release.example
 
 build/*
 !build/README.md

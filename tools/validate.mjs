@@ -8,6 +8,30 @@ const root = process.env.PROJECT_CONSTELLATION_ROOT ? path.resolve(process.env.P
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
 const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/content.js','src/styles.css'];
 for (const file of required) if (!fs.existsSync(path.join(root, file))) throw new Error(`Missing ${file}`);
+const releaseSupportFiles = [
+  'config/oauth/.env.release.example',
+  'config/oauth/README.md',
+  'PRIVACY.md',
+  'docs/OAUTH.md',
+  'docs/OAUTH-PROVISIONING-CHECKLIST.md',
+  'docs/RELEASING.md',
+  'docs/v0.14.0-release-notes.md',
+  'wiki/OAuth-and-Provider-Setup.md',
+  'wiki/Privacy-Policy.md',
+  'wiki/Release-Process.md',
+  'wiki/Updating.md'
+];
+for (const file of releaseSupportFiles) if (!fs.existsSync(path.join(repoRoot, file))) throw new Error(`Missing release-support file ${file}`);
+const oauthTemplate = fs.readFileSync(path.join(repoRoot, 'config/oauth/.env.release.example'), 'utf8');
+for (const forbiddenAssignment of ['CLIENT_SECRET=', 'ACCESS_TOKEN=', 'REFRESH_TOKEN=']) {
+  if (oauthTemplate.includes(forbiddenAssignment)) throw new Error(`OAuth template must never contain ${forbiddenAssignment}`);
+}
+const oauthChecklist = fs.readFileSync(path.join(repoRoot, 'docs/OAUTH-PROVISIONING-CHECKLIST.md'), 'utf8');
+for (const marker of ['project-constellation-506518', 'geljambmkfjkhodgkpjhnmfojkpcamig', 'drive.file', 'PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID', 'PROJECT_CONSTELLATION_GITHUB_CLIENT_ID', 'real signed-in']) {
+  if (!oauthChecklist.includes(marker)) throw new Error(`OAuth provisioning checklist missing ${marker}`);
+}
+const updatingGuide = fs.readFileSync(path.join(repoRoot, 'wiki/Updating.md'), 'utf8');
+if (!updatingGuide.includes('Project-Constellation-vX.Y.Z-unpacked.zip')) throw new Error('Wiki update guide must name the generated unpacked release asset.');
 if (manifest.manifest_version !== 3) throw new Error('Manifest must be MV3');
 if (manifest.name !== 'Project Constellation') throw new Error('Branding must be Project Constellation');
 if (manifest.version !== JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version) throw new Error('Manifest and package versions must match.');

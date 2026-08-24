@@ -61,7 +61,7 @@ No OAuth client secret belongs in this repository or extension package.
 - External links are restricted to HTTPS (plus local HTTP development hosts).
 - Destructive local-catalog clearing requires a deliberate two-click confirmation.
 
-Read [Security](SECURITY.md) and the [security audit](docs/SECURITY-AUDIT.md).
+Read the [privacy policy](PRIVACY.md), [Security](SECURITY.md), and the [security audit](docs/SECURITY-AUDIT.md).
 
 ## Repository map
 
@@ -87,11 +87,13 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 - [Installation](docs/INSTALLATION.md)
 - [Features](docs/FEATURES.md)
 - [OAuth and providers](docs/OAUTH.md)
+- [OAuth provisioning checklist](docs/OAUTH-PROVISIONING-CHECKLIST.md)
 - [AI provider support](docs/PROVIDERS.md)
 - [ChatGPT compatibility](docs/CHATGPT-COMPATIBILITY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Performance](docs/PERFORMANCE.md)
 - [Development and building](docs/DEVELOPMENT.md)
+- [Production release runbook](docs/RELEASING.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Recovery](docs/RECOVERY.md)
 - [FAQ](docs/FAQ.md)

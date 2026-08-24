@@ -13,6 +13,7 @@ All notable Project Constellation changes are recorded here.
 - Current ChatGPT DOM regression coverage, including anonymous root-path conversations.
 - Production OAuth build gates, cross-platform smoke orchestration, release receipts, and checksums.
 - GitHub OAuth refresh-token rotation and authenticated retry coverage.
+- Exact OAuth provisioning/acceptance and production release runbooks, a tracked non-secret environment template, and a public privacy policy.
 
 ### Fixed
 
@@ -24,6 +25,7 @@ All notable Project Constellation changes are recorded here.
 - Anonymous ChatGPT conversations are captured as stable tab-session chats instead of being discarded as Home.
 - Untrusted external links are constrained to HTTPS/local development URLs.
 - Windows build path and browser-smoke portability failures from v0.13.0 are repaired.
+- Release/update documentation now names the actual generated unpacked archive and validation prevents required OAuth/release support files from silently disappearing.
 
 ### Performance
 
