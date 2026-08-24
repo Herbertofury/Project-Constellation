@@ -47,6 +47,8 @@
   let liveHealthHost = null;
   let liveHealthShadow = null;
   let liveHealthSnapshot = null;
+  const liveActivityLedger = [];
+  const LIVE_ACTIVITY_LIMIT = 48;
   let lastToolEvidence = null;
   let lastToolScanAt = 0;
   let toolEvidenceDirty = true;
@@ -65,13 +67,35 @@
     if (brainFlushTimer) { clearTimeout(brainFlushTimer); brainFlushTimer = 0; }
     if (!brainOutbox.length) return;
     const batch = brainOutbox.splice(0, 120);
-    chrome.runtime.sendMessage({ type: 'PC_BRAIN_INGEST_BATCH', payload: batch }).catch(() => {});
+    chrome.runtime.sendMessage({ type: 'PC_BRAIN_INGEST_BATCH', payload: batch.map(({ type, data }) => ({ type, data })) }).catch(() => {});
     if (brainOutbox.length) brainFlushTimer = setTimeout(flushBrainOutbox, 80);
   }
   function sendBrain(type, data) {
-    brainOutbox.push({ type, data });
+    const coalesceKey = /_UPSERT$/.test(String(type || '')) && data?.id ? `${type}:${data.id}` : type === 'STATUS_HEARTBEAT' && data?.chatId ? `${type}:${data.chatId}` : '';
+    if (coalesceKey) {
+      const index = brainOutbox.findIndex((row) => row.coalesceKey === coalesceKey);
+      if (index >= 0) { brainOutbox[index] = { type, data, coalesceKey }; return; }
+    }
+    brainOutbox.push({ type, data, coalesceKey });
     if (brainOutbox.length >= 100) { flushBrainOutbox(); return; }
     if (!brainFlushTimer) brainFlushTimer = setTimeout(flushBrainOutbox, 120);
+  }
+  function noteLiveActivity(kind, label, detail = '', key = '', at = Date.now()) {
+    const safeKind = String(kind || 'page').replace(/[^a-z0-9-]/gi, '').slice(0, 24) || 'page';
+    const safeLabel = brain.normalizeText(label || '', 180);
+    const safeDetail = brain.normalizeText(detail || '', 220);
+    if (!safeLabel) return;
+    const eventKey = String(key || `${safeKind}:${hashText(`${safeLabel}|${safeDetail}`)}`).slice(0, 180);
+    const signature = hashText(`${safeLabel}|${safeDetail}`);
+    const existing = liveActivityLedger.find((row) => row.key === eventKey);
+    if (existing) {
+      if (existing.signature === signature && Number(at || 0) - Number(existing.at || 0) < 900) return;
+      existing.label = safeLabel; existing.detail = safeDetail; existing.at = Number(at || Date.now()); existing.signature = signature;
+      liveActivityLedger.sort((a, b) => Number(b.at || 0) - Number(a.at || 0));
+      return;
+    }
+    liveActivityLedger.unshift({ kind:safeKind, label:safeLabel, detail:safeDetail, key:eventKey, at:Number(at || Date.now()), signature });
+    if (liveActivityLedger.length > LIVE_ACTIVITY_LIMIT) liveActivityLedger.length = LIVE_ACTIVITY_LIMIT;
   }
   function currentChatId() {
     const routed = providers.chatIdFromUrl(location.href, provider.id);
@@ -96,10 +120,14 @@
 
   function applyPressure(snapshot) {
     const next = settings.enabled ? snapshot.pressure : 'normal';
-    if (metrics.lastPressure !== next) { metrics.pressureTransitions += 1; metrics.lastPressure = next; }
+    const changed = metrics.lastPressure !== next;
+    if (changed) { metrics.pressureTransitions += 1; metrics.lastPressure = next; }
     root.dataset.projectConstellationPressure = next;
-    metrics.lastUpdatedAt = Date.now();
-    schedulePersist();
+    if (changed) {
+      metrics.lastUpdatedAt = Date.now();
+      schedulePersist();
+      if (next === 'normal') scheduleCapture(document.querySelector('main') || document);
+    }
   }
 
   function scheduleRecoveryCheck() {
@@ -140,6 +168,8 @@
     metrics.totalLongTaskMs += duration;
     metrics.maxLongTaskMs = Math.max(metrics.maxLongTaskMs, duration);
     applyPressure(pressure.addLongTask(duration, Date.now()));
+    metrics.lastUpdatedAt = Date.now();
+    schedulePersist();
     scheduleRecoveryCheck();
   }
 
@@ -148,7 +178,7 @@
     try {
       if (!PerformanceObserver?.supportedEntryTypes?.includes('longtask')) return;
       performanceObserver = new PerformanceObserver((list) => list.getEntries().forEach(onLongTask));
-      performanceObserver.observe({ type: 'longtask', buffered: true });
+      performanceObserver.observe({ type: 'longtask', buffered: false });
     } catch (_) { performanceObserver = null; }
   }
 
@@ -295,6 +325,7 @@
       healthEvidence.lastTurnProgressAt = Date.now();
       healthEvidence.lastDomProgressAt = healthEvidence.lastTurnProgressAt;
       lastSemanticActivityAt = healthEvidence.lastTurnProgressAt;
+      noteLiveActivity(role === 'assistant' ? 'response' : 'message', role === 'assistant' ? 'Response content updated' : 'Message captured', `${text.length.toLocaleString()} rendered characters · turn ${ordinal + 1}`, `turn:${id}`, healthEvidence.lastTurnProgressAt);
       sendBrain('TURN_UPSERT', { id, providerId: provider.id, chatId, messageId, role, ordinal, text, links, codeBlocks, source: 'mounted-dom', url: location.href, updatedAt: Date.now() });
     });
   }
@@ -579,19 +610,19 @@
     return false;
   }
 
-  const TOOL_EVENT_PATTERN = /(?:called tool|calling tool|tool call|used [^|\n]{0,80} skill|search(?:ed|ing)|web search|fet(?:ched|ching)|inspect(?:ed|ing)|read(?:ing)?|brows(?:ed|ing)|run(?:ning)? tool|using [^|\n]{0,100}tool|audit(?:ed|ing)|patch(?:ed|ing)|analyz(?:ed|ing)|updat(?:ed|ing)|upload(?:ed|ing)|download(?:ed|ing)|verif(?:ied|ying)|test(?:ed|ing)|build(?:ing|t)|packag(?:ed|ing)|execut(?:ed|ing)|terminal)/i;
+  const TOOL_EVENT_PATTERN = /(?:called tool|calling tool|tool call|used [^|\n]{0,80} skill|search(?:ed|ing)|web search|fet(?:ched|ching)|inspect(?:ed|ing)|read(?:ing)?|brows(?:ed|ing)|run(?:ning)? tool|using [^|\n]{0,100}tool|audit(?:ed|ing)|patch(?:ed|ing)|analyz(?:ed|ing)|updat(?:ed|ing)|upload(?:ed|ing)|download(?:ed|ing)|verif(?:ied|ying)|test(?:ed|ing)|build(?:ing|t)|packag(?:ed|ing)|execut(?:ed|ing)|terminal|creat(?:ed|ing)|compar(?:ed|ing)|review(?:ed|ing)|check(?:ed|ing)|enhanc(?:ed|ing)|persist(?:ed|ing)|port(?:ed|ing)|modif(?:ied|ying)|compil(?:ed|ing)|trigger(?:ed|ing)|open(?:ed|ing)|click(?:ed|ing)|typ(?:ed|ing)|implement(?:ed|ing)|fix(?:ed|ing))/i;
   const GENERIC_TOOL_PATTERN = /^(?:called tool|calling tool|tool call|used [^|\n]{0,80} skill|ran tool|running tool)$/i;
 
   function toolPhaseFromLabel(label = '') {
     const text = String(label || '').toLowerCase();
     if (/search|brows/.test(text)) return 'searching';
     if (/fetch|download|read/.test(text)) return 'retrieving';
-    if (/inspect|audit|analyz/.test(text)) return 'inspecting';
+    if (/inspect|audit|analyz|compar|review|check/.test(text)) return 'inspecting';
     if (/upload|drive/.test(text)) return 'publishing';
     if (/github/.test(text)) return 'repository';
     if (/verif|test|smoke/.test(text)) return 'verifying';
-    if (/build|packag/.test(text)) return 'building';
-    if (/patch|updat|edit|writ/.test(text)) return 'editing';
+    if (/build|packag|compil/.test(text)) return 'building';
+    if (/patch|updat|edit|writ|creat|enhanc|persist|port|modif|implement|fix/.test(text)) return 'editing';
     if (/terminal|execut|run/.test(text)) return 'executing';
     if (/called tool|calling tool|tool call/.test(text)) return 'tool call';
     if (/used .*skill/.test(text)) return 'skill';
@@ -604,24 +635,36 @@
     if (!force && !toolEvidenceDirty && lastToolEvidence && now - lastToolScanAt < cacheMs) return lastToolEvidence;
     const rootNode = document.querySelector('main') || document.body;
     if (!rootNode) return { present:false, active:false, busy:false, label:'', phase:'', lastProgressAt:healthEvidence.lastToolProgressAt, startedAt:healthEvidence.lastToolStartedAt, entryCount:0, generic:false };
-    const selector = '[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],[data-message-author-role="tool"],[data-state*="loading" i],[data-state*="pending" i],[aria-busy="true"],[aria-live]';
-    const nodes = [...rootNode.querySelectorAll(selector)].slice(-220);
+    const selector = '[data-testid*="tool" i],[aria-label*="tool" i],[data-message-author-role="tool"],.group\\/tool-message,[class*="tool-message" i],[data-state*="loading" i],[data-state*="pending" i],[aria-busy="true"],.loading-shimmer-tertiary,[class*="text-token-text-tertiary"]';
+    const nodes = [...rootNode.querySelectorAll(selector)].slice(-320);
     const entries = [];
     for (const node of nodes) {
-      const visibleLabel = brain.normalizeText(node.textContent || '', 520);
+      const visibleLabel = brain.normalizeText(node.textContent || '', 280);
       const ariaLabel = brain.normalizeText(node.getAttribute?.('aria-label') || '', 260);
       const titleLabel = brain.normalizeText(node.getAttribute?.('title') || '', 260);
       const label = visibleLabel || ariaLabel || titleLabel;
-      if (!label || !TOOL_EVENT_PATTERN.test(label)) continue;
+      if (!label || label.length > 240 || !TOOL_EVENT_PATTERN.test(label) || /^worked for\b/i.test(label)) continue;
+      const matchingChildren = [...(node.children || [])].filter((child) => {
+        const text = brain.normalizeText(child.textContent || child.getAttribute?.('aria-label') || '', 260);
+        return text && text.length <= 240 && TOOL_EVENT_PATTERN.test(text);
+      });
+      if (matchingChildren.length > 1) continue;
       const stateText = `${node.getAttribute?.('data-state') || ''} ${node.getAttribute?.('aria-busy') || ''} ${node.getAttribute?.('aria-expanded') || ''} ${node.className || ''}`.slice(0, 220);
-      const busy = node.getAttribute?.('aria-busy') === 'true' || /loading|pending|running|streaming|progress/i.test(stateText) || Boolean(node.querySelector?.('[aria-busy="true"],[data-state*="loading" i],[data-state*="pending" i],[class*="spinner" i],[class*="loading" i]'));
-      entries.push({ label: label.slice(0, 220), stateText, busy });
+      const busy = node.getAttribute?.('aria-busy') === 'true' || node.classList?.contains('loading-shimmer-tertiary') || /loading|pending|running|streaming|progress/i.test(stateText) || Boolean(node.querySelector?.('[aria-busy="true"],[data-state*="loading" i],[data-state*="pending" i],.loading-shimmer-tertiary,[class*="spinner" i],[class*="loading" i]'));
+      entries.push({ label: label.slice(0, 220), stateText, busy, informative: !GENERIC_TOOL_PATTERN.test(label) });
     }
-    const tail = entries.slice(-36);
+    const seenInformative = new Set();
+    const logical = entries.filter((row) => {
+      if (!row.informative) return true;
+      const key = row.label.toLowerCase();
+      if (seenInformative.has(key)) return false;
+      seenInformative.add(key); return true;
+    });
+    const tail = logical.slice(-36);
     const latest = tail.at(-1) || null;
-    const informative = [...tail].reverse().find((row) => !GENERIC_TOOL_PATTERN.test(row.label)) || latest;
+    const informative = [...tail].reverse().find((row) => row.informative && row.busy) || [...tail].reverse().find((row) => row.informative) || latest;
     const latestGeneric = Boolean(latest && GENERIC_TOOL_PATTERN.test(latest.label));
-    const label = brain.normalizeText((latestGeneric ? informative?.label : latest?.label) || latest?.label || '', 150);
+    const label = brain.normalizeText(informative?.label || latest?.label || '', 150);
     const busy = tail.slice(-10).some((row) => row.busy);
     const active = Boolean(tail.length) && (lastStatus === 'running' || busy);
     const signatureInput = tail.map((row) => `${row.label}|${row.busy ? 1 : 0}|${row.stateText}`).join('||');
@@ -636,18 +679,20 @@
       healthEvidence.lastToolLabel = label;
       healthEvidence.lastDomProgressAt = now;
       lastSemanticActivityAt = Math.max(lastSemanticActivityAt, now);
+      noteLiveActivity('tool', label || 'Tool activity changed', `${toolPhaseFromLabel(label)} · ${tail.length} observed step${tail.length === 1 ? '' : 's'}`, `tool:${healthEvidence.lastToolHash}`, now);
     } else if (label && label !== healthEvidence.lastToolLabel && active) {
       healthEvidence.lastToolLabel = label;
       healthEvidence.lastToolProgressAt = now;
       healthEvidence.lastDomProgressAt = now;
       lastSemanticActivityAt = Math.max(lastSemanticActivityAt, now);
+      noteLiveActivity('tool', label, toolPhaseFromLabel(label), `tool:${hashText(label)}`, now);
     }
     lastToolEvidence = {
       present: Boolean(tail.length),
       active,
       busy,
       label: (label || latest?.label || '').slice(0, 110),
-      phase: toolPhaseFromLabel(latest?.label || label),
+      phase: toolPhaseFromLabel(label || latest?.label),
       lastProgressAt: healthEvidence.lastToolProgressAt,
       startedAt: healthEvidence.lastToolStartedAt,
       entryCount: tail.length,
@@ -692,6 +737,7 @@
   async function secureConversationHandoff(button) {
     if (!button || button.dataset.busy === '1') return;
     const prior = button.textContent; button.dataset.busy = '1'; button.disabled = true; button.textContent = 'Securing handoff…';
+    noteLiveActivity('checkpoint', 'Securing conversation handoff', 'Building a recoverable local checkpoint', 'handoff:current');
     try {
       const result = await chrome.runtime.sendMessage({ type:'PC_PREPARE_CHAT_HANDOFF', chatId:currentChatId(), url:location.href, capacity:liveHealthSnapshot?.capacity || conversationCapacityEvidence({}) });
       if (!result?.ok) throw new Error(result?.error || 'Could not secure the handoff.');
@@ -699,9 +745,11 @@
       const driveLabel = result.drive?.verified ? ' · Drive verified' : result.drive?.attempted ? ' · Drive pending' : ' · local checkpoint';
       button.textContent = `Handoff copied${driveLabel}`;
       button.title = result.checkpointId ? `Checkpoint ${result.checkpointId}` : 'Safe handoff copied';
+      noteLiveActivity('checkpoint', 'Safe handoff copied', result.drive?.verified ? 'Checkpoint round-trip verified in Drive' : 'Local recoverable checkpoint created', 'handoff:current');
       setTimeout(() => { if (button.isConnected) { button.textContent = 'Secure handoff'; button.disabled = false; button.dataset.busy = '0'; } }, 4200);
     } catch (error) {
       button.textContent = 'Handoff failed'; button.title = String(error?.message || error);
+      noteLiveActivity('error', 'Handoff failed', String(error?.message || error), 'handoff:current');
       setTimeout(() => { if (button.isConnected) { button.textContent = prior || 'Secure handoff'; button.disabled = false; button.dataset.busy = '0'; } }, 3600);
     }
   }
@@ -724,17 +772,17 @@
 
   function healthHudCss() {
     return `
-      :host{all:initial;position:fixed;z-index:2147483000;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f5f7ff;--pc-accent:#8b5cf6;--pc-level:#63d6a7;--pc-bg:rgba(7,10,28,.94);--pc-line:rgba(160,174,255,.16);--pc-muted:#a1a9ca;--pc-shadow:0 18px 60px rgba(2,3,18,.52),0 0 28px rgba(91,73,200,.09);pointer-events:none}
+      :host{all:initial;position:fixed;z-index:2147483000;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f5f7ff;--pc-accent:#8b5cf6;--pc-level:#63d6a7;--pc-bg:rgba(7,10,28,.95);--pc-line:rgba(160,174,255,.16);--pc-muted:#a1a9ca;--pc-shadow:0 18px 60px rgba(2,3,18,.52),0 0 28px rgba(91,73,200,.09);pointer-events:none}
       :host([data-corner="bottom-right"]){right:18px;bottom:18px}:host([data-corner="bottom-left"]){left:18px;bottom:18px}:host([data-corner="top-right"]){right:18px;top:18px}:host([data-corner="top-left"]){left:18px;top:18px}
       :host([data-level="active"]),:host([data-level="info"]){--pc-level:#7f92ff}:host([data-level="warning"]){--pc-level:#f0c567}:host([data-level="danger"]){--pc-level:#ff8f8f}:host([data-level="critical"]){--pc-level:#ff676f}
-      .hud{pointer-events:auto;width:350px;box-sizing:border-box;border:1px solid color-mix(in srgb,var(--pc-level) 32%,var(--pc-line));border-radius:16px;background:radial-gradient(circle at 92% 4%,rgba(79,118,240,.12),transparent 38%),linear-gradient(145deg,color-mix(in srgb,var(--pc-bg) 92%,var(--pc-level) 8%),var(--pc-bg));box-shadow:var(--pc-shadow);backdrop-filter:blur(18px) saturate(1.12);overflow:hidden;transition:width .18s ease,transform .18s ease,border-color .18s ease}
+      *{box-sizing:border-box}.hud{pointer-events:auto;width:388px;box-sizing:border-box;border:1px solid color-mix(in srgb,var(--pc-level) 32%,var(--pc-line));border-radius:18px;background:radial-gradient(circle at 92% 4%,rgba(79,118,240,.14),transparent 38%),linear-gradient(145deg,color-mix(in srgb,var(--pc-bg) 92%,var(--pc-level) 8%),var(--pc-bg));box-shadow:var(--pc-shadow);backdrop-filter:blur(18px) saturate(1.12);overflow:hidden;transition:width .18s ease,transform .18s ease,border-color .18s ease}
       .top{display:flex;align-items:center;gap:9px;padding:11px 12px 9px}.orb{width:9px;height:9px;border-radius:50%;background:var(--pc-level);box-shadow:0 0 0 4px color-mix(in srgb,var(--pc-level) 14%,transparent),0 0 18px color-mix(in srgb,var(--pc-level) 50%,transparent);flex:0 0 auto}.brand{min-width:0;flex:1}.eyebrow{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--pc-muted);line-height:1.2}.state{font-size:12px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.substate{font-size:8.5px;color:#9099a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.tools{display:flex;gap:4px}.icon{appearance:none;border:0;background:transparent;color:#adb5c4;border-radius:7px;width:27px;height:27px;cursor:pointer;font:600 14px/1 system-ui}.icon:hover{background:rgba(255,255,255,.08);color:white}
-      .body{padding:0 12px 11px}.detail{font-size:10.5px;line-height:1.48;color:#b8bfcc;margin:0 0 9px}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}.chip{font-size:8px;line-height:1;border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:5px 6px;color:#aeb7c6;background:rgba(255,255,255,.035)}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px}.metric{border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.025);padding:7px 8px}.metric span{display:block;color:#7f8898;font-size:7.5px;text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;color:#e7ebf2;font-size:10px;margin-top:3px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.actions{display:flex;gap:6px;margin-top:9px}.btn{appearance:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#cbd2de;border-radius:8px;padding:7px 9px;font:600 9px/1.1 system-ui;cursor:pointer}.btn:hover{background:rgba(255,255,255,.085);color:white}.btn.primary{background:color-mix(in srgb,var(--pc-level) 16%,rgba(255,255,255,.04));border-color:color-mix(in srgb,var(--pc-level) 42%,rgba(255,255,255,.12));color:#fff}.btn[hidden]{visibility:hidden;position:absolute;pointer-events:none;opacity:0}
+      .body{padding:0 12px 11px;max-height:min(620px,calc(100vh - 96px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(126,144,255,.38) transparent}.detail{font-size:10px;line-height:1.45;color:#b8bfcc;margin:0 0 9px}.now{position:relative;border:1px solid color-mix(in srgb,var(--pc-level) 30%,rgba(255,255,255,.08));border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--pc-level) 10%,rgba(255,255,255,.025)),rgba(255,255,255,.018));padding:10px 11px;margin-bottom:8px;overflow:hidden}.now:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--pc-level)}.sectionHead,.nowHead{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#858eaa;font-size:7.5px;letter-spacing:.11em;text-transform:uppercase}.nowTitle{font-size:11.5px;line-height:1.35;color:#f5f7ff;font-weight:720;margin-top:5px}.nowDetail{font-size:9px;line-height:1.4;color:#aeb6c8;margin-top:3px}.proof{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 8px;border-radius:8px;background:rgba(98,114,190,.08);color:#aeb7ce;font-size:8px;line-height:1.3}.proofDot{width:5px;height:5px;border-radius:50%;background:#7990ff;box-shadow:0 0 9px rgba(121,144,255,.6);flex:none}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}.chip{font-size:8px;line-height:1;border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:5px 6px;color:#aeb7c6;background:rgba(255,255,255,.035)}.timelineWrap{margin:0 0 9px}.timeline{display:grid;gap:3px;margin-top:5px}.event{display:grid;grid-template-columns:7px minmax(0,1fr) auto;gap:7px;align-items:start;padding:5px 3px;border-radius:7px}.event:hover{background:rgba(255,255,255,.025)}.eventDot{width:6px;height:6px;margin-top:3px;border-radius:50%;background:#7787aa}.event[data-kind="tool"] .eventDot{background:#9a7cff}.event[data-kind="network"] .eventDot{background:#56a8ff}.event[data-kind="response"] .eventDot{background:#55d0a0}.event[data-kind="warning"] .eventDot,.event[data-kind="error"] .eventDot{background:#ff8f8f}.eventBody{min-width:0}.eventTitle,.eventDetail{display:block}.eventTitle{font-size:9px;color:#dce1ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.eventDetail{font-size:7.5px;color:#818ba2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.eventTime{font-size:7.5px;color:#707990;white-space:nowrap;margin-top:1px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px}.metric{border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.025);padding:7px 8px}.metric span{display:block;color:#7f8898;font-size:7.5px;text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;color:#e7ebf2;font-size:10px;margin-top:3px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.truth{font-size:7.5px;line-height:1.35;color:#737d94;margin:8px 1px 0}.actions{display:flex;gap:6px;margin-top:9px}.btn{appearance:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#cbd2de;border-radius:8px;padding:7px 9px;font:600 9px/1.1 system-ui;cursor:pointer}.btn:hover{background:rgba(255,255,255,.085);color:white}.btn.primary{background:color-mix(in srgb,var(--pc-level) 16%,rgba(255,255,255,.04));border-color:color-mix(in srgb,var(--pc-level) 42%,rgba(255,255,255,.12));color:#fff}.btn[hidden]{visibility:hidden;position:absolute;pointer-events:none;opacity:0}
       :host([data-level="active"]) .orb{animation:pc-health-pulse 1.35s ease-in-out infinite}:host([data-state="tool-stalled"]) .orb,:host([data-state="request-stalled"]) .orb,:host([data-state="stalled"]) .orb{animation:pc-health-alert 1.1s ease-in-out infinite}:host([data-state="tool-dead"]) .orb,:host([data-state="dead"]) .orb{box-shadow:0 0 0 5px color-mix(in srgb,var(--pc-level) 18%,transparent),0 0 24px color-mix(in srgb,var(--pc-level) 68%,transparent)}
-      :host([data-density="compact"][data-collapsed="1"]) .hud{width:292px;border-radius:999px}:host([data-collapsed="1"]) .body{height:0;overflow:hidden;padding:0}:host([data-collapsed="1"]) .top{padding:9px 10px}:host([data-collapsed="1"]) .eyebrow{font-size:7px}:host([data-collapsed="1"]) .state{font-size:10.5px}:host([data-collapsed="1"]) .substate{font-size:7.5px}
+      :host([data-density="compact"]) .detail,:host([data-density="compact"]) .chips{display:none}:host([data-density="compact"][data-collapsed="1"]) .hud{width:320px;border-radius:999px}:host([data-collapsed="1"]) .body{height:0;overflow:hidden;padding:0}:host([data-collapsed="1"]) .top{padding:9px 10px}:host([data-collapsed="1"]) .eyebrow{font-size:7px}:host([data-collapsed="1"]) .state{font-size:10.5px}:host([data-collapsed="1"]) .substate{font-size:7.5px}
       :host([data-visible="0"]){visibility:hidden;opacity:0;pointer-events:none}
       @keyframes pc-health-pulse{0%,100%{transform:scale(.92);opacity:.72}50%{transform:scale(1.18);opacity:1}}@keyframes pc-health-alert{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
-      @media (max-width:620px){:host([data-corner$="right"]){right:8px}:host([data-corner$="left"]){left:8px}:host([data-corner^="bottom"]){bottom:8px}:host([data-corner^="top"]){top:8px}.hud{width:min(350px,calc(100vw - 16px))}:host([data-density="compact"][data-collapsed="1"]) .hud{width:min(292px,calc(100vw - 16px))}}
+      @media (max-width:620px){:host([data-corner$="right"]){right:8px}:host([data-corner$="left"]){left:8px}:host([data-corner^="bottom"]){bottom:8px}:host([data-corner^="top"]){top:8px}.hud{width:min(388px,calc(100vw - 16px))}:host([data-density="compact"][data-collapsed="1"]) .hud{width:min(320px,calc(100vw - 16px))}}
       @media (prefers-reduced-motion:reduce){.hud{transition:none}.orb{box-shadow:none!important;animation:none!important}}
     `;
   }
@@ -743,12 +791,12 @@
     if (liveHealthHost?.isConnected) return liveHealthHost;
     const host = document.createElement('div');
     host.id = 'projectConstellationHealthHud';
-    host.dataset.corner = liveHealthSettings.corner || 'bottom-right'; host.dataset.density = liveHealthSettings.density || 'compact'; host.dataset.collapsed = liveHealthSettings.density === 'compact' ? '1' : '0'; host.dataset.visible = '1';
+    host.dataset.corner = liveHealthSettings.corner || 'bottom-right'; host.dataset.density = liveHealthSettings.density || 'compact'; host.dataset.collapsed = '0'; host.dataset.visible = '1';
     const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="status" aria-live="polite"><div class="top"><span class="orb"></span><div class="brand"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="icon" id="pcHealthOpen" title="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="chips" id="pcHealthChips"></div><div class="metrics"><div class="metric"><span>Last proof</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><div class="actions"><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></div></section>`;
+    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Last proof</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p><div class="actions"><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></div></section>`;
     document.documentElement.appendChild(host);
     liveHealthHost = host; liveHealthShadow = shadow;
-    shadow.getElementById('pcHealthCollapse').addEventListener('click', () => { host.dataset.collapsed = host.dataset.collapsed === '1' ? '0' : '1'; shadow.getElementById('pcHealthCollapse').textContent = host.dataset.collapsed === '1' ? '+' : '−'; });
+    shadow.getElementById('pcHealthCollapse').addEventListener('click', () => { host.dataset.collapsed = host.dataset.collapsed === '1' ? '0' : '1'; const collapsed = host.dataset.collapsed === '1'; const button = shadow.getElementById('pcHealthCollapse'); button.textContent = collapsed ? '+' : '−'; button.setAttribute('aria-label', collapsed ? 'Expand execution pulse' : 'Collapse execution pulse'); });
     shadow.getElementById('pcHealthOpen').addEventListener('click', () => chrome.runtime.sendMessage({ type:'PC_OPEN_CONSTELLATION_PAGE', view:'attention' }).catch(() => {}));
     shadow.getElementById('pcHealthSettings').addEventListener('click', () => chrome.runtime.sendMessage({ type:'PC_OPEN_CONSTELLATION_PAGE', view:'attention', focus:'live-health' }).catch(() => {}));
     shadow.getElementById('pcHealthRefresh').addEventListener('click', () => location.reload());
@@ -763,6 +811,48 @@
     const min = Math.floor(sec / 60); const rem = sec % 60; return `${min}m ${rem}s ago`;
   }
 
+  function setHealthText(shadow, id, value) {
+    const node = shadow.getElementById(id); const text = String(value ?? '');
+    if (node && node.textContent !== text) node.textContent = text;
+  }
+
+  function networkActivityEvents(network = {}) {
+    return (Array.isArray(network.events) ? network.events : []).map((event) => {
+      const phase = String(event.phase || 'observed');
+      const category = brain.normalizeText(event.category || 'provider request', 80);
+      const verb = phase === 'started' ? 'Started' : phase === 'response' ? 'Received' : phase === 'completed' ? 'Completed' : phase === 'error' ? 'Failed' : 'Observed';
+      const detail = [String(event.method || '').toUpperCase(), Number(event.status || 0) ? `HTTP ${Number(event.status)}` : '', Number(event.durationMs || 0) >= 1 ? `${Math.round(Number(event.durationMs))} ms` : ''].filter(Boolean).join(' · ');
+      return { kind:phase === 'error' ? 'error' : event.activityBearing === false ? 'site' : 'network', label:`${verb} ${category}`, detail, key:`network:${event.id || ''}:${phase}:${event.at || 0}`, at:Number(event.at || 0) };
+    }).filter((event) => event.at >= routeStartedAt - 2000);
+  }
+
+  function renderActivityTimeline(host, shadow, events, now = Date.now()) {
+    const rows = events.slice(0, 7);
+    const signature = rows.map((row) => `${row.key}|${row.label}|${row.detail}|${Math.floor(Math.max(0, now - row.at) / 5000)}`).join('||');
+    setHealthText(shadow, 'pcHealthEventCount', `${events.length} event${events.length === 1 ? '' : 's'}`);
+    if (host.dataset.timelineSignature === signature) return;
+    host.dataset.timelineSignature = signature;
+    const timeline = shadow.getElementById('pcHealthTimeline');
+    const fragment = document.createDocumentFragment();
+    for (const row of rows) {
+      const event = document.createElement('div'); event.className = 'event'; event.dataset.kind = row.kind || 'page';
+      const dot = document.createElement('span'); dot.className = 'eventDot';
+      const body = document.createElement('span'); body.className = 'eventBody';
+      const title = document.createElement('span'); title.className = 'eventTitle'; title.textContent = row.label || 'Activity observed'; title.title = row.label || '';
+      const detail = document.createElement('span'); detail.className = 'eventDetail'; detail.textContent = row.detail || row.kind || 'browser evidence';
+      const time = document.createElement('span'); time.className = 'eventTime'; time.textContent = ageText(Math.max(0, now - Number(row.at || now)));
+      body.append(title, detail); event.append(dot, body, time); fragment.appendChild(event);
+    }
+    if (!rows.length) {
+      const empty = document.createElement('div'); empty.className = 'event'; empty.dataset.kind = 'page';
+      const dot = document.createElement('span'); dot.className = 'eventDot'; const body = document.createElement('span'); body.className = 'eventBody';
+      const title = document.createElement('span'); title.className = 'eventTitle'; title.textContent = 'Monitor ready';
+      const detail = document.createElement('span'); detail.className = 'eventDetail'; detail.textContent = 'Waiting for observable activity';
+      body.append(title, detail); empty.append(dot, body); fragment.appendChild(empty);
+    }
+    timeline.replaceChildren(fragment);
+  }
+
   function renderLiveHealthHud(snapshot, context = {}, page = {}) {
     liveHealthSnapshot = snapshot;
     if (!liveHealthSettings.enabled || currentChatId().endsWith(':home')) { if (liveHealthHost) liveHealthHost.dataset.visible = '0'; return; }
@@ -770,28 +860,54 @@
     const capacityAttention = ['watch','handoff','reached'].includes(snapshot.capacity?.state || '');
     host.dataset.visible = snapshot.state === 'healthy' && !capacityAttention && liveHealthSettings.showHealthy === false ? '0' : '1';
     host.dataset.corner = liveHealthSettings.corner || 'bottom-right'; host.dataset.density = liveHealthSettings.density || 'compact'; host.dataset.level = snapshot.level || 'healthy'; host.dataset.state = snapshot.state || 'healthy';
-    shadow.getElementById('pcHealthTitle').textContent = snapshot.title || 'Chat health';
-    shadow.getElementById('pcHealthDetail').textContent = snapshot.detail || '';
-    shadow.getElementById('pcHealthChips').innerHTML = (snapshot.chips || []).map((chip) => `<span class="chip">${String(chip).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>`).join('');
-    shadow.getElementById('pcHealthProgress').textContent = ageText(snapshot.progressAgeMs || 0);
+    const now = Date.now();
+    setHealthText(shadow, 'pcHealthTitle', snapshot.title || 'Chat health');
+    setHealthText(shadow, 'pcHealthDetail', snapshot.detail || '');
+    const chips = (snapshot.chips || []).map(String);
+    const chipSignature = chips.join('|');
+    if (host.dataset.chipSignature !== chipSignature) {
+      host.dataset.chipSignature = chipSignature;
+      const fragment = document.createDocumentFragment();
+      for (const value of chips) { const chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = value; fragment.appendChild(chip); }
+      shadow.getElementById('pcHealthChips').replaceChildren(fragment);
+    }
+    setHealthText(shadow, 'pcHealthProgress', ageText(snapshot.progressAgeMs || 0));
     const network = context.network || {};
-    const networkText = snapshot.networkActive ? `${network.pending || 1} active${snapshot.networkProgressAgeMs >= 1000 ? ` · ${ageText(snapshot.networkProgressAgeMs)}` : ''}` : network.observed ? 'quiet' : 'DOM only';
-    shadow.getElementById('pcHealthNetwork').textContent = networkText;
+    const auxiliaryPending = Math.max(0, Number(network.auxiliaryPending || 0));
+    const activeRequests = Number(network.pending || 1);
+    const networkText = snapshot.networkActive ? `${activeRequests} agent request${activeRequests === 1 ? '' : 's'}${auxiliaryPending ? ` · ${auxiliaryPending} site` : ''}${snapshot.networkProgressAgeMs >= 1000 ? ` · ${ageText(snapshot.networkProgressAgeMs)}` : ''}` : auxiliaryPending ? `${auxiliaryPending} site background` : network.observed ? 'quiet' : 'DOM only';
+    setHealthText(shadow, 'pcHealthNetwork', networkText);
     const activity = snapshot.activity || null;
     const activityKind = activity?.kind === 'tool' ? (activity.phase || 'tool') : activity?.kind === 'model' ? (activity.phase || 'model') : snapshot.state === 'blocked-approval' ? 'approval' : snapshot.state === 'paused' ? 'paused' : 'model';
-    shadow.getElementById('pcHealthActivity').textContent = activityKind;
-    shadow.getElementById('pcHealthTool').textContent = activity?.kind === 'tool' ? `${activity.entryCount || 1} step${Number(activity.entryCount || 1) === 1 ? '' : 's'} · ${ageText(activity.ageMs || 0)}` : '—';
+    setHealthText(shadow, 'pcHealthActivity', activityKind);
+    setHealthText(shadow, 'pcHealthTool', activity?.kind === 'tool' ? `${activity.entryCount || 1} step${Number(activity.entryCount || 1) === 1 ? '' : 's'} · ${ageText(activity.ageMs || 0)}` : '—');
     const miniParts = [];
-    if (activity?.kind === 'tool') miniParts.push(activity.phase || 'tool', ageText(activity.ageMs || 0));
+    if (activity?.kind === 'tool') miniParts.push(activity.label || activity.phase || 'tool', ageText(activity.ageMs || 0));
     else miniParts.push(snapshot.state === 'working' ? 'model active' : snapshot.state.replaceAll('-', ' '));
     miniParts.push(snapshot.networkActive ? `${network.pending || 1} live request${Number(network.pending || 1) === 1 ? '' : 's'}` : `last proof ${ageText(snapshot.progressAgeMs || 0)}`);
-    shadow.getElementById('pcHealthMini').textContent = miniParts.filter(Boolean).join(' · ');
-    shadow.getElementById('pcHealthProject').textContent = context.baseline?.latestVersion ? `v${context.baseline.latestVersion}${snapshot.projectRisk ? ' · risk' : ''}` : snapshot.projectRisk ? 'attention' : 'tracked';
-    shadow.getElementById('pcHealthPage').textContent = page.renderDegraded ? 'degraded' : page.catalogAhead ? 'behind' : page.atBottom ? 'current' : 'browsing history';
+    setHealthText(shadow, 'pcHealthMini', miniParts.filter(Boolean).join(' · '));
+
+    const networkEvents = networkActivityEvents(network);
+    const events = [...networkEvents, ...liveActivityLedger].filter((row) => Number(row.at || 0) >= routeStartedAt - 2000).sort((a, b) => Number(b.at || 0) - Number(a.at || 0));
+    const uniqueEvents = [...new Map(events.map((row) => [row.key || `${row.kind}:${row.label}:${row.at}`, row])).values()];
+    renderActivityTimeline(host, shadow, uniqueEvents, now);
+    const activeRequest = (Array.isArray(network.inflight) ? network.inflight : []).at(-1);
+    const newest = uniqueEvents[0] || null;
+    const nowTitle = activity?.kind === 'tool' && activity.label ? activity.label : snapshot.networkActive && activeRequest?.category ? `${activeRequest.category} in progress` : newest?.label || snapshot.title || 'Monitoring this chat';
+    const nowAt = activity?.kind === 'tool' ? now - Number(activity.ageMs || 0) : activeRequest?.startedAt || newest?.at || now - Number(snapshot.progressAgeMs || 0);
+    const nowDetail = activity?.kind === 'tool' ? `${activity.phase || 'tool'} · ${activity.entryCount || 1} observed step${Number(activity.entryCount || 1) === 1 ? '' : 's'}${snapshot.networkActive ? ` · ${network.pending || 1} live request${Number(network.pending || 1) === 1 ? '' : 's'}` : ' · DOM proof only'}` : snapshot.networkActive ? `${network.pending || 1} categorized provider request${Number(network.pending || 1) === 1 ? '' : 's'} in flight` : newest?.detail || snapshot.detail;
+    setHealthText(shadow, 'pcHealthNowTitle', nowTitle);
+    setHealthText(shadow, 'pcHealthNowDetail', nowDetail);
+    setHealthText(shadow, 'pcHealthNowTime', ageText(Math.max(0, now - Number(nowAt || now))));
+    const proofKinds = [...new Set((snapshot.proof?.sources || []).map((row) => row.kind).filter(Boolean))];
+    setHealthText(shadow, 'pcHealthProof', `${String(snapshot.proof?.certainty || 'limited').toUpperCase()} observable confidence${proofKinds.length ? ` · ${proofKinds.join(' + ')}` : ''}`);
+
+    setHealthText(shadow, 'pcHealthProject', context.baseline?.latestVersion ? `v${context.baseline.latestVersion}${snapshot.projectRisk ? ' · risk' : ''}` : snapshot.projectRisk ? 'attention' : 'tracked');
+    setHealthText(shadow, 'pcHealthPage', page.renderDegraded ? 'degraded' : page.catalogAhead ? 'behind' : page.atBottom ? 'current' : 'browsing history');
     const capacity = snapshot.capacity || {};
     const turns = Number(capacity.turnCount || 0);
-    shadow.getElementById('pcHealthCapacity').textContent = capacity.state === 'reached' ? 'provider limit' : capacity.state === 'handoff' ? `${turns || 'large'} turns · secure` : capacity.state === 'watch' ? `${turns || 'large'} turns · watch` : turns ? `${turns} turns · clear` : 'clear';
-    shadow.getElementById('pcHealthHandoffState').textContent = capacity.recommendedAction === 'handoff' ? 'checkpoint now' : 'armed';
+    setHealthText(shadow, 'pcHealthCapacity', capacity.state === 'reached' ? 'provider limit' : capacity.state === 'handoff' ? `${turns || 'large'} turns · secure` : capacity.state === 'watch' ? `${turns || 'large'} turns · watch` : turns ? `${turns} turns · clear` : 'clear');
+    setHealthText(shadow, 'pcHealthHandoffState', capacity.recommendedAction === 'handoff' ? 'checkpoint now' : 'armed');
     shadow.getElementById('pcHealthRefresh').hidden = snapshot.recommendedAction !== 'refresh';
     shadow.getElementById('pcHealthHandoff').hidden = capacity.recommendedAction !== 'handoff';
   }
@@ -808,14 +924,15 @@
       const page = pageHealthEvidence(context);
       const capacity = conversationCapacityEvidence(context);
       const snapshot = health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt });
-      renderLiveHealthHud(snapshot, context, page);
       const prior = healthEvidence.lastHealthState || '';
       const activitySignature = hashText(`${snapshot.state}|${snapshot.level}|${snapshot.activity?.kind || ''}|${snapshot.activity?.phase || ''}|${snapshot.activity?.label || ''}|${snapshot.activity?.entryCount || 0}|${snapshot.networkActive ? 1 : 0}`);
       if (prior !== snapshot.state || activitySignature !== healthEvidence.lastHealthActivitySignature) {
+        noteLiveActivity(['warning','danger','critical'].includes(snapshot.level) ? 'warning' : 'health', snapshot.title, snapshot.detail, 'health:current');
         healthEvidence.lastHealthState = snapshot.state;
         healthEvidence.lastHealthActivitySignature = activitySignature;
         sendBrain('CHAT_UPSERT', { id:currentChatId(), providerId:provider.id, url:location.href, liveHealthState:snapshot.state, liveHealthLevel:snapshot.level, liveHealthTitle:snapshot.title, liveHealthDetail:snapshot.detail, liveHealthActivityKind:snapshot.activity?.kind || '', liveHealthActivityPhase:snapshot.activity?.phase || '', liveHealthActivityLabel:snapshot.activity?.label || '', liveHealthToolSteps:Number(snapshot.activity?.entryCount || 0), liveHealthNetworkActive:Boolean(snapshot.networkActive), liveHealthProgressAgeMs:Number(snapshot.progressAgeMs || 0), liveHealthUpdatedAt:Date.now(), updatedAt:Date.now() });
       }
+      renderLiveHealthHud(snapshot, context, page);
     } finally { liveHealthPollBusy = false; }
   }
 
@@ -851,6 +968,7 @@
       lastStatus = next;
       healthEvidence.lastStatusChangeAt = Date.now();
       lastSemanticActivityAt = healthEvidence.lastStatusChangeAt;
+      noteLiveActivity(['errored','stalled','refresh-required','rate-limited','auth-required','unavailable'].includes(next) ? 'warning' : 'status', `Chat status · ${next.replaceAll('-', ' ')}`, next === 'running' ? 'The page exposes an active generation signal' : 'Observable page status changed', 'status:current', healthEvidence.lastStatusChangeAt);
       sendBrain('STATUS_EVENT', { providerId: provider.id, chatId: currentChatId(), status: next, detail: statusText.slice(0, 1200), url: location.href, approvalConnector: signals.approval ? connectorNameFromApproval(approvalSurface()) : '', recoveryKind: signals.refreshRequired ? 'browser-refresh' : signals.rateLimited ? 'provider-cooldown' : '', retryForbidden: Boolean(signals.refreshRequired || signals.rateLimited), rateLimitWaitMs: signals.rateLimited ? rateLimitWaitMs(statusText) : 0, updatedAt: Date.now() });
       if (signals.refreshRequired) chrome.runtime.sendMessage({ type: 'PC_REFRESH_RECOVERY_REQUEST', chatId: currentChatId(), url: location.href, detail: statusText.slice(0, 600) }).catch(() => {});
     } else if (next === 'running') {
@@ -863,10 +981,16 @@
     if (document.hidden) return;
     const roots = pendingRoots.size ? [...pendingRoots] : [document];
     pendingRoots.clear();
-    for (const scope of roots.slice(0, 40)) {
-      scanChats(scope); scanTurns(scope); scanFiles(scope);
+    const constrained = metrics.lastPressure === 'high';
+    for (const scope of roots.slice(0, constrained ? 12 : 40)) {
+      if (!constrained) scanChats(scope);
+      scanTurns(scope);
+      if (!constrained) scanFiles(scope);
     }
-    detectStatus();
+    const statusDueMs = lastStatus === 'running' ? 900 : 2200;
+    if (!healthEvidence.lastStatusScanAt || Date.now() - healthEvidence.lastStatusScanAt >= statusDueMs) {
+      healthEvidence.lastStatusScanAt = Date.now(); detectStatus();
+    }
   }
 
   function scheduleCapture(scope) {
@@ -904,11 +1028,11 @@
       for (const mutation of mutations) {
         if (mutation.type === 'attributes') {
           scheduleCapture(mutation.target);
-          if (mutation.target.matches?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],[aria-busy],[data-state]')) toolEvidenceDirty = true;
+          if (mutation.target.matches?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],.loading-shimmer-tertiary,[class*="text-token-text-tertiary"],[aria-busy],[data-state]')) toolEvidenceDirty = true;
         }
         for (const node of mutation.addedNodes) if (node instanceof Element) {
           scheduleCapture(node);
-          if (node.matches?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],[aria-busy],[data-state]') || node.querySelector?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],[aria-busy],[data-state]')) toolEvidenceDirty = true;
+          if (node.matches?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],.loading-shimmer-tertiary,[class*="text-token-text-tertiary"],[aria-busy],[data-state]') || node.querySelector?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],.loading-shimmer-tertiary,[class*="text-token-text-tertiary"],[aria-busy],[data-state]')) toolEvidenceDirty = true;
         }
       }
     });
@@ -923,10 +1047,11 @@
     metrics.lastUpdatedAt = Date.now();
     lastSemanticActivityAt = Date.now();
     routeStartedAt = Date.now();
-    healthEvidence.lastTurnProgressAt = routeStartedAt; healthEvidence.lastDomProgressAt = routeStartedAt; healthEvidence.lastStatusChangeAt = routeStartedAt; healthEvidence.latestMountedTurn = null; healthEvidence.lastToolHash = ''; healthEvidence.lastToolProgressAt = 0; healthEvidence.lastToolStartedAt = 0; healthEvidence.lastToolEntryCount = 0; healthEvidence.lastToolSignature = ''; healthEvidence.lastToolLabel = ''; healthEvidence.lastHealthActivitySignature = ''; lastToolEvidence = null; lastToolScanAt = 0; toolEvidenceDirty = true;
+    healthEvidence.lastTurnProgressAt = routeStartedAt; healthEvidence.lastDomProgressAt = routeStartedAt; healthEvidence.lastStatusChangeAt = routeStartedAt; healthEvidence.latestMountedTurn = null; healthEvidence.lastToolHash = ''; healthEvidence.lastToolProgressAt = 0; healthEvidence.lastToolStartedAt = 0; healthEvidence.lastToolEntryCount = 0; healthEvidence.lastToolSignature = ''; healthEvidence.lastToolLabel = ''; healthEvidence.lastHealthActivitySignature = ''; lastToolEvidence = null; lastToolScanAt = 0; toolEvidenceDirty = true; liveActivityLedger.length = 0;
     seenTurnHashes.clear(); seenTurnLengths.clear(); seenTurnTextChars = 0; seenFileHashes.clear();
     schedulePersist();
     sendBrain('ROUTE_EVENT', { providerId: provider.id, chatId: currentChatId(), url: location.href, title: document.title, updatedAt: Date.now() });
+    noteLiveActivity('route', 'Conversation route changed', 'Capture and health evidence reset for this page', 'route:current', routeStartedAt);
     scheduleCapture(document);
   }
 
@@ -965,7 +1090,7 @@
     if (brainFlushTimer) { clearTimeout(brainFlushTimer); brainFlushTimer = 0; }
     while (brainOutbox.length) {
       const batch = brainOutbox.splice(0, 120);
-      await chrome.runtime.sendMessage({ type: 'PC_BRAIN_INGEST_BATCH', payload: batch }).catch(() => {});
+      await chrome.runtime.sendMessage({ type: 'PC_BRAIN_INGEST_BATCH', payload: batch.map(({ type, data }) => ({ type, data })) }).catch(() => {});
     }
   }
 

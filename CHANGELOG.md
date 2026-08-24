@@ -14,6 +14,7 @@ All notable Project Constellation changes are recorded here.
 - Production OAuth build gates, cross-platform smoke orchestration, release receipts, and checksums.
 - GitHub OAuth refresh-token rotation and authenticated retry coverage.
 - Exact OAuth provisioning/acceptance and production release runbooks, a tracked non-secret environment template, and a public privacy policy.
+- An expanded Execution Pulse with a real-time **Observed now** card, bounded activity ledger, proof-source/confidence display, categorized provider-request lifecycle, and explicit response/tool/status/page events.
 
 ### Fixed
 
@@ -32,6 +33,8 @@ All notable Project Constellation changes are recorded here.
 - Untrusted external links are constrained to HTTPS/local development URLs.
 - Windows build path and browser-smoke portability failures from v0.13.0 are repaired.
 - Release/update documentation now names the actual generated unpacked archive and validation prevents required OAuth/release support files from silently disappearing.
+- Current ChatGPT agent-step summaries and loading-shimmer activity are recognized directly, replacing vague generic `Called tool` reporting with the specific observable step label.
+- Ordinary chat-history, session, and sidebar traffic is separated from agent-bearing response/tool/search/file traffic, so background site requests cannot create a fake “chat is working” state or an alarming undifferentiated request count.
 
 ### Performance
 
@@ -41,6 +44,10 @@ All notable Project Constellation changes are recorded here.
 - Tool scans are dirty/cached, use narrower selectors, and examine fewer nodes.
 - Mutation roots are deduplicated and capped before bounded idle processing.
 - Content capture remains network-free and preserves native conversation DOM.
+- Repeated semantic upserts are coalesced before runtime messaging; measured-pressure capture drops nonessential catalogue/file scans until recovery while turn capture stays active.
+- Long-task observation no longer replays buffered entries after tab visibility changes, and pressure recovery no longer writes metrics to extension storage every 500 ms.
+- The real provider page automatically sheds only decorative `aria-hidden` animation/blur work during measured pressure; native content and controls are preserved.
+- HUD rendering updates only changed text/chips and rebuilds its bounded seven-row timeline only when evidence or displayed time buckets change.
 
 ## 0.13.0
 

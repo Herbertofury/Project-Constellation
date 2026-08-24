@@ -15,9 +15,9 @@ Coverage labels are explicit: metadata-only, server-rendered content, partial DO
 
 ## Execution Pulse
 
-The page HUD correlates mounted DOM progress, passive provider network evidence, visible tool activity, stored turn state, capacity thresholds, and integrity findings. It detects running, quiet, stalled, dead, approval-blocked, rate-limited, auth-required, unavailable, stale-page, degraded-render, and capacity-handoff conditions.
+The page HUD correlates mounted DOM progress, passive provider network evidence, current visible agent/tool step summaries, stored turn state, capacity thresholds, and integrity findings. Its expanded default view shows **Observed now**, observable-confidence sources, and a seven-row local activity ledger covering response changes, tool steps, page status, recovery, handoff, and sanitized request start/response/completion events. It detects running, quiet, stalled, dead, approval-blocked, rate-limited, auth-required, unavailable, stale-page, degraded-render, and capacity-handoff conditions.
 
-The HUD never sends provider requests. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
+The HUD never sends provider requests and never claims access to hidden model reasoning. Site-background/history/session traffic stays visible as auxiliary activity but cannot be used as proof that an agent is working. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
 
 Needs Attention settings use accessible ON/OFF switches. Every change is autosaved through a serialized background mutation, while each section also offers an explicit Save Settings button and live saved/saving/error feedback. Reloaded Home pages render directly from the persisted settings response.
 
@@ -31,7 +31,7 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 
 ## Performance engine
 
-Long-task pressure measurement can disable only decorative provider motion. Mutation capture is idle-scheduled, nested-root deduplicated, and bounded. Tool evidence scans are cached and dirtied by relevant DOM changes. Hidden tabs disconnect capture observation and use slow health/status pulses.
+Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs disconnect capture observation and use slow health/status pulses.
 
 ## Visual identity and accessibility
 

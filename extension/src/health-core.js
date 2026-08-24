@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 3;
+  const VERSION = 4;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -124,9 +124,25 @@
     if (toolPresent) chips.push(toolLabel || 'tool activity');
     if (toolEntryCount > 1) chips.push(`${toolEntryCount} tool steps seen`);
     if (input.baselineVersion) chips.push(`project v${input.baselineVersion}`);
+    const running = rawStatus === 'running' || Boolean(input.running);
 
     const emit = (row) => {
       const merged = { ...row, capacity };
+      const proofSources = [];
+      if (network.observed || lastNetworkAt) proofSources.push({ kind:'network', label:networkActive ? `${pending || 1} live request${pending === 1 ? '' : 's'}` : 'provider network observed', active:networkActive, at:lastNetworkAt || 0 });
+      if (toolPresent) proofSources.push({ kind:'tool', label:toolLabel || 'tool activity', active:toolActive, at:Number(tool.lastProgressAt || tool.startedAt || 0) });
+      if (Number(input.lastTurnProgressAt || 0)) proofSources.push({ kind:'response', label:'rendered response progress', active:running, at:Number(input.lastTurnProgressAt || 0) });
+      if (Number(input.lastDomProgressAt || 0)) proofSources.push({ kind:'dom', label:'page DOM progress', active:running, at:Number(input.lastDomProgressAt || 0) });
+      if (rawStatus !== 'idle') proofSources.push({ kind:'status', label:`page reports ${rawStatus.replaceAll('-', ' ')}`, active:running, at:Number(input.lastStatusChangeAt || 0) });
+      if (page.catalogAhead || page.staleRevision || page.renderDegraded || page.refreshRequired) proofSources.push({ kind:'page', label:'page integrity signal', active:false, at:now });
+      const uniqueProof = [...new Map(proofSources.map((item) => [`${item.kind}:${item.label}`, item])).values()].slice(0, 8);
+      const freshProof = uniqueProof.filter((item) => item.active || (item.at && now - item.at <= cfg.hardStallMs));
+      merged.proof = {
+        evidenceOnly:true,
+        certainty:freshProof.length >= 2 ? 'high' : freshProof.length === 1 ? 'medium' : 'limited',
+        sources:uniqueProof,
+        lastObservedAt:Math.max(0, ...uniqueProof.map((item) => Number(item.at || 0)))
+      };
       if (capacity.score >= LEVEL.warning) {
         merged.chips = [...new Set([...(merged.chips || []), ...(capacity.chips || []).slice(0, 2)])].slice(0, 8);
         if (capacity.score > Number(merged.score || 0) && !['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','degraded','stale-page','project-rollback','tool-dead','dead'].includes(merged.state)) {
@@ -166,7 +182,6 @@
     const conflict = first(findings, (row) => row?.type === 'artifact-hash-conflict' || row?.type === 'artifact-size-conflict');
     const projectRisk = Boolean(oldVersion || regression || conflict);
 
-    const running = rawStatus === 'running' || Boolean(input.running);
     if (running || networkActive) {
       if (cfg.toolWatchdogEnabled && toolActive) {
         const noProof = (!pending && progressAgeMs >= cfg.hardStallMs) || networkSilent;

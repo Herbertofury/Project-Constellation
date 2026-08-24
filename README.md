@@ -9,7 +9,7 @@ The v0.14 line is the standalone successor to v0.13.0. This repository is now th
 - Organizes chats, projects, groups, files, links, decisions, recommendations, and follow-ups across supported AI providers.
 - Preserves a local IndexedDB “brain,” full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.
-- Shows an Execution Pulse HUD for model/tool activity, stalls, approvals, provider limits, stale tabs, and safe handoff guidance.
+- Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, and safe handoff guidance.
 - Syncs verified snapshots and journals to a user-owned Google Drive folder.
 - Optionally mirrors snapshots to a selected GitHub repository.
 - Uses a restrained purple-and-blue night-sky interface with reduced-motion and constrained-device fallbacks.

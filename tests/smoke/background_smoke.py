@@ -133,6 +133,7 @@ with sync_playwright() as p:
         __pcSend({type:'PC_PROVIDER_SESSION_STATUS',providerId:'chatgpt',network:true})
       ]);
       const governor=await __pcSend({type:'PC_REQUEST_GOVERNOR_STATUS'});
+      __pcListeners.webBefore({tabId:7,requestId:'health-aux',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversations?offset=0',method:'GET',initiator:'https://chatgpt.com'});
       __pcListeners.webBefore({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',initiator:'https://chatgpt.com'});
       const healthActive=await __pcSend({type:'PC_LIVE_HEALTH_CONTEXT',chatId:'chatgpt:test'},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
       __pcListeners.webResponse({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
@@ -178,7 +179,14 @@ with sync_playwright() as p:
     checks=[result['providerCheck1'],result['providerCheck2']]
     assert any(c.get('coolingDown') is True and c.get('source')=='request-governor' and c.get('retryAfterMs',0)>0 for c in checks)
     assert result['healthActive']['network']['pending']==1 and result['healthActive']['network']['streamLikely'] is True
-    assert result['healthQuiet']['network']['pending']==0 and result['healthQuiet']['network']['observed'] is True
+    assert result['healthActive']['network']['pendingTotal']==2 and result['healthActive']['network']['auxiliaryPending']==1
+    assert result['healthActive']['network']['inflight'][0]['category']=='response stream'
+    assert result['healthActive']['network']['events'][-1]['phase']=='started' and result['healthActive']['network']['events'][-1]['category']=='response stream'
+    assert result['healthActive']['network']['auxiliaryInflight'][0]['category']=='chat history'
+    assert result['healthActive']['network']['events'][0]['activityBearing'] is False
+    assert result['healthQuiet']['network']['pending']==0 and result['healthQuiet']['network']['auxiliaryPending']==1 and result['healthQuiet']['network']['observed'] is True
+    assert [row['phase'] for row in result['healthQuiet']['network']['events'][-2:]]==['response','completed']
+    assert all('url' not in row for row in result['healthQuiet']['network']['events'])
     assert result['healthActive']['capacity']['storedTurns']==1
     assert result['handoff']['ok'] and result['handoff']['checkpointId'].startswith('handoff:chatgpt:test:')
     assert '# Project Constellation Safe Handoff' in result['handoff']['markdown'] and 'https://chatgpt.com/c/test' in result['handoff']['markdown']

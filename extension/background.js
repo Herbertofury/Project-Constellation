@@ -313,15 +313,25 @@ async function recentTurnRecordsForChat(chatId, limit = 12) {
 
 function networkStateForTab(tabId) {
   const row = liveNetworkByTab.get(Number(tabId));
-  if (!row) return { pending: 0, observed: false, oldestPendingAt: 0, newestPendingAt: 0, lastStartAt: 0, lastResponseAt: 0, lastCompleteAt: 0, lastErrorAt: 0, lastStatusCode: 0, rateLimited: false, streamLikely: false };
+  if (!row) return { pending: 0, pendingTotal:0, auxiliaryPending:0, observed: false, oldestPendingAt: 0, newestPendingAt: 0, lastStartAt: 0, lastResponseAt: 0, lastCompleteAt: 0, lastErrorAt: 0, lastStatusCode: 0, rateLimited: false, streamLikely: false, inflight: [], auxiliaryInflight:[], events: [] };
   const now = Date.now();
   for (const [requestId, item] of row.inflight) if (now - Number(item.startedAt || 0) > LIVE_NETWORK_TTL_MS) row.inflight.delete(requestId);
-  const inflight = [...row.inflight.values()];
+  const allInflight = [...row.inflight.values()];
+  const inflight = allInflight.filter((item) => item.activityBearing);
   const pending = inflight.length;
   const starts = inflight.map((item) => Number(item.startedAt || 0)).filter(Boolean);
   const oldestPendingAt = starts.length ? Math.min(...starts) : 0;
   const newestPendingAt = starts.length ? Math.max(...starts) : 0;
-  return { pending, observed: true, oldestPendingAt, newestPendingAt, lastStartAt: row.lastStartAt || 0, lastResponseAt: row.lastResponseAt || 0, lastCompleteAt: row.lastCompleteAt || 0, lastErrorAt: row.lastErrorAt || 0, lastStatusCode: row.lastStatusCode || 0, rateLimited: Number(row.lastStatusCode || 0) === 429 && now - Number(row.lastResponseAt || 0) < 15 * 60 * 1000, streamLikely: pending > 0 && inflight.some((item) => item.method !== 'GET' || /conversation|response|message|completion|generate|tool|stream|backend-api|\/api\//i.test(item.url || '')) };
+  return {
+    pending, pendingTotal:allInflight.length, auxiliaryPending:Math.max(0, allInflight.length - pending), observed: true, oldestPendingAt, newestPendingAt,
+    lastStartAt: row.lastStartAt || 0, lastResponseAt: row.lastResponseAt || 0, lastCompleteAt: row.lastCompleteAt || 0, lastErrorAt: row.lastErrorAt || 0,
+    lastStatusCode: row.lastStatusCode || 0,
+    rateLimited: Number(row.lastStatusCode || 0) === 429 && now - Number(row.lastStatusAt || 0) < 15 * 60 * 1000,
+    streamLikely: pending > 0 && inflight.some((item) => item.method !== 'GET' || /conversation|response|message|completion|generate|tool|stream|backend-api|\/api\//i.test(item.url || '')),
+    inflight: inflight.slice(-12).map((item) => ({ id:item.id || '', category:item.category || 'provider request', method:item.method || 'GET', startedAt:Number(item.startedAt || 0) })),
+    auxiliaryInflight: allInflight.filter((item) => !item.activityBearing).slice(-8).map((item) => ({ id:item.id || '', category:item.category || 'site background', method:item.method || 'GET', startedAt:Number(item.startedAt || 0) })),
+    events: (row.events || []).slice(-16).map((item) => ({ ...item }))
+  };
 }
 
 async function liveHealthContext(chatId, tabId) {
@@ -3267,30 +3277,65 @@ function liveNetworkRow(tabId) {
   const id = Number(tabId);
   let row = liveNetworkByTab.get(id);
   if (!row) {
-    row = { inflight: new Map(), lastStartAt: 0, lastResponseAt: 0, lastCompleteAt: 0, lastErrorAt: 0, lastStatusCode: 0, updatedAt: 0 };
+    row = { inflight: new Map(), events: [], lastStartAt: 0, lastResponseAt: 0, lastCompleteAt: 0, lastErrorAt: 0, lastObservedAt:0, lastStatusAt:0, lastStatusCode: 0, updatedAt: 0 };
     liveNetworkByTab.set(id, row);
   }
   return row;
 }
 
+function liveNetworkCategory(url = '') {
+  const value = String(url || '').toLowerCase();
+  if (/upload|attachment|file/.test(value)) return /download/.test(value) ? 'file download' : 'file transfer';
+  if (/search|browse/.test(value)) return 'web search';
+  if (/connector|tool|action|plugin/.test(value)) return 'tool / connector';
+  if (/history|conversations(?:[/?]|$)|catalog|sidebar/.test(value)) return 'chat history';
+  if (/conversation|response|message|completion|generate|stream/.test(value)) return 'response stream';
+  if (/auth|session|account|login/.test(value)) return 'session check';
+  return 'provider request';
+}
+
+function liveNetworkActivityBearing(category = '', method = 'GET') {
+  if (['response stream','tool / connector','web search','file transfer','file download'].includes(String(category || ''))) return true;
+  return String(category || '') === 'provider request' && String(method || 'GET').toUpperCase() !== 'GET';
+}
+
+function noteNetworkEvent(row, event) {
+  row.events ||= [];
+  row.events.push({ id:String(event.id || ''), phase:String(event.phase || ''), category:String(event.category || 'provider request'), activityBearing:Boolean(event.activityBearing), method:String(event.method || 'GET').slice(0, 12), status:Number(event.status || 0), startedAt:Number(event.startedAt || 0), at:Number(event.at || Date.now()), durationMs:Math.max(0, Number(event.durationMs || 0)) });
+  if (row.events.length > 36) row.events.splice(0, row.events.length - 36);
+}
+
 function noteNetworkStart(details) {
   if (!isHealthRelevantRequest(details)) return;
   const row = liveNetworkRow(details.tabId); const now = Date.now();
-  row.inflight.set(String(details.requestId || crypto.randomUUID()), { url: String(details.url || '').slice(0, 1200), method: String(details.method || 'GET'), type: String(details.type || ''), startedAt: now });
+  const id = String(details.requestId || crypto.randomUUID());
+  const category = liveNetworkCategory(details.url); const method = String(details.method || 'GET');
+  const item = { id, url: String(details.url || '').slice(0, 1200), category, activityBearing:liveNetworkActivityBearing(category, method), method, type: String(details.type || ''), startedAt: now };
+  row.inflight.set(id, item);
   while (row.inflight.size > 64) row.inflight.delete(row.inflight.keys().next().value);
-  row.lastStartAt = now; row.updatedAt = now;
+  noteNetworkEvent(row, { id, phase:'started', category:item.category, activityBearing:item.activityBearing, method:item.method, startedAt:now, at:now });
+  if (item.activityBearing) row.lastStartAt = now;
+  row.lastObservedAt = now; row.updatedAt = now;
 }
 function noteNetworkResponse(details) {
   if (!isHealthRelevantRequest(details)) return;
   const row = liveNetworkRow(details.tabId); const now = Date.now();
-  row.lastResponseAt = now; row.lastStatusCode = Number(details.statusCode || 0); row.updatedAt = now;
+  const id = String(details.requestId || ''); const item = row.inflight.get(id);
+  const category = item?.category || liveNetworkCategory(details.url); const method = item?.method || details.method; const activityBearing = item?.activityBearing ?? liveNetworkActivityBearing(category, method);
+  noteNetworkEvent(row, { id, phase:'response', category, activityBearing, method, status:details.statusCode, startedAt:item?.startedAt, at:now, durationMs:item?.startedAt ? now - item.startedAt : 0 });
+  if (activityBearing) row.lastResponseAt = now;
+  row.lastObservedAt = now; row.lastStatusAt = now; row.lastStatusCode = Number(details.statusCode || 0); row.updatedAt = now;
 }
 function noteNetworkDone(details, failed = false) {
   if (!isHealthRelevantRequest(details)) return;
   const row = liveNetworkRow(details.tabId); const now = Date.now();
-  row.inflight.delete(String(details.requestId || ''));
-  if (failed) row.lastErrorAt = now; else row.lastCompleteAt = now;
-  if (Number(details.statusCode || 0)) row.lastStatusCode = Number(details.statusCode || 0);
+  const id = String(details.requestId || ''); const item = row.inflight.get(id);
+  row.inflight.delete(id);
+  const category = item?.category || liveNetworkCategory(details.url); const method = item?.method || details.method; const activityBearing = item?.activityBearing ?? liveNetworkActivityBearing(category, method);
+  noteNetworkEvent(row, { id, phase:failed ? 'error' : 'completed', category, activityBearing, method, status:details.statusCode, startedAt:item?.startedAt, at:now, durationMs:item?.startedAt ? now - item.startedAt : 0 });
+  if (activityBearing) { if (failed) row.lastErrorAt = now; else row.lastCompleteAt = now; }
+  row.lastObservedAt = now;
+  if (Number(details.statusCode || 0)) { row.lastStatusCode = Number(details.statusCode || 0); row.lastStatusAt = now; }
   row.updatedAt = now;
 }
 

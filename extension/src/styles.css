@@ -6,6 +6,29 @@ html[data-project-constellation-enabled="1"][data-project-constellation-responsi
   scroll-behavior: auto !important;
 }
 
+/* Measured-pressure relief for the real provider page. These rules touch only
+   decorative, aria-hidden effects and expensive blur surfaces; response text,
+   controls, progress labels, and provider functionality remain intact. */
+html[data-project-constellation-enabled="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"][class*="animate-"],
+html[data-project-constellation-enabled="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"] [class*="animate-"],
+html[data-project-constellation-enabled="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"][class*="transition-"] {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+html[data-project-constellation-enabled="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"][class*="backdrop-blur"],
+html[data-project-constellation-enabled="1"][data-project-constellation-pressure="high"]
+  [aria-hidden="true"][class*="blur-"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
 /* Adaptive relief is pressure-gated and only targets decorative aria-hidden motion. */
 html[data-project-constellation-enabled="1"][data-project-constellation-motion-relief="1"][data-project-constellation-pressure="high"]
   [aria-hidden="true"][class*="animate-"],

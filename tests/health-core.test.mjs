@@ -9,6 +9,9 @@ assert.equal(row.networkActive,true);
 assert.match(row.title,/Tool working/i);
 assert.equal(row.activity.kind,'tool');
 assert.equal(row.activity.entryCount,4);
+assert.equal(row.proof.evidenceOnly,true);
+assert.equal(row.proof.certainty,'high');
+assert.deepEqual(new Set(row.proof.sources.map((item)=>item.kind)),new Set(['network','tool','response','status']));
 
 row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-180000, network:{pending:1,oldestPendingAt:now-175000,lastStartAt:now-175000,lastResponseAt:now-175000}, tool:{present:true,active:true,label:'Called tool',phase:'tool call',lastProgressAt:now-180000,entryCount:9}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
 assert.equal(row.state,'tool-stalled');
@@ -30,6 +33,7 @@ assert.equal(row.state,'stalled');
 row = core.deriveHealth({ now, chatStatus:'idle', page:{catalogAhead:true} });
 assert.equal(row.state,'stale-page');
 assert.equal(row.recommendedAction,'refresh');
+assert(row.proof.sources.some((item)=>item.kind==='page'));
 row = core.deriveHealth({ now, chatStatus:'refresh-required', network:{pending:0} });
 assert.equal(row.state,'refresh-required');
 assert.equal(row.recommendedAction,'refresh');
