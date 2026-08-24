@@ -1,0 +1,24 @@
+{
+  "northpoint": "Make every AI conversation, project, idea, status, artifact, and recovery path instantly findable without slowing or altering the provider experience.",
+  "pillars": [
+    "Project Constellation is a standalone, recoverable product with one canonical local workspace and one canonical GitHub repository",
+    "performance work is bounded, visibility-aware, idle-scheduled, and never adds provider-page network traffic",
+    "provider support is truthful, selector-resilient, permission-minimal, and tested against current public site behavior",
+    "OAuth is explicit, refresh-safe, least-privilege, secret-free in source, and never reports success before account verification",
+    "local storage, Google Drive continuity, GitHub backup, recovery, and upgrade paths preserve exact source lineage",
+    "the Nightfall visual system is accessible, restrained, GPU-friendly, reduced-motion aware, and unmistakably Project Constellation",
+    "documentation, wiki, release artifacts, checksums, repository metadata, and Project Brain agree with the verified build"
+  ],
+  "guardrails": [
+    "never trim, hide, replace, or second-virtualize provider conversation turns",
+    "content scripts never issue provider or OAuth network requests",
+    "observation and extraction work stays bounded, deduplicated, batched, and idle-aware",
+    "native provider behavior wins on failure and unsupported access is reported honestly",
+    "OAuth client IDs are injected at build time; client secrets, access tokens, refresh tokens, browser profiles, and user exports are never committed",
+    "Google access remains limited to drive.file and GitHub access remains scoped to the user-authorized repository workflow",
+    "the stable manifest key and extension ID must not change without a coordinated Google OAuth migration",
+    "ProjectDump is historical input only; preserve its unrelated content and never resume current development from it",
+    "a production release requires a clean source commit, full verification, credentialed build, real signed-in OAuth acceptance, immutable checksums, GitHub release verification, and Drive round-trip verification",
+    "reduced-motion and constrained-device modes must disable or tone down decorative animation without reducing readability or functionality"
+  ]
+}

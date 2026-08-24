@@ -1,0 +1,19 @@
+{
+  "project_id": "project-constellation-extension",
+  "name": "Project Constellation",
+  "version": "0.14.0",
+  "codename": "Nightfall",
+  "runtime": "Chromium Manifest V3 extension",
+  "status": "production-candidate-awaiting-live-oauth-acceptance",
+  "canonical_local_path": "C:\\Users\\Owner\\Desktop\\Project Constellation",
+  "canonical_repository": "https://github.com/Herbertofury/Project-Constellation",
+  "canonical_wiki": "https://github.com/Herbertofury/Project-Constellation/wiki",
+  "canonical_drive_root_id": "1mUSeFlumpIOBtVCmlwbhN11kChRsdblV",
+  "active_checkpoint_document_id": "1cGHmUG-iMUnDoncLSWsZL9ZudZ80fltnYRn-Ogwd4rU",
+  "base_release": {
+    "version": "0.13.0",
+    "drive_folder_id": "10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu"
+  },
+  "extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig",
+  "updated_at": "2026-08-24T19:12:00Z"
+}

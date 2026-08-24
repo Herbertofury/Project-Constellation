@@ -2,7 +2,7 @@
 
 `C:\Users\Owner\Desktop\Project Constellation` is the canonical local project home. `Herbertofury/Project-Constellation` is the canonical repository. Do not treat ProjectDump as a writable or current source.
 
-Read `brain/v0.13.0/COMPASS.json`, `brain/v0.13.0/STATUS.json`, `docs/CONTINUATION.md`, and the latest release receipt before making release or recovery decisions. Reconcile Drive and GitHub metadata before declaring a version current.
+Read the highest-versioned `brain/*/COMPASS.json`, its `STATUS.json` and `HANDOFF.md`, `docs/CONTINUATION.md`, and the latest release receipt before making release or recovery decisions. Reconcile Drive and GitHub metadata before declaring a version current.
 
 Source changes belong in `extension/`; tests in `tests/`; tooling in `tools/`; documentation in `docs/`; generated local output in `build/` or `logs/`; immutable evidence in the matching `releases/vX.Y.Z/`; non-current imported state in `recovery/`.
 

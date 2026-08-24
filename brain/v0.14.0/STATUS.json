@@ -1,0 +1,39 @@
+{
+  "version": "0.14.0",
+  "codename": "Nightfall",
+  "status": "production-candidate-awaiting-live-oauth-acceptance",
+  "implemented": [
+    "standalone canonical GitHub repository with ProjectDump removed from the active source, release, documentation, and continuation path",
+    "cohesive midnight, violet, and electric-blue UI system with a restrained GPU-friendly starfield, reduced-motion behavior, and constrained-device fallback",
+    "current ChatGPT DOM compatibility coverage plus bounded mutation work, idle scheduling, visibility-aware health observation, and cached service-worker health context",
+    "truthful provider adapters for ChatGPT, Claude, Gemini, Grok, DeepSeek, Perplexity, Copilot, Le Chat, Poe, Meta AI, Qwen, Kimi, Character.AI, HuggingChat, You.com, Pi, and Duck.ai",
+    "Google Chrome Identity OAuth using drive.file, granted-scope checks, account verification, cached-token eviction, and one safe 401 retry",
+    "GitHub device OAuth with repository/user scopes, interval and slow_down handling, restart-safe pending state, account verification, rotating refresh-token support, proactive refresh, one safe 401 retry, and explicit revoke/disconnect cleanup",
+    "production-only OAuth configuration injection with stable extension identity and hard failure on missing or placeholder client IDs",
+    "complete README, changelog, privacy policy, release process, OAuth provisioning checklist, and living GitHub Wiki source",
+    "deterministic production packaging with release receipt, source and installable archives, SHA-256 checksums, unsafe-path checks, and clean-tree enforcement"
+  ],
+  "verified": [
+    "six deterministic core suites pass",
+    "static validation, UI ownership, and 49-message contract validation pass",
+    "17 browser workflows pass, including service-worker load, OAuth backend behavior, current ChatGPT DOM, provider matrix, 320-turn preservation, Full Capture, Home, Recovery, and Workbench",
+    "canonical local main and origin/main match and GitHub Verify succeeds on the same commit",
+    "production build reports Google and GitHub OAuth configured and stable extension identity",
+    "production archives match RELEASE-RECEIPT.json and SHA256SUMS.txt and contain no unsafe archive paths",
+    "npm production dependency audit reports zero vulnerabilities and committed secret-shape scanning is clean",
+    "GitHub Wiki is published as a multi-page manual and repository metadata describes the standalone project"
+  ],
+  "remaining_release_gates": [
+    "load the production build in the user's signed-in Chrome and complete real Google and GitHub OAuth acceptance",
+    "tag and publish the immutable v0.14.0 GitHub Release, then redownload and verify its assets",
+    "publish the complete v0.14.0 bundle to the canonical Drive root, redownload and hash the material files, and append the ACTIVE CHECKPOINT",
+    "replace this candidate status with final release and publication evidence"
+  ],
+  "oauth": {
+    "google_client_id_configured_in_github_actions": true,
+    "github_client_id_configured_in_github_actions": true,
+    "client_secrets_required": false,
+    "real_signed_in_acceptance_complete": false
+  },
+  "updated_at": "2026-08-24T19:12:00Z"
+}
