@@ -11,8 +11,8 @@
     "drive_folder_url": "https://drive.google.com/drive/folders/1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
     "source": {
       "file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
-      "size": 226021,
-      "sha256": "51ff8d7061b0f42c509afa76bdf6bcca5090a732acbc5e2088cd1f3beaf3cf99"
+      "size": 226551,
+      "sha256": "41f3ef8c5c3734f7d33670179722e7c2b3518804528eeda14f68060661013e6b"
     },
     "unpacked": {
       "file_id": "1pM0MXYuUT_uF3UWvvljoqh2s672vqUng",
@@ -27,9 +27,15 @@
       "size": 559494,
       "sha256": "2294dbb31b7e3142b587ba7d1cd782d5dc91e4f152d96b67cc18a24d30a51460"
     },
+    "ui_proof": {
+      "file_id": "1jR3481J42rPZP1L5k1NZCQAtHgQhiK-1",
+      "size": 129464,
+      "sha256": "e3c40a3ce82ff6cc72a0f6258786a641676a1d66d76726aadaedf8b04eabf472"
+    },
     "checkpoint_file_id": "1PbbKUViNtwBlxPsc6XSGNuROobBIXSEP",
     "checksums_file_id": "13VbDsRjUNiw3UcflSy_mHqviROBefJ4-",
     "publication_receipt_file_id": "16PGJ3UobyUTtcj-I4mgH4RweuXKdjpXi",
+    "github_continuity_drive_file_id": "1bSzDa8B0AaVf8Rai84prhkxLoU8a1tjy",
     "verification": "Source/unit/static/browser-smoke regression suite passed. Ferrum v0.2.0 exact build hashing passed. True unpacked runtime in this container is externally blocked by managed Chromium policy; no false runtime PASS is claimed.",
     "ferrum_external_gate": "Loading of unpacked extensions is disabled by the administrator."
   },
@@ -52,5 +58,5 @@
     "GitHub and ProjectDump are supplemental continuity/source-control mirrors and never replace Drive artifact persistence."
   ],
   "catalog_invariant": "This extension release does not add a tracked project; the Project Constellation catalog remains exactly 63 projects unless the user explicitly changes it.",
-  "updated_at": "2026-08-24T02:48:00Z"
+  "updated_at": "2026-08-24T02:52:00Z"
 }
