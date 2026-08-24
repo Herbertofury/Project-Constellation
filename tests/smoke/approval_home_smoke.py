@@ -23,6 +23,7 @@ mock=f"""
    if(m.type==='PC_HOME_SUMMARY')return {{ok:true,home:summary}};
    if(m.type==='PC_PROVIDER_LIST')return {{ok:true,providers}};
    if(m.type==='PC_CONNECTIONS_STATUS')return {{ok:true,extensionId:'pc-test',google:{{oauthProvisioned:false,connected:false}},github:{{connected:false}},providers:[]}};
+   if(m.type==='PC_BRAIN_SETTINGS_GET')return {{ok:true,settings:{{approvalAutopilot:summary.approvalAutopilot,liveHealth:summary.liveHealth}}}};
    if(m.type==='PC_BRAIN_SETTINGS_SET'){{summary.approvalAutopilot={{...summary.approvalAutopilot,...(m.settings?.approvalAutopilot||{{}})}};summary.liveHealth={{...summary.liveHealth,...(m.settings?.liveHealth||{{}})}};return {{ok:true,settings:{{approvalAutopilot:summary.approvalAutopilot,liveHealth:summary.liveHealth}}}};}}
    if(m.type==='PC_APPROVAL_RECOVERY_START'){{summary.approvalRecovery={{status:'running',mode:m.mode,total:3,scanned:0,recovered:0,alwaysAllowed:0,allowedOnce:0,resumed:0,failed:0,startedAt:Date.now(),currentChatId:'chatgpt:blocked'}};return {{ok:true,state:summary.approvalRecovery}};}}
    if(m.type==='PC_APPROVAL_RECOVERY_STOP'){{summary.approvalRecovery={{...summary.approvalRecovery,status:'stopped'}};return {{ok:true,state:summary.approvalRecovery}};}}
@@ -53,14 +54,36 @@ with sync_playwright() as p:
     assert page.locator('#approvalAutoRecoverPaused').is_checked() is False
     assert page.locator('#liveHealthShowHealthy').is_checked() is False
     assert page.locator('#liveHealthToolWatchdog').is_checked() is False
+    assert page.locator('input[role="switch"] + .toggle-switch').count()==8
+    page.locator('#saveLiveHealthSettings').click(); page.locator('#saveApprovalSettings').click(); page.wait_for_timeout(220)
+    assert 'Saved at' in page.locator('#liveHealthSettingsStatus').text_content()
+    assert 'Saved at' in page.locator('#approvalSettingsStatus').text_content()
+    assert page.locator('#saveLiveHealthSettings').is_enabled()
+    assert page.locator('#saveApprovalSettings').is_enabled()
     msgs=page.evaluate("()=>__messages.map(m=>({type:m.type,mode:m.mode,settings:m.settings}))")
     starts=[m for m in msgs if m['type']=='PC_APPROVAL_RECOVERY_START']
     assert starts and starts[-1]['mode']=='all-known'
     assert page.locator('#approvalAutopilotBadge').text_content()=='ON'
     status=page.locator('#approvalRecoveryStatus').text_content()
     assert 'Background recovery' in status
+    reload_summary={**summary,'approvalAutopilot':persisted['approval'],'liveHealth':persisted['liveHealth']}
+    reload_mock=mock.replace(f"const summary={json.dumps(summary)};",f"const summary={json.dumps(reload_summary)};",1)
+    reload_mock=reload_mock.replace("if(m.type==='PC_HOME_SUMMARY')return {ok:true,home:summary};","if(m.type==='PC_HOME_SUMMARY')return {ok:false,error:'Failed to execute only on IDBKeyRange: invalid key'};",1)
+    reloaded=browser.new_page(viewport={'width':1440,'height':1000}); reload_errors=[]; reloaded.on('pageerror',lambda exc:reload_errors.append(str(exc)))
+    reloaded.set_content(rendered); reloaded.add_script_tag(content=reload_mock); reloaded.add_script_tag(content=js); reloaded.wait_for_timeout(180)
+    reloaded.locator('[data-view="attention"]').first.click(); reloaded.wait_for_timeout(80)
+    assert reloaded.locator('#approvalAutopilotEnabled').is_checked() is True
+    assert reloaded.locator('#approvalRiskAcknowledged').is_checked() is True
+    assert reloaded.locator('#approvalFallbackAllowOnce').is_checked() is False
+    assert reloaded.locator('#approvalAutoRecoverPaused').is_checked() is False
+    assert reloaded.locator('#liveHealthShowHealthy').is_checked() is False
+    assert reloaded.locator('#liveHealthToolWatchdog').is_checked() is False
+    assert 'Saved settings restored' in reloaded.locator('#liveHealthSettingsStatus').text_content()
+    assert 'Saved settings restored' in reloaded.locator('#approvalSettingsStatus').text_content()
+    assert reloaded.evaluate("()=>getComputedStyle(document.querySelector('#approvalAutopilotEnabled + .toggle-switch'),'::after').content")==f'"ON"'
+    assert reloaded.evaluate("()=>getComputedStyle(document.querySelector('#approvalFallbackAllowOnce + .toggle-switch'),'::after').content")==f'"OFF"'
     shot=os.environ.get('PROJECT_CONSTELLATION_APPROVAL_SCREENSHOT','/mnt/data/project-constellation-v090-work/dist/approval-autopilot-v090.png')
-    pathlib.Path(shot).parent.mkdir(parents=True,exist_ok=True); page.screenshot(path=shot,full_page=True)
-    print(json.dumps({'status':status,'start':starts[-1],'messages':[m['type'] for m in msgs],'errors':errors},sort_keys=True))
-    assert not errors
+    pathlib.Path(shot).parent.mkdir(parents=True,exist_ok=True); reloaded.screenshot(path=shot,full_page=True)
+    print(json.dumps({'status':status,'start':starts[-1],'messages':[m['type'] for m in msgs],'errors':errors,'reloadErrors':reload_errors},sort_keys=True))
+    assert not errors and not reload_errors
     browser.close()

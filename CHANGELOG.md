@@ -19,6 +19,8 @@ All notable Project Constellation changes are recorded here.
 
 - Needs Attention, pinned, favorite, and archive views no longer pass boolean values to `IDBKeyRange.only`, eliminating the IndexedDB `DataError` that interrupted Home refreshes after settings or organizer actions.
 - Approval Autopilot and Live Chat Health settings writes are serialized, immediately reflected from the confirmed storage response, and protected from rapid-toggle lost updates.
+- Needs Attention settings now use accessible ON/OFF switches, autosave feedback, and explicit Save Settings buttons that re-submit and confirm the complete visible state.
+- Home now falls back to a direct settings read when a stale/background-mismatched service worker cannot build the full summary, so saved switches never render as unchecked startup placeholders during an extension update.
 - Recovery and organizer buttons now reject failed background actions instead of displaying success or refreshing as though the mutation worked.
 - Google OAuth builds no longer silently masquerade as production when the client is missing.
 - Google connection success now requires a real Drive API verification response and the granted `drive.file` scope.

@@ -346,13 +346,14 @@
     $('liveHealthDeadStall').value=String(healthCfg.deadStallMs||240000);
     $('liveHealthCapacityWarning').value=String(healthCfg.capacityWarningTurns||180);
     $('liveHealthCapacityHandoff').value=String(healthCfg.capacityHandoffTurns||260);
-    $('liveHealthSettingsStatus').textContent=healthCfg.enabled===false?'Live Chat Health is disabled.':`Execution Pulse is armed · Tool watchdog ${healthCfg.toolWatchdogEnabled===false?'off':'on'} · Capacity Guard ${healthCfg.capacityGuardEnabled===false?'off':'on'} · zero added provider requests.`;
+    if($('liveHealthSettingsStatus').dataset.state==='ready'){$('liveHealthSettingsStatus').dataset.state='saved';$('liveHealthSettingsStatus').textContent=healthCfg.enabled===false?'Saved automatically · Live Chat Health is off.':`Saved automatically · Execution Pulse on · Watchdog ${healthCfg.toolWatchdogEnabled===false?'off':'on'} · Capacity Guard ${healthCfg.capacityGuardEnabled===false?'off':'on'}.`;}
     $('approvalRiskAcknowledged').checked=Boolean(cfg.acknowledged);
     $('approvalAutopilotEnabled').checked=Boolean(cfg.enabled);
     $('approvalFallbackAllowOnce').checked=cfg.fallbackAllowOnce!==false;
     $('approvalAutoRecoverPaused').checked=cfg.autoRecoverPaused!==false;
     $('approvalAutopilotBadge').textContent=cfg.enabled?'ON':'OFF';
     $('approvalAutopilotBadge').classList.toggle('heavy',Boolean(cfg.enabled));
+    if($('approvalSettingsStatus').dataset.state==='ready'){$('approvalSettingsStatus').dataset.state='saved';$('approvalSettingsStatus').textContent=`Saved automatically · Approval Autopilot ${cfg.enabled?'on':'off'} · fallback ${cfg.fallbackAllowOnce===false?'off':'on'} · paused-chat recovery ${cfg.autoRecoverPaused===false?'off':'on'}.`;}
     const running=state.status==='running';const total=Math.max(0,Number(state.total||0));const scanned=Math.max(0,Number(state.scanned||0));
     $('approvalRecoveryBar').style.width=`${total?Math.min(100,(scanned/total)*100):state.status==='completed'?100:0}%`;
     document.querySelector('.approval-autopilot-card')?.setAttribute('data-running',running?'1':'0');
@@ -487,8 +488,22 @@
   }
 
   async function loadHome(){
-    const [summary, providerResponse, connectionResponse]=await Promise.all([call({type:'PC_HOME_SUMMARY'}),call({type:'PC_PROVIDER_LIST'}),call({type:'PC_CONNECTIONS_STATUS'})]);
-    if(!summary?.ok) throw new Error(summary?.error||'Home summary failed');
+    const [summary, providerResponse, connectionResponse]=await Promise.all([
+      call({type:'PC_HOME_SUMMARY'}).catch((error)=>({ok:false,error:String(error?.message||error)})),
+      call({type:'PC_PROVIDER_LIST'}).catch(()=>({ok:false,providers:[]})),
+      call({type:'PC_CONNECTIONS_STATUS'}).catch(()=>({ok:false}))
+    ]);
+    if(!summary?.ok){
+      const failure=summary?.error||'Home summary failed';
+      const persisted=await call({type:'PC_BRAIN_SETTINGS_GET'}).catch(()=>({ok:false}));
+      providers=providerResponse?.providers||providers;connections=connectionResponse?.ok?connectionResponse:connections;
+      if(persisted?.ok){
+        home={...(home||{}),counts:home?.counts||{},attention:home?.attention||[],liveHealth:persisted.settings?.liveHealth||home?.liveHealth||{},approvalAutopilot:persisted.settings?.approvalAutopilot||home?.approvalAutopilot||{},approvalRecovery:home?.approvalRecovery||null};
+        renderAttention();if(connections)renderConnections();renderWorkbenchStatus();
+        for(const id of ['liveHealthSettingsStatus','approvalSettingsStatus']){const node=$(id);node.dataset.state='error';node.textContent=`Saved settings restored · reload the extension background to restore full Home: ${failure}`;}
+      }
+      throw new Error(failure);
+    }
     home=summary.home; providers=providerResponse?.providers||[]; connections=connectionResponse?.ok?connectionResponse:connections; organization=home?.organization||organization;
     renderOverview(); renderKnowledgeChrome(); renderIntegrity(); renderAttention(); renderConnections(); renderSources(); renderFullCapture(); renderDurability(); renderWorkbenchStatus();
   }
@@ -773,21 +788,26 @@
   $('loadGithubRepos').addEventListener('click',async()=>{try{const result=await call({type:'PC_GITHUB_REPOSITORIES'});if(!result?.ok)throw new Error(result?.error||'Could not load repositories.');const select=$('githubRepoSelect');select.innerHTML='<option value="">Choose repository…</option>'+result.repositories.map((repo)=>`<option value="${esc(repo.fullName)}" data-branch="${esc(repo.defaultBranch)}">${esc(repo.fullName)}${repo.private?' · private':''}</option>`).join('');}catch(e){toast(e.message);}});
   $('githubRepoSelect').addEventListener('change',async()=>{const value=$('githubRepoSelect').value;if(!value)return;const [owner,repo]=value.split('/');const branch=$('githubRepoSelect').selectedOptions[0]?.dataset.branch||'main';const result=await call({type:'PC_BRAIN_SETTINGS_SET',settings:{github:{owner,repo,branch}}});if(!result?.ok)toast(result?.error||'Repository selection failed');else{await refreshConnections(false);toast(`GitHub mirror set to ${value}`);}});
   $('providerConnections').addEventListener('click',async(event)=>{const login=event.target.closest?.('[data-provider-login]')?.dataset.providerLogin;if(login){await call({type:'PC_PROVIDER_LOGIN_OPEN',providerId:login});return;}const check=event.target.closest?.('[data-provider-check]')?.dataset.providerCheck;if(check){const r=await call({type:'PC_PROVIDER_SESSION_STATUS',providerId:check,network:true});if(!r?.ok)toast(r?.error||'Session check failed');await refreshConnections(false);return;}const capture=event.target.closest?.('[data-provider-capture]')?.dataset.providerCapture;if(capture){switchView('sources');document.querySelectorAll('#fullCaptureProviders input').forEach((n)=>n.checked=n.dataset.fullProvider===capture);$('startFullCapture').click();}});
+  function showSettingsSaveState(section,state,message){const live=section==='liveHealth';const node=$(live?'liveHealthSettingsStatus':'approvalSettingsStatus');const button=$(live?'saveLiveHealthSettings':'saveApprovalSettings');node.dataset.state=state;node.textContent=message;button.disabled=state==='saving';}
   function queueSettingsSave(section,patch,errorMessage){
     const pending=settingsSaveQueue.catch(()=>{}).then(async()=>{
-      const r=await call({type:'PC_BRAIN_SETTINGS_SET',settings:{[section]:patch}});
-      if(!r?.ok)throw new Error(r?.error||errorMessage);
-      const saved=r.settings?.[section]||patch;
-      home={...(home||{}),[section]:{...(home?.[section]||{}),...saved}};
-      renderAttention();
-      return {...r,refreshError:''};
+      showSettingsSaveState(section,'saving','Saving your settings…');
+      try{
+        const r=await call({type:'PC_BRAIN_SETTINGS_SET',settings:{[section]:patch}});
+        if(!r?.ok)throw new Error(r?.error||errorMessage);
+        const saved=r.settings?.[section]||patch;
+        home={...(home||{}),[section]:{...(home?.[section]||{}),...saved}};
+        renderAttention();
+        showSettingsSaveState(section,'saved',`Saved at ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})} · autosave is on.`);
+        return r;
+      }catch(error){showSettingsSaveState(section,'error',String(error?.message||error));throw error;}
     });
     settingsSaveQueue=pending;
     return pending;
   }
   async function saveApprovalAutopilot(patch){return queueSettingsSave('approvalAutopilot',patch,'Could not save Approval Autopilot settings.');}
   async function saveLiveHealth(patch){return queueSettingsSave('liveHealth',patch,'Could not save Live Chat Health settings.');}
-  async function updateLiveHealthSetting(patch){try{$('liveHealthSettingsStatus').textContent='Saving Live Chat Health settings…';const r=await saveLiveHealth(patch);$('liveHealthSettingsStatus').textContent=r.refreshError?`Saved locally · dashboard refresh pending: ${r.refreshError}`:'Saved · open AI tabs update without a reload.';}catch(e){$('liveHealthSettingsStatus').textContent=e.message;toast(e.message);}}
+  async function updateLiveHealthSetting(patch){try{await saveLiveHealth(patch);}catch(e){toast(e.message);}}
   $('liveHealthEnabled').addEventListener('change',()=>updateLiveHealthSetting({enabled:$('liveHealthEnabled').checked}));
   $('liveHealthShowHealthy').addEventListener('change',()=>updateLiveHealthSetting({showHealthy:$('liveHealthShowHealthy').checked}));
   $('liveHealthToolWatchdog').addEventListener('change',()=>updateLiveHealthSetting({toolWatchdogEnabled:$('liveHealthToolWatchdog').checked}));
@@ -799,6 +819,8 @@
   $('liveHealthDeadStall').addEventListener('change',()=>updateLiveHealthSetting({deadStallMs:Number($('liveHealthDeadStall').value)}));
   $('liveHealthCapacityWarning').addEventListener('change',()=>updateLiveHealthSetting({capacityWarningTurns:Number($('liveHealthCapacityWarning').value)}));
   $('liveHealthCapacityHandoff').addEventListener('change',()=>updateLiveHealthSetting({capacityHandoffTurns:Number($('liveHealthCapacityHandoff').value)}));
+  $('saveLiveHealthSettings').addEventListener('click',async()=>{try{await saveLiveHealth({enabled:$('liveHealthEnabled').checked,showHealthy:$('liveHealthShowHealthy').checked,toolWatchdogEnabled:$('liveHealthToolWatchdog').checked,capacityGuardEnabled:$('liveHealthCapacityGuard').checked,corner:$('liveHealthCorner').value,density:$('liveHealthDensity').value,softStallMs:Number($('liveHealthSoftStall').value),hardStallMs:Number($('liveHealthHardStall').value),deadStallMs:Number($('liveHealthDeadStall').value),capacityWarningTurns:Number($('liveHealthCapacityWarning').value),capacityHandoffTurns:Number($('liveHealthCapacityHandoff').value)});toast('Live Chat Health settings saved');}catch(e){toast(e.message);}});
+  $('saveApprovalSettings').addEventListener('click',async()=>{const acknowledged=$('approvalRiskAcknowledged').checked;const enabled=$('approvalAutopilotEnabled').checked;if(enabled&&!acknowledged){showSettingsSaveState('approvalAutopilot','error','Acknowledge Always Allow before enabling Autopilot.');toast('Acknowledge the Always Allow behavior first.');return;}try{await saveApprovalAutopilot({acknowledged,enabled,fallbackAllowOnce:$('approvalFallbackAllowOnce').checked,autoRecoverPaused:$('approvalAutoRecoverPaused').checked});toast('Approval Autopilot settings saved');}catch(e){toast(e.message);}});
   $('approvalRiskAcknowledged').addEventListener('change',async()=>{const acknowledged=$('approvalRiskAcknowledged').checked;try{await saveApprovalAutopilot({acknowledged,enabled:acknowledged?Boolean(home?.approvalAutopilot?.enabled):false});}catch(e){toast(e.message);}});
   $('runIntegrityScan').addEventListener('click',async()=>{try{$('runIntegrityScan').disabled=true;$('integrityStatus').textContent='Scanning changed project baselines locally…';const r=await call({type:'PC_INTEGRITY_SCAN',force:true});if(!r?.ok)throw new Error(r?.error||'Project integrity scan failed.');await loadHome();toast(`Integrity scan: ${fmt(r.scanned)} projects · ${fmt(r.findings)} findings`);}catch(e){$('integrityStatus').textContent=e.message;}finally{$('runIntegrityScan').disabled=false;}});
   $('approvalAutopilotEnabled').addEventListener('change',async()=>{const enabled=$('approvalAutopilotEnabled').checked;const acknowledged=$('approvalRiskAcknowledged').checked;try{if(enabled&&!acknowledged){$('approvalAutopilotEnabled').checked=false;toast('Acknowledge the Always Allow behavior first.');return;}await saveApprovalAutopilot({enabled,acknowledged});if(enabled){$('approvalRecoveryStatus').textContent='Autopilot enabled · running one full cleanup of known ChatGPT chats…';const r=await call({type:'PC_APPROVAL_RECOVERY_START',mode:'all-known'});if(!r?.ok)throw new Error(r?.error||'Autopilot saved, but the recovery sweep could not start.');home.approvalRecovery=r.state||home.approvalRecovery;renderAttention();await refreshHomeAfterCompletedAction('Recovery sweep start');}}catch(e){toast(e.message);}});

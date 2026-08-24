@@ -19,6 +19,8 @@ The page HUD correlates mounted DOM progress, passive provider network evidence,
 
 The HUD never sends provider requests. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
 
+Needs Attention settings use accessible ON/OFF switches. Every change is autosaved through a serialized background mutation, while each section also offers an explicit Save Settings button and live saved/saving/error feedback. Reloaded Home pages render directly from the persisted settings response.
+
 ## Recovery and durability
 
 - Two-phase browser-refresh recovery for delivery failures (never a blind Retry click).
