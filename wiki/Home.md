@@ -26,3 +26,5 @@ Version **0.14.0 “Nightfall”** is the production upgrade from the canonical 
 - [Contributor and agent continuation](Contributor-and-Agent-Continuation)
 
 The canonical source is [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation). ProjectDump is retained only as historical provenance; Project Constellation no longer depends on it.
+
+Before enabling remote sync, read the [privacy policy](Privacy-Policy). Maintainers should use the [production release process](Release-Process) so the source, packaged artifacts, Wiki, and Drive checkpoint remain one verified state.
