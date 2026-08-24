@@ -4,46 +4,65 @@
   "project_id": "project-constellation-extension",
   "purpose": "Cross-chat continuity pointer only; ProjectDump is not declared the canonical extension source repository.",
   "current_extension": {
-    "version": "0.12.0",
-    "release": "Conversation Capacity Guard + Safe Handoff",
+    "version": "0.13.0",
+    "release": "Execution Pulse + Tool Watchdog",
     "continuation_authority": "Google Drive full verified release",
-    "drive_folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
-    "drive_folder_url": "https://drive.google.com/drive/folders/1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "drive_folder_id": "10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
+    "drive_folder_url": "https://drive.google.com/drive/folders/10pAXUoi3jRJz9e8uY7aZ37-B3OJcZ_Vu",
     "source": {
-      "file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
-      "size": 226551,
-      "sha256": "41f3ef8c5c3734f7d33670179722e7c2b3518804528eeda14f68060661013e6b"
+      "file_id": "1BE4BxzKCr-sjVnFiwE-cv50vwhGM6GZI",
+      "size": 232749,
+      "sha256": "779a8dcb7ad11bcb826f6d71cf134cdbd675e0819f6281409675bc264a842ad1"
     },
     "unpacked": {
-      "file_id": "1pM0MXYuUT_uF3UWvvljoqh2s672vqUng",
-      "size": 155887,
-      "sha256": "f840b5fbcacdf8e70a48c06ce518339d6aab5bb3837f12659ada9afb7680d376",
-      "tree_sha256_ferrum": "f4b0f2329c312bc55770f764cdeacf158683888bc0093a3e47f6e8c207a2d01b",
+      "file_id": "1j5p_9MeJhz2yF6kWjZb4l8d1LY1YIwvv",
+      "size": 159179,
+      "sha256": "95dd2b1b9451f5061942981dcc4c245ac4319ac6fd87f3e21d55e9d8d3f2d60c",
+      "tree_sha256": "f80475cf97db4a7c6b4ee24925ccc987cf77ca5085db94555a9029e3b3276bbf",
       "file_count": 21,
       "expected_extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig"
     },
     "evidence": {
-      "file_id": "1AiLWskQHOVy53d2G6GioKbljQdZHMuQl",
-      "size": 559494,
-      "sha256": "2294dbb31b7e3142b587ba7d1cd782d5dc91e4f152d96b67cc18a24d30a51460"
+      "file_id": "1ewvzPJXWmOnRTZXsw1PL9wuSpppHbt4R",
+      "size": 1293451,
+      "sha256": "a5aed9593a45b23c5860568d531c1d03283d11dbdd2475449265f364d8157b5c"
     },
     "ui_proof": {
-      "file_id": "1jR3481J42rPZP1L5k1NZCQAtHgQhiK-1",
-      "size": 129464,
-      "sha256": "e3c40a3ce82ff6cc72a0f6258786a641676a1d66d76726aadaedf8b04eabf472"
+      "file_id": "1-JsY58YQgLP2TwtoEmKx1fqeosAVknz9",
+      "size": 131349,
+      "sha256": "c4b804d53e205cdefaea46be1aa42d76b78a0f087e52ebd44d946d363b905cc5"
     },
-    "checkpoint_file_id": "1PbbKUViNtwBlxPsc6XSGNuROobBIXSEP",
-    "checksums_file_id": "13VbDsRjUNiw3UcflSy_mHqviROBefJ4-",
-    "publication_receipt_file_id": "16PGJ3UobyUTtcj-I4mgH4RweuXKdjpXi",
-    "github_continuity_drive_file_id": "1bSzDa8B0AaVf8Rai84prhkxLoU8a1tjy",
-    "verification": "Source/unit/static/browser-smoke regression suite passed. Ferrum v0.2.0 exact build hashing passed. True unpacked runtime in this container is externally blocked by managed Chromium policy; no false runtime PASS is claimed.",
+    "checkpoint": {
+      "file_id": "1R9jLbcOPQvZrq4z4m7bWSemj1BLfVrhw",
+      "size": 4668,
+      "sha256": "261954a05a17f305845541f05c513d10e3318a6cf8d096e05a324b40ceab870f"
+    },
+    "checksums": {
+      "file_id": "1EgNfRGL0hwNT6GOzAq7yTs7xmPXdNRGU",
+      "size": 553,
+      "sha256": "8c178bd86022eacc519536aeaefe0c8e605dc622a0fc82302beccc3217ec5c56"
+    },
+    "publication_receipt": {
+      "file_id": "1RsxWvkaWMb54OWovmm31d_JNITqOLU0N",
+      "size": 3948,
+      "sha256": "3ca1ae9e4ef4bde88ee2a3cf8415e12525c1f5629a58a196876f0c81871cee5c"
+    },
+    "capabilities": [
+      "Bottom-right Execution Pulse distinguishes tool-running, tool-quiet, tool-stalled, tool-dead, request-stalled, and dead chat states.",
+      "Repeated generic Called tool timeline rows advance tool-step progress without erasing the nearest informative tool label.",
+      "Zombie pending requests age into stalled/dead states instead of keeping the HUD falsely green.",
+      "HUD exposes last proof, network, activity, tool pulse, project, page, capacity, and handoff state.",
+      "Fresh live health/activity is projected into Home, Attention, Inspector, Recovery, Search, and Organizer.",
+      "Zero automatic Retry behavior is preserved."
+    ],
+    "verification": "Unit/static/build and full browser-smoke regression suite passed, including Execution Pulse, 320-turn/no-provider-request regression, fresh extracted critical paths, and exact build/fresh-installable identity. True unpacked runtime in this container is externally blocked by managed Chromium policy; no false runtime PASS is claimed.",
     "ferrum_external_gate": "Loading of unpacked extensions is disabled by the administrator."
   },
   "base_lineage": {
-    "version": "0.11.0",
-    "drive_folder_id": "1k6Z33D5D6m_79xJSJ0fosdxzM_P22f6X",
-    "source_file_id": "1Yn4qjIa-BsSvWYM_7JFdnYfDkVUHoR1q",
-    "source_sha256": "f3f61d1935c76441e43ef9db3d2be390956944d1fd662495899181bedf688e60"
+    "version": "0.12.0",
+    "drive_folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "source_file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
+    "source_sha256": "41f3ef8c5c3734f7d33670179722e7c2b3518804528eeda14f68060661013e6b"
   },
   "quarantined_lineage": {
     "path": "project-constellation/releases/v0.11.1",
@@ -58,5 +77,5 @@
     "GitHub and ProjectDump are supplemental continuity/source-control mirrors and never replace Drive artifact persistence."
   ],
   "catalog_invariant": "This extension release does not add a tracked project; the Project Constellation catalog remains exactly 63 projects unless the user explicitly changes it.",
-  "updated_at": "2026-08-24T02:52:00Z"
+  "updated_at": "2026-08-24T16:46:00Z"
 }
