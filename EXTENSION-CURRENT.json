@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "project": "Project Constellation",
+  "project_id": "project-constellation-extension",
+  "purpose": "Cross-chat continuity pointer only; ProjectDump is not declared the canonical extension source repository.",
+  "current_extension": {
+    "version": "0.12.0",
+    "release": "Conversation Capacity Guard + Safe Handoff",
+    "continuation_authority": "Google Drive full verified release",
+    "drive_folder_id": "1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "drive_folder_url": "https://drive.google.com/drive/folders/1imFkQAFjx53Xtax6F3UXchhGsqtd9iMm",
+    "source": {
+      "file_id": "1d1RfauC1u5O8RAQz-04DPM2b55CqQUd2",
+      "size": 226021,
+      "sha256": "51ff8d7061b0f42c509afa76bdf6bcca5090a732acbc5e2088cd1f3beaf3cf99"
+    },
+    "unpacked": {
+      "file_id": "1pM0MXYuUT_uF3UWvvljoqh2s672vqUng",
+      "size": 155887,
+      "sha256": "f840b5fbcacdf8e70a48c06ce518339d6aab5bb3837f12659ada9afb7680d376",
+      "tree_sha256_ferrum": "f4b0f2329c312bc55770f764cdeacf158683888bc0093a3e47f6e8c207a2d01b",
+      "file_count": 21,
+      "expected_extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig"
+    },
+    "evidence": {
+      "file_id": "1AiLWskQHOVy53d2G6GioKbljQdZHMuQl",
+      "size": 559494,
+      "sha256": "2294dbb31b7e3142b587ba7d1cd782d5dc91e4f152d96b67cc18a24d30a51460"
+    },
+    "checkpoint_file_id": "1PbbKUViNtwBlxPsc6XSGNuROobBIXSEP",
+    "checksums_file_id": "13VbDsRjUNiw3UcflSy_mHqviROBefJ4-",
+    "publication_receipt_file_id": "16PGJ3UobyUTtcj-I4mgH4RweuXKdjpXi",
+    "verification": "Source/unit/static/browser-smoke regression suite passed. Ferrum v0.2.0 exact build hashing passed. True unpacked runtime in this container is externally blocked by managed Chromium policy; no false runtime PASS is claimed.",
+    "ferrum_external_gate": "Loading of unpacked extensions is disabled by the administrator."
+  },
+  "base_lineage": {
+    "version": "0.11.0",
+    "drive_folder_id": "1k6Z33D5D6m_79xJSJ0fosdxzM_P22f6X",
+    "source_file_id": "1Yn4qjIa-BsSvWYM_7JFdnYfDkVUHoR1q",
+    "source_sha256": "f3f61d1935c76441e43ef9db3d2be390956944d1fd662495899181bedf688e60"
+  },
+  "quarantined_lineage": {
+    "path": "project-constellation/releases/v0.11.1",
+    "label": "Atlas + Chat Guardian",
+    "status": "NONCANONICAL_SUPERSEDED",
+    "rule": "Preserve for incident history only. Never resume, install, merge, or promote as current Project Constellation extension source."
+  },
+  "continuity_rules": [
+    "Check Google Drive first for every project resume/start.",
+    "Resume from the newest verified FULL Drive source/artifact/checkpoint when Drive is newer or stronger.",
+    "Publish complete material source/build/evidence/checkpoints back to Drive; partial manifests/hashes/patches/diffs/fragments never satisfy persistence by themselves.",
+    "GitHub and ProjectDump are supplemental continuity/source-control mirrors and never replace Drive artifact persistence."
+  ],
+  "catalog_invariant": "This extension release does not add a tracked project; the Project Constellation catalog remains exactly 63 projects unless the user explicitly changes it.",
+  "updated_at": "2026-08-24T02:48:00Z"
+}
