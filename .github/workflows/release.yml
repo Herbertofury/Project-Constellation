@@ -74,6 +74,8 @@ jobs:
             HEAD_COMMIT="$(git rev-parse HEAD)"
             test "$TAG_COMMIT" = "$HEAD_COMMIT"
           else
+            git config user.name "Project Constellation Release"
+            git config user.email "actions@users.noreply.github.com"
             git tag -a "$TAG" -m "Project Constellation $TAG — Nightfall"
             git push origin "refs/tags/$TAG"
           fi
