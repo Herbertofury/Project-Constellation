@@ -3,6 +3,7 @@ name: Production release
 on:
   push:
     tags: ['v*']
+    branches: ['release/v*']
   workflow_dispatch:
     inputs:
       tag:
@@ -26,6 +27,22 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.tag || github.ref }}
+      - name: Resolve release tag
+        id: release_meta
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
+            TAG="${GITHUB_REF_NAME#release/}"
+          else
+            echo "Unsupported release ref: ${GITHUB_REF}" >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved release tag: $TAG"
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -45,13 +62,25 @@ jobs:
       - name: Confirm tag/version agreement
         shell: bash
         run: |
-          TAG="${{ inputs.tag || github.ref_name }}"
+          TAG="${{ steps.release_meta.outputs.tag }}"
           VERSION="v$(node -p "require('./package.json').version")"
           test "$TAG" = "$VERSION"
+      - name: Ensure immutable release tag exists
+        shell: bash
+        run: |
+          TAG="${{ steps.release_meta.outputs.tag }}"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            TAG_COMMIT="$(git rev-list -n 1 "$TAG")"
+            HEAD_COMMIT="$(git rev-parse HEAD)"
+            test "$TAG_COMMIT" = "$HEAD_COMMIT"
+          else
+            git tag -a "$TAG" -m "Project Constellation $TAG — Nightfall"
+            git push origin "refs/tags/$TAG"
+          fi
       - name: Publish or update GitHub Release
         shell: bash
         run: |
-          TAG="${{ inputs.tag || github.ref_name }}"
+          TAG="${{ steps.release_meta.outputs.tag }}"
           VERSION="${TAG#v}"
           FILES=(releases/"$TAG"/Project-Constellation-v"$VERSION"-unpacked.zip releases/"$TAG"/Project-Constellation-v"$VERSION"-source.zip releases/"$TAG"/SHA256SUMS.txt releases/"$TAG"/RELEASE-RECEIPT.json)
           if gh release view "$TAG" >/dev/null 2>&1; then
