@@ -101,7 +101,8 @@
         "src/brain-core.js",
         "src/provider-core.js",
         "src/health-core.js",
-        "src/content.js"
+        "src/content.js",
+        "src/pulse-ux.js"
       ],
       "css": [
         "src/styles.css"
