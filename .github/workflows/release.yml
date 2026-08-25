@@ -76,7 +76,7 @@ jobs:
           else
             git config user.name "Project Constellation Release"
             git config user.email "actions@users.noreply.github.com"
-            git tag -a "$TAG" -m "Project Constellation $TAG — Nightfall"
+            git tag -a "$TAG" -m "Project Constellation $TAG"
             git push origin "refs/tags/$TAG"
           fi
       - name: Publish or update GitHub Release
@@ -84,12 +84,14 @@ jobs:
         run: |
           TAG="${{ steps.release_meta.outputs.tag }}"
           VERSION="${TAG#v}"
+          NOTES="docs/v${VERSION}-release-notes.md"
+          test -f "$NOTES"
           FILES=(releases/"$TAG"/Project-Constellation-v"$VERSION"-unpacked.zip releases/"$TAG"/Project-Constellation-v"$VERSION"-source.zip releases/"$TAG"/SHA256SUMS.txt releases/"$TAG"/RELEASE-RECEIPT.json)
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "Project Constellation $TAG — Nightfall" --notes-file docs/v0.14.0-release-notes.md
+            gh release edit "$TAG" --title "Project Constellation $TAG" --notes-file "$NOTES"
             gh release upload "$TAG" "${FILES[@]}" --clobber
           else
-            gh release create "$TAG" "${FILES[@]}" --verify-tag --title "Project Constellation $TAG — Nightfall" --notes-file docs/v0.14.0-release-notes.md
+            gh release create "$TAG" "${FILES[@]}" --verify-tag --title "Project Constellation $TAG" --notes-file "$NOTES"
           fi
       - uses: actions/upload-artifact@v7
         with:
