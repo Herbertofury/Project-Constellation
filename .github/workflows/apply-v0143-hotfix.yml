@@ -1,0 +1,34 @@
+name: Apply v0.14.3 stable live state hotfix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v0143-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: hotfix/v0.14.3-state-arbiter
+      - name: Reconstruct and apply reviewed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/hotfix/v0143.patch.xz.b64.* | base64 -d | xz -d > /tmp/v0143.patch
+          echo '38a1436788dd9712d6d22dddb740bd6b8abccf17e6f4591e7179c69345c9e401  /tmp/v0143.patch' | sha256sum -c -
+          git apply --check /tmp/v0143.patch
+          git apply /tmp/v0143.patch
+          rm -rf .github/hotfix
+          git config user.name 'Project Constellation Hotfix'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git status --short
+          git commit -m 'v0.14.3: stabilize live chat state arbitration'
+          git push origin HEAD:hotfix/v0.14.3-state-arbiter
