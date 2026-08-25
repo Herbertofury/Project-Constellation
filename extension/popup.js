@@ -19,6 +19,7 @@
   const safe = (value,max=90)=>String(value??'').replace(/\s+/g,' ').trim().slice(0,max);
   const statusBucket=(status='idle')=>ACTIVE_STATUSES.has(status)?'active':STALE_STATUSES.has(status)?'stale':'completed';
   const sumStatuses=(counts,set)=>[...set].reduce((sum,status)=>sum+Math.max(0,Number(counts?.[status]||0)),0);
+  const primaryChatLabel=(status='idle')=>statusBucket(status)==='completed'?'complete':statusBucket(status)==='stale'?'needs attention':status.replaceAll('-',' ');
 
   function renderSettings(){
     for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].checked = Boolean(currentSettings[key]);
@@ -30,9 +31,9 @@
   function renderStatus(status){
     if (!status) { els.pressure.textContent='offline'; els.pressure.dataset.state='offline'; els.provider.textContent='—'; els.chatState.textContent='—'; els.status.textContent='Open a supported AI chat to see live performance. The Command Center remains available.'; return; }
     const state=status.pressure?.pressure||'normal'; els.pressure.textContent=state; els.pressure.dataset.state=state;
-    const health=status.chat?.health;
-    els.provider.textContent=status.provider?.name||'AI'; els.chatState.textContent=health?.title||status.chat?.status||'idle'; els.longTasks.textContent=status.metrics?.totalLongTasks||0; els.maxTask.textContent=`${status.metrics?.maxLongTaskMs||0} ms`;
-    els.status.textContent=health?.detail||'Performance protection and continuity capture are active on this tab.';
+    const health=status.chat?.health; const rawStatus=String(status.chat?.status||'idle'); const outputOnly=health?.state==='output-regressed'||/^saved output is missing/i.test(String(health?.title||''));
+    els.provider.textContent=status.provider?.name||'AI'; els.chatState.textContent=outputOnly?primaryChatLabel(rawStatus):(health?.title||rawStatus); els.longTasks.textContent=status.metrics?.totalLongTasks||0; els.maxTask.textContent=`${status.metrics?.maxLongTaskMs||0} ms`;
+    els.status.textContent=outputOnly?`Chat is ${primaryChatLabel(rawStatus)}. Saved/page differences are tracked separately in Output Vault.`:(health?.detail||'Performance protection and continuity capture are active on this tab.');
   }
   function renderChatPulse(){
     els.chatPulse.hidden = pulseSettings.statusPinEnabled === false;
