@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"></head>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"><link rel="stylesheet" href="popup-pulse.css"></head>
 <body><main class="panel">
   <div class="hero"><div><div class="brand-line"><span class="brand-mark">✦</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Performance Engine</h1></div><span id="pressure" class="badge">offline</span></div>
   <p class="status" id="status">Performance protection and continuity monitoring.</p>
@@ -8,10 +8,22 @@
     <button id="openConstellation">Open Command Center</button>
     <button id="openAccounts">Accounts & Connections</button>
   </div>
+  <section class="chat-pulse" id="chatPulse" aria-label="Chat status overview">
+    <div class="section-head"><span>CHAT PULSE</span><small>live local catalog</small></div>
+    <div class="chat-grid">
+      <button class="chat-card active" id="activeSummary" data-chat-bucket="active"><span>Active</span><strong id="activeCount">0</strong><small id="activeLatest">No active chats</small></button>
+      <button class="chat-card stale" id="staleSummary" data-chat-bucket="stale"><span>Stale</span><strong id="staleCount">0</strong><small id="staleLatest">No stale chats</small></button>
+      <button class="chat-card complete" id="completedSummary" data-chat-bucket="completed"><span>Completed</span><strong id="completedCount">0</strong><small id="completedLatest">No completed chats</small></button>
+    </div>
+    <p class="chat-pulse-hint" id="chatPulseHint">Click a status card to open its latest chat.</p>
+  </section>
   <section class="controls">
     <label class="row"><span><strong>Performance engine</strong><small>Long-task pressure governor and jank protection</small></span><input id="enabled" type="checkbox"></label>
     <label class="row"><span><strong>Responsive scrolling</strong><small>Prevent smooth-scroll frame pileups</small></span><input id="responsiveScrolling" type="checkbox"></label>
     <label class="row"><span><strong>Adaptive motion relief</strong><small>Decorative-only relief during measured pressure</small></span><input id="adaptiveMotionRelief" type="checkbox"></label>
+    <label class="row"><span><strong>Chat status on pin</strong><small>Show Active, Stale, and Completed chat counts on the pinned menu and collapsed Pulse</small></span><input id="statusPinEnabled" type="checkbox"></label>
+    <label class="row"><span><strong>Output Vault warnings</strong><small>Keep saved/page mismatch warnings secondary to chat health</small></span><input id="outputWarningsEnabled" type="checkbox"></label>
+    <label class="row select-row"><span><strong>Output warning sensitivity</strong><small>Balanced ignores low-confidence tool/activity-card churn</small></span><select id="outputWarningStrictness"><option value="relaxed">Relaxed</option><option value="balanced">Balanced</option><option value="strict">Strict</option></select></label>
   </section>
   <section class="metrics"><div><span>Provider</span><strong id="provider">—</strong></div><div><span>Chat state</span><strong id="chatState">—</strong></div><div><span>Long tasks</span><strong id="longTasks">0</strong></div><div><span>Max task</span><strong id="maxTask">0 ms</strong></div></section>
   <button id="resetMetrics">Reset session metrics</button>
