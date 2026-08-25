@@ -21,6 +21,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo '2ccc9dd3c23916463589fad2e3fd8a3bf36762a65f9c38efc029f6ba84e300da  .github/hotfix/v0143.patch.xz.b64.00' | sha256sum -c -
+          echo '7e92db6ab139eb827eb1b9cf5fb1915795a8a59501f08d8995b238798930bd78  .github/hotfix/v0143.patch.xz.b64.01' | sha256sum -c -
+          echo '76e11c18f48501d6bc97585f5f984956308e4541e3e10528d081dcf44f00412d  .github/hotfix/v0143.patch.xz.b64.02' | sha256sum -c -
+          echo '44272941a7ccbc8b7ab32f7416c1d6d02bb169a8fe344a3056da03936c476117  .github/hotfix/v0143.patch.xz.b64.03' | sha256sum -c -
           cat .github/hotfix/v0143.patch.xz.b64.* | base64 -d | xz -d > /tmp/v0143.patch
           echo '38a1436788dd9712d6d22dddb740bd6b8abccf17e6f4591e7179c69345c9e401  /tmp/v0143.patch' | sha256sum -c -
           git apply --check /tmp/v0143.patch
