@@ -9,7 +9,7 @@
     <button id="openAccounts">Accounts & Connections</button>
   </div>
   <section class="chat-pulse" id="chatPulse" aria-label="Chat status overview">
-    <div class="section-head"><span>CHAT PULSE</span><small>live local catalog</small></div>
+    <div class="section-head"><span>CHAT PULSE</span><small>live open tabs</small></div>
     <div class="chat-grid">
       <button class="chat-card active" id="activeSummary" data-chat-bucket="active"><span>Active</span><strong id="activeCount">0</strong><small id="activeLatest">No active chats</small></button>
       <button class="chat-card stale" id="staleSummary" data-chat-bucket="stale"><span>Stale</span><strong id="staleCount">0</strong><small id="staleLatest">No stale chats</small></button>
@@ -22,6 +22,8 @@
     <label class="row"><span><strong>Responsive scrolling</strong><small>Prevent smooth-scroll frame pileups</small></span><input id="responsiveScrolling" type="checkbox"></label>
     <label class="row"><span><strong>Adaptive motion relief</strong><small>Decorative-only relief during measured pressure</small></span><input id="adaptiveMotionRelief" type="checkbox"></label>
     <label class="row"><span><strong>Chat status on pin</strong><small>Show Active, Stale, and Completed chat counts on the pinned menu and collapsed Pulse</small></span><input id="statusPinEnabled" type="checkbox"></label>
+    <label class="row"><span><strong>Review branched chats before send</strong><small>Prefill the continuation so you can edit it; Enter sends and Shift+Enter adds a line</small></span><input id="branchReviewBeforeSend" type="checkbox"></label>
+    <label class="row"><span><strong>Chat completion notifications</strong><small>Notify when a tab transitions from actively working to completed</small></span><input id="completionNotificationsEnabled" type="checkbox"></label>
     <label class="row"><span><strong>Output Vault warnings</strong><small>Keep saved/page mismatch warnings secondary to chat health</small></span><input id="outputWarningsEnabled" type="checkbox"></label>
     <label class="row select-row"><span><strong>Output warning sensitivity</strong><small>Balanced ignores low-confidence tool/activity-card churn</small></span><select id="outputWarningStrictness"><option value="relaxed">Relaxed</option><option value="balanced">Balanced</option><option value="strict">Strict</option></select></label>
   </section>

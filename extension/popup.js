@@ -6,11 +6,11 @@
   const constrainedDevice=Number(navigator.hardwareConcurrency||8)<=4||Number(navigator.deviceMemory||8)<=4;
   document.body.dataset.atmosphere=reducedMotion?'off':constrainedDevice?'static':'animated';
   const DEFAULTS = { enabled:true,responsiveScrolling:true,adaptiveMotionRelief:false,pressureWindowMs:5000,highPressureLongTaskMs:350,highPressureLongTaskCount:5,recoveryQuietMs:3500 };
-  const PULSE_DEFAULTS = { statusPinEnabled:true,outputWarningsEnabled:true,outputWarningStrictness:'balanced' };
-  const ACTIVE_STATUSES = new Set(['running','paused','waiting-user','blocked-approval']);
-  const STALE_STATUSES = new Set(['refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+  const PULSE_DEFAULTS = { statusPinEnabled:true,outputWarningsEnabled:true,outputWarningStrictness:'balanced',branchReviewBeforeSend:true,completionNotificationsEnabled:true };
+  const ACTIVE_STATUSES = new Set(['running']);
+  const STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
   const COMPLETED_STATUSES = new Set(['idle','archived']);
-  const ids = ['enabled','responsiveScrolling','adaptiveMotionRelief','pressure','status','longTasks','maxTask','provider','chatState','resetMetrics','openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','activeSummary','staleSummary','completedSummary','activeCount','staleCount','completedCount','activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness'];
+  const ids = ['enabled','responsiveScrolling','adaptiveMotionRelief','pressure','status','longTasks','maxTask','provider','chatState','resetMetrics','openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','activeSummary','staleSummary','completedSummary','activeCount','staleCount','completedCount','activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled'];
   const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
   let currentSettings = { ...DEFAULTS };
   let pulseSettings = { ...PULSE_DEFAULTS };
@@ -26,6 +26,8 @@
     els.statusPinEnabled.checked = pulseSettings.statusPinEnabled !== false;
     els.outputWarningsEnabled.checked = pulseSettings.outputWarningsEnabled !== false;
     els.outputWarningStrictness.value = ['relaxed','balanced','strict'].includes(pulseSettings.outputWarningStrictness) ? pulseSettings.outputWarningStrictness : 'balanced';
+    els.branchReviewBeforeSend.checked = pulseSettings.branchReviewBeforeSend !== false;
+    els.completionNotificationsEnabled.checked = pulseSettings.completionNotificationsEnabled !== false;
     els.chatPulse.hidden = !els.statusPinEnabled.checked;
   }
   function renderStatus(status){
@@ -38,34 +40,35 @@
   function renderChatPulse(){
     els.chatPulse.hidden = pulseSettings.statusPinEnabled === false;
     if (els.chatPulse.hidden) return;
-    const snapshot=brainOverview||{}; const counts=snapshot.statusCounts||{}; const chats=Array.isArray(snapshot.recentChats)?snapshot.recentChats:[];
-    const groups={active:[],stale:[],completed:[]};
-    for(const chat of chats){groups[statusBucket(String(chat?.status||'idle'))].push(chat);}
-    const totals={active:sumStatuses(counts,ACTIVE_STATUSES),stale:sumStatuses(counts,STALE_STATUSES),completed:sumStatuses(counts,COMPLETED_STATUSES)};
+    const snapshot=brainOverview||{};
+    const groups=snapshot.groups&&typeof snapshot.groups==='object'?{active:[...(snapshot.groups.active||[])],stale:[...(snapshot.groups.stale||[])],completed:[...(snapshot.groups.completed||[])]}:{active:[],stale:[],completed:[]};
+    if(!snapshot.groups){for(const chat of (Array.isArray(snapshot.recentChats)?snapshot.recentChats:[]))groups[statusBucket(String(chat?.status||'idle'))].push(chat);}
+    const totals=snapshot.counts&&typeof snapshot.counts==='object'?{active:Number(snapshot.counts.active||0),stale:Number(snapshot.counts.stale||0),completed:Number(snapshot.counts.completed||0)}:{active:groups.active.length,stale:groups.stale.length,completed:groups.completed.length};
     for(const bucket of ['active','stale','completed']){
       const latest=groups[bucket][0]||null;
       els[`${bucket}Count`].textContent=String(totals[bucket]||0);
       els[`${bucket}Latest`].textContent=latest?safe(latest.title||latest.projectName||'Untitled chat',58):`No ${bucket} chats`;
       const card=els[bucket==='completed'?'completedSummary':`${bucket}Summary`];
-      card.dataset.url=latest?.url||''; card.disabled=!latest?.url; card.title=latest?.url?`Open ${safe(latest.title||'latest chat',100)}`:`No ${bucket} chat is available to open`;
+      card.dataset.url=latest?.url||''; card.dataset.tabId=latest?.tabId?String(latest.tabId):''; card.dataset.windowId=latest?.windowId?String(latest.windowId):''; card.disabled=!(latest?.url||latest?.tabId); card.title=(latest?.url||latest?.tabId)?`Focus ${safe(latest.title||'latest chat',100)}`:`No ${bucket} chat is available to open`;
     }
-    els.chatPulseHint.textContent=totals.active||totals.stale?'Active and stale work stays visible here without opening the Command Center.':'No active or stale chats right now. Latest completed work remains one click away.';
+    const open=Number(snapshot.openChatTabs||totals.active+totals.stale+totals.completed); const partial=Boolean(snapshot.partial);
+    els.chatPulseHint.textContent=partial?`${open} open AI chat tab${open===1?'':'s'} detected · a tab is still reconnecting to Constellation.`:totals.active||totals.stale?`${open} open AI chat tab${open===1?'':'s'} · live state, not catalog history.`:`${open} open AI chat tab${open===1?'':'s'} · nothing is currently running or stuck.`;
   }
   async function activeTab(){ const [tab]=await chrome.tabs.query({active:true,currentWindow:true}); return tab?.id ? tab : null; }
   async function refresh(){ const tab=await activeTab(); currentTabId=tab?.id||null; if(!currentTabId){renderStatus(null);return;} try{renderStatus(await chrome.tabs.sendMessage(currentTabId,{type:'PC_GET_STATUS'}));}catch(_){renderStatus(null);} }
   async function refreshBrainOverview(){
     if(!chrome.runtime?.sendMessage){brainOverview=null;renderChatPulse();return;}
-    try{const response=await chrome.runtime.sendMessage({type:'PC_BRAIN_COUNTS'});brainOverview=response?.ok?(response.counts||null):null;}catch(_){brainOverview=null;}
+    try{const response=await chrome.runtime.sendMessage({type:'PC_LIVE_CHAT_PULSE',force:true});brainOverview=response?.ok?response:null;}catch(_){brainOverview=null;}
     renderChatPulse();
   }
   async function savePerformance(){ currentSettings={...currentSettings,enabled:els.enabled.checked,responsiveScrolling:els.responsiveScrolling.checked,adaptiveMotionRelief:els.adaptiveMotionRelief.checked}; await chrome.storage.local.set({[STORAGE_KEY]:currentSettings}); await refresh(); }
   async function savePulseUx(){
-    pulseSettings={...pulseSettings,statusPinEnabled:els.statusPinEnabled.checked,outputWarningsEnabled:els.outputWarningsEnabled.checked,outputWarningStrictness:['relaxed','balanced','strict'].includes(els.outputWarningStrictness.value)?els.outputWarningStrictness.value:'balanced'};
+    pulseSettings={...pulseSettings,statusPinEnabled:els.statusPinEnabled.checked,outputWarningsEnabled:els.outputWarningsEnabled.checked,outputWarningStrictness:['relaxed','balanced','strict'].includes(els.outputWarningStrictness.value)?els.outputWarningStrictness.value:'balanced',branchReviewBeforeSend:els.branchReviewBeforeSend.checked,completionNotificationsEnabled:els.completionNotificationsEnabled.checked};
     await chrome.storage.local.set({[PULSE_UX_KEY]:pulseSettings}); renderSettings(); renderChatPulse();
   }
   ['enabled','responsiveScrolling','adaptiveMotionRelief'].forEach((key)=>els[key].addEventListener('change',savePerformance));
-  ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness'].forEach((key)=>els[key].addEventListener('change',savePulseUx));
-  for(const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click',async()=>{const url=card.dataset.url;if(!url)return;await chrome.tabs.create({url,active:true});window.close();});
+  ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled'].forEach((key)=>els[key].addEventListener('change',savePulseUx));
+  for(const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click',async()=>{const tabId=Number(card.dataset.tabId||0),windowId=Number(card.dataset.windowId||0),url=card.dataset.url;if(tabId){try{await chrome.tabs.update(tabId,{active:true});if(windowId&&chrome.windows?.update)await chrome.windows.update(windowId,{focused:true});window.close();return;}catch(_){}}if(url){await chrome.tabs.create({url,active:true});window.close();}});
   els.resetMetrics.addEventListener('click',async()=>{ if(currentTabId){ try{renderStatus(await chrome.tabs.sendMessage(currentTabId,{type:'PC_RESET_METRICS'}));}catch(_){renderStatus(null);} } });
   els.openHome.addEventListener('click',async()=>{ await chrome.tabs.create({url:chrome.runtime.getURL('home.html'),active:true}); window.close(); });
   els.openConstellation.addEventListener('click',async()=>{ const [tab]=await chrome.tabs.query({active:true,currentWindow:true}); let opened=false; if(tab?.windowId&&chrome.sidePanel?.open){ try{await chrome.sidePanel.open({windowId:tab.windowId});opened=true;}catch(_){opened=false;} } if(!opened)await chrome.tabs.create({url:chrome.runtime.getURL('sidepanel.html'),active:true}); window.close(); });
