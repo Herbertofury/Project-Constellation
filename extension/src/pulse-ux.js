@@ -7,10 +7,12 @@
   const DEFAULTS = Object.freeze({
     statusPinEnabled: true,
     outputWarningsEnabled: true,
-    outputWarningStrictness: 'balanced'
+    outputWarningStrictness: 'balanced',
+    branchReviewBeforeSend: true,
+    completionNotificationsEnabled: true
   });
-  const ACTIVE_STATUSES = new Set(['running', 'paused', 'waiting-user', 'blocked-approval']);
-  const STALE_STATUSES = new Set(['refresh-required', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
+  const ACTIVE_STATUSES = new Set(['running']);
+  const STALE_STATUSES = new Set(['paused', 'waiting-user', 'blocked-approval', 'refresh-required', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
   const COMPLETED_STATUSES = new Set(['idle', 'archived']);
   const STRICTNESS = new Set(['relaxed', 'balanced', 'strict']);
 
@@ -46,22 +48,19 @@
   }
 
   function countsFromSnapshot(snapshot = {}) {
+    if (snapshot.counts && typeof snapshot.counts === 'object') return { active:number(snapshot.counts.active), stale:number(snapshot.counts.stale), completed:number(snapshot.counts.completed) };
     const counts = snapshot.statusCounts || {};
     const sum = (statuses) => [...statuses].reduce((total, status) => total + number(counts[status]), 0);
-    return {
-      active: sum(ACTIVE_STATUSES),
-      stale: sum(STALE_STATUSES),
-      completed: sum(COMPLETED_STATUSES)
-    };
+    return { active:sum(ACTIVE_STATUSES), stale:sum(STALE_STATUSES), completed:sum(COMPLETED_STATUSES) };
   }
 
   async function refreshCounts(force = false) {
     const now = Date.now();
     if (!force && countSnapshot && now - countFetchedAt < 15000) return countSnapshot;
     if (countRequest) return countRequest;
-    countRequest = chrome.runtime.sendMessage({ type: 'PC_BRAIN_COUNTS' }).then((response) => {
+    countRequest = chrome.runtime.sendMessage({ type: 'PC_LIVE_CHAT_PULSE', force }).then((response) => {
       if (response?.ok) {
-        countSnapshot = response.counts || response;
+        countSnapshot = response;
         countFetchedAt = Date.now();
       }
       return countSnapshot;

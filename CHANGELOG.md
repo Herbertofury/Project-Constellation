@@ -2,6 +2,24 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.1 - Live Pulse Hotfix
+
+### Fixed
+
+- Replaced the broken Chat Pulse historical-count wiring with a real browser-tab census. Active, stale, and completed counts now come from the AI chat tabs that are actually open, not catalog fields the count API never returned.
+- Added a direct DOM probe fallback for already-open tabs after an extension upgrade. v0.14.1 can classify existing ChatGPT tabs immediately without requiring every tab to be manually reloaded before the new content-script message contract exists.
+- Generation detection now treats present-tense tool work such as **Searching Google Drive...** as active while refusing to treat stale shimmer/tool-card text as permanent proof that a chat is still running. Explicit stop/stream/busy signals, provider-network requests, tool progress, and final assistant controls are reconciled before a tab is called complete.
+- Hidden tabs are re-sampled when they lose visibility and continue a lightweight active pulse while work is in progress, so switching away immediately after sending a prompt no longer leaves the tab incorrectly idle for up to 30 seconds.
+- Provider-network start/completion events now invalidate the live-pulse cache and trigger a bounded tab reconciliation. Active to completed transitions can therefore produce the completion notification even when the popup is closed.
+- Chat Pulse cards focus the existing browser tab instead of opening duplicate conversation tabs.
+- Saved/page mismatch warnings remain secondary to the real chat state; Balanced sensitivity continues to suppress low-confidence tool/activity-card churn while preserving all raw revisions.
+
+### Added
+
+- **Review branched chats before send** toggle. When enabled (default), Branch & Continue prefills the fresh chat, lets you edit the handoff, and submits with **Enter**; **Shift+Enter** keeps inserting a newline. Disable the toggle to retain automatic send behavior.
+- **Chat completion notifications** toggle, enabled by default. Notifications are emitted only for an observed active to completed transition rather than for every idle chat discovered at startup.
+- Live-pulse regression coverage for the exact `Searching Google Drive...` to `Searched Google Drive...` transition, existing pre-upgrade tabs, multi-tab counts, completion notifications, and editable Branch & Continue submission.
+
 ## 0.14.0 — Constellation Nightfall
 
 ### Added

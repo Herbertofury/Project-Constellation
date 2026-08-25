@@ -15,9 +15,11 @@
   const STORAGE_KEY = 'projectConstellationPerformanceSettings';
   const METRICS_KEY = 'projectConstellationPerformanceMetrics';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
+  const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
   const settings = { ...perf.DEFAULTS };
   let approvalSettings = { enabled: false, acknowledged: false, alwaysAllow: true, fallbackAllowOnce: true, autoRecoverPaused: true };
   let liveHealthSettings = { ...health.DEFAULTS };
+  let pulseUxSettings = { branchReviewBeforeSend: true };
   let approvalAutopilotBusy = false;
   let approvalAutopilotLastAt = 0;
   let approvalAutopilotTimer = 0;
@@ -1442,23 +1444,39 @@
       for (let attempt = 0; attempt < 50 && !composer; attempt += 1) { composer = branchComposer(); if (!composer) await sleep(300); }
       let status = 'failed';
       if (composer && fillBranchComposer(composer, claim.prompt)) {
-        await sleep(450);
-        let send = null;
-        for (let attempt = 0; attempt < 24 && !send; attempt += 1) { send = branchSendButton(composer); if (!send) await sleep(250); }
-        if (send) {
-          send.click();
-          for (let attempt = 0; attempt < 32; attempt += 1) {
-            await sleep(250);
-            if (!composer.isConnected || branchComposerText(composer).length < 8 || !currentChatId().endsWith(':home')) { status = 'sent'; break; }
+        await sleep(350);
+        if (pulseUxSettings.branchReviewBeforeSend !== false) {
+          status = 'prefilled';
+          composer.dataset.projectConstellationBranchReady = '1';
+          const onBranchEnter = (event) => {
+            if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
+            const send = branchSendButton(composer);
+            if (!send) return;
+            event.preventDefault(); event.stopPropagation();
+            composer.removeEventListener('keydown', onBranchEnter, true);
+            delete composer.dataset.projectConstellationBranchReady;
+            send.click();
+          };
+          composer.addEventListener('keydown', onBranchEnter, true);
+          showBranchTransferToast('Continuation ready to edit', 'Edit anything you want, then press Enter to send. Shift+Enter still adds a new line.', 'ready');
+        } else {
+          let send = null;
+          for (let attempt = 0; attempt < 24 && !send; attempt += 1) { send = branchSendButton(composer); if (!send) await sleep(250); }
+          if (send) {
+            send.click();
+            for (let attempt = 0; attempt < 32; attempt += 1) {
+              await sleep(250);
+              if (!composer.isConnected || branchComposerText(composer).length < 8 || !currentChatId().endsWith(':home')) { status = 'sent'; break; }
+            }
           }
+          if (status !== 'sent') status = 'prefilled';
         }
-        if (status !== 'sent') status = 'prefilled';
       } else {
         try { await copyHandoffText(claim.prompt); status = 'copied'; } catch (_) { status = 'failed'; }
       }
       await chrome.runtime.sendMessage({ type:'PC_BRANCH_CONTINUATION_COMPLETE', branchId:claim.branchId, status, url:location.href }).catch(() => null);
       if (status === 'sent') { showBranchTransferToast('Continuation sent', 'The new chat is now linked to its parent checkpoint.', 'ready'); await resolveBranchLineage(); }
-      else if (status === 'prefilled') showBranchTransferToast('Continuation ready', 'Context is in the composer. Press Send when you are ready.', 'ready');
+      else if (status === 'prefilled' && pulseUxSettings.branchReviewBeforeSend === false) showBranchTransferToast('Continuation ready', 'Context is in the composer. Press Send when you are ready.', 'ready');
       else if (status === 'copied') showBranchTransferToast('Continuation copied', 'The provider composer changed. Paste the recovered context to continue.', 'error');
       else showBranchTransferToast('Could not transfer context', 'Return to the parent chat and choose Branch & continue again.', 'error');
     } finally { branchResumeBusy = false; }
@@ -1668,12 +1686,82 @@
     liveHealthTimer = setTimeout(() => { liveHealthTimer = 0; updateLiveHealth().finally(() => scheduleLiveHealthPulse()); }, Math.max(900, pressureDelay, Number(nextDelay || 2500)));
   }
 
+  const ACTIVE_TOOL_LABEL_PATTERN = /\b(searching|retrieving|fetching|reading|browsing|running|executing|building|verifying|updating|creating|uploading|downloading|processing|calling|generating)\b/i;
+  const FINISHED_TOOL_LABEL_PATTERN = /\b(searched|retrieved|fetched|read|browsed|checked|analyzed|ran|executed|built|verified|updated|edited|wrote|created|uploaded|downloaded|processed|called|used|completed|finished)\b/i;
+
+  function latestAssistantCompletionEvidence() {
+    const turns = turnNodes(document);
+    const assistants = turns.filter((node) => roleForTurn(node) === 'assistant');
+    const latest = assistants.at(-1) || null;
+    if (!latest) return { hasAssistant:false, finalControls:false, textLength:0 };
+    const controls = [...latest.querySelectorAll?.('button,[role="button"]') || []];
+    const finalControls = controls.some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(elementLabel(node, 120)))
+      || Boolean(latest.querySelector?.('[data-testid*="copy" i],[data-testid*="feedback" i],[data-testid*="regenerate" i]'));
+    return { hasAssistant:true, finalControls, textLength:turnTextOf(latest, 200000).length };
+  }
+
+  function activeGenerationEvidence(tool = null) {
+    const scope = document.querySelector('main') || document;
+    const stopSelectors = '[data-testid="stop-button"],[data-testid*="stop" i],button[aria-label*="stop generating" i],button[aria-label*="stop streaming" i],button[aria-label*="stop response" i],button[aria-label*="cancel generation" i],button[aria-label*="cancel response" i]';
+    const stopControl = [...document.querySelectorAll(stopSelectors)].find(isUsableControl) || null;
+    // Only count explicit live-state markers here. Visual shimmer classes can remain mounted
+    // after a tool step has finished and were the source of false "still running" states.
+    const streamingNode = scope.querySelector?.('[data-is-streaming="true"],[data-testid*="streaming" i],[data-state="streaming" i],.result-streaming,[class*="result-streaming" i]') || null;
+    const busyNode = scope.querySelector?.('[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]') || null;
+    const toolEvidence = tool || detectToolEvidence(true);
+    const completion = latestAssistantCompletionEvidence();
+    const label = String(toolEvidence?.label || '');
+    // Present-tense tool labels such as "Searching Google Drive ..." are strong live
+    // evidence. Deliberately exclude broad verbs such as "working"/"implementing"
+    // because historical tool cards can retain those words indefinitely.
+    const progressiveTool = Boolean(toolEvidence?.present && !completion.finalControls && ACTIVE_TOOL_LABEL_PATTERN.test(label) && !FINISHED_TOOL_LABEL_PATTERN.test(label));
+    const toolBusy = Boolean(toolEvidence?.busy && !completion.finalControls && (busyNode || stopControl || streamingNode || progressiveTool));
+    const active = Boolean(stopControl || streamingNode || busyNode || toolBusy || progressiveTool);
+    return {
+      active,
+      stopControl:Boolean(stopControl),
+      streaming:Boolean(streamingNode),
+      busyNode:Boolean(busyNode),
+      toolBusy,
+      progressiveTool,
+      toolLabel:brain.normalizeText(label, 140),
+      finalControls:Boolean(completion.finalControls),
+      hasAssistant:Boolean(completion.hasAssistant),
+      assistantTextLength:Number(completion.textLength || 0)
+    };
+  }
+
+  function liveChatState() {
+    detectStatus();
+    const tool = detectToolEvidence(true);
+    const generation = activeGenerationEvidence(tool);
+    const healthState = String(liveHealthSnapshot?.state || '');
+    const healthActive = ['working','tool-running','tool-quiet','quiet-working'].includes(healthState);
+    const healthStale = ['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page'].includes(healthState);
+    let observedStatus = lastStatus;
+    if ((generation.active || healthActive) && !['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','errored','stalled'].includes(observedStatus)) observedStatus = 'running';
+    const turns = turnNodes(document);
+    const hasConversation = turns.length > 0 || !currentChatId().endsWith(':home');
+    return {
+      ok:true,
+      provider:{ id:provider.id, name:provider.name },
+      chat:{ id:currentChatId(), status:observedStatus, rawStatus:lastStatus, title:document.title || provider.name, url:location.href, lastActivityAt:lastSemanticActivityAt, hasConversation, turnCount:turns.length, healthState, health:liveHealthSnapshot ? { ...liveHealthSnapshot } : null },
+      generation,
+      tool:{ present:Boolean(tool?.present), busy:Boolean(tool?.busy), label:brain.normalizeText(tool?.label || '', 140), phase:brain.normalizeText(tool?.phase || '', 60), lastProgressAt:Number(tool?.lastProgressAt || 0) },
+      healthActive,
+      healthStale,
+      observedAt:Date.now(),
+      hidden:document.hidden
+    };
+  }
+
   function detectStatus() {
     const statusText = boundedStatusText();
     const lower = statusText.toLowerCase();
+    const generation = activeGenerationEvidence(detectToolEvidence(true));
     const signals = {
       text: statusText,
-      running: /stop generating|stop response|cancel generation|generating|thinking|reasoning/.test(lower) || Boolean(document.querySelector('[data-is-streaming="true"],[aria-busy="true"]')),
+      running: generation.active || /stop generating|stop response|cancel generation|generating|thinking|reasoning/.test(lower),
       paused: /continue generating|resume generation|resume response/.test(lower),
       approval: provider.id === 'chatgpt' && (Boolean(approvalSurface()) || /(allow|approve|permission|confirm).{0,180}(drive|github|connector|connected app|plugin|access|tool|use|continue)/.test(lower)),
       refreshRequired: Boolean(refreshRequiredSurface()) || /message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message/.test(lower),
@@ -1693,10 +1781,12 @@
       lastSemanticActivityAt = healthEvidence.lastStatusChangeAt;
       noteLiveActivity(['errored','stalled','refresh-required','rate-limited','auth-required','unavailable'].includes(next) ? 'warning' : 'status', `Chat status · ${next.replaceAll('-', ' ')}`, next === 'running' ? 'The page exposes an active generation signal' : 'Observable page status changed', 'status:current', healthEvidence.lastStatusChangeAt);
       sendBrain('STATUS_EVENT', { providerId: provider.id, chatId: currentChatId(), status: next, detail: statusText.slice(0, 1200), url: location.href, approvalConnector: signals.approval ? connectorNameFromApproval(approvalSurface()) : '', recoveryKind: signals.refreshRequired ? 'browser-refresh' : signals.rateLimited ? 'provider-cooldown' : '', retryForbidden: Boolean(signals.refreshRequired || signals.rateLimited), rateLimitWaitMs: signals.rateLimited ? rateLimitWaitMs(statusText) : 0, updatedAt: Date.now() });
+      chrome.runtime.sendMessage({ type:'PC_LIVE_CHAT_STATE_PUSH', state:{ status:next, generation, chat:{ id:currentChatId(), status:next, rawStatus:next, title:document.title || provider.name, url:location.href, lastActivityAt:lastSemanticActivityAt, healthState:String(liveHealthSnapshot?.state || '') } } }).catch(() => {});
       if (signals.refreshRequired) chrome.runtime.sendMessage({ type: 'PC_REFRESH_RECOVERY_REQUEST', chatId: currentChatId(), url: location.href, detail: statusText.slice(0, 600) }).catch(() => {});
     } else if (next === 'running') {
       sendBrain('STATUS_HEARTBEAT', { providerId: provider.id, chatId: currentChatId(), status: next, lastActivityAt: lastSemanticActivityAt, url: location.href, updatedAt: Date.now() });
     }
+    return lastStatus;
   }
 
   function processCaptureQueue() {
@@ -1802,10 +1892,11 @@
 
   async function loadSettings() {
     try {
-      const stored = await chrome.storage.local.get([STORAGE_KEY, BRAIN_SETTINGS_KEY]);
+      const stored = await chrome.storage.local.get([STORAGE_KEY, BRAIN_SETTINGS_KEY, PULSE_UX_KEY]);
       configure(stored?.[STORAGE_KEY]);
       approvalSettings = { ...approvalSettings, ...(stored?.[BRAIN_SETTINGS_KEY]?.approvalAutopilot || {}) };
       liveHealthSettings = health.normalizeSettings({ ...liveHealthSettings, ...(stored?.[BRAIN_SETTINGS_KEY]?.liveHealth || {}) });
+      pulseUxSettings = { ...pulseUxSettings, ...(stored?.[PULSE_UX_KEY] || {}) };
     } catch (_) { configure(); }
   }
 
@@ -2084,9 +2175,10 @@
   }
 
   function publicStatus() {
+    const live = liveChatState();
     return {
-      provider: { id: provider.id, name: provider.name }, settings: { ...settings }, metrics: { ...metrics }, pressure: pressure.tick(), chat: { id: currentChatId(), status: lastStatus, lastActivityAt: lastSemanticActivityAt, health: liveHealthSnapshot ? { ...liveHealthSnapshot } : null },
-      capabilities: { longTaskObserver: Boolean(PerformanceObserver?.supportedEntryTypes?.includes('longtask')), navigationApi: Boolean(globalThis.navigation?.addEventListener), constellationCapture: true, zeroTabCatalog: true, manualFullCapture: true, liveHealthHud: true, passiveNetworkHealth: true, conversationCapacityGuard: true, safeHandoff: true, outputVault:true, outputRevisionRecovery:true }
+      provider: { id: provider.id, name: provider.name }, settings: { ...settings }, metrics: { ...metrics }, pressure: pressure.tick(), chat: { ...live.chat }, live,
+      capabilities: { longTaskObserver: Boolean(PerformanceObserver?.supportedEntryTypes?.includes('longtask')), navigationApi: Boolean(globalThis.navigation?.addEventListener), constellationCapture: true, zeroTabCatalog: true, manualFullCapture: true, liveHealthHud: true, passiveNetworkHealth: true, conversationCapacityGuard: true, safeHandoff: true, outputVault:true, outputRevisionRecovery:true, liveTabPulse:true }
     };
   }
 
@@ -2096,13 +2188,15 @@
       statusTimer = 0;
       detectStatus();
       maybeObserveOutputIntegrity().catch(() => {});
-      scheduleStatusPulse(document.hidden ? 30000 : 8000);
+      const activeNow = lastStatus === 'running' || ['working','tool-running','tool-quiet','quiet-working'].includes(String(liveHealthSnapshot?.state || ''));
+      scheduleStatusPulse(document.hidden ? (activeNow ? 3500 : 30000) : (activeNow ? 1400 : 8000));
     }, delay ?? (document.hidden ? 30000 : 8000));
   }
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== 'local') return;
     if (changes[STORAGE_KEY]) configure(changes[STORAGE_KEY].newValue);
+    if (changes[PULSE_UX_KEY]) pulseUxSettings = { ...pulseUxSettings, ...(changes[PULSE_UX_KEY].newValue || {}) };
     if (changes[BRAIN_SETTINGS_KEY]) {
       approvalSettings = { ...approvalSettings, ...(changes[BRAIN_SETTINGS_KEY].newValue?.approvalAutopilot || {}) };
       liveHealthSettings = health.normalizeSettings({ ...liveHealthSettings, ...(changes[BRAIN_SETTINGS_KEY].newValue?.liveHealth || {}) });
@@ -2115,7 +2209,8 @@
     }
   });
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.type === 'PC_GET_STATUS') { sendResponse(publicStatus()); return false; }
+    if (message?.type === 'PC_GET_STATUS') { detectStatus(); sendResponse(publicStatus()); return false; }
+    if (message?.type === 'PC_GET_LIVE_CHAT_STATE') { sendResponse(liveChatState()); return false; }
     if (message?.type === 'PC_RESET_METRICS') {
       Object.assign(metrics, { sessionStartedAt: Date.now(), totalLongTasks: 0, totalLongTaskMs: 0, maxLongTaskMs: 0, pressureTransitions: 0, lastPressure: 'normal', lastUpdatedAt: Date.now() });
       pressure.reset(); applyPressure(pressure.snapshot()); sendResponse(publicStatus()); return false;
@@ -2133,10 +2228,14 @@
   });
 
   document.addEventListener('visibilitychange', () => {
+    // Re-sample before going quiet so a response that started just before the user
+    // switched tabs is not left classified as idle for the next 30 seconds.
+    detectStatus();
     if (document.hidden) { stopPerformanceObserver(); captureObserver?.disconnect(); cancelCapture(); }
     else { if (settings.enabled) startPerformanceObserver(); applyPressure(pressure.tick()); setupCaptureObserver(); }
-    scheduleStatusPulse(document.hidden ? 30000 : 1500);
-    scheduleLiveHealthPulse(document.hidden ? 30000 : 900);
+    const activeNow = lastStatus === 'running' || ['working','tool-running','tool-quiet','quiet-working'].includes(String(liveHealthSnapshot?.state || ''));
+    scheduleStatusPulse(document.hidden ? (activeNow ? 1800 : 12000) : 500);
+    scheduleLiveHealthPulse(document.hidden ? (activeNow ? 3500 : 30000) : 700);
   }, { passive: true });
 
   setupNavigationTracking();

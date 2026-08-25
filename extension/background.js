@@ -40,7 +40,14 @@ const LIVE_HEALTH_CONTEXT_TTL_MS = 5000;
 const LIVE_NETWORK_TTL_MS = 10 * 60 * 1000;
 const BRANCH_CONTINUATION_KEY = 'projectConstellationPendingBranch';
 const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
+const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
+const LIVE_CHAT_PULSE_TTL_MS = 1800;
 const liveNetworkByTab = new Map();
+const liveTabStateByTab = new Map();
+const liveNetworkReconcileTimers = new Map();
+let liveChatPulseCache = null;
+let liveChatPulseCacheAt = 0;
+let liveChatPulseRequest = null;
 const liveHealthContextCache = new Map();
 
 const defaultBrainSettings = Object.freeze({
@@ -3614,6 +3621,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const tab = await chrome.tabs.create({ url: chrome.runtime.getURL(`home.html?${params.toString()}`), active: true });
         return { ok: true, tabId: tab?.id || null };
       }
+      case 'PC_LIVE_CHAT_PULSE': return liveChatPulse({ force:Boolean(message.force) });
+      case 'PC_LIVE_CHAT_STATE_PUSH': return handleLiveChatStatePush(message, sender);
       case 'PC_LIVE_HEALTH_CONTEXT': return liveHealthContext(message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt'), sender?.tab?.id);
       case 'PC_INTEGRITY_SCAN': return runProjectIntegrityScan({ projectIds: Array.isArray(message.projectIds) ? message.projectIds : [], force: message.force !== false });
       case 'PC_INTEGRITY_STATUS': return { ok: true, integrity: await integritySummary() };
@@ -3625,6 +3634,233 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
+
+const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working']);
+const LIVE_STALE_HEALTH_STATES = new Set(['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page']);
+const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+
+function livePulseBucket(state = {}, network = {}) {
+  const status = String(state?.chat?.status || state?.status || 'idle');
+  const healthState = String(state?.chat?.healthState || state?.healthState || state?.chat?.health?.state || '');
+  if (LIVE_STALE_STATUSES.has(status) || LIVE_STALE_HEALTH_STATES.has(healthState)) return 'stale';
+  if (status === 'running' || state?.generation?.active || state?.healthActive || LIVE_ACTIVE_HEALTH_STATES.has(healthState) || Number(network?.pending || 0) > 0 || network?.streamLikely) return 'active';
+  return 'completed';
+}
+
+async function pulseUxSettings() {
+  const stored = await chrome.storage.local.get(PULSE_UX_KEY).catch(() => ({}));
+  return { completionNotificationsEnabled:true, branchReviewBeforeSend:true, ...(stored?.[PULSE_UX_KEY] || {}) };
+}
+
+async function notifyChatCompletion(row) {
+  const cfg = await pulseUxSettings();
+  if (cfg.completionNotificationsEnabled === false || !chrome.notifications?.create) return;
+  const notificationId = `pc-chat-complete:${Number(row.tabId || 0)}:${Date.now()}`;
+  try {
+    await chrome.notifications.create(notificationId, {
+      type:'basic',
+      iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
+      title:'Chat finished',
+      message:String(row.title || row.providerName || 'AI chat').slice(0, 180),
+      contextMessage:'Project Constellation'
+    });
+  } catch (_) {}
+}
+
+function rememberLiveTabState(row, { notify = true } = {}) {
+  const tabId = Number(row?.tabId || 0);
+  if (!tabId) return;
+  const previous = liveTabStateByTab.get(tabId);
+  liveTabStateByTab.set(tabId, { ...row, observedAt:Number(row.observedAt || Date.now()) });
+  liveChatPulseCacheAt = 0;
+  if (notify && previous?.bucket === 'active' && row.bucket === 'completed') notifyChatCompletion(row).catch(() => {});
+}
+
+function livePulseDomProbe() {
+  try {
+    const scope = document.querySelector('main') || document.body || document.documentElement;
+    const clean = (value, max = 220) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
+    const usable = (node) => {
+      if (!node || node.disabled || node.getAttribute?.('aria-disabled') === 'true') return false;
+      const style = globalThis.getComputedStyle?.(node);
+      if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+      const rect = node.getBoundingClientRect?.();
+      return !rect || rect.width > 0 || rect.height > 0;
+    };
+    const stopSelectors = '[data-testid="stop-button"],[data-testid*="stop" i],button[aria-label*="stop generating" i],button[aria-label*="stop streaming" i],button[aria-label*="stop response" i],button[aria-label*="cancel generation" i],button[aria-label*="cancel response" i]';
+    const stopControl = [...document.querySelectorAll(stopSelectors)].find(usable) || null;
+    const streamingNode = scope?.querySelector?.('[data-is-streaming="true"],[data-testid*="streaming" i],[data-state="streaming" i],.result-streaming,[class*="result-streaming" i]') || null;
+    const busyNode = scope?.querySelector?.('[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]') || null;
+
+    let turns = [...document.querySelectorAll('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id]')];
+    const role = (node) => String(node?.getAttribute?.('data-message-author-role') || node?.getAttribute?.('data-author') || node?.getAttribute?.('data-role') || '').toLowerCase();
+    const assistants = turns.filter((node) => role(node) === 'assistant');
+    const latestAssistant = assistants.at(-1) || null;
+    const finalControls = Boolean(latestAssistant && [...latestAssistant.querySelectorAll('button,[role="button"]')].some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120))));
+
+    const activeTool = /\b(searching|retrieving|fetching|reading|browsing|running|executing|building|verifying|updating|creating|uploading|downloading|processing|calling|generating)\b/i;
+    const finishedTool = /\b(searched|retrieved|fetched|read|browsed|checked|analyzed|ran|executed|built|verified|updated|edited|wrote|created|uploaded|downloaded|processed|called|used|completed|finished)\b/i;
+    const toolSelectors = '[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-testid*="tool" i],[aria-label*="tool" i],.loading-shimmer-tertiary,[class*="loading-shimmer" i],[class*="text-token-text-tertiary"]';
+    const toolNodes = [...(scope?.querySelectorAll?.(toolSelectors) || [])].slice(-48);
+    let toolLabel = '';
+    for (let i = toolNodes.length - 1; i >= 0; i -= 1) {
+      const text = clean(toolNodes[i].getAttribute?.('aria-label') || toolNodes[i].textContent, 180);
+      if (activeTool.test(text) && !finishedTool.test(text)) { toolLabel = text; break; }
+    }
+    const progressiveTool = Boolean(toolLabel && !finalControls);
+    const active = Boolean(stopControl || streamingNode || busyNode || progressiveTool);
+
+    const statusText = clean(scope?.innerText || scope?.textContent || '', 24000).toLowerCase();
+    let status = active ? 'running' : 'idle';
+    if (!active && /continue generating|resume generation|resume response/.test(statusText)) status = 'paused';
+    else if (!active && /(message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message)/.test(statusText)) status = 'refresh-required';
+    else if (!active && /(too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429)/.test(statusText)) status = 'rate-limited';
+    else if (!active && /(something went wrong|there was an error|network error|failed to (generate|respond|send))/.test(statusText)) status = 'errored';
+    else if (!active && /(sign in|log in|login required|session expired)/.test(statusText)) status = 'auth-required';
+    else if (!active && /(conversation.{0,30}(not found|unavailable|deleted)|page not found)/.test(statusText)) status = 'unavailable';
+    else if (!active && /(allow chatgpt to use|approve|permission required)/.test(statusText)) status = 'blocked-approval';
+
+    return {
+      ok: true,
+      source: 'scripting-dom-probe',
+      chat: {
+        id: '',
+        status,
+        rawStatus: status,
+        title: document.title || '',
+        url: location.href,
+        lastActivityAt: Date.now(),
+        hasConversation: turns.length > 0,
+        turnCount: turns.length,
+        healthState: status === 'running' ? 'working' : status === 'idle' ? 'healthy' : status
+      },
+      generation: { active, stopControl:Boolean(stopControl), streaming:Boolean(streamingNode), busyNode:Boolean(busyNode), progressiveTool, toolLabel, finalControls },
+      healthActive: status === 'running',
+      healthStale: !['running','idle'].includes(status),
+      observedAt: Date.now(),
+      hidden: document.hidden
+    };
+  } catch (error) {
+    return { ok:false, source:'scripting-dom-probe', error:String(error?.message || error) };
+  }
+}
+
+async function probeLiveStateFromTab(tabId) {
+  if (!chrome.scripting?.executeScript || !tabId) return null;
+  try {
+    const results = await chrome.scripting.executeScript({ target:{ tabId }, func:livePulseDomProbe });
+    const state = results?.[0]?.result || null;
+    return state?.ok ? state : null;
+  } catch (_) { return null; }
+}
+
+async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
+  const tabId = Number(tab?.id || 0);
+  if (!tabId || !tab?.url) return null;
+  const provider = providers.detectProvider(tab.url);
+  if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return null;
+  let state = null;
+  try { state = await chrome.tabs.sendMessage(tabId, { type:'PC_GET_LIVE_CHAT_STATE' }); }
+  catch (_) { state = null; }
+  // Existing tabs keep the content-script instance that was present when they loaded.
+  // After an extension upgrade those tabs may not know the new live-pulse message yet,
+  // so probe their DOM directly instead of requiring ten manual tab reloads.
+  if (!state?.ok && allowInject) state = await probeLiveStateFromTab(tabId);
+  if (!state?.ok) return null;
+  const network = networkStateForTab(tabId);
+  const bucket = livePulseBucket(state, network);
+  const row = {
+    tabId,
+    windowId:Number(tab.windowId || 0),
+    providerId:provider.id,
+    providerName:provider.name,
+    title:String(tab.title || state?.chat?.title || provider.name || 'AI chat').replace(/^\s*[✅🟢🟡🔴🟣]+\s*/u,'').slice(0, 220),
+    url:String(tab.url || state?.chat?.url || ''),
+    chatId:String(state?.chat?.id || providers.chatIdFromUrl(tab.url, provider.id) || ''),
+    status:String(state?.chat?.status || 'idle'),
+    rawStatus:String(state?.chat?.rawStatus || state?.chat?.status || 'idle'),
+    healthState:String(state?.chat?.healthState || state?.chat?.health?.state || ''),
+    bucket,
+    active:bucket === 'active',
+    stale:bucket === 'stale',
+    completed:bucket === 'completed',
+    generation:state?.generation || null,
+    network:{ pending:Number(network.pending || 0), streamLikely:Boolean(network.streamLikely), lastStartAt:Number(network.lastStartAt || 0), lastCompleteAt:Number(network.lastCompleteAt || 0) },
+    lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0), Number(network.lastStartAt || 0), Number(network.lastResponseAt || 0), Number(network.lastCompleteAt || 0)),
+    observedAt:Date.now()
+  };
+  rememberLiveTabState(row);
+  return row;
+}
+
+async function liveChatPulse({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && liveChatPulseCache && now - liveChatPulseCacheAt < LIVE_CHAT_PULSE_TTL_MS) return liveChatPulseCache;
+  if (liveChatPulseRequest) return liveChatPulseRequest;
+  liveChatPulseRequest = (async () => {
+    const tabs = (await chrome.tabs.query({})).filter((tab) => {
+      const provider = providers.detectProvider(tab.url || '');
+      return Boolean(provider && providers.isLikelyChatUrl(tab.url || '', provider.id));
+    });
+    const settled = await Promise.allSettled(tabs.map((tab) => readLiveStateFromTab(tab)));
+    const rows = settled.map((result, index) => {
+      if (result.status === 'fulfilled' && result.value) return result.value;
+      const tab = tabs[index]; const cached = liveTabStateByTab.get(Number(tab?.id || 0));
+      return cached && cached.url === tab?.url ? cached : null;
+    }).filter(Boolean).sort((a,b) => Number(b.lastActivityAt || b.observedAt || 0) - Number(a.lastActivityAt || a.observedAt || 0));
+    const groups = { active:[], stale:[], completed:[] };
+    for (const row of rows) groups[row.bucket]?.push(row);
+    const snapshot = {
+      ok:true,
+      generatedAt:Date.now(),
+      openChatTabs:tabs.length,
+      responsiveTabs:rows.length,
+      counts:{ active:groups.active.length, stale:groups.stale.length, completed:groups.completed.length },
+      groups,
+      recentChats:rows,
+      statusCounts:rows.reduce((out,row)=>{out[row.status]=(out[row.status]||0)+1;return out;},{}),
+      partial:rows.length !== tabs.length
+    };
+    liveChatPulseCache = snapshot; liveChatPulseCacheAt = Date.now();
+    return snapshot;
+  })().finally(() => { liveChatPulseRequest = null; });
+  return liveChatPulseRequest;
+}
+
+async function handleLiveChatStatePush(message, sender) {
+  const tab = sender?.tab;
+  if (!tab?.id || !tab?.url) return { ok:false, error:'No sender tab.' };
+  const provider = providers.detectProvider(tab.url);
+  if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return { ok:true, ignored:true };
+  const network = networkStateForTab(tab.id);
+  const state = { ...(message?.state || {}), chat:{ ...(message?.state?.chat || {}), status:message?.state?.status || message?.state?.chat?.status || 'idle' }, generation:message?.state?.generation || null };
+  const bucket = livePulseBucket(state, network);
+  const row = {
+    tabId:Number(tab.id), windowId:Number(tab.windowId || 0), providerId:provider.id, providerName:provider.name,
+    title:String(tab.title || state?.chat?.title || provider.name).slice(0,220), url:String(tab.url), chatId:String(state?.chat?.id || providers.chatIdFromUrl(tab.url, provider.id) || ''),
+    status:String(state?.chat?.status || 'idle'), rawStatus:String(state?.chat?.rawStatus || state?.chat?.status || 'idle'), healthState:String(state?.chat?.healthState || ''), bucket,
+    active:bucket==='active', stale:bucket==='stale', completed:bucket==='completed', generation:state?.generation || null,
+    network:{pending:Number(network.pending || 0),streamLikely:Boolean(network.streamLikely)}, lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0),Number(network.lastStartAt || 0),Number(network.lastResponseAt || 0),Number(network.lastCompleteAt || 0)), observedAt:Date.now()
+  };
+  rememberLiveTabState(row);
+  return { ok:true, bucket };
+}
+
+
+function scheduleLiveTabReconcile(tabId, delay = 700) {
+  const id = Number(tabId || 0);
+  if (!id || !chrome.tabs?.get) return;
+  const existing = liveNetworkReconcileTimers.get(id);
+  if (existing) clearTimeout(existing);
+  const timer = setTimeout(async () => {
+    liveNetworkReconcileTimers.delete(id);
+    try {
+      const tab = await chrome.tabs.get(id);
+      await readLiveStateFromTab(tab, { allowInject:true });
+    } catch (_) {}
+  }, Math.max(40, Number(delay || 0)));
+  liveNetworkReconcileTimers.set(id, timer);
+}
 
 function isHealthRelevantRequest(details = {}) {
   if (Number(details.tabId) < 0 || details.method === 'OPTIONS') return false;
@@ -3676,7 +3912,7 @@ function noteNetworkStart(details) {
   row.inflight.set(id, item);
   while (row.inflight.size > 64) row.inflight.delete(row.inflight.keys().next().value);
   noteNetworkEvent(row, { id, phase:'started', category:item.category, activityBearing:item.activityBearing, method:item.method, startedAt:now, at:now });
-  if (item.activityBearing) row.lastStartAt = now;
+  if (item.activityBearing) { row.lastStartAt = now; liveChatPulseCacheAt = 0; scheduleLiveTabReconcile(details.tabId, 80); }
   row.lastObservedAt = now; row.updatedAt = now;
 }
 function noteNetworkResponse(details) {
@@ -3695,7 +3931,7 @@ function noteNetworkDone(details, failed = false) {
   row.inflight.delete(id);
   const category = item?.category || liveNetworkCategory(details.url); const method = item?.method || details.method; const activityBearing = item?.activityBearing ?? liveNetworkActivityBearing(category, method);
   noteNetworkEvent(row, { id, phase:failed ? 'error' : 'completed', category, activityBearing, method, status:details.statusCode, startedAt:item?.startedAt, at:now, durationMs:item?.startedAt ? now - item.startedAt : 0 });
-  if (activityBearing) { if (failed) row.lastErrorAt = now; else row.lastCompleteAt = now; }
+  if (activityBearing) { if (failed) row.lastErrorAt = now; else row.lastCompleteAt = now; liveChatPulseCacheAt = 0; scheduleLiveTabReconcile(details.tabId, 850); }
   row.lastObservedAt = now;
   if (Number(details.statusCode || 0)) { row.lastStatusCode = Number(details.statusCode || 0); row.lastStatusAt = now; }
   row.updatedAt = now;
@@ -3709,7 +3945,19 @@ if (chrome.webRequest?.onBeforeRequest) {
   chrome.webRequest.onCompleted.addListener((details) => noteNetworkDone(details, false), filter);
   chrome.webRequest.onErrorOccurred.addListener((details) => noteNetworkDone(details, true), filter);
 }
-if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => liveNetworkByTab.delete(Number(tabId)));
+if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); liveChatPulseCacheAt = 0; });
+
+if (chrome.notifications?.onClicked) chrome.notifications.onClicked.addListener(async (notificationId) => {
+  const match = String(notificationId || '').match(/^pc-chat-complete:(\d+):/);
+  if (!match) return;
+  const tabId = Number(match[1]);
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    await chrome.tabs.update(tabId, { active:true });
+    if (tab?.windowId) await chrome.windows?.update?.(tab.windowId, { focused:true });
+    await chrome.notifications.clear(notificationId).catch(() => {});
+  } catch (_) {}
+});
 
 
 if (chrome.downloads?.onCreated) {
