@@ -10,7 +10,7 @@ html='''<!doctype html><html><body><main>
 <div id="current-progress">
   <div class="text-token-text-tertiary">Searched 20 websites</div>
   <div id="searching" class="text-token-text-tertiary">Searching the web</div>
-  <div id="inspecting">Inspecting mob animation rendering logic</div>
+  <div id="inspecting" class="text-token-text-tertiary">Inspecting mob animation rendering logic</div>
   <button>Called tool</button><button>Called tool</button><button>Called tool</button>
 </div>
 </main></body></html>'''
@@ -25,23 +25,40 @@ mock=r'''(() => {
 })();'''
 
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    launch={'headless':True,'args':['--no-sandbox']}
+    chromium=os.environ.get('PROJECT_CONSTELLATION_CHROMIUM','').strip()
+    if chromium: launch['executable_path']=chromium
+    browser=p.chromium.launch(**launch)
     page=browser.new_page();errors=[];page.on('pageerror',lambda exc:errors.append(str(exc)))
     page.set_content(html,wait_until='load');page.evaluate(mock);page.add_script_tag(content=sentinel);page.wait_for_timeout(220)
     active=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     hud_active=page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthTitle').textContent")
-    # Finish the current frontier: the exact visible in-progress labels become past tense,
-    # then the current assistant turn gets its final control.
+
+    # Finish the exact reported current frontier, then include final prose containing
+    # words such as verification/building. Ordinary assistant prose must never be
+    # reinterpreted as live tool work.
     page.evaluate("""() => {
       document.getElementById('searching').textContent='Searched the web';
       document.getElementById('inspecting').textContent='Inspected mob animation rendering logic';
       const turn=document.createElement('section');turn.setAttribute('data-testid','conversation-turn-4');
-      turn.innerHTML='<div data-message-author-role="assistant" data-message-id="a-current"><p>Finished the requested animation inspection.</p><button aria-label="Copy">Copy</button></div>';
+      turn.innerHTML='<div data-message-author-role="assistant" data-message-id="a-current" aria-busy="true" data-state="loading"><p>The production release pipeline also passed verification, build, packaging, release publishing, and artifact upload. Thinking and reasoning are discussed here.</p><button aria-label="Copy">Copy</button></div>';
       document.querySelector('main').appendChild(turn);
+      const stale=document.createElement('div');stale.id='stale-layout-busy';stale.setAttribute('aria-busy','true');stale.setAttribute('data-state','loading');stale.innerHTML='<span class="text-token-text-secondary">The production release pipeline also passed verification, build, packaging, release publishing, and artifact upload.</span>';document.querySelector('main').appendChild(stale);
     }""")
-    page.wait_for_timeout(260)
+    page.wait_for_timeout(2600)
     done=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
-    print(json.dumps({'active':active,'hudActive':hud_active,'done':done,'errors':errors},sort_keys=True))
+
+    # Simulate the still-loaded v0.14.2 content renderer racing the hot-injected
+    # Sentinel. It writes wrong colors/titles repeatedly. The HUD guard must repair
+    # those mutations before paint, so no animation frame exposes the wrong state.
+    guard=page.evaluate("""async () => {
+      const h=document.getElementById('projectConstellationHealthHud');const sh=h.shadowRoot;let i=0;
+      const timer=setInterval(()=>{const levels=['active','warning','danger'];h.dataset.level=levels[i%3];h.dataset.state=i%2?'tool-running':'stalled';sh.getElementById('pcHealthTitle').textContent=i%2?'Tool working · stale renderer':'Chat stalled';i++;if(i>=120)clearInterval(timer);},8);
+      const frames=[];for(let f=0;f<60;f++){await new Promise(requestAnimationFrame);frames.push([h.dataset.level,h.dataset.state,sh.getElementById('pcHealthTitle').textContent]);}
+      return {bad:frames.filter(x=>x[0]!=='healthy'||x[1]!=='healthy'||x[2]!=='Chat complete'),diag:ProjectConstellationLiveSentinel.diagnostics()};
+    }""")
+
+    print(json.dumps({'active':active,'hudActive':hud_active,'done':done,'guard':guard,'errors':errors},sort_keys=True))
     assert active['ok'] and active['chat']['status']=='running'
     assert active['generation']['active'] is True and active['generation']['progressiveTool'] is True
     assert active['generation']['source']=='current-progress-label'
@@ -50,5 +67,8 @@ with sync_playwright() as p:
     assert hud_active.startswith('Tool working')
     assert done['ok'] and done['chat']['status']=='idle' and done['generation']['active'] is False
     assert done['generation']['finalControls'] is True
+    assert done['generation']['progressiveTool'] is False
+    assert guard['bad']==[]
+    assert guard['diag']['transitionCount'] <= 2
     assert not errors
     browser.close()

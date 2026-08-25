@@ -164,7 +164,8 @@ with sync_playwright() as p:
       };
       const livePulse=await __pcSend({type:'PC_LIVE_CHAT_PULSE',force:true});
       globalThis.__pcNotifications=[]; chrome.notifications={create:async(id,options)=>{__pcNotifications.push({id,options});return id;}};
-      const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+      const legacyIgnored=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+      const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.3',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
       await new Promise(r=>setTimeout(r,15));
       const completionNotifications=structuredClone(__pcNotifications);
       const handoff=await __pcSend({type:'PC_PREPARE_CHAT_HANDOFF',chatId:'chatgpt:test',url:'https://chatgpt.com/c/test',capacity:{turnCount:260,capturedChars:410000}},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
@@ -178,7 +179,7 @@ with sync_playwright() as p:
       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
-      return {ingest,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,livePulse,completedPush,completionNotifications,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
+      return {ingest,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,livePulse,legacyIgnored,completedPush,completionNotifications,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
     }""")
     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
     assert result['ingest']['ok']
@@ -224,6 +225,7 @@ with sync_playwright() as p:
     assert result['livePulse']['counts']=={'active':1,'stale':1,'completed':2}
     assert result['livePulse']['groups']['active'][0]['tabId']==101 and result['livePulse']['groups']['stale'][0]['tabId']==102
     assert {row['tabId'] for row in result['livePulse']['groups']['completed']}=={103,104}
+    assert result['legacyIgnored']['ignored'] is True and result['legacyIgnored']['reason']=='non-sentinel-live-state'
     assert result['completedPush']['bucket']=='completed' and len(result['completionNotifications'])==1
     assert result['completionNotifications'][0]['options']['title']=='Chat finished' and result['completionNotifications'][0]['options']['message']=='Live A'
     assert result['healthActive']['network']['pending']==1 and result['healthActive']['network']['streamLikely'] is True

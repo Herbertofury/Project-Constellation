@@ -2,6 +2,24 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.3 - Stable Live State Hotfix
+
+### Fixed
+
+- Tightened Live Sentinel so generic `aria-busy` / loading-layout wrappers and ordinary assistant prose cannot keep a completed ChatGPT response active. Weak progress rows must have a real progress-line shape, while current final controls suppress only leftover busy bits.
+- Added a short running-to-idle settle window and a HUD mutation guard so transient DOM gaps or a lagging legacy renderer cannot visibly flicker Execution Pulse between healthy/active/warning states.
+- Made the versioned Live Sentinel the single authoritative primary chat-state source across popup counts, notifications, content status, and Execution Pulse; background state now ignores legacy live-state pushes.
+- Demoted provider-network activity to telemetry. Pending/stream-likely ChatGPT requests cannot resurrect a completed chat.
+- Kept Output Vault mismatch warnings secondary: they no longer promote a completed chat into the active health-poll lane or decide its primary color/status.
+- Hot-upgrade injection now replaces older Sentinel versions in already-open tabs.
+
+### Tests
+
+- Added completed-answer regression coverage using the exact production-release prose that was falsely displayed as `Tool working`, including stale `aria-busy` and `data-state=loading` ancestors.
+- Added a 60/120-frame HUD race stress test that repeatedly writes wrong green/red/blue state while requiring zero visible bad frames.
+- Added full content/health stability coverage with alternating pending provider traffic, an active secondary Output Vault mismatch, stale busy-attribute churn, real progress activation, and settled completion.
+- Preserved the v0.14.2 current-tool regression: genuine `Searching…` / `Inspecting…` work still becomes Active immediately and only completes after the current response settles.
+
 ## 0.14.2 - Live Sentinel Hotfix
 
 ### Fixed

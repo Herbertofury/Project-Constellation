@@ -1,16 +1,17 @@
 {
   "name": "project-constellation-extension",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/health-core.test.mjs",
+    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs",
     "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
     "build": "node tools/build.mjs --mode=production",
     "build:dev": "node tools/build.mjs --mode=development",
     "package": "node tools/package-release.mjs",
     "package:dev": "node tools/package-release.mjs --allow-development",
     "test:smoke": "node tools/run-smokes.mjs",
-    "verify": "npm test && npm run validate && npm run build:dev && npm run test:smoke"
+    "verify": "npm test && npm run validate && npm run build:dev && npm run test:smoke",
+    "test:live-browser": "python3 tools/live_browser_acceptance.py"
   }
 }

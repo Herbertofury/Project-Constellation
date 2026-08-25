@@ -43,6 +43,7 @@ const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
 const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
 const LIVE_CHAT_PULSE_TTL_MS = 1800;
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
+const LIVE_SENTINEL_VERSION = '0.14.3';
 const liveNetworkByTab = new Map();
 const liveTabStateByTab = new Map();
 const liveNetworkReconcileTimers = new Map();
@@ -3646,7 +3647,11 @@ function livePulseBucket(state = {}, network = {}) {
   const status = String(state?.chat?.status || state?.status || 'idle');
   const healthState = String(state?.chat?.healthState || state?.healthState || state?.chat?.health?.state || '');
   if (LIVE_STALE_STATUSES.has(status) || LIVE_STALE_HEALTH_STATES.has(healthState)) return 'stale';
-  if (status === 'running' || state?.generation?.active || state?.healthActive || LIVE_ACTIVE_HEALTH_STATES.has(healthState) || Number(network?.pending || 0) > 0 || network?.streamLikely) return 'active';
+  // Provider traffic is useful timeline evidence, but it is not authoritative chat-state
+  // evidence. ChatGPT performs background POSTs and auxiliary requests after a response
+  // has settled; treating any pending request as "active" made completed chats flicker.
+  if (status === 'running' || state?.generation?.active || state?.healthActive || LIVE_ACTIVE_HEALTH_STATES.has(healthState)) return 'active';
+  void network;
   return 'completed';
 }
 
@@ -3785,10 +3790,10 @@ async function ensureLiveSentinel(tabId) {
   const id = Number(tabId || 0);
   if (!id || !chrome.scripting?.executeScript) return null;
   const existing = await readLiveSentinelState(id);
-  if (existing) return existing;
+  if (existing?.version === LIVE_SENTINEL_VERSION) return existing;
   try {
     await chrome.scripting.executeScript({ target:{ tabId:id }, files:[LIVE_SENTINEL_FILE] });
-  } catch (_) { return null; }
+  } catch (_) { return existing || null; }
   return readLiveSentinelState(id);
 }
 
@@ -3831,7 +3836,7 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   // script it can be hot-injected into tabs that were already open when the extension
   // upgraded, so active work is visible immediately without a manual page refresh.
   let state = await readLiveSentinelState(tabId);
-  if (!state?.ok && allowInject) state = await ensureLiveSentinel(tabId);
+  if (allowInject && (!state?.ok || state?.version !== LIVE_SENTINEL_VERSION)) state = await ensureLiveSentinel(tabId);
   if (!state?.ok) {
     try { state = await chrome.tabs.sendMessage(tabId, { type:'PC_GET_LIVE_CHAT_STATE' }); }
     catch (_) { state = null; }
@@ -3901,6 +3906,10 @@ async function liveChatPulse({ force = false } = {}) {
 async function handleLiveChatStatePush(message, sender) {
   const tab = sender?.tab;
   if (!tab?.id || !tab?.url) return { ok:false, error:'No sender tab.' };
+  // Only the versioned Live Sentinel is allowed to mutate the canonical live-tab map.
+  // The legacy content health loop can lag or disagree during hot upgrades and was racing
+  // the Sentinel, producing visible red/green/blue flips and false completion changes.
+  if (message?.state?.sentinel !== true || message?.state?.source !== 'live-sentinel') return { ok:true, ignored:true, reason:'non-sentinel-live-state' };
   const provider = providers.detectProvider(tab.url);
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return { ok:true, ignored:true };
   const network = networkStateForTab(tab.id);
