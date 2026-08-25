@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = process.env.PROJECT_CONSTELLATION_ROOT ? path.resolve(process.env.PROJECT_CONSTELLATION_ROOT) : path.join(repoRoot, 'extension');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
-const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/content.js','src/styles.css'];
+const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/live-sentinel.js','src/content.js','src/styles.css'];
 for (const file of required) if (!fs.existsSync(path.join(root, file))) throw new Error(`Missing ${file}`);
 const releaseSupportFiles = [
   'config/oauth/.env.release.example',
@@ -15,7 +15,7 @@ const releaseSupportFiles = [
   'docs/OAUTH.md',
   'docs/OAUTH-PROVISIONING-CHECKLIST.md',
   'docs/RELEASING.md',
-  'docs/v0.14.0-release-notes.md',
+  `docs/v${manifest.version}-release-notes.md`,
   'wiki/OAuth-and-Provider-Setup.md',
   'wiki/Privacy-Policy.md',
   'wiki/Release-Process.md',

@@ -42,6 +42,7 @@ const BRANCH_CONTINUATION_KEY = 'projectConstellationPendingBranch';
 const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
 const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
 const LIVE_CHAT_PULSE_TTL_MS = 1800;
+const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const liveNetworkByTab = new Map();
 const liveTabStateByTab = new Map();
 const liveNetworkReconcileTimers = new Map();
@@ -3292,6 +3293,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   await ensureSearchIndex();
   await startKnowledgeBackfillIfNeeded();
   await updateAttentionBadge();
+  await installLiveSentinelIntoOpenTabs().catch(() => {});
 });
 
 chrome.runtime.onStartup.addListener(async () => {
@@ -3312,6 +3314,7 @@ chrome.runtime.onStartup.addListener(async () => {
   const dirty = (await chrome.storage.local.get(DIRTY_KEY))[DIRTY_KEY];
   const cfg = await settings();
   if (dirty && cfg.drive.autoSync && googleOAuthProvisioned()) await chrome.alarms.create(DRIVE_SYNC_ALARM, { when: Date.now() + 3000 });
+  await installLiveSentinelIntoOpenTabs().catch(() => {});
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -3692,23 +3695,48 @@ function livePulseDomProbe() {
     const streamingNode = scope?.querySelector?.('[data-is-streaming="true"],[data-testid*="streaming" i],[data-state="streaming" i],.result-streaming,[class*="result-streaming" i]') || null;
     const busyNode = scope?.querySelector?.('[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]') || null;
 
-    let turns = [...document.querySelectorAll('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id]')];
-    const role = (node) => String(node?.getAttribute?.('data-message-author-role') || node?.getAttribute?.('data-author') || node?.getAttribute?.('data-role') || '').toLowerCase();
+    const turns = [...document.querySelectorAll('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id]')];
+    const role = (node) => {
+      const direct = node?.getAttribute?.('data-message-author-role') || node?.getAttribute?.('data-author') || node?.getAttribute?.('data-role');
+      if (direct) return String(direct).toLowerCase();
+      const nested = node?.querySelector?.('[data-message-author-role],[data-author],[data-role]');
+      return String(nested?.getAttribute?.('data-message-author-role') || nested?.getAttribute?.('data-author') || nested?.getAttribute?.('data-role') || '').toLowerCase();
+    };
+    const users = turns.filter((node) => role(node) === 'user');
     const assistants = turns.filter((node) => role(node) === 'assistant');
-    const latestAssistant = assistants.at(-1) || null;
-    const finalControls = Boolean(latestAssistant && [...latestAssistant.querySelectorAll('button,[role="button"]')].some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120))));
+    const latestUser = users.at(-1) || null;
+    const follows = (node, boundary) => {
+      if (!node || !boundary || node === boundary || boundary.contains?.(node)) return false;
+      try { return Boolean(boundary.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING); } catch (_) { return false; }
+    };
+    const currentNode = (node) => !latestUser || (!latestUser.contains?.(node) && follows(node, latestUser));
+    const currentAssistant = latestUser ? [...assistants].reverse().find((node) => follows(node, latestUser)) || null : assistants.at(-1) || null;
+    const finalControls = Boolean(currentAssistant && [...currentAssistant.querySelectorAll('button,[role="button"]')].some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120))));
 
-    const activeTool = /\b(searching|retrieving|fetching|reading|browsing|running|executing|building|verifying|updating|creating|uploading|downloading|processing|calling|generating)\b/i;
-    const finishedTool = /\b(searched|retrieved|fetched|read|browsed|checked|analyzed|ran|executed|built|verified|updated|edited|wrote|created|uploaded|downloaded|processed|called|used|completed|finished)\b/i;
-    const toolSelectors = '[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-testid*="tool" i],[aria-label*="tool" i],.loading-shimmer-tertiary,[class*="loading-shimmer" i],[class*="text-token-text-tertiary"]';
-    const toolNodes = [...(scope?.querySelectorAll?.(toolSelectors) || [])].slice(-48);
+    const activeTool = /\b(searching|retrieving|fetching|reading|browsing|inspecting|checking|analyzing|analysing|reviewing|comparing|auditing|running|executing|building|compiling|packaging|verifying|testing|updating|editing|writing|creating|uploading|downloading|processing|calling|generating|patching|modifying|implementing|fixing|enhancing|persisting|porting|opening|clicking|typing|triggering)\b/i;
+    const finishedTool = /\b(searched|retrieved|fetched|read|browsed|inspected|checked|analyzed|analysed|reviewed|compared|audited|ran|executed|built|compiled|packaged|verified|tested|updated|edited|wrote|written|created|uploaded|downloaded|processed|called|used|generated|patched|modified|implemented|fixed|enhanced|persisted|ported|opened|clicked|typed|triggered|completed|finished)\b/i;
+    const toolEvent = /(?:called tool|calling tool|tool call|search(?:ed|ing)|retriev(?:ed|ing)|fet(?:ched|ching)|inspect(?:ed|ing)|read(?:ing)?|brows(?:ed|ing)|audit(?:ed|ing)|analyz(?:ed|ing)|analys(?:ed|ing)|review(?:ed|ing)|compar(?:ed|ing)|check(?:ed|ing)|run(?:ning)?|execut(?:ed|ing)|build(?:ing|t)|compil(?:ed|ing)|packag(?:ed|ing)|verif(?:ied|ying)|test(?:ed|ing)|updat(?:ed|ing)|edit(?:ed|ing)|writ(?:ten|ing)|creat(?:ed|ing)|upload(?:ed|ing)|download(?:ed|ing)|process(?:ed|ing)|implement(?:ed|ing)|fix(?:ed|ing))/i;
+    const toolSelectors = '[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-testid*="tool" i],[data-testid*="search" i],[data-testid*="progress" i],[aria-label*="tool" i],[role="status"],[aria-live="polite"],.loading-shimmer-tertiary,[class*="loading-shimmer" i],[class*="text-token-text-tertiary"],[class*="text-token-text-secondary"]';
+    const candidates = [...(scope?.querySelectorAll?.(toolSelectors) || [])].slice(-160);
+    for (const node of [...(scope?.querySelectorAll?.('div,span,p,button,[role="status"],[aria-live]') || [])].slice(-360)) {
+      if (node.childElementCount > 6 || !currentNode(node)) continue;
+      const text = clean(node.getAttribute?.('aria-label') || node.textContent, 200);
+      if (text && toolEvent.test(text)) candidates.push(node);
+    }
     let toolLabel = '';
-    for (let i = toolNodes.length - 1; i >= 0; i -= 1) {
-      const text = clean(toolNodes[i].getAttribute?.('aria-label') || toolNodes[i].textContent, 180);
+    for (let i = candidates.length - 1; i >= 0; i -= 1) {
+      const node = candidates[i];
+      if (!currentNode(node)) continue;
+      const text = clean(node.getAttribute?.('aria-label') || node.textContent, 180);
       if (activeTool.test(text) && !finishedTool.test(text)) { toolLabel = text; break; }
     }
-    const progressiveTool = Boolean(toolLabel && !finalControls);
-    const active = Boolean(stopControl || streamingNode || busyNode || progressiveTool);
+    // A present-tense tool row in the current response frontier outranks Copy/feedback
+    // controls from an older assistant response. This is the exact failure mode that
+    // misclassified live ChatGPT tool work as complete in v0.14.1.
+    const progressiveTool = Boolean(toolLabel);
+    const assistantPending = Boolean(currentAssistant && !finalControls && clean(currentAssistant.textContent || '', 200000).length > 0);
+    const currentBusy = [...(scope?.querySelectorAll?.('[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]') || [])].some(currentNode);
+    const active = Boolean(stopControl || streamingNode || currentBusy || progressiveTool || assistantPending);
 
     const statusText = clean(scope?.innerText || scope?.textContent || '', 24000).toLowerCase();
     let status = active ? 'running' : 'idle';
@@ -3734,7 +3762,7 @@ function livePulseDomProbe() {
         turnCount: turns.length,
         healthState: status === 'running' ? 'working' : status === 'idle' ? 'healthy' : status
       },
-      generation: { active, stopControl:Boolean(stopControl), streaming:Boolean(streamingNode), busyNode:Boolean(busyNode), progressiveTool, toolLabel, finalControls },
+      generation: { active, stopControl:Boolean(stopControl), streaming:Boolean(streamingNode), busyNode:Boolean(currentBusy), progressiveTool, assistantPending, toolLabel, finalControls },
       healthActive: status === 'running',
       healthStale: !['running','idle'].includes(status),
       observedAt: Date.now(),
@@ -3743,6 +3771,46 @@ function livePulseDomProbe() {
   } catch (error) {
     return { ok:false, source:'scripting-dom-probe', error:String(error?.message || error) };
   }
+}
+
+async function readLiveSentinelState(tabId) {
+  if (!tabId || !chrome.tabs?.sendMessage) return null;
+  try {
+    const state = await chrome.tabs.sendMessage(Number(tabId), { type:'PC_GET_LIVE_SENTINEL_STATE' });
+    return state?.ok && state?.source === 'live-sentinel' ? state : null;
+  } catch (_) { return null; }
+}
+
+async function ensureLiveSentinel(tabId) {
+  const id = Number(tabId || 0);
+  if (!id || !chrome.scripting?.executeScript) return null;
+  const existing = await readLiveSentinelState(id);
+  if (existing) return existing;
+  try {
+    await chrome.scripting.executeScript({ target:{ tabId:id }, files:[LIVE_SENTINEL_FILE] });
+  } catch (_) { return null; }
+  return readLiveSentinelState(id);
+}
+
+async function installLiveSentinelIntoOpenTabs() {
+  if (!chrome.tabs?.query || !chrome.scripting?.executeScript) return { ok:false, injected:0, total:0 };
+  const tabs = (await chrome.tabs.query({})).filter((tab) => {
+    const provider = providers.detectProvider(tab.url || '');
+    return Boolean(provider && providers.isLikelyChatUrl(tab.url || '', provider.id));
+  });
+  let injected = 0;
+  // Keep update/startup work bounded. Each batch is small enough to avoid turning an
+  // extension reload with many AI tabs into a burst of simultaneous script injections.
+  for (let offset = 0; offset < tabs.length; offset += 6) {
+    const batch = tabs.slice(offset, offset + 6);
+    const settled = await Promise.allSettled(batch.map(async (tab) => {
+      const state = await ensureLiveSentinel(tab.id);
+      if (state?.ok) injected += 1;
+    }));
+    void settled;
+  }
+  liveChatPulseCacheAt = 0;
+  return { ok:true, injected, total:tabs.length };
 }
 
 async function probeLiveStateFromTab(tabId) {
@@ -3759,12 +3827,15 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   if (!tabId || !tab?.url) return null;
   const provider = providers.detectProvider(tab.url);
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return null;
-  let state = null;
-  try { state = await chrome.tabs.sendMessage(tabId, { type:'PC_GET_LIVE_CHAT_STATE' }); }
-  catch (_) { state = null; }
-  // Existing tabs keep the content-script instance that was present when they loaded.
-  // After an extension upgrade those tabs may not know the new live-pulse message yet,
-  // so probe their DOM directly instead of requiring ten manual tab reloads.
+  // The dedicated sentinel is the canonical live-state source. Unlike the full content
+  // script it can be hot-injected into tabs that were already open when the extension
+  // upgraded, so active work is visible immediately without a manual page refresh.
+  let state = await readLiveSentinelState(tabId);
+  if (!state?.ok && allowInject) state = await ensureLiveSentinel(tabId);
+  if (!state?.ok) {
+    try { state = await chrome.tabs.sendMessage(tabId, { type:'PC_GET_LIVE_CHAT_STATE' }); }
+    catch (_) { state = null; }
+  }
   if (!state?.ok && allowInject) state = await probeLiveStateFromTab(tabId);
   if (!state?.ok) return null;
   const network = networkStateForTab(tabId);

@@ -2,6 +2,25 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.2 - Live Sentinel Hotfix
+
+### Fixed
+
+- Replaced the fragile current-response heuristic with a dedicated **Live Sentinel** that reasons from the current conversation frontier: the newest user turn, the assistant response after it, and tool/progress rows that occur after that user turn. Historical tool rows and controls from older assistant messages can no longer decide whether the current chat is active.
+- Fixed the exact false-complete case where an older assistant message still exposed **Copy** controls while the current response was visibly running tool work outside a recognized assistant turn. Present-tense current progress now wins, so labels such as **Searching the web**, **Inspecting mob animation rendering logic**, **Checking build tools**, **Analyzing**, **Testing**, and related active verbs keep the chat in `running`.
+- Expanded active tool semantics beyond search/fetch verbs to cover inspect/check/analyze/review/compare/audit/build/compile/package/test/edit/write/patch/modify/implement/fix/enhance/persist/port/open/click/type/trigger work.
+- Tool evidence is now selected from the newest **current** progress row instead of the newest matching row in the entire historical DOM. This prevents a stale `Searched 20 websites` row from replacing a newer `Searching the web` or `Inspecting ...` state in Execution Pulse.
+- Live Sentinel observes text-node (`characterData`) mutations as well as child/attribute mutations, so in-place transitions such as `Searching...` -> `Searched...` are recognized immediately.
+- Existing open AI tabs are hot-upgraded with the new Sentinel through `chrome.scripting`. Reloading Project Constellation no longer leaves an old content script permanently controlling the on-page HUD until every ChatGPT tab is manually refreshed.
+- The Sentinel can correct an already-mounted legacy Execution Pulse HUD in place, so `Chat complete` is replaced with the current tool-working state as soon as the Sentinel is injected.
+- Background Chat Pulse now asks the Sentinel first, injects it when missing, and only then falls back to the older content-script/raw DOM probes. This keeps popup counts, completion notifications, and the on-page Pulse on one canonical live-state source.
+
+### Tests
+
+- Added a Chromium regression reproducing the reported DOM shape exactly: an older completed assistant with Copy controls, a newer user turn, current tool rows outside a recognized assistant turn, `Searched 20 websites`, `Searching the web`, `Inspecting mob animation rendering logic`, and generic `Called tool` rows. It must remain `running`, surface the newest current progress label, and repair a legacy HUD that initially says `Chat complete`.
+- The same regression mutates the active rows in place to completed tense, mounts the current final assistant answer, and confirms the Sentinel transitions to `idle` only then.
+- Existing live-chat-state integration coverage now loads Live Sentinel before the main content script and verifies the main status/health path consumes the canonical Sentinel state.
+
 ## 0.14.1 - Live Pulse Hotfix
 
 ### Fixed

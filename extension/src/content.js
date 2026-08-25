@@ -131,6 +131,11 @@
   const hashText = providers.hashString;
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  function liveSentinelState(force = false) {
+    try { return globalThis.ProjectConstellationLiveSentinel?.getState?.(Boolean(force)) || null; }
+    catch (_) { return null; }
+  }
+
   function applySettingsToDom() {
     if (!root) return;
     root.dataset.projectConstellationEnabled = settings.enabled ? '1' : '0';
@@ -920,6 +925,44 @@
 
   function detectToolEvidence(force = false) {
     const now = Date.now();
+    const sentinel = liveSentinelState(force);
+    if (sentinel?.ok && sentinel.source === 'live-sentinel') {
+      const row = sentinel.tool || {};
+      const label = brain.normalizeText(row.label || sentinel.generation?.toolLabel || '', 150);
+      const active = Boolean(sentinel.generation?.active && (row.active || row.busy || label));
+      const signature = hashText(`sentinel|${sentinel.chat?.status || ''}|${row.current ? 1 : 0}|${row.busy ? 1 : 0}|${row.active ? 1 : 0}|${label}|${row.entryCount || 0}`);
+      if (active && !healthEvidence.lastToolStartedAt) healthEvidence.lastToolStartedAt = now;
+      if (!active) healthEvidence.lastToolStartedAt = 0;
+      if (signature !== healthEvidence.lastToolSignature) {
+        healthEvidence.lastToolSignature = signature;
+        healthEvidence.lastToolEntryCount = Number(row.entryCount || 0);
+        if (active) {
+          healthEvidence.lastToolProgressAt = Number(row.lastProgressAt || now);
+          healthEvidence.lastToolHash = hashText(label || signature);
+          healthEvidence.lastToolLabel = label;
+          healthEvidence.lastDomProgressAt = now;
+          lastSemanticActivityAt = Math.max(lastSemanticActivityAt, now);
+          if (label) noteLiveActivity('tool', label, `${row.phase || toolPhaseFromLabel(label)} · live response frontier`, `tool:${healthEvidence.lastToolHash}`, now);
+        }
+      }
+      lastToolEvidence = {
+        present:Boolean(row.present),
+        active,
+        busy:Boolean(row.busy),
+        label,
+        phase:brain.normalizeText(row.phase || toolPhaseFromLabel(label), 60),
+        lastProgressAt:Number(row.lastProgressAt || healthEvidence.lastToolProgressAt || 0),
+        startedAt:healthEvidence.lastToolStartedAt,
+        entryCount:Number(row.entryCount || 0),
+        generic:false,
+        signature,
+        current:Boolean(row.current),
+        sentinel:true
+      };
+      lastToolScanAt = now;
+      toolEvidenceDirty = false;
+      return lastToolEvidence;
+    }
     const cacheMs = lastStatus === 'running' ? 1200 : 5000;
     if (!force && !toolEvidenceDirty && lastToolEvidence && now - lastToolScanAt < cacheMs) return lastToolEvidence;
     const rootNode = document.querySelector('main') || document.body;
@@ -1701,6 +1744,25 @@
   }
 
   function activeGenerationEvidence(tool = null) {
+    const sentinel = liveSentinelState(true);
+    if (sentinel?.ok && sentinel.source === 'live-sentinel') {
+      const generation = sentinel.generation || {};
+      return {
+        active:Boolean(generation.active),
+        stopControl:Boolean(generation.stopControl),
+        streaming:Boolean(generation.streaming),
+        busyNode:Boolean(generation.busyNode),
+        toolBusy:Boolean(generation.toolBusy),
+        progressiveTool:Boolean(generation.progressiveTool),
+        assistantPending:Boolean(generation.assistantPending),
+        toolLabel:brain.normalizeText(generation.toolLabel || sentinel.tool?.label || '', 140),
+        finalControls:Boolean(generation.finalControls),
+        hasAssistant:Boolean(generation.assistantPending || generation.finalControls),
+        assistantTextLength:0,
+        source:brain.normalizeText(generation.source || 'live-sentinel', 80),
+        sentinel:true
+      };
+    }
     const scope = document.querySelector('main') || document;
     const stopSelectors = '[data-testid="stop-button"],[data-testid*="stop" i],button[aria-label*="stop generating" i],button[aria-label*="stop streaming" i],button[aria-label*="stop response" i],button[aria-label*="cancel generation" i],button[aria-label*="cancel response" i]';
     const stopControl = [...document.querySelectorAll(stopSelectors)].find(isUsableControl) || null;
