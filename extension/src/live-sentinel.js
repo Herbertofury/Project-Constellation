@@ -1,22 +1,29 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.2';
+  const VERSION = '0.14.3';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
 
-  const TOOL_EVENT_PATTERN = /(?:called tool|calling tool|tool call|used [^|\n]{0,80} skill|search(?:ed|ing)|web search|retriev(?:ed|ing)|fet(?:ched|ching)|inspect(?:ed|ing)|read(?:ing)?|brows(?:ed|ing)|run(?:ning)? tool|using [^|\n]{0,100}tool|audit(?:ed|ing)|patch(?:ed|ing)|analyz(?:ed|ing)|updat(?:ed|ing)|upload(?:ed|ing)|download(?:ed|ing)|verif(?:ied|ying)|test(?:ed|ing)|build(?:ing|t)|packag(?:ed|ing)|execut(?:ed|ing)|terminal|creat(?:ed|ing)|compar(?:ed|ing)|review(?:ed|ing)|check(?:ed|ing)|enhanc(?:ed|ing)|persist(?:ed|ing)|port(?:ed|ing)|modif(?:ied|ying)|compil(?:ed|ing)|trigger(?:ed|ing)|open(?:ed|ing)|click(?:ed|ing)|typ(?:ed|ing)|implement(?:ed|ing)|fix(?:ed|ing)|process(?:ed|ing)|writ(?:ten|ing)|edit(?:ed|ing))/i;
   const ACTIVE_TOOL_LABEL_PATTERN = /\b(searching|retrieving|fetching|reading|browsing|inspecting|checking|analyzing|analysing|reviewing|comparing|auditing|running|executing|building|compiling|packaging|verifying|testing|updating|editing|writing|creating|uploading|downloading|processing|calling|generating|patching|modifying|implementing|fixing|enhancing|persisting|porting|opening|clicking|typing|triggering)\b/i;
-  const FINISHED_TOOL_LABEL_PATTERN = /\b(searched|retrieved|fetched|read|browsed|inspected|checked|analyzed|analysed|reviewed|compared|audited|ran|executed|built|compiled|packaged|verified|tested|updated|edited|wrote|written|created|uploaded|downloaded|processed|called|used|generated|patched|modified|implemented|fixed|enhanced|persisted|ported|opened|clicked|typed|triggered|completed|finished)\b/i;
+  const FINISHED_TOOL_LABEL_PATTERN = /\b(searched|retrieved|fetched|read|browsed|inspected|checked|analyzed|analysed|reviewed|compared|audited|ran|executed|built|compiled|packaged|verified|tested|updated|edited|wrote|written|created|uploaded|downloaded|processed|called|used|generated|patched|modified|implemented|fixed|enhanced|persisted|ported|opened|clicked|typed|triggered|completed|finished|passed)\b/i;
+  const TOOL_EVENT_PATTERN = new RegExp(`(?:called tool|calling tool|tool call|used [^|\\n]{0,80} skill|${ACTIVE_TOOL_LABEL_PATTERN.source}|${FINISHED_TOOL_LABEL_PATTERN.source}|terminal|web search)`, 'i');
   const GENERIC_TOOL_PATTERN = /^(?:called tool|calling tool|tool call|used [^|\n]{0,80} skill|ran tool|running tool)$/i;
-  const FAST_TOOL_SELECTOR = [
+  const ACTIVE_PROGRESS_LINE_PATTERN = /^(?:searching|retrieving|fetching|reading|browsing|inspecting|checking|analyzing|analysing|reviewing|comparing|auditing|running|executing|building|compiling|packaging|verifying|testing|updating|editing|writing|creating|uploading|downloading|processing|calling|generating|patching|modifying|implementing|fixing|enhancing|persisting|porting|opening|clicking|typing|triggering)\b/i;
+  const FINISHED_PROGRESS_LINE_PATTERN = /^(?:searched|retrieved|fetched|read|browsed|inspected|checked|analyzed|analysed|reviewed|compared|audited|ran|executed|built|compiled|packaged|verified|tested|updated|edited|wrote|written|created|uploaded|downloaded|processed|called|used|generated|patched|modified|implemented|fixed|enhanced|persisted|ported|opened|clicked|typed|triggered|completed|finished|passed)\b/i;
+  const PROGRESS_LINE_PATTERN = new RegExp(`(?:${ACTIVE_PROGRESS_LINE_PATTERN.source}|${FINISHED_PROGRESS_LINE_PATTERN.source}|${GENERIC_TOOL_PATTERN.source})`, 'i');
+
+  // Strong selectors identify UI that is semantically a tool/progress surface. Weak
+  // selectors are ChatGPT's tertiary progress rows; they are accepted only when they
+  // are not ordinary assistant prose.
+  const STRONG_TOOL_SELECTOR = [
     '[data-testid*="tool" i]', '[data-testid*="search" i]', '[data-testid*="browse" i]', '[data-testid*="progress" i]',
     '[aria-label*="tool" i]', '[data-message-author-role="tool"]', '[role="status"]', '[aria-live="polite"]',
-    '.group\\/tool-message', '[class*="tool-message" i]', '[data-state*="loading" i]', '[data-state*="pending" i]',
-    '[aria-busy="true"]', '.loading-shimmer-tertiary', '[class*="loading-shimmer" i]',
-    '[class*="text-token-text-tertiary"]', '[class*="text-token-text-secondary"]'
+    '.group\\/tool-message', '[class*="tool-message" i]', '[class*="loading-shimmer" i]'
   ].join(',');
+  const WEAK_PROGRESS_SELECTOR = '[class*="text-token-text-tertiary"],[class*="text-token-text-secondary"]';
+  const FAST_TOOL_SELECTOR = `${STRONG_TOOL_SELECTOR},${WEAK_PROGRESS_SELECTOR}`;
   const STOP_SELECTOR = [
     '[data-testid="stop-button"]', '[data-testid*="stop" i]', '[data-testid*="cancel" i]',
     'button[aria-label*="stop generating" i]', 'button[aria-label*="stop streaming" i]', 'button[aria-label*="stop response" i]',
@@ -24,19 +31,38 @@
   ].join(',');
   const STREAMING_SELECTOR = '[data-is-streaming="true"],[data-testid*="streaming" i],[data-state="streaming" i],.result-streaming,[class*="result-streaming" i]';
   const BUSY_SELECTOR = '[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]';
-  const STALE_STATUS_PATTERN = /(message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message|too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429|something went wrong|there was an error|network error|failed to (generate|respond|send)|session expired|conversation.{0,30}(not found|unavailable|deleted)|page not found)/i;
+  const OWNED_SELECTOR = '[id^="projectConstellation"],[data-project-constellation-owned="1"]';
+  const ALERT_SELECTOR = '[role="alert"],[aria-live="assertive"],[data-testid*="error" i],[data-testid*="warning" i],[data-testid*="notice" i]';
 
-  let observer = null;
+  const IDLE_SETTLE_MS = 2200;
+  const ASSISTANT_GROWTH_GRACE_MS = 1400;
+  const NEW_USER_GRACE_MS = 9000;
+
+  let pageObserver = null;
   let scanTimer = 0;
   let pulseTimer = 0;
+  let messageListener = null;
+  let hudHostObserver = null;
+  let hudShadowObserver = null;
+  let guardedHud = null;
+  let hudApplying = false;
+
+  let initialized = false;
+  let lastUserKey = '';
+  let lastUserStartedAt = 0;
+  let lastAssistantFingerprint = '';
+  let lastAssistantGrowthAt = 0;
   let lastStrongActiveAt = 0;
+  let idleCandidateSince = 0;
+  let stableStatus = 'idle';
+  let stableSince = Date.now();
   let lastProgressAt = 0;
   let lastActivityAt = Date.now();
   let lastState = null;
-  let lastStateSignature = '';
   let lastPushSignature = '';
-  let hudWasPatched = false;
-  let messageListener = null;
+  let lastPushAt = 0;
+  let scanCount = 0;
+  let transitionCount = 0;
 
   const clean = (value, max = 240) => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
   const now = () => Date.now();
@@ -65,8 +91,19 @@
 
   function mainRoot() { return document.querySelector('main') || document.body || document.documentElement; }
 
+  function elementFor(node) {
+    if (!node) return null;
+    if (node.nodeType === Node.ELEMENT_NODE) return node;
+    return node.parentElement || null;
+  }
+
+  function isOwnedNode(node) {
+    const element = elementFor(node);
+    return Boolean(element && (element.matches?.(OWNED_SELECTOR) || element.closest?.(OWNED_SELECTOR)));
+  }
+
   function isUsable(node) {
-    if (!node || node.disabled || node.getAttribute?.('aria-disabled') === 'true') return false;
+    if (!node || isOwnedNode(node) || node.disabled || node.getAttribute?.('aria-disabled') === 'true') return false;
     try {
       const style = getComputedStyle(node);
       if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || 1) <= 0.01) return false;
@@ -82,8 +119,8 @@
     const nestedRole = nested?.getAttribute?.('data-message-author-role') || nested?.getAttribute?.('data-author') || nested?.getAttribute?.('data-role');
     if (nestedRole) return String(nestedRole).toLowerCase();
     const label = clean(`${node?.getAttribute?.('data-testid') || ''} ${node?.getAttribute?.('aria-label') || ''} ${node?.className || ''}`, 300).toLowerCase();
-    if (/user|human|prompt/.test(label)) return 'user';
-    if (/assistant|model|response|bot/.test(label)) return 'assistant';
+    if (/\b(user|human|prompt)\b/.test(label)) return 'user';
+    if (/\b(assistant|model|response|bot)\b/.test(label)) return 'assistant';
     return '';
   }
 
@@ -110,12 +147,28 @@
   }
 
   function isCurrentFrontierNode(node, frontier) {
-    if (!node) return false;
+    if (!node || isOwnedNode(node)) return false;
     const { latestUser, assistantAfterUser } = frontier;
     if (!latestUser) return true;
     if (latestUser.contains?.(node)) return false;
     if (assistantAfterUser?.contains?.(node)) return true;
     return follows(node, latestUser);
+  }
+
+  function turnOwner(node) {
+    const element = elementFor(node);
+    if (!element) return null;
+    return element.closest?.('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id],[data-author][data-message-id],[data-role="user"],[data-role="assistant"]') || null;
+  }
+
+  function isAssistantProse(node) {
+    const element = elementFor(node);
+    if (!element) return false;
+    const owner = turnOwner(element);
+    if (!owner || roleForTurn(owner) !== 'assistant') return false;
+    if (element.matches?.(STRONG_TOOL_SELECTOR) || element.closest?.(STRONG_TOOL_SELECTOR)) return false;
+    if (element.matches?.(WEAK_PROGRESS_SELECTOR) && !element.closest?.('p,li,pre,code,blockquote,[class*="markdown" i],[class*="prose" i]')) return false;
+    return Boolean(element.closest?.('p,li,pre,code,blockquote,h1,h2,h3,h4,h5,h6,[class*="markdown" i],[class*="prose" i]')) || true;
   }
 
   function toolPhase(label = '') {
@@ -139,7 +192,24 @@
     return candidates.find((value) => value.length <= 240 && TOOL_EVENT_PATTERN.test(value)) || '';
   }
 
-  function rowFromNode(node, frontier) {
+  function toolSurfaceConfidence(node, frontier, { fallback = false } = {}) {
+    const element = elementFor(node);
+    if (!element || isOwnedNode(element) || !isCurrentFrontierNode(element, frontier)) return 0;
+    if (element.matches?.(STRONG_TOOL_SELECTOR) || element.closest?.(STRONG_TOOL_SELECTOR)) return 3;
+    if (element.matches?.(WEAK_PROGRESS_SELECTOR) || element.closest?.(WEAK_PROGRESS_SELECTOR)) {
+      const label = clean(element.getAttribute?.('aria-label') || element.textContent || '', 260);
+      return !isAssistantProse(element) && PROGRESS_LINE_PATTERN.test(label) ? 2 : 0;
+    }
+    if (fallback && !turnOwner(element) && !isAssistantProse(element)) {
+      const label = clean(element.getAttribute?.('aria-label') || element.textContent || '', 260);
+      return ACTIVE_PROGRESS_LINE_PATTERN.test(label) ? 1 : 0;
+    }
+    return 0;
+  }
+
+  function rowFromNode(node, frontier, options = {}) {
+    const confidence = toolSurfaceConfidence(node, frontier, options);
+    if (!confidence) return null;
     const label = nodeLabel(node);
     if (!label || /^worked for\b/i.test(label)) return null;
     const stateText = clean(`${node?.getAttribute?.('data-state') || ''} ${node?.getAttribute?.('aria-busy') || ''} ${node?.getAttribute?.('aria-expanded') || ''} ${node?.className || ''}`, 260);
@@ -151,8 +221,9 @@
     return {
       node,
       label,
+      confidence,
       busy,
-      current:isCurrentFrontierNode(node, frontier),
+      current:true,
       activeLabel,
       finishedLabel,
       generic:GENERIC_TOOL_PATTERN.test(label),
@@ -163,42 +234,90 @@
   function toolRows(frontier) {
     const root = mainRoot();
     if (!root) return [];
-    const seen = new Set();
+    const seenNodes = new Set();
     const rows = [];
-    const add = (node) => {
-      if (!node || seen.has(node)) return;
-      seen.add(node);
-      const row = rowFromNode(node, frontier);
+    const add = (node, options = {}) => {
+      if (!node || seenNodes.has(node) || isOwnedNode(node)) return;
+      seenNodes.add(node);
+      const row = rowFromNode(node, frontier, options);
       if (row) rows.push(row);
     };
-    for (const node of [...root.querySelectorAll(FAST_TOOL_SELECTOR)].slice(-420)) add(node);
+    for (const node of [...root.querySelectorAll(FAST_TOOL_SELECTOR)].slice(-360)) add(node);
 
-    // ChatGPT changes the wrappers/classes around tool progress frequently. When the
-    // fast selectors do not expose the current live verb, inspect only the tail of
-    // small text-bearing nodes after the latest user turn. This is bounded and only
-    // runs as a fallback, so it survives DOM churn without turning into a full-page scan.
-    const fallback = [...root.querySelectorAll('div,span,p,button,[role="status"],[aria-live]')].slice(-420);
-    for (const node of fallback) {
-      if (node.childElementCount > 6) continue;
-      if (!isCurrentFrontierNode(node, frontier)) continue;
+    // Fallback only examines small nodes outside recognized assistant turns. This is the
+    // key guard against treating ordinary final-answer prose ("passed verification",
+    // "building...", etc.) as live tool activity.
+    for (const node of [...root.querySelectorAll('div,span,button,[role="status"],[aria-live]')].slice(-360)) {
+      if (node.childElementCount > 4 || isOwnedNode(node) || !isCurrentFrontierNode(node, frontier)) continue;
       const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 260);
-      if (!text || text.length > 240 || !TOOL_EVENT_PATTERN.test(text)) continue;
-      add(node);
+      if (!text || text.length > 200 || !ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_TOOL_LABEL_PATTERN.test(text)) continue;
+      add(node, { fallback:true });
     }
-    return rows;
+
+    // Collapse wrapper/child duplicates by normalized label. Keep the last/highest-confidence row.
+    const deduped = new Map();
+    for (const row of rows) {
+      const key = clean(row.label, 180).toLowerCase();
+      const prior = deduped.get(key);
+      if (!prior || row.confidence >= prior.confidence) deduped.set(key, row);
+    }
+    return [...deduped.values()];
   }
 
   function completionEvidence(frontier) {
     const assistant = frontier.assistantAfterUser || (!frontier.latestUser ? frontier.latestAssistant : null);
-    if (!assistant) return { hasAssistant:false, finalControls:false, textLength:0 };
+    if (!assistant) return { hasAssistant:false, finalControls:false, textLength:0, fingerprint:'' };
     const controls = [...assistant.querySelectorAll?.('button,[role="button"]') || []];
     const finalControls = controls.some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120)))
       || Boolean(assistant.querySelector?.('[data-testid*="copy" i],[data-testid*="feedback" i],[data-testid*="regenerate" i]'));
-    return { hasAssistant:true, finalControls, textLength:clean(assistant.textContent || '', 200000).length };
+    const text = clean(assistant.textContent || '', 200000);
+    const fingerprint = `${text.length}|${text.slice(-180)}|${finalControls ? 1 : 0}`;
+    return { hasAssistant:true, finalControls, textLength:text.length, fingerprint };
   }
 
-  function statusFromText(active, text) {
-    if (active) return 'running';
+  function nodeKey(node) {
+    if (!node) return '';
+    return clean(node.getAttribute?.('data-message-id') || node.getAttribute?.('data-testid') || node.textContent || '', 300);
+  }
+
+  function updateProgressClocks(frontier, completion, rows, at) {
+    const userKey = nodeKey(frontier.latestUser);
+    if (!initialized) {
+      lastUserKey = userKey;
+      lastAssistantFingerprint = completion.fingerprint || '';
+      return;
+    }
+    if (userKey && userKey !== lastUserKey) {
+      lastUserKey = userKey;
+      lastUserStartedAt = at;
+      lastAssistantFingerprint = '';
+      lastAssistantGrowthAt = 0;
+      lastActivityAt = at;
+    }
+    if (completion.hasAssistant && completion.fingerprint && completion.fingerprint !== lastAssistantFingerprint) {
+      if (!completion.finalControls) {
+        lastAssistantGrowthAt = at;
+        lastActivityAt = at;
+      }
+      lastAssistantFingerprint = completion.fingerprint;
+    }
+    if (rows.some((row) => row.activeLabel || row.busy)) {
+      lastProgressAt = at;
+      lastActivityAt = at;
+    }
+  }
+
+  function statusSurfaceText() {
+    const values = [];
+    for (const node of [...document.querySelectorAll(ALERT_SELECTOR)].slice(-60)) {
+      if (isOwnedNode(node) || !isUsable(node)) continue;
+      const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 600);
+      if (text) values.push(text);
+    }
+    return values.join(' | ').slice(-12000);
+  }
+
+  function nonRunningStatus(text) {
     const lower = String(text || '').toLowerCase();
     if (/continue generating|resume generation|resume response/.test(lower)) return 'paused';
     if (/allow chatgpt to use|permission required|approval required/.test(lower)) return 'blocked-approval';
@@ -210,54 +329,100 @@
     return 'idle';
   }
 
+  function setStableStatus(next, at) {
+    if (stableStatus === next) return;
+    stableStatus = next;
+    stableSince = at;
+    transitionCount += 1;
+  }
+
+  function resolveStatus(rawActive, inactiveStatus, at) {
+    if (rawActive) {
+      lastStrongActiveAt = at;
+      idleCandidateSince = 0;
+      setStableStatus('running', at);
+      return { status:'running', settling:false };
+    }
+
+    if (stableStatus === 'running') {
+      if (!idleCandidateSince) idleCandidateSince = at;
+      if (at - idleCandidateSince < IDLE_SETTLE_MS) return { status:'running', settling:true };
+    }
+    idleCandidateSince = 0;
+    setStableStatus(inactiveStatus, at);
+    return { status:inactiveStatus, settling:false };
+  }
+
   function scan(force = false) {
     const at = now();
     if (!force && lastState && at - Number(lastState.observedAt || 0) < 180) return lastState;
+    scanCount += 1;
     const root = mainRoot();
     const frontier = conversationFrontier();
     const rows = toolRows(frontier);
-    const currentRows = rows.filter((row) => row.current);
-    const currentActive = [...currentRows].reverse().find((row) => row.activeLabel && !row.generic) || null;
-    const currentBusy = [...currentRows].reverse().find((row) => row.busy && !row.generic) || null;
-    const currentInformative = [...currentRows].reverse().find((row) => !row.generic) || currentRows.at(-1) || null;
-    const observedTool = currentActive || currentBusy || currentInformative || [...rows].reverse().find((row) => !row.generic) || rows.at(-1) || null;
     const completion = completionEvidence(frontier);
+    updateProgressClocks(frontier, completion, rows, at);
+
+    const currentActive = [...rows].reverse().find((row) => row.activeLabel && !row.generic && row.confidence >= 1) || null;
+    const currentBusy = [...rows].reverse().find((row) => row.busy && !row.generic && row.confidence >= 2) || null;
+    const informative = [...rows].reverse().find((row) => !row.generic && row.confidence >= 2) || rows.at(-1) || null;
+
     const stopControl = [...document.querySelectorAll(STOP_SELECTOR)].find(isUsable) || null;
-    const streamingNode = root?.querySelector?.(STREAMING_SELECTOR) || null;
-    const busyNode = [...(root?.querySelectorAll?.(BUSY_SELECTOR) || [])].reverse().find((node) => isCurrentFrontierNode(node, frontier) && isUsable(node)) || null;
+    const streamingNode = [...(root?.querySelectorAll?.(STREAMING_SELECTOR) || [])].reverse().find((node) => isCurrentFrontierNode(node, frontier) && isUsable(node)) || null;
+    // Generic aria-busy/data-loading surfaces are deliberately NOT independent active
+    // evidence. ChatGPT can leave busy attributes on large response/layout wrappers
+    // after completion. A busy bit only counts when it belongs to a row already
+    // proven to be a semantic tool/progress surface (currentBusy above).
+    const busyNode = null;
     const progressiveTool = Boolean(currentActive);
     const toolBusy = Boolean(currentBusy);
-    const assistantPending = Boolean(frontier.assistantAfterUser && !completion.finalControls && completion.textLength > 0);
-    const strongActive = Boolean(stopControl || streamingNode || busyNode || progressiveTool || toolBusy || assistantPending);
-    if (strongActive) {
-      lastStrongActiveAt = at;
-      lastActivityAt = at;
-      if (progressiveTool || toolBusy) lastProgressAt = at;
-    }
-    const settleGrace = !completion.finalControls && at - lastStrongActiveAt < 2800;
-    const active = strongActive || settleGrace;
-    const statusText = clean(root?.innerText || root?.textContent || '', 30000);
-    const status = statusFromText(active, statusText);
+    // A final-control set on the CURRENT assistant response is a strong completion
+    // boundary. It only suppresses leftover busy bits, never a fresh present-tense
+    // progress label or a real stop/streaming control. This fixes sticky aria-busy
+    // wrappers without reintroducing the v0.14.1 bug where an OLD Copy button won.
+    const toolBusyEvidence = toolBusy && !(completion.finalControls && !progressiveTool);
+    const assistantGrowing = Boolean(frontier.assistantAfterUser && !completion.finalControls && lastAssistantGrowthAt && at - lastAssistantGrowthAt < ASSISTANT_GROWTH_GRACE_MS);
+    const awaitingResponse = Boolean(initialized && frontier.latestUser && !frontier.assistantAfterUser && lastUserStartedAt && at - lastUserStartedAt < NEW_USER_GRACE_MS);
+    const rawActive = Boolean(stopControl || streamingNode || progressiveTool || toolBusyEvidence || assistantGrowing || awaitingResponse);
+
+    const inactiveStatus = nonRunningStatus(statusSurfaceText());
+    const resolved = resolveStatus(rawActive, inactiveStatus, at);
+    const status = resolved.status;
     const stale = status !== 'running' && status !== 'idle';
     const provider = providerInfo();
-    const toolLabel = clean(observedTool?.label || '', 160);
+    const toolLabel = clean((currentActive || currentBusy || informative)?.label || '', 160);
+    const source = stopControl ? 'stop-control'
+      : streamingNode ? 'streaming-marker'
+      : busyNode ? 'busy-marker'
+      : progressiveTool ? 'current-progress-label'
+      : toolBusy ? 'current-tool-busy'
+      : assistantGrowing ? 'assistant-growth'
+      : awaitingResponse ? 'awaiting-response'
+      : resolved.settling ? 'settle-hysteresis'
+      : 'settled';
+
     const generation = {
       active:status === 'running',
+      rawActive,
+      settling:Boolean(resolved.settling),
       stopControl:Boolean(stopControl),
       streaming:Boolean(streamingNode),
       busyNode:Boolean(busyNode),
-      toolBusy,
+      toolBusy:toolBusyEvidence,
       progressiveTool,
-      assistantPending,
+      assistantPending:assistantGrowing || awaitingResponse,
+      assistantGrowing,
+      awaitingResponse,
       toolLabel,
-      toolPhase:observedTool?.phase || '',
+      toolPhase:(currentActive || currentBusy || informative)?.phase || '',
       finalControls:Boolean(completion.finalControls),
-      frontierTool:Boolean(observedTool?.current),
-      source:stopControl ? 'stop-control' : streamingNode ? 'streaming-marker' : busyNode ? 'busy-marker' : progressiveTool ? 'current-progress-label' : toolBusy ? 'current-tool-busy' : assistantPending ? 'unfinished-current-assistant' : settleGrace ? 'settle-grace' : 'settled'
+      frontierTool:Boolean(currentActive || currentBusy || informative),
+      source
     };
     const state = {
       ok:true,
       source:'live-sentinel',
+      sentinel:true,
       version:VERSION,
       provider,
       chat:{
@@ -269,116 +434,165 @@
         lastActivityAt,
         hasConversation:frontier.turns.length > 0,
         turnCount:frontier.turns.length,
-        healthState:status === 'running' ? (toolLabel ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status
+        healthState:status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status
       },
       generation,
       tool:{
-        present:Boolean(observedTool),
-        current:Boolean(observedTool?.current),
-        busy:Boolean(currentBusy),
-        active:Boolean(currentActive),
+        present:Boolean(informative || currentActive || currentBusy),
+        current:Boolean(currentActive || currentBusy || informative),
+        busy:toolBusy,
+        active:progressiveTool,
         label:toolLabel,
-        phase:observedTool?.phase || '',
+        phase:(currentActive || currentBusy || informative)?.phase || '',
         lastProgressAt:Number(lastProgressAt || 0),
-        entryCount:currentRows.length || rows.length
+        entryCount:rows.length
       },
       healthActive:status === 'running',
       healthStale:stale,
       observedAt:at,
-      hidden:document.hidden
+      hidden:document.hidden,
+      diagnostics:{ scanCount, transitionCount, stableSince, idleCandidateSince, initialized }
     };
-    const signature = `${state.chat.status}|${generation.source}|${toolLabel}|${generation.finalControls ? 1 : 0}|${frontier.turns.length}`;
+
+    initialized = true;
     lastState = state;
-    lastStateSignature = signature;
+    const signature = `${status}|${source}|${toolLabel}|${generation.finalControls ? 1 : 0}|${frontier.turns.length}`;
     patchLegacyHud(state);
     maybePush(state, signature);
-    schedulePulse(state.chat.status === 'running' ? (document.hidden ? 1400 : 700) : (document.hidden ? 9000 : 3500));
+    schedulePulse(status === 'running' ? (document.hidden ? 1500 : 900) : (document.hidden ? 10000 : 5000));
     return state;
+  }
+
+  function setIfChanged(node, value) {
+    const text = String(value ?? '');
+    if (node && node.textContent !== text) node.textContent = text;
+  }
+
+  function bindHudGuard(host) {
+    if (!host?.shadowRoot || guardedHud === host) return;
+    hudHostObserver?.disconnect();
+    hudShadowObserver?.disconnect();
+    guardedHud = host;
+    const repair = () => {
+      if (hudApplying || !lastState || !guardedHud?.isConnected) return;
+      queueMicrotask(() => {
+        if (!hudApplying && lastState && guardedHud?.isConnected) patchLegacyHud(lastState);
+      });
+    };
+    hudHostObserver = new MutationObserver(repair);
+    hudHostObserver.observe(host, { attributes:true, attributeFilter:['data-level','data-state'] });
+    hudShadowObserver = new MutationObserver(repair);
+    hudShadowObserver.observe(host.shadowRoot, { subtree:true, childList:true, characterData:true });
   }
 
   function patchLegacyHud(state) {
     const host = document.getElementById('projectConstellationHealthHud');
     const shadow = host?.shadowRoot;
     if (!host || !shadow) return;
+    bindHudGuard(host);
     const title = shadow.getElementById('pcHealthTitle');
     const mini = shadow.getElementById('pcHealthMini');
     const nowTitle = shadow.getElementById('pcHealthNowTitle');
     const nowDetail = shadow.getElementById('pcHealthNowDetail');
     const activity = shadow.getElementById('pcHealthActivity');
     const tool = shadow.getElementById('pcHealthTool');
-    if (state.chat.status === 'running') {
-      const label = state.tool?.label || '';
-      const toolActive = Boolean(state.tool?.active || state.tool?.busy);
-      host.dataset.level = 'active';
-      host.dataset.state = toolActive ? 'tool-running' : 'working';
+    const status = state.chat.status;
+    const label = state.tool?.label || '';
+    const toolActive = Boolean(state.tool?.active || state.tool?.busy);
+
+    hudApplying = true;
+    try {
       host.dataset.liveSentinel = VERSION;
-      if (title) title.textContent = toolActive && label ? `Tool working · ${label}` : 'Chat is still working';
-      if (mini) mini.textContent = `${state.generation.source.replaceAll('-', ' ')} · live sentinel`;
-      if (nowTitle) nowTitle.textContent = label || 'Live response activity';
-      if (nowDetail) nowDetail.textContent = toolActive ? 'Current response frontier still exposes active tool progress.' : 'Current response has not reached a settled completion state.';
-      if (activity) activity.textContent = toolActive ? 'tool' : 'model';
-      if (tool && toolActive) tool.textContent = `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}`;
-      hudWasPatched = true;
-    } else if (hudWasPatched) {
-      host.dataset.liveSentinel = VERSION;
-      if (state.chat.status === 'idle') {
-        host.dataset.level = 'healthy';
-        host.dataset.state = 'healthy';
-        if (title) title.textContent = 'Chat complete';
-        if (mini) mini.textContent = 'Current response frontier settled · live sentinel';
+      if (status === 'running') {
+        if (host.dataset.level !== 'active') host.dataset.level = 'active';
+        const liveState = toolActive ? 'tool-running' : 'working';
+        if (host.dataset.state !== liveState) host.dataset.state = liveState;
+        setIfChanged(title, toolActive && label ? `Tool working · ${label}` : 'Chat is still working');
+        setIfChanged(mini, `${state.generation.source.replaceAll('-', ' ')} · live sentinel`);
+        setIfChanged(nowTitle, label || 'Response in progress');
+        setIfChanged(nowDetail, toolActive ? 'Current response has structured live tool progress.' : 'Current response has authoritative live generation evidence.');
+        setIfChanged(activity, toolActive ? 'tool' : 'model');
+        setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
+      } else if (status === 'idle') {
+        if (host.dataset.level !== 'healthy') host.dataset.level = 'healthy';
+        if (host.dataset.state !== 'healthy') host.dataset.state = 'healthy';
+        setIfChanged(title, 'Chat complete');
+        setIfChanged(mini, 'Current response settled · live sentinel');
+        setIfChanged(nowTitle, 'Response complete');
+        setIfChanged(nowDetail, 'No current-turn generation or structured tool activity is present.');
+        setIfChanged(activity, 'idle');
+        setIfChanged(tool, '—');
+      } else {
+        const danger = ['errored','refresh-required','rate-limited','unavailable'].includes(status);
+        const level = danger ? 'danger' : 'warning';
+        if (host.dataset.level !== level) host.dataset.level = level;
+        if (host.dataset.state !== status) host.dataset.state = status;
+        setIfChanged(title, `Chat ${status.replaceAll('-', ' ')}`);
+        setIfChanged(mini, `Authoritative live sentinel · ${status.replaceAll('-', ' ')}`);
       }
-      hudWasPatched = false;
+    } finally {
+      hudApplying = false;
     }
   }
 
   function maybePush(state, signature) {
     if (!chrome?.runtime?.sendMessage) return;
-    if (signature === lastPushSignature && now() - Number(state.observedAt || 0) < 1000) return;
+    const at = now();
+    if (signature === lastPushSignature && at - lastPushAt < (state.chat.status === 'running' ? 3000 : 8000)) return;
     lastPushSignature = signature;
+    lastPushAt = at;
     chrome.runtime.sendMessage({ type:'PC_LIVE_CHAT_STATE_PUSH', state:{ ...state, sentinel:true } }).catch?.(() => {});
   }
 
   function scheduleScan(delay = 80) {
     if (scanTimer) clearTimeout(scanTimer);
-    scanTimer = setTimeout(() => { scanTimer = 0; scan(true); }, Math.max(30, Number(delay || 0)));
+    scanTimer = setTimeout(() => { scanTimer = 0; scan(true); }, Math.max(40, Number(delay || 0)));
   }
 
-  function schedulePulse(delay = 3500) {
+  function schedulePulse(delay = 5000) {
     if (pulseTimer) clearTimeout(pulseTimer);
-    pulseTimer = setTimeout(() => { pulseTimer = 0; scan(true); }, Math.max(300, Number(delay || 0)));
+    pulseTimer = setTimeout(() => { pulseTimer = 0; scan(true); }, Math.max(400, Number(delay || 0)));
+  }
+
+  function currentTurnMutation(node) {
+    const owner = turnOwner(node);
+    if (!owner) return false;
+    const frontier = conversationFrontier();
+    return roleForTurn(owner) === 'assistant' && isCurrentFrontierNode(owner, frontier);
   }
 
   function mutationRelevant(mutation) {
+    if (isOwnedNode(mutation.target)) return false;
     if (mutation.type === 'characterData') {
-      const parent = mutation.target?.parentElement;
-      const text = clean(parent?.textContent || mutation.target?.textContent || '', 280);
-      return Boolean(text && TOOL_EVENT_PATTERN.test(text));
+      if (currentTurnMutation(mutation.target)) return true;
+      const text = clean(mutation.target?.parentElement?.textContent || mutation.target?.textContent || '', 280);
+      return Boolean(text && (ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_PROGRESS_LINE_PATTERN.test(text) || GENERIC_TOOL_PATTERN.test(text)));
     }
     if (mutation.type === 'attributes') {
-      const name = String(mutation.attributeName || '');
-      if (/^(aria-busy|aria-label|data-state|data-is-streaming|data-loading|data-testid|class)$/.test(name)) return true;
+      return /^(aria-busy|aria-label|data-state|data-is-streaming|data-loading|data-testid|class)$/.test(String(mutation.attributeName || ''));
     }
     if (mutation.type === 'childList') {
-      for (const node of mutation.addedNodes || []) {
-        if (!(node instanceof Element)) continue;
-        if (node.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`)) return true;
-        const text = clean(node.textContent || '', 320);
-        if (text && TOOL_EVENT_PATTERN.test(text)) return true;
-        if (node.querySelector?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`)) return true;
-      }
-      for (const node of mutation.removedNodes || []) {
-        if (node instanceof Element && (node.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`) || TOOL_EVENT_PATTERN.test(clean(node.textContent || '', 320)))) return true;
+      const nodes = [...(mutation.addedNodes || []), ...(mutation.removedNodes || [])];
+      for (const node of nodes) {
+        if (isOwnedNode(node)) continue;
+        const element = elementFor(node);
+        if (!element) continue;
+        if (currentTurnMutation(element)) return true;
+        if (element.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`)) return true;
+        if (element.querySelector?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`)) return true;
+        const text = clean(element.textContent || '', 320);
+        if (text && (ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_PROGRESS_LINE_PATTERN.test(text) || GENERIC_TOOL_PATTERN.test(text))) return true;
       }
     }
     return false;
   }
 
   function startObserver() {
-    observer?.disconnect();
-    observer = new MutationObserver((mutations) => {
-      if (mutations.some(mutationRelevant)) scheduleScan(55);
+    pageObserver?.disconnect();
+    pageObserver = new MutationObserver((mutations) => {
+      if (mutations.some(mutationRelevant)) scheduleScan(70);
     });
-    observer.observe(document.documentElement, {
+    pageObserver.observe(document.documentElement, {
       subtree:true,
       childList:true,
       characterData:true,
@@ -399,8 +613,12 @@
     getState:(force = false) => scan(Boolean(force)),
     peek:() => lastState || scan(true),
     rescan:() => scan(true),
+    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt }),
     dispose:() => {
-      observer?.disconnect(); observer = null;
+      pageObserver?.disconnect(); pageObserver = null;
+      hudHostObserver?.disconnect(); hudHostObserver = null;
+      hudShadowObserver?.disconnect(); hudShadowObserver = null;
+      guardedHud = null;
       if (scanTimer) clearTimeout(scanTimer); scanTimer = 0;
       if (pulseTimer) clearTimeout(pulseTimer); pulseTimer = 0;
       try { chrome?.runtime?.onMessage?.removeListener?.(messageListener); } catch (_) {}

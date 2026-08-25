@@ -1694,6 +1694,22 @@
     shadow.getElementById('pcHealthHandoff').hidden = capacity.recommendedAction !== 'handoff';
   }
 
+  function reconcileHealthSnapshotWithSentinel(snapshot) {
+    const sentinel = liveSentinelState(false);
+    if (!sentinel?.ok || sentinel.source !== 'live-sentinel') return snapshot;
+    const status = String(sentinel.chat?.status || 'idle');
+    const row = sentinel.tool || {};
+    const label = brain.normalizeText(row.label || sentinel.generation?.toolLabel || '', 150);
+    if (status === 'running') {
+      const toolActive = Boolean(row.active || row.busy);
+      const activity = toolActive ? { kind:'tool', phase:brain.normalizeText(row.phase || sentinel.generation?.toolPhase || 'tool', 60), label:label || 'Tool activity', entryCount:Math.max(1, Number(row.entryCount || 1)), ageMs:Math.max(0, Date.now() - Number(row.lastProgressAt || Date.now())) } : { kind:'model', phase:'responding', label:'Response in progress', entryCount:0, ageMs:0 };
+      return { ...snapshot, state:toolActive ? 'tool-running' : 'working', level:'active', title:toolActive && label ? `Tool working · ${label}` : 'Chat is still working', detail:'Live Sentinel has authoritative current-turn activity evidence.', activity };
+    }
+    if (status === 'idle') return { ...snapshot, state:'healthy', level:'healthy', title:'Chat complete', detail:'Current response is settled. Secondary project/output warnings remain available below.', activity:null };
+    const level = ['errored','refresh-required','rate-limited','unavailable'].includes(status) ? 'danger' : 'warning';
+    return { ...snapshot, state:status, level, title:`Chat ${status.replaceAll('-', ' ')}`, detail:'Live Sentinel detected a current chat attention state.', activity:null };
+  }
+
   async function updateLiveHealth() {
     if (liveHealthPollBusy) return;
     if (!liveHealthSettings.enabled || currentChatId().endsWith(':home')) { if (liveHealthHost) liveHealthHost.dataset.visible = '0'; return; }
@@ -1707,7 +1723,7 @@
       if (observedRegression) context.chat = { ...(context.chat || {}), outputRegression:observedRegression };
       const page = pageHealthEvidence(context);
       const capacity = conversationCapacityEvidence(context);
-      const snapshot = health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt });
+      const snapshot = reconcileHealthSnapshotWithSentinel(health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt }));
       const prior = healthEvidence.lastHealthState || '';
       const activitySignature = hashText(`${snapshot.state}|${snapshot.level}|${snapshot.activity?.kind || ''}|${snapshot.activity?.phase || ''}|${snapshot.activity?.label || ''}|${snapshot.activity?.entryCount || 0}|${snapshot.networkActive ? 1 : 0}`);
       if (prior !== snapshot.state || activitySignature !== healthEvidence.lastHealthActivitySignature) {
@@ -1723,7 +1739,10 @@
   function scheduleLiveHealthPulse(delay) {
     if (liveHealthTimer) clearTimeout(liveHealthTimer);
     if (!liveHealthSettings.enabled) { if (liveHealthHost) liveHealthHost.dataset.visible = '0'; return; }
-    const active = ['running','blocked-approval','paused','refresh-required','rate-limited','stalled'].includes(lastStatus) || ['working','tool-running','tool-quiet','tool-stalled','tool-dead','quiet-working','request-stalled','stalled','dead','output-regressed'].includes(liveHealthSnapshot?.state || '') || Boolean(outputCompareSummary?.active);
+    // Output Vault mismatch is intentionally secondary and must not promote a
+    // completed chat to the active polling lane. Only primary execution/attention
+    // states get the fast cadence.
+    const active = ['running','blocked-approval','paused','refresh-required','rate-limited','stalled'].includes(lastStatus) || ['working','tool-running','tool-quiet','tool-stalled','tool-dead','quiet-working','request-stalled','stalled','dead'].includes(liveHealthSnapshot?.state || '');
     const pressureDelay = metrics.lastPressure === 'high' ? 5000 : 0;
     const nextDelay = delay ?? (document.hidden ? 30000 : active ? liveHealthSettings.pollActiveMs : liveHealthSettings.pollIdleMs);
     liveHealthTimer = setTimeout(() => { liveHealthTimer = 0; updateLiveHealth().finally(() => scheduleLiveHealthPulse()); }, Math.max(900, pressureDelay, Number(nextDelay || 2500)));
@@ -1795,6 +1814,28 @@
 
   function liveChatState() {
     detectStatus();
+    const sentinel = liveSentinelState(true);
+    if (sentinel?.ok && sentinel.source === 'live-sentinel') {
+      const status = String(sentinel.chat?.status || 'idle');
+      const healthState = String(sentinel.chat?.healthState || (status === 'running' ? 'working' : status === 'idle' ? 'healthy' : status));
+      const tool = sentinel.tool || {};
+      const generation = { ...(sentinel.generation || {}), sentinel:true };
+      const turns = turnNodes(document);
+      return {
+        ok:true,
+        source:'live-sentinel',
+        sentinel:true,
+        version:sentinel.version || '',
+        provider:{ id:provider.id, name:provider.name },
+        chat:{ ...sentinel.chat, id:currentChatId(), status, rawStatus:status, title:document.title || provider.name, url:location.href, lastActivityAt:Number(sentinel.chat?.lastActivityAt || lastSemanticActivityAt), hasConversation:turns.length > 0 || !currentChatId().endsWith(':home'), turnCount:turns.length, healthState, health:liveHealthSnapshot ? { ...liveHealthSnapshot } : null },
+        generation,
+        tool:{ present:Boolean(tool.present), current:Boolean(tool.current), active:Boolean(tool.active), busy:Boolean(tool.busy), label:brain.normalizeText(tool.label || generation.toolLabel || '', 140), phase:brain.normalizeText(tool.phase || generation.toolPhase || '', 60), lastProgressAt:Number(tool.lastProgressAt || 0), entryCount:Number(tool.entryCount || 0) },
+        healthActive:status === 'running',
+        healthStale:!['running','idle'].includes(status),
+        observedAt:Date.now(),
+        hidden:document.hidden
+      };
+    }
     const tool = detectToolEvidence(true);
     const generation = activeGenerationEvidence(tool);
     const healthState = String(liveHealthSnapshot?.state || '');
@@ -1820,22 +1861,27 @@
   function detectStatus() {
     const statusText = boundedStatusText();
     const lower = statusText.toLowerCase();
+    const sentinel = liveSentinelState(true);
+    const sentinelStatus = sentinel?.ok && sentinel.source === 'live-sentinel' ? String(sentinel.chat?.status || 'idle') : '';
     const generation = activeGenerationEvidence(detectToolEvidence(true));
     const signals = {
       text: statusText,
-      running: generation.active || /stop generating|stop response|cancel generation|generating|thinking|reasoning/.test(lower),
-      paused: /continue generating|resume generation|resume response/.test(lower),
-      approval: provider.id === 'chatgpt' && (Boolean(approvalSurface()) || /(allow|approve|permission|confirm).{0,180}(drive|github|connector|connected app|plugin|access|tool|use|continue)/.test(lower)),
-      refreshRequired: Boolean(refreshRequiredSurface()) || /message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message/.test(lower),
-      rateLimited: Boolean(rateLimitSurface()) || /too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429/.test(lower),
-      error: /something went wrong|there was an error|retry|try again|network error|failed to (generate|respond|send)/.test(lower),
-      authRequired: /sign in|log in|login required|session expired/.test(lower),
-      unavailable: /conversation.{0,30}(not found|unavailable|deleted)|page not found/.test(lower)
+      // When the Live Sentinel is present it is the only authority for running/idle.
+      // Broad prose words such as "thinking", "building", or "verification" in a final
+      // answer must never resurrect a completed chat.
+      running: sentinelStatus ? sentinelStatus === 'running' : generation.active || /stop generating|stop response|cancel generation|generating|thinking|reasoning/.test(lower),
+      paused: sentinelStatus ? sentinelStatus === 'paused' : /continue generating|resume generation|resume response/.test(lower),
+      approval: sentinelStatus === 'blocked-approval' || (provider.id === 'chatgpt' && (Boolean(approvalSurface()) || /(allow|approve|permission|confirm).{0,180}(drive|github|connector|connected app|plugin|access|tool|use|continue)/.test(lower))),
+      refreshRequired: sentinelStatus === 'refresh-required' || Boolean(refreshRequiredSurface()) || /message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message/.test(lower),
+      rateLimited: sentinelStatus === 'rate-limited' || Boolean(rateLimitSurface()) || /too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429/.test(lower),
+      error: sentinelStatus === 'errored' || (!sentinelStatus && /something went wrong|there was an error|retry|try again|network error|failed to (generate|respond|send)/.test(lower)),
+      authRequired: sentinelStatus === 'auth-required' || (!sentinelStatus && /sign in|log in|login required|session expired/.test(lower)),
+      unavailable: sentinelStatus === 'unavailable' || (!sentinelStatus && /conversation.{0,30}(not found|unavailable|deleted)|page not found/.test(lower))
     };
     healthEvidence.lastStatusText = statusText;
     const statusHash = hashText(statusText);
     if (statusHash && statusHash !== lastStatusTextHash) { lastStatusTextHash = statusHash; healthEvidence.lastDomProgressAt = Date.now(); }
-    const next = brain.classifyChatStatus(signals);
+    const next = sentinelStatus || brain.classifyChatStatus(signals);
     if (signals.approval) maybeRunApprovalAutopilot(signals);
     if (next !== lastStatus) {
       lastStatus = next;
