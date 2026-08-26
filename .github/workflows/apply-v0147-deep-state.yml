@@ -1,0 +1,33 @@
+name: Apply v0.14.7 Deep State Engine
+on:
+  push:
+    branches: [feature/v0.14.7-deep-state-engine]
+    paths:
+      - '.github/v0147/**'
+      - '.github/workflows/apply-v0147-deep-state.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feature/v0.14.7-deep-state-engine
+          fetch-depth: 0
+      - name: Verify and apply exact patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d .github/v0147/v0147.patch.xz.b64 > /tmp/v0147.patch.xz
+          xz -dc /tmp/v0147.patch.xz > /tmp/v0147.raw.patch
+          test "$(sha256sum /tmp/v0147.raw.patch | cut -d' ' -f1)" = "54a6deef506dbdf46d644468a39cc2c76157a9bc7aa6a886c8a05f049adbebc3"
+          sed -E 's#/mnt/data/pc-v0146-baseline-src/##g; s#/mnt/data/pc-v0147-src/##g' /tmp/v0147.raw.patch > /tmp/v0147.patch
+          patch -p0 --forward < /tmp/v0147.patch
+          rm -rf .github/v0147 .github/workflows/apply-v0147-deep-state.yml
+          git config user.name 'Project Constellation Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'v0.14.7: add Deep State Engine checkpoint'
+          git push origin HEAD:feature/v0.14.7-deep-state-engine
