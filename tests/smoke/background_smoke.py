@@ -150,6 +150,8 @@ with sync_playwright() as p:
       __pcListeners.webResponse({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
       __pcListeners.webComplete({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
       const healthQuiet=await __pcSend({type:'PC_LIVE_HEALTH_CONTEXT',chatId:'chatgpt:test'},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
+      __pcDbStores.get('chats').rows.set('chatgpt:live-a',{id:'chatgpt:live-a',providerId:'chatgpt',title:'Live A',url:'https://chatgpt.com/c/live-a',workspaceProjectId:'workspace:constellation',workspaceProjectName:'Project Constellation',updatedAt:now});
+      __pcDbStores.get('turns').rows.set('chatgpt:live-a:user:9',{id:'chatgpt:live-a:user:9',chatId:'chatgpt:live-a',providerId:'chatgpt',role:'user',ordinal:9,text:'Make the confusing live tab titles explain what the chat is actually working on and which project owns it.',updatedAt:now});
       chrome.tabs.query=async()=>[
         {id:101,windowId:1,groupId:201,url:'https://chatgpt.com/c/live-a',title:'Live A'},
         {id:102,windowId:1,groupId:-1,url:'https://chatgpt.com/c/stale-a',title:'Stale A'},
@@ -163,12 +165,14 @@ with sync_playwright() as p:
       ];
       chrome.tabs.sendMessage=async(id,msg)=>{
         if(msg.type!=='PC_GET_LIVE_CHAT_STATE')return {ok:true};
-        if(id===101)return {ok:true,chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',lastActivityAt:Date.now(),healthState:'working'},generation:{active:true},healthActive:true};
+        if(id===101)return {ok:true,chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',lastActivityAt:Date.now(),healthState:'working'},generation:{active:true,toolLabel:'Updating Pulse context rows',phase:'editing'},healthActive:true};
         if(id===102)return {ok:true,chat:{id:'chatgpt:stale-a',status:'errored',rawStatus:'errored',lastActivityAt:Date.now()-1000,healthState:'errored'},generation:{active:false}};
         if(id===103)return {ok:true,chat:{id:'chatgpt:done-a',status:'idle',rawStatus:'idle',lastActivityAt:Date.now()-2000,healthState:'healthy'},generation:{active:false}};
         throw new Error('Receiving end does not exist');
       };
       const livePulse=await __pcSend({type:'PC_LIVE_CHAT_PULSE',force:true});
+      __pcDbStores.get('chats').rows.delete('chatgpt:live-a');
+      __pcDbStores.get('turns').rows.delete('chatgpt:live-a:user:9');
       globalThis.__pcNotifications=[]; chrome.notifications={create:async(id,options)=>{__pcNotifications.push({id,options});return id;}};
       const legacyIgnored=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
       const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.3',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
@@ -230,6 +234,7 @@ with sync_playwright() as p:
     assert result['livePulse']['openChatTabs']==5 and result['livePulse']['responsiveTabs']==4 and result['livePulse']['partial'] is True
     assert result['livePulse']['counts']=={'active':1,'stale':2,'completed':2}
     assert result['livePulse']['groups']['active'][0]['tabId']==101 and {row['tabId'] for row in result['livePulse']['groups']['stale']}=={102,105}
+    active_context=result['livePulse']['groups']['active'][0]['context'];assert active_context['projectName']=='Project Constellation' and active_context['taskHint'].startswith('Make the confusing live tab titles') and active_context['liveActivity']=='Updating Pulse context rows'
     assert {row['tabId'] for row in result['livePulse']['groups']['completed']}=={103,104}
     assert next(row for row in result['livePulse']['groups']['completed'] if row['tabId']==103)['tabGroup']=={'id':301,'title':'My Research','color':'blue','collapsed':True,'managed':False,'managedBucket':''}
     reconnect=next(row for row in result['livePulse']['groups']['stale'] if row['tabId']==105);assert reconnect['reconnecting'] is True and reconnect['responsive'] is False and reconnect['status']=='unavailable'

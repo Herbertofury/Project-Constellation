@@ -2,6 +2,23 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.6 - Context Lens
+
+### Added
+
+- Chat Pulse and the collapsed Execution Pulse navigator now add a compact context line beneath every live chat title. It surfaces the latest captured user task when available, so vague titles such as “Continue project work” no longer hide what that tab is actually doing.
+- Live rows now carry canonical project context from the local Constellation catalog. Workspace/project names appear before provider/state/model/group metadata, while user-created Chrome tab groups remain labeled as groups rather than being misrepresented as projects.
+- Active rows can show both the stable task and the current observable tool/activity label (`Task · …` plus `Now: …`), giving a useful distinction between the goal and the step currently executing. Completed rows use `Last task · …`.
+
+### Performance / privacy
+
+- Context enrichment is local-only and adds no provider-page network traffic. A short-lived background cache joins each open tab to its existing IndexedDB chat record; new captures retain a bounded `lastUserExcerpt` so ordinary Pulse refreshes do not rescan transcript history. Older records use a bounded reverse lookup only until that compact task field is available.
+- Context text is normalized and tightly bounded before it reaches popup/HUD rendering. The ChatGPT MAIN-world transcript proof remains metadata-only and unchanged.
+
+### Tests
+
+- Added regression coverage proving project/task/current-step context reaches the canonical live snapshot, popup navigator, and in-page pinned navigator while preserving focus navigation and user-owned tab-group labels.
+
 ## 0.14.5 - Pulse Navigator
 
 ### Fixed
