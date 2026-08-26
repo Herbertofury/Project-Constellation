@@ -60,6 +60,8 @@ let liveChatPulseCache = null;
 let liveChatPulseCacheAt = 0;
 let liveChatPulseRequest = null;
 const liveHealthContextCache = new Map();
+const liveRowContextCache = new Map();
+const LIVE_ROW_CONTEXT_TTL_MS = 10000;
 const tabPresentationSignatures = new Map();
 let pulseUxCache = null;
 let tabTagsCache = null;
@@ -345,6 +347,32 @@ async function recentTurnRecordsForChat(chatId, limit = 12) {
       request.onerror = () => reject(request.error);
     });
     return out;
+  } finally { db.close(); }
+}
+
+async function latestUserTaskForChat(chatId, scanLimit = 12) {
+  if (!chatId) return '';
+  const safeLimit = Math.max(1, Math.min(Number(scanLimit) || 12, 24));
+  const db = await openDb();
+  try {
+    const store = db.transaction('turns', 'readonly').objectStore('turns');
+    const indexName = store.indexNames.contains('chatOrdinal') ? 'chatOrdinal' : 'chatUpdatedAt';
+    if (!store.indexNames.contains(indexName)) return '';
+    const index = store.index(indexName);
+    const range = IDBKeyRange.bound([chatId, 0], [chatId, Number.MAX_SAFE_INTEGER]);
+    let scanned = 0;
+    return await new Promise((resolve, reject) => {
+      const request = index.openCursor(range, 'prev');
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor || scanned >= safeLimit) { resolve(''); return; }
+        scanned += 1;
+        const row = cursor.value || {};
+        if (String(row.role || '').toLowerCase() === 'user') { resolve(brain.normalizeText(row.text || '', 900)); return; }
+        cursor.continue();
+      };
+      request.onerror = () => reject(request.error);
+    });
   } finally { db.close(); }
 }
 
@@ -1615,12 +1643,24 @@ async function ingestBatch(items) {
 
   if (canonicalTurns.length) {
     const latestByChat = new Map();
+    const latestUserByChat = new Map();
     for (const turn of canonicalTurns) {
       if (!turn.chatId) continue;
       const previous = latestByChat.get(turn.chatId);
       if (!previous || (turn.ordinal ?? 0) >= (previous.ordinal ?? 0)) latestByChat.set(turn.chatId, turn);
+      if (String(turn.role || '').toLowerCase() === 'user') {
+        const previousUser = latestUserByChat.get(turn.chatId);
+        if (!previousUser || (turn.ordinal ?? 0) >= (previousUser.ordinal ?? 0)) latestUserByChat.set(turn.chatId, turn);
+      }
     }
-    const latestChatUpdates = [...latestByChat.values()].map((turn) => ({ id: turn.chatId, providerId: turn.providerId || '', lastExcerpt: String(turn.text || '').slice(0, 1200), lastTurnAt: turn.updatedAt || now, lastActivityAt: turn.updatedAt || now, updatedAt: turn.updatedAt || now }));
+    const latestChatUpdates = [...latestByChat.values()].map((turn) => {
+      const latestUser = latestUserByChat.get(turn.chatId);
+      return {
+        id:turn.chatId, providerId:turn.providerId || '', lastExcerpt:String(turn.text || '').slice(0,1200),
+        ...(latestUser ? { lastUserExcerpt:String(latestUser.text || '').slice(0,1200), lastUserTurnAt:latestUser.updatedAt || now } : {}),
+        lastTurnAt:turn.updatedAt || now, lastActivityAt:turn.updatedAt || now, updatedAt:turn.updatedAt || now
+      };
+    });
     const mergedChatUpdates = await putMany('chats', latestChatUpdates);
     await putSearchDocs(mergedChatUpdates.map((record) => searchDoc('chat', record)));
   }
@@ -1638,6 +1678,8 @@ async function ingestBatch(items) {
   }
 
   if (chats.length || turns.length || files.length || statusEvents.length) {
+    for (const row of chats) if (row?.id) liveRowContextCache.delete(String(row.id));
+    for (const turn of canonicalTurns) if (turn?.chatId) liveRowContextCache.delete(String(turn.chatId));
     await addEvent('capture-batch', 'brain', '', chats.at(-1)?.id || turns.at(-1)?.chatId || files.at(-1)?.chatId || '', { chats: chats.length, turns: turns.length, files: files.length, statuses: statusEvents.length });
     markDriveDirty().catch(() => {});
     scheduleIntegrityScan(5000).catch(() => {});
@@ -1782,6 +1824,8 @@ async function updateOrganizationEntity(kind, id, patch = {}) {
     const chats = await getAllByIndex('chats','workspaceProjectId',id);
     const chatUpdates = chats.map((chat)=>({id:chat.id,workspaceProjectName:merged.name||'',workspaceGroupId:merged.groupId||'',updatedAt:Date.now()}));
     const mergedChats = await putManyChunked('chats',chatUpdates); await putSearchDocs(mergedChats.map((record)=>searchDoc('chat',record)));
+    for (const chat of mergedChats) if (chat?.id) liveRowContextCache.delete(String(chat.id));
+    liveChatPulseCacheAt = 0;
     const knowledgeRows = await getAllByIndex('knowledgeItems','workspaceProjectId',id);
     if (knowledgeRows.length) {
       const updatedKnowledge = knowledgeRows.map((item)=>({...item,workspaceProjectName:merged.name||''}));
@@ -1801,6 +1845,8 @@ async function deleteOrganizationEntity(kind, id) {
   if (kind === 'project') {
     const chats = await getAllByIndex('chats','workspaceProjectId',id);
     const clearedChats=await putManyChunked('chats', chats.map((chat)=>({id:chat.id,workspaceProjectId:'',workspaceProjectName:'',workspaceGroupId:'',updatedAt:now}))); await putSearchDocs(clearedChats.map((record)=>searchDoc('chat',record)));
+    for (const chat of clearedChats) if (chat?.id) liveRowContextCache.delete(String(chat.id));
+    liveChatPulseCacheAt = 0;
     const files = await getAllByIndex('files','workspaceProjectId',id); const clearedFiles=await putManyChunked('files',files.map((file)=>({id:file.id,workspaceProjectId:'',updatedAt:now}))); if(clearedFiles.length)await putSearchDocs(clearedFiles.map((record)=>searchDoc('file',record)));
     const knowledgeRows=await getAllByIndex('knowledgeItems','workspaceProjectId',id); if(knowledgeRows.length){const clearedKnowledge=knowledgeRows.map((item)=>({...item,workspaceProjectId:'',workspaceProjectName:''}));await putManyChunked('knowledgeItems',clearedKnowledge,220);await putSearchDocs(clearedKnowledge.map((record)=>searchDoc('knowledge',record)));}
     await deleteOneRecord('projectContinuity',id);
@@ -1834,6 +1880,10 @@ async function patchChatOrganization(chatIds = [], patch = {}) {
     updates.push(next);
   }
   const merged=await putMany('chats',updates); await putSearchDocs(merged.map((record)=>searchDoc('chat',record)));
+  if (Object.prototype.hasOwnProperty.call(patch,'workspaceProjectId')) {
+    for (const chat of merged) if (chat?.id) liveRowContextCache.delete(String(chat.id));
+    liveChatPulseCacheAt = 0;
+  }
   if(Object.prototype.hasOwnProperty.call(patch,'workspaceProjectId')){
     const fileUpdates=[]; const knowledgeUpdates=[];
     for(const chat of merged){
@@ -4115,6 +4165,68 @@ function withTabGroup(row, tab, groupMap) {
   return { ...row, tabGroup:{ id:groupId, title:String(group?.title || 'Tab group').slice(0,120), color:String(group?.color || ''), collapsed:Boolean(group?.collapsed), managed:Boolean(managedBucket), managedBucket } };
 }
 
+function canonicalLiveCatalogChatId(row = {}) {
+  const providerId = String(row.providerId || '');
+  const routed = providers.chatIdFromUrl(String(row.url || ''), providerId);
+  if (routed) return routed;
+  const raw = String(row.chatId || '');
+  if (!raw) return '';
+  return raw.includes(':') || !providerId ? raw : `${providerId}:${raw}`;
+}
+
+function compactLiveTaskHint(value = '', max = 132) {
+  let text = brain.normalizeText(value || '', 900)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/https?:\/\/\S+/gi, ' ')
+    .replace(/^[#>*_`~-]+\s*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  text = text.replace(/^(?:please\s+|now\s+|also\s+|and\s+)+/i, '').trim();
+  if (text.length <= max) return text;
+  const window = text.slice(0, max + 30);
+  const boundary = Math.max(window.lastIndexOf('. '), window.lastIndexOf('? '), window.lastIndexOf('! '), window.lastIndexOf('; '), window.lastIndexOf(', '));
+  if (boundary >= Math.min(56, max - 24)) return window.slice(0, Math.min(boundary + 1, max)).trim();
+  return `${text.slice(0, Math.max(1, max - 1)).trimEnd()}…`;
+}
+
+function specificLiveActivity(row = {}) {
+  const generation = row.generation || {};
+  const label = brain.normalizeText(generation.toolLabel || '', 150).replace(/[.…]{2,}$/u, '').trim();
+  if (!label || /^(?:working|thinking|complete|reconnecting|called tool|tool|processing|generating)$/i.test(label)) return '';
+  return label;
+}
+
+async function liveCatalogContext(row = {}) {
+  const catalogChatId = canonicalLiveCatalogChatId(row);
+  if (!catalogChatId) return { catalogChatId:'', projectId:'', projectName:'', taskHint:'', taskSource:'' };
+  const now = Date.now();
+  const cached = liveRowContextCache.get(catalogChatId);
+  if (cached && now - Number(cached.at || 0) <= LIVE_ROW_CONTEXT_TTL_MS) return cached.value;
+  let chat = null;
+  let fallbackUserText = '';
+  try {
+    chat = await getOne('chats', catalogChatId);
+    if (!chat?.lastUserExcerpt) fallbackUserText = await latestUserTaskForChat(catalogChatId, 12);
+  } catch (_) {}
+  const providerProject = !/^inbox$/i.test(String(chat?.projectName || '').trim()) ? String(chat?.projectName || '') : '';
+  const projectName = brain.normalizeText(chat?.workspaceProjectName || providerProject || '', 120);
+  const projectId = String(chat?.workspaceProjectId || (providerProject ? chat?.projectId || '' : '') || '');
+  const taskHint = compactLiveTaskHint(chat?.lastUserExcerpt || fallbackUserText || '', 132);
+  const value = { catalogChatId, projectId, projectName, taskHint, taskSource:taskHint ? 'latest-user-turn' : '' };
+  liveRowContextCache.set(catalogChatId, { at:now, value });
+  if (liveRowContextCache.size > 240) {
+    const entries = [...liveRowContextCache.entries()].sort((a,b) => Number(a[1]?.at || 0) - Number(b[1]?.at || 0));
+    for (const [key] of entries.slice(0, Math.max(0, entries.length - 180))) liveRowContextCache.delete(key);
+  }
+  return value;
+}
+
+async function enrichLiveRowContext(row = {}) {
+  const context = await liveCatalogContext(row);
+  return { ...row, catalogChatId:context.catalogChatId || canonicalLiveCatalogChatId(row), context:{ ...context, liveActivity:specificLiveActivity(row) } };
+}
+
 async function focusLiveChat(message = {}) {
   const tabId = Number(message.tabId || 0);
   const requestedUrl = String(message.url || '');
@@ -4147,13 +4259,18 @@ async function liveChatPulse({ force = false } = {}) {
       liveGroupMap()
     ]);
     let responsiveTabs = 0;
-    const rows = settled.map((result, index) => {
+    const baseRows = settled.map((result, index) => {
       const tab = tabs[index];
       let row = result.status === 'fulfilled' && result.value ? result.value : null;
       if (row) responsiveTabs += 1;
       if (!row) row = fallbackLiveRow(tab, liveTabStateByTab.get(Number(tab?.id || 0)));
       return withTabGroup(row, tab, groupMap);
-    }).filter(Boolean).sort((a,b) => Number(b.lastActivityAt || b.observedAt || 0) - Number(a.lastActivityAt || a.observedAt || 0));
+    }).filter(Boolean);
+    const enrichedRows = await Promise.all(baseRows.map(async (row) => {
+      try { return await enrichLiveRowContext(row); }
+      catch (_) { return { ...row, catalogChatId:canonicalLiveCatalogChatId(row), context:{ projectId:'', projectName:'', taskHint:'', taskSource:'', liveActivity:specificLiveActivity(row) } }; }
+    }));
+    const rows = enrichedRows.sort((a,b) => Number(b.lastActivityAt || b.observedAt || 0) - Number(a.lastActivityAt || a.observedAt || 0));
     const groups = { active:[], stale:[], completed:[] };
     for (const row of rows) groups[row.bucket]?.push(row);
     const snapshot = {

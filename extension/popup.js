@@ -105,6 +105,17 @@
     if (ms < 86400000) return `${Math.max(1, Math.round(ms / 3600000))}h`;
     return `${Math.max(1, Math.round(ms / 86400000))}d`;
   }
+  function chatContextLine(row, bucket) {
+    const context = row?.context || {};
+    const task = safe(context.taskHint || '', 118);
+    const live = safe(context.liveActivity || row?.generation?.toolLabel || '', 100);
+    const title = safe(row?.title || '', 118).toLowerCase();
+    if (task && task.toLowerCase() !== title) return `${bucket === 'completed' ? 'Last task' : 'Task'} · ${task}`;
+    if (live && !/^(working|thinking|complete|reconnecting|called tool)$/i.test(live)) return `${bucket === 'completed' ? 'Last activity' : 'Working on'} · ${live}`;
+    const project = safe(context.projectName || '', 80);
+    return project ? `Project · ${project}` : '';
+  }
+
   function renderChatList() {
     const panel = els.chatListPanel;
     if (!panel) return;
@@ -124,9 +135,14 @@
       const dot = document.createElement('span'); dot.className = `chat-list-dot ${selectedChatBucket}`;
       const body = document.createElement('span'); body.className = 'chat-list-copy';
       const title = document.createElement('strong'); title.textContent = safe(row.title || row.providerName || 'AI chat', 90);
-      const meta = document.createElement('span');
+      const contextLine = document.createElement('span'); contextLine.className = 'chat-list-context'; contextLine.textContent = chatContextLine(row, selectedChatBucket); contextLine.hidden = !contextLine.textContent;
+      const meta = document.createElement('span'); meta.className = 'chat-list-meta';
       const generation = row.generation || {};
-      const pieces = [safe(row.providerName || row.providerId || 'AI', 24)];
+      const context = row.context || {};
+      const pieces = [];
+      if (context.projectName) pieces.push(`Project: ${safe(context.projectName, 34)}`);
+      if (selectedChatBucket === 'active' && context.liveActivity && safe(context.liveActivity, 90).toLowerCase() !== safe(context.taskHint, 90).toLowerCase()) pieces.push(`Now: ${safe(context.liveActivity, 34)}`);
+      pieces.push(safe(row.providerName || row.providerId || 'AI', 24));
       if (selectedChatBucket === 'active') pieces.push(safe(generation.phase || generation.toolPhase || 'working', 24).replaceAll('-', ' '));
       else if (selectedChatBucket === 'stale') pieces.push(row.reconnecting ? 'reconnecting' : safe(row.status || 'attention', 22).replaceAll('-', ' '));
       else pieces.push('complete');
@@ -134,7 +150,7 @@
       if (row.tabGroup?.title) pieces.push(row.tabGroup.managed ? 'PC sorted' : `Group: ${safe(row.tabGroup.title, 30)}`);
       const age = relativeAge(row.lastActivityAt || row.observedAt); if (age) pieces.push(age);
       meta.textContent = pieces.filter(Boolean).join(' · ');
-      body.append(title, meta);
+      body.append(title, contextLine, meta);
       const arrow = document.createElement('span'); arrow.className = 'chat-list-arrow'; arrow.textContent = '↗';
       button.append(dot, body, arrow);
       button.addEventListener('click', async () => {

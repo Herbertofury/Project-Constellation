@@ -157,9 +157,23 @@
     return (Array.isArray(snapshot?.recentChats) ? snapshot.recentChats : []).filter((row) => statusBucket(row?.status) === bucket);
   }
 
+  function pinRowContext(row = {}, bucket = 'active') {
+    const context = row.context || {};
+    const task = safeText(context.taskHint || '', 118);
+    const live = safeText(context.liveActivity || row?.generation?.toolLabel || '', 100);
+    const title = safeText(row.title || '', 118).toLowerCase();
+    if (task && task.toLowerCase() !== title) return `${bucket === 'completed' ? 'Last task' : 'Task'} · ${task}`;
+    if (live && !/^(working|thinking|complete|reconnecting|called tool)$/i.test(live)) return `${bucket === 'completed' ? 'Last activity' : 'Working on'} · ${live}`;
+    return context.projectName ? `Project · ${safeText(context.projectName, 80)}` : '';
+  }
+
   function pinRowMeta(row = {}, bucket = 'active') {
     const generation = row.generation || {};
-    const bits = [safeText(row.providerName || row.providerId || 'AI', 22)];
+    const context = row.context || {};
+    const bits = [];
+    if (context.projectName) bits.push(`Project: ${safeText(context.projectName, 32)}`);
+    if (bucket === 'active' && context.liveActivity && safeText(context.liveActivity, 90).toLowerCase() !== safeText(context.taskHint, 90).toLowerCase()) bits.push(`Now: ${safeText(context.liveActivity, 32)}`);
+    bits.push(safeText(row.providerName || row.providerId || 'AI', 22));
     if (bucket === 'active') bits.push(safeText(generation.phase || generation.toolPhase || 'working', 22).replaceAll('-', ' '));
     else if (bucket === 'stale') bits.push(row.reconnecting ? 'reconnecting' : safeText(row.status || 'attention', 22).replaceAll('-', ' '));
     else bits.push('complete');
@@ -184,9 +198,10 @@
       const dot = document.createElement('i'); dot.className = `pcx-list-dot ${bucket}`;
       const copy = document.createElement('span'); copy.className = 'pcx-list-copy';
       const title = document.createElement('strong'); title.textContent = safeText(row.title || row.providerName || 'AI chat', 92);
-      const meta = document.createElement('span'); meta.textContent = pinRowMeta(row, bucket);
+      const context = document.createElement('span'); context.className = 'pcx-list-context'; context.textContent = pinRowContext(row, bucket); context.hidden = !context.textContent;
+      const meta = document.createElement('span'); meta.className = 'pcx-list-meta'; meta.textContent = pinRowMeta(row, bucket);
       const arrow = document.createElement('b'); arrow.textContent = '↗';
-      copy.append(title, meta); button.append(dot, copy, arrow);
+      copy.append(title, context, meta); button.append(dot, copy, arrow);
       button.addEventListener('click', async () => {
         const result = await chrome.runtime.sendMessage({ type:'PC_FOCUS_LIVE_CHAT', tabId:Number(row.tabId || 0), windowId:Number(row.windowId || 0), url:String(row.url || '') }).catch(() => null);
         if (result?.ok) list.dataset.visible = '0';
@@ -225,10 +240,10 @@
         .pcx-chat-list[data-visible="1"]{display:block}
         .pcx-chat-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px solid rgba(123,139,205,.15);background:linear-gradient(90deg,rgba(113,77,223,.1),rgba(60,125,218,.05))}
         .pcx-chat-list-title{font:800 9px/1.2 system-ui;color:#e9edff}.pcx-chat-list-close{width:24px!important;min-width:24px!important;min-height:24px!important;border:0!important;border-radius:7px!important;background:transparent!important;color:#8994ba!important;font-size:15px!important;cursor:pointer}
-        .pcx-chat-list-body{display:grid;gap:4px;padding:6px;max-height:330px;overflow:auto;scrollbar-width:thin;scrollbar-color:#3d4775 transparent}
-        .pcx-chat-list-row{width:100%!important;min-height:47px!important;display:grid!important;grid-template-columns:8px minmax(0,1fr) 14px!important;align-items:center!important;gap:7px!important;padding:7px 8px!important;border:1px solid rgba(126,145,210,.12)!important;border-radius:9px!important;background:rgba(255,255,255,.022)!important;color:#eef2ff!important;text-align:left!important;cursor:pointer!important}
+        .pcx-chat-list-body{display:grid;gap:4px;padding:6px;max-height:380px;overflow:auto;scrollbar-width:thin;scrollbar-color:#3d4775 transparent}
+        .pcx-chat-list-row{width:100%!important;min-height:59px!important;display:grid!important;grid-template-columns:8px minmax(0,1fr) 14px!important;align-items:center!important;gap:7px!important;padding:8px!important;border:1px solid rgba(126,145,210,.12)!important;border-radius:9px!important;background:rgba(255,255,255,.022)!important;color:#eef2ff!important;text-align:left!important;cursor:pointer!important}
         .pcx-chat-list-row:hover{background:rgba(90,105,190,.12)!important;border-color:rgba(136,127,235,.3)!important}.pcx-list-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 9px currentColor}.pcx-list-dot.active{background:#67b7ff;color:#67b7ff}.pcx-list-dot.stale{background:#efb45f;color:#efb45f}.pcx-list-dot.completed{background:#63d6a7;color:#63d6a7}
-        .pcx-list-copy{min-width:0;display:grid;gap:3px}.pcx-list-copy strong{font:750 9px/1.15 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-list-copy span{font:600 7.2px/1.2 system-ui;color:#7f89ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-chat-list-row>b{color:#6875a4;font:700 10px/1 system-ui}.pcx-chat-list-empty{padding:18px 12px;text-align:center;color:#7f89ad;font:650 8px/1.4 system-ui}
+        .pcx-list-copy{min-width:0;display:grid;gap:2px}.pcx-list-copy strong{font:750 9px/1.15 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-list-copy span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-list-copy .pcx-list-context{font:650 7.5px/1.25 system-ui;color:#bac5ec}.pcx-list-copy .pcx-list-meta{font:600 6.9px/1.2 system-ui;color:#7883aa}.pcx-chat-list-row>b{color:#6875a4;font:700 10px/1 system-ui}.pcx-chat-list-empty{padding:18px 12px;text-align:center;color:#7f89ad;font:650 8px/1.4 system-ui}
         .pcx-vault-signal{display:none;align-items:center;gap:6px;border:1px solid rgba(239,180,95,.38);border-radius:8px;background:rgba(137,91,22,.12);color:#f2ca8b;padding:6px 8px;font:700 8px/1.1 system-ui;cursor:pointer}
         .pcx-vault-signal[data-visible="1"]{display:inline-flex}
         .pcx-vault-signal::before{content:"";width:6px;height:6px;border-radius:50%;background:#efb45f;box-shadow:0 0 9px rgba(239,180,95,.48)}

@@ -19,6 +19,12 @@ The page HUD correlates mounted DOM progress, passive provider network evidence,
 
 The HUD never sends provider requests and never claims access to hidden model reasoning. Site-background/history/session traffic stays visible as auxiliary activity but cannot be used as proof that an agent is working. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
 
+### Chat Pulse Context Lens
+
+The popup Chat Pulse and the collapsed in-page Pulse navigator share one canonical live-tab snapshot. Opening Active, Needs Attention, or Completed shows every matching open chat with a compact three-level row: the provider/browser title, a bounded task context line, then project/provider/state/model/group metadata. When the browser title is vague, the task line uses the latest locally captured user request; active chats can additionally show the current observable tool label as `Now: …`. Completed chats retain `Last task · …` so a finished tab is still recognizable later.
+
+Project names come from Constellation’s existing local workspace/provider catalog. A user-created Chrome tab group remains explicitly a **Group**, not a guessed project. Context enrichment is local IndexedDB work only: capture maintains a bounded latest-user excerpt for fast reads, older records use a bounded reverse lookup, and no new provider-page request or transcript-wide scan is introduced by opening Pulse.
+
 ### Output Vault
 
 The permanent **⇄ Output Vault** control opens a second owned surface beside Execution Pulse. A shared dock temporarily compacts Pulse and always stacks the vault above or below it according to the configured corner; live resize measurements reserve Pulse space in normal, collapsed, mobile, and full-workspace modes. The vault lists every captured assistant output with searchable text, code blocks, links, generated media, files/builds, and distinct revision history. Reader mode reconstructs captured semantic headings, paragraphs, emphasis, lists, quotes, tables, inline/fenced code, links, and compact agent-activity groups; Raw mode preserves the exact flattened text view. Older output cards stay collapsed and defer rich-text construction until opened. Media preview is lazy: opening the vault does not fetch remote images, video, or audio. Inline `data:` media is retained in a bounded embedded file record; ordinary remote and `blob:` media keeps its captured reference and dimensions.
