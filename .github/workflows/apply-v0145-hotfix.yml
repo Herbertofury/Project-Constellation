@@ -1,0 +1,35 @@
+name: Apply v0.14.5 Pulse Navigator
+
+on:
+  push:
+    branches: [hotfix/v0.14.5-pulse-navigator]
+    paths:
+      - '.github/workflows/apply-v0145-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: hotfix/v0.14.5-pulse-navigator
+      - name: Verify and apply reviewed v0.14.5 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'e64787295fc1bfafc6b271efbb64b3f83d7d78192148206fe377080418339d6c  .github/hotfix/v0145.patch.xz.b64.00' | sha256sum -c -
+          base64 -d .github/hotfix/v0145.patch.xz.b64.00 | xz -d > /tmp/v0145.patch
+          echo 'f7cb50c105e4f70d0e58b0619bf02135e1880dab96e897a064821e359d0b4f62  /tmp/v0145.patch' | sha256sum -c -
+          git apply --check /tmp/v0145.patch
+          git apply /tmp/v0145.patch
+          rm -rf .github/hotfix .github/workflows/apply-v0145-hotfix.yml
+          git config user.name 'Project Constellation Hotfix'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git status --short
+          git commit -m 'v0.14.5: reliable Pulse Navigator'
+          git push origin HEAD:hotfix/v0.14.5-pulse-navigator
