@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.4';
+  const VERSION = '0.14.7';
   const REQUEST_SOURCE = 'project-constellation';
   const RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
   const REQUEST_KIND = 'chatgpt-transcript-request';
@@ -94,6 +94,25 @@
     return safeStatus(message?.status || message?.metadata?.status || '');
   }
 
+  function lifecycleCondition(status = '', message = null, widget = null) {
+    const value = safeStatus(status);
+    const metadata = message?.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+    const widgetState = widgetStatus(widget);
+    const joined = `${value} ${safeStatus(metadata?.finish_reason || '')} ${safeStatus(metadata?.stop_reason || '')} ${widgetState}`;
+    if (/requires[_ .-]?action|awaiting[_ .-]?(?:input|approval)|needs[_ .-]?(?:input|approval)|permission[_ .-]?required/.test(joined)) return 'waiting-user';
+    if (/cancelled|canceled|canceling|cancelling|aborted|stopped/.test(joined)) return 'cancelled';
+    if (/failed|error|errored/.test(joined)) return 'failed';
+    if (/incomplete|expired|timed[_ .-]?out/.test(joined)) return 'incomplete';
+    if (/queued|created|submitted|pending/.test(joined)) return 'queued';
+    if (/in[_ .-]?progress|streaming|running/.test(joined)) return 'running';
+    if (/finished[_ .-]?successfully|completed|complete|succeeded|success|done/.test(joined)) return 'completed';
+    return '';
+  }
+
+  function isTerminalCondition(condition) {
+    return ['completed','cancelled','failed','incomplete'].includes(condition);
+  }
+
   function messageEndTurn(message) {
     return message?.end_turn === true || message?.metadata?.end_turn === true;
   }
@@ -154,7 +173,7 @@
     const conversationId = clean(conversation?.id || expectedConversationId || '', 200);
     if (!chain.length) {
       return {
-        ok:true, proof:'transcript', conversationId, transcriptStatus:'unknown', final:false, running:false,
+        ok:true, proof:'transcript', conversationId, transcriptStatus:'unknown', condition:'unknown', terminal:false, waitingUser:false, final:false, running:false,
         currentNodeId:clean(conversation?.current_node || '', 200), latestUserMessageId:'', latestAssistantMessageId:'',
         latestRole:'', latestMessageStatus:'', endTurn:false, isComplete:false, modelSlug:'', asyncTaskId:'',
         widgetStatus:'', progressPercent:null, toolCount:0, phase:'unknown', observedAt:Date.now()
@@ -191,32 +210,38 @@
     const latestStatus = messageStatus(latestMessage);
     const endTurn = messageEndTurn(assistantMessage);
     const completeFlag = messageComplete(assistantMessage);
-    const assistantFinal = Boolean(assistantMessage && endTurn && (assistantStatus === 'finished_successfully' || completeFlag || !assistantStatus));
-    const explicitIncomplete = tail.some((entry) => {
-      const status = messageStatus(entry.message);
-      return ['in_progress','streaming','pending','running'].includes(status);
-    });
+    const assistantCondition = lifecycleCondition(assistantStatus, assistantMessage, widget);
+    const latestCondition = lifecycleCondition(latestStatus, latestMessage, widget);
+    const tailConditions = tail.map((entry) => lifecycleCondition(messageStatus(entry.message), entry.message, findWidgetState(entry.message))).filter(Boolean);
+    const terminalTail = [...tailConditions].reverse().find(isTerminalCondition) || '';
+    const waitingTail = [...tailConditions].reverse().find((value) => value === 'waiting-user') || '';
+    const assistantFinal = Boolean(assistantMessage && endTurn && (assistantStatus === 'finished_successfully' || completeFlag || assistantCondition === 'completed' || !assistantStatus));
+    const explicitRunning = tailConditions.some((value) => ['queued','running'].includes(value));
 
-    let final = assistantFinal;
-    if (widget) final = widgetDone && (assistantFinal || Boolean(assistantMessage));
-    let running = false;
-    if (latestUser) {
-      if (!tail.length) running = true;
-      else if (widgetRunning) running = true;
-      else if (explicitIncomplete) running = true;
-      else if (!final) running = true;
-    }
-    if (final) running = false;
+    let condition = terminalTail || waitingTail || assistantCondition || latestCondition || '';
+    if (widgetRunning) condition = 'running';
+    if (widgetDone && assistantMessage) condition = assistantFinal ? 'completed' : (condition || 'running');
+    if (assistantFinal && !['failed','cancelled','incomplete'].includes(condition)) condition = 'completed';
+    if (!condition && latestUser && !tail.length) condition = 'queued';
+    if (!condition && latestUser) condition = 'running';
+
+    const final = condition === 'completed';
+    const running = Boolean(latestUser && ['queued','running'].includes(condition));
+    const waitingUser = condition === 'waiting-user';
+    const terminal = isTerminalCondition(condition);
 
     const phaseMessage = widgetMessage || toolTail.at(-1)?.message || assistantMessage || latestMessage;
-    const phase = final ? 'complete' : phaseFromMessage(phaseMessage, widget);
+    const phase = final ? 'complete' : waitingUser ? 'waiting-user' : ['failed','cancelled','incomplete'].includes(condition) ? condition : phaseFromMessage(phaseMessage, widget);
     const modelSlug = modelSlugOf(assistantMessage) || assistantTail.map((entry) => modelSlugOf(entry.message)).filter(Boolean).at(-1) || '';
 
     return {
       ok:true,
       proof:'transcript',
       conversationId,
-      transcriptStatus:final ? 'finished' : running ? 'running' : 'unknown',
+      transcriptStatus:final ? 'finished' : running ? 'running' : waitingUser ? 'waiting-user' : terminal ? condition : 'unknown',
+      condition,
+      terminal,
+      waitingUser,
       final,
       running,
       currentNodeId:clean(conversation?.current_node || conversation?.currentNode || latest?.id || '', 200),
@@ -277,6 +302,9 @@
         proof:'transcript',
         conversationId,
         transcriptStatus:'unavailable',
+        condition:'unavailable',
+        terminal:false,
+        waitingUser:false,
         final:false,
         running:false,
         error:clean(error?.message || error, 160),

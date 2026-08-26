@@ -52,7 +52,13 @@ assert.doesNotMatch(scheduleSource, /outputCompareSummary\?\.active|output-regre
 const sentinelSource = fs.readFileSync(new URL('../extension/src/live-sentinel.js', import.meta.url), 'utf8');
 const transcriptProbeSource = fs.readFileSync(new URL('../extension/src/chatgpt-page-probe.js', import.meta.url), 'utf8');
 const tabBeaconSource = fs.readFileSync(new URL('../extension/src/tab-beacon.js', import.meta.url), 'utf8');
-assert.match(sentinelSource, /const rawActive = transcriptFinal \? false : transcriptRunning \? true : domActive/, 'fresh transcript finality outranks stale DOM while unfinished transcript outranks settled DOM');
+assert.match(sentinelSource, /const rawActive = transcriptTerminalStatus \? false : transcriptRunning \? true : domActive/, 'authoritative current-turn terminal transcript state outranks stale DOM while unfinished transcript outranks settled DOM');
+
+assert.match(sentinelSource, /generationEpoch \+= 1/, 'new user turns start a fresh generation epoch');
+assert.match(sentinelSource, /terminalEpoch === generationEpoch && terminalStatus/, 'terminal state is sticky only inside the matching generation epoch');
+assert.match(sentinelSource, /transcript\?\.progressPercent !== null && transcript\?\.progressPercent !== undefined/, 'missing progress is never coerced into a fake 0 percent');
+for (const marker of ['waiting-user','cancelled','incomplete','failed']) assert.ok(transcriptProbeSource.includes(marker), `transcript lifecycle includes ${marker}`);
+
 assert.match(sentinelSource, /PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT/, 'authoritative transport completion can request an event-driven transcript refresh');
 assert.match(source, /authoritativeTransport[\s\S]{0,500}PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT/, 'background requests transcript refresh after authoritative ChatGPT transport settles');
 assert.match(sentinelSource, /button\[data-testid="copy-turn-action-button"\]/, 'current ChatGPT completion control uses the precise production testid');

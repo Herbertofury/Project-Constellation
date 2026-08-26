@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.14.7 - Deep State Engine
+
+- Added generation-epoch isolation and sticky authoritative terminal states for ChatGPT live monitoring.
+- Added queued/running/waiting-user/completed/incomplete/failed/cancelled transcript lifecycle classification.
+- Fixed absent progress being coerced to 0%.
+- Upgraded Live Sentinel/Page Probe to 0.14.7 and preserved fallbacks when internal ChatGPT transcript proof is unavailable.
+
+
 All notable Project Constellation changes are recorded here.
 
 ## 0.14.6 - Context Lens
