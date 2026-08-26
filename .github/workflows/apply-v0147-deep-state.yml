@@ -1,7 +1,9 @@
 name: Apply v0.14.7 Deep State Engine
 on:
   push:
-    branches: [feature/v0.14.7-deep-state-engine]
+    branches:
+      - main
+      - feature/v0.14.7-deep-state-engine
     paths:
       - '.github/v0147/**'
       - '.github/workflows/apply-v0147-deep-state.yml'
@@ -13,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: feature/v0.14.7-deep-state-engine
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
       - name: Verify and apply exact patch
         shell: bash
@@ -30,4 +32,4 @@ jobs:
           git add -A
           git diff --cached --check
           git commit -m 'v0.14.7: add Deep State Engine checkpoint'
-          git push origin HEAD:feature/v0.14.7-deep-state-engine
+          git push origin HEAD:${GITHUB_REF_NAME}
