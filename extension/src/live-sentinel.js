@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.4';
+  const VERSION = '0.14.7';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -76,6 +76,11 @@
   let transcriptNonce = '';
   let transcriptTimer = 0;
   let pageMessageListener = null;
+  let generationEpoch = 0;
+  let terminalEpoch = -1;
+  let terminalStatus = '';
+  let terminalSource = '';
+  let terminalAt = 0;
 
 
   const clean = (value, max = 240) => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -388,6 +393,14 @@
       lastAssistantFingerprint = '';
       lastAssistantGrowthAt = 0;
       lastActivityAt = at;
+      generationEpoch += 1;
+      terminalEpoch = -1;
+      terminalStatus = '';
+      terminalSource = '';
+      terminalAt = 0;
+      transcriptState = null;
+      transcriptBackoffUntil = 0;
+      idleCandidateSince = 0;
     }
     if (completion.hasAssistant && completion.fingerprint && completion.fingerprint !== lastAssistantFingerprint) {
       if (!completion.finalControls) {
@@ -431,21 +444,31 @@
     transitionCount += 1;
   }
 
-  function resolveStatus(rawActive, inactiveStatus, at) {
+  function resolveStatus(rawActive, inactiveStatus, at, { authoritativeStatus = '' } = {}) {
+    if (authoritativeStatus) {
+      idleCandidateSince = 0;
+      setStableStatus(authoritativeStatus, at);
+      return { status:authoritativeStatus, settling:false, authoritative:true };
+    }
+    if (terminalEpoch === generationEpoch && terminalStatus) {
+      idleCandidateSince = 0;
+      setStableStatus(terminalStatus, at);
+      return { status:terminalStatus, settling:false, authoritative:true };
+    }
     if (rawActive) {
       lastStrongActiveAt = at;
       idleCandidateSince = 0;
       setStableStatus('running', at);
-      return { status:'running', settling:false };
+      return { status:'running', settling:false, authoritative:false };
     }
 
     if (stableStatus === 'running') {
       if (!idleCandidateSince) idleCandidateSince = at;
-      if (at - idleCandidateSince < IDLE_SETTLE_MS) return { status:'running', settling:true };
+      if (at - idleCandidateSince < IDLE_SETTLE_MS) return { status:'running', settling:true, authoritative:false };
     }
     idleCandidateSince = 0;
     setStableStatus(inactiveStatus, at);
-    return { status:inactiveStatus, settling:false };
+    return { status:inactiveStatus, settling:false, authoritative:false };
   }
 
   function scan(force = false) {
@@ -478,19 +501,33 @@
     // stop/aria-busy controls, while an unfinished current branch outranks a temporarily
     // settled DOM. This is deliberately metadata-only; answer text never leaves MAIN world.
     const transcript = freshTranscript(frontier, at);
+    const transcriptCondition = clean(transcript?.condition || '', 40);
     const transcriptFinal = Boolean(transcript?.final && transcript?.transcriptStatus === 'finished');
     const transcriptRunning = Boolean(transcript?.running && transcript?.transcriptStatus === 'running');
+    const transcriptWaiting = Boolean(transcript?.waitingUser || transcriptCondition === 'waiting-user');
+    const transcriptTerminalStatus = transcriptFinal ? 'idle'
+      : transcriptCondition === 'failed' ? 'errored'
+      : transcriptCondition === 'cancelled' ? 'cancelled'
+      : transcriptCondition === 'incomplete' ? 'incomplete'
+      : transcriptWaiting ? 'waiting-user'
+      : '';
     const domActive = Boolean(stopControl || streamingNode || assistantBusyEvidence || progressiveTool || toolBusyEvidence || assistantGrowing || awaitingResponse);
-    const rawActive = transcriptFinal ? false : transcriptRunning ? true : domActive;
+    const rawActive = transcriptTerminalStatus ? false : transcriptRunning ? true : domActive;
 
+    if (transcriptTerminalStatus && transcript?.terminal) {
+      terminalEpoch = generationEpoch;
+      terminalStatus = transcriptTerminalStatus;
+      terminalSource = `chatgpt-transcript-${transcriptCondition || 'completed'}`;
+      terminalAt = at;
+    }
     if (providerInfo().id === 'chatgpt') requestTranscript(rawActive && !transcript);
     const inactiveStatus = nonRunningStatus(statusSurfaceText());
-    const resolved = resolveStatus(rawActive, inactiveStatus, at);
+    const resolved = resolveStatus(rawActive, inactiveStatus, at, { authoritativeStatus:transcriptTerminalStatus });
     const status = resolved.status;
     const stale = status !== 'running' && status !== 'idle';
     const provider = providerInfo();
     const toolLabel = clean((currentActive || currentBusy || informative)?.label || '', 160);
-    const source = transcriptFinal ? 'chatgpt-transcript-finished'
+    const source = transcriptTerminalStatus ? (terminalSource || `chatgpt-transcript-${transcriptCondition || 'terminal'}`)
       : transcriptRunning ? 'chatgpt-transcript-running'
       : stopControl ? 'stop-control'
       : streamingNode ? 'streaming-marker'
@@ -519,7 +556,12 @@
       toolPhase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || '',
       phase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
       modelSlug:clean(transcript?.modelSlug || '', 100),
-      progressPercent:Number.isFinite(Number(transcript?.progressPercent)) ? Number(transcript.progressPercent) : null,
+      progressPercent:transcript?.progressPercent !== null && transcript?.progressPercent !== undefined && Number.isFinite(Number(transcript.progressPercent)) ? Number(transcript.progressPercent) : null,
+      condition:transcriptCondition || (status === 'running' ? 'running' : status === 'idle' ? 'completed' : status),
+      confidence:transcript ? 'authoritative' : (stopControl || streamingNode || currentActive ? 'strong' : assistantGrowing || awaitingResponse ? 'medium' : 'weak'),
+      generationEpoch,
+      terminalSticky:terminalEpoch === generationEpoch && Boolean(terminalStatus),
+      terminalAt:Number(terminalAt || 0),
       transcriptStatus:transcript?.transcriptStatus || 'unavailable',
       transcriptProof:Boolean(transcript),
       transcriptObservedAt:Number(transcript?.observedAt || 0),
@@ -544,7 +586,9 @@
         lastActivityAt,
         hasConversation:frontier.turns.length > 0,
         turnCount:frontier.turns.length,
-        healthState:status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status
+        healthState:status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status,
+        condition:transcriptCondition || (status === 'running' ? 'running' : status === 'idle' ? 'completed' : status),
+        confidence:transcript ? 'authoritative' : (stopControl || streamingNode || currentActive ? 'strong' : assistantGrowing || awaitingResponse ? 'medium' : 'weak')
       },
       generation,
       tool:{
@@ -561,7 +605,7 @@
       healthStale:stale,
       observedAt:at,
       hidden:document.hidden,
-      diagnostics:{ scanCount, transitionCount, stableSince, idleCandidateSince, initialized, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil, transcriptProof:Boolean(transcript), transcriptStatus:transcript?.transcriptStatus || 'unavailable' }
+      diagnostics:{ scanCount, transitionCount, stableSince, idleCandidateSince, initialized, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil, transcriptProof:Boolean(transcript), transcriptStatus:transcript?.transcriptStatus || 'unavailable', transcriptCondition, generationEpoch, terminalEpoch, terminalStatus, terminalAt }
     };
 
     initialized = true;

@@ -48,8 +48,8 @@ const LIVE_CHAT_FALLBACK_TTL_MS = 30000;
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.4';
-const CHATGPT_PAGE_PROBE_VERSION = '0.14.4';
+const LIVE_SENTINEL_VERSION = '0.14.7';
+const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
@@ -3712,7 +3712,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working']);
 const LIVE_STALE_HEALTH_STATES = new Set(['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page']);
-const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','failed','cancelled','incomplete','stalled','auth-required','unavailable']);
 
 function livePulseBucket(state = {}, network = {}) {
   const status = String(state?.chat?.status || state?.status || 'idle');
