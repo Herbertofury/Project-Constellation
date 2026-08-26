@@ -21,7 +21,7 @@ if (production && !validGithubClient) throw new Error('Production build blocked:
 fs.rmSync(unpacked, { recursive: true, force: true });
 fs.mkdirSync(path.join(unpacked, 'src'), { recursive: true });
 const topFiles = ['manifest.json','background.js','popup.html','popup.css','popup-pulse.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js'];
-const sourceFiles = ['core.js','brain-core.js','provider-core.js','integrity-core.js','knowledge-core.js','health-core.js','live-sentinel.js','content.js','pulse-ux.js','styles.css'];
+const sourceFiles = ['core.js','brain-core.js','provider-core.js','integrity-core.js','knowledge-core.js','health-core.js','chatgpt-page-probe.js','live-sentinel.js','tab-beacon.js','content.js','pulse-ux.js','styles.css'];
 for (const file of topFiles) fs.copyFileSync(path.join(sourceRoot, file), path.join(unpacked, file));
 for (const file of sourceFiles) fs.copyFileSync(path.join(sourceRoot, 'src', file), path.join(unpacked, 'src', file));
 for (const directory of ['assets']) {

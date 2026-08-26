@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = process.env.PROJECT_CONSTELLATION_ROOT ? path.resolve(process.env.PROJECT_CONSTELLATION_ROOT) : path.join(repoRoot, 'extension');
 const surfaces = [['home.html','home.js'],['sidepanel.html','sidepanel.js'],['popup.html','popup.js']];
-const delegated = ['view','jump','layout-toggle','layout-preset','density','theme-choice','primary-side','panel-position','panel-tab','command','dialog-close','sidebar-section','inspector-tab','tab'];
+const delegated = ['view','jump','layout-toggle','layout-preset','density','theme-choice','primary-side','panel-position','panel-tab','command','dialog-close','sidebar-section','inspector-tab','tab','tag'];
 const failures = [];
 const delegatedOwner = (attrs, js) => {
   for (const name of delegated) {

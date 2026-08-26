@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = process.env.PROJECT_CONSTELLATION_ROOT ? path.resolve(process.env.PROJECT_CONSTELLATION_ROOT) : path.join(repoRoot, 'extension');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
-const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/live-sentinel.js','src/content.js','src/styles.css'];
+const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/chatgpt-page-probe.js','src/live-sentinel.js','src/tab-beacon.js','src/content.js','src/styles.css'];
 for (const file of required) if (!fs.existsSync(path.join(root, file))) throw new Error(`Missing ${file}`);
 const releaseSupportFiles = [
   'config/oauth/.env.release.example',
@@ -46,6 +46,16 @@ if (/\bfetch\s*\(/.test(content) || /XMLHttpRequest/.test(content)) throw new Er
 if (/retry[^\n]{0,160}\.click\s*\(/i.test(content)) throw new Error('Delivery/network recovery must never click Retry; browser refresh is the recovery primitive.');
 
 const background = fs.readFileSync(path.join(root, 'background.js'), 'utf8');
+
+const pageProbe = fs.readFileSync(path.join(root, 'src/chatgpt-page-probe.js'), 'utf8');
+const tabBeacon = fs.readFileSync(path.join(root, 'src/tab-beacon.js'), 'utf8');
+if (!manifest.permissions?.includes('tabGroups') || !manifest.permissions?.includes('contextMenus')) throw new Error('Tab Beacons require tabGroups and contextMenus permissions.');
+const mainProbeEntry = (manifest.content_scripts || []).find((row) => row.world === 'MAIN' && (row.js || []).includes('src/chatgpt-page-probe.js'));
+if (!mainProbeEntry || !(mainProbeEntry.matches || []).includes('https://chatgpt.com/*')) throw new Error('ChatGPT transcript probe must load in MAIN world on chatgpt.com.');
+for (const marker of ['/backend-api/conversation/','finished_successfully','end_turn','chatgpt_sdk.widget_state','transcriptStatus','latestUserMessageId']) if (!pageProbe.includes(marker)) throw new Error(`ChatGPT transcript proof missing: ${marker}`);
+if (!pageProbe.includes('window.postMessage({ source:RESPONSE_SOURCE') || !pageProbe.includes("state }, location.origin === 'null' ? '*' : location.origin)")) throw new Error('ChatGPT MAIN-world probe must return only its sanitized state envelope.');
+for (const marker of ['PC_TAB_BEACON_APPLY','projectConstellationTabBeaconFavicon','faviconDataUri','baseTitle']) if (!tabBeacon.includes(marker)) throw new Error(`Tab Beacon content workflow missing: ${marker}`);
+for (const marker of ['chrome.tabs.group','chrome.tabGroups.update','PC_TAB_TAG_SET','contextMenus','syncTabPresentation','renderActionBadge']) if (!background.includes(marker)) throw new Error(`Tab Beacon backend missing: ${marker}`);
 if (!content.includes('rate-limited') || !background.includes('noteProviderRateLimit')) throw new Error('Rate-limit governor/recovery state is missing.');
 if (!background.includes('api.github.com') || !background.includes('www.googleapis.com')) throw new Error('Expected remote sync adapters are missing.');
 for (const marker of ['GITHUB_TOKEN_META_KEY','githubRefreshAccessToken','grant_type: \'refresh_token\'','offline_access','refresh_token_expires_in']) if (!background.includes(marker)) throw new Error(`Refresh-safe GitHub OAuth missing: ${marker}`);

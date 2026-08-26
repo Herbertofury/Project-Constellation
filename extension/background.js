@@ -41,9 +41,15 @@ const LIVE_NETWORK_TTL_MS = 10 * 60 * 1000;
 const BRANCH_CONTINUATION_KEY = 'projectConstellationPendingBranch';
 const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
 const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
+const TAB_TAGS_KEY = 'projectConstellationTabTags';
 const LIVE_CHAT_PULSE_TTL_MS = 1800;
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
-const LIVE_SENTINEL_VERSION = '0.14.3';
+const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
+const TAB_BEACON_FILE = 'src/tab-beacon.js';
+const LIVE_SENTINEL_VERSION = '0.14.4';
+const CHATGPT_PAGE_PROBE_VERSION = '0.14.4';
+const TAB_BEACON_VERSION = '0.14.4';
+const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
 const liveTabStateByTab = new Map();
 const liveNetworkReconcileTimers = new Map();
@@ -51,6 +57,11 @@ let liveChatPulseCache = null;
 let liveChatPulseCacheAt = 0;
 let liveChatPulseRequest = null;
 const liveHealthContextCache = new Map();
+const tabPresentationSignatures = new Map();
+let pulseUxCache = null;
+let tabTagsCache = null;
+let attentionBadgeCount = 0;
+let liveToolbarSnapshot = { active:0, stale:0, completed:0, open:0 };
 
 const defaultBrainSettings = Object.freeze({
   captureEnabled: true,
@@ -350,8 +361,9 @@ function networkStateForTab(tabId) {
     lastStartAt: row.lastStartAt || 0, lastResponseAt: row.lastResponseAt || 0, lastCompleteAt: row.lastCompleteAt || 0, lastErrorAt: row.lastErrorAt || 0,
     lastStatusCode: row.lastStatusCode || 0,
     rateLimited: Number(row.lastStatusCode || 0) === 429 && now - Number(row.lastStatusAt || 0) < 15 * 60 * 1000,
-    streamLikely: pending > 0 && inflight.some((item) => item.method !== 'GET' || /conversation|response|message|completion|generate|tool|stream|backend-api|\/api\//i.test(item.url || '')),
-    inflight: inflight.slice(-12).map((item) => ({ id:item.id || '', category:item.category || 'provider request', method:item.method || 'GET', startedAt:Number(item.startedAt || 0) })),
+    streamLikely: pending > 0 && inflight.some((item) => item.sse === true || item.authoritativeTransport === true || item.method !== 'GET' || /conversation|response|message|completion|generate|tool|stream|backend-api|\/api\//i.test(item.url || '')),
+    authoritativeStreams:inflight.filter((item)=>item.sse === true || item.authoritativeTransport === true).length,
+    inflight: inflight.slice(-12).map((item) => ({ id:item.id || '', category:item.category || 'provider request', method:item.method || 'GET', transport:item.transport || '', sse:Boolean(item.sse), authoritativeTransport:Boolean(item.authoritativeTransport), startedAt:Number(item.startedAt || 0) })),
     auxiliaryInflight: allInflight.filter((item) => !item.activityBearing).slice(-8).map((item) => ({ id:item.id || '', category:item.category || 'site background', method:item.method || 'GET', startedAt:Number(item.startedAt || 0) })),
     events: (row.events || []).slice(-16).map((item) => ({ ...item }))
   };
@@ -989,11 +1001,9 @@ async function chatsForStatuses(statuses = ATTENTION_STATUSES) {
 async function updateAttentionBadge() {
   const [statusChats, allChats] = await Promise.all([chatsForStatuses(ATTENTION_STATUSES), getAll('chats')]);
   const chats = [...new Map([...statusChats, ...allChats.filter((chat)=>chat.outputRegression?.active)].map((chat)=>[chat.id,chat])).values()];
-  const count = chats.length;
-  const text = count > 99 ? '99+' : count ? String(count) : '';
-  try { await chrome.action?.setBadgeText?.({ text }); } catch (_) {}
-  try { await chrome.action?.setTitle?.({ title: count ? `Project Constellation · ${count} chat${count === 1 ? '' : 's'} need attention` : 'Project Constellation' }); } catch (_) {}
-  return { count };
+  attentionBadgeCount = chats.length;
+  await renderActionBadge().catch(() => {});
+  return { count:attentionBadgeCount };
 }
 
 function defaultApprovalRecoveryState() {
@@ -3294,7 +3304,9 @@ chrome.runtime.onInstalled.addListener(async () => {
   await ensureSearchIndex();
   await startKnowledgeBackfillIfNeeded();
   await updateAttentionBadge();
+  await ensureTabTagMenus().catch(() => {});
   await installLiveSentinelIntoOpenTabs().catch(() => {});
+  await refreshAllTabPresentations().catch(() => {});
 });
 
 chrome.runtime.onStartup.addListener(async () => {
@@ -3315,7 +3327,9 @@ chrome.runtime.onStartup.addListener(async () => {
   const dirty = (await chrome.storage.local.get(DIRTY_KEY))[DIRTY_KEY];
   const cfg = await settings();
   if (dirty && cfg.drive.autoSync && googleOAuthProvisioned()) await chrome.alarms.create(DRIVE_SYNC_ALARM, { when: Date.now() + 3000 });
+  await ensureTabTagMenus().catch(() => {});
   await installLiveSentinelIntoOpenTabs().catch(() => {});
+  await refreshAllTabPresentations().catch(() => {});
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -3627,6 +3641,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       case 'PC_LIVE_CHAT_PULSE': return liveChatPulse({ force:Boolean(message.force) });
       case 'PC_LIVE_CHAT_STATE_PUSH': return handleLiveChatStatePush(message, sender);
+      case 'PC_TAB_TAG_GET': return tabTagState(Number(message.tabId || sender?.tab?.id || 0));
+      case 'PC_TAB_TAG_SET': return setTabTag(Number(message.tabId || sender?.tab?.id || 0), message.tag || '');
+      case 'PC_TAB_BEACON_REFRESH': return refreshAllTabPresentations();
       case 'PC_LIVE_HEALTH_CONTEXT': return liveHealthContext(message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt'), sender?.tab?.id);
       case 'PC_INTEGRITY_SCAN': return runProjectIntegrityScan({ projectIds: Array.isArray(message.projectIds) ? message.projectIds : [], force: message.force !== false });
       case 'PC_INTEGRITY_STATUS': return { ok: true, integrity: await integritySummary() };
@@ -3655,9 +3672,213 @@ function livePulseBucket(state = {}, network = {}) {
   return 'completed';
 }
 
-async function pulseUxSettings() {
+const TAB_BEACON_DEFAULTS = Object.freeze({
+  completionNotificationsEnabled:true,
+  branchReviewBeforeSend:true,
+  tabBeaconsEnabled:true,
+  tabTitleStatusEnabled:true,
+  tabFaviconStatusEnabled:true,
+  tabGroupingEnabled:true,
+  activeEmoji:'🟣',
+  staleEmoji:'⚠️',
+  completedEmoji:'✅',
+  activeColor:'#8b5cf6',
+  staleColor:'#e0a458',
+  completedColor:'#45bd8c',
+  activeGroupColor:'purple',
+  staleGroupColor:'orange',
+  completedGroupColor:'green'
+});
+const NATIVE_GROUP_COLORS = new Set(['grey','blue','red','yellow','green','pink','purple','cyan','orange']);
+const TAG_MENU_PRESETS = Object.freeze(['🔥','📌','💡','🧪','✅']);
+
+function normalizeHexColor(value, fallback) {
+  const text = String(value || '');
+  return /^#[0-9a-f]{6}$/i.test(text) ? text : fallback;
+}
+
+function normalizePulseUx(input = {}) {
+  const next = { ...TAB_BEACON_DEFAULTS, ...(input || {}) };
+  next.tabBeaconsEnabled = next.tabBeaconsEnabled !== false;
+  next.tabTitleStatusEnabled = next.tabTitleStatusEnabled !== false;
+  next.tabFaviconStatusEnabled = next.tabFaviconStatusEnabled !== false;
+  next.tabGroupingEnabled = next.tabGroupingEnabled !== false;
+  next.activeEmoji = String(next.activeEmoji || TAB_BEACON_DEFAULTS.activeEmoji).trim().slice(0, 12);
+  next.staleEmoji = String(next.staleEmoji || TAB_BEACON_DEFAULTS.staleEmoji).trim().slice(0, 12);
+  next.completedEmoji = String(next.completedEmoji || TAB_BEACON_DEFAULTS.completedEmoji).trim().slice(0, 12);
+  next.activeColor = normalizeHexColor(next.activeColor, TAB_BEACON_DEFAULTS.activeColor);
+  next.staleColor = normalizeHexColor(next.staleColor, TAB_BEACON_DEFAULTS.staleColor);
+  next.completedColor = normalizeHexColor(next.completedColor, TAB_BEACON_DEFAULTS.completedColor);
+  for (const key of ['activeGroupColor','staleGroupColor','completedGroupColor']) if (!NATIVE_GROUP_COLORS.has(next[key])) next[key] = TAB_BEACON_DEFAULTS[key];
+  return next;
+}
+
+async function pulseUxSettings(force = false) {
+  if (!force && pulseUxCache) return pulseUxCache;
   const stored = await chrome.storage.local.get(PULSE_UX_KEY).catch(() => ({}));
-  return { completionNotificationsEnabled:true, branchReviewBeforeSend:true, ...(stored?.[PULSE_UX_KEY] || {}) };
+  pulseUxCache = normalizePulseUx(stored?.[PULSE_UX_KEY] || {});
+  return pulseUxCache;
+}
+
+async function tabTags(force = false) {
+  if (!force && tabTagsCache) return tabTagsCache;
+  const stored = await chrome.storage.local.get(TAB_TAGS_KEY).catch(() => ({}));
+  tabTagsCache = stored?.[TAB_TAGS_KEY] && typeof stored[TAB_TAGS_KEY] === 'object' ? { ...stored[TAB_TAGS_KEY] } : {};
+  return tabTagsCache;
+}
+
+function tabTagKey(providerId, chatId, url) {
+  if (providerId && chatId) return `${providerId}:${chatId}`;
+  try {
+    const parsed = new URL(String(url || ''));
+    return `${providerId || parsed.hostname}:${parsed.origin}${parsed.pathname}`;
+  } catch (_) { return `${providerId || 'ai'}:${String(url || '').slice(0, 500)}`; }
+}
+
+async function tabTagForRow(row) {
+  const tags = await tabTags();
+  return String(tags[tabTagKey(row?.providerId, row?.chatId, row?.url)] || '').trim().slice(0, 24);
+}
+
+async function tabTagState(tabId) {
+  if (!tabId || !chrome.tabs?.get) return { ok:false, error:'No tab.' };
+  let tab;
+  try { tab = await chrome.tabs.get(tabId); } catch (_) { return { ok:false, error:'Tab unavailable.' }; }
+  const provider = providers.detectProvider(tab.url || '');
+  if (!provider) return { ok:false, error:'Not a supported AI tab.' };
+  const chatId = providers.chatIdFromUrl(tab.url || '', provider.id) || '';
+  const key = tabTagKey(provider.id, chatId, tab.url || '');
+  const tags = await tabTags();
+  return { ok:true, tabId, key, tag:String(tags[key] || ''), presets:[...TAG_MENU_PRESETS] };
+}
+
+async function setTabTag(tabId, tag) {
+  const state = await tabTagState(tabId);
+  if (!state.ok) return state;
+  const tags = await tabTags();
+  const value = String(tag || '').replace(/\s+/g, ' ').trim().slice(0, 24);
+  if (value) tags[state.key] = value; else delete tags[state.key];
+  tabTagsCache = tags;
+  await chrome.storage.local.set({ [TAB_TAGS_KEY]:tags });
+  const tab = await chrome.tabs.get(tabId).catch(() => null);
+  if (tab) {
+    const row = liveTabStateByTab.get(tabId) || await readLiveStateFromTab(tab, { allowInject:true }).catch(() => null);
+    if (row) await syncTabPresentation(row, { force:true }).catch(() => {});
+  }
+  return { ok:true, tabId, key:state.key, tag:value };
+}
+
+function bucketPresentation(bucket, cfg) {
+  if (bucket === 'active') return { emoji:cfg.activeEmoji, color:cfg.activeColor, groupColor:cfg.activeGroupColor, label:'Active' };
+  if (bucket === 'stale') return { emoji:cfg.staleEmoji, color:cfg.staleColor, groupColor:cfg.staleGroupColor, label:'Needs attention' };
+  return { emoji:cfg.completedEmoji, color:cfg.completedColor, groupColor:cfg.completedGroupColor, label:'Completed' };
+}
+
+async function ensureTabBeacon(tabId) {
+  if (!tabId || !chrome.tabs?.sendMessage) return false;
+  try {
+    const state = await chrome.tabs.sendMessage(tabId, { type:'PC_TAB_BEACON_STATE' });
+    if (state?.ok && state?.version === TAB_BEACON_VERSION) return true;
+  } catch (_) {}
+  try { await chrome.scripting?.executeScript?.({ target:{tabId}, files:[TAB_BEACON_FILE] }); }
+  catch (_) { return false; }
+  return true;
+}
+
+function managedGroupBucket(title = '') {
+  const value = String(title || '');
+  if (!value.startsWith(TAB_GROUP_PREFIX)) return '';
+  if (/active$/i.test(value)) return 'active';
+  if (/attention$/i.test(value)) return 'stale';
+  if (/completed$/i.test(value)) return 'completed';
+  return '';
+}
+
+async function managedGroupFor(windowId, bucket, cfg) {
+  if (!chrome.tabGroups?.query) return null;
+  const groups = await chrome.tabGroups.query({ windowId }).catch(() => []);
+  const found = groups.find((group) => managedGroupBucket(group.title) === bucket);
+  if (!found) return null;
+  const presentation = bucketPresentation(bucket, cfg);
+  await chrome.tabGroups.update(found.id, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor }).catch(() => {});
+  return found.id;
+}
+
+async function syncTabGroup(row, cfg) {
+  if (!chrome.tabs?.get || !chrome.tabs?.group || !chrome.tabGroups) return;
+  const tab = await chrome.tabs.get(Number(row.tabId)).catch(() => null);
+  if (!tab) return;
+  const currentGroupId = Number(tab.groupId ?? -1);
+  let currentManagedBucket = '';
+  if (currentGroupId >= 0) {
+    const group = await chrome.tabGroups.get(currentGroupId).catch(() => null);
+    currentManagedBucket = managedGroupBucket(group?.title || '');
+    if (!currentManagedBucket) return; // Never steal a user-created group.
+  }
+  if (!cfg.tabBeaconsEnabled || !cfg.tabGroupingEnabled) {
+    if (currentManagedBucket) await chrome.tabs.ungroup(tab.id).catch(() => {});
+    return;
+  }
+  const bucket = row.bucket || 'completed';
+  let target = await managedGroupFor(tab.windowId, bucket, cfg);
+  if (target === null) {
+    const groupId = await chrome.tabs.group({ tabIds:[tab.id] }).catch(() => null);
+    if (groupId === null || groupId === undefined) return;
+    const presentation = bucketPresentation(bucket, cfg);
+    await chrome.tabGroups.update(groupId, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor, collapsed:false }).catch(() => {});
+    target = groupId;
+  } else if (currentGroupId !== target) {
+    await chrome.tabs.group({ groupId:target, tabIds:[tab.id] }).catch(() => {});
+  }
+}
+
+async function syncTabPresentation(row, { force = false } = {}) {
+  const tabId = Number(row?.tabId || 0);
+  if (!tabId) return;
+  const cfg = await pulseUxSettings();
+  const tag = await tabTagForRow(row);
+  const display = bucketPresentation(row.bucket || 'completed', cfg);
+  const signature = JSON.stringify([row.bucket, tag, cfg.tabBeaconsEnabled, cfg.tabTitleStatusEnabled, cfg.tabFaviconStatusEnabled, cfg.tabGroupingEnabled, display.emoji, display.color, display.groupColor]);
+  if (!force && tabPresentationSignatures.get(tabId) === signature) return;
+  tabPresentationSignatures.set(tabId, signature);
+  if (await ensureTabBeacon(tabId)) {
+    await chrome.tabs.sendMessage(tabId, { type:'PC_TAB_BEACON_APPLY', presentation:{ enabled:cfg.tabBeaconsEnabled, titleEnabled:cfg.tabTitleStatusEnabled, faviconEnabled:cfg.tabFaviconStatusEnabled, emoji:display.emoji, color:display.color, tag } }).catch(() => {});
+  }
+  await syncTabGroup(row, cfg).catch(() => {});
+}
+
+async function refreshAllTabPresentations() {
+  pulseUxCache = null;
+  tabTagsCache = null;
+  tabPresentationSignatures.clear();
+  const snapshot = await liveChatPulse({ force:true }).catch(() => null);
+  for (const row of snapshot?.recentChats || []) await syncTabPresentation(row, { force:true }).catch(() => {});
+  await renderActionBadge(snapshot).catch(() => {});
+  return { ok:true, tabs:Number(snapshot?.openChatTabs || 0) };
+}
+
+async function renderActionBadge(snapshot = null) {
+  if (snapshot?.counts) liveToolbarSnapshot = { active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0), open:Number(snapshot.openChatTabs || 0) };
+  const cfg = await pulseUxSettings().catch(() => normalizePulseUx());
+  const active = Number(liveToolbarSnapshot.active || 0);
+  const stale = Number(liveToolbarSnapshot.stale || 0);
+  const attention = Math.max(stale, Number(attentionBadgeCount || 0));
+  let text = '', color = cfg.completedColor, title = 'Project Constellation';
+  if (cfg.tabBeaconsEnabled && active) { text = active > 99 ? '99+' : String(active); color = cfg.activeColor; title = `Project Constellation · ${active} active chat${active === 1 ? '' : 's'}`; }
+  else if (attention) { text = attention > 99 ? '99+' : String(attention); color = cfg.staleColor; title = `Project Constellation · ${attention} chat${attention === 1 ? '' : 's'} need attention`; }
+  else if (cfg.tabBeaconsEnabled && liveToolbarSnapshot.open) { text = '✓'; color = cfg.completedColor; title = `Project Constellation · ${liveToolbarSnapshot.completed} completed chat${liveToolbarSnapshot.completed === 1 ? '' : 's'}`; }
+  try { await chrome.action?.setBadgeText?.({ text }); } catch (_) {}
+  try { if (text) await chrome.action?.setBadgeBackgroundColor?.({ color }); } catch (_) {}
+  try { await chrome.action?.setTitle?.({ title }); } catch (_) {}
+}
+
+async function ensureTabTagMenus() {
+  if (!chrome.contextMenus?.create) return;
+  await chrome.contextMenus.removeAll().catch(() => {});
+  const patterns = [...new Set(providers.PROVIDERS.flatMap((row) => (row.hosts || []).map((host) => `https://${host}/*`)))];
+  chrome.contextMenus.create({ id:'pc-tab-tag-root', title:'Project Constellation · Tab tag', contexts:['page'], documentUrlPatterns:patterns });
+  for (const tag of TAG_MENU_PRESETS) chrome.contextMenus.create({ id:`pc-tab-tag:${tag}`, parentId:'pc-tab-tag-root', title:`${tag} Tag this chat`, contexts:['page'], documentUrlPatterns:patterns });
+  chrome.contextMenus.create({ id:'pc-tab-tag-clear', parentId:'pc-tab-tag-root', title:'Clear tab tag', contexts:['page'], documentUrlPatterns:patterns });
 }
 
 async function notifyChatCompletion(row) {
@@ -3681,12 +3902,12 @@ function rememberLiveTabState(row, { notify = true } = {}) {
   const previous = liveTabStateByTab.get(tabId);
   liveTabStateByTab.set(tabId, { ...row, observedAt:Number(row.observedAt || Date.now()) });
   liveChatPulseCacheAt = 0;
+  syncTabPresentation(row).catch(() => {});
   if (notify && previous?.bucket === 'active' && row.bucket === 'completed') notifyChatCompletion(row).catch(() => {});
 }
 
 function livePulseDomProbe() {
   try {
-    const scope = document.querySelector('main') || document.body || document.documentElement;
     const clean = (value, max = 220) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
     const usable = (node) => {
       if (!node || node.disabled || node.getAttribute?.('aria-disabled') === 'true') return false;
@@ -3695,18 +3916,8 @@ function livePulseDomProbe() {
       const rect = node.getBoundingClientRect?.();
       return !rect || rect.width > 0 || rect.height > 0;
     };
-    const stopSelectors = '[data-testid="stop-button"],[data-testid*="stop" i],button[aria-label*="stop generating" i],button[aria-label*="stop streaming" i],button[aria-label*="stop response" i],button[aria-label*="cancel generation" i],button[aria-label*="cancel response" i]';
-    const stopControl = [...document.querySelectorAll(stopSelectors)].find(usable) || null;
-    const streamingNode = scope?.querySelector?.('[data-is-streaming="true"],[data-testid*="streaming" i],[data-state="streaming" i],.result-streaming,[class*="result-streaming" i]') || null;
-    const busyNode = scope?.querySelector?.('[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]') || null;
-
-    const turns = [...document.querySelectorAll('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id]')];
-    const role = (node) => {
-      const direct = node?.getAttribute?.('data-message-author-role') || node?.getAttribute?.('data-author') || node?.getAttribute?.('data-role');
-      if (direct) return String(direct).toLowerCase();
-      const nested = node?.querySelector?.('[data-message-author-role],[data-author],[data-role]');
-      return String(nested?.getAttribute?.('data-message-author-role') || nested?.getAttribute?.('data-author') || nested?.getAttribute?.('data-role') || '').toLowerCase();
-    };
+    const turns = [...document.querySelectorAll('article[data-turn][data-testid^="conversation-turn-"],[data-testid^="conversation-turn-"]')];
+    const role = (node) => String(node?.getAttribute?.('data-turn') || node?.querySelector?.('[data-message-author-role]')?.getAttribute?.('data-message-author-role') || '').toLowerCase();
     const users = turns.filter((node) => role(node) === 'user');
     const assistants = turns.filter((node) => role(node) === 'assistant');
     const latestUser = users.at(-1) || null;
@@ -3714,64 +3925,21 @@ function livePulseDomProbe() {
       if (!node || !boundary || node === boundary || boundary.contains?.(node)) return false;
       try { return Boolean(boundary.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING); } catch (_) { return false; }
     };
-    const currentNode = (node) => !latestUser || (!latestUser.contains?.(node) && follows(node, latestUser));
     const currentAssistant = latestUser ? [...assistants].reverse().find((node) => follows(node, latestUser)) || null : assistants.at(-1) || null;
-    const finalControls = Boolean(currentAssistant && [...currentAssistant.querySelectorAll('button,[role="button"]')].some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120))));
-
-    const activeTool = /\b(searching|retrieving|fetching|reading|browsing|inspecting|checking|analyzing|analysing|reviewing|comparing|auditing|running|executing|building|compiling|packaging|verifying|testing|updating|editing|writing|creating|uploading|downloading|processing|calling|generating|patching|modifying|implementing|fixing|enhancing|persisting|porting|opening|clicking|typing|triggering)\b/i;
-    const finishedTool = /\b(searched|retrieved|fetched|read|browsed|inspected|checked|analyzed|analysed|reviewed|compared|audited|ran|executed|built|compiled|packaged|verified|tested|updated|edited|wrote|written|created|uploaded|downloaded|processed|called|used|generated|patched|modified|implemented|fixed|enhanced|persisted|ported|opened|clicked|typed|triggered|completed|finished)\b/i;
-    const toolEvent = /(?:called tool|calling tool|tool call|search(?:ed|ing)|retriev(?:ed|ing)|fet(?:ched|ching)|inspect(?:ed|ing)|read(?:ing)?|brows(?:ed|ing)|audit(?:ed|ing)|analyz(?:ed|ing)|analys(?:ed|ing)|review(?:ed|ing)|compar(?:ed|ing)|check(?:ed|ing)|run(?:ning)?|execut(?:ed|ing)|build(?:ing|t)|compil(?:ed|ing)|packag(?:ed|ing)|verif(?:ied|ying)|test(?:ed|ing)|updat(?:ed|ing)|edit(?:ed|ing)|writ(?:ten|ing)|creat(?:ed|ing)|upload(?:ed|ing)|download(?:ed|ing)|process(?:ed|ing)|implement(?:ed|ing)|fix(?:ed|ing))/i;
-    const toolSelectors = '[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-testid*="tool" i],[data-testid*="search" i],[data-testid*="progress" i],[aria-label*="tool" i],[role="status"],[aria-live="polite"],.loading-shimmer-tertiary,[class*="loading-shimmer" i],[class*="text-token-text-tertiary"],[class*="text-token-text-secondary"]';
-    const candidates = [...(scope?.querySelectorAll?.(toolSelectors) || [])].slice(-160);
-    for (const node of [...(scope?.querySelectorAll?.('div,span,p,button,[role="status"],[aria-live]') || [])].slice(-360)) {
-      if (node.childElementCount > 6 || !currentNode(node)) continue;
-      const text = clean(node.getAttribute?.('aria-label') || node.textContent, 200);
-      if (text && toolEvent.test(text)) candidates.push(node);
-    }
-    let toolLabel = '';
-    for (let i = candidates.length - 1; i >= 0; i -= 1) {
-      const node = candidates[i];
-      if (!currentNode(node)) continue;
-      const text = clean(node.getAttribute?.('aria-label') || node.textContent, 180);
-      if (activeTool.test(text) && !finishedTool.test(text)) { toolLabel = text; break; }
-    }
-    // A present-tense tool row in the current response frontier outranks Copy/feedback
-    // controls from an older assistant response. This is the exact failure mode that
-    // misclassified live ChatGPT tool work as complete in v0.14.1.
-    const progressiveTool = Boolean(toolLabel);
-    const assistantPending = Boolean(currentAssistant && !finalControls && clean(currentAssistant.textContent || '', 200000).length > 0);
-    const currentBusy = [...(scope?.querySelectorAll?.('[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]') || [])].some(currentNode);
-    const active = Boolean(stopControl || streamingNode || currentBusy || progressiveTool || assistantPending);
-
-    const statusText = clean(scope?.innerText || scope?.textContent || '', 24000).toLowerCase();
-    let status = active ? 'running' : 'idle';
-    if (!active && /continue generating|resume generation|resume response/.test(statusText)) status = 'paused';
-    else if (!active && /(message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message)/.test(statusText)) status = 'refresh-required';
-    else if (!active && /(too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429)/.test(statusText)) status = 'rate-limited';
-    else if (!active && /(something went wrong|there was an error|network error|failed to (generate|respond|send))/.test(statusText)) status = 'errored';
-    else if (!active && /(sign in|log in|login required|session expired)/.test(statusText)) status = 'auth-required';
-    else if (!active && /(conversation.{0,30}(not found|unavailable|deleted)|page not found)/.test(statusText)) status = 'unavailable';
-    else if (!active && /(allow chatgpt to use|approve|permission required)/.test(statusText)) status = 'blocked-approval';
-
+    const stopControl = [...document.querySelectorAll('button[data-testid="stop-button"]')].find(usable) || null;
+    const assistantBusy = Boolean(currentAssistant && (currentAssistant.getAttribute?.('aria-busy') === 'true' || [...currentAssistant.querySelectorAll?.('[aria-busy="true"],[data-is-streaming="true"],[data-state="streaming"]') || []].find(usable)));
+    const finalControl = Boolean(currentAssistant?.querySelector?.('button[data-testid="copy-turn-action-button"]'));
+    const active = Boolean(stopControl || (assistantBusy && !finalControl));
+    const status = active ? 'running' : 'idle';
     return {
-      ok: true,
-      source: 'scripting-dom-probe',
-      chat: {
-        id: '',
-        status,
-        rawStatus: status,
-        title: document.title || '',
-        url: location.href,
-        lastActivityAt: Date.now(),
-        hasConversation: turns.length > 0,
-        turnCount: turns.length,
-        healthState: status === 'running' ? 'working' : status === 'idle' ? 'healthy' : status
-      },
-      generation: { active, stopControl:Boolean(stopControl), streaming:Boolean(streamingNode), busyNode:Boolean(currentBusy), progressiveTool, assistantPending, toolLabel, finalControls },
-      healthActive: status === 'running',
-      healthStale: !['running','idle'].includes(status),
-      observedAt: Date.now(),
-      hidden: document.hidden
+      ok:true,
+      source:'scripting-dom-probe',
+      chat:{ id:'', status, rawStatus:status, title:document.title || '', url:location.href, lastActivityAt:Date.now(), hasConversation:turns.length > 0, turnCount:turns.length, healthState:active ? 'working' : 'healthy' },
+      generation:{ active, stopControl:Boolean(stopControl), assistantBusy, finalControls:finalControl, source:stopControl ? 'stop-control' : assistantBusy ? 'current-assistant-busy' : 'settled', transcriptProof:false },
+      healthActive:active,
+      healthStale:false,
+      observedAt:Date.now(),
+      hidden:document.hidden
     };
   } catch (error) {
     return { ok:false, source:'scripting-dom-probe', error:String(error?.message || error) };
@@ -3784,6 +3952,19 @@ async function readLiveSentinelState(tabId) {
     const state = await chrome.tabs.sendMessage(Number(tabId), { type:'PC_GET_LIVE_SENTINEL_STATE' });
     return state?.ok && state?.source === 'live-sentinel' ? state : null;
   } catch (_) { return null; }
+}
+
+async function ensureChatGPTPageProbe(tabId) {
+  const id = Number(tabId || 0);
+  if (!id || !chrome.scripting?.executeScript) return false;
+  try {
+    const existing = await chrome.scripting.executeScript({ target:{tabId:id}, world:'MAIN', func:() => globalThis.ProjectConstellationChatGPTPageProbe?.version || '' });
+    if (existing?.[0]?.result === CHATGPT_PAGE_PROBE_VERSION) return true;
+  } catch (_) {}
+  try {
+    await chrome.scripting.executeScript({ target:{tabId:id}, world:'MAIN', files:[CHATGPT_PAGE_PROBE_FILE] });
+    return true;
+  } catch (_) { return false; }
 }
 
 async function ensureLiveSentinel(tabId) {
@@ -3809,7 +3990,10 @@ async function installLiveSentinelIntoOpenTabs() {
   for (let offset = 0; offset < tabs.length; offset += 6) {
     const batch = tabs.slice(offset, offset + 6);
     const settled = await Promise.allSettled(batch.map(async (tab) => {
+      const provider = providers.detectProvider(tab.url || '');
+      if (provider?.id === 'chatgpt') await ensureChatGPTPageProbe(tab.id).catch(() => false);
       const state = await ensureLiveSentinel(tab.id);
+      await ensureTabBeacon(tab.id).catch(() => false);
       if (state?.ok) injected += 1;
     }));
     void settled;
@@ -3832,6 +4016,7 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   if (!tabId || !tab?.url) return null;
   const provider = providers.detectProvider(tab.url);
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return null;
+  if (allowInject && provider.id === 'chatgpt') await ensureChatGPTPageProbe(tabId).catch(() => false);
   // The dedicated sentinel is the canonical live-state source. Unlike the full content
   // script it can be hot-injected into tabs that were already open when the extension
   // upgraded, so active work is visible immediately without a manual page refresh.
@@ -3898,6 +4083,7 @@ async function liveChatPulse({ force = false } = {}) {
       partial:rows.length !== tabs.length
     };
     liveChatPulseCache = snapshot; liveChatPulseCacheAt = Date.now();
+    await renderActionBadge(snapshot).catch(() => {});
     return snapshot;
   })().finally(() => { liveChatPulseRequest = null; });
   return liveChatPulseRequest;
@@ -3961,8 +4147,23 @@ function liveNetworkRow(tabId) {
   return row;
 }
 
+function chatGptTransportInfo(url = '', method = 'GET') {
+  try {
+    const parsed = new URL(String(url || ''));
+    if (!['chatgpt.com','chat.openai.com'].includes(parsed.hostname)) return { transport:'', authoritative:false };
+    const path = parsed.pathname.toLowerCase();
+    const verb = String(method || 'GET').toUpperCase();
+    if (/\/backend-api\/tasks\/[^/]+\/stream$/.test(path)) return { transport:'deep-research-sse', authoritative:true };
+    if (/\/backend-api\/codex\/(?:responses|conversation|response)/.test(path)) return { transport:'codex-response-stream', authoritative:true };
+    if (verb === 'POST' && /\/backend-api\/(?:conversation|responses?)(?:$|\/)/.test(path)) return { transport:'chat-response-stream', authoritative:true };
+    return { transport:'', authoritative:false };
+  } catch (_) { return { transport:'', authoritative:false }; }
+}
+
 function liveNetworkCategory(url = '') {
   const value = String(url || '').toLowerCase();
+  if (/\/backend-api\/tasks\/[^/]+\/stream/.test(value)) return 'deep research stream';
+  if (/\/backend-api\/codex\/(?:responses|conversation|response)/.test(value)) return 'response stream';
   if (/upload|attachment|file/.test(value)) return /download/.test(value) ? 'file download' : 'file transfer';
   if (/search|browse/.test(value)) return 'web search';
   if (/connector|tool|action|plugin/.test(value)) return 'tool / connector';
@@ -3973,7 +4174,7 @@ function liveNetworkCategory(url = '') {
 }
 
 function liveNetworkActivityBearing(category = '', method = 'GET') {
-  if (['response stream','tool / connector','web search','file transfer','file download'].includes(String(category || ''))) return true;
+  if (['response stream','deep research stream','tool / connector','web search','file transfer','file download'].includes(String(category || ''))) return true;
   return String(category || '') === 'provider request' && String(method || 'GET').toUpperCase() !== 'GET';
 }
 
@@ -3988,7 +4189,8 @@ function noteNetworkStart(details) {
   const row = liveNetworkRow(details.tabId); const now = Date.now();
   const id = String(details.requestId || crypto.randomUUID());
   const category = liveNetworkCategory(details.url); const method = String(details.method || 'GET');
-  const item = { id, url: String(details.url || '').slice(0, 1200), category, activityBearing:liveNetworkActivityBearing(category, method), method, type: String(details.type || ''), startedAt: now };
+  const transport = chatGptTransportInfo(details.url, method);
+  const item = { id, url: String(details.url || '').slice(0, 1200), category, activityBearing:liveNetworkActivityBearing(category, method), method, type: String(details.type || ''), transport:transport.transport, authoritativeTransport:Boolean(transport.authoritative), sse:false, startedAt: now };
   row.inflight.set(id, item);
   while (row.inflight.size > 64) row.inflight.delete(row.inflight.keys().next().value);
   noteNetworkEvent(row, { id, phase:'started', category:item.category, activityBearing:item.activityBearing, method:item.method, startedAt:now, at:now });
@@ -4000,7 +4202,9 @@ function noteNetworkResponse(details) {
   const row = liveNetworkRow(details.tabId); const now = Date.now();
   const id = String(details.requestId || ''); const item = row.inflight.get(id);
   const category = item?.category || liveNetworkCategory(details.url); const method = item?.method || details.method; const activityBearing = item?.activityBearing ?? liveNetworkActivityBearing(category, method);
-  noteNetworkEvent(row, { id, phase:'response', category, activityBearing, method, status:details.statusCode, startedAt:item?.startedAt, at:now, durationMs:item?.startedAt ? now - item.startedAt : 0 });
+  const contentType = (details.responseHeaders || []).find((header) => String(header.name || '').toLowerCase() === 'content-type')?.value || '';
+  if (item && /text\/event-stream/i.test(String(contentType))) item.sse = true;
+  noteNetworkEvent(row, { id, phase:item?.sse ? 'sse-open' : 'response', category, activityBearing, method, status:details.statusCode, startedAt:item?.startedAt, at:now, durationMs:item?.startedAt ? now - item.startedAt : 0 });
   if (activityBearing) row.lastResponseAt = now;
   row.lastObservedAt = now; row.lastStatusAt = now; row.lastStatusCode = Number(details.statusCode || 0); row.updatedAt = now;
 }
@@ -4011,7 +4215,14 @@ function noteNetworkDone(details, failed = false) {
   row.inflight.delete(id);
   const category = item?.category || liveNetworkCategory(details.url); const method = item?.method || details.method; const activityBearing = item?.activityBearing ?? liveNetworkActivityBearing(category, method);
   noteNetworkEvent(row, { id, phase:failed ? 'error' : 'completed', category, activityBearing, method, status:details.statusCode, startedAt:item?.startedAt, at:now, durationMs:item?.startedAt ? now - item.startedAt : 0 });
-  if (activityBearing) { if (failed) row.lastErrorAt = now; else row.lastCompleteAt = now; liveChatPulseCacheAt = 0; scheduleLiveTabReconcile(details.tabId, 850); }
+  if (activityBearing) {
+    if (failed) row.lastErrorAt = now; else row.lastCompleteAt = now;
+    liveChatPulseCacheAt = 0;
+    if (item?.authoritativeTransport && Number(details.tabId) >= 0) {
+      chrome.tabs?.sendMessage?.(Number(details.tabId), { type:'PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT', reason:failed ? 'transport-error' : 'transport-completed', transport:item.transport || '' }).catch?.(() => {});
+    }
+    scheduleLiveTabReconcile(details.tabId, 850);
+  }
   row.lastObservedAt = now;
   if (Number(details.statusCode || 0)) { row.lastStatusCode = Number(details.statusCode || 0); row.lastStatusAt = now; }
   row.updatedAt = now;
@@ -4021,11 +4232,24 @@ if (chrome.webRequest?.onBeforeRequest) {
   const liveUrls = [...new Set(providers.PROVIDERS.flatMap((row) => (row.hosts || []).map((host) => `https://${host}/*`)))];
   const filter = { urls: liveUrls, types: ['xmlhttprequest','other'] };
   chrome.webRequest.onBeforeRequest.addListener(noteNetworkStart, filter);
-  chrome.webRequest.onResponseStarted.addListener(noteNetworkResponse, filter);
+  chrome.webRequest.onResponseStarted.addListener(noteNetworkResponse, filter, ['responseHeaders']);
   chrome.webRequest.onCompleted.addListener((details) => noteNetworkDone(details, false), filter);
   chrome.webRequest.onErrorOccurred.addListener((details) => noteNetworkDone(details, true), filter);
 }
 if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); liveChatPulseCacheAt = 0; });
+
+if (chrome.contextMenus?.onClicked) chrome.contextMenus.onClicked.addListener((info, tab) => {
+  const id = String(info?.menuItemId || '');
+  if (!id.startsWith('pc-tab-tag') || !tab?.id) return;
+  const tag = id === 'pc-tab-tag-clear' ? '' : id.startsWith('pc-tab-tag:') ? id.slice('pc-tab-tag:'.length) : null;
+  if (tag !== null) setTabTag(Number(tab.id), tag).catch(() => {});
+});
+
+chrome.storage?.onChanged?.addListener?.((changes, area) => {
+  if (area !== 'local') return;
+  if (changes?.[PULSE_UX_KEY]) { pulseUxCache = normalizePulseUx(changes[PULSE_UX_KEY].newValue || {}); tabPresentationSignatures.clear(); refreshAllTabPresentations().catch(() => {}); }
+  if (changes?.[TAB_TAGS_KEY]) { tabTagsCache = changes[TAB_TAGS_KEY].newValue && typeof changes[TAB_TAGS_KEY].newValue === 'object' ? { ...changes[TAB_TAGS_KEY].newValue } : {}; tabPresentationSignatures.clear(); refreshAllTabPresentations().catch(() => {}); }
+});
 
 if (chrome.notifications?.onClicked) chrome.notifications.onClicked.addListener(async (notificationId) => {
   const match = String(notificationId || '').match(/^pc-chat-complete:(\d+):/);

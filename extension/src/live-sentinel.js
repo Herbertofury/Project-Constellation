@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.3';
+  const VERSION = '0.14.4';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -37,6 +37,12 @@
   const IDLE_SETTLE_MS = 2200;
   const ASSISTANT_GROWTH_GRACE_MS = 1400;
   const NEW_USER_GRACE_MS = 9000;
+  const CHATGPT_TRANSCRIPT_FRESH_MS = 6500;
+  const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
+  const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
+  const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
+  const CHATGPT_PAGE_PROBE_REQUEST_SOURCE = 'project-constellation';
+
 
   let pageObserver = null;
   let scanTimer = 0;
@@ -63,6 +69,14 @@
   let lastPushAt = 0;
   let scanCount = 0;
   let transitionCount = 0;
+  let transcriptState = null;
+  let transcriptPending = false;
+  let transcriptRequestedAt = 0;
+  let transcriptBackoffUntil = 0;
+  let transcriptNonce = '';
+  let transcriptTimer = 0;
+  let pageMessageListener = null;
+
 
   const clean = (value, max = 240) => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
   const now = () => Date.now();
@@ -113,6 +127,8 @@
   }
 
   function roleForTurn(node) {
+    const turnRole = node?.getAttribute?.('data-turn');
+    if (turnRole) return String(turnRole).toLowerCase();
     const direct = node?.getAttribute?.('data-message-author-role') || node?.getAttribute?.('data-author') || node?.getAttribute?.('data-role');
     if (direct) return String(direct).toLowerCase();
     const nested = node?.querySelector?.('[data-message-author-role],[data-author],[data-role]');
@@ -125,7 +141,7 @@
   }
 
   function turnNodes() {
-    const chatgpt = [...document.querySelectorAll('[data-testid^="conversation-turn-"]')];
+    const chatgpt = [...document.querySelectorAll('article[data-turn][data-testid^="conversation-turn-"],[data-testid^="conversation-turn-"]')];
     if (chatgpt.length) return chatgpt;
     return [...document.querySelectorAll('[data-message-author-role][data-message-id],[data-author][data-message-id],[data-role="user"],[data-role="assistant"],[role="article"][aria-label]')];
   }
@@ -169,6 +185,84 @@
     if (element.matches?.(STRONG_TOOL_SELECTOR) || element.closest?.(STRONG_TOOL_SELECTOR)) return false;
     if (element.matches?.(WEAK_PROGRESS_SELECTOR) && !element.closest?.('p,li,pre,code,blockquote,[class*="markdown" i],[class*="prose" i]')) return false;
     return Boolean(element.closest?.('p,li,pre,code,blockquote,h1,h2,h3,h4,h5,h6,[class*="markdown" i],[class*="prose" i]')) || true;
+  }
+
+  function chatgptConversationId() {
+    if (providerInfo().id !== 'chatgpt') return '';
+    const match = String(location.pathname || '').match(/(?:^|\/)c\/([0-9a-f-]{16,})(?:\/|$)/i);
+    return match?.[1] || '';
+  }
+
+  function turnMessageId(node) {
+    if (!node) return '';
+    return clean(
+      node.getAttribute?.('data-turn-id') ||
+      node.getAttribute?.('data-message-id') ||
+      node.querySelector?.('[data-message-id]')?.getAttribute?.('data-message-id') || '',
+      220
+    );
+  }
+
+  function transcriptAligned(frontier, state = transcriptState) {
+    if (!state?.ok || state.proof !== 'transcript') return false;
+    const expectedConversation = chatgptConversationId();
+    if (expectedConversation && state.conversationId && state.conversationId !== expectedConversation) return false;
+    const domUserId = turnMessageId(frontier?.latestUser);
+    const transcriptUserId = clean(state.latestUserMessageId || '', 220);
+    if (domUserId && transcriptUserId && domUserId !== transcriptUserId) return false;
+    return true;
+  }
+
+  function freshTranscript(frontier, at = now()) {
+    if (!transcriptAligned(frontier)) return null;
+    if (at - Number(transcriptState?.observedAt || 0) > CHATGPT_TRANSCRIPT_FRESH_MS) return null;
+    return transcriptState;
+  }
+
+  function scheduleTranscript(delay) {
+    if (providerInfo().id !== 'chatgpt' || !chatgptConversationId()) return;
+    if (transcriptTimer) clearTimeout(transcriptTimer);
+    transcriptTimer = setTimeout(() => {
+      transcriptTimer = 0;
+      requestTranscript(false);
+    }, Math.max(250, Number(delay || 0)));
+  }
+
+  function requestTranscript(force = false) {
+    if (providerInfo().id !== 'chatgpt') return false;
+    const conversationId = chatgptConversationId();
+    if (!conversationId || transcriptPending || now() < transcriptBackoffUntil) return false;
+    const at = now();
+    const minGap = stableStatus === 'running' ? CHATGPT_TRANSCRIPT_RUNNING_POLL_MS : CHATGPT_TRANSCRIPT_IDLE_POLL_MS;
+    if (!force && at - transcriptRequestedAt < minGap) {
+      scheduleTranscript(minGap - (at - transcriptRequestedAt));
+      return false;
+    }
+    transcriptPending = true;
+    transcriptRequestedAt = at;
+    transcriptNonce = `${at.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    window.postMessage({
+      source:CHATGPT_PAGE_PROBE_REQUEST_SOURCE,
+      kind:'chatgpt-transcript-request',
+      version:VERSION,
+      nonce:transcriptNonce,
+      conversationId,
+      force:Boolean(force)
+    }, location.origin);
+    setTimeout(() => {
+      if (!transcriptPending || at !== transcriptRequestedAt) return;
+      transcriptPending = false;
+      transcriptBackoffUntil = now() + 1800;
+      scheduleTranscript(stableStatus === 'running' ? 1800 : 8000);
+    }, 4500);
+    return true;
+  }
+
+  function currentAssistantBusy(frontier) {
+    const assistant = frontier?.assistantAfterUser;
+    if (!assistant || !isUsable(assistant)) return false;
+    if (assistant.getAttribute?.('aria-busy') === 'true') return true;
+    return Boolean([...assistant.querySelectorAll?.('[aria-busy="true"],[data-is-streaming="true"],[data-state="streaming"]') || []].find(isUsable));
   }
 
   function toolPhase(label = '') {
@@ -268,8 +362,9 @@
     const assistant = frontier.assistantAfterUser || (!frontier.latestUser ? frontier.latestAssistant : null);
     if (!assistant) return { hasAssistant:false, finalControls:false, textLength:0, fingerprint:'' };
     const controls = [...assistant.querySelectorAll?.('button,[role="button"]') || []];
-    const finalControls = controls.some((node) => /^(copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120)))
-      || Boolean(assistant.querySelector?.('[data-testid*="copy" i],[data-testid*="feedback" i],[data-testid*="regenerate" i]'));
+    const finalControls = Boolean(assistant.querySelector?.('button[data-testid="copy-turn-action-button"]'))
+      || controls.some((node) => /^(copy response|copy|read aloud|good response|bad response|share|regenerate|retry)/i.test(clean(node.getAttribute?.('aria-label') || node.textContent, 120)))
+      || Boolean(assistant.querySelector?.('[data-testid*="feedback" i],[data-testid*="regenerate" i]'));
     const text = clean(assistant.textContent || '', 200000);
     const fingerprint = `${text.length}|${text.slice(-180)}|${finalControls ? 1 : 0}`;
     return { hasAssistant:true, finalControls, textLength:text.length, fingerprint };
@@ -369,31 +464,37 @@
 
     const stopControl = [...document.querySelectorAll(STOP_SELECTOR)].find(isUsable) || null;
     const streamingNode = [...(root?.querySelectorAll?.(STREAMING_SELECTOR) || [])].reverse().find((node) => isCurrentFrontierNode(node, frontier) && isUsable(node)) || null;
-    // Generic aria-busy/data-loading surfaces are deliberately NOT independent active
-    // evidence. ChatGPT can leave busy attributes on large response/layout wrappers
-    // after completion. A busy bit only counts when it belongs to a row already
-    // proven to be a semantic tool/progress surface (currentBusy above).
     const busyNode = null;
     const progressiveTool = Boolean(currentActive);
     const toolBusy = Boolean(currentBusy);
-    // A final-control set on the CURRENT assistant response is a strong completion
-    // boundary. It only suppresses leftover busy bits, never a fresh present-tense
-    // progress label or a real stop/streaming control. This fixes sticky aria-busy
-    // wrappers without reintroducing the v0.14.1 bug where an OLD Copy button won.
+    const assistantBusy = currentAssistantBusy(frontier);
     const toolBusyEvidence = toolBusy && !(completion.finalControls && !progressiveTool);
+    const assistantBusyEvidence = assistantBusy && !(completion.finalControls && !progressiveTool);
     const assistantGrowing = Boolean(frontier.assistantAfterUser && !completion.finalControls && lastAssistantGrowthAt && at - lastAssistantGrowthAt < ASSISTANT_GROWTH_GRACE_MS);
     const awaitingResponse = Boolean(initialized && frontier.latestUser && !frontier.assistantAfterUser && lastUserStartedAt && at - lastUserStartedAt < NEW_USER_GRACE_MS);
-    const rawActive = Boolean(stopControl || streamingNode || progressiveTool || toolBusyEvidence || assistantGrowing || awaitingResponse);
 
+    // ChatGPT-specific deep proof: the conversation transcript is the same state tree the
+    // UI renders. Its explicit finished_successfully + end_turn signal outranks stale
+    // stop/aria-busy controls, while an unfinished current branch outranks a temporarily
+    // settled DOM. This is deliberately metadata-only; answer text never leaves MAIN world.
+    const transcript = freshTranscript(frontier, at);
+    const transcriptFinal = Boolean(transcript?.final && transcript?.transcriptStatus === 'finished');
+    const transcriptRunning = Boolean(transcript?.running && transcript?.transcriptStatus === 'running');
+    const domActive = Boolean(stopControl || streamingNode || assistantBusyEvidence || progressiveTool || toolBusyEvidence || assistantGrowing || awaitingResponse);
+    const rawActive = transcriptFinal ? false : transcriptRunning ? true : domActive;
+
+    if (providerInfo().id === 'chatgpt') requestTranscript(rawActive && !transcript);
     const inactiveStatus = nonRunningStatus(statusSurfaceText());
     const resolved = resolveStatus(rawActive, inactiveStatus, at);
     const status = resolved.status;
     const stale = status !== 'running' && status !== 'idle';
     const provider = providerInfo();
     const toolLabel = clean((currentActive || currentBusy || informative)?.label || '', 160);
-    const source = stopControl ? 'stop-control'
+    const source = transcriptFinal ? 'chatgpt-transcript-finished'
+      : transcriptRunning ? 'chatgpt-transcript-running'
+      : stopControl ? 'stop-control'
       : streamingNode ? 'streaming-marker'
-      : busyNode ? 'busy-marker'
+      : assistantBusyEvidence ? 'current-assistant-busy'
       : progressiveTool ? 'current-progress-label'
       : toolBusy ? 'current-tool-busy'
       : assistantGrowing ? 'assistant-growth'
@@ -412,9 +513,18 @@
       progressiveTool,
       assistantPending:assistantGrowing || awaitingResponse,
       assistantGrowing,
+      assistantBusy:assistantBusyEvidence,
       awaitingResponse,
       toolLabel,
-      toolPhase:(currentActive || currentBusy || informative)?.phase || '',
+      toolPhase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || '',
+      phase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
+      modelSlug:clean(transcript?.modelSlug || '', 100),
+      progressPercent:Number.isFinite(Number(transcript?.progressPercent)) ? Number(transcript.progressPercent) : null,
+      transcriptStatus:transcript?.transcriptStatus || 'unavailable',
+      transcriptProof:Boolean(transcript),
+      transcriptObservedAt:Number(transcript?.observedAt || 0),
+      asyncTaskId:clean(transcript?.asyncTaskId || '', 160),
+      toolCount:Number(transcript?.toolCount || 0),
       finalControls:Boolean(completion.finalControls),
       frontierTool:Boolean(currentActive || currentBusy || informative),
       source
@@ -426,7 +536,7 @@
       version:VERSION,
       provider,
       chat:{
-        id:'',
+        id:chatgptConversationId(),
         status,
         rawStatus:status,
         title:document.title || provider.name,
@@ -443,7 +553,7 @@
         busy:toolBusy,
         active:progressiveTool,
         label:toolLabel,
-        phase:(currentActive || currentBusy || informative)?.phase || '',
+        phase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || '',
         lastProgressAt:Number(lastProgressAt || 0),
         entryCount:rows.length
       },
@@ -451,7 +561,7 @@
       healthStale:stale,
       observedAt:at,
       hidden:document.hidden,
-      diagnostics:{ scanCount, transitionCount, stableSince, idleCandidateSince, initialized }
+      diagnostics:{ scanCount, transitionCount, stableSince, idleCandidateSince, initialized, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil, transcriptProof:Boolean(transcript), transcriptStatus:transcript?.transcriptStatus || 'unavailable' }
     };
 
     initialized = true;
@@ -460,6 +570,7 @@
     patchLegacyHud(state);
     maybePush(state, signature);
     schedulePulse(status === 'running' ? (document.hidden ? 1500 : 900) : (document.hidden ? 10000 : 5000));
+    if (provider.id === 'chatgpt') scheduleTranscript(status === 'running' ? CHATGPT_TRANSCRIPT_RUNNING_POLL_MS : CHATGPT_TRANSCRIPT_IDLE_POLL_MS);
     return state;
   }
 
@@ -508,16 +619,16 @@
         const liveState = toolActive ? 'tool-running' : 'working';
         if (host.dataset.state !== liveState) host.dataset.state = liveState;
         setIfChanged(title, toolActive && label ? `Tool working · ${label}` : 'Chat is still working');
-        setIfChanged(mini, `${state.generation.source.replaceAll('-', ' ')} · live sentinel`);
+        setIfChanged(mini, `${state.generation.transcriptProof ? 'Transcript proof' : state.generation.source.replaceAll('-', ' ')}${state.generation.modelSlug ? ` · ${state.generation.modelSlug}` : ''}`);
         setIfChanged(nowTitle, label || 'Response in progress');
-        setIfChanged(nowDetail, toolActive ? 'Current response has structured live tool progress.' : 'Current response has authoritative live generation evidence.');
+        setIfChanged(nowDetail, state.generation.progressPercent !== null ? `${state.generation.phase.replaceAll('-', ' ')} · ${state.generation.progressPercent}% reported by ChatGPT` : `${state.generation.phase.replaceAll('-', ' ')} · ${state.generation.transcriptProof ? 'conversation transcript' : 'live page evidence'}`);
         setIfChanged(activity, toolActive ? 'tool' : 'model');
         setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
       } else if (status === 'idle') {
         if (host.dataset.level !== 'healthy') host.dataset.level = 'healthy';
         if (host.dataset.state !== 'healthy') host.dataset.state = 'healthy';
         setIfChanged(title, 'Chat complete');
-        setIfChanged(mini, 'Current response settled · live sentinel');
+        setIfChanged(mini, state.generation.transcriptProof ? `Transcript finished${state.generation.modelSlug ? ` · ${state.generation.modelSlug}` : ''}` : 'Current response settled · live sentinel');
         setIfChanged(nowTitle, 'Response complete');
         setIfChanged(nowDetail, 'No current-turn generation or structured tool activity is present.');
         setIfChanged(activity, 'idle');
@@ -590,7 +701,10 @@
   function startObserver() {
     pageObserver?.disconnect();
     pageObserver = new MutationObserver((mutations) => {
-      if (mutations.some(mutationRelevant)) scheduleScan(70);
+      if (mutations.some(mutationRelevant)) {
+        scheduleScan(70);
+        if (providerInfo().id === 'chatgpt') requestTranscript(false);
+      }
     });
     pageObserver.observe(document.documentElement, {
       subtree:true,
@@ -601,7 +715,34 @@
     });
   }
 
+  pageMessageListener = (event) => {
+    if (event.source !== window) return;
+    const data = event.data;
+    if (!data || data.source !== CHATGPT_PAGE_PROBE_RESPONSE_SOURCE) return;
+    if (data.kind === 'chatgpt-page-probe-ready') {
+      if (providerInfo().id === 'chatgpt') requestTranscript(true);
+      return;
+    }
+    if (data.kind !== 'chatgpt-transcript-state' || clean(data.nonce || '', 120) !== transcriptNonce) return;
+    transcriptPending = false;
+    const state = data.state && typeof data.state === 'object' ? data.state : null;
+    if (state?.ok) {
+      transcriptState = state;
+      transcriptBackoffUntil = 0;
+      if (state.running) { lastActivityAt = now(); lastProgressAt = now(); }
+    } else {
+      transcriptBackoffUntil = now() + 4500;
+    }
+    scheduleScan(35);
+  };
+  window.addEventListener('message', pageMessageListener, false);
+
   messageListener = (message, _sender, sendResponse) => {
+    if (message?.type === 'PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT') {
+      const requested = providerInfo().id === 'chatgpt' ? requestTranscript(true) : false;
+      sendResponse({ ok:true, requested, state:scan(true) });
+      return false;
+    }
     if (message?.type !== 'PC_GET_LIVE_SENTINEL_STATE') return false;
     sendResponse(scan(true));
     return false;
@@ -613,7 +754,7 @@
     getState:(force = false) => scan(Boolean(force)),
     peek:() => lastState || scan(true),
     rescan:() => scan(true),
-    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt }),
+    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
     dispose:() => {
       pageObserver?.disconnect(); pageObserver = null;
       hudHostObserver?.disconnect(); hudHostObserver = null;
@@ -621,10 +762,13 @@
       guardedHud = null;
       if (scanTimer) clearTimeout(scanTimer); scanTimer = 0;
       if (pulseTimer) clearTimeout(pulseTimer); pulseTimer = 0;
+      if (transcriptTimer) clearTimeout(transcriptTimer); transcriptTimer = 0;
+      try { window.removeEventListener('message', pageMessageListener, false); } catch (_) {}
       try { chrome?.runtime?.onMessage?.removeListener?.(messageListener); } catch (_) {}
     }
   };
   globalThis.ProjectConstellationLiveSentinel = api;
   startObserver();
   scan(true);
+  if (providerInfo().id === 'chatgpt') requestTranscript(true);
 })();
