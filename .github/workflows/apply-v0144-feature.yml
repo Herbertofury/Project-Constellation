@@ -21,6 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Each transport chunk is verified before reconstruction; the final patch is verified again before application.
           echo 'f47da45a4ac03dd3549179b438c11f55095c9efb278ce29377dc4a3ae2c256c2  .github/hotfix/v0144.patch.xz.b64.00' | sha256sum -c -
           echo '6300ac9b8caada486e57c3fb1cbda768d1a0bddc62efb4beeee0d3542070352c  .github/hotfix/v0144.patch.xz.b64.01' | sha256sum -c -
           echo 'a6793bed27e1242b400b83c30f25ba43088931daf5ffe31d367a3833b997e36a  .github/hotfix/v0144.patch.xz.b64.02' | sha256sum -c -
