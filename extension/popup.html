@@ -15,7 +15,11 @@
       <button class="chat-card stale" id="staleSummary" data-chat-bucket="stale"><span>Stale</span><strong id="staleCount">0</strong><small id="staleLatest">No stale chats</small></button>
       <button class="chat-card complete" id="completedSummary" data-chat-bucket="completed"><span>Completed</span><strong id="completedCount">0</strong><small id="completedLatest">No completed chats</small></button>
     </div>
-    <p class="chat-pulse-hint" id="chatPulseHint">Click a status card to open its latest chat.</p>
+    <p class="chat-pulse-hint" id="chatPulseHint">Click a status card to browse every matching live chat.</p>
+    <div class="chat-list-panel" id="chatListPanel" hidden>
+      <div class="chat-list-head"><div><span id="chatListEyebrow">ACTIVE CHATS</span><strong id="chatListTitle">Active chats</strong></div><button id="closeChatList" type="button" aria-label="Close chat list">×</button></div>
+      <div class="chat-list" id="chatList" role="list"></div>
+    </div>
   </section>
   <section class="tab-beacons" id="tabBeaconsPanel" aria-label="Tab beacon settings">
     <div class="section-head"><span>TAB BEACONS</span><small>title · favicon · groups</small></div>

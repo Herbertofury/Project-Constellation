@@ -2,6 +2,28 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.5 - Pulse Navigator
+
+### Fixed
+
+- Reworked live-tab aggregation so every supported open AI chat remains represented in Chat Pulse even if one tab temporarily fails to answer the Sentinel probe. A bounded 1.6-second per-tab deadline prevents one broken tab from zeroing or hanging the entire 10+ tab snapshot; recently known state is retained briefly and genuinely unresponsive tabs become explicit Needs Attention/reconnecting rows instead of disappearing.
+- Removed the expensive ChatGPT MAIN-world probe version check from every Pulse refresh. The background now reads the installed Live Sentinel first and only bootstraps the deep ChatGPT probe when the Sentinel is missing or stale.
+- Added cache invalidation for tab create/update/replace/remove and tab-group changes so counts react to real browser topology changes instead of waiting on a long stale cache.
+- Serialized Constellation-owned group mutations to prevent duplicate Active/Attention/Completed groups when many chats change state together.
+- User-created tab groups are preserved exactly. Chats inside them still count, display their group in the navigator, and remain clickable. Tabs already in Constellation-owned status groups may still move between those groups so automatic sorting continues to work.
+
+### Added
+
+- Active / Stale / Completed cards in the extension popup now open an in-place, polished list of every chat in that state instead of jumping only to the newest chat. Each row shows provider, live phase/status, model when available, group context, and jumps directly to the existing tab.
+- The collapsed Execution Pulse chips are now individually clickable and open the same live-chat navigator directly from the pinned HUD.
+- Added a single `PC_FOCUS_LIVE_CHAT` path shared by popup and in-page Pulse navigation, with existing-tab focus first and URL reopen only as a fallback.
+- Live Pulse rows now expose current tab-group metadata and whether the group is Constellation-managed or user-owned.
+
+### Performance / resilience
+
+- Collapsed Pulse count refreshes use a 4-second local cache and a 7-second visible-only refresh cadence; hidden tabs do not poll. The canonical background snapshot itself remains short-lived and event-invalidated.
+- Pulse snapshots are always structurally complete: `openChatTabs` reflects every detected supported tab, `responsiveTabs` reports how many returned fresh evidence, and `partial` identifies reconnecting tabs without erasing them from the counts.
+
 ## 0.14.4 - Deep State + Tab Beacons
 
 ### Added

@@ -56,7 +56,7 @@
 
   async function refreshCounts(force = false) {
     const now = Date.now();
-    if (!force && countSnapshot && now - countFetchedAt < 15000) return countSnapshot;
+    if (!force && countSnapshot && now - countFetchedAt < 4000) return countSnapshot;
     if (countRequest) return countRequest;
     countRequest = chrome.runtime.sendMessage({ type: 'PC_LIVE_CHAT_PULSE', force }).then((response) => {
       if (response?.ok) {
@@ -152,6 +152,60 @@
     if (node && node.textContent !== value) node.textContent = value;
   }
 
+  function rowsForBucket(snapshot = {}, bucket = 'active') {
+    if (snapshot?.groups && Array.isArray(snapshot.groups[bucket])) return snapshot.groups[bucket];
+    return (Array.isArray(snapshot?.recentChats) ? snapshot.recentChats : []).filter((row) => statusBucket(row?.status) === bucket);
+  }
+
+  function pinRowMeta(row = {}, bucket = 'active') {
+    const generation = row.generation || {};
+    const bits = [safeText(row.providerName || row.providerId || 'AI', 22)];
+    if (bucket === 'active') bits.push(safeText(generation.phase || generation.toolPhase || 'working', 22).replaceAll('-', ' '));
+    else if (bucket === 'stale') bits.push(row.reconnecting ? 'reconnecting' : safeText(row.status || 'attention', 22).replaceAll('-', ' '));
+    else bits.push('complete');
+    if (generation.modelSlug) bits.push(safeText(generation.modelSlug, 22));
+    if (row.tabGroup?.title) bits.push(row.tabGroup.managed ? 'PC sorted' : `Group: ${safeText(row.tabGroup.title, 28)}`);
+    return bits.filter(Boolean).join(' · ');
+  }
+
+  function renderPinList(list, snapshot, bucket) {
+    if (!list || list.dataset.visible !== '1') return;
+    const rows = rowsForBucket(snapshot || {}, bucket);
+    const heading = list.querySelector('.pcx-chat-list-title');
+    const body = list.querySelector('.pcx-chat-list-body');
+    if (heading) heading.textContent = `${bucket === 'stale' ? 'Needs attention' : bucket === 'completed' ? 'Completed chats' : 'Active chats'} · ${rows.length}`;
+    if (!body) return;
+    body.replaceChildren();
+    if (!rows.length) {
+      const empty = document.createElement('div'); empty.className = 'pcx-chat-list-empty'; empty.textContent = 'No chats in this state right now.'; body.appendChild(empty); return;
+    }
+    for (const row of rows.slice(0, 50)) {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'pcx-chat-list-row';
+      const dot = document.createElement('i'); dot.className = `pcx-list-dot ${bucket}`;
+      const copy = document.createElement('span'); copy.className = 'pcx-list-copy';
+      const title = document.createElement('strong'); title.textContent = safeText(row.title || row.providerName || 'AI chat', 92);
+      const meta = document.createElement('span'); meta.textContent = pinRowMeta(row, bucket);
+      const arrow = document.createElement('b'); arrow.textContent = '↗';
+      copy.append(title, meta); button.append(dot, copy, arrow);
+      button.addEventListener('click', async () => {
+        const result = await chrome.runtime.sendMessage({ type:'PC_FOCUS_LIVE_CHAT', tabId:Number(row.tabId || 0), windowId:Number(row.windowId || 0), url:String(row.url || '') }).catch(() => null);
+        if (result?.ok) list.dataset.visible = '0';
+      });
+      body.appendChild(button);
+    }
+  }
+
+  async function openPinBucket(ui, bucket) {
+    if (!ui?.list) return;
+    const alreadyOpen = ui.list.dataset.visible === '1' && ui.list.dataset.bucket === bucket;
+    if (alreadyOpen) { ui.list.dataset.visible = '0'; return; }
+    ui.list.dataset.bucket = bucket;
+    ui.list.dataset.visible = '1';
+    const fresh = await refreshCounts(true).catch(() => countSnapshot);
+    renderPin(ui.pin, fresh);
+    renderPinList(ui.list, fresh, bucket);
+  }
+
   function ensureHudUi(host) {
     const shadow = host?.shadowRoot;
     if (!shadow) return null;
@@ -159,12 +213,22 @@
       const style = document.createElement('style');
       style.id = 'pcxPulseUxStyle';
       style.textContent = `
-        .pcx-chat-pin{display:none;align-items:center;gap:3px;flex:0 0 auto;border:0;background:transparent;color:#cfd6ea;padding:0;margin:0;font:700 7px/1 system-ui;cursor:pointer}
-        .pcx-chat-pin span{display:inline-flex;align-items:center;gap:3px;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:4px 5px;background:rgba(255,255,255,.035);white-space:nowrap}
-        .pcx-chat-pin i{width:5px;height:5px;border-radius:50%;display:inline-block;background:#7e8aa8;box-shadow:0 0 8px rgba(126,138,168,.32)}
-        .pcx-chat-pin .active i{background:#67b7ff;box-shadow:0 0 8px rgba(103,183,255,.48)}
-        .pcx-chat-pin .stale i{background:#efb45f;box-shadow:0 0 8px rgba(239,180,95,.48)}
-        .pcx-chat-pin .complete i{background:#63d6a7;box-shadow:0 0 8px rgba(99,214,167,.42)}
+        .hud{position:relative!important;overflow:visible!important}
+        .pcx-chat-pin{display:none;align-items:center;gap:3px;flex:0 0 auto;border:0;background:transparent;color:#cfd6ea;padding:0;margin:0;font:700 7px/1 system-ui}
+        .pcx-chat-chip{width:auto!important;min-width:0!important;min-height:0!important;display:inline-flex;align-items:center;gap:3px;border:1px solid rgba(255,255,255,.1)!important;border-radius:999px!important;padding:4px 5px!important;background:rgba(255,255,255,.035)!important;color:#cfd6ea!important;white-space:nowrap;cursor:pointer;font:700 7px/1 system-ui!important}
+        .pcx-chat-chip:hover,.pcx-chat-chip[aria-expanded="true"]{background:rgba(102,118,208,.16)!important;border-color:rgba(135,130,235,.38)!important}
+        .pcx-chat-chip i{width:5px;height:5px;border-radius:50%;display:inline-block;background:#7e8aa8;box-shadow:0 0 8px rgba(126,138,168,.32)}
+        .pcx-chat-chip.active i{background:#67b7ff;box-shadow:0 0 8px rgba(103,183,255,.48)}
+        .pcx-chat-chip.stale i{background:#efb45f;box-shadow:0 0 8px rgba(239,180,95,.48)}
+        .pcx-chat-chip.complete i{background:#63d6a7;box-shadow:0 0 8px rgba(99,214,167,.42)}
+        .pcx-chat-list{display:none;position:absolute;z-index:2147483647;right:6px;top:calc(100% + 8px);width:min(360px,calc(100vw - 24px));border:1px solid rgba(129,141,224,.3);border-radius:13px;background:linear-gradient(155deg,rgba(13,18,48,.985),rgba(8,12,32,.99));box-shadow:0 20px 60px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden;color:#eaf0ff}
+        .pcx-chat-list[data-visible="1"]{display:block}
+        .pcx-chat-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px solid rgba(123,139,205,.15);background:linear-gradient(90deg,rgba(113,77,223,.1),rgba(60,125,218,.05))}
+        .pcx-chat-list-title{font:800 9px/1.2 system-ui;color:#e9edff}.pcx-chat-list-close{width:24px!important;min-width:24px!important;min-height:24px!important;border:0!important;border-radius:7px!important;background:transparent!important;color:#8994ba!important;font-size:15px!important;cursor:pointer}
+        .pcx-chat-list-body{display:grid;gap:4px;padding:6px;max-height:330px;overflow:auto;scrollbar-width:thin;scrollbar-color:#3d4775 transparent}
+        .pcx-chat-list-row{width:100%!important;min-height:47px!important;display:grid!important;grid-template-columns:8px minmax(0,1fr) 14px!important;align-items:center!important;gap:7px!important;padding:7px 8px!important;border:1px solid rgba(126,145,210,.12)!important;border-radius:9px!important;background:rgba(255,255,255,.022)!important;color:#eef2ff!important;text-align:left!important;cursor:pointer!important}
+        .pcx-chat-list-row:hover{background:rgba(90,105,190,.12)!important;border-color:rgba(136,127,235,.3)!important}.pcx-list-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 9px currentColor}.pcx-list-dot.active{background:#67b7ff;color:#67b7ff}.pcx-list-dot.stale{background:#efb45f;color:#efb45f}.pcx-list-dot.completed{background:#63d6a7;color:#63d6a7}
+        .pcx-list-copy{min-width:0;display:grid;gap:3px}.pcx-list-copy strong{font:750 9px/1.15 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-list-copy span{font:600 7.2px/1.2 system-ui;color:#7f89ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-chat-list-row>b{color:#6875a4;font:700 10px/1 system-ui}.pcx-chat-list-empty{padding:18px 12px;text-align:center;color:#7f89ad;font:650 8px/1.4 system-ui}
         .pcx-vault-signal{display:none;align-items:center;gap:6px;border:1px solid rgba(239,180,95,.38);border-radius:8px;background:rgba(137,91,22,.12);color:#f2ca8b;padding:6px 8px;font:700 8px/1.1 system-ui;cursor:pointer}
         .pcx-vault-signal[data-visible="1"]{display:inline-flex}
         .pcx-vault-signal::before{content:"";width:6px;height:6px;border-radius:50%;background:#efb45f;box-shadow:0 0 9px rgba(239,180,95,.48)}
@@ -175,50 +239,57 @@
         :host([data-pcx-output-secondary="1"][data-pcx-main-state="stale"]){--pc-level:#efb45f!important}
         :host([data-pcx-output-secondary="1"][data-pcx-main-state="completed"]){--pc-level:#63d6a7!important}
         :host([data-pcx-output-secondary="1"]) .btn.vault[data-urgent="1"],:host([data-pcx-output-secondary="1"]) .quickVault[data-urgent="1"]{border-color:rgba(239,180,95,.45)!important;box-shadow:none!important;background:linear-gradient(135deg,rgba(137,91,22,.16),rgba(67,69,150,.18))!important}
-        @media(max-width:620px){:host([data-collapsed="1"][data-pcx-status-pin="1"]) .pcx-chat-pin span{padding:4px}.pcx-chat-pin .label{display:none}}
+        @media(max-width:620px){:host([data-collapsed="1"][data-pcx-status-pin="1"]) .pcx-chat-chip{padding:4px!important}.pcx-chat-chip .label{display:none}.pcx-chat-list{right:0;width:min(330px,calc(100vw - 16px))}}
       `;
       shadow.appendChild(style);
     }
     let pin = shadow.getElementById('pcxChatPin');
+    if (pin?.tagName === 'BUTTON') { const replacement = document.createElement('div'); replacement.id = 'pcxChatPin'; replacement.className = 'pcx-chat-pin'; pin.replaceWith(replacement); pin = replacement; }
     if (!pin) {
-      pin = document.createElement('button');
-      pin.id = 'pcxChatPin';
-      pin.type = 'button';
-      pin.className = 'pcx-chat-pin';
-      pin.setAttribute('aria-label', 'Open chat status overview');
-      const tools = shadow.querySelector('.tools');
-      tools?.parentNode?.insertBefore(pin, tools);
-      pin.addEventListener('click', () => chrome.runtime.sendMessage({ type: 'PC_OPEN_CONSTELLATION_PAGE', view: 'attention' }).catch(() => {}));
+      pin = document.createElement('div'); pin.id = 'pcxChatPin'; pin.className = 'pcx-chat-pin'; pin.setAttribute('role','group'); pin.setAttribute('aria-label','Chat status filters');
+      const tools = shadow.querySelector('.tools'); tools?.parentNode?.insertBefore(pin, tools);
+    }
+    if (!pin.querySelector('[data-bucket="active"]')) {
+      pin.innerHTML = `<button type="button" class="pcx-chat-chip active" data-bucket="active" aria-expanded="false" title="Browse active chats"><i></i><b class="label">Active</b><em data-count>0</em></button><button type="button" class="pcx-chat-chip stale" data-bucket="stale" aria-expanded="false" title="Browse chats needing attention"><i></i><b class="label">Stale</b><em data-count>0</em></button><button type="button" class="pcx-chat-chip complete" data-bucket="completed" aria-expanded="false" title="Browse completed chats"><i></i><b class="label">Done</b><em data-count>0</em></button>`;
+    }
+    let list = shadow.getElementById('pcxChatList');
+    if (!list) {
+      list = document.createElement('div'); list.id = 'pcxChatList'; list.className = 'pcx-chat-list'; list.dataset.visible = '0'; list.dataset.bucket = 'active';
+      list.innerHTML = `<div class="pcx-chat-list-head"><strong class="pcx-chat-list-title">Active chats</strong><button type="button" class="pcx-chat-list-close" aria-label="Close chat list">×</button></div><div class="pcx-chat-list-body"></div>`;
+      (shadow.querySelector('.hud') || shadow.firstElementChild || shadow).appendChild(list);
+      list.querySelector('.pcx-chat-list-close')?.addEventListener('click', () => { list.dataset.visible = '0'; for (const chip of pin.querySelectorAll('[data-bucket]')) chip.setAttribute('aria-expanded','false'); });
+    }
+    if (pin.dataset.pcxNavBound !== '1') {
+      pin.dataset.pcxNavBound = '1';
+      pin.addEventListener('click', (event) => {
+        const chip = event.target?.closest?.('[data-bucket]'); if (!chip) return;
+        const bucket = chip.dataset.bucket; for (const node of pin.querySelectorAll('[data-bucket]')) node.setAttribute('aria-expanded', node === chip && !(list.dataset.visible === '1' && list.dataset.bucket === bucket) ? 'true' : 'false');
+        openPinBucket({ shadow, pin, list }, bucket).catch(() => {});
+      });
     }
     let signal = shadow.getElementById('pcxVaultSignal');
     if (!signal) {
-      signal = document.createElement('button');
-      signal.id = 'pcxVaultSignal';
-      signal.type = 'button';
-      signal.className = 'pcx-vault-signal';
-      signal.dataset.visible = '0';
-      signal.textContent = 'Output Vault check';
-      const vaultButton = shadow.getElementById('pcHealthVault');
-      vaultButton?.parentNode?.insertBefore(signal, vaultButton);
-      signal.addEventListener('click', () => shadow.getElementById('pcHealthVault')?.click());
+      signal = document.createElement('button'); signal.id = 'pcxVaultSignal'; signal.type = 'button'; signal.className = 'pcx-vault-signal'; signal.dataset.visible = '0'; signal.textContent = 'Output Vault check';
+      const vaultButton = shadow.getElementById('pcHealthVault'); vaultButton?.parentNode?.insertBefore(signal, vaultButton); signal.addEventListener('click', () => shadow.getElementById('pcHealthVault')?.click());
     }
     if (hudObservedRoot !== shadow) {
-      hudObserver?.disconnect();
-      hudObservedRoot = shadow;
-      hudObserver = new MutationObserver(() => scheduleDecorate(30));
+      hudObserver?.disconnect(); hudObservedRoot = shadow; hudObserver = new MutationObserver(() => scheduleDecorate(30));
       hudObserver.observe(shadow, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-urgent', 'hidden'] });
     }
-    return { shadow, pin, signal };
+    return { shadow, pin, list, signal };
   }
 
   function renderPin(pin, snapshot) {
     if (!pin) return;
     const counts = countsFromSnapshot(snapshot || {});
-    const signature = `${counts.active}|${counts.stale}|${counts.completed}`;
-    if (pin.dataset.signature === signature) return;
-    pin.dataset.signature = signature;
-    pin.innerHTML = `<span class="active" title="Active chats"><i></i><b class="label">Active</b> ${counts.active}</span><span class="stale" title="Stale or attention chats"><i></i><b class="label">Stale</b> ${counts.stale}</span><span class="complete" title="Completed or idle chats"><i></i><b class="label">Done</b> ${counts.completed}</span>`;
+    for (const [bucket, count] of Object.entries(counts)) {
+      const chip = pin.querySelector(`[data-bucket="${bucket}"]`); const node = chip?.querySelector('[data-count]');
+      if (node && node.textContent !== String(count)) node.textContent = String(count);
+      if (chip) chip.disabled = count <= 0;
+    }
     pin.title = `Active ${counts.active} · Stale ${counts.stale} · Completed ${counts.completed}`;
+    const list = pin.getRootNode()?.getElementById?.('pcxChatList');
+    if (list?.dataset.visible === '1') renderPinList(list, snapshot || {}, list.dataset.bucket || 'active');
   }
 
   async function applyHudPolicy(host) {
@@ -370,7 +441,7 @@
     if (document.hidden || !settings.statusPinEnabled || !hud || hud.dataset.collapsed !== '1') return;
     countFetchedAt = 0;
     refreshCounts(true).then(() => scheduleDecorate(0)).catch(() => {});
-  }, 20000);
+  }, 7000);
 
   loadSettings().then(() => {
     refreshCounts().catch(() => {});

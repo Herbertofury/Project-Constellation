@@ -31,7 +31,7 @@
     'openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','activeSummary','staleSummary','completedSummary','activeCount','staleCount','completedCount',
     'activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled',
     'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor',
-    'activeGroupColor','staleGroupColor','completedGroupColor','customTabTag','applyTabTag','clearTabTag','tabTagHint','tagPresets'
+    'activeGroupColor','staleGroupColor','completedGroupColor','customTabTag','applyTabTag','clearTabTag','tabTagHint','tagPresets','chatListPanel','chatListEyebrow','chatListTitle','chatList','closeChatList'
   ];
   const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
   let currentSettings = { ...DEFAULTS };
@@ -39,6 +39,7 @@
   let brainOverview = null;
   let currentTabId = null;
   let currentTabTag = '';
+  let selectedChatBucket = '';
 
   const safe = (value, max = 90) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
   const statusBucket = (status = 'idle') => ACTIVE_STATUSES.has(status) ? 'active' : STALE_STATUSES.has(status) ? 'stale' : 'completed';
@@ -94,6 +95,66 @@
     return safe(row.title || 'Completed chat', 58);
   }
 
+  const bucketTitle = (bucket) => bucket === 'active' ? 'Active chats' : bucket === 'stale' ? 'Needs attention' : 'Completed chats';
+  const bucketEmoji = (bucket) => bucket === 'active' ? (pulseSettings.activeEmoji || '🟣') : bucket === 'stale' ? (pulseSettings.staleEmoji || '⚠️') : (pulseSettings.completedEmoji || '✅');
+  function relativeAge(value) {
+    const ms = Math.max(0, Date.now() - Number(value || 0));
+    if (!value) return '';
+    if (ms < 60000) return 'now';
+    if (ms < 3600000) return `${Math.max(1, Math.round(ms / 60000))}m`;
+    if (ms < 86400000) return `${Math.max(1, Math.round(ms / 3600000))}h`;
+    return `${Math.max(1, Math.round(ms / 86400000))}d`;
+  }
+  function renderChatList() {
+    const panel = els.chatListPanel;
+    if (!panel) return;
+    if (!selectedChatBucket) { panel.hidden = true; return; }
+    const groups = brainOverview?.groups || {};
+    const rows = Array.isArray(groups[selectedChatBucket]) ? groups[selectedChatBucket] : [];
+    panel.hidden = false;
+    panel.dataset.bucket = selectedChatBucket;
+    els.chatListEyebrow.textContent = `${bucketEmoji(selectedChatBucket)} ${selectedChatBucket === 'stale' ? 'NEEDS ATTENTION' : selectedChatBucket.toUpperCase()}`;
+    els.chatListTitle.textContent = `${bucketTitle(selectedChatBucket)} · ${rows.length}`;
+    els.chatList.replaceChildren();
+    if (!rows.length) {
+      const empty = document.createElement('div'); empty.className = 'chat-list-empty'; empty.textContent = `No ${bucketTitle(selectedChatBucket).toLowerCase()} right now.`; els.chatList.appendChild(empty); return;
+    }
+    for (const row of rows) {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'chat-list-row'; button.dataset.tabId = String(row.tabId || ''); button.dataset.windowId = String(row.windowId || ''); button.dataset.url = row.url || '';
+      const dot = document.createElement('span'); dot.className = `chat-list-dot ${selectedChatBucket}`;
+      const body = document.createElement('span'); body.className = 'chat-list-copy';
+      const title = document.createElement('strong'); title.textContent = safe(row.title || row.providerName || 'AI chat', 90);
+      const meta = document.createElement('span');
+      const generation = row.generation || {};
+      const pieces = [safe(row.providerName || row.providerId || 'AI', 24)];
+      if (selectedChatBucket === 'active') pieces.push(safe(generation.phase || generation.toolPhase || 'working', 24).replaceAll('-', ' '));
+      else if (selectedChatBucket === 'stale') pieces.push(row.reconnecting ? 'reconnecting' : safe(row.status || 'attention', 22).replaceAll('-', ' '));
+      else pieces.push('complete');
+      if (generation.modelSlug) pieces.push(safe(generation.modelSlug, 24));
+      if (row.tabGroup?.title) pieces.push(row.tabGroup.managed ? 'PC sorted' : `Group: ${safe(row.tabGroup.title, 30)}`);
+      const age = relativeAge(row.lastActivityAt || row.observedAt); if (age) pieces.push(age);
+      meta.textContent = pieces.filter(Boolean).join(' · ');
+      body.append(title, meta);
+      const arrow = document.createElement('span'); arrow.className = 'chat-list-arrow'; arrow.textContent = '↗';
+      button.append(dot, body, arrow);
+      button.addEventListener('click', async () => {
+        const result = await chrome.runtime.sendMessage({ type:'PC_FOCUS_LIVE_CHAT', tabId:Number(row.tabId || 0), windowId:Number(row.windowId || 0), url:row.url || '' }).catch(() => null);
+        if (result?.ok) window.close();
+      });
+      els.chatList.appendChild(button);
+    }
+  }
+
+  function selectChatBucket(bucket) {
+    selectedChatBucket = selectedChatBucket === bucket ? '' : bucket;
+    for (const key of ['active','stale','completed']) {
+      const card = els[key === 'completed' ? 'completedSummary' : `${key}Summary`];
+      card.classList.toggle('selected', selectedChatBucket === key);
+      card.setAttribute('aria-expanded', selectedChatBucket === key ? 'true' : 'false');
+    }
+    renderChatList();
+  }
+
   function renderChatPulse() {
     els.chatPulse.hidden = pulseSettings.statusPinEnabled === false;
     if (els.chatPulse.hidden) return;
@@ -115,8 +176,8 @@
       card.dataset.url = latest?.url || '';
       card.dataset.tabId = latest?.tabId ? String(latest.tabId) : '';
       card.dataset.windowId = latest?.windowId ? String(latest.windowId) : '';
-      card.disabled = !(latest?.url || latest?.tabId);
-      card.title = (latest?.url || latest?.tabId) ? `Focus ${safe(latest.title || 'latest chat', 100)}` : `No ${bucket} chat is available to open`;
+      card.disabled = totals[bucket] <= 0;
+      card.title = totals[bucket] > 0 ? `Browse all ${totals[bucket]} ${bucket === 'stale' ? 'attention' : bucket} chat${totals[bucket] === 1 ? '' : 's'}` : `No ${bucket} chat is available`;
     }
     const open = Number(snapshot.openChatTabs || totals.active + totals.stale + totals.completed);
     const partial = Boolean(snapshot.partial);
@@ -126,6 +187,7 @@
       : totals.active || totals.stale
         ? `${open} open AI tab${open === 1 ? '' : 's'} · ${transcriptActive ? `${transcriptActive} active with ChatGPT transcript proof · ` : ''}live state, not catalog history.`
         : `${open} open AI chat tab${open === 1 ? '' : 's'} · nothing is currently running or stuck.`;
+    renderChatList();
   }
 
   async function activeTab() {
@@ -206,14 +268,11 @@
   for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].addEventListener('change', savePerformance);
   for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
 
-  for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click', async () => {
-    const tabId = Number(card.dataset.tabId || 0), windowId = Number(card.dataset.windowId || 0), url = card.dataset.url;
-    if (tabId) {
-      try { await chrome.tabs.update(tabId, { active:true }); if (windowId && chrome.windows?.update) await chrome.windows.update(windowId, { focused:true }); window.close(); return; }
-      catch (_) {}
-    }
-    if (url) { await chrome.tabs.create({ url, active:true }); window.close(); }
+  for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click', () => {
+    const bucket = card.dataset.chatBucket || (card === els.completedSummary ? 'completed' : card === els.staleSummary ? 'stale' : 'active');
+    selectChatBucket(bucket);
   });
+  els.closeChatList?.addEventListener('click', () => { selectedChatBucket = ''; renderChatList(); for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) { card.classList.remove('selected'); card.setAttribute('aria-expanded','false'); } });
 
   els.tagPresets.addEventListener('click', (event) => { const tag = event.target?.closest?.('button[data-tag]')?.dataset?.tag; if (tag) applyTag(tag).catch(() => {}); });
   els.applyTabTag.addEventListener('click', () => applyTag(els.customTabTag.value).catch(() => {}));
