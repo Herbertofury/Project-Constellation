@@ -17,20 +17,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: hotfix/v0.14.5-pulse-navigator
-      - name: Verify and apply reviewed v0.14.5 patch
+      - name: Diagnose staged chunks
         shell: bash
         run: |
           set -euo pipefail
-          tr -d '\r\n ' < .github/hotfix/v0145.small.00 > /tmp/v0145.b64
-          for part in .github/hotfix/v0145.small.01 .github/hotfix/v0145.small.02 .github/hotfix/v0145.small.03 .github/hotfix/v0145.small.04 .github/hotfix/v0145.small.05; do tr -d '\r\n ' < "$part" >> /tmp/v0145.b64; done
-          base64 -d /tmp/v0145.b64 | xz -d > /tmp/v0145.patch
-          echo 'f7cb50c105e4f70d0e58b0619bf02135e1880dab96e897a064821e359d0b4f62  /tmp/v0145.patch' | sha256sum -c -
-          git apply --check /tmp/v0145.patch
-          git apply /tmp/v0145.patch
-          rm -rf .github/hotfix .github/workflows/apply-v0145-hotfix.yml
-          git config user.name 'Project Constellation Hotfix'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A
-          git status --short
-          git commit -m 'v0.14.5: reliable Pulse Navigator'
-          git push origin HEAD:hotfix/v0.14.5-pulse-navigator
+          sha256sum .github/hotfix/v0145.small.*
+          wc -c .github/hotfix/v0145.small.*
+          exit 1
