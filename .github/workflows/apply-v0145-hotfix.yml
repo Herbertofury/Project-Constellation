@@ -17,10 +17,27 @@ jobs:
         with:
           fetch-depth: 0
           ref: hotfix/v0.14.5-pulse-navigator
-      - name: Diagnose staged chunks
+      - name: Verify and apply reviewed v0.14.5 patch
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum .github/hotfix/v0145.small.*
-          wc -c .github/hotfix/v0145.small.*
-          exit 1
+          echo '770395934c5fdfb36d157b683b4945dd2b29d167ec317abac79d90758c2e7081  .github/hotfix/v0145.c00.0' | sha256sum -c -
+          echo 'af6bbcc711d6c14f71a6a023d693045a1ed50257278c5dac256ccd6a8c817f32  .github/hotfix/v0145.c00.1' | sha256sum -c -
+          echo '2cb30b8aada5764b8f445abc4389cdbcd5720fea4fe3209954bcf0f5a6219406  .github/hotfix/v0145.small.01' | sha256sum -c -
+          echo 'c4b0635876a8074a4e5da5af271aab84914af130c279e25d91ca30854f201852  .github/hotfix/v0145.small.02' | sha256sum -c -
+          echo '8b8bef05a95b742d83636332c1ffad00e79748e5eea3852761daf09c59dd4f28  .github/hotfix/v0145.c03.0' | sha256sum -c -
+          echo '8f69fd62fea330c15007b980d1370be08fbe5e2e2ab4460909982e84f448193f  .github/hotfix/v0145.c03.1' | sha256sum -c -
+          echo '9254d817a1a9b46d8048aa5107c73219f859de18c73db0e94ad833affb5eace2  .github/hotfix/v0145.small.04' | sha256sum -c -
+          echo 'a7bdf83c3ecb6edc3d0141ecfd520764905ab8c008d3d10d6b9ffbabc22dfdcc  .github/hotfix/v0145.small.05' | sha256sum -c -
+          cat .github/hotfix/v0145.c00.0 .github/hotfix/v0145.c00.1 .github/hotfix/v0145.small.01 .github/hotfix/v0145.small.02 .github/hotfix/v0145.c03.0 .github/hotfix/v0145.c03.1 .github/hotfix/v0145.small.04 .github/hotfix/v0145.small.05 | tr -d '\r\n ' > /tmp/v0145.b64
+          base64 -d /tmp/v0145.b64 | xz -d > /tmp/v0145.patch
+          echo 'f7cb50c105e4f70d0e58b0619bf02135e1880dab96e897a064821e359d0b4f62  /tmp/v0145.patch' | sha256sum -c -
+          git apply --check /tmp/v0145.patch
+          git apply /tmp/v0145.patch
+          rm -rf .github/hotfix .github/workflows/apply-v0145-hotfix.yml
+          git config user.name 'Project Constellation Hotfix'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git status --short
+          git commit -m 'v0.14.5: reliable Pulse Navigator'
+          git push origin HEAD:hotfix/v0.14.5-pulse-navigator
