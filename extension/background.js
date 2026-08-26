@@ -42,7 +42,9 @@ const BRANCH_CONTINUATION_KEY = 'projectConstellationPendingBranch';
 const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
 const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
 const TAB_TAGS_KEY = 'projectConstellationTabTags';
-const LIVE_CHAT_PULSE_TTL_MS = 1800;
+const LIVE_CHAT_PULSE_TTL_MS = 1400;
+const LIVE_CHAT_PROBE_TIMEOUT_MS = 1600;
+const LIVE_CHAT_FALLBACK_TTL_MS = 30000;
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
@@ -53,6 +55,7 @@ const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
 const liveTabStateByTab = new Map();
 const liveNetworkReconcileTimers = new Map();
+let tabGroupSyncQueue = Promise.resolve();
 let liveChatPulseCache = null;
 let liveChatPulseCacheAt = 0;
 let liveChatPulseRequest = null;
@@ -3640,6 +3643,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return { ok: true, tabId: tab?.id || null };
       }
       case 'PC_LIVE_CHAT_PULSE': return liveChatPulse({ force:Boolean(message.force) });
+      case 'PC_FOCUS_LIVE_CHAT': return focusLiveChat(message);
       case 'PC_LIVE_CHAT_STATE_PUSH': return handleLiveChatStatePush(message, sender);
       case 'PC_TAB_TAG_GET': return tabTagState(Number(message.tabId || sender?.tab?.id || 0));
       case 'PC_TAB_TAG_SET': return setTabTag(Number(message.tabId || sender?.tab?.id || 0), message.tag || '');
@@ -3786,11 +3790,13 @@ async function ensureTabBeacon(tabId) {
 }
 
 function managedGroupBucket(title = '') {
-  const value = String(title || '');
-  if (!value.startsWith(TAB_GROUP_PREFIX)) return '';
-  if (/active$/i.test(value)) return 'active';
-  if (/attention$/i.test(value)) return 'stale';
-  if (/completed$/i.test(value)) return 'completed';
+  const value = String(title || '').trim();
+  if (!value.startsWith(`${TAB_GROUP_PREFIX} `)) return '';
+  // Only groups with Constellation's exact status suffixes are considered owned. Any
+  // other existing group is treated as user-owned and is never ungrouped or stolen.
+  if (/\sActive$/i.test(value)) return 'active';
+  if (/\s(?:Needs attention|Attention)$/i.test(value)) return 'stale';
+  if (/\sCompleted$/i.test(value)) return 'completed';
   return '';
 }
 
@@ -3804,7 +3810,7 @@ async function managedGroupFor(windowId, bucket, cfg) {
   return found.id;
 }
 
-async function syncTabGroup(row, cfg) {
+async function syncTabGroupNow(row, cfg) {
   if (!chrome.tabs?.get || !chrome.tabs?.group || !chrome.tabGroups) return;
   const tab = await chrome.tabs.get(Number(row.tabId)).catch(() => null);
   if (!tab) return;
@@ -3813,7 +3819,7 @@ async function syncTabGroup(row, cfg) {
   if (currentGroupId >= 0) {
     const group = await chrome.tabGroups.get(currentGroupId).catch(() => null);
     currentManagedBucket = managedGroupBucket(group?.title || '');
-    if (!currentManagedBucket) return; // Never steal a user-created group.
+    if (!currentManagedBucket) return; // User-created groups stay exactly where the user put them.
   }
   if (!cfg.tabBeaconsEnabled || !cfg.tabGroupingEnabled) {
     if (currentManagedBucket) await chrome.tabs.ungroup(tab.id).catch(() => {});
@@ -3830,6 +3836,13 @@ async function syncTabGroup(row, cfg) {
   } else if (currentGroupId !== target) {
     await chrome.tabs.group({ groupId:target, tabIds:[tab.id] }).catch(() => {});
   }
+}
+
+function syncTabGroup(row, cfg) {
+  // Serialize group mutations so ten chats changing state at once cannot race and create
+  // duplicate PC status groups. Failures never poison the queue.
+  tabGroupSyncQueue = tabGroupSyncQueue.catch(() => {}).then(() => syncTabGroupNow(row, cfg));
+  return tabGroupSyncQueue;
 }
 
 async function syncTabPresentation(row, { force = false } = {}) {
@@ -4016,12 +4029,18 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   if (!tabId || !tab?.url) return null;
   const provider = providers.detectProvider(tab.url);
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return null;
-  if (allowInject && provider.id === 'chatgpt') await ensureChatGPTPageProbe(tabId).catch(() => false);
+  // Read the already-running Sentinel first. v0.14.4 performed a MAIN-world probe
+  // version check on every Pulse refresh for every ChatGPT tab, which could make a
+  // 10+ tab popup refresh slow or fail as one giant injection burst. Only bootstrap the
+  // deeper ChatGPT probe when the Sentinel is missing/stale.
+  let state = await readLiveSentinelState(tabId);
+  if (allowInject && (!state?.ok || state?.version !== LIVE_SENTINEL_VERSION)) {
+    if (provider.id === 'chatgpt') await ensureChatGPTPageProbe(tabId).catch(() => false);
+    state = await ensureLiveSentinel(tabId);
+  }
   // The dedicated sentinel is the canonical live-state source. Unlike the full content
   // script it can be hot-injected into tabs that were already open when the extension
   // upgraded, so active work is visible immediately without a manual page refresh.
-  let state = await readLiveSentinelState(tabId);
-  if (allowInject && (!state?.ok || state?.version !== LIVE_SENTINEL_VERSION)) state = await ensureLiveSentinel(tabId);
   if (!state?.ok) {
     try { state = await chrome.tabs.sendMessage(tabId, { type:'PC_GET_LIVE_CHAT_STATE' }); }
     catch (_) { state = null; }
@@ -4054,6 +4073,66 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   return row;
 }
 
+function livePulseTimeout(promise, timeoutMs = LIVE_CHAT_PROBE_TIMEOUT_MS) {
+  let timer = 0;
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise((resolve) => { timer = setTimeout(() => resolve(null), Math.max(100, Number(timeoutMs || LIVE_CHAT_PROBE_TIMEOUT_MS))); })
+  ]).finally(() => { if (timer) clearTimeout(timer); });
+}
+
+function fallbackLiveRow(tab, cached = null) {
+  const provider = providers.detectProvider(tab?.url || '');
+  if (!provider) return null;
+  const now = Date.now();
+  const sameCached = cached && String(cached.url || '') === String(tab?.url || '');
+  const cachedAge = sameCached ? Math.max(0, now - Number(cached.observedAt || 0)) : Infinity;
+  if (sameCached && cachedAge <= LIVE_CHAT_FALLBACK_TTL_MS) {
+    return { ...cached, tabId:Number(tab.id || cached.tabId || 0), windowId:Number(tab.windowId || cached.windowId || 0), title:String(tab.title || cached.title || provider.name || 'AI chat').slice(0,220), responsive:false, reconnecting:true, observedAt:Number(cached.observedAt || now) };
+  }
+  return {
+    tabId:Number(tab?.id || 0), windowId:Number(tab?.windowId || 0), providerId:provider.id, providerName:provider.name,
+    title:String(tab?.title || provider.name || 'AI chat').replace(/^\s*[✅🟢🟡🔴🟣⚠️]+\s*/u,'').slice(0,220),
+    url:String(tab?.url || ''), chatId:String(providers.chatIdFromUrl(tab?.url || '', provider.id) || ''),
+    status:'unavailable', rawStatus:'unavailable', healthState:'unavailable', bucket:'stale', active:false, stale:true, completed:false,
+    generation:{ active:false, transcriptProof:false, phase:'reconnecting' }, network:{ pending:0, streamLikely:false, lastStartAt:0, lastCompleteAt:0 },
+    lastActivityAt:Number(cached?.lastActivityAt || 0), observedAt:now, responsive:false, reconnecting:true
+  };
+}
+
+async function liveGroupMap() {
+  if (!chrome.tabGroups?.query) return new Map();
+  const groups = await chrome.tabGroups.query({}).catch(() => []);
+  return new Map((groups || []).map((group) => [Number(group.id), group]));
+}
+
+function withTabGroup(row, tab, groupMap) {
+  if (!row) return row;
+  const groupId = Number(tab?.groupId ?? -1);
+  if (groupId < 0) return { ...row, tabGroup:null };
+  const group = groupMap.get(groupId) || null;
+  const managedBucket = managedGroupBucket(group?.title || '');
+  return { ...row, tabGroup:{ id:groupId, title:String(group?.title || 'Tab group').slice(0,120), color:String(group?.color || ''), collapsed:Boolean(group?.collapsed), managed:Boolean(managedBucket), managedBucket } };
+}
+
+async function focusLiveChat(message = {}) {
+  const tabId = Number(message.tabId || 0);
+  const requestedUrl = String(message.url || '');
+  if (tabId && chrome.tabs?.get) {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (tab) {
+      await chrome.tabs.update(tabId, { active:true }).catch(() => {});
+      if (tab.windowId && chrome.windows?.update) await chrome.windows.update(tab.windowId, { focused:true }).catch(() => {});
+      return { ok:true, tabId, windowId:Number(tab.windowId || 0), existing:true };
+    }
+  }
+  if (requestedUrl && chrome.tabs?.create) {
+    const tab = await chrome.tabs.create({ url:requestedUrl, active:true }).catch(() => null);
+    return tab?.id ? { ok:true, tabId:Number(tab.id), windowId:Number(tab.windowId || 0), existing:false } : { ok:false, error:'Could not open chat.' };
+  }
+  return { ok:false, error:'Chat tab is no longer available.' };
+}
+
 async function liveChatPulse({ force = false } = {}) {
   const now = Date.now();
   if (!force && liveChatPulseCache && now - liveChatPulseCacheAt < LIVE_CHAT_PULSE_TTL_MS) return liveChatPulseCache;
@@ -4063,11 +4142,17 @@ async function liveChatPulse({ force = false } = {}) {
       const provider = providers.detectProvider(tab.url || '');
       return Boolean(provider && providers.isLikelyChatUrl(tab.url || '', provider.id));
     });
-    const settled = await Promise.allSettled(tabs.map((tab) => readLiveStateFromTab(tab)));
+    const [settled, groupMap] = await Promise.all([
+      Promise.allSettled(tabs.map((tab) => livePulseTimeout(readLiveStateFromTab(tab), LIVE_CHAT_PROBE_TIMEOUT_MS))),
+      liveGroupMap()
+    ]);
+    let responsiveTabs = 0;
     const rows = settled.map((result, index) => {
-      if (result.status === 'fulfilled' && result.value) return result.value;
-      const tab = tabs[index]; const cached = liveTabStateByTab.get(Number(tab?.id || 0));
-      return cached && cached.url === tab?.url ? cached : null;
+      const tab = tabs[index];
+      let row = result.status === 'fulfilled' && result.value ? result.value : null;
+      if (row) responsiveTabs += 1;
+      if (!row) row = fallbackLiveRow(tab, liveTabStateByTab.get(Number(tab?.id || 0)));
+      return withTabGroup(row, tab, groupMap);
     }).filter(Boolean).sort((a,b) => Number(b.lastActivityAt || b.observedAt || 0) - Number(a.lastActivityAt || a.observedAt || 0));
     const groups = { active:[], stale:[], completed:[] };
     for (const row of rows) groups[row.bucket]?.push(row);
@@ -4075,12 +4160,12 @@ async function liveChatPulse({ force = false } = {}) {
       ok:true,
       generatedAt:Date.now(),
       openChatTabs:tabs.length,
-      responsiveTabs:rows.length,
+      responsiveTabs,
       counts:{ active:groups.active.length, stale:groups.stale.length, completed:groups.completed.length },
       groups,
       recentChats:rows,
       statusCounts:rows.reduce((out,row)=>{out[row.status]=(out[row.status]||0)+1;return out;},{}),
-      partial:rows.length !== tabs.length
+      partial:responsiveTabs !== tabs.length
     };
     liveChatPulseCache = snapshot; liveChatPulseCacheAt = Date.now();
     await renderActionBadge(snapshot).catch(() => {});
@@ -4236,7 +4321,12 @@ if (chrome.webRequest?.onBeforeRequest) {
   chrome.webRequest.onCompleted.addListener((details) => noteNetworkDone(details, false), filter);
   chrome.webRequest.onErrorOccurred.addListener((details) => noteNetworkDone(details, true), filter);
 }
-if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); liveChatPulseCacheAt = 0; });
+if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); liveChatPulseCacheAt = 0; });
+if (chrome.tabs?.onCreated) chrome.tabs.onCreated.addListener(() => { liveChatPulseCacheAt = 0; });
+if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo) => { if (changeInfo?.url || changeInfo?.status || changeInfo?.title) { liveChatPulseCacheAt = 0; if (changeInfo?.url) { liveTabStateByTab.delete(Number(tabId)); tabPresentationSignatures.delete(Number(tabId)); } } });
+if (chrome.tabs?.onReplaced) chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => { liveTabStateByTab.delete(Number(removedTabId)); tabPresentationSignatures.delete(Number(removedTabId)); liveChatPulseCacheAt = 0; void addedTabId; });
+if (chrome.tabGroups?.onUpdated) chrome.tabGroups.onUpdated.addListener(() => { liveChatPulseCacheAt = 0; tabPresentationSignatures.clear(); });
+if (chrome.tabGroups?.onRemoved) chrome.tabGroups.onRemoved.addListener(() => { liveChatPulseCacheAt = 0; tabPresentationSignatures.clear(); });
 
 if (chrome.contextMenus?.onClicked) chrome.contextMenus.onClicked.addListener((info, tab) => {
   const id = String(info?.menuItemId || '');

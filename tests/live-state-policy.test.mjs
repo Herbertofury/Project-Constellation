@@ -36,6 +36,12 @@ vm.runInContext(`${bucketSource}; globalThis.__bucket=livePulseBucket;`, sandbox
 assert.equal(sandbox.__bucket({chat:{status:'idle',healthState:'healthy'},generation:{active:false}}, {pending:9,streamLikely:true}), 'completed', 'background provider traffic cannot resurrect a completed chat');
 assert.equal(sandbox.__bucket({chat:{status:'running',healthState:'working'},generation:{active:true}}, {pending:0}), 'active');
 assert.equal(sandbox.__bucket({chat:{status:'rate-limited',healthState:'rate-limited'}}, {pending:4}), 'stale');
+const managedGroupSource = functionSource('managedGroupBucket');
+const groupSandbox = { TAB_GROUP_PREFIX:'PC ✦' }; vm.createContext(groupSandbox); vm.runInContext(`${managedGroupSource}; globalThis.__groupBucket=managedGroupBucket;`, groupSandbox);
+assert.equal(groupSandbox.__groupBucket('My Research'), '', 'user-created tab group is never treated as Constellation-owned');
+assert.equal(groupSandbox.__groupBucket('PC ✦ 🟣 Active'), 'active');
+assert.equal(groupSandbox.__groupBucket('PC ✦ ⚠️ Needs attention'), 'stale');
+assert.equal(groupSandbox.__groupBucket('PC ✦ ✅ Completed'), 'completed');
 assert.match(source, /message\?\.state\?\.sentinel !== true \|\| message\?\.state\?\.source !== 'live-sentinel'/, 'legacy content pushes are rejected');
 assert.match(source, /existing\?\.version === LIVE_SENTINEL_VERSION/, 'hot upgrades replace stale Sentinel versions');
 const contentSource = fs.readFileSync(new URL('../extension/src/content.js', import.meta.url), 'utf8');
@@ -52,7 +58,10 @@ assert.match(source, /authoritativeTransport[\s\S]{0,500}PC_LIVE_SENTINEL_REFRES
 assert.match(sentinelSource, /button\[data-testid="copy-turn-action-button"\]/, 'current ChatGPT completion control uses the precise production testid');
 assert.match(sentinelSource, /currentAssistantBusy/, 'aria-busy is scoped to the current assistant turn rather than page layout ancestors');
 for (const marker of ['/backend-api/conversation/','finished_successfully','end_turn','chatgpt_sdk.widget_state']) assert.ok(transcriptProbeSource.includes(marker), `transcript probe includes ${marker}`);
-assert.match(source, /if \(!currentManagedBucket\) return; \/\/ Never steal a user-created group\./, 'automatic status grouping preserves user-created tab groups');
+assert.match(source, /if \(!currentManagedBucket\) return; \/\/ User-created groups stay exactly where the user put them\./, 'automatic status grouping preserves user-created tab groups');
+assert.match(source, /tabGroupSyncQueue = tabGroupSyncQueue\.catch/, 'Constellation-owned group moves are serialized to avoid duplicate status groups');
+assert.match(source, /fallbackLiveRow[\s\S]{0,1200}status:'unavailable'[\s\S]{0,300}bucket:'stale'/, 'unresponsive open chat tabs remain represented instead of disappearing from Pulse counts');
+assert.match(source, /let state = await readLiveSentinelState\(tabId\);[\s\S]{0,450}ensureChatGPTPageProbe/, 'Pulse reads the installed Sentinel before doing expensive MAIN-world reinjection checks');
 for (const marker of ['chrome.tabs.group','chrome.tabGroups.update','PC_TAB_TAG_SET','renderActionBadge']) assert.ok(source.includes(marker), `tab presentation backend includes ${marker}`);
 for (const marker of ['PC_TAB_BEACON_APPLY','faviconDataUri','baseTitle']) assert.ok(tabBeaconSource.includes(marker), `tab beacon content includes ${marker}`);
 console.log('live-state-policy.test.mjs: PASS');

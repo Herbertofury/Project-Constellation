@@ -63,6 +63,7 @@ mock=f"""
    sidePanel:{{setPanelBehavior:async()=>{{}}}},action:{{setBadgeText:async()=>{{}},setTitle:async()=>{{}}}},
    identity:{{getAuthToken:async()=>({{token:'test-token'}}),removeCachedAuthToken:async()=>{{}},clearAllCachedAuthTokens:async()=>{{}}}},
    idle:{{queryState:async()=> 'idle'}},tabs:{{query:async()=>[],create:async(options)=>{{globalThis.__pcCreatedTabs.push(options);return {{id:88,...options}};}},onRemoved:{{addListener:(fn)=>listeners.tabRemoved=fn}}}},scripting:{{executeScript:async(options)=>{{const id=Number(options?.target?.tabId||0);if(id===104)return [{{result:{{ok:true,source:'scripting-dom-probe',chat:{{status:'idle',rawStatus:'idle',title:'Old Tab',url:'https://chatgpt.com/c/old-a',lastActivityAt:Date.now()-2500,healthState:'healthy'}},generation:{{active:false}},healthActive:false,healthStale:false,observedAt:Date.now()}}}}];return [];}}}},downloads:{{}},
+   tabGroups:{{query:async()=>[],get:async()=>null,update:async()=>null,onUpdated:{{addListener:(fn)=>listeners.tabGroupUpdated=fn}},onRemoved:{{addListener:(fn)=>listeners.tabGroupRemoved=fn}}}},
    webRequest:{{onBeforeRequest:{{addListener:(fn)=>listeners.webBefore=fn}},onResponseStarted:{{addListener:(fn)=>listeners.webResponse=fn}},onCompleted:{{addListener:(fn)=>listeners.webComplete=fn}},onErrorOccurred:{{addListener:(fn)=>listeners.webError=fn}}}}
  }};
  globalThis.__pcFetchCount=0;
@@ -150,10 +151,15 @@ with sync_playwright() as p:
       __pcListeners.webComplete({tabId:7,requestId:'health-1',type:'xmlhttprequest',url:'https://chatgpt.com/backend-api/conversation',method:'POST',statusCode:200,initiator:'https://chatgpt.com'});
       const healthQuiet=await __pcSend({type:'PC_LIVE_HEALTH_CONTEXT',chatId:'chatgpt:test'},{tab:{id:7,url:'https://chatgpt.com/c/test'}});
       chrome.tabs.query=async()=>[
-        {id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'},
-        {id:102,windowId:1,url:'https://chatgpt.com/c/stale-a',title:'Stale A'},
-        {id:103,windowId:2,url:'https://chatgpt.com/c/done-a',title:'Done A'},
-        {id:104,windowId:2,url:'https://chatgpt.com/c/old-a',title:'Old Tab'}
+        {id:101,windowId:1,groupId:201,url:'https://chatgpt.com/c/live-a',title:'Live A'},
+        {id:102,windowId:1,groupId:-1,url:'https://chatgpt.com/c/stale-a',title:'Stale A'},
+        {id:103,windowId:2,groupId:301,url:'https://chatgpt.com/c/done-a',title:'Done A'},
+        {id:104,windowId:2,groupId:-1,url:'https://chatgpt.com/c/old-a',title:'Old Tab'},
+        {id:105,windowId:2,groupId:301,url:'https://chatgpt.com/c/reconnect-a',title:'Reconnect Tab'}
+      ];
+      chrome.tabGroups.query=async()=>[
+        {id:201,windowId:1,title:'PC ✦ 🟣 Active',color:'purple',collapsed:false},
+        {id:301,windowId:2,title:'My Research',color:'blue',collapsed:true}
       ];
       chrome.tabs.sendMessage=async(id,msg)=>{
         if(msg.type!=='PC_GET_LIVE_CHAT_STATE')return {ok:true};
@@ -221,10 +227,12 @@ with sync_playwright() as p:
     assert result['fetchCount']==1 and result['governor']['totalThrottles']==1 and result['governor']['providers']['chatgpt']['waitMs']>0
     checks=[result['providerCheck1'],result['providerCheck2']]
     assert any(c.get('coolingDown') is True and c.get('source')=='request-governor' and c.get('retryAfterMs',0)>0 for c in checks)
-    assert result['livePulse']['openChatTabs']==4 and result['livePulse']['responsiveTabs']==4
-    assert result['livePulse']['counts']=={'active':1,'stale':1,'completed':2}
-    assert result['livePulse']['groups']['active'][0]['tabId']==101 and result['livePulse']['groups']['stale'][0]['tabId']==102
+    assert result['livePulse']['openChatTabs']==5 and result['livePulse']['responsiveTabs']==4 and result['livePulse']['partial'] is True
+    assert result['livePulse']['counts']=={'active':1,'stale':2,'completed':2}
+    assert result['livePulse']['groups']['active'][0]['tabId']==101 and {row['tabId'] for row in result['livePulse']['groups']['stale']}=={102,105}
     assert {row['tabId'] for row in result['livePulse']['groups']['completed']}=={103,104}
+    assert next(row for row in result['livePulse']['groups']['completed'] if row['tabId']==103)['tabGroup']=={'id':301,'title':'My Research','color':'blue','collapsed':True,'managed':False,'managedBucket':''}
+    reconnect=next(row for row in result['livePulse']['groups']['stale'] if row['tabId']==105);assert reconnect['reconnecting'] is True and reconnect['responsive'] is False and reconnect['status']=='unavailable'
     assert result['legacyIgnored']['ignored'] is True and result['legacyIgnored']['reason']=='non-sentinel-live-state'
     assert result['completedPush']['bucket']=='completed' and len(result['completionNotifications'])==1
     assert result['completionNotifications'][0]['options']['title']=='Chat finished' and result['completionNotifications'][0]['options']['message']=='Live A'
