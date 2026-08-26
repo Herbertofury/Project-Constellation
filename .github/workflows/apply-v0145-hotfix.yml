@@ -21,13 +21,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo 'a4760f5bd26a1dcb1b020f1ff06d17426ee230b70c3c3c8e528a7054780ba610  .github/hotfix/v0145.small.00' | sha256sum -c -
-          echo '2cb30b8aada5764b8f445abc4389cdbcd5720fea4fe3209954bcf0f5a6219406  .github/hotfix/v0145.small.01' | sha256sum -c -
-          echo 'c4b0635876a8074a4e5da5af271aab84914af130c279e25d91ca30854f201852  .github/hotfix/v0145.small.02' | sha256sum -c -
-          echo '22307cf977c5ed5fe91da993cdd657f046f5479996326fb49a33d316aca153ec  .github/hotfix/v0145.small.03' | sha256sum -c -
-          echo '9254d817a1a9b46d8048aa5107c73219f859de18c73db0e94ad833affb5eace2  .github/hotfix/v0145.small.04' | sha256sum -c -
-          echo 'a7bdf83c3ecb6edc3d0141ecfd520764905ab8c008d3d10d6b9ffbabc22dfdcc  .github/hotfix/v0145.small.05' | sha256sum -c -
-          cat .github/hotfix/v0145.small.* | base64 -d | xz -d > /tmp/v0145.patch
+          tr -d '\r\n ' < .github/hotfix/v0145.small.00 > /tmp/v0145.b64
+          for part in .github/hotfix/v0145.small.01 .github/hotfix/v0145.small.02 .github/hotfix/v0145.small.03 .github/hotfix/v0145.small.04 .github/hotfix/v0145.small.05; do tr -d '\r\n ' < "$part" >> /tmp/v0145.b64; done
+          base64 -d /tmp/v0145.b64 | xz -d > /tmp/v0145.patch
           echo 'f7cb50c105e4f70d0e58b0619bf02135e1880dab96e897a064821e359d0b4f62  /tmp/v0145.patch' | sha256sum -c -
           git apply --check /tmp/v0145.patch
           git apply /tmp/v0145.patch
