@@ -17,6 +17,26 @@
     </div>
     <p class="chat-pulse-hint" id="chatPulseHint">Click a status card to open its latest chat.</p>
   </section>
+  <section class="tab-beacons" id="tabBeaconsPanel" aria-label="Tab beacon settings">
+    <div class="section-head"><span>TAB BEACONS</span><small>title · favicon · groups</small></div>
+    <div class="beacon-toggle-grid">
+      <label><span>Master</span><input id="tabBeaconsEnabled" type="checkbox"></label>
+      <label><span>Title</span><input id="tabTitleStatusEnabled" type="checkbox"></label>
+      <label><span>Favicon</span><input id="tabFaviconStatusEnabled" type="checkbox"></label>
+      <label><span>Groups</span><input id="tabGroupingEnabled" type="checkbox"></label>
+    </div>
+    <div class="beacon-status-grid">
+      <div class="beacon-status-row active"><strong>Active</strong><input id="activeEmoji" class="emoji-input" maxlength="12" aria-label="Active emoji"><input id="activeColor" type="color" aria-label="Active color"><select id="activeGroupColor" aria-label="Active group color"></select></div>
+      <div class="beacon-status-row stale"><strong>Attention</strong><input id="staleEmoji" class="emoji-input" maxlength="12" aria-label="Attention emoji"><input id="staleColor" type="color" aria-label="Attention color"><select id="staleGroupColor" aria-label="Attention group color"></select></div>
+      <div class="beacon-status-row complete"><strong>Done</strong><input id="completedEmoji" class="emoji-input" maxlength="12" aria-label="Completed emoji"><input id="completedColor" type="color" aria-label="Completed color"><select id="completedGroupColor" aria-label="Completed group color"></select></div>
+    </div>
+    <div class="tab-tag-editor">
+      <div><strong>Emoji tag for this tab</strong><small>Persists with this chat. Right-click the page for quick tags too.</small></div>
+      <div class="tag-presets" id="tagPresets"><button type="button" data-tag="🔥">🔥</button><button type="button" data-tag="📌">📌</button><button type="button" data-tag="💡">💡</button><button type="button" data-tag="🧪">🧪</button><button type="button" data-tag="✅">✅</button></div>
+      <div class="tag-custom"><input id="customTabTag" maxlength="24" placeholder="emoji or short tag"><button id="applyTabTag" type="button">Apply</button><button id="clearTabTag" type="button">Clear</button></div>
+      <small id="tabTagHint">Open a supported AI chat to tag it.</small>
+    </div>
+  </section>
   <section class="controls">
     <label class="row"><span><strong>Performance engine</strong><small>Long-task pressure governor and jank protection</small></span><input id="enabled" type="checkbox"></label>
     <label class="row"><span><strong>Responsive scrolling</strong><small>Prevent smooth-scroll frame pileups</small></span><input id="responsiveScrolling" type="checkbox"></label>

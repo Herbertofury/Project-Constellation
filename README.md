@@ -10,6 +10,8 @@ The v0.14 line is the standalone successor to v0.13.0. This repository is now th
 - Preserves a local IndexedDB “brain,” immutable assistant-output revisions, full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.
 - Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, safe handoff guidance, and an always-available **Branch & continue** action.
+- Uses deeper ChatGPT-specific live-state proof when available: the page-world probe reduces the current transcript branch to sanitized status metadata (`finished_successfully`, `end_turn`, model/task/widget state) while the extension keeps exact current-turn DOM evidence as a fallback. Conversation text and ChatGPT authentication material never cross that probe boundary.
+- Adds **Tab Beacons** for open AI chats: configurable Active/Needs Attention/Completed emoji in tab titles, dynamic status favicons, optional native Chrome status groups, toolbar live counts, persistent custom emoji/short tags, and right-click tag presets.
 - Resolves opted-in ChatGPT connected-app cards as soon as they mount, including the current split **Allow ▾** control and provider-specific **Allow … for this conversation** option; recovered prompts are recorded only after the card visibly clears.
 - Adds an always-available, collapsible and full-workspace **Output Vault** beside Execution Pulse. The two surfaces share a collision-free corner dock, with Vault stacked above a compact live Pulse. It keeps the richest captured revision when a provider refresh replaces it with a shorter/tool-only state, reconstructs ChatGPT-like headings/lists/quotes/tables/code/links in Reader mode (with Raw text one click away), and recovers media references, inline media, files, builds, and revision history through copy, Markdown download, or a continuation branch.
 - Branches any supported conversation into a fresh provider chat with a durable checkpoint, automatic native-composer context transfer, parent/child lineage, and truthful prefilled/copied fallbacks when automatic sending is unavailable.
@@ -23,7 +25,7 @@ Supported surfaces currently include ChatGPT, Claude, Gemini, Grok, DeepSeek, Pe
 
 For a published release:
 
-1. Download `Project-Constellation-v0.14.0-unpacked.zip` and `SHA256SUMS.txt` from the GitHub Release.
+1. Download the latest `Project-Constellation-v*-unpacked.zip` and `SHA256SUMS.txt` from the GitHub Release.
 2. Verify the archive checksum.
 3. Extract the archive to a permanent folder.
 4. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder.
@@ -57,7 +59,7 @@ No OAuth client secret belongs in this repository or extension package.
 
 ## Safety and privacy
 
-- The content script performs no `fetch` or XHR requests.
+- The ordinary isolated content runtime performs no provider `fetch` or XHR requests. ChatGPT alone has a narrowly scoped MAIN-world probe that may make a same-origin transcript request using the existing browser session; only sanitized state metadata crosses into the extension, never transcript text or authentication material.
 - Output comparison is local and change-gated. Remote media never auto-loads in the vault; previews load only after an explicit click. Inline `data:` media can be embedded in the durable file record within a bounded size limit.
 - Google uses `chrome.identity` with the narrow `drive.file` scope.
 - GitHub uses device authorization, honors polling backoff, rotates refresh tokens, and retries one authenticated request after refresh.
@@ -106,6 +108,6 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 
 ## Verification status
 
-The repository runs six deterministic core suites, eighteen browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
+The repository runs six deterministic core suites, twenty-four browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).

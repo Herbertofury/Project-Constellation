@@ -4,7 +4,7 @@ Project Constellation treats ChatGPT’s web UI as a changing provider surface, 
 
 ## Current verified contracts
 
-Live compatibility was checked against `https://chatgpt.com/` on 2026-08-24. Current conversation turns use `data-testid="conversation-turn-N"` containers with nested `data-message-author-role` and `data-message-id`. The composer exposes a visible contenteditable element with role `textbox` and accessible name **Chat with ChatGPT**; the similarly named textarea can be hidden. Streaming exposes a visible **Stop answering** control and/or busy/streaming attributes.
+The v0.14.4 compatibility contract uses ChatGPT's current conversation-turn articles (`data-testid="conversation-turn-N"`, `data-turn="user|assistant"`, and nested message-role/message-id attributes), the exact generation Stop control, current-answer Copy control, and a sanitized current-branch transcript proof path. The transcript path is stronger than a DOM-only Stop/busy heuristic because ChatGPT can leave controls or layout state mounted briefly after a response has actually finished.
 
 Current agent activity uses legacy generic `group/tool-message` rows alongside concise step summaries styled with tertiary text classes; the active summary uses `loading-shimmer-tertiary`. Constellation prefers the active concise summary (for example, an observable “Inspecting…” or “Implementing…” label), deduplicates nested copies, and keeps generic `Called tool` rows only as bounded step-count evidence.
 
@@ -20,7 +20,7 @@ The selector strategy prefers top-level conversation-turn containers, then falls
 - a bounded local activity ledger for response DOM changes, page status, tool progress, handoff/recovery, and request start/response/completion.
 - a hydrated, bottom-of-conversation output-tail fingerprint used to detect missing or meaningfully shortened assistant revisions after a refresh.
 
-The content script makes no network calls, does not patch ChatGPT JavaScript, does not remove messages, and does not depend on undocumented ChatGPT backend APIs. It cannot see private chain-of-thought and never pretends otherwise. Request URLs and prompt content are not placed in the HUD ledger; only a sanitized category, lifecycle phase, method/status, and duration are exposed. History/sidebar/session traffic is auxiliary and cannot prove that the model is alive.
+The ordinary isolated content runtime makes no provider network calls, does not remove messages, and cannot see private chain-of-thought. ChatGPT has one deliberately narrow exception: `chatgpt-page-probe.js` runs in the page's MAIN world and may read the current same-origin conversation transcript to derive status metadata. It exposes only a sanitized envelope (message/current-node IDs, status, `end_turn`, model slug, async/widget state, semantic phase/tool count, and a numeric progress value only when ChatGPT provides one). Transcript text and authentication material never cross to the isolated extension runtime. If transcript proof is unavailable or stale relative to the newest visible user turn, Constellation falls back to exact current-turn DOM evidence. Sanitized request lifecycle remains telemetry and cannot by itself prove the model is alive.
 
 The Pulse's **Branch & continue** control uses only an explicit user click, the normal ChatGPT new-chat route, and the visible native composer. It waits for the usable composer/send control, dispatches native input events, confirms a send from observable composer/route changes, and then links the resulting chat ID to the source checkpoint. It does not call a hidden conversation API, overwrite existing draft text, or claim success from a click alone.
 
@@ -40,7 +40,9 @@ When ChatGPT changes:
 2. Capture accessibility and non-sensitive DOM attribute evidence.
 3. Update provider-specific selectors with semantic fallbacks.
 4. Add a minimized current-DOM fixture under `tests/smoke/`.
-5. Verify exactly-once turns, composer preservation, status/tool behavior, no content-script fetch, and bounded message counts.
+5. Verify exactly-once turns, composer preservation, transcript/DOM state precedence, status/tool behavior, sanitized probe isolation, and bounded message counts.
 6. Run the complete suite and update the “current verified” date.
 
 `tests/smoke/chatgpt_current_dom_smoke.py` is the turn/composer compatibility sentinel. `tests/smoke/approval_recovery_smoke.py` includes the current generic-card, nested icon-only split button, portalled provider menu, and mutation-triggered automatic approval contract.
+
+`tests/smoke/chatgpt_transcript_probe_smoke.py` verifies the sanitized transcript contract; `tests/smoke/live_sentinel_smoke.py` verifies transcript/DOM-independent state behavior and HUD stability; `tests/smoke/tab_beacon_smoke.py` verifies tab title/favicon ownership and restoration.

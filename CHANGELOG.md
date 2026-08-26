@@ -2,6 +2,31 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.4 - Deep State + Tab Beacons
+
+### Added
+
+- Added a ChatGPT-only MAIN-world transcript probe that reduces the current conversation branch to sanitized generation metadata. Explicit `finished_successfully` + `end_turn` completion and unfinished current-node state can now outrank stale DOM controls without exposing conversation text or authentication material to the extension runtime.
+- Added Deep Research/widget awareness, async-task metadata, model slug, semantic phase, tool count, and real numeric progress only when ChatGPT itself provides it.
+- Added a full Tab Beacon system, enabled by default: configurable status emoji in tab titles, dynamic color favicons, native Active/Needs Attention/Completed tab groups, toolbar status/count badge, persistent manual emoji/short tags, and right-click tag presets.
+- Added version-aware hot injection of the ChatGPT page probe, Live Sentinel, and Tab Beacon into already-open supported tabs.
+- Added `npm run test:live-browser`, a persistent Chromium/Chrome-compatible unpacked-extension harness for signed-in live-site acceptance in environments that permit it.
+
+### Fixed
+
+- Replaced the remaining broad ChatGPT live-state fallback with exact current-turn semantics. Generic page-wide busy/loading wrappers, old answer controls, ordinary assistant prose, and auxiliary provider traffic can no longer decide that a chat is running.
+- Aligned transcript authority to the newest visible user turn so a stale conversation snapshot cannot mark a newly submitted prompt complete.
+- Classified ChatGPT response, Codex-response, and deep-research SSE/task transports for diagnostics while keeping network traffic non-authoritative.
+- Made transcript confirmation event-driven at authoritative response-stream completion and slowed routine transcript polling, reducing redundant same-origin conversation reads during long-running chats.
+- Unified popup Chat Pulse, Execution Pulse, completion notifications, title/favicon presentation, native tab grouping, and action-badge state around the same canonical live-tab record.
+- Preserved user-created tab groups: automatic grouping only owns groups created with the Project Constellation prefix and will not pull a tab out of an unrelated existing group.
+
+### Tests
+
+- Added real-Chromium transcript tests for running/final states, Deep Research widget completion, model metadata, explicit progress, and token/content isolation.
+- Added real-Chromium Tab Beacon tests for title/favicons, site-driven title renames, manual tags, status changes, and exact cleanup on disable.
+- Retained the previous false-complete, false-active, HUD-race, network-tail, Output Vault-secondary, and active-to-completed regressions.
+
 ## 0.14.3 - Stable Live State Hotfix
 
 ### Fixed
