@@ -14,6 +14,7 @@
     outputWarningStrictness:'balanced',
     branchReviewBeforeSend:true,
     completionNotificationsEnabled:true,
+    attentionNotificationsEnabled:true,
     tabBeaconsEnabled:true,
     tabTitleStatusEnabled:true,
     tabFaviconStatusEnabled:true,
@@ -29,7 +30,7 @@
   const ids = [
     'enabled','responsiveScrolling','adaptiveMotionRelief','pressure','status','longTasks','maxTask','provider','chatState','resetMetrics',
     'openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','activeSummary','staleSummary','completedSummary','activeCount','staleCount','completedCount',
-    'activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled',
+    'activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled',
     'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor',
     'activeGroupColor','staleGroupColor','completedGroupColor','customTabTag','applyTabTag','clearTabTag','tabTagHint','tagPresets','chatListPanel','chatListEyebrow','chatListTitle','chatList','closeChatList'
   ];
@@ -57,7 +58,7 @@
 
   function renderSettings() {
     for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].checked = Boolean(currentSettings[key]);
-    for (const key of ['statusPinEnabled','outputWarningsEnabled','branchReviewBeforeSend','completionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled']) els[key].checked = pulseSettings[key] !== false;
+    for (const key of ['statusPinEnabled','outputWarningsEnabled','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled']) els[key].checked = pulseSettings[key] !== false;
     els.outputWarningStrictness.value = ['relaxed','balanced','strict'].includes(pulseSettings.outputWarningStrictness) ? pulseSettings.outputWarningStrictness : 'balanced';
     for (const key of ['activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].value = pulseSettings[key] || PULSE_DEFAULTS[key];
     els.chatPulse.hidden = pulseSettings.statusPinEnabled === false;
@@ -282,7 +283,7 @@
   }
 
   for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].addEventListener('change', savePerformance);
-  for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
+  for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
 
   for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click', () => {
     const bucket = card.dataset.chatBucket || (card === els.completedSummary ? 'completed' : card === els.staleSummary ? 'stale' : 'active');

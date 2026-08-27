@@ -34,6 +34,20 @@ with sync_playwright() as p:
     active=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     hud_active=page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthTitle').textContent")
 
+    # An unchanged spinner/tool label is an activity claim, not proof of progress.
+    # The no-progress clock must keep aging while total response time also advances.
+    page.wait_for_timeout(1400)
+    quiet=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+    # The v6 health renderer owns watchdog/capacity severity. The Sentinel must carry
+    # that state into canonical Chat Pulse instead of repainting it as merely active.
+    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='6'; h.dataset.state='tool-stalled'; h.dataset.level='danger'; }""")
+    page.wait_for_timeout(220)
+    watchdog=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); delete h.dataset.watchdog; h.dataset.state='tool-running'; h.dataset.level='active'; }""")
+    page.evaluate("document.getElementById('inspecting').textContent='Inspecting mob animation rendering logic phase 2'")
+    page.wait_for_timeout(220)
+    moved=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+
     # Finish the exact reported current frontier, then include final prose containing
     # words such as verification/building. Ordinary assistant prose must never be
     # reinterpreted as live tool work.
@@ -58,12 +72,20 @@ with sync_playwright() as p:
       return {bad:frames.filter(x=>x[0]!=='healthy'||x[1]!=='healthy'||x[2]!=='Chat complete'),diag:ProjectConstellationLiveSentinel.diagnostics()};
     }""")
 
-    print(json.dumps({'active':active,'hudActive':hud_active,'done':done,'guard':guard,'errors':errors},sort_keys=True))
+    print(json.dumps({'active':active,'quiet':quiet,'watchdog':watchdog,'moved':moved,'hudActive':hud_active,'done':done,'guard':guard,'errors':errors},sort_keys=True))
     assert active['ok'] and active['chat']['status']=='running'
     assert active['generation']['active'] is True and active['generation']['progressiveTool'] is True
     assert active['generation']['source']=='current-progress-label'
     assert active['generation']['toolLabel']=='Inspecting mob animation rendering logic'
     assert active['tool']['current'] is True
+    assert quiet['generation']['active'] is True
+    assert quiet['tool']['lastProgressAt']==active['tool']['lastProgressAt'], (active, quiet)
+    assert quiet['generation']['quietForMs'] >= 1000, quiet
+    assert quiet['generation']['elapsedMs'] >= active['generation']['elapsedMs'] + 1000, (active, quiet)
+    assert watchdog['chat']['healthState']=='tool-stalled' and watchdog['healthStale'] is True and watchdog['healthActive'] is False, watchdog
+    assert moved['tool']['lastProgressAt'] > quiet['tool']['lastProgressAt'], (quiet, moved)
+    assert moved['generation']['quietForMs'] < 900, moved
+    assert moved['generation']['elapsedMs'] >= quiet['generation']['elapsedMs'], (quiet, moved)
     assert hud_active.startswith('Tool working')
     assert done['ok'] and done['chat']['status']=='idle' and done['generation']['active'] is False
     assert done['generation']['finalControls'] is True

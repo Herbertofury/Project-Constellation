@@ -37,6 +37,7 @@ const INTEGRITY_MAINTENANCE_ALARM = 'project-constellation-integrity-maintenance
 const KNOWLEDGE_INDEX_ALARM = 'project-constellation-knowledge-index';
 const KNOWLEDGE_BACKFILL_KEY = 'projectConstellationKnowledgeBackfill';
 const LIVE_HEALTH_CONTEXT_TTL_MS = 5000;
+const CAPACITY_STATS_TTL_MS = 15000;
 const LIVE_NETWORK_TTL_MS = 10 * 60 * 1000;
 const BRANCH_CONTINUATION_KEY = 'projectConstellationPendingBranch';
 const BRANCH_LINEAGE_KEY = 'projectConstellationBranchLineage';
@@ -45,11 +46,12 @@ const TAB_TAGS_KEY = 'projectConstellationTabTags';
 const LIVE_CHAT_PULSE_TTL_MS = 1400;
 const LIVE_CHAT_PROBE_TIMEOUT_MS = 1600;
 const LIVE_CHAT_FALLBACK_TTL_MS = 30000;
+const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.4';
-const CHATGPT_PAGE_PROBE_VERSION = '0.14.4';
+const LIVE_SENTINEL_VERSION = '0.14.7';
+const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
@@ -60,6 +62,7 @@ let liveChatPulseCache = null;
 let liveChatPulseCacheAt = 0;
 let liveChatPulseRequest = null;
 const liveHealthContextCache = new Map();
+const capacityStatsCache = new Map();
 const liveRowContextCache = new Map();
 const LIVE_ROW_CONTEXT_TTL_MS = 10000;
 const tabPresentationSignatures = new Map();
@@ -326,6 +329,48 @@ async function latestTurnsForChat(chatId, limit = 5) {
   } finally { db.close(); }
 }
 
+async function conversationCapacityStats(chatId) {
+  if (!chatId) return { storedTurns:0, storedChars:0, recentAverageChars:0 };
+  const id = String(chatId);
+  const now = Date.now();
+  const cached = capacityStatsCache.get(id);
+  if (cached && now - cached.at <= CAPACITY_STATS_TTL_MS) return cached.value;
+  const db = await openDb();
+  try {
+    const store = db.transaction('turns', 'readonly').objectStore('turns');
+    if (!store.indexNames.contains('chatId')) {
+      const value = { storedTurns:0, storedChars:0, recentAverageChars:0 };
+      capacityStatsCache.set(id, { at:now, value });
+      return value;
+    }
+    const index = store.index('chatId');
+    const recent = [];
+    let storedTurns = 0;
+    let storedChars = 0;
+    await new Promise((resolve, reject) => {
+      const request = index.openCursor(indexedDbOnly(id, 'turns.chatId'));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) { resolve(); return; }
+        const row = cursor.value || {};
+        const chars = Math.max(0, String(row.text || '').length);
+        storedTurns += 1;
+        storedChars += chars;
+        recent.push({ ordinal:Number(row.ordinal || 0), chars });
+        if (recent.length > 24) { recent.sort((a,b)=>b.ordinal-a.ordinal); recent.length = 12; }
+        cursor.continue();
+      };
+      request.onerror = () => reject(request.error);
+    });
+    recent.sort((a,b)=>b.ordinal-a.ordinal);
+    const window = recent.slice(0, 12).map((row)=>row.chars).filter((value)=>value > 0);
+    const recentAverageChars = window.length ? Math.round(window.reduce((sum,value)=>sum+value,0) / window.length) : 0;
+    const value = { storedTurns, storedChars, recentAverageChars };
+    capacityStatsCache.set(id, { at:now, value });
+    return value;
+  } finally { db.close(); }
+}
+
 async function recentTurnRecordsForChat(chatId, limit = 12) {
   if (!chatId) return [];
   const safeLimit = Math.max(1, Math.min(Number(limit) || 12, 96));
@@ -406,7 +451,7 @@ async function liveHealthContext(chatId, tabId) {
   let cached = liveHealthContextCache.get(id);
   if (!cached || now - cached.at > LIVE_HEALTH_CONTEXT_TTL_MS) {
     const chat = id ? await getOne('chats', id) : null;
-    const [latestTurns, storedTurns] = id ? await Promise.all([latestTurnsForChat(id, 5), countByIndex('turns', 'chatId', id)]) : [[], 0];
+    const [latestTurns, capacityStats] = id ? await Promise.all([latestTurnsForChat(id, 5), conversationCapacityStats(id)]) : [[], { storedTurns:0, storedChars:0, recentAverageChars:0 }];
     const projectId = chat?.workspaceProjectId || chat?.projectId || '';
     let findings = [];
     let baseline = null;
@@ -414,7 +459,7 @@ async function liveHealthContext(chatId, tabId) {
       findings = (await getAllByIndex('integrityFindings', 'projectId', projectId)).filter((row) => !row.resolved && (!row.chatId || row.chatId === id)).slice(0, 24);
       baseline = await getOne('projectBaselines', projectId);
     }
-    cached = { at: now, chat: chat ? { id: chat.id, title: chat.title || '', status: chat.status || 'idle', statusDetail: chat.statusDetail || '', projectId: chat.projectId || '', projectName: chat.projectName || '', workspaceProjectId: chat.workspaceProjectId || '', workspaceProjectName: chat.workspaceProjectName || '', lastActivityAt: chat.lastActivityAt || 0, updatedAt: chat.updatedAt || 0, integrityHealth: chat.integrityHealth || '', coverage: chat.coverage || '', source: chat.source || '', catalogFetchedAt: chat.catalogFetchedAt || 0, outputRegression:chat.outputRegression || null } : null, latestTurns, capacity: { storedTurns }, findings, baseline: baseline ? { projectId: baseline.projectId || projectId, projectName: baseline.projectName || '', latestVersion: baseline.latestVersion || '', health: baseline.health || '', counts: baseline.counts || {}, updatedAt: baseline.updatedAt || 0 } : null };
+    cached = { at: now, chat: chat ? { id: chat.id, title: chat.title || '', status: chat.status || 'idle', statusDetail: chat.statusDetail || '', projectId: chat.projectId || '', projectName: chat.projectName || '', workspaceProjectId: chat.workspaceProjectId || '', workspaceProjectName: chat.workspaceProjectName || '', lastActivityAt: chat.lastActivityAt || 0, updatedAt: chat.updatedAt || 0, integrityHealth: chat.integrityHealth || '', coverage: chat.coverage || '', source: chat.source || '', catalogFetchedAt: chat.catalogFetchedAt || 0, outputRegression:chat.outputRegression || null } : null, latestTurns, capacity: capacityStats, findings, baseline: baseline ? { projectId: baseline.projectId || projectId, projectName: baseline.projectName || '', latestVersion: baseline.latestVersion || '', health: baseline.health || '', counts: baseline.counts || {}, updatedAt: baseline.updatedAt || 0 } : null };
     liveHealthContextCache.set(id, cached);
   }
   const cfg = await settings();
@@ -787,6 +832,7 @@ async function searchBrain(query, limit = 60) {
 
 
 async function deleteAllStores() {
+  capacityStatsCache.clear();
   const db = await openDb();
   try {
     for (const name of [...Object.keys(STORE_DEFS), SEARCH_STORE]) {
@@ -1678,8 +1724,8 @@ async function ingestBatch(items) {
   }
 
   if (chats.length || turns.length || files.length || statusEvents.length) {
-    for (const row of chats) if (row?.id) liveRowContextCache.delete(String(row.id));
-    for (const turn of canonicalTurns) if (turn?.chatId) liveRowContextCache.delete(String(turn.chatId));
+    for (const row of chats) if (row?.id) { liveRowContextCache.delete(String(row.id)); liveHealthContextCache.delete(String(row.id)); }
+    for (const turn of canonicalTurns) if (turn?.chatId) { liveRowContextCache.delete(String(turn.chatId)); liveHealthContextCache.delete(String(turn.chatId)); }
     await addEvent('capture-batch', 'brain', '', chats.at(-1)?.id || turns.at(-1)?.chatId || files.at(-1)?.chatId || '', { chats: chats.length, turns: turns.length, files: files.length, statuses: statusEvents.length });
     markDriveDirty().catch(() => {});
     scheduleIntegrityScan(5000).catch(() => {});
@@ -3419,7 +3465,7 @@ function handoffMarkdown({ checkpointId, generatedAt, chat, baseline, capacity, 
     `Provider: ${chat?.providerName || chat?.providerId || 'unknown'}`,
     `Project: ${projectName}${projectId ? ` (${projectId})` : ''}`,
     `Latest tracked project version: ${baseline?.latestVersion || 'not inferred'}`,
-    `Conversation capacity evidence: ${Number(capacity?.turnCount || capacity?.storedTurns || 0)} captured turns${Number(capacity?.capturedChars || 0) ? ` · ${Number(capacity.capturedChars)} captured characters in the current mounted session` : ''}`,
+    `Conversation capacity evidence: ${Number(capacity?.turnCount || capacity?.storedTurns || 0)} captured turns${Number(capacity?.capturedChars || 0) ? ` · ${Number(capacity.capturedChars)} measured characters across the stored/observable branch` : ''}`,
     `Durability: ${drive?.verified ? 'Google Drive full snapshot round-trip verified' : drive?.attempted ? 'Local handoff checkpoint saved; Google Drive verification pending/failed for this click' : 'Local handoff checkpoint saved; Google Drive is not currently connected/provisioned in the extension'}`,
     '',
     '## Resume instruction',
@@ -3711,7 +3757,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 
 const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working']);
-const LIVE_STALE_HEALTH_STATES = new Set(['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page']);
+const LIVE_STALE_HEALTH_STATES = new Set(['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page','capacity-watch','capacity-handoff','capacity-reached']);
+const LIVE_NOTIFY_ATTENTION_STATES = new Set(['stalled','dead','request-stalled','tool-stalled','tool-dead','capacity-watch','capacity-handoff','capacity-reached']);
 const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
 
 function livePulseBucket(state = {}, network = {}) {
@@ -3728,6 +3775,7 @@ function livePulseBucket(state = {}, network = {}) {
 
 const TAB_BEACON_DEFAULTS = Object.freeze({
   completionNotificationsEnabled:true,
+  attentionNotificationsEnabled:true,
   branchReviewBeforeSend:true,
   tabBeaconsEnabled:true,
   tabTitleStatusEnabled:true,
@@ -3959,6 +4007,27 @@ async function notifyChatCompletion(row) {
   } catch (_) {}
 }
 
+async function notifyChatAttention(row) {
+  const cfg = await pulseUxSettings();
+  const healthState = String(row?.healthState || '');
+  if (cfg.attentionNotificationsEnabled === false || !LIVE_NOTIFY_ATTENTION_STATES.has(healthState) || !chrome.notifications?.create) return;
+  const capacity = healthState.startsWith('capacity-');
+  const critical = ['dead','tool-dead','capacity-reached'].includes(healthState);
+  const title = capacity ? (healthState === 'capacity-watch' ? 'Chat runway is narrowing' : 'Secure a chat handoff') : (critical ? 'Chat may be dead' : 'Chat may be stalled');
+  const task = String(row?.task || row?.title || row?.providerName || 'AI chat').slice(0, 180);
+  const suffix = capacity ? 'Project Constellation measured the full available branch and raised your proactive runway threshold.' : 'No meaningful response/tool progress has been observed past your watchdog threshold.';
+  const notificationId = `pc-chat-attention:${Number(row?.tabId || 0)}:${healthState}:${Date.now()}`;
+  try {
+    await chrome.notifications.create(notificationId, {
+      type:'basic',
+      iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
+      title,
+      message:`${task} · ${suffix}`.slice(0, 320),
+      contextMessage:'Project Constellation · Needs Attention'
+    });
+  } catch (_) {}
+}
+
 function rememberLiveTabState(row, { notify = true } = {}) {
   const tabId = Number(row?.tabId || 0);
   if (!tabId) return;
@@ -3967,6 +4036,7 @@ function rememberLiveTabState(row, { notify = true } = {}) {
   liveChatPulseCacheAt = 0;
   syncTabPresentation(row).catch(() => {});
   if (notify && previous?.bucket === 'active' && row.bucket === 'completed') notifyChatCompletion(row).catch(() => {});
+  if (notify && row.bucket === 'stale' && previous?.healthState !== row.healthState && LIVE_NOTIFY_ATTENTION_STATES.has(String(row.healthState || ''))) notifyChatAttention(row).catch(() => {});
 }
 
 function livePulseDomProbe() {
@@ -4036,7 +4106,7 @@ async function ensureLiveSentinel(tabId) {
   const existing = await readLiveSentinelState(id);
   if (existing?.version === LIVE_SENTINEL_VERSION) return existing;
   try {
-    await chrome.scripting.executeScript({ target:{ tabId:id }, files:[LIVE_SENTINEL_FILE] });
+    await chrome.scripting.executeScript({ target:{ tabId:id }, files:[HEALTH_CORE_FILE, LIVE_SENTINEL_FILE] });
   } catch (_) { return existing || null; }
   return readLiveSentinelState(id);
 }

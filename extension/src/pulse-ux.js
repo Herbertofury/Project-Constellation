@@ -9,7 +9,8 @@
     outputWarningsEnabled: true,
     outputWarningStrictness: 'balanced',
     branchReviewBeforeSend: true,
-    completionNotificationsEnabled: true
+    completionNotificationsEnabled: true,
+    attentionNotificationsEnabled: true
   });
   const ACTIVE_STATUSES = new Set(['running']);
   const STALE_STATUSES = new Set(['paused', 'waiting-user', 'blocked-approval', 'refresh-required', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
@@ -35,6 +36,8 @@
     const next = { ...DEFAULTS, ...(input || {}) };
     next.statusPinEnabled = next.statusPinEnabled !== false;
     next.outputWarningsEnabled = next.outputWarningsEnabled !== false;
+    next.completionNotificationsEnabled = next.completionNotificationsEnabled !== false;
+    next.attentionNotificationsEnabled = next.attentionNotificationsEnabled !== false;
     next.outputWarningStrictness = STRICTNESS.has(String(next.outputWarningStrictness || '')) ? String(next.outputWarningStrictness) : DEFAULTS.outputWarningStrictness;
     return next;
   };

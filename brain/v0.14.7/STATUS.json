@@ -1,0 +1,16 @@
+{
+  "version": "0.14.7",
+  "codename": "Runway Sentinel",
+  "status": "implementation-complete-verification-in-progress",
+  "base": "v0.14.6",
+  "base_commit": "0286951dbfd36a0e5949fa64878bef8156abf3be",
+  "focus": [
+    "reload-proof conversation capacity warning",
+    "total response chronograph plus meaningful no-progress clock",
+    "multi-signal stall detection without unchanged-spinner false heartbeats",
+    "canonical Chat Pulse propagation and one-shot stall/runway alerts",
+    "no-refresh hot-upgrade watchdog/runway continuity for already-open tabs",
+    "bounded performance overhead"
+  ],
+  "updated_at": "2026-08-27T23:22:45Z"
+}
