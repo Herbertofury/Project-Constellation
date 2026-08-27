@@ -5,19 +5,19 @@ root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project
 probe=(root/'src/chatgpt-page-probe.js').read_text()
 conversation_id='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
 
-user={'id':'u-current','parent':None,'children':['a-current'],'message':{'id':'u-current','author':{'role':'user'},'status':'finished_successfully','end_turn':False,'metadata':{}}}
+user={'id':'u-current','parent':None,'children':['a-current'],'message':{'id':'u-current','author':{'role':'user'},'status':'finished_successfully','end_turn':False,'create_time':1787860000,'content':{'content_type':'text','parts':['Continue the long-running Project Constellation extension work.']},'metadata':{}}}
 running={'id':conversation_id,'current_node':'a-current','mapping':{
   'u-current':user,
-  'a-current':{'id':'a-current','parent':'u-current','children':[],'message':{'id':'a-current','author':{'role':'assistant'},'status':'in_progress','end_turn':False,'metadata':{'model_slug':'gpt-5.6-sol'}}}
+  'a-current':{'id':'a-current','parent':'u-current','children':[],'message':{'id':'a-current','author':{'role':'assistant'},'status':'in_progress','end_turn':False,'create_time':1787860004,'update_time':1787860012,'content':{'content_type':'text','parts':['I am still growing this answer while tools continue to run.']},'metadata':{'model_slug':'gpt-5.6-sol'}}}
 }}
 finished={'id':conversation_id,'current_node':'a-current','mapping':{
   'u-current':user,
-  'a-current':{'id':'a-current','parent':'u-current','children':[],'message':{'id':'a-current','author':{'role':'assistant'},'status':'finished_successfully','end_turn':True,'metadata':{'model_slug':'gpt-5.6-sol','is_complete':True}}}
+  'a-current':{'id':'a-current','parent':'u-current','children':[],'message':{'id':'a-current','author':{'role':'assistant'},'status':'finished_successfully','end_turn':True,'create_time':1787860004,'update_time':1787860025,'content':{'content_type':'text','parts':['The complete answer is now finished and verified.']},'metadata':{'model_slug':'gpt-5.6-sol','is_complete':True}}}
 }}
 deep={'id':conversation_id,'current_node':'tool2','mapping':{
   'u-current':{'id':'u-current','parent':None,'children':['tool1'],'message':user['message']},
   'tool1':{'id':'tool1','parent':'u-current','children':['tool2'],'message':{'id':'tool1','author':{'role':'tool','name':'research_kickoff_tool.start_research_task'},'status':'finished_successfully','end_turn':False,'metadata':{'async_task_id':'deepresch_test','chatgpt_sdk.widget_state':{'status':'running','progress':{'percent':42}}}}},
-  'tool2':{'id':'tool2','parent':'tool1','children':[],'message':{'id':'tool2','author':{'role':'assistant'},'status':'in_progress','end_turn':False,'metadata':{'model_slug':'gpt-5.6-sol'}}}
+  'tool2':{'id':'tool2','parent':'tool1','children':[],'message':{'id':'tool2','author':{'role':'assistant'},'status':'in_progress','end_turn':False,'create_time':1787860030,'update_time':1787860040,'content':{'content_type':'text','parts':['Research synthesis is still streaming.']},'metadata':{'model_slug':'gpt-5.6-sol'}}}
 }}
 
 with sync_playwright() as p:
@@ -46,10 +46,17 @@ with sync_playwright() as p:
     print(serialized)
     assert running_state['running'] is True and running_state['final'] is False and running_state['transcriptStatus']=='running'
     assert running_state['modelSlug']=='gpt-5.6-sol' and running_state['latestUserMessageId']=='u-current'
+    assert running_state['visibleTurnCount']==2 and running_state['activeBranchMessages']==2
+    assert running_state['contextChars'] > 60 and running_state['visibleChars']==running_state['contextChars']
+    assert running_state['latestAssistantChars'] > 20 and running_state['recentAverageChars'] > 20
+    assert running_state['responseStartedAt']==1787860004000 and running_state['latestAssistantCreatedAt']==1787860004000
+    assert running_state['latestUserCreatedAt']==1787860000000 and running_state['latestAssistantUpdatedAt']==1787860012000
     assert finished_state['final'] is True and finished_state['running'] is False and finished_state['transcriptStatus']=='finished'
     assert finished_state['endTurn'] is True and finished_state['isComplete'] is True
     assert deep_state['running'] is True and deep_state['phase']=='deep-research'
     assert deep_state['progressPercent']==42 and deep_state['asyncTaskId']=='deepresch_test'
+    assert deep_state['visibleTurnCount']==2 and deep_state['activeBranchMessages']==3
+    assert deep_state['contextChars'] > 40 and deep_state['latestAssistantChars'] > 20
     assert 'SECRET_MUST_STAY_IN_MAIN_WORLD' not in serialized
     assert not errors
     browser.close()

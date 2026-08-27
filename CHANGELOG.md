@@ -2,6 +2,32 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.7 - Runway Sentinel
+
+### Fixed
+
+- Replaced mount-local capacity counting with full stored/transcript branch evidence so long ChatGPT conversations still warn correctly after an extension reload/update.
+- Removed fake progress heartbeats from unchanged spinner/tool labels and repeated `running` transcript polls. Watchdog age now resets only when observable progress actually changes.
+- Prevented the fast Live Sentinel from downgrading an authoritative Tool Watchdog stall or Capacity Guard state back to ordinary `working`, including in canonical Chat Pulse state.
+- Fixed extension-update continuity for already-open tabs: hot injection now carries the current Health Core with Runway Sentinel, so legacy tabs can detect stalls/runway danger without a page refresh.
+
+### Added
+
+- Added separate **Response time** and **No progress** clocks to Execution Pulse. The first measures total output duration; the second measures silence since meaningful progress.
+- Added full active-branch numeric metadata for ChatGPT: turn/message counts, measured characters, recent average size, current assistant size, and response timestamps, without exporting transcript text from MAIN world.
+- Added predictive heavy-turn runway warnings and canonical `capacity-watch`, `capacity-handoff`, and `capacity-reached` Needs Attention states.
+- Added separately toggleable native **Stall & runway alerts** for first entry into a real stall/dead or capacity-attention state.
+
+### Performance / privacy
+
+- Added a 15-second capacity-aggregate cache so streaming capture cannot repeatedly rescan an entire chat's IndexedDB turn history.
+- ChatGPT transcript proof is reduced to bounded metadata before it reaches extension state; access tokens and transcript text remain in MAIN world.
+
+### Tests
+
+- Added browser regressions for unchanged-spinner aging, real-progress reset, response elapsed time, watchdog-to-Chat-Pulse propagation, full-branch capacity metadata, native runway notifications, and no-refresh legacy-tab hot upgrades.
+- Expanded health-core regressions for stored-character reload persistence, full transcript-turn dominance, and predictive large-message runway.
+
 ## 0.14.6 - Context Lens
 
 ### Added

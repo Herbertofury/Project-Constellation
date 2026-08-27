@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.4';
+  const VERSION = '0.14.7';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -41,6 +41,9 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
+  const HEALTH_CORE_VERSION = '6';
+  const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
+  const WATCHDOG_PRIMARY_STATES = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','capacity-watch','capacity-handoff','capacity-reached']);
   const CHATGPT_PAGE_PROBE_REQUEST_SOURCE = 'project-constellation';
 
 
@@ -64,6 +67,11 @@
   let stableSince = Date.now();
   let lastProgressAt = 0;
   let lastActivityAt = Date.now();
+  let responseStartedAt = 0;
+  let lastResponseDurationMs = 0;
+  let lastResponseCompletedAt = 0;
+  let lastToolProgressSignature = '';
+  let lastTranscriptProgressSignature = '';
   let lastState = null;
   let lastPushSignature = '';
   let lastPushAt = 0;
@@ -76,6 +84,8 @@
   let transcriptNonce = '';
   let transcriptTimer = 0;
   let pageMessageListener = null;
+  let storageListener = null;
+  let healthSettings = null;
 
 
   const clean = (value, max = 240) => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -375,30 +385,48 @@
     return clean(node.getAttribute?.('data-message-id') || node.getAttribute?.('data-testid') || node.textContent || '', 300);
   }
 
+  function toolProgressSignature(rows = []) {
+    return rows.slice(-12).map((row) => `${clean(row.label || '', 180)}|${row.phase || ''}|${row.activeLabel ? 1 : 0}|${row.busy ? 1 : 0}|${row.finishedLabel ? 1 : 0}`).join('||');
+  }
+
   function updateProgressClocks(frontier, completion, rows, at) {
     const userKey = nodeKey(frontier.latestUser);
+    const rowSignature = toolProgressSignature(rows);
     if (!initialized) {
       lastUserKey = userKey;
       lastAssistantFingerprint = completion.fingerprint || '';
+      lastToolProgressSignature = rowSignature;
+      if (userKey) lastProgressAt = at;
       return;
     }
     if (userKey && userKey !== lastUserKey) {
       lastUserKey = userKey;
       lastUserStartedAt = at;
+      responseStartedAt = at;
       lastAssistantFingerprint = '';
       lastAssistantGrowthAt = 0;
+      lastProgressAt = at;
       lastActivityAt = at;
+      lastToolProgressSignature = '';
+      lastTranscriptProgressSignature = '';
     }
     if (completion.hasAssistant && completion.fingerprint && completion.fingerprint !== lastAssistantFingerprint) {
       if (!completion.finalControls) {
         lastAssistantGrowthAt = at;
+        lastProgressAt = at;
         lastActivityAt = at;
       }
       lastAssistantFingerprint = completion.fingerprint;
     }
-    if (rows.some((row) => row.activeLabel || row.busy)) {
+    // A persistent spinner/active label is proof that the provider still *claims* work is
+    // active, not proof of forward progress. Only a changed current-tool signature resets
+    // the stall clock. This is what lets the watchdog distinguish slow work from a zombie UI.
+    if (rowSignature && rowSignature !== lastToolProgressSignature) {
+      lastToolProgressSignature = rowSignature;
       lastProgressAt = at;
       lastActivityAt = at;
+    } else if (!rowSignature) {
+      lastToolProgressSignature = '';
     }
   }
 
@@ -422,6 +450,90 @@
     if (/session expired/.test(lower)) return 'auth-required';
     if (/conversation.{0,30}(not found|unavailable|deleted)|page not found/.test(lower)) return 'unavailable';
     return 'idle';
+  }
+
+  function healthCore() {
+    const core = globalThis.ProjectConstellationHealthCore;
+    return core?.deriveHealth && core?.deriveCapacity ? core : null;
+  }
+
+  function normalizedHealthSettings() {
+    const core = healthCore();
+    if (!core) return null;
+    try { return core.normalizeSettings?.({ ...(core.DEFAULTS || {}), ...(healthSettings || {}) }) || { ...(core.DEFAULTS || {}), ...(healthSettings || {}) }; }
+    catch (_) { return { ...(core.DEFAULTS || {}), ...(healthSettings || {}) }; }
+  }
+
+  function refreshHealthSettings() {
+    if (!chrome?.storage?.local?.get) return;
+    Promise.resolve(chrome.storage.local.get(BRAIN_SETTINGS_KEY)).then((stored) => {
+      const core = healthCore();
+      if (!core) return;
+      healthSettings = core.normalizeSettings?.({ ...(core.DEFAULTS || {}), ...(stored?.[BRAIN_SETTINGS_KEY]?.liveHealth || {}) }) || { ...(core.DEFAULTS || {}), ...(stored?.[BRAIN_SETTINGS_KEY]?.liveHealth || {}) };
+      scheduleScan(20);
+    }).catch(() => {});
+  }
+
+  function explicitCapacitySignal() {
+    const text = statusSurfaceText();
+    const match = text.match(/(?:maximum conversation length|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
+    return { explicitLimitSignal:Boolean(match), explicitLimitText:match ? clean(match[0], 220) : '' };
+  }
+
+  function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase }) {
+    const core = healthCore();
+    const settings = normalizedHealthSettings();
+    if (!core || !settings || settings.enabled === false) return null;
+    const explicit = explicitCapacitySignal();
+    const transcriptTurns = Math.max(0, Number(transcript?.visibleTurnCount || 0));
+    const capacityInput = {
+      storedTurns:0,
+      sessionTurns:Math.max(0, Number(frontier?.turns?.length || 0)),
+      mountedTurns:Math.max(0, Number(frontier?.turns?.length || 0)),
+      capturedChars:0,
+      transcriptTurns,
+      transcriptChars:Math.max(0, Number(transcript?.contextChars || transcript?.visibleChars || 0)),
+      recentAverageChars:Math.max(0, Number(transcript?.recentAverageChars || 0)),
+      transcriptRecentAverageChars:Math.max(0, Number(transcript?.recentAverageChars || 0)),
+      ...explicit
+    };
+    const toolPresent = Boolean(rows?.length || progressiveTool || toolBusy || toolLabel);
+    const derived = core.deriveHealth({
+      now:at,
+      settings,
+      chatStatus:status,
+      running:status === 'running',
+      network:{ pending:0, observed:false },
+      tool:{
+        present:toolPresent,
+        active:Boolean(progressiveTool),
+        busy:Boolean(toolBusy),
+        label:toolLabel || '',
+        phase:toolPhase || '',
+        lastProgressAt:Number(lastProgressAt || 0),
+        startedAt:Number(responseStartedAt || 0),
+        entryCount:Math.max(0, Number(rows?.length || 0))
+      },
+      capacity:capacityInput,
+      lastTurnProgressAt:Number(lastProgressAt || 0),
+      lastDomProgressAt:Number(lastProgressAt || 0),
+      lastStatusChangeAt:0
+    });
+    const capacity = derived?.capacity || core.deriveCapacity(capacityInput, settings);
+    const capacityAttention = ['watch','handoff','reached'].includes(capacity?.state || '');
+    const severe = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','errored']);
+    if (capacityAttention && !severe.has(String(derived?.state || ''))) {
+      return {
+        ...derived,
+        state:capacity.state === 'reached' ? 'capacity-reached' : capacity.state === 'handoff' ? 'capacity-handoff' : 'capacity-watch',
+        level:capacity.level || derived?.level || 'warning',
+        title:capacity.title || derived?.title || 'Conversation runway narrowing',
+        detail:capacity.detail || derived?.detail || '',
+        recommendedAction:capacity.recommendedAction || derived?.recommendedAction || 'handoff',
+        capacity
+      };
+    }
+    return derived ? { ...derived, capacity } : null;
   }
 
   function setStableStatus(next, at) {
@@ -487,9 +599,23 @@
     const inactiveStatus = nonRunningStatus(statusSurfaceText());
     const resolved = resolveStatus(rawActive, inactiveStatus, at);
     const status = resolved.status;
-    const stale = status !== 'running' && status !== 'idle';
+    if (status === 'running') {
+      const transcriptStart = Number(transcript?.responseStartedAt || transcript?.latestAssistantCreatedAt || transcript?.latestUserCreatedAt || 0);
+      if (!responseStartedAt) responseStartedAt = transcriptStart > 0 && transcriptStart <= at ? transcriptStart : (lastUserStartedAt || stableSince || at);
+      else if (transcriptStart > 0 && transcriptStart <= at && transcriptStart < responseStartedAt) responseStartedAt = transcriptStart;
+      if (!lastProgressAt) lastProgressAt = responseStartedAt || at;
+    } else if (responseStartedAt) {
+      lastResponseDurationMs = Math.max(0, at - responseStartedAt);
+      lastResponseCompletedAt = at;
+      responseStartedAt = 0;
+    }
     const provider = providerInfo();
     const toolLabel = clean((currentActive || currentBusy || informative)?.label || '', 160);
+    const toolPhase = transcript?.phase || (currentActive || currentBusy || informative)?.phase || '';
+    const fallbackHealth = standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase });
+    const watchdogState = watchdogHudState();
+    const healthState = watchdogState || String(fallbackHealth?.state || '') || (status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status);
+    const stale = WATCHDOG_PRIMARY_STATES.has(healthState) || (status !== 'running' && status !== 'idle');
     const source = transcriptFinal ? 'chatgpt-transcript-finished'
       : transcriptRunning ? 'chatgpt-transcript-running'
       : stopControl ? 'stop-control'
@@ -516,7 +642,7 @@
       assistantBusy:assistantBusyEvidence,
       awaitingResponse,
       toolLabel,
-      toolPhase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || '',
+      toolPhase,
       phase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
       modelSlug:clean(transcript?.modelSlug || '', 100),
       progressPercent:Number.isFinite(Number(transcript?.progressPercent)) ? Number(transcript.progressPercent) : null,
@@ -525,9 +651,28 @@
       transcriptObservedAt:Number(transcript?.observedAt || 0),
       asyncTaskId:clean(transcript?.asyncTaskId || '', 160),
       toolCount:Number(transcript?.toolCount || 0),
+      conversationTurnCount:Number(transcript?.visibleTurnCount || frontier.turns.length || 0),
+      activeBranchMessages:Number(transcript?.activeBranchMessages || 0),
+      conversationChars:Number(transcript?.contextChars || transcript?.visibleChars || 0),
+      visibleChars:Number(transcript?.visibleChars || 0),
+      recentAverageChars:Number(transcript?.recentAverageChars || 0),
+      latestAssistantChars:Number(transcript?.latestAssistantChars || 0),
+      responseStartedAt:Number(transcript?.responseStartedAt || 0),
+      latestUserCreatedAt:Number(transcript?.latestUserCreatedAt || 0),
+      latestAssistantCreatedAt:Number(transcript?.latestAssistantCreatedAt || 0),
+      latestAssistantUpdatedAt:Number(transcript?.latestAssistantUpdatedAt || 0),
+      startedAt:Number(responseStartedAt || 0),
+      elapsedMs:status === 'running' && responseStartedAt ? Math.max(0, at - responseStartedAt) : Number(lastResponseDurationMs || 0),
+      lastProgressAt:Number(lastProgressAt || 0),
+      quietForMs:lastProgressAt ? Math.max(0, at - lastProgressAt) : 0,
+      completedAt:Number(lastResponseCompletedAt || 0),
       finalControls:Boolean(completion.finalControls),
       frontierTool:Boolean(currentActive || currentBusy || informative),
-      source
+      source,
+      capacityState:String(fallbackHealth?.capacity?.state || 'clear'),
+      capacitySafetyPercent:Math.max(0, Number(fallbackHealth?.capacity?.safetyPercent || 0)),
+      capacityTurnCount:Math.max(0, Number(fallbackHealth?.capacity?.turnCount || 0)),
+      capacityChars:Math.max(0, Number(fallbackHealth?.capacity?.capturedChars || 0))
     };
     const state = {
       ok:true,
@@ -544,9 +689,10 @@
         lastActivityAt,
         hasConversation:frontier.turns.length > 0,
         turnCount:frontier.turns.length,
-        healthState:status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status
+        healthState
       },
       generation,
+      health:fallbackHealth ? { state:String(fallbackHealth.state || ''), level:String(fallbackHealth.level || ''), title:clean(fallbackHealth.title || '', 180), detail:clean(fallbackHealth.detail || '', 360), recommendedAction:String(fallbackHealth.recommendedAction || ''), progressAgeMs:Math.max(0, Number(fallbackHealth.progressAgeMs || 0)), capacity:fallbackHealth.capacity || null } : null,
       tool:{
         present:Boolean(informative || currentActive || currentBusy),
         current:Boolean(currentActive || currentBusy || informative),
@@ -557,7 +703,7 @@
         lastProgressAt:Number(lastProgressAt || 0),
         entryCount:rows.length
       },
-      healthActive:status === 'running',
+      healthActive:status === 'running' && !stale,
       healthStale:stale,
       observedAt:at,
       hidden:document.hidden,
@@ -566,7 +712,7 @@
 
     initialized = true;
     lastState = state;
-    const signature = `${status}|${source}|${toolLabel}|${generation.finalControls ? 1 : 0}|${frontier.turns.length}`;
+    const signature = `${status}|${healthState}|${source}|${toolLabel}|${generation.finalControls ? 1 : 0}|${frontier.turns.length}`;
     patchLegacyHud(state);
     maybePush(state, signature);
     schedulePulse(status === 'running' ? (document.hidden ? 1500 : 900) : (document.hidden ? 10000 : 5000));
@@ -577,6 +723,13 @@
   function setIfChanged(node, value) {
     const text = String(value ?? '');
     if (node && node.textContent !== text) node.textContent = text;
+  }
+
+  function watchdogHudState() {
+    const host = document.getElementById('projectConstellationHealthHud');
+    if (!host || host.dataset.watchdog !== HEALTH_CORE_VERSION) return '';
+    const state = String(host.dataset.state || '');
+    return WATCHDOG_PRIMARY_STATES.has(state) ? state : '';
   }
 
   function bindHudGuard(host) {
@@ -610,10 +763,37 @@
     const status = state.chat.status;
     const label = state.tool?.label || '';
     const toolActive = Boolean(state.tool?.active || state.tool?.busy);
+    const capacityAttention = ['watch','handoff','reached'].includes(host.dataset.capacity || '');
+    const authoritativeWatchdog = host.dataset.watchdog === HEALTH_CORE_VERSION;
+    const sentinelHealthState = String(state.chat?.healthState || '');
+    const sentinelPrimary = WATCHDOG_PRIMARY_STATES.has(sentinelHealthState);
+    // The current v6 renderer remains authoritative when it already owns a watchdog/capacity
+    // warning. On a hot-upgraded legacy tab, however, the Sentinel carries v6 health logic
+    // itself so the old renderer cannot erase a real stall/runway warning until page reload.
+    if ((authoritativeWatchdog && WATCHDOG_PRIMARY_STATES.has(host.dataset.state || '')) || (authoritativeWatchdog && capacityAttention)) return;
 
     hudApplying = true;
     try {
       host.dataset.liveSentinel = VERSION;
+      if (sentinelPrimary) {
+        const health = state.health || {};
+        const capacity = health.capacity || {};
+        const level = health.level || (['tool-dead','dead'].includes(sentinelHealthState) ? 'critical' : 'warning');
+        if (host.dataset.level !== level) host.dataset.level = level;
+        if (host.dataset.state !== sentinelHealthState) host.dataset.state = sentinelHealthState;
+        if (sentinelHealthState.startsWith('capacity-')) host.dataset.capacity = String(capacity.state || state.generation?.capacityState || 'watch');
+        setIfChanged(title, health.title || sentinelHealthState.replaceAll('-', ' '));
+        setIfChanged(mini, health.detail || `Runway Sentinel · ${sentinelHealthState.replaceAll('-', ' ')}`);
+        setIfChanged(nowTitle, label || (sentinelHealthState.startsWith('capacity-') ? 'Conversation runway' : 'No meaningful progress'));
+        setIfChanged(nowDetail, sentinelHealthState.startsWith('capacity-') ? `Measured branch load ${Math.max(0, Number(state.generation?.capacitySafetyPercent || 0))}% of the configured safety threshold.` : `Response elapsed ${Math.round(Number(state.generation?.elapsedMs || 0) / 1000)}s · no meaningful progress ${Math.round(Number(state.generation?.quietForMs || 0) / 1000)}s.`);
+        setIfChanged(activity, toolActive ? 'tool' : sentinelHealthState.startsWith('capacity-') ? 'runway' : 'model');
+        setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
+        const capacityNode = shadow.getElementById('pcHealthCapacity');
+        if (capacityNode && sentinelHealthState.startsWith('capacity-')) setIfChanged(capacityNode, capacity.state === 'reached' ? 'provider limit' : `${Math.max(0, Number(capacity.safetyPercent || state.generation?.capacitySafetyPercent || 0))}% · ${capacity.state === 'handoff' ? 'secure' : 'watch'}`);
+        const handoff = shadow.getElementById('pcHealthHandoff');
+        if (handoff && ['capacity-handoff','capacity-reached'].includes(sentinelHealthState)) handoff.hidden = false;
+        return;
+      }
       if (status === 'running') {
         if (host.dataset.level !== 'active') host.dataset.level = 'active';
         const liveState = toolActive ? 'tool-running' : 'working';
@@ -729,7 +909,17 @@
     if (state?.ok) {
       transcriptState = state;
       transcriptBackoffUntil = 0;
-      if (state.running) { lastActivityAt = now(); lastProgressAt = now(); }
+      const transcriptSignature = [state.currentNodeId,state.latestAssistantMessageId,state.latestMessageStatus,state.endTurn ? 1 : 0,state.isComplete ? 1 : 0,state.progressPercent ?? '',state.toolCount,state.phase,state.widgetStatus,state.transcriptStatus,state.latestAssistantChars,state.responseStartedAt,state.latestAssistantUpdatedAt].join('|');
+      if (state.running && transcriptSignature !== lastTranscriptProgressSignature) {
+        lastTranscriptProgressSignature = transcriptSignature;
+        const at = now();
+        lastActivityAt = at;
+        lastProgressAt = Math.max(at, Number(state.latestAssistantUpdatedAt || 0));
+        const transcriptStart = Number(state.responseStartedAt || state.latestAssistantCreatedAt || state.latestUserCreatedAt || 0);
+        if (!responseStartedAt && transcriptStart > 0 && transcriptStart <= at) responseStartedAt = transcriptStart;
+      } else if (!state.running) {
+        lastTranscriptProgressSignature = transcriptSignature;
+      }
     } else {
       transcriptBackoffUntil = now() + 4500;
     }
@@ -749,12 +939,22 @@
   };
   chrome?.runtime?.onMessage?.addListener?.(messageListener);
 
+  storageListener = (changes, areaName) => {
+    if (areaName !== 'local' || !changes?.[BRAIN_SETTINGS_KEY]) return;
+    const core = healthCore();
+    if (!core) return;
+    healthSettings = core.normalizeSettings?.({ ...(core.DEFAULTS || {}), ...(changes[BRAIN_SETTINGS_KEY].newValue?.liveHealth || {}) }) || { ...(core.DEFAULTS || {}), ...(changes[BRAIN_SETTINGS_KEY].newValue?.liveHealth || {}) };
+    scheduleScan(20);
+  };
+  chrome?.storage?.onChanged?.addListener?.(storageListener);
+  refreshHealthSettings();
+
   const api = {
     version:VERSION,
     getState:(force = false) => scan(Boolean(force)),
     peek:() => lastState || scan(true),
     rescan:() => scan(true),
-    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
+    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, responseStartedAt, lastResponseDurationMs, lastResponseCompletedAt, lastToolProgressSignature, lastTranscriptProgressSignature, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
     dispose:() => {
       pageObserver?.disconnect(); pageObserver = null;
       hudHostObserver?.disconnect(); hudHostObserver = null;
@@ -765,6 +965,7 @@
       if (transcriptTimer) clearTimeout(transcriptTimer); transcriptTimer = 0;
       try { window.removeEventListener('message', pageMessageListener, false); } catch (_) {}
       try { chrome?.runtime?.onMessage?.removeListener?.(messageListener); } catch (_) {}
+      try { chrome?.storage?.onChanged?.removeListener?.(storageListener); } catch (_) {}
     }
   };
   globalThis.ProjectConstellationLiveSentinel = api;

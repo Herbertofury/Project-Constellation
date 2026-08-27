@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 5;
+  const VERSION = 6;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -56,22 +56,34 @@
     const storedTurns = Math.max(0, Number(input.storedTurns || 0));
     const sessionTurns = Math.max(0, Number(input.sessionTurns || 0));
     const mountedTurns = Math.max(0, Number(input.mountedTurns || 0));
-    const turnCount = Math.max(storedTurns, sessionTurns, mountedTurns);
-    const capturedChars = Math.max(0, Number(input.capturedChars || input.mountedChars || 0));
+    const transcriptTurns = Math.max(0, Number(input.transcriptTurns || 0));
+    const turnCount = Math.max(storedTurns, sessionTurns, mountedTurns, transcriptTurns);
+    const storedChars = Math.max(0, Number(input.storedChars || 0));
+    const transcriptChars = Math.max(0, Number(input.transcriptChars || 0));
+    const capturedChars = Math.max(0, Number(input.capturedChars || 0), Number(input.mountedChars || 0), storedChars, transcriptChars);
+    const recentAverageChars = Math.max(0, Number(input.recentAverageChars || 0), Number(input.transcriptRecentAverageChars || 0));
     const explicitLimitSignal = Boolean(input.explicitLimitSignal);
     const explicitLimitText = String(input.explicitLimitText || '').slice(0, 240);
     const turnRatio = cfg.capacityHandoffTurns ? turnCount / cfg.capacityHandoffTurns : 0;
     const charRatio = cfg.capacityHandoffChars ? capturedChars / cfg.capacityHandoffChars : 0;
     const safetyLoad = Math.max(turnRatio, charRatio);
+    const safetyPercent = Math.max(0, Math.round(safetyLoad * 100));
+    const remainingTurns = Math.max(0, cfg.capacityHandoffTurns - turnCount);
+    const remainingChars = Math.max(0, cfg.capacityHandoffChars - capturedChars);
+    const projectedMessages = recentAverageChars > 0 ? Math.max(0, remainingChars / recentAverageChars) : null;
+    const predictiveWatch = Boolean(projectedMessages !== null && capturedChars >= Math.min(cfg.capacityWarningChars * 0.55, cfg.capacityHandoffChars * 0.45) && projectedMessages <= 3);
     const chips = [];
     if (turnCount) chips.push(`${turnCount} captured turn${turnCount === 1 ? '' : 's'}`);
-    if (capturedChars >= 1000) chips.push(`${Math.max(1, Math.round(capturedChars / 1000))}k captured chars`);
+    if (capturedChars >= 1000) chips.push(`${Math.max(1, Math.round(capturedChars / 1000))}k measured chars`);
+    if (transcriptTurns || transcriptChars) chips.push('full-branch measurement');
+    if (predictiveWatch) chips.push('heavy-turn runway');
 
-    if (!cfg.capacityGuardEnabled) return { state:'off', level:'healthy', score:LEVEL.healthy, title:'Capacity Guard off', detail:'Conversation Capacity Guard is disabled.', recommendedAction:'', turnCount, capturedChars, safetyLoad, chips:[] };
-    if (explicitLimitSignal) return { state:'reached', level:'critical', score:LEVEL.critical, title:'Provider limit signal detected', detail:explicitLimitText || 'The provider is signaling that this conversation has reached or is very near its usable limit. Secure a handoff before continuing elsewhere.', recommendedAction:'handoff', turnCount, capturedChars, safetyLoad:Math.max(1, safetyLoad), chips:[...chips,'provider limit signal'] };
-    if (turnCount >= cfg.capacityHandoffTurns || capturedChars >= cfg.capacityHandoffChars) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Secure a handoff now', detail:'This conversation crossed your proactive handoff threshold. Provider limits vary by model and are not exposed exactly; this is a safety threshold, not a claim about the provider’s exact remaining context.', recommendedAction:'handoff', turnCount, capturedChars, safetyLoad, chips:[...chips,'handoff threshold'] };
-    if (turnCount >= cfg.capacityWarningTurns || capturedChars >= cfg.capacityWarningChars) return { state:'watch', level:'warning', score:LEVEL.warning, title:'Conversation runway narrowing', detail:'This chat is getting large. Constellation is warning early so you can secure a handoff before a provider-specific conversation limit becomes disruptive.', recommendedAction:'handoff', turnCount, capturedChars, safetyLoad, chips:[...chips,'early warning'] };
-    return { state:'clear', level:'healthy', score:LEVEL.healthy, title:'Capacity runway clear', detail:'Conversation size is below your proactive warning thresholds.', recommendedAction:'', turnCount, capturedChars, safetyLoad, chips };
+    const common = { turnCount, capturedChars, storedChars, transcriptChars, transcriptTurns, recentAverageChars, safetyLoad, safetyPercent, remainingTurns, remainingChars, projectedMessages, predictiveWatch, chips };
+    if (!cfg.capacityGuardEnabled) return { state:'off', level:'healthy', score:LEVEL.healthy, title:'Capacity Guard off', detail:'Conversation Capacity Guard is disabled.', recommendedAction:'', ...common, chips:[] };
+    if (explicitLimitSignal) return { state:'reached', level:'critical', score:LEVEL.critical, title:'Provider limit signal detected', detail:explicitLimitText || 'The provider is signaling that this conversation has reached or is very near its usable limit. Secure a handoff before continuing elsewhere.', recommendedAction:'handoff', ...common, safetyLoad:Math.max(1, safetyLoad), safetyPercent:Math.max(100, safetyPercent), chips:[...chips,'provider limit signal'] };
+    if (turnCount >= cfg.capacityHandoffTurns || capturedChars >= cfg.capacityHandoffChars) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Secure a handoff now', detail:'This conversation crossed your proactive safety threshold. Provider limits vary by model and are not exposed exactly; Constellation measures the full captured/observable branch so this warning survives reloads and long hidden histories.', recommendedAction:'handoff', ...common, chips:[...chips,'handoff threshold'] };
+    if (turnCount >= cfg.capacityWarningTurns || capturedChars >= cfg.capacityWarningChars || predictiveWatch) return { state:'watch', level:'warning', score:LEVEL.warning, title:'Conversation runway narrowing', detail:predictiveWatch ? 'Recent turns are unusually large, so Constellation is warning before the normal threshold. This is a conservative local runway estimate, not a claim about the provider’s exact remaining context.' : 'This chat is getting large. Constellation is warning early using the full stored/transcript branch instead of only what mounted after the extension loaded.', recommendedAction:'handoff', ...common, chips:[...chips,'early warning'] };
+    return { state:'clear', level:'healthy', score:LEVEL.healthy, title:'Capacity runway clear', detail:'Conversation size is below your proactive warning thresholds.', recommendedAction:'', ...common };
   }
 
   function result(state, level, title, detail, extras = {}) {

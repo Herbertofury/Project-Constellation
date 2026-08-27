@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.4';
+  const VERSION = '0.14.7';
   const REQUEST_SOURCE = 'project-constellation';
   const RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
   const REQUEST_KIND = 'chatgpt-transcript-request';
@@ -102,6 +102,31 @@
     return message?.metadata?.is_complete === true || message?.metadata?.is_finished === true;
   }
 
+  function messageTimeMs(message, key = 'create_time') {
+    const raw = Number(message?.[key] ?? message?.metadata?.[key] ?? 0);
+    if (!Number.isFinite(raw) || raw <= 0) return 0;
+    return raw < 10_000_000_000 ? Math.round(raw * 1000) : Math.round(raw);
+  }
+
+  function messageTextChars(message) {
+    const content = message?.content;
+    if (!content || typeof content !== 'object') return 0;
+    let total = 0;
+    const add = (value) => {
+      if (typeof value === 'string') total += value.length;
+      else if (Array.isArray(value)) for (const item of value) add(item);
+      else if (value && typeof value === 'object') {
+        // Count only textual payload fields. Avoid serializing arbitrary metadata or
+        // leaking content across the MAIN/isolated-world boundary.
+        for (const key of ['text','content','caption','result','output']) if (key in value) add(value[key]);
+      }
+    };
+    add(content.parts);
+    add(content.text);
+    if (!total && typeof content.result === 'string') total += content.result.length;
+    return Math.max(0, Math.min(total, 50_000_000));
+  }
+
   function modelSlugOf(message) {
     return clean(
       message?.metadata?.model_slug ||
@@ -157,9 +182,33 @@
         ok:true, proof:'transcript', conversationId, transcriptStatus:'unknown', final:false, running:false,
         currentNodeId:clean(conversation?.current_node || '', 200), latestUserMessageId:'', latestAssistantMessageId:'',
         latestRole:'', latestMessageStatus:'', endTurn:false, isComplete:false, modelSlug:'', asyncTaskId:'',
-        widgetStatus:'', progressPercent:null, toolCount:0, phase:'unknown', observedAt:Date.now()
+        widgetStatus:'', progressPercent:null, toolCount:0, phase:'unknown', visibleTurnCount:0,
+        activeBranchMessages:0, contextChars:0, visibleChars:0, recentAverageChars:0,
+        latestAssistantChars:0, responseStartedAt:0, latestUserCreatedAt:0, latestAssistantCreatedAt:0, latestAssistantUpdatedAt:0, observedAt:Date.now()
       };
     }
+
+    let activeBranchMessages = 0;
+    let visibleTurnCount = 0;
+    let contextChars = 0;
+    let visibleChars = 0;
+    const recentVisibleChars = [];
+    for (const entry of chain) {
+      if (!entry.message) continue;
+      activeBranchMessages += 1;
+      const chars = messageTextChars(entry.message);
+      contextChars += chars;
+      const role = roleOf(entry.message);
+      if (role === 'user' || role === 'assistant') {
+        visibleTurnCount += 1;
+        visibleChars += chars;
+        if (chars > 0) recentVisibleChars.push(chars);
+      }
+    }
+    const recentWindow = recentVisibleChars.slice(-12);
+    const recentAverageChars = recentWindow.length
+      ? Math.round(recentWindow.reduce((sum, value) => sum + value, 0) / recentWindow.length)
+      : 0;
 
     let latestUserIndex = -1;
     for (let i = chain.length - 1; i >= 0; i -= 1) {
@@ -171,6 +220,8 @@
     const assistantTail = tail.filter((entry) => roleOf(entry.message) === 'assistant');
     const latestAssistant = assistantTail.at(-1) || null;
     const toolTail = tail.filter((entry) => roleOf(entry.message) === 'tool');
+    const responseStarts = tail.map((entry) => messageTimeMs(entry.message, 'create_time')).filter((value) => value > 0);
+    const responseStartedAt = responseStarts.length ? Math.min(...responseStarts) : 0;
 
     let widget = null;
     let widgetMessage = null;
@@ -232,6 +283,16 @@
       progressPercent:widgetProgress(widget),
       toolCount:toolTail.length,
       phase,
+      visibleTurnCount,
+      activeBranchMessages,
+      contextChars,
+      visibleChars,
+      recentAverageChars,
+      latestAssistantChars:messageTextChars(assistantMessage),
+      responseStartedAt,
+      latestUserCreatedAt:messageTimeMs(latestUser?.message, 'create_time'),
+      latestAssistantCreatedAt:messageTimeMs(assistantMessage, 'create_time'),
+      latestAssistantUpdatedAt:messageTimeMs(assistantMessage, 'update_time') || messageTimeMs(assistantMessage, 'create_time'),
       observedAt:Date.now()
     };
   }
