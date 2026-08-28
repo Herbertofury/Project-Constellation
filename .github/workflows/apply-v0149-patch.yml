@@ -7,6 +7,11 @@ on:
     paths:
       - .pc-v0149.part00.b64
       - .pc-v0149.part01.b64
+      - .pc-v0149.part02.b64
+      - .pc-v0149.part03.b64
+      - .pc-v0149.part04.b64
+      - .pc-v0149.part05.b64
+      - .pc-v0149.part06.b64
       - .github/workflows/apply-v0149-patch.yml
 
 permissions:
@@ -24,15 +29,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f .pc-v0149.part00.b64
-          test -f .pc-v0149.part01.b64
-          cat .pc-v0149.part00.b64 .pc-v0149.part01.b64 | base64 -d > /tmp/v0149.patch.xz
+          for n in 00 01 02 03 04 05 06; do test -f ".pc-v0149.part${n}.b64"; done
+          cat .pc-v0149.part00.b64 .pc-v0149.part01.b64 .pc-v0149.part02.b64 .pc-v0149.part03.b64 .pc-v0149.part04.b64 .pc-v0149.part05.b64 .pc-v0149.part06.b64 | base64 -d > /tmp/v0149.patch.xz
           echo "e7fc7463407633d468206a5efa6857f73a8645ddcb6721325b0466381c134d05  /tmp/v0149.patch.xz" | sha256sum -c -
           xz -dc /tmp/v0149.patch.xz > /tmp/v0149.patch
           echo "844b6b5314ef62b22edd2d503a43a2ae42c8e12faaf68e6b4e709d280be386e6  /tmp/v0149.patch" | sha256sum -c -
           git apply --check /tmp/v0149.patch
           git apply /tmp/v0149.patch
-          rm .pc-v0149.part00.b64 .pc-v0149.part01.b64 .github/workflows/apply-v0149-patch.yml
+          rm .pc-v0149.part00.b64 .pc-v0149.part01.b64 .pc-v0149.part02.b64 .pc-v0149.part03.b64 .pc-v0149.part04.b64 .pc-v0149.part05.b64 .pc-v0149.part06.b64
+          rm .github/workflows/apply-v0149-patch.yml
           git add -A
           git diff --cached --check
           git config user.name "Project Constellation CI"
