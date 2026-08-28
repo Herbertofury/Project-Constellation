@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.9';
+  const VERSION = '0.14.10';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -41,8 +41,9 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
-  const HEALTH_CORE_VERSION = '7';
+  const HEALTH_CORE_VERSION = '8';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
+  const STATE_EVENT = 'project-constellation:live-sentinel-state';
   const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
   const WATCHDOG_PRIMARY_STATES = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','capacity-watch','capacity-handoff','capacity-reached',...FAILURE_PRIMARY_STATES]);
   const CHATGPT_PAGE_PROBE_REQUEST_SOURCE = 'project-constellation';
@@ -703,7 +704,15 @@
     const toolPhase = transcript?.phase || (currentActive || currentBusy || informative)?.phase || '';
     const fallbackHealth = standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure });
     const watchdogState = watchdogHudState();
-    const healthState = watchdogState || String(fallbackHealth?.state || '') || (status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status);
+    const fallbackHealthState = String(fallbackHealth?.state || '');
+    // A current Sentinel health result must be allowed to recover from a previously
+    // rendered stall/dead warning. v0.14.9 put the HUD state first, which could make a
+    // stale `tool-stalled` data attribute self-latch even after real progress resumed.
+    // Keep the richer content-script HUD only for capacity pressure that standalone
+    // Sentinel cannot always reconstruct from persisted IndexedDB evidence.
+    const healthState = WATCHDOG_PRIMARY_STATES.has(fallbackHealthState)
+      ? fallbackHealthState
+      : watchdogState || fallbackHealthState || (status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status);
     const stale = WATCHDOG_PRIMARY_STATES.has(healthState) || (status !== 'running' && status !== 'idle');
     const source = failure.active ? 'provider-failure-surface'
       : transcriptFinal ? 'chatgpt-transcript-finished'
@@ -873,7 +882,11 @@
     const host = document.getElementById('projectConstellationHealthHud');
     if (!host || host.dataset.watchdog !== HEALTH_CORE_VERSION) return '';
     const state = String(host.dataset.state || '');
-    return WATCHDOG_PRIMARY_STATES.has(state) ? state : '';
+    // Stall/dead/failure state is independently re-derived by Sentinel from current-turn
+    // progress, so reading it back from the HUD would create a feedback latch. Capacity
+    // is the one primary state the content renderer may know more about because it can
+    // include persisted IndexedDB totals that hot-injected Sentinel does not possess.
+    return state.startsWith('capacity-') ? state : '';
   }
 
   function bindHudGuard(host) {
@@ -926,10 +939,11 @@
     const authoritativeWatchdog = host.dataset.watchdog === HEALTH_CORE_VERSION;
     const sentinelHealthState = String(state.chat?.healthState || '');
     const sentinelPrimary = WATCHDOG_PRIMARY_STATES.has(sentinelHealthState);
-    // The current v7 renderer remains authoritative when it already owns a watchdog/capacity
-    // warning. On a hot-upgraded legacy tab, however, the Sentinel carries v7 health logic
-    // itself so the old renderer cannot erase a real stall/runway warning until page reload.
-    if ((authoritativeWatchdog && WATCHDOG_PRIMARY_STATES.has(host.dataset.state || '')) || (authoritativeWatchdog && capacityAttention)) return;
+    // One renderer owns a current-version HUD. Sentinel only patches legacy HUDs during
+    // hot upgrade. Letting both v0.14.9 renderers mutate the same nodes produced mixed
+    // clocks (for example 32s in Observed now while the metric said 8s) and could leave
+    // a hidden stale state behind the visibly healthy title.
+    if (authoritativeWatchdog) return;
 
     hudApplying = true;
     try {
@@ -1012,6 +1026,12 @@
     if (signature === lastPushSignature && at - lastPushAt < (state.chat.status === 'running' ? 3000 : 8000)) return;
     lastPushSignature = signature;
     lastPushAt = at;
+    // Keep the current content renderer in lockstep with Sentinel without letting two
+    // owners mutate the HUD. The event carries only sanitized state labels/timestamps;
+    // content performs the authoritative health render itself.
+    try {
+      window.dispatchEvent(new CustomEvent(STATE_EVENT, { detail:{ version:VERSION, status:String(state?.chat?.status || ''), healthState:String(state?.chat?.healthState || ''), observedAt:at } }));
+    } catch (_) {}
     chrome.runtime.sendMessage({ type:'PC_LIVE_CHAT_STATE_PUSH', state:{ ...state, sentinel:true } }).catch?.(() => {});
   }
 

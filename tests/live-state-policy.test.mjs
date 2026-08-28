@@ -44,6 +44,7 @@ assert.equal(groupSandbox.__groupBucket('PC ✦ 🟣 Active'), 'active');
 assert.equal(groupSandbox.__groupBucket('PC ✦ ⚠️ Needs attention'), 'stale');
 assert.equal(groupSandbox.__groupBucket('PC ✦ ✅ Completed'), 'completed');
 assert.match(source, /message\?\.state\?\.sentinel !== true \|\| message\?\.state\?\.source !== 'live-sentinel'/, 'legacy content pushes are rejected');
+assert.match(source, /String\(message\?\.state\?\.version \|\| ''\) !== LIVE_SENTINEL_VERSION/, 'pre-upgrade Sentinel pushes are rejected before they can regress a tab group');
 assert.match(source, /existing\?\.version === LIVE_SENTINEL_VERSION/, 'hot upgrades replace stale Sentinel versions');
 assert.match(source, /files:\[HEALTH_CORE_FILE, LIVE_SENTINEL_FILE\]/, 'hot upgrades inject the current health core with the Sentinel so existing tabs gain Runway Sentinel without refresh');
 const contentSource = fs.readFileSync(new URL('../extension/src/content.js', import.meta.url), 'utf8');
@@ -68,17 +69,21 @@ const reconcileSource = functionSourceFrom(contentSource, 'reconcileHealthSnapsh
 const reconcileSandbox = {
   brain:{normalizeText:(value,max=150)=>String(value||'').slice(0,max)},
   liveSentinelState:()=>reconcileSandbox.__sentinel,
-  __sentinel:{ok:true,source:'live-sentinel',chat:{status:'running'},generation:{phase:'thinking',quietForMs:130000},tool:{present:true,active:true,busy:true,label:'Running tool',phase:'executing',lastProgressAt:Date.now()-130000,entryCount:2}}
+  __sentinel:{ok:true,source:'live-sentinel',chat:{status:'running',healthState:'tool-stalled'},health:{state:'tool-stalled',level:'danger',title:'Tool call looks stuck',detail:'No meaningful progress'},generation:{phase:'thinking',quietForMs:130000},tool:{present:true,active:true,busy:true,label:'Running tool',phase:'executing',lastProgressAt:Date.now()-130000,entryCount:2}}
 };
 vm.createContext(reconcileSandbox);
 vm.runInContext(`${reconcileSource}; globalThis.__reconcile=reconcileHealthSnapshotWithSentinel;`, reconcileSandbox);
 let reconciled = reconcileSandbox.__reconcile({state:'tool-stalled',level:'danger',title:'Tool call looks stuck',detail:'No meaningful progress',capacity:{state:'clear'},activity:null});
-assert.equal(reconciled.state,'tool-stalled','Sentinel running cannot erase a proven watchdog stall');
+assert.equal(reconciled.state,'tool-stalled','Sentinel preserves a watchdog stall while its own current health still agrees');
 assert.equal(reconciled.level,'danger');
+reconcileSandbox.__sentinel={ok:true,source:'live-sentinel',chat:{status:'running',healthState:'tool-running'},health:{state:'tool-running',level:'active',title:'Tool working',detail:'Recent progress'},generation:{phase:'inspecting',quietForMs:8000},tool:{present:true,active:true,busy:true,label:'Inspecting ModForge source and report formats',phase:'inspecting',lastProgressAt:Date.now()-8000,entryCount:5}};
+reconciled = reconcileSandbox.__reconcile({state:'tool-stalled',level:'danger',title:'Tool call looks stuck',detail:'Old content-loop warning',capacity:{state:'clear'},activity:null});
+assert.equal(reconciled.state,'tool-running','fresh Sentinel progress clears an older content-loop stall instead of pinning Needs Attention');
+assert.equal(reconciled.level,'active');
 reconciled = reconcileSandbox.__reconcile({state:'working',level:'danger',title:'Chat is working',detail:'',capacity:{state:'handoff',level:'danger',title:'Secure a handoff now',detail:'Runway narrow',recommendedAction:'handoff'},activity:null});
 assert.equal(reconciled.state,'capacity-handoff','capacity danger remains primary during active generation');
 assert.equal(reconciled.title,'Secure a handoff now');
-reconcileSandbox.__sentinel={ok:true,source:'live-sentinel',chat:{status:'idle'},generation:{},tool:{}};
+reconcileSandbox.__sentinel={ok:true,source:'live-sentinel',chat:{status:'idle',healthState:'healthy'},health:{state:'healthy',level:'healthy'},generation:{},tool:{}};
 reconciled = reconcileSandbox.__reconcile({state:'capacity-watch',level:'warning',title:'Conversation runway narrowing',detail:'',capacity:{state:'watch',level:'warning'},activity:null});
 assert.equal(reconciled.state,'capacity-watch','Sentinel idle cannot hide a capacity warning');
 const sentinelSource = fs.readFileSync(new URL('../extension/src/live-sentinel.js', import.meta.url), 'utf8');
@@ -87,14 +92,22 @@ const tabBeaconSource = fs.readFileSync(new URL('../extension/src/tab-beacon.js'
 assert.match(sentinelSource, /const rawActive = failure\.active \? false : transcriptFinal \? false : transcriptRunning \? true : domActive/, 'fresh transcript finality outranks stale DOM while unfinished transcript outranks settled DOM');
 assert.match(sentinelSource, /PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT/, 'authoritative transport completion can request an event-driven transcript refresh');
 assert.doesNotMatch(sentinelSource, /if \(state\.running\) \{ lastActivityAt = now\(\); lastProgressAt = now\(\); \}/, 'transcript polling alone never refreshes the progress clock');
+assert.match(sentinelSource, /return state\.startsWith\('capacity-'\) \? state : ''/, 'Sentinel never reads its own rendered stall state back as a watchdog heartbeat');
+assert.match(sentinelSource, /if \(authoritativeWatchdog\) return;/, 'current-version HUD has one renderer owner so Sentinel cannot race the content HUD clocks');
+assert.match(sentinelSource, /project-constellation:live-sentinel-state/, 'Sentinel publishes a sanitized state-transition event for the single content HUD owner');
+assert.match(contentSource, /const LIVE_SENTINEL_STATE_EVENT = 'project-constellation:live-sentinel-state'/, 'content subscribes to the Sentinel transition channel');
+assert.match(contentSource, /scheduleLiveHealthPulse\(70, true\)/, 'content urgently converges the single HUD renderer after a Sentinel transition');
 assert.match(sentinelSource, /persistent spinner\/active label is proof[\s\S]{0,260}Only a changed current-tool signature resets/, 'unchanged tool spinners are not treated as forward progress');
 assert.match(contentSource, /storedChars[\s\S]{0,500}transcriptTurns[\s\S]{0,500}transcriptChars/, 'capacity evidence combines persistent storage with full transcript measurements');
 assert.match(source, /authoritativeTransport[\s\S]{0,500}PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT/, 'background requests transcript refresh after authoritative ChatGPT transport settles');
 assert.match(sentinelSource, /button\[data-testid="copy-turn-action-button"\]/, 'current ChatGPT completion control uses the precise production testid');
 assert.match(sentinelSource, /currentAssistantBusy/, 'aria-busy is scoped to the current assistant turn rather than page layout ancestors');
 for (const marker of ['/backend-api/conversation/','finished_successfully','end_turn','chatgpt_sdk.widget_state']) assert.ok(transcriptProbeSource.includes(marker), `transcript probe includes ${marker}`);
-assert.match(source, /if \(!currentManagedBucket\) return; \/\/ User-created groups stay exactly where the user put them\./, 'automatic status grouping preserves user-created tab groups');
+assert.match(source, /if \(!currentManagedBucket\) return \{ ok:true, skipped:'user-group' \}; \/\/ User-created groups stay exactly where the user put them\./, 'automatic status grouping preserves user-created tab groups');
 assert.match(source, /tabGroupSyncQueue = tabGroupSyncQueue\.catch/, 'Constellation-owned group moves are serialized to avoid duplicate status groups');
+assert.match(source, /if \(ok\) tabPresentationSignatures\.set\(tabId, signature\)/, 'presentation signature is committed only after Chrome confirms reconciliation');
+assert.match(source, /scheduleTabPresentationRepair\(tabId\)/, 'failed presentation/group reconciliation schedules a bounded self-heal');
+assert.match(source, /row\?\.tabGroup\?\.managed && row\.tabGroup\.managedBucket !== row\.bucket/, 'Pulse performs a managed-group convergence audit without touching user groups');
 assert.match(source, /fallbackLiveRow[\s\S]{0,1200}status:'unavailable'[\s\S]{0,300}bucket:'stale'/, 'unresponsive open chat tabs remain represented instead of disappearing from Pulse counts');
 assert.match(source, /let state = await readLiveSentinelState\(tabId\);[\s\S]{0,450}ensureChatGPTPageProbe/, 'Pulse reads the installed Sentinel before doing expensive MAIN-world reinjection checks');
 for (const marker of ['chrome.tabs.group','chrome.tabGroups.update','PC_TAB_TAG_SET','renderActionBadge']) assert.ok(source.includes(marker), `tab presentation backend includes ${marker}`);
