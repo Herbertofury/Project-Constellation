@@ -50,8 +50,8 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.10';
-const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
+const LIVE_SENTINEL_VERSION = '0.14.11';
+const CHATGPT_PAGE_PROBE_VERSION = '0.14.11';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
@@ -870,7 +870,24 @@ async function pruneEvents() {
   } finally { db.close(); }
 }
 
+function migrateLiveHealthSettings(storedLiveHealth = {}) {
+  const next = { ...(storedLiveHealth || {}) };
+  const legacyDefaults = Number(next.capacityWarningTurns ?? 180) === 180
+    && Number(next.capacityHandoffTurns ?? 260) === 260
+    && Number(next.capacityWarningChars ?? 240000) === 240000
+    && Number(next.capacityHandoffChars ?? 400000) === 400000;
+  if (Number(next.capacityProfileVersion || 0) < 2 && legacyDefaults) {
+    next.capacityWarningTurns = health.DEFAULTS.capacityWarningTurns;
+    next.capacityHandoffTurns = health.DEFAULTS.capacityHandoffTurns;
+    next.capacityWarningChars = health.DEFAULTS.capacityWarningChars;
+    next.capacityHandoffChars = health.DEFAULTS.capacityHandoffChars;
+  }
+  next.capacityProfileVersion = 2;
+  return next;
+}
+
 function deepMergeSettings(stored = {}) {
+  const liveHealthStored = migrateLiveHealthSettings(stored.liveHealth || {});
   return {
     ...defaultBrainSettings, ...stored,
     github: { ...defaultBrainSettings.github, ...(stored.github || {}) },
@@ -879,7 +896,7 @@ function deepMergeSettings(stored = {}) {
     refreshRecovery: { ...defaultBrainSettings.refreshRecovery, ...(stored.refreshRecovery || {}) },
     projectIntegrity: { ...defaultBrainSettings.projectIntegrity, ...(stored.projectIntegrity || {}) },
     knowledge: { ...defaultBrainSettings.knowledge, ...(stored.knowledge || {}) },
-    liveHealth: health.normalizeSettings({ ...defaultBrainSettings.liveHealth, ...(stored.liveHealth || {}) }),
+    liveHealth: health.normalizeSettings({ ...defaultBrainSettings.liveHealth, ...liveHealthStored }),
     approvalAutopilot: { ...defaultBrainSettings.approvalAutopilot, ...(stored.approvalAutopilot || {}) }
   };
 }

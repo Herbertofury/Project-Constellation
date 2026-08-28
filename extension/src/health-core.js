@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 8;
+  const VERSION = 9;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -15,10 +15,14 @@
     networkObservation: true,
     toolWatchdogEnabled: true,
     capacityGuardEnabled: true,
-    capacityWarningTurns: 180,
-    capacityHandoffTurns: 260,
-    capacityWarningChars: 240000,
-    capacityHandoffChars: 400000
+    capacityWarningTurns: 120,
+    capacityHandoffTurns: 180,
+    capacityWarningChars: 160000,
+    capacityHandoffChars: 280000,
+    capacityWarningBranchMessages: 90,
+    capacityHandoffBranchMessages: 120,
+    capacityWarningStructuredMessages: 48,
+    capacityHandoffStructuredMessages: 72
   });
 
   const LEVEL = Object.freeze({ healthy: 0, info: 1, active: 2, warning: 3, danger: 4, critical: 5 });
@@ -82,6 +86,23 @@
     return { active:false, state:'', status:'', title:'', detail:'', rawText:'', fingerprint:'', retryAvailable:false, retryLabel:'', recommendedAction:'', partialAssistantChars, toolActivitySeen, observedAfterUser };
   }
 
+  function classifyCapacitySignal(text = '') {
+    const raw = String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+    const lower = raw.toLowerCase();
+    if (!lower) return { active:false, stage:'', text:'', fingerprint:'' };
+    const reached = /(?:you(?:'|’)ve\s+)?reached the maximum length for this conversation|maximum length for this conversation|maximum conversation length|conversation (?:is )?too long|this conversation has reached.{0,100}(?:its )?(?:maximum|limit)|start(?:ing)? a new chat to continue|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long/.exec(lower);
+    if (reached) {
+      const value = shortLabel(raw.match(new RegExp(reached[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))?.[0] || reached[0], 240);
+      return { active:true, stage:'reached', text:value, fingerprint:`reached:${value.toLowerCase()}` };
+    }
+    const near = /(?:approach(?:ing)?|near(?:ing)?|close to).{0,80}(?:conversation|context).{0,80}limit|conversation.{0,80}(?:approach(?:ing)?|near(?:ing)?).{0,60}limit|start a new chat soon|(?:conversation|context).{0,60}running out of (?:space|room)|only \d+ (?:messages?|turns?) (?:left|remaining)/.exec(lower);
+    if (near) {
+      const value = shortLabel(near[0], 240);
+      return { active:true, stage:'near', text:value, fingerprint:`near:${value.toLowerCase()}` };
+    }
+    return { active:false, stage:'', text:'', fingerprint:'' };
+  }
+
   function normalizeSettings(input = {}) {
     const settings = { ...DEFAULTS, ...(input || {}) };
     settings.softStallMs = clampMs(settings.softStallMs, DEFAULTS.softStallMs, 5000, 15 * 60 * 1000);
@@ -95,6 +116,10 @@
     settings.capacityHandoffTurns = positiveInt(settings.capacityHandoffTurns, DEFAULTS.capacityHandoffTurns, settings.capacityWarningTurns + 20, 1600);
     settings.capacityWarningChars = positiveInt(settings.capacityWarningChars, DEFAULTS.capacityWarningChars, 50000, 4000000);
     settings.capacityHandoffChars = positiveInt(settings.capacityHandoffChars, DEFAULTS.capacityHandoffChars, settings.capacityWarningChars + 25000, 6000000);
+    settings.capacityWarningBranchMessages = positiveInt(settings.capacityWarningBranchMessages, DEFAULTS.capacityWarningBranchMessages, 30, 1200);
+    settings.capacityHandoffBranchMessages = positiveInt(settings.capacityHandoffBranchMessages, DEFAULTS.capacityHandoffBranchMessages, settings.capacityWarningBranchMessages + 10, 1600);
+    settings.capacityWarningStructuredMessages = positiveInt(settings.capacityWarningStructuredMessages, DEFAULTS.capacityWarningStructuredMessages, 12, 800);
+    settings.capacityHandoffStructuredMessages = positiveInt(settings.capacityHandoffStructuredMessages, DEFAULTS.capacityHandoffStructuredMessages, settings.capacityWarningStructuredMessages + 8, 1200);
     settings.toolWatchdogEnabled = settings.toolWatchdogEnabled !== false;
     settings.capacityGuardEnabled = settings.capacityGuardEnabled !== false;
     settings.corner = ['bottom-right','bottom-left','top-right','top-left'].includes(settings.corner) ? settings.corner : DEFAULTS.corner;
@@ -112,29 +137,53 @@
     const storedChars = Math.max(0, Number(input.storedChars || 0));
     const transcriptChars = Math.max(0, Number(input.transcriptChars || 0));
     const capturedChars = Math.max(0, Number(input.capturedChars || 0), Number(input.mountedChars || 0), storedChars, transcriptChars);
+    const activeBranchMessages = Math.max(0, Number(input.activeBranchMessages || 0), Number(input.transcriptMessages || 0));
+    const structuredBranchMessages = Math.max(0, Number(input.structuredBranchMessages || 0), Number(input.transcriptStructuredMessages || 0), activeBranchMessages - Math.max(0, Number(input.visibleBranchMessages || transcriptTurns || 0)));
+    const toolBranchMessages = Math.max(0, Number(input.toolBranchMessages || 0), Number(input.transcriptToolMessages || 0));
     const recentAverageChars = Math.max(0, Number(input.recentAverageChars || 0), Number(input.transcriptRecentAverageChars || 0));
     const explicitLimitSignal = Boolean(input.explicitLimitSignal);
-    const explicitLimitText = String(input.explicitLimitText || '').slice(0, 240);
+    const explicitLimitText = String(input.explicitLimitText || input.providerLimitText || '').slice(0, 240);
+    const providerLimitStage = explicitLimitSignal ? 'reached' : String(input.providerLimitStage || '').toLowerCase();
+    const providerNearLimit = providerLimitStage === 'near';
+    const providerLimitReached = providerLimitStage === 'reached';
     const turnRatio = cfg.capacityHandoffTurns ? turnCount / cfg.capacityHandoffTurns : 0;
     const charRatio = cfg.capacityHandoffChars ? capturedChars / cfg.capacityHandoffChars : 0;
-    const safetyLoad = Math.max(turnRatio, charRatio);
+    const branchRatio = cfg.capacityHandoffBranchMessages ? activeBranchMessages / cfg.capacityHandoffBranchMessages : 0;
+    const structuredRatio = cfg.capacityHandoffStructuredMessages ? structuredBranchMessages / cfg.capacityHandoffStructuredMessages : 0;
+    const safetyLoad = Math.max(turnRatio, charRatio, branchRatio, structuredRatio);
     const safetyPercent = Math.max(0, Math.round(safetyLoad * 100));
     const remainingTurns = Math.max(0, cfg.capacityHandoffTurns - turnCount);
     const remainingChars = Math.max(0, cfg.capacityHandoffChars - capturedChars);
+    const remainingBranchMessages = Math.max(0, cfg.capacityHandoffBranchMessages - activeBranchMessages);
+    const remainingStructuredMessages = Math.max(0, cfg.capacityHandoffStructuredMessages - structuredBranchMessages);
     const projectedMessages = recentAverageChars > 0 ? Math.max(0, remainingChars / recentAverageChars) : null;
-    const predictiveWatch = Boolean(projectedMessages !== null && capturedChars >= Math.min(cfg.capacityWarningChars * 0.55, cfg.capacityHandoffChars * 0.45) && projectedMessages <= 3);
+    const predictiveWatch = Boolean(projectedMessages !== null && capturedChars >= Math.min(cfg.capacityWarningChars * 0.45, cfg.capacityHandoffChars * 0.35) && projectedMessages <= 4);
+    const predictiveHandoff = Boolean(projectedMessages !== null && capturedChars >= Math.min(cfg.capacityWarningChars * 0.7, cfg.capacityHandoffChars * 0.55) && projectedMessages <= 1.75);
+    const adaptiveWatch = false;
+    const adaptiveHandoff = false;
     const chips = [];
     if (turnCount) chips.push(`${turnCount} captured turn${turnCount === 1 ? '' : 's'}`);
+    if (activeBranchMessages) chips.push(`${activeBranchMessages} active-branch messages`);
+    if (structuredBranchMessages) chips.push(`${structuredBranchMessages} tool/app messages`);
     if (capturedChars >= 1000) chips.push(`${Math.max(1, Math.round(capturedChars / 1000))}k measured chars`);
-    if (transcriptTurns || transcriptChars) chips.push('full-branch measurement');
-    if (predictiveWatch) chips.push('heavy-turn runway');
+    if (transcriptTurns || transcriptChars || activeBranchMessages) chips.push('full-branch measurement');
+    if (predictiveWatch || predictiveHandoff) chips.push('heavy-turn runway');
 
-    const common = { turnCount, capturedChars, storedChars, transcriptChars, transcriptTurns, recentAverageChars, safetyLoad, safetyPercent, remainingTurns, remainingChars, projectedMessages, predictiveWatch, chips };
+    const common = {
+      turnCount, capturedChars, storedChars, transcriptChars, transcriptTurns, activeBranchMessages, structuredBranchMessages, toolBranchMessages,
+      recentAverageChars, safetyLoad, safetyPercent, remainingTurns, remainingChars, remainingBranchMessages, remainingStructuredMessages,
+      projectedMessages, predictiveWatch, predictiveHandoff, adaptiveWatch, adaptiveHandoff, providerLimitStage, providerLimitText:explicitLimitText, chips
+    };
     if (!cfg.capacityGuardEnabled) return { state:'off', level:'healthy', score:LEVEL.healthy, title:'Capacity Guard off', detail:'Conversation Capacity Guard is disabled.', recommendedAction:'', ...common, chips:[] };
-    if (explicitLimitSignal) return { state:'reached', level:'critical', score:LEVEL.critical, title:'Provider limit signal detected', detail:explicitLimitText || 'The provider is signaling that this conversation has reached or is very near its usable limit. Secure a handoff before continuing elsewhere.', recommendedAction:'handoff', ...common, safetyLoad:Math.max(1, safetyLoad), safetyPercent:Math.max(100, safetyPercent), chips:[...chips,'provider limit signal'] };
-    if (turnCount >= cfg.capacityHandoffTurns || capturedChars >= cfg.capacityHandoffChars) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Secure a handoff now', detail:'This conversation crossed your proactive safety threshold. Provider limits vary by model and are not exposed exactly; Constellation measures the full captured/observable branch so this warning survives reloads and long hidden histories.', recommendedAction:'handoff', ...common, chips:[...chips,'handoff threshold'] };
-    if (turnCount >= cfg.capacityWarningTurns || capturedChars >= cfg.capacityWarningChars || predictiveWatch) return { state:'watch', level:'warning', score:LEVEL.warning, title:'Conversation runway narrowing', detail:predictiveWatch ? 'Recent turns are unusually large, so Constellation is warning before the normal threshold. This is a conservative local runway estimate, not a claim about the provider’s exact remaining context.' : 'This chat is getting large. Constellation is warning early using the full stored/transcript branch instead of only what mounted after the extension loaded.', recommendedAction:'handoff', ...common, chips:[...chips,'early warning'] };
-    return { state:'clear', level:'healthy', score:LEVEL.healthy, title:'Capacity runway clear', detail:'Conversation size is below your proactive warning thresholds.', recommendedAction:'', ...common };
+    if (providerLimitReached) return { state:'reached', level:'critical', score:LEVEL.critical, title:'Conversation hard limit reached', detail:explicitLimitText || 'The provider says this conversation has reached its usable limit. Branch into a new linked chat now; Constellation will preserve the parent checkpoint and continuation context.', recommendedAction:'handoff', ...common, safetyLoad:Math.max(1, safetyLoad), safetyPercent:Math.max(100, safetyPercent), chips:[...chips,'provider hard limit'] };
+    if (providerNearLimit) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Provider says branch now', detail:explicitLimitText || 'The provider is signaling that this conversation is close to its limit. Branch now while the current chat is still usable.', recommendedAction:'handoff', ...common, chips:[...chips,'provider near-limit signal'] };
+    if (turnCount >= cfg.capacityHandoffTurns || capturedChars >= cfg.capacityHandoffChars || activeBranchMessages >= cfg.capacityHandoffBranchMessages || structuredBranchMessages >= cfg.capacityHandoffStructuredMessages || predictiveHandoff) {
+      return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Branch now while this chat is healthy', detail:'Constellation’s adaptive runway entered the handoff zone. It now counts full active-branch messages and hidden tool/app overhead in addition to visible turns and measured text, so tool-heavy chats branch before the provider’s hard stop.', recommendedAction:'handoff', ...common, chips:[...chips,'handoff zone'] };
+    }
+    if (turnCount >= cfg.capacityWarningTurns || capturedChars >= cfg.capacityWarningChars || activeBranchMessages >= cfg.capacityWarningBranchMessages || structuredBranchMessages >= cfg.capacityWarningStructuredMessages || predictiveWatch) {
+      return { state:'watch', level:'warning', score:LEVEL.warning, title:'Branch soon · runway narrowing', detail:'This chat is entering the early branch zone. Constellation is counting active-branch and tool/app overhead—not just visible turns—so you have time to branch before ChatGPT refuses another message.', recommendedAction:'handoff', ...common, chips:[...chips,'early branch warning'] };
+    }
+    return { state:'clear', level:'healthy', score:LEVEL.healthy, title:'Capacity runway clear', detail:'Conversation size and active-branch pressure are below the proactive branch thresholds.', recommendedAction:'', ...common };
   }
 
   function result(state, level, title, detail, extras = {}) {
@@ -208,10 +257,14 @@
       };
       if (capacity.score >= LEVEL.warning) {
         merged.chips = [...new Set([...(merged.chips || []), ...(capacity.chips || []).slice(0, 2)])].slice(0, 8);
-        if (capacity.score > Number(merged.score || 0) && !['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','output-regressed','degraded','stale-page','project-rollback','tool-dead','dead'].includes(merged.state)) {
+        const capacityProtectedStates = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','output-regressed','degraded','stale-page','project-rollback','tool-stalled','tool-dead','request-stalled','stalled','dead']);
+        if (capacity.score > Number(merged.score || 0) && !capacityProtectedStates.has(merged.state)) {
           merged.level = capacity.level; merged.score = capacity.score;
         }
-        if (['healthy','follow-up'].includes(merged.state)) {
+        // A healthy/running tool must not visually hide a narrowing conversation runway.
+        // Preserve the activity/proof telemetry underneath, but make Branch soon/now the
+        // primary user-facing state while capacity attention is actionable.
+        if (!capacityProtectedStates.has(merged.state) && ['healthy','follow-up','working','tool-running','tool-quiet','quiet-working'].includes(merged.state)) {
           merged.state = capacity.state === 'reached' ? 'capacity-reached' : capacity.state === 'handoff' ? 'capacity-handoff' : 'capacity-watch';
           merged.title = capacity.title; merged.detail = capacity.detail; merged.reason = 'conversation-capacity'; merged.recommendedAction = capacity.recommendedAction;
         }
@@ -313,7 +366,7 @@
 
     return emit(result('healthy','healthy','Chat healthy','The rendered conversation, provider activity, and catalogued project state look consistent.',{ chips, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
   }
-  const api = Object.freeze({ VERSION, DEFAULTS, FAILURE_STATES, classifyProviderFailure, normalizeSettings, deriveCapacity, deriveHealth });
+  const api = Object.freeze({ VERSION, DEFAULTS, FAILURE_STATES, classifyProviderFailure, classifyCapacitySignal, normalizeSettings, deriveCapacity, deriveHealth });
   globalThis.ProjectConstellationHealthCore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

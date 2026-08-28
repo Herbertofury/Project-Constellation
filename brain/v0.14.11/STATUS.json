@@ -1,0 +1,30 @@
+{
+  "version": "0.14.11",
+  "codename": "Early Branch Guard",
+  "status": "targeted-green-runnable-checkpoint",
+  "base": "v0.14.10",
+  "base_commit": "a32f01c278529b5d598f707bb17c2266597f94c5",
+  "focus": [
+    "warn before ChatGPT hard maximum-length stop",
+    "count full active-branch and tool/app overhead",
+    "recognize exact provider hard-limit surface",
+    "migrate only untouched legacy capacity defaults",
+    "preserve state convergence and no-surprise navigation"
+  ],
+  "updated_at": "2026-08-28T17:44:00Z",
+  "verification": {
+    "unit_contract": "11/11 PASS",
+    "validate": "PASS",
+    "state_convergence": "PASS",
+    "live_health": "PASS",
+    "runway_hot_upgrade": "PASS",
+    "build_dev": "PASS"
+  },
+  "qol": [
+    "capacity warning stays primary while healthy tool work continues",
+    "response/no-progress timers remain live under capacity attention",
+    "legacy HUD uses Branch soon/Branch now wording",
+    "Approval Recovery copy truthfully says open-tabs-only",
+    "untouched v0.14.10-era defaults migrate once while custom thresholds remain preserved"
+  ]
+}

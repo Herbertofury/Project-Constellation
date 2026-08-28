@@ -22,9 +22,9 @@ with sync_playwright() as p:
     page.evaluate(mock);page.add_style_tag(content=css);page.add_script_tag(content=core);page.add_script_tag(content=brain);page.add_script_tag(content=health);page.add_script_tag(content=content);page.add_script_tag(content=pulse)
     page.wait_for_timeout(2600)
     active=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h?.shadowRoot;return {exists:!!h,state:s?.getElementById('pcHealthTitle')?.textContent,network:s?.getElementById('pcHealthNetwork')?.textContent,activity:s?.getElementById('pcHealthActivity')?.textContent,tool:s?.getElementById('pcHealthTool')?.textContent,project:s?.getElementById('pcHealthProject')?.textContent,capacity:s?.getElementById('pcHealthCapacity')?.textContent,elapsed:s?.getElementById('pcHealthElapsed')?.textContent,noProgress:s?.getElementById('pcHealthProgress')?.textContent,handoffHidden:s?.getElementById('pcHealthHandoff')?.hidden,branchText:s?.getElementById('pcHealthBranch')?.textContent,branchUrgent:s?.getElementById('pcHealthBranch')?.dataset.urgent,visible:h?.dataset.visible,collapsed:h?.dataset.collapsed,level:h?.dataset.level,healthState:h?.dataset.state,nowTitle:s?.getElementById('pcHealthNowTitle')?.textContent,proof:s?.getElementById('pcHealthProof')?.textContent,timeline:[...s?.querySelectorAll('.eventTitle')||[]].map(n=>n.textContent),articles:document.querySelectorAll('article').length}; }''')
-    assert active['exists'] and active['visible']=='1' and active['state'].startswith('Tool working') and active['healthState']=='tool-running', active
+    assert active['exists'] and active['visible']=='1' and active['state'].startswith('Branch now') and active['healthState']=='capacity-handoff', active
     assert 'agent request' in active['network'] and active['activity'] in ['editing','inspecting','tool call','executing','retrieving'] and 'step' in active['tool'] and '1.4.0' in active['project']
-    assert 'secure' in active['capacity'] and active['handoffHidden'] is False and active['level']=='danger'
+    assert 'branch' in active['capacity'] and active['handoffHidden'] is False and active['level']=='danger'
     assert active['elapsed']!='—' and active['noProgress']!='—', active
     assert 'Branch' in active['branchText'] and active['branchUrgent']=='1'
     assert active['collapsed']=='0' and active['nowTitle']=='Implementing truthful execution activity ledger'
@@ -41,7 +41,7 @@ with sync_playwright() as p:
         page.evaluate('''(idx) => { const b=document.createElement('button');b.setAttribute('aria-label','tool activity');b.textContent='Called tool';b.dataset.step=String(idx);document.getElementById('toolBox').appendChild(b); }''', idx)
         page.wait_for_timeout(1050)
     pulse=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:h.dataset.state,title:s.getElementById('pcHealthTitle').textContent,tool:s.getElementById('pcHealthTool').textContent,activity:s.getElementById('pcHealthActivity').textContent,mini:s.getElementById('pcHealthMini').textContent}; }''')
-    assert pulse['state']=='tool-running' and int(pulse['tool'].split()[0]) >= initial_steps + 3
+    assert pulse['state']=='capacity-handoff' and int(pulse['tool'].split()[0]) >= initial_steps + 3, pulse
     assert 'live request' in pulse['mini'] and 'Implementing truthful execution activity ledger' in pulse['mini'] and pulse['activity']
     # A tool card that remains on-screen and busy with no fresh request or DOM/tool progress must become explicitly stuck.
     page.evaluate('''() => { const now=Date.now();window.__healthContext={...window.__healthContext,capacity:{storedTurns:0},network:{pending:0,observed:true,oldestPendingAt:0,lastStartAt:now-20000,lastResponseAt:now-19000,lastCompleteAt:now-18000,lastErrorAt:0,lastStatusCode:200,rateLimited:false,streamLikely:false}}; }''')

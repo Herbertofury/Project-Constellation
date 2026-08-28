@@ -47,7 +47,20 @@ with sync_playwright() as p:
     runway=page2.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     runway_hud=page2.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); const s=h.shadowRoot; return {state:h.dataset.state,level:h.dataset.level,capacity:h.dataset.capacity,title:s.getElementById('pcHealthTitle').textContent,capacityText:s.getElementById('pcHealthCapacity').textContent,handoffHidden:s.getElementById('pcHealthHandoff').hidden}; }""")
 
-    result={'first':first,'stalled':stalled,'stalledHud':stalled_hud,'runway':runway,'runwayHud':runway_hud,'errors':errors+errors2}
+    # Scenario 3: exact ChatGPT hard-limit surface from the user report must become
+    # capacity-reached even when a fresh tool row is still present.
+    page3=browser.new_page(); errors3=[]; page3.on('pageerror',lambda exc:errors3.append(str(exc)))
+    page3.set_content(base,wait_until='load'); page3.evaluate(mock)
+    page3.evaluate("""() => {
+      const main=document.getElementById('main');
+      main.innerHTML=`<section data-testid="conversation-turn-1"><div data-message-author-role="user" data-message-id="u-limit">Keep going.</div></section><div class="text-token-text-tertiary">Inspecting Gradle distribution archive</div><div role="alert"><p>You've reached the maximum length for this conversation, but you can keep talking by starting a new chat.</p><button>Start new chat</button></div>`;
+      __oldHud();
+    }""")
+    page3.add_script_tag(content=health); page3.add_script_tag(content=sentinel); page3.wait_for_timeout(220)
+    hard_limit=page3.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+    hard_limit_hud=page3.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); const s=h.shadowRoot; return {state:h.dataset.state,level:h.dataset.level,title:s.getElementById('pcHealthTitle').textContent,capacity:s.getElementById('pcHealthCapacity').textContent,handoffHidden:s.getElementById('pcHealthHandoff').hidden}; }""")
+
+    result={'first':first,'stalled':stalled,'stalledHud':stalled_hud,'runway':runway,'runwayHud':runway_hud,'hardLimit':hard_limit,'hardLimitHud':hard_limit_hud,'errors':errors+errors2+errors3}
     print(json.dumps(result,sort_keys=True))
     assert first['chat']['status']=='running' and first['chat']['healthState'] in ('tool-running','working'), first
     assert stalled['chat']['status']=='running' and stalled['chat']['healthState']=='tool-stalled', stalled
@@ -58,6 +71,12 @@ with sync_playwright() as p:
     assert runway['generation']['capacityTurnCount'] >= 260, runway
     assert runway_hud['state']=='capacity-handoff' and runway_hud['capacity']=='handoff', runway_hud
     assert runway_hud['handoffHidden'] is False, runway_hud
-    assert 'runway' in runway_hud['title'].lower() or 'handoff' in runway_hud['title'].lower(), runway_hud
+    assert 'runway' in runway_hud['title'].lower() or 'handoff' in runway_hud['title'].lower() or 'branch' in runway_hud['title'].lower(), runway_hud
+    assert hard_limit['chat']['healthState']=='capacity-reached', hard_limit
+    assert hard_limit['healthStale'] is True and hard_limit['healthActive'] is False, hard_limit
+    assert hard_limit['health']['capacity']['providerLimitStage']=='reached', hard_limit
+    assert hard_limit_hud['state']=='capacity-reached' and hard_limit_hud['level']=='critical', hard_limit_hud
+    assert hard_limit_hud['handoffHidden'] is False, hard_limit_hud
+    assert 'limit' in hard_limit_hud['title'].lower(), hard_limit_hud
     assert not result['errors'], result['errors']
     browser.close()

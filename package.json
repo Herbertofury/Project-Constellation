@@ -1,10 +1,10 @@
 {
   "name": "project-constellation-extension",
-  "version": "0.14.10",
+  "version": "0.14.11",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs",
+    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/health-core.test.mjs && node tests/capacity-settings-migration.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs",
     "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
     "build": "node tools/build.mjs --mode=production",
     "build:dev": "node tools/build.mjs --mode=development",

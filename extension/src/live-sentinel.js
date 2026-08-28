@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.10';
+  const VERSION = '0.14.11';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -41,7 +41,7 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
-  const HEALTH_CORE_VERSION = '8';
+  const HEALTH_CORE_VERSION = '9';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const STATE_EVENT = 'project-constellation:live-sentinel-state';
   const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
@@ -546,17 +546,36 @@
     }).catch(() => {});
   }
 
-  function explicitCapacitySignal() {
-    const text = statusSurfaceText();
-    const match = text.match(/(?:maximum conversation length|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
-    return { explicitLimitSignal:Boolean(match), explicitLimitText:match ? clean(match[0], 220) : '' };
+  function capacitySurfaceText(frontier = conversationFrontier()) {
+    const values = [statusSurfaceText()];
+    const root = mainRoot();
+    const candidates = [...(root?.querySelectorAll?.('p,div,span,button,[role="status"],[aria-live]') || [])].slice(-520);
+    for (const node of candidates) {
+      if (isOwnedNode(node) || !isUsable(node) || turnOwner(node)) continue;
+      if (node.childElementCount > 5) continue;
+      const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 520);
+      if (!text || !/(?:maximum|limit|new chat|running out of|remaining)/i.test(text) || !/(?:conversation|context|messages?|turns?|new chat)/i.test(text)) continue;
+      values.push(text);
+    }
+    return [...new Set(values.filter(Boolean))].join(' | ').slice(-12000);
+  }
+
+  function explicitCapacitySignal(frontier = conversationFrontier()) {
+    const text = capacitySurfaceText(frontier);
+    const signal = healthCore()?.classifyCapacitySignal?.(text) || { active:false, stage:'', text:'' };
+    return {
+      explicitLimitSignal:signal.stage === 'reached',
+      explicitLimitText:signal.text || '',
+      providerLimitStage:signal.stage || '',
+      providerLimitText:signal.text || ''
+    };
   }
 
   function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure }) {
     const core = healthCore();
     const settings = normalizedHealthSettings();
     if (!core || !settings || settings.enabled === false) return null;
-    const explicit = explicitCapacitySignal();
+    const explicit = explicitCapacitySignal(frontier);
     const transcriptTurns = Math.max(0, Number(transcript?.visibleTurnCount || 0));
     const capacityInput = {
       storedTurns:0,
@@ -564,6 +583,10 @@
       mountedTurns:Math.max(0, Number(frontier?.turns?.length || 0)),
       capturedChars:0,
       transcriptTurns,
+      activeBranchMessages:Math.max(0, Number(transcript?.activeBranchMessages || 0)),
+      structuredBranchMessages:Math.max(0, Number(transcript?.structuredBranchMessages || 0)),
+      toolBranchMessages:Math.max(0, Number(transcript?.toolBranchMessages || 0)),
+      visibleBranchMessages:transcriptTurns,
       transcriptChars:Math.max(0, Number(transcript?.contextChars || transcript?.visibleChars || 0)),
       recentAverageChars:Math.max(0, Number(transcript?.recentAverageChars || 0)),
       transcriptRecentAverageChars:Math.max(0, Number(transcript?.recentAverageChars || 0)),
@@ -752,6 +775,8 @@
       toolCount:Number(transcript?.toolCount || 0),
       conversationTurnCount:Number(transcript?.visibleTurnCount || frontier.turns.length || 0),
       activeBranchMessages:Number(transcript?.activeBranchMessages || 0),
+      structuredBranchMessages:Number(transcript?.structuredBranchMessages || 0),
+      toolBranchMessages:Number(transcript?.toolBranchMessages || 0),
       conversationChars:Number(transcript?.contextChars || transcript?.visibleChars || 0),
       visibleChars:Number(transcript?.visibleChars || 0),
       recentAverageChars:Number(transcript?.recentAverageChars || 0),
@@ -771,6 +796,8 @@
       capacityState:String(fallbackHealth?.capacity?.state || 'clear'),
       capacitySafetyPercent:Math.max(0, Number(fallbackHealth?.capacity?.safetyPercent || 0)),
       capacityTurnCount:Math.max(0, Number(fallbackHealth?.capacity?.turnCount || 0)),
+      capacityBranchMessages:Math.max(0, Number(fallbackHealth?.capacity?.activeBranchMessages || 0)),
+      capacityStructuredMessages:Math.max(0, Number(fallbackHealth?.capacity?.structuredBranchMessages || 0)),
       capacityChars:Math.max(0, Number(fallbackHealth?.capacity?.capturedChars || 0)),
       interrupted:Boolean(failure.active),
       failureState:String(failure.active ? (failure.state || failure.status || '') : ''),
@@ -963,7 +990,7 @@
         setIfChanged(activity, toolActive ? 'tool' : sentinelHealthState.startsWith('capacity-') ? 'runway' : 'model');
         setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
         const capacityNode = shadow.getElementById('pcHealthCapacity');
-        if (capacityNode && sentinelHealthState.startsWith('capacity-')) setIfChanged(capacityNode, capacity.state === 'reached' ? 'provider limit' : `${Math.max(0, Number(capacity.safetyPercent || state.generation?.capacitySafetyPercent || 0))}% · ${capacity.state === 'handoff' ? 'secure' : 'watch'}`);
+        if (capacityNode && sentinelHealthState.startsWith('capacity-')) setIfChanged(capacityNode, capacity.state === 'reached' ? 'hard limit · branch' : `${Math.max(0, Number(capacity.safetyPercent || state.generation?.capacitySafetyPercent || 0))}% · ${capacity.state === 'handoff' ? 'branch now' : 'branch soon'}`);
         const handoff = shadow.getElementById('pcHealthHandoff');
         if (handoff && ['capacity-handoff','capacity-reached'].includes(sentinelHealthState)) handoff.hidden = false;
         if (retryButton) {

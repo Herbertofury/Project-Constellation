@@ -57,6 +57,16 @@ assert.equal(capacity.recommendedAction, 'handoff');
 capacity = core.deriveCapacity({ storedTurns: 260, capturedChars: 100000 }, { capacityWarningTurns: 180, capacityHandoffTurns: 260 });
 assert.equal(capacity.state, 'handoff');
 assert.equal(capacity.level, 'danger');
+row = core.deriveHealth({
+  now, chatStatus:'running', running:true, lastTurnProgressAt:now-500,
+  network:{pending:1,oldestPendingAt:now-1000,lastStartAt:now-1000,lastResponseAt:now-300},
+  tool:{present:true,active:true,label:'Inspecting ModForge source and report formats',phase:'inspecting',lastProgressAt:now-250,entryCount:5},
+  capacity:{storedTurns:260},
+  settings:{capacityWarningTurns:180,capacityHandoffTurns:260}
+});
+assert.equal(row.state, 'capacity-handoff', 'healthy tool activity must not visually hide a branch-now warning');
+assert.match(row.title, /Branch now/i);
+assert.equal(row.activity.kind, 'tool');
 capacity = core.deriveCapacity({ storedTurns: 40, explicitLimitSignal: true, explicitLimitText: 'Maximum conversation length reached' });
 assert.equal(capacity.state, 'reached');
 assert.equal(capacity.level, 'critical');
@@ -75,8 +85,9 @@ row = core.deriveHealth({ now, chatStatus:'idle', capacity:{storedTurns:180}, se
 assert.equal(row.state,'capacity-watch');
 assert.equal(row.capacity.state,'watch');
 row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-1000, capacity:{storedTurns:260}, settings:{capacityWarningTurns:180,capacityHandoffTurns:260} });
-assert.equal(row.state,'working');
+assert.equal(row.state,'capacity-handoff', 'healthy running work must not hide a Branch now warning');
 assert.equal(row.level,'danger');
+assert.match(row.title,/Branch now/i);
 assert.equal(row.capacity.recommendedAction,'handoff');
 row = core.deriveHealth({ now, chatStatus:'refresh-required', capacity:{storedTurns:260}, settings:{capacityWarningTurns:180,capacityHandoffTurns:260} });
 assert.equal(row.state,'refresh-required');
@@ -100,5 +111,41 @@ for (const [text, state, title] of [
 const noRetryFailure = core.classifyProviderFailure('Message delivery timed out. Please try again.', {});
 assert.equal(noRetryFailure.recommendedAction, 'refresh');
 assert.equal(core.deriveHealth({ now, chatStatus:'delivery-timeout', failure:noRetryFailure }).state, 'delivery-timeout');
+
+
+// v0.14.11 Early Branch Guard: tool/app-heavy branches must warn even when visible
+// turns and raw text are modest.
+capacity = core.deriveCapacity({
+  storedTurns: 34,
+  transcriptTurns: 34,
+  activeBranchMessages: 92,
+  structuredBranchMessages: 50,
+  transcriptChars: 118000
+});
+assert.equal(capacity.state, 'watch', 'full active-branch/tool overhead triggers an early branch warning');
+assert.ok(capacity.safetyPercent >= 58, capacity);
+assert.equal(capacity.activeBranchMessages, 92);
+assert.equal(capacity.structuredBranchMessages, 58);
+capacity = core.deriveCapacity({
+  storedTurns: 42,
+  transcriptTurns: 42,
+  activeBranchMessages: 122,
+  structuredBranchMessages: 62,
+  transcriptChars: 150000
+});
+assert.equal(capacity.state, 'handoff', 'full active-branch pressure enters handoff before the provider hard stop');
+assert.equal(capacity.recommendedAction, 'handoff');
+
+let signal = core.classifyCapacitySignal("You've reached the maximum length for this conversation, but you can keep talking by starting a new chat.");
+assert.equal(signal.active, true);
+assert.equal(signal.stage, 'reached', 'exact ChatGPT maximum-length banner is a hard-limit signal');
+capacity = core.deriveCapacity({ storedTurns:12, providerLimitStage:signal.stage, providerLimitText:signal.text });
+assert.equal(capacity.state, 'reached');
+assert.equal(capacity.level, 'critical');
+assert.match(capacity.title, /hard limit/i);
+signal = core.classifyCapacitySignal('This conversation is approaching its context limit. Start a new chat soon.');
+assert.equal(signal.stage, 'near');
+capacity = core.deriveCapacity({ providerLimitStage:signal.stage, providerLimitText:signal.text });
+assert.equal(capacity.state, 'handoff');
 
 console.log('health-core.test.mjs: PASS');

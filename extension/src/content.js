@@ -1104,24 +1104,35 @@
   }
 
   function conversationCapacityEvidence(context = {}) {
-    const statusText = String(healthEvidence.lastStatusText || '');
-    const explicitMatch = statusText.match(/(?:maximum conversation length|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
     const sentinel = liveSentinelState(false);
     const generation = sentinel?.ok && sentinel.source === 'live-sentinel' ? (sentinel.generation || {}) : {};
+    const sentinelCapacity = sentinel?.health?.capacity || {};
+    const statusText = String(healthEvidence.lastStatusText || '');
+    const signal = health.classifyCapacitySignal?.(`${statusText} ${sentinelCapacity.providerLimitText || ''}`) || { active:false, stage:'', text:'' };
     const storedRecentAverage = Math.max(0, Number(context.capacity?.recentAverageChars || 0));
     const transcriptRecentAverage = Math.max(0, Number(generation.recentAverageChars || 0));
+    const transcriptTurns = Math.max(0, Number(generation.conversationTurnCount || 0), Number(sentinelCapacity.transcriptTurns || 0));
+    const activeBranchMessages = Math.max(0, Number(generation.activeBranchMessages || 0), Number(sentinelCapacity.activeBranchMessages || 0));
+    const structuredBranchMessages = Math.max(0, Number(generation.structuredBranchMessages || 0), Number(sentinelCapacity.structuredBranchMessages || 0));
+    const toolBranchMessages = Math.max(0, Number(generation.toolBranchMessages || 0), Number(sentinelCapacity.toolBranchMessages || 0));
     return {
       storedTurns: Math.max(0, Number(context.capacity?.storedTurns || 0)),
       storedChars: Math.max(0, Number(context.capacity?.storedChars || 0)),
       sessionTurns: seenTurnHashes.size,
       mountedTurns: seenTurnHashes.size,
       capturedChars: seenTurnTextChars,
-      transcriptTurns: Math.max(0, Number(generation.conversationTurnCount || 0)),
-      transcriptChars: Math.max(0, Number(generation.conversationChars || 0)),
+      transcriptTurns,
+      activeBranchMessages,
+      structuredBranchMessages,
+      toolBranchMessages,
+      visibleBranchMessages:transcriptTurns,
+      transcriptChars: Math.max(0, Number(generation.conversationChars || 0), Number(sentinelCapacity.transcriptChars || 0)),
       recentAverageChars: Math.max(storedRecentAverage, transcriptRecentAverage),
       transcriptRecentAverageChars: transcriptRecentAverage,
-      explicitLimitSignal: Boolean(explicitMatch),
-      explicitLimitText: explicitMatch ? brain.normalizeText(explicitMatch[0], 220) : ''
+      explicitLimitSignal: signal.stage === 'reached' || sentinelCapacity.providerLimitStage === 'reached',
+      explicitLimitText: signal.text || sentinelCapacity.providerLimitText || '',
+      providerLimitStage: signal.stage || sentinelCapacity.providerLimitStage || '',
+      providerLimitText: signal.text || sentinelCapacity.providerLimitText || ''
     };
   }
 
@@ -1739,7 +1750,8 @@
     }
     const sentinelState = liveSentinelState(false);
     const generationTiming = sentinelState?.ok && sentinelState.source === 'live-sentinel' ? (sentinelState.generation || {}) : {};
-    const responseRunning = String(sentinelState?.chat?.status || '') === 'running' || ['working','tool-running','tool-quiet','quiet-working','request-stalled','stalled','tool-stalled','dead','tool-dead'].includes(snapshot.state);
+    const capacityUnderlyingActive = ['capacity-watch','capacity-handoff'].includes(snapshot.state) && (lastStatus === 'running' || Boolean(snapshot.networkActive) || snapshot.activity?.kind === 'tool');
+    const responseRunning = String(sentinelState?.chat?.status || '') === 'running' || capacityUnderlyingActive || ['working','tool-running','tool-quiet','quiet-working','request-stalled','stalled','tool-stalled','dead','tool-dead'].includes(snapshot.state);
     const failure = sentinelState?.failure?.active ? sentinelState.failure : sentinelState?.chat?.failure?.active ? sentinelState.chat.failure : null;
     const timingNetwork = context.network || {};
     const earliestInflight = (Array.isArray(timingNetwork.inflight) ? timingNetwork.inflight : []).map((row)=>Number(row?.startedAt || 0)).filter((value)=>value > 0).sort((a,b)=>a-b)[0] || 0;
@@ -1788,8 +1800,8 @@
     const turns = Number(capacity.turnCount || 0);
     const safetyPercent = Math.max(0, Number(capacity.safetyPercent || 0));
     host.dataset.capacity = capacity.state || 'clear';
-    setHealthText(shadow, 'pcHealthCapacity', capacity.state === 'reached' ? 'provider limit' : capacity.state === 'handoff' ? `${safetyPercent || 'high'}% · secure` : capacity.state === 'watch' ? `${safetyPercent || 'high'}% · watch` : turns ? `${safetyPercent}% · clear` : 'clear');
-    setHealthText(shadow, 'pcHealthHandoffState', capacity.recommendedAction === 'handoff' ? (capacity.state === 'watch' ? 'ready early' : 'checkpoint now') : 'armed');
+    setHealthText(shadow, 'pcHealthCapacity', capacity.state === 'reached' ? 'hard limit · branch' : capacity.state === 'handoff' ? `${safetyPercent || 'high'}% · branch now` : capacity.state === 'watch' ? `${safetyPercent || 'high'}% · branch soon` : turns ? `${safetyPercent}% · clear` : 'clear');
+    setHealthText(shadow, 'pcHealthHandoffState', capacity.recommendedAction === 'handoff' ? (capacity.state === 'watch' ? 'branch soon' : 'branch now') : 'armed');
     const branchUrgent = ['watch','handoff','reached'].includes(capacity.state) ? '1' : '0'; const branchTitle = capacity.state === 'reached' ? 'Provider limit reached — branch into a linked continuation chat' : capacity.state === 'handoff' ? 'Capacity threshold reached — branch safely before the chat breaks' : capacity.state === 'watch' ? 'Runway narrowing — branch early while everything is still healthy' : 'Branch early into a linked continuation chat';
     for (const branch of [shadow.getElementById('pcHealthBranch'), shadow.getElementById('pcHealthBranchQuick')]) { branch.dataset.urgent = branchUrgent; branch.title = branchTitle; }
     const vaultUrgent = page.outputRegression?.active ? '1' : '0'; const vaultTitle = page.outputRegression?.active ? `Saved output is missing · ${page.outputRegression.detail || 'open Output Vault to recover it'}` : 'Open every saved response, file, link, code block, and media output';
@@ -1838,7 +1850,7 @@
       }
       if (sentinelCapacityAttention) {
         const health = sentinel.health || {};
-        return { ...snapshot, state:sentinelHealthState, level:health.level || 'warning', title:health.title || 'Conversation runway narrowing', detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity };
+        return { ...snapshot, state:sentinelHealthState, level:health.level || 'warning', title:health.title || 'Conversation runway narrowing', detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, capacity:health.capacity || snapshot.capacity, activity };
       }
       return { ...snapshot, state:toolActive ? 'tool-running' : 'working', level:'active', title:toolActive && label ? `Tool working · ${label}` : 'Chat is still working', detail:'Live Sentinel confirms the current turn is active and current progress evidence is healthy.', activity };
     }
@@ -1847,7 +1859,8 @@
         const health = sentinel.health || {};
         return { ...snapshot, state:sentinelHealthState, level:health.level || snapshot.level, title:health.title || snapshot.title, detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity:null };
       }
-      if (capacityAttention || sentinelCapacityAttention || ['capacity-watch','capacity-handoff','capacity-reached'].includes(snapshot.state)) return snapshot;
+      if (sentinelCapacityAttention) { const sentinelHealth = sentinel.health || {}; return { ...snapshot, state:sentinelHealthState, level:sentinelHealth.level || snapshot.level, title:sentinelHealth.title || snapshot.title, detail:sentinelHealth.detail || snapshot.detail, recommendedAction:sentinelHealth.recommendedAction || snapshot.recommendedAction, capacity:sentinelHealth.capacity || snapshot.capacity }; }
+      if (capacityAttention || ['capacity-watch','capacity-handoff','capacity-reached'].includes(snapshot.state)) return snapshot;
       return { ...snapshot, state:'healthy', level:'healthy', title:'Chat complete', detail:'Current response is settled. Secondary project/output warnings remain available below.', activity:null };
     }
     if (sentinelProtected) {
