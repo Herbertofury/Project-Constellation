@@ -37,7 +37,7 @@ cases = [
 ]
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
+    browser = p.chromium.launch(headless=True, args=['--no-sandbox'], executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
     results = []
     for case in cases:
         page = browser.new_page()

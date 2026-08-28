@@ -118,7 +118,7 @@
         const cv = projectScopedVersion(`${chat.title || ''} ${chat.lastExcerpt || ''}`, project);
         if (!cv || compareVersions(cv, latest) >= 0) continue;
         findings.push({
-          type: 'old-version-chat', severity: ['running','paused','stalled','blocked-approval','refresh-required'].includes(chat.status) ? 'critical' : 'warning',
+          type: 'old-version-chat', severity: ['running','paused','stalled','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required'].includes(chat.status) ? 'critical' : 'warning',
           projectId: project.id, chatId: chat.id, title: `Chat appears to be on v${cv.version} while project is at v${latest.version}`,
           detail: `${chat.title || 'Untitled chat'} may be working from an older project state.`, evidence: { chatVersion: cv.version, latestVersion: latest.version, latestSource: latest.label || latest.sourceId }, updatedAt: now
         });
@@ -178,7 +178,12 @@
     }
 
     for (const chat of chats) {
-      if (chat.status === 'refresh-required') findings.push({ type: 'refresh-required', severity: 'critical', projectId: project.id, chatId: chat.id, title: 'Chat requires a browser refresh', detail: `${chat.statusDetail || 'Connection/delivery timeout detected.'} Recovery policy: browser refresh; never press Retry.`, updatedAt: now });
+      if (['delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(chat.status)) {
+        const titles = { 'delivery-timeout':'Message delivery timed out', 'connection-interrupted':'Chat connection interrupted', 'response-interrupted':'Response interrupted', 'send-failed':'Message was not sent' };
+        const recovery = chat.failureRetryAvailable ? `${chat.failureRetryLabel || 'Retry'} is available as an explicit user action in the already-open tab.` : 'No native retry is currently available; recovery remains manual.';
+        findings.push({ type:`chat-${chat.status}`, severity:'critical', projectId:project.id, chatId:chat.id, title:titles[chat.status], detail:`${chat.statusDetail || 'The provider interrupted the current turn.'} ${recovery} Constellation never retries automatically.`, updatedAt:now });
+      }
+      else if (chat.status === 'refresh-required') findings.push({ type: 'refresh-required', severity: 'critical', projectId: project.id, chatId: chat.id, title: 'Chat requires a browser refresh', detail: `${chat.statusDetail || 'The provider explicitly requires a page refresh.'} Recovery policy: manual browser refresh.`, updatedAt: now });
       else if (chat.status === 'rate-limited') findings.push({ type: 'chat-rate-limited', severity: 'warning', projectId: project.id, chatId: chat.id, title: 'Chat is provider rate limited', detail: `${chat.statusDetail || 'Too many requests detected.'} Constellation will wait for the provider cooldown instead of retrying aggressively.`, updatedAt: now });
       else if (['blocked-approval','stalled','errored','auth-required'].includes(chat.status)) findings.push({ type: `chat-${chat.status}`, severity: chat.status === 'blocked-approval' ? 'critical' : 'warning', projectId: project.id, chatId: chat.id, title: `Chat is ${chat.status.replace(/-/g,' ')}`, detail: chat.statusDetail || chat.title || 'Chat needs attention.', updatedAt: now });
     }

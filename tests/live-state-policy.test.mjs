@@ -27,8 +27,8 @@ function functionSource(name) {
 
 const bucketSource = functionSource('livePulseBucket');
 const sandbox = {
-  LIVE_STALE_STATUSES:new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']),
-  LIVE_STALE_HEALTH_STATES:new Set(['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page']),
+  LIVE_STALE_STATUSES:new Set(['paused','waiting-user','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']),
+  LIVE_STALE_HEALTH_STATES:new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page']),
   LIVE_ACTIVE_HEALTH_STATES:new Set(['working','tool-running','tool-quiet','quiet-working'])
 };
 vm.createContext(sandbox);
@@ -36,6 +36,7 @@ vm.runInContext(`${bucketSource}; globalThis.__bucket=livePulseBucket;`, sandbox
 assert.equal(sandbox.__bucket({chat:{status:'idle',healthState:'healthy'},generation:{active:false}}, {pending:9,streamLikely:true}), 'completed', 'background provider traffic cannot resurrect a completed chat');
 assert.equal(sandbox.__bucket({chat:{status:'running',healthState:'working'},generation:{active:true}}, {pending:0}), 'active');
 assert.equal(sandbox.__bucket({chat:{status:'rate-limited',healthState:'rate-limited'}}, {pending:4}), 'stale');
+assert.equal(sandbox.__bucket({chat:{status:'delivery-timeout',healthState:'delivery-timeout'},failure:{active:true,retryAvailable:true}}, {pending:4}), 'stale', 'explicit provider failure stays Needs Attention even with pending network');
 const managedGroupSource = functionSource('managedGroupBucket');
 const groupSandbox = { TAB_GROUP_PREFIX:'PC ✦' }; vm.createContext(groupSandbox); vm.runInContext(`${managedGroupSource}; globalThis.__groupBucket=managedGroupBucket;`, groupSandbox);
 assert.equal(groupSandbox.__groupBucket('My Research'), '', 'user-created tab group is never treated as Constellation-owned');
@@ -83,7 +84,7 @@ assert.equal(reconciled.state,'capacity-watch','Sentinel idle cannot hide a capa
 const sentinelSource = fs.readFileSync(new URL('../extension/src/live-sentinel.js', import.meta.url), 'utf8');
 const transcriptProbeSource = fs.readFileSync(new URL('../extension/src/chatgpt-page-probe.js', import.meta.url), 'utf8');
 const tabBeaconSource = fs.readFileSync(new URL('../extension/src/tab-beacon.js', import.meta.url), 'utf8');
-assert.match(sentinelSource, /const rawActive = transcriptFinal \? false : transcriptRunning \? true : domActive/, 'fresh transcript finality outranks stale DOM while unfinished transcript outranks settled DOM');
+assert.match(sentinelSource, /const rawActive = failure\.active \? false : transcriptFinal \? false : transcriptRunning \? true : domActive/, 'fresh transcript finality outranks stale DOM while unfinished transcript outranks settled DOM');
 assert.match(sentinelSource, /PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT/, 'authoritative transport completion can request an event-driven transcript refresh');
 assert.doesNotMatch(sentinelSource, /if \(state\.running\) \{ lastActivityAt = now\(\); lastProgressAt = now\(\); \}/, 'transcript polling alone never refreshes the progress clock');
 assert.match(sentinelSource, /persistent spinner\/active label is proof[\s\S]{0,260}Only a changed current-tool signature resets/, 'unchanged tool spinners are not treated as forward progress');

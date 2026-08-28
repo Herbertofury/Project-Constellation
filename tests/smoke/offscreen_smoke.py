@@ -6,7 +6,7 @@ mock="""
 (() => { const listeners={}; globalThis.chrome={runtime:{onMessage:{addListener:(fn)=>listeners.message=fn}}}; globalThis.__listeners=listeners; })();
 """
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
     page=browser.new_page(); errors=[]; page.on('pageerror',lambda exc: errors.append(str(exc)))
     page.set_content('<!doctype html><html><body></body></html>')
     page.add_script_tag(content=mock); page.add_script_tag(content=brain); page.add_script_tag(content=providers); page.add_script_tag(content=off)

@@ -13,7 +13,7 @@
     attentionNotificationsEnabled: true
   });
   const ACTIVE_STATUSES = new Set(['running']);
-  const STALE_STATUSES = new Set(['paused', 'waiting-user', 'blocked-approval', 'refresh-required', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
+  const STALE_STATUSES = new Set(['paused', 'waiting-user', 'blocked-approval', 'delivery-timeout', 'connection-interrupted', 'response-interrupted', 'send-failed', 'refresh-required', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
   const COMPLETED_STATUSES = new Set(['idle', 'archived']);
   const STRICTNESS = new Set(['relaxed', 'balanced', 'strict']);
 

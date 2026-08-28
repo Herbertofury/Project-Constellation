@@ -50,7 +50,7 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.8';
+const LIVE_SENTINEL_VERSION = '0.14.9';
 const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
@@ -1058,7 +1058,9 @@ async function recoverTabByRefresh(tabId, chatId, url = '', detail = '', source 
   };
 }
 
-const ATTENTION_STATUSES = Object.freeze(['blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+const FAILURE_STATUSES = Object.freeze(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
+const FAILURE_STATUS_SET = new Set(FAILURE_STATUSES);
+const ATTENTION_STATUSES = Object.freeze(['blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
 const RECOVERY_STATUSES = Object.freeze(['blocked-approval','paused']);
 
 async function chatsForStatuses(statuses = ATTENTION_STATUSES) {
@@ -1262,7 +1264,7 @@ async function advanceApprovalRecovery(state, item, result = {}) {
     alwaysAllowed: state.alwaysAllowed + (action === 'always-allow' ? 1 : 0),
     allowedOnce: state.allowedOnce + (action === 'allow-once' ? 1 : 0),
     resumed: state.resumed + (action === 'resume' ? 1 : 0),
-    unchanged: state.unchanged + (['none','not-open','needs-refresh'].includes(action) ? 1 : 0),
+    unchanged: state.unchanged + (['none','not-open','needs-refresh','needs-attention'].includes(action) ? 1 : 0),
     failed: state.failed + (result?.ok === false && action !== 'not-open' ? 1 : 0),
     lastResult: { chatId: item.id, title: item.title, action, connector: result?.connector || '', reason: result?.reason || result?.error || '' },
     windowId: 0,
@@ -1309,6 +1311,25 @@ async function processApprovalRecoveryStep() {
     result = { ok: false, action: 'failed', error: String(error?.message || error) };
   }
 
+  if (FAILURE_STATUS_SET.has(String(result?.action || ''))) {
+    const failureStatus = String(result.action);
+    await upsert('chats', {
+      id:item.id,
+      status:failureStatus,
+      statusDetail:result?.reason || `Provider interruption: ${failureStatus}`,
+      recoveryKind:result?.retryAvailable ? 'native-retry-available' : 'manual-refresh',
+      retryForbidden:false,
+      automaticRetryForbidden:true,
+      failureKind:failureStatus,
+      failureRetryAvailable:Boolean(result?.retryAvailable),
+      failureRetryLabel:String(result?.retryLabel || '').slice(0,80),
+      failureDetectedAt:Date.now(),
+      approvalRecoveryLastAttemptAt:Date.now(),
+      approvalRecoveryLastAction:'needs-attention',
+      updatedAt:Date.now()
+    });
+    result = { ...result, ok:true, action:'needs-attention', failureKind:failureStatus };
+  }
   if (result?.action === 'rate-limited') {
     const waitMs = Math.max(30_000, Math.min(60 * 60 * 1000, Number(result.waitMs || 0) || 15 * 60 * 1000));
     const until = Date.now() + waitMs;
@@ -1724,7 +1745,24 @@ async function ingestBatch(items) {
 
   for (const status of statusEvents) {
     const previous = await getOne('chats', status.chatId);
-    const mergedStatusChat = await upsert('chats', { id: status.chatId, providerId: status.providerId || previous?.providerId || '', status: status.status, statusDetail: status.detail || '', url: status.url || previous?.url || '', approvalConnector: status.approvalConnector || previous?.approvalConnector || '', recoveryKind: status.status === 'refresh-required' ? (status.recoveryKind || 'browser-refresh') : (status.recoveryKind || ''), retryForbidden: Boolean(status.status === 'refresh-required' && (status.retryForbidden !== false)), lastSeenAt: now, lastActivityAt: now, updatedAt: now });
+    const interrupted = FAILURE_STATUS_SET.has(String(status.status || ''));
+    const mergedStatusChat = await upsert('chats', {
+      id:status.chatId,
+      providerId:status.providerId || previous?.providerId || '',
+      status:status.status,
+      statusDetail:status.detail || '',
+      url:status.url || previous?.url || '',
+      approvalConnector:status.approvalConnector || previous?.approvalConnector || '',
+      recoveryKind:interrupted ? (status.recoveryKind || (status.failureRetryAvailable ? 'native-retry-available' : 'manual-refresh')) : status.status === 'refresh-required' ? (status.recoveryKind || 'browser-refresh') : (status.recoveryKind || ''),
+      retryForbidden:interrupted ? false : Boolean(status.status === 'refresh-required' && (status.retryForbidden !== false)),
+      automaticRetryForbidden:interrupted || Boolean(status.automaticRetryForbidden),
+      failureKind:interrupted ? (status.failureKind || status.status) : '',
+      failureRetryAvailable:interrupted ? Boolean(status.failureRetryAvailable) : false,
+      failureRetryLabel:interrupted ? String(status.failureRetryLabel || '').slice(0,80) : '',
+      failureDetectedAt:interrupted ? Number(status.failureDetectedAt || now) : 0,
+      failurePartialAssistantChars:interrupted ? Math.max(0, Number(status.failurePartialAssistantChars || 0)) : 0,
+      lastSeenAt:now, lastActivityAt:now, updatedAt:now
+    });
     await putSearchDocs([searchDoc('chat', mergedStatusChat)]);
     if (previous?.status !== status.status) await addEvent('chat-status', 'chat', status.chatId, status.chatId, { from: previous?.status || '', to: status.status, detail: (status.detail || '').slice(0, 500) });
     if (previous?.status === 'refresh-required' && status.status !== 'refresh-required') noteRefreshRecoveryCleared(status.chatId, status.status).catch(() => {});
@@ -2077,7 +2115,7 @@ async function homeSummary() {
     countStore('providers'), countStore('projects'), countStore('chats'), countStore('turns'), countStore('files'), countStore('knowledgeItems'),
     getRecent('chats', 18), getRecent('files', 18), getRecent('projects', 18), getRecent('events', 24), getRecent('chats', 500), hasHistoryPermission(), settings(), catalogState(), fullCaptureState(), organizationSummary(), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(18)
   ]);
-  const attentionStatuses = ['blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable'];
+  const attentionStatuses = ['blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable'];
   const liveStatuses = ['running','paused','waiting-user'];
   const attentionGroups = await Promise.all(attentionStatuses.map((status) => getByIndex('chats','status',status,10)));
   const liveGroups = await Promise.all(liveStatuses.map((status) => getByIndex('chats','status',status,10)));
@@ -3751,6 +3789,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       case 'PC_LIVE_CHAT_PULSE': return liveChatPulse({ force:Boolean(message.force) });
       case 'PC_FOCUS_LIVE_CHAT': return focusLiveChat(message);
+      case 'PC_RETRY_LIVE_CHAT_FAILURE': return retryLiveChatFailure(message.tabId || sender?.tab?.id);
       case 'PC_LIVE_CHAT_STATE_PUSH': return handleLiveChatStatePush(message, sender);
       case 'PC_TAB_TAG_GET': return tabTagState(Number(message.tabId || sender?.tab?.id || 0));
       case 'PC_TAB_TAG_SET': return setTabTag(Number(message.tabId || sender?.tab?.id || 0), message.tag || '');
@@ -3768,9 +3807,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 
 const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working']);
-const LIVE_STALE_HEALTH_STATES = new Set(['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page','capacity-watch','capacity-handoff','capacity-reached']);
-const LIVE_NOTIFY_ATTENTION_STATES = new Set(['stalled','dead','request-stalled','tool-stalled','tool-dead','capacity-watch','capacity-handoff','capacity-reached']);
-const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+const LIVE_STALE_HEALTH_STATES = new Set([...FAILURE_STATUSES,'refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page','capacity-watch','capacity-handoff','capacity-reached']);
+const LIVE_NOTIFY_ATTENTION_STATES = new Set([...FAILURE_STATUSES,'stalled','dead','request-stalled','tool-stalled','tool-dead','capacity-watch','capacity-handoff','capacity-reached']);
+const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
 
 function livePulseBucket(state = {}, network = {}) {
   const status = String(state?.chat?.status || state?.status || 'idle');
@@ -4023,10 +4062,19 @@ async function notifyChatAttention(row) {
   const healthState = String(row?.healthState || '');
   if (cfg.attentionNotificationsEnabled === false || !LIVE_NOTIFY_ATTENTION_STATES.has(healthState) || !chrome.notifications?.create) return;
   const capacity = healthState.startsWith('capacity-');
+  const failure = FAILURE_STATUS_SET.has(healthState);
   const critical = ['dead','tool-dead','capacity-reached'].includes(healthState);
-  const title = capacity ? (healthState === 'capacity-watch' ? 'Chat runway is narrowing' : 'Secure a chat handoff') : (critical ? 'Chat may be dead' : 'Chat may be stalled');
+  const failureTitles = {
+    'delivery-timeout':'Message delivery timed out',
+    'connection-interrupted':'Chat connection interrupted',
+    'response-interrupted':'Response interrupted',
+    'send-failed':'Message was not sent'
+  };
+  const title = failure ? failureTitles[healthState] : capacity ? (healthState === 'capacity-watch' ? 'Chat runway is narrowing' : 'Secure a chat handoff') : (critical ? 'Chat may be dead' : 'Chat may be stalled');
   const task = String(row?.task || row?.title || row?.providerName || 'AI chat').slice(0, 180);
-  const suffix = capacity ? 'Project Constellation measured the full available branch and raised your proactive runway threshold.' : 'No meaningful response/tool progress has been observed past your watchdog threshold.';
+  const suffix = failure
+    ? (row?.failure?.retryAvailable ? `${row.failure.retryLabel || 'Retry'} is available in the existing tab. Constellation will never trigger it automatically.` : 'The provider interrupted this turn. Constellation left the tab untouched and marked it Needs Attention.')
+    : capacity ? 'Project Constellation measured the full available branch and raised your proactive runway threshold.' : 'No meaningful response/tool progress has been observed past your watchdog threshold.';
   const notificationId = `pc-chat-attention:${Number(row?.tabId || 0)}:${healthState}:${Date.now()}`;
   try {
     await chrome.notifications.create(notificationId, {
@@ -4195,6 +4243,7 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
     active:bucket === 'active',
     stale:bucket === 'stale',
     completed:bucket === 'completed',
+    failure:state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null,
     generation:state?.generation || null,
     network:{ pending:Number(network.pending || 0), streamLikely:Boolean(network.streamLikely), lastStartAt:Number(network.lastStartAt || 0), lastCompleteAt:Number(network.lastCompleteAt || 0) },
     lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0), Number(network.lastStartAt || 0), Number(network.lastResponseAt || 0), Number(network.lastCompleteAt || 0)),
@@ -4308,6 +4357,24 @@ async function enrichLiveRowContext(row = {}) {
   return { ...row, catalogChatId:context.catalogChatId || canonicalLiveCatalogChatId(row), context:{ ...context, liveActivity:specificLiveActivity(row) } };
 }
 
+async function retryLiveChatFailure(tabId) {
+  const id = Number(tabId || 0);
+  if (!id || !chrome.tabs?.sendMessage || !chrome.tabs?.get) return { ok:false, error:'A currently open chat tab is required.' };
+  const tab = await chrome.tabs.get(id).catch(() => null);
+  if (!tab?.id || !providers.isLikelyChatUrl(String(tab.url || ''), 'chatgpt')) return { ok:false, error:'That ChatGPT tab is no longer open.' };
+  const result = await chrome.tabs.sendMessage(id, { type:'PC_LIVE_SENTINEL_RETRY_FAILURE' }).catch((error) => ({ ok:false, error:String(error?.message || error) }));
+  if (result?.ok) {
+    await addEvent('chat-failure-retry-user-requested', 'chat', providers.chatIdFromUrl(tab.url || '', 'chatgpt') || '', '', {
+      tabId:id,
+      state:String(result.state || ''),
+      label:String(result.label || 'Retry').slice(0,80),
+      policy:'explicit-user-action-existing-tab-only'
+    }).catch(() => {});
+    scheduleLiveTabReconcile(id, 180);
+  }
+  return result || { ok:false, error:'Retry was unavailable.' };
+}
+
 async function focusLiveChat(message = {}) {
   const tabId = Number(message.tabId || 0);
   if (tabId && chrome.tabs?.get) {
@@ -4383,7 +4450,7 @@ async function handleLiveChatStatePush(message, sender) {
     tabId:Number(tab.id), windowId:Number(tab.windowId || 0), providerId:provider.id, providerName:provider.name,
     title:String(tab.title || state?.chat?.title || provider.name).slice(0,220), url:String(tab.url), chatId:String(state?.chat?.id || providers.chatIdFromUrl(tab.url, provider.id) || ''),
     status:String(state?.chat?.status || 'idle'), rawStatus:String(state?.chat?.rawStatus || state?.chat?.status || 'idle'), healthState:String(state?.chat?.healthState || ''), bucket,
-    active:bucket==='active', stale:bucket==='stale', completed:bucket==='completed', generation:state?.generation || null,
+    active:bucket==='active', stale:bucket==='stale', completed:bucket==='completed', failure:state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null, generation:state?.generation || null,
     network:{pending:Number(network.pending || 0),streamLikely:Boolean(network.streamLikely)}, lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0),Number(network.lastStartAt || 0),Number(network.lastResponseAt || 0),Number(network.lastCompleteAt || 0)), observedAt:Date.now()
   };
   rememberLiveTabState(row);

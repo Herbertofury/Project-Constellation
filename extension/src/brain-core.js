@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const VERSION = 7;
-  const CHAT_STATUSES = Object.freeze(['idle','running','paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable','archived']);
+  const CHAT_STATUSES = Object.freeze(['idle','running','paused','waiting-user','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','errored','stalled','auth-required','unavailable','archived']);
   const normalizeText = (value, max = 20000) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
   function hashString(value) {
     let hash = 2166136261;

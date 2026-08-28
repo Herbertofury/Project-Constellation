@@ -25,7 +25,7 @@
   };
   const NATIVE_GROUP_COLORS = ['grey','blue','red','yellow','green','pink','purple','cyan','orange'];
   const ACTIVE_STATUSES = new Set(['running']);
-  const STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+  const STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
 
   const ids = [
     'enabled','responsiveScrolling','adaptiveMotionRelief','pressure','status','longTasks','maxTask','provider','chatState','resetMetrics',
@@ -92,7 +92,10 @@
       const proof = generation.transcriptProof ? 'transcript' : 'live page';
       return `${title} · ${phase}${model ? ` · ${model}` : ''} · ${proof}`;
     }
-    if (bucket === 'stale') return `${safe(row.title || 'Needs attention', 45)} · ${safe(row.status || 'stale', 18).replaceAll('-', ' ')}`;
+    if (bucket === 'stale') {
+      const failure = row.failure?.active ? row.failure : null;
+      return `${safe(row.title || 'Needs attention', 45)} · ${failure?.title ? safe(failure.title, 34) : safe(row.status || 'stale', 18).replaceAll('-', ' ')}${failure?.retryAvailable ? ' · Retry ready' : ''}`;
+    }
     return safe(row.title || 'Completed chat', 58);
   }
 
@@ -145,7 +148,7 @@
       if (selectedChatBucket === 'active' && context.liveActivity && safe(context.liveActivity, 90).toLowerCase() !== safe(context.taskHint, 90).toLowerCase()) pieces.push(`Now: ${safe(context.liveActivity, 34)}`);
       pieces.push(safe(row.providerName || row.providerId || 'AI', 24));
       if (selectedChatBucket === 'active') pieces.push(safe(generation.phase || generation.toolPhase || 'working', 24).replaceAll('-', ' '));
-      else if (selectedChatBucket === 'stale') pieces.push(row.reconnecting ? 'reconnecting' : safe(row.status || 'attention', 22).replaceAll('-', ' '));
+      else if (selectedChatBucket === 'stale') { const failure = row.failure?.active ? row.failure : null; pieces.push(row.reconnecting ? 'reconnecting' : failure?.title ? safe(failure.title, 30) : safe(row.status || 'attention', 22).replaceAll('-', ' ')); if (failure?.retryAvailable) pieces.push(`${safe(failure.retryLabel || 'Retry', 18)} available`); }
       else pieces.push('complete');
       if (generation.modelSlug) pieces.push(safe(generation.modelSlug, 24));
       if (row.tabGroup?.title) pieces.push(row.tabGroup.managed ? 'PC sorted' : `Group: ${safe(row.tabGroup.title, 30)}`);
@@ -158,7 +161,31 @@
         const result = await chrome.runtime.sendMessage({ type:'PC_FOCUS_LIVE_CHAT', tabId:Number(row.tabId || 0), windowId:Number(row.windowId || 0), url:row.url || '' }).catch(() => null);
         if (result?.ok) window.close();
       });
-      els.chatList.appendChild(button);
+      const shell = document.createElement('div'); shell.className = 'chat-list-row-shell';
+      shell.appendChild(button);
+      const failure = row.failure?.active ? row.failure : null;
+      if (selectedChatBucket === 'stale' && failure?.retryAvailable) {
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'chat-list-retry';
+        retry.textContent = safe(failure.retryLabel || 'Retry', 18);
+        retry.title = `Use the provider’s visible ${failure.retryLabel || 'Retry'} control once. Constellation never retries automatically.`;
+        retry.addEventListener('click', async (event) => {
+          event.preventDefault(); event.stopPropagation();
+          retry.disabled = true; retry.textContent = 'Retrying…';
+          const result = await chrome.runtime.sendMessage({ type:'PC_RETRY_LIVE_CHAT_FAILURE', tabId:Number(row.tabId || 0) }).catch(() => null);
+          if (result?.ok) {
+            retry.textContent = 'Retry sent';
+            setTimeout(() => refreshBrainOverview().catch(() => {}), 260);
+          } else {
+            retry.textContent = 'Retry unavailable';
+            retry.title = safe(result?.error || 'The provider no longer exposes a retry control.', 160);
+            setTimeout(() => { retry.disabled = false; retry.textContent = safe(failure.retryLabel || 'Retry', 18); }, 1200);
+          }
+        });
+        shell.appendChild(retry);
+      }
+      els.chatList.appendChild(shell);
     }
   }
 

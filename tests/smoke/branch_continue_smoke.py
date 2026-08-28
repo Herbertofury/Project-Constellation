@@ -13,7 +13,7 @@ mock=r'''(() => {
 })();'''
 
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,args=['--no-sandbox']); page=browser.new_page(viewport={'width':1280,'height':800}); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None)); page=browser.new_page(viewport={'width':1280,'height':800}); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
     page.set_content(page_html,wait_until='domcontentloaded'); page.evaluate(mock); page.add_style_tag(content=css); page.add_script_tag(content=core); page.add_script_tag(content=brain); page.add_script_tag(content=health); page.add_script_tag(content=content)
     page.wait_for_timeout(2200)
     before=page.evaluate('''() => ({sentPrompt:window.__sentPrompt,completeCalls:window.__completeCalls,composerText:document.getElementById('prompt-textarea').innerText,armed:document.getElementById('prompt-textarea').dataset.projectConstellationBranchReady||'',toast:!!document.getElementById('projectConstellationBranchToast')})''')

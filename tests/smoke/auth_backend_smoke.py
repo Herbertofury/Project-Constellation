@@ -34,7 +34,7 @@ mock=f"""
 }})();
 """
 with sync_playwright() as p:
-  browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+  browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
   page=browser.new_page(); errors=[]; page.on('pageerror',lambda e: errors.append(str(e)))
   page.set_content('<!doctype html><html><body></body></html>'); page.add_script_tag(content=mock); page.add_script_tag(content=brain); page.add_script_tag(content=providers); page.add_script_tag(content=integrity); page.add_script_tag(content=knowledge); page.add_script_tag(content=health); page.add_script_tag(content=bg); page.wait_for_timeout(40)
   result=page.evaluate("""async()=>{

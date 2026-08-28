@@ -2,6 +2,26 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.9 - Interruption Guardian
+
+### Added
+
+- Added first-class `delivery-timeout`, `connection-interrupted`, `response-interrupted`, and `send-failed` chat states instead of collapsing provider failures into generic refresh-required.
+- Added scoped discovery of provider-owned Retry / Try again / Regenerate response / Resend message / Reconnect controls on the current failure surface.
+- Added an explicit Execution Pulse recovery button when a safe native provider recovery control is actually visible. Retry remains manual-only.
+- Added interruption metadata for detection age, retry availability/label, partial assistant characters, preceding tool activity, and user-triggered retry count.
+- Added specific Needs Attention and native notification copy for delivery timeout, connection interruption, response interruption, and send failure.
+
+### Fixed
+
+- Provider failure UI now outranks stale transcript/DOM `running` evidence, preventing a timed-out response from remaining falsely green.
+- Approval Recovery reports provider interruptions without auto-retrying or mislabeling them as browser-refresh recovery.
+- Integrity findings no longer tell users that every delivery timeout requires refresh or that Retry must never be used; they report the actual failure and whether an explicit native recovery is available.
+
+### Safety invariant
+
+- Passive monitoring never clicks Retry, opens/focuses/navigates/reloads ChatGPT, or recreates a missing chat. Native provider recovery can only run after an explicit user action in an already-open tab.
+
 ## 0.14.8 - No Surprise Navigation
 
 ### Fixed
