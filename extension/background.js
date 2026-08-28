@@ -50,7 +50,7 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.7';
+const LIVE_SENTINEL_VERSION = '0.14.8';
 const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
@@ -80,13 +80,13 @@ const defaultBrainSettings = Object.freeze({
     minRequestIntervalMs: 4000, freshChatMs: 6 * 60 * 60 * 1000, autoFreshChatMs: 24 * 60 * 60 * 1000,
     homeFreshMs: 6 * 60 * 60 * 1000, maxBackoffMs: 30 * 60 * 1000, maxRetries: 3, conditionalRequests: true
   },
-  refreshRecovery: { enabled: true, maxRefreshesPerChat: 2, cooldownMs: 10 * 60 * 1000, recoveredCount: 0, failedCount: 0, lastRecoveredAt: 0 },
+  refreshRecovery: { enabled: false, maxRefreshesPerChat: 2, cooldownMs: 10 * 60 * 1000, recoveredCount: 0, failedCount: 0, lastRecoveredAt: 0 },
   projectIntegrity: { enabled: true, autoScan: true, scanIntervalMinutes: 15, lastScanAt: 0, latestSeverity: 'healthy' },
   knowledge: { enabled: true, extractionBatchSize: 28, activeExtractionBatchSize: 6, backfillBatchSize: 180, idleBackfillOnly: true, lastBackfillAt: 0, extractionVersion: knowledge.VERSION },
   liveHealth: { ...health.DEFAULTS },
   approvalAutopilot: {
     enabled: false, acknowledged: false, alwaysAllow: true, fallbackAllowOnce: true, autoRecoverPaused: true,
-    backgroundRecovery: true, attentionNavigationIntervalMs: 4500, fullSweepNavigationIntervalMs: 8000, autoRescanFreshMs: 24 * 60 * 60 * 1000, lastSweepAt: 0, lastRecoveredAt: 0, recoveredCount: 0, failedCount: 0
+    backgroundRecovery: false, attentionNavigationIntervalMs: 4500, fullSweepNavigationIntervalMs: 8000, autoRescanFreshMs: 24 * 60 * 60 * 1000, lastSweepAt: 0, lastRecoveredAt: 0, recoveredCount: 0, failedCount: 0
   },
   github: { owner: '', repo: '', branch: 'main', path: '.project-constellation/constellation.json', autoSync: false, lastSyncAt: 0, clientId: '', authType: '', oauthUser: '', oauthAvatar: '', oauthScopes: '', connectedAt: 0 },
   drive: {
@@ -1029,45 +1029,37 @@ async function noteRefreshRecoveryCleared(chatId, status = 'idle') {
 }
 
 async function recoverTabByRefresh(tabId, chatId, url = '', detail = '', source = 'live-tab') {
-  const cfg = await settings();
-  if (cfg.refreshRecovery.enabled === false) return { ok: true, skipped: true, reason: 'refresh-recovery-disabled' };
-  if (!tabId || !chatId) return { ok: false, error: 'Refresh recovery needs a real chat tab and chat id.' };
-
-  const approvalState = await approvalRecoveryState();
-  if (approvalState.status === 'running' && Number(approvalState.tabId || 0) === Number(tabId)) {
-    return { ok: true, delegated: true, reason: 'hidden-recovery-lane-owns-tab' };
-  }
-
-  const state = await refreshRecoveryState();
+  if (!tabId || !chatId) return { ok: false, error: 'Refresh attention needs a real chat tab and chat id.' };
   const now = Date.now();
-  const cooldownMs = Math.max(30_000, Number(cfg.refreshRecovery.cooldownMs || 10 * 60 * 1000));
-  const maxAttempts = Math.max(1, Number(cfg.refreshRecovery.maxRefreshesPerChat || 2));
-  let row = { ...(state.chats[chatId] || {}) };
-  if (!row.windowStartedAt || now - Number(row.windowStartedAt || 0) >= cooldownMs) row = { windowStartedAt: now, attempts: 0, lastAttemptAt: 0, pending: false };
-  if (now - Number(row.lastAttemptAt || 0) < 8_000) return { ok: true, deduped: true, waitMs: 8_000 - (now - Number(row.lastAttemptAt || 0)) };
-  if (Number(row.attempts || 0) >= maxAttempts) {
-    if (!row.failureRecorded) {
-      state.failed = Number(state.failed || 0) + 1;
-      row.failureRecorded = true;
-      const brainCfg = await settings();
-      await patchSettings({ refreshRecovery: { failedCount: Number(brainCfg.refreshRecovery.failedCount || 0) + 1 } });
-    }
-    state.chats[chatId] = row; await saveRefreshRecoveryState(state);
-    return { ok: false, exhausted: true, error: 'Browser refresh recovery reached its per-chat cooldown budget.' };
-  }
-
-  row = { ...row, attempts: Number(row.attempts || 0) + 1, lastAttemptAt: now, pending: true, url, detail: String(detail || '').slice(0, 500), source, failureRecorded: false };
-  state.chats[chatId] = row; state.attempts = Number(state.attempts || 0) + 1; state.lastActionAt = now;
-  await saveRefreshRecoveryState(state);
   const existing = await getOne('chats', chatId);
-  await upsert('chats', { id: chatId, providerId: existing?.providerId || 'chatgpt', url: url || existing?.url || '', status: 'refresh-required', statusDetail: detail || existing?.statusDetail || 'Browser refresh required', recoveryKind: 'browser-refresh', retryForbidden: true, refreshRecoveryLastAttemptAt: now, updatedAt: now });
-  await addEvent('chat-browser-refresh', 'chat', chatId, chatId, { url: url || existing?.url || '', source, reason: String(detail || 'delivery/connection timeout').slice(0, 500), attempt: row.attempts });
-  await chrome.tabs.reload(tabId, { bypassCache: false });
-  return { ok: true, refreshed: true, attempt: row.attempts, maxAttempts };
+  await upsert('chats', {
+    id: chatId,
+    providerId: existing?.providerId || 'chatgpt',
+    url: url || existing?.url || '',
+    status: 'refresh-required',
+    statusDetail: detail || existing?.statusDetail || 'Browser refresh may be required',
+    recoveryKind: 'manual-browser-refresh',
+    retryForbidden: true,
+    refreshRecoveryLastAttemptAt: now,
+    updatedAt: now
+  });
+  await addEvent('chat-browser-refresh-suppressed', 'chat', chatId, chatId, {
+    url: url || existing?.url || '',
+    source,
+    reason: String(detail || 'delivery/connection timeout').slice(0, 500),
+    policy: 'attention-only-no-automatic-reload'
+  });
+  await updateAttentionBadge();
+  return {
+    ok: true,
+    refreshed: false,
+    attentionOnly: true,
+    reason: 'Automatic ChatGPT reload is disabled. Project Constellation left the tab untouched and surfaced Needs Attention instead.'
+  };
 }
 
 const ATTENTION_STATUSES = Object.freeze(['blocked-approval','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
-const RECOVERY_STATUSES = Object.freeze(['blocked-approval','refresh-required','rate-limited','stalled','paused']);
+const RECOVERY_STATUSES = Object.freeze(['blocked-approval','paused']);
 
 async function chatsForStatuses(statuses = ATTENTION_STATUSES) {
   const groups = await Promise.all(statuses.map((status) => getAllByIndex('chats', 'status', status)));
@@ -1086,7 +1078,7 @@ async function updateAttentionBadge() {
 function defaultApprovalRecoveryState() {
   return {
     status: 'idle', mode: 'attention', queue: [], index: 0, startedAt: 0, updatedAt: 0, finishedAt: 0,
-    currentChatId: '', currentUrl: '', windowId: 0, tabId: 0, stage: 'idle', autoTriggered: false,
+    currentChatId: '', currentUrl: '', windowId: 0, tabId: 0, ownsWindow: false, stage: 'idle', autoTriggered: false,
     itemStartedAt: 0, itemAttempts: 0, itemRefreshes: 0,
     scanned: 0, recovered: 0, alwaysAllowed: 0, allowedOnce: 0, resumed: 0, refreshed: 0, unchanged: 0, failed: 0,
     lastResult: null, error: ''
@@ -1115,47 +1107,97 @@ function publicApprovalRecoveryState(state) {
 }
 
 async function buildApprovalRecoveryQueue(mode = 'attention', { autoTriggered = false } = {}) {
-  const cfg = await settings();
   const now = Date.now();
   let chats;
   if (mode === 'all-known') chats = (await getAll('chats')).filter((chat) => chat.providerId === 'chatgpt');
   else chats = (await chatsForStatuses(RECOVERY_STATUSES)).filter((chat) => chat.providerId === 'chatgpt');
+
+  const openTabs = (await chrome.tabs.query({})).filter((tab) => providers.isLikelyChatUrl(String(tab?.url || ''), 'chatgpt'));
+  const openByIdentity = new Map(openTabs.map((tab) => [recoveryChatIdentity(tab.url), tab]).filter(([identity]) => Boolean(identity)));
   const seen = new Set();
-  const attentionRank = { 'blocked-approval': 0, 'refresh-required': 1, stalled: 2, paused: 3, 'rate-limited': 8, running: 4, idle: 5 };
+  const attentionRank = { 'blocked-approval': 0, paused: 1, running: 3, idle: 4 };
   return chats.filter((chat) => {
-    if (!chat?.id || !chat?.url || seen.has(chat.url)) return false;
-    if (!providers.isLikelyChatUrl(chat.url, 'chatgpt')) return false;
+    if (!chat?.id || !chat?.url) return false;
+    const identity = recoveryChatIdentity(chat.url, chat.id);
+    if (!identity || seen.has(identity) || !openByIdentity.has(identity)) return false;
     const lastAttempt = Number(chat.approvalRecoveryLastAttemptAt || 0);
-    if (chat.status === 'rate-limited' && Number(chat.rateLimitUntil || 0) > now) return false;
     if (mode !== 'all-known' && lastAttempt && now - lastAttempt < 15 * 60 * 1000) return false;
-    if (mode === 'all-known' && autoTriggered && lastAttempt && now - lastAttempt < Math.max(60 * 60 * 1000, Number(cfg.approvalAutopilot.autoRescanFreshMs || 24 * 60 * 60 * 1000)) && !RECOVERY_STATUSES.includes(chat.status)) return false;
-    seen.add(chat.url); return true;
+    seen.add(identity);
+    return true;
   }).sort((a,b) => (attentionRank[a.status] ?? 9) - (attentionRank[b.status] ?? 9) || (b.updatedAt || 0) - (a.updatedAt || 0))
-    .map((chat) => ({ id: chat.id, url: chat.url, title: chat.title || 'Untitled chat', status: chat.status || 'idle', recoveryKind: chat.recoveryKind || '', retryForbidden: Boolean(chat.retryForbidden), providerId: chat.providerId || 'chatgpt' }));
+    .map((chat) => {
+      const tab = openByIdentity.get(recoveryChatIdentity(chat.url, chat.id));
+      return { id: chat.id, url: chat.url, title: chat.title || 'Untitled chat', status: chat.status || 'idle', recoveryKind: chat.recoveryKind || '', retryForbidden: Boolean(chat.retryForbidden), providerId: chat.providerId || 'chatgpt', tabId:Number(tab?.id || 0), windowId:Number(tab?.windowId || 0) };
+    });
 }
 
 async function closeApprovalRecoveryWindow(state) {
-  if (state?.windowId) { try { await chrome.windows?.remove?.(state.windowId); } catch (_) {} }
+  // v0.14.8+ recovery never owns or creates a ChatGPT window. Keep this
+  // ownership guard for forward compatibility and to avoid ever closing a
+  // user-owned browser/PWA window by accident.
+  if (state?.ownsWindow === true && state?.windowId) {
+    try { await chrome.windows?.remove?.(state.windowId); } catch (_) {}
+  }
 }
 
-async function ensureApprovalRecoveryWindow(state) {
-  if (state.windowId && state.tabId) {
-    try { await chrome.tabs.get(state.tabId); return state; } catch (_) {}
+function recoveryChatIdentity(url = '', fallback = '') {
+  const chatId = providers.chatIdFromUrl(String(url || ''), 'chatgpt');
+  if (chatId) return String(chatId);
+  try {
+    const parsed = new URL(String(url || ''));
+    parsed.hash = '';
+    parsed.search = '';
+    return parsed.href.replace(/\/+$/, '');
+  } catch (_) {
+    return String(fallback || url || '').replace(/[?#].*$/, '').replace(/\/+$/, '');
   }
-  const item = state.queue[state.index];
-  if (!item?.url) return state;
-  const win = await chrome.windows.create({ url: item.url, type: 'popup', state: 'minimized', focused: false });
-  const tab = win.tabs?.[0] || (await chrome.tabs.query({ windowId: win.id }))[0];
-  if (!tab?.id) throw new Error('Could not create the hidden approval-recovery tab.');
-  return saveApprovalRecoveryState({ ...state, windowId: win.id, tabId: tab.id, stage: 'load', currentChatId: item.id, currentUrl: item.url, itemStartedAt: Date.now(), itemAttempts: 0, itemRefreshes: 0 });
+}
+
+async function openRecoveryTabForItem(item = {}) {
+  const wanted = recoveryChatIdentity(item.url, item.id);
+  if (!wanted) return null;
+  const tabs = await chrome.tabs.query({});
+  return tabs.find((tab) => {
+    const url = String(tab?.url || '');
+    if (!providers.isLikelyChatUrl(url, 'chatgpt')) return false;
+    return recoveryChatIdentity(url) === wanted;
+  }) || null;
+}
+
+async function stopLegacyApprovalNavigation(reason = 'Background ChatGPT navigation is disabled.') {
+  const state = await approvalRecoveryState();
+  await chrome.alarms.clear(APPROVAL_RECOVERY_ALARM).catch(() => {});
+  // Old <=0.14.7 runs could own a minimized popup window. Close only the
+  // persisted legacy recovery window during migration, before the new
+  // open-tabs-only invariant takes over.
+  if (state?.status === 'running' && state?.windowId) {
+    try { await chrome.windows?.remove?.(state.windowId); } catch (_) {}
+  }
+  if (state?.status === 'running' || state?.windowId || state?.tabId) {
+    return saveApprovalRecoveryState({
+      ...state,
+      status: 'stopped',
+      stage: 'open-tabs-only',
+      windowId: 0,
+      tabId: 0,
+      ownsWindow: false,
+      currentChatId: '',
+      currentUrl: '',
+      finishedAt: Date.now(),
+      error: reason
+    });
+  }
+  return state;
 }
 
 function approvalNavigationDelay(state, cfg, { hydration = false } = {}) {
+  // No navigation happens anymore. This delay only paces non-invasive scans
+  // across already-open ChatGPT tabs.
   const base = state?.mode === 'all-known'
-    ? Math.max(4000, Number(cfg?.approvalAutopilot?.fullSweepNavigationIntervalMs || 8000))
-    : Math.max(2500, Number(cfg?.approvalAutopilot?.attentionNavigationIntervalMs || 4500));
-  if (hydration) return Math.max(900, Math.min(base, 2200));
-  return base + Math.round(base * (0.05 + Math.random() * 0.12));
+    ? Math.max(350, Math.min(1500, Number(cfg?.approvalAutopilot?.fullSweepNavigationIntervalMs || 8000) / 8))
+    : Math.max(250, Math.min(1200, Number(cfg?.approvalAutopilot?.attentionNavigationIntervalMs || 4500) / 6));
+  if (hydration) return Math.max(200, Math.min(base, 650));
+  return base;
 }
 
 async function scheduleApprovalRecoveryStep(delay = 800) {
@@ -1164,7 +1206,7 @@ async function scheduleApprovalRecoveryStep(delay = 800) {
 
 async function finishApprovalRecovery(state, status = 'completed', error = '') {
   await closeApprovalRecoveryWindow(state);
-  const next = await saveApprovalRecoveryState({ ...state, status, stage: 'idle', windowId: 0, tabId: 0, currentChatId: '', currentUrl: '', finishedAt: Date.now(), error });
+  const next = await saveApprovalRecoveryState({ ...state, status, stage: 'idle', windowId: 0, tabId: 0, ownsWindow: false, currentChatId: '', currentUrl: '', finishedAt: Date.now(), error });
   const cfg = await settings();
   await patchSettings({ approvalAutopilot: { lastSweepAt: Date.now(), lastRecoveredAt: next.recovered ? Date.now() : cfg.approvalAutopilot.lastRecoveredAt, recoveredCount: Number(cfg.approvalAutopilot.recoveredCount || 0) + next.recovered, failedCount: Number(cfg.approvalAutopilot.failedCount || 0) + next.failed } });
   await updateAttentionBadge();
@@ -1180,10 +1222,9 @@ async function startApprovalRecovery({ mode = 'attention', autoTriggered = false
   const existing = await approvalRecoveryState();
   if (existing.status === 'running') return { ok: true, state: publicApprovalRecoveryState(existing), alreadyRunning: true };
   const queue = await buildApprovalRecoveryQueue(mode, { autoTriggered });
-  let state = await saveApprovalRecoveryState({ ...defaultApprovalRecoveryState(), status: queue.length ? 'running' : 'completed', mode, queue, startedAt: Date.now(), finishedAt: queue.length ? 0 : Date.now(), autoTriggered });
+  const state = await saveApprovalRecoveryState({ ...defaultApprovalRecoveryState(), status: queue.length ? 'running' : 'completed', mode, queue, startedAt: Date.now(), finishedAt: queue.length ? 0 : Date.now(), autoTriggered, stage: queue.length ? 'open-tabs-only' : 'idle' });
   if (!queue.length) return { ok: true, state: publicApprovalRecoveryState(state) };
-  state = await ensureApprovalRecoveryWindow(state);
-  await scheduleApprovalRecoveryStep(approvalNavigationDelay(state, cfg));
+  await scheduleApprovalRecoveryStep(250);
   return { ok: true, state: publicApprovalRecoveryState(state) };
 }
 
@@ -1194,119 +1235,93 @@ async function stopApprovalRecovery() {
   return { ok: true, state: publicApprovalRecoveryState(next) };
 }
 
+async function advanceApprovalRecovery(state, item, result = {}) {
+  let action = String(result?.action || 'none');
+  if (action === 'refresh-required') action = 'needs-refresh';
+  const recovered = ['always-allow','allow-once','resume'].includes(action);
+  const patch = {
+    id: item.id,
+    approvalRecoveryLastAttemptAt: Date.now(),
+    approvalRecoveryLastAction: action,
+    approvalRecoveryLastResult: result?.reason || result?.error || '',
+    updatedAt: Date.now()
+  };
+  if (recovered) {
+    patch.status = 'idle';
+    patch.statusDetail = `Recovered by Project Constellation (${action})`;
+    patch.approvalRecoveredAt = Date.now();
+    if (action === 'always-allow') patch.approvalPersistentAt = Date.now();
+    await addEvent('approval-recovery', 'chat', item.id, item.id, { action, connector: result?.connector || '', mode: state.mode, url: item.url });
+  }
+  await upsert('chats', patch);
+  return saveApprovalRecoveryState({
+    ...state,
+    index: state.index + 1,
+    scanned: state.scanned + 1,
+    recovered: state.recovered + (recovered ? 1 : 0),
+    alwaysAllowed: state.alwaysAllowed + (action === 'always-allow' ? 1 : 0),
+    allowedOnce: state.allowedOnce + (action === 'allow-once' ? 1 : 0),
+    resumed: state.resumed + (action === 'resume' ? 1 : 0),
+    unchanged: state.unchanged + (['none','not-open','needs-refresh'].includes(action) ? 1 : 0),
+    failed: state.failed + (result?.ok === false && action !== 'not-open' ? 1 : 0),
+    lastResult: { chatId: item.id, title: item.title, action, connector: result?.connector || '', reason: result?.reason || result?.error || '' },
+    windowId: 0,
+    tabId: 0,
+    ownsWindow: false,
+    currentChatId: '',
+    currentUrl: '',
+    stage: 'open-tabs-only',
+    itemAttempts: 0,
+    itemRefreshes: 0,
+    itemStartedAt: 0,
+    error: ''
+  });
+}
+
 async function processApprovalRecoveryStep() {
   let state = await approvalRecoveryState();
   if (state.status !== 'running') return;
   if (state.index >= state.queue.length) { await finishApprovalRecovery(state); return; }
-  state = await ensureApprovalRecoveryWindow(state);
   const item = state.queue[state.index];
   if (!item) { await finishApprovalRecovery(state); return; }
-  try {
-    let tab = await chrome.tabs.get(state.tabId);
-    if (state.currentUrl !== item.url || tab.url !== item.url) {
-      await chrome.tabs.update(state.tabId, { url: item.url, active: false });
-      await saveApprovalRecoveryState({ ...state, currentChatId: item.id, currentUrl: item.url, stage: 'load', itemStartedAt: Date.now(), itemAttempts: 0, itemRefreshes: 0 });
-      await scheduleApprovalRecoveryStep(approvalNavigationDelay(state, await settings()));
-      return;
-    }
-    if (tab.status !== 'complete') {
-      const loadAge = Date.now() - Number(state.itemStartedAt || Date.now());
-      if (loadAge > 45000) {
-        if (Number(state.itemAttempts || 0) < 2) {
-          await chrome.tabs.update(state.tabId, { url: item.url, active: false });
-          await saveApprovalRecoveryState({ ...state, itemAttempts: Number(state.itemAttempts || 0) + 1, itemStartedAt: Date.now(), stage: 'reload' });
-          await scheduleApprovalRecoveryStep(approvalNavigationDelay(state, await settings()));
-          return;
-        }
-        throw new Error('Timed out waiting for the recovery chat to finish loading.');
-      }
-      await scheduleApprovalRecoveryStep(1200); return;
-    }
-    const cfg = await settings();
-    let result;
-    try {
-      result = await chrome.tabs.sendMessage(state.tabId, {
-        type: 'PC_APPROVAL_RECOVERY_SCAN',
-        options: {
-          alwaysAllow: cfg.approvalAutopilot.alwaysAllow !== false,
-          fallbackAllowOnce: cfg.approvalAutopilot.fallbackAllowOnce !== false,
-          recoverPaused: cfg.approvalAutopilot.autoRecoverPaused !== false
-        }
-      });
-    } catch (error) {
-      const reason = String(error?.message || error);
-      const attempts = Number(state.itemAttempts || 0);
-      if (attempts < 3) {
-        if (attempts >= 1) await chrome.tabs.update(state.tabId, { url: item.url, active: false }).catch(() => {});
-        await saveApprovalRecoveryState({ ...state, itemAttempts: attempts + 1, itemStartedAt: attempts >= 1 ? Date.now() : state.itemStartedAt, stage: attempts >= 1 ? 'reload' : 'retry', error: reason });
-        await scheduleApprovalRecoveryStep(attempts >= 1 ? 2200 : 900);
-        return;
-      }
-      result = { ok: false, action: 'failed', error: reason };
-    }
-    if (result?.action === 'rate-limited') {
-      const waitMs = Math.max(30_000, Math.min(60 * 60 * 1000, Number(result.waitMs || 0) || 15 * 60 * 1000));
-      const until = Date.now() + waitMs;
-      await noteProviderRateLimit('chatgpt', waitMs, result?.reason || 'Too many requests', 'hidden-recovery');
-      await upsert('chats', { id: item.id, status: 'rate-limited', statusDetail: result?.reason || 'ChatGPT rate limit detected.', recoveryKind: 'provider-cooldown', retryForbidden: true, rateLimitUntil: until, approvalRecoveryLastAttemptAt: Date.now(), approvalRecoveryLastAction: 'rate-limited', updatedAt: Date.now() });
-      await addEvent('provider-rate-limited', 'chat', item.id, item.id, { providerId: 'chatgpt', waitMs, until, source: 'hidden-recovery', url: item.url });
-      await closeApprovalRecoveryWindow(state);
-      state = await saveApprovalRecoveryState({ ...state, windowId: 0, tabId: 0, stage: 'rate-limit-wait', error: '', lastResult: { chatId: item.id, title: item.title, action: 'rate-limited', reason: result?.reason || 'Provider cooldown' } });
-      await scheduleApprovalRecoveryStep(waitMs);
-      await updateAttentionBadge();
-      return;
-    }
-    if (result?.action === 'refresh-required') {
-      const refreshCfg = (await settings()).refreshRecovery;
-      const refreshes = Number(state.itemRefreshes || 0);
-      if (refreshCfg.enabled !== false && refreshes < Math.max(1, Number(refreshCfg.maxRefreshesPerChat || 2))) {
-        await chrome.tabs.reload(state.tabId, { bypassCache: false });
-        await saveApprovalRecoveryState({ ...state, itemRefreshes: refreshes + 1, itemAttempts: 0, itemStartedAt: Date.now(), stage: 'browser-refresh', error: '' });
-        await addEvent('chat-browser-refresh', 'chat', item.id, item.id, { url: item.url, source: 'hidden-recovery', reason: result?.reason || 'delivery/connection timeout' });
-        await scheduleApprovalRecoveryStep(2200);
-        return;
-      }
-      result = { ok: false, action: 'failed', error: 'Browser refresh did not clear the connection/delivery error within the configured retry budget.' };
-    }
-    if (result?.action === 'not-ready') {
-      const attempts = Number(state.itemAttempts || 0);
-      if (attempts < 3) {
-        await saveApprovalRecoveryState({ ...state, itemAttempts: attempts + 1, stage: 'hydrate', error: '' });
-        await scheduleApprovalRecoveryStep(900 + attempts * 450);
-        return;
-      }
-    }
-    let action = String(result?.action || 'none');
-    if (action === 'none' && Number(state.itemRefreshes || 0) > 0) action = 'refreshed';
-    const recovered = ['always-allow','allow-once','resume','refreshed'].includes(action);
-    const patch = {
-      id: item.id, approvalRecoveryLastAttemptAt: Date.now(), approvalRecoveryLastAction: action,
-      approvalRecoveryLastResult: result?.reason || result?.error || '', updatedAt: Date.now()
-    };
-    if (recovered) {
-      patch.status = 'idle'; patch.statusDetail = `Recovered by Project Constellation (${action})`;
-      patch.approvalRecoveredAt = Date.now();
-      if (action === 'always-allow') patch.approvalPersistentAt = Date.now();
-      await addEvent('approval-recovery', 'chat', item.id, item.id, { action, connector: result?.connector || '', mode: state.mode, url: item.url });
-    }
-    await upsert('chats', patch);
-    const next = {
-      ...state, index: state.index + 1, scanned: state.scanned + 1, recovered: state.recovered + (recovered ? 1 : 0),
-      alwaysAllowed: state.alwaysAllowed + (action === 'always-allow' ? 1 : 0), allowedOnce: state.allowedOnce + (action === 'allow-once' ? 1 : 0),
-      resumed: state.resumed + (action === 'resume' ? 1 : 0), refreshed: Number(state.refreshed || 0) + (action === 'refreshed' ? 1 : 0), unchanged: state.unchanged + (action === 'none' ? 1 : 0),
-      failed: state.failed + (result?.ok === false ? 1 : 0), lastResult: { chatId: item.id, title: item.title, action, connector: result?.connector || '', reason: result?.reason || result?.error || '' },
-      stage: 'load', itemAttempts: 0, itemRefreshes: 0, itemStartedAt: 0
-    };
-    state = await saveApprovalRecoveryState(next);
-    if (state.index >= state.queue.length) { await finishApprovalRecovery(state); return; }
-    const upcoming = state.queue[state.index];
-    await chrome.tabs.update(state.tabId, { url: upcoming.url, active: false });
-    await saveApprovalRecoveryState({ ...state, currentChatId: upcoming.id, currentUrl: upcoming.url, stage: 'load', itemStartedAt: Date.now(), itemAttempts: 0, itemRefreshes: 0, error: '' });
-    await scheduleApprovalRecoveryStep(approvalNavigationDelay(state, await settings()));
-  } catch (error) {
-    const next = await saveApprovalRecoveryState({ ...state, failed: state.failed + 1, index: state.index + 1, error: String(error?.message || error), lastResult: { chatId: item.id, title: item.title, action: 'failed', reason: String(error?.message || error) } });
-    if (next.index >= next.queue.length) await finishApprovalRecovery(next); else await scheduleApprovalRecoveryStep(approvalNavigationDelay(next, await settings()));
+
+  const tab = await openRecoveryTabForItem(item);
+  if (!tab?.id) {
+    state = await advanceApprovalRecovery(state, item, { ok: true, action: 'not-open', reason: 'Chat is not currently open in this browser; Project Constellation will not launch or navigate ChatGPT automatically.' });
+    if (state.index >= state.queue.length) await finishApprovalRecovery(state);
+    else await scheduleApprovalRecoveryStep(approvalNavigationDelay(state, await settings()));
+    return;
   }
+
+  state = await saveApprovalRecoveryState({ ...state, tabId: Number(tab.id), windowId: Number(tab.windowId || 0), ownsWindow: false, currentChatId: item.id, currentUrl: String(tab.url || item.url), stage: 'scan-open-tab', itemStartedAt: Date.now() });
+  const cfg = await settings();
+  let result;
+  try {
+    result = await chrome.tabs.sendMessage(tab.id, {
+      type: 'PC_APPROVAL_RECOVERY_SCAN',
+      options: {
+        alwaysAllow: cfg.approvalAutopilot.alwaysAllow !== false,
+        fallbackAllowOnce: cfg.approvalAutopilot.fallbackAllowOnce !== false,
+        recoverPaused: cfg.approvalAutopilot.autoRecoverPaused !== false
+      }
+    });
+  } catch (error) {
+    result = { ok: false, action: 'failed', error: String(error?.message || error) };
+  }
+
+  if (result?.action === 'rate-limited') {
+    const waitMs = Math.max(30_000, Math.min(60 * 60 * 1000, Number(result.waitMs || 0) || 15 * 60 * 1000));
+    const until = Date.now() + waitMs;
+    await noteProviderRateLimit('chatgpt', waitMs, result?.reason || 'Too many requests', 'open-tab-recovery');
+    await upsert('chats', { id: item.id, status: 'rate-limited', statusDetail: result?.reason || 'ChatGPT rate limit detected.', recoveryKind: 'provider-cooldown', retryForbidden: true, rateLimitUntil: until, approvalRecoveryLastAttemptAt: Date.now(), approvalRecoveryLastAction: 'rate-limited', updatedAt: Date.now() });
+  }
+  if (result?.action === 'refresh-required') {
+    result = { ok: true, action: 'needs-refresh', reason: `${result?.reason || 'Chat needs a refresh.'} Automatic reload is disabled; the current tab was left untouched.` };
+  }
+
+  state = await advanceApprovalRecovery(state, item, result || { ok: true, action: 'none' });
+  if (state.index >= state.queue.length) await finishApprovalRecovery(state);
+  else await scheduleApprovalRecoveryStep(approvalNavigationDelay(state, cfg));
 }
 
 
@@ -1627,14 +1642,10 @@ async function watchForStalls() {
     stale.push(merged);
     await addEvent('chat-stalled', 'chat', chat.id, chat.id, { inactivityMs: now - activity, previousStatus: 'running' });
   }
+  // Stall/runway observation is deliberately side-effect free. A watchdog state may
+  // warn, notify and update attention UI, but must never start approval recovery,
+  // open/focus ChatGPT, create a popup, navigate a saved URL, or reload a tab.
   await updateAttentionBadge();
-  if (cfg.approvalAutopilot.enabled && cfg.approvalAutopilot.acknowledged && cfg.approvalAutopilot.backgroundRecovery) {
-    const state = await approvalRecoveryState();
-    if (state.status !== 'running') {
-      const candidates = await buildApprovalRecoveryQueue('attention');
-      if (candidates.length) startApprovalRecovery({ mode: 'attention', autoTriggered: true }).catch(() => {});
-    }
-  }
   return { stalled: stale.length };
 }
 
@@ -3394,6 +3405,7 @@ async function showFullCaptureWindow() {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
+  await stopLegacyApprovalNavigation('v0.14.8 disabled legacy hidden ChatGPT navigation.').catch(() => {});
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
   await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });
@@ -3409,6 +3421,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  await stopLegacyApprovalNavigation('Background ChatGPT navigation remains disabled.').catch(() => {});
   await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });
   const integrityCfg = await settings();
@@ -3421,8 +3434,6 @@ chrome.runtime.onStartup.addListener(async () => {
   if (state?.status === 'running') await scheduleCatalogStep(1000);
   const heavyState = await fullCaptureState();
   if (heavyState?.status === 'running') await scheduleFullCaptureStep(1000);
-  const recoveryState = await approvalRecoveryState();
-  if (recoveryState?.status === 'running') await scheduleApprovalRecoveryStep(1200);
   const dirty = (await chrome.storage.local.get(DIRTY_KEY))[DIRTY_KEY];
   const cfg = await settings();
   if (dirty && cfg.drive.autoSync && googleOAuthProvisioned()) await chrome.alarms.create(DRIVE_SYNC_ALARM, { when: Date.now() + 3000 });
@@ -4299,7 +4310,6 @@ async function enrichLiveRowContext(row = {}) {
 
 async function focusLiveChat(message = {}) {
   const tabId = Number(message.tabId || 0);
-  const requestedUrl = String(message.url || '');
   if (tabId && chrome.tabs?.get) {
     const tab = await chrome.tabs.get(tabId).catch(() => null);
     if (tab) {
@@ -4308,11 +4318,7 @@ async function focusLiveChat(message = {}) {
       return { ok:true, tabId, windowId:Number(tab.windowId || 0), existing:true };
     }
   }
-  if (requestedUrl && chrome.tabs?.create) {
-    const tab = await chrome.tabs.create({ url:requestedUrl, active:true }).catch(() => null);
-    return tab?.id ? { ok:true, tabId:Number(tab.id), windowId:Number(tab.windowId || 0), existing:false } : { ok:false, error:'Could not open chat.' };
-  }
-  return { ok:false, error:'Chat tab is no longer available.' };
+  return { ok:false, error:'Chat tab is no longer open. Project Constellation will not launch or navigate ChatGPT automatically.' };
 }
 
 async function liveChatPulse({ force = false } = {}) {

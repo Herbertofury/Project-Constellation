@@ -1,0 +1,15 @@
+{
+  "version": "0.14.8",
+  "codename": "No Surprise Navigation",
+  "status": "implementation-verification-in-progress",
+  "base": "v0.14.7",
+  "base_commit": "97f1dbb05a4a795b9dabcf5dd9f893b7f486bf90",
+  "focus": [
+    "preserve Runway Sentinel",
+    "zero passive ChatGPT launch/focus/navigation/reload",
+    "open-tabs-only Approval Autopilot recovery",
+    "legacy hidden-recovery shutdown on upgrade",
+    "no Pulse fallback tab creation"
+  ],
+  "updated_at": "2026-08-28T00:00:00Z"
+}

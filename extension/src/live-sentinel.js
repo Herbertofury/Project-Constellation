@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.7';
+  const VERSION = '0.14.8';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}

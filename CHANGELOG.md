@@ -2,6 +2,20 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.8 - No Surprise Navigation
+
+### Fixed
+
+- Decoupled Runway Sentinel stall detection from Approval Recovery. A stall/runway state is now observational only: warn, notify, record, and surface Needs Attention without starting recovery.
+- Removed the legacy minimized ChatGPT recovery window and all approval-recovery URL navigation/reload behavior. Recovery scans only ChatGPT tabs that are already open.
+- On extension update/startup, any persisted pre-v0.14.8 hidden recovery run is stopped and its legacy popup is closed before monitoring resumes.
+- Live-chat focus never falls back to creating a ChatGPT URL when the original tab is gone, preventing OS/PWA link-capture from launching the ChatGPT desktop app.
+- Enabling Approval Autopilot no longer starts a sweep through saved chats; normal in-page Autopilot remains active on already-open ChatGPT tabs.
+
+### Safety invariant
+
+- Passive monitoring and watchdog code may not create/focus/navigate/reload an AI page. External navigation requires an explicit user workflow (for example Branch & Continue or Full Capture), never a stall transition.
+
 ## 0.14.7 - Runway Sentinel
 
 ### Fixed

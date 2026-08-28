@@ -63,10 +63,15 @@ with sync_playwright() as p:
     assert page.locator('#saveApprovalSettings').is_enabled()
     msgs=page.evaluate("()=>__messages.map(m=>({type:m.type,mode:m.mode,settings:m.settings}))")
     starts=[m for m in msgs if m['type']=='PC_APPROVAL_RECOVERY_START']
+    assert not starts
+    assert persisted['approval']['backgroundRecovery'] is False
+    page.locator('#fixAllBlockedChats').click(); page.wait_for_timeout(120)
+    msgs=page.evaluate("()=>__messages.map(m=>({type:m.type,mode:m.mode,settings:m.settings}))")
+    starts=[m for m in msgs if m['type']=='PC_APPROVAL_RECOVERY_START']
     assert starts and starts[-1]['mode']=='all-known'
     assert page.locator('#approvalAutopilotBadge').text_content()=='ON'
     status=page.locator('#approvalRecoveryStatus').text_content()
-    assert 'Background recovery' in status
+    assert ('Open-tab recovery' in status) or ('Scanning all currently open ChatGPT chats' in status)
     reload_summary={**summary,'approvalAutopilot':persisted['approval'],'liveHealth':persisted['liveHealth']}
     reload_mock=mock.replace(f"const summary={json.dumps(summary)};",f"const summary={json.dumps(reload_summary)};",1)
     reload_mock=reload_mock.replace("if(m.type==='PC_HOME_SUMMARY')return {ok:true,home:summary};","if(m.type==='PC_HOME_SUMMARY')return {ok:false,error:'Failed to execute only on IDBKeyRange: invalid key'};",1)

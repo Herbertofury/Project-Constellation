@@ -44,12 +44,12 @@
     <div class="progress"><div id="panelFullCaptureBar"></div></div><p id="panelFullCaptureStatus" class="status">Idle.</p>
   </article>
   <article class="card approval-recovery-card">
-    <div class="card-title"><div><h2>Approval Autopilot</h2><p>Keep ChatGPT connector approvals and stale chats from getting stranded. Uses one minimized recovery window for old chats.</p></div><span id="panelApprovalBadge" class="system-badge">OFF</span></div>
+    <div class="card-title"><div><h2>Approval Autopilot</h2><p>Keep ChatGPT connector approvals from getting stranded in chats that are already open. Never launches, focuses, or navigates ChatGPT in the background.</p></div><span id="panelApprovalBadge" class="system-badge">OFF</span></div>
     <label class="switch-row"><span><strong>I acknowledge Always Allow behavior</strong><small>Connected apps may act without another ChatGPT confirmation.</small></span><input id="panelApprovalAck" type="checkbox"></label>
     <label class="switch-row"><span><strong>Always allow all connector prompts</strong><small>Select persistent Always allow / Never ask when available.</small></span><input id="panelApprovalEnabled" type="checkbox"></label>
     <label class="switch-row"><span><strong>Fallback to Allow once</strong><small>Unblock current action when persistent permission is unavailable.</small></span><input id="panelApprovalFallback" type="checkbox"></label>
     <label class="switch-row"><span><strong>Resume paused chats</strong><small>Press safe Continue/Resume controls during recovery sweeps.</small></span><input id="panelApprovalResume" type="checkbox"></label>
-    <div class="actions"><button id="panelFixDetected" class="primary">Fix detected</button><button id="panelFixAll">Fix all known chats</button><button id="panelStopApproval">Stop</button></div>
+    <div class="actions"><button id="panelFixDetected" class="primary">Scan detected open tabs</button><button id="panelFixAll">Scan all open chats</button><button id="panelStopApproval">Stop</button></div>
     <div class="progress"><div id="panelApprovalBar"></div></div><p id="panelApprovalStatus" class="status">Autopilot is off.</p>
   </article>
 </section>
