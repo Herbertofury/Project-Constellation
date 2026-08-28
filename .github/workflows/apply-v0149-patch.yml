@@ -1,0 +1,41 @@
+name: Apply v0.14.9 verified patch
+
+on:
+  push:
+    branches:
+      - feat/v0.14.9-interruption-guardian
+    paths:
+      - .pc-v0149.part00.b64
+      - .pc-v0149.part01.b64
+      - .github/workflows/apply-v0149-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Apply exact verified patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .pc-v0149.part00.b64
+          test -f .pc-v0149.part01.b64
+          cat .pc-v0149.part00.b64 .pc-v0149.part01.b64 | base64 -d > /tmp/v0149.patch.xz
+          echo "e7fc7463407633d468206a5efa6857f73a8645ddcb6721325b0466381c134d05  /tmp/v0149.patch.xz" | sha256sum -c -
+          xz -dc /tmp/v0149.patch.xz > /tmp/v0149.patch
+          echo "844b6b5314ef62b22edd2d503a43a2ae42c8e12faaf68e6b4e709d280be386e6  /tmp/v0149.patch" | sha256sum -c -
+          git apply --check /tmp/v0149.patch
+          git apply /tmp/v0149.patch
+          rm .pc-v0149.part00.b64 .pc-v0149.part01.b64 .github/workflows/apply-v0149-patch.yml
+          git add -A
+          git diff --cached --check
+          git config user.name "Project Constellation CI"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "v0.14.9: Interruption Guardian"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
