@@ -5,7 +5,7 @@ on:
     branches:
       - fix/v0.14.8-no-surprise-navigation
     paths:
-      - .pc-v0148.patch.xz.b64
+      - '.pc-v0148/part*'
 
 permissions:
   contents: write
@@ -18,17 +18,30 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Apply exact verified patch
+      - name: Apply exact verified patch when complete
         shell: bash
         run: |
           set -euo pipefail
-          base64 -d .pc-v0148.patch.xz.b64 > /tmp/v0148.patch.xz
+          expected='.pc-v0148/part00 .pc-v0148/part01 .pc-v0148/part02 .pc-v0148/part03 .pc-v0148/part04'
+          for part in $expected; do
+            if [ ! -f "$part" ]; then
+              echo "Staging incomplete; waiting for $part"
+              exit 0
+            fi
+          done
+          echo "57769b4da63e8af935fe12819d2be942405637cc71d5b0da024ff9305bc7c7db  .pc-v0148/part00" | sha256sum -c -
+          echo "09881e4e34d6a59fc75969691e0b0b37e9f86596f75d29b025136295453a1578  .pc-v0148/part01" | sha256sum -c -
+          echo "c4ed26cab089e477bc8a63cf826f1af6f459c63b6621866be986a687669d6089  .pc-v0148/part02" | sha256sum -c -
+          echo "aceaf7740315b7cba4416b0eb74bdfbfb5b79552500539b41b7f45431a827c90  .pc-v0148/part03" | sha256sum -c -
+          echo "e4d971df499eb4409928dcb741208bc1b0b619472106dc668b19408c6d050a55  .pc-v0148/part04" | sha256sum -c -
+          cat .pc-v0148/part00 .pc-v0148/part01 .pc-v0148/part02 .pc-v0148/part03 .pc-v0148/part04 > /tmp/v0148.patch.xz.b64
+          base64 -d /tmp/v0148.patch.xz.b64 > /tmp/v0148.patch.xz
           echo "54ebf1402c7f3372e324d851148f180d6ba50f2d912688c93e7b057ba51f5b81  /tmp/v0148.patch.xz" | sha256sum -c -
           xz -dc /tmp/v0148.patch.xz > /tmp/v0148.patch
           echo "20c40784c61d7630a38f6f66d49be3c374b2ffe233fdb07e21e04bbe4c16bed7  /tmp/v0148.patch" | sha256sum -c -
           git apply --check /tmp/v0148.patch
           git apply /tmp/v0148.patch
-          rm .pc-v0148.patch.xz.b64
+          rm -rf .pc-v0148
           rm .github/workflows/apply-v0148-patch.yml
           git add -A
           git diff --cached --check
