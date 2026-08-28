@@ -1,0 +1,38 @@
+name: Apply v0.14.8 verified patch
+
+on:
+  push:
+    branches:
+      - fix/v0.14.8-no-surprise-navigation
+    paths:
+      - .pc-v0148.patch.xz.b64
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply exact verified patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d .pc-v0148.patch.xz.b64 > /tmp/v0148.patch.xz
+          echo "54ebf1402c7f3372e324d851148f180d6ba50f2d912688c93e7b057ba51f5b81  /tmp/v0148.patch.xz" | sha256sum -c -
+          xz -dc /tmp/v0148.patch.xz > /tmp/v0148.patch
+          echo "20c40784c61d7630a38f6f66d49be3c374b2ffe233fdb07e21e04bbe4c16bed7  /tmp/v0148.patch" | sha256sum -c -
+          git apply --check /tmp/v0148.patch
+          git apply /tmp/v0148.patch
+          rm .pc-v0148.patch.xz.b64
+          rm .github/workflows/apply-v0148-patch.yml
+          git add -A
+          git diff --cached --check
+          git config user.name "Project Constellation CI"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "v0.14.8: No Surprise Navigation"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
