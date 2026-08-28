@@ -38,9 +38,9 @@ with sync_playwright() as p:
     # The no-progress clock must keep aging while total response time also advances.
     page.wait_for_timeout(1400)
     quiet=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
-    # The v7 health renderer owns watchdog/capacity severity. The Sentinel must carry
-    # that state into canonical Chat Pulse instead of repainting it as merely active.
-    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='7'; h.dataset.state='tool-stalled'; h.dataset.level='danger'; }""")
+    # The current Health Core owns richer persisted capacity evidence. Sentinel may carry
+    # capacity attention from the content HUD, but it independently derives stall/failure state.
+    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='8'; h.dataset.state='capacity-handoff'; h.dataset.level='danger'; }""")
     page.wait_for_timeout(220)
     watchdog=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); delete h.dataset.watchdog; h.dataset.state='tool-running'; h.dataset.level='active'; }""")
@@ -82,7 +82,7 @@ with sync_playwright() as p:
     assert quiet['tool']['lastProgressAt']==active['tool']['lastProgressAt'], (active, quiet)
     assert quiet['generation']['quietForMs'] >= 1000, quiet
     assert quiet['generation']['elapsedMs'] >= active['generation']['elapsedMs'] + 1000, (active, quiet)
-    assert watchdog['chat']['healthState']=='tool-stalled' and watchdog['healthStale'] is True and watchdog['healthActive'] is False, watchdog
+    assert watchdog['chat']['healthState']=='capacity-handoff' and watchdog['healthStale'] is True and watchdog['healthActive'] is False, watchdog
     assert moved['tool']['lastProgressAt'] > quiet['tool']['lastProgressAt'], (quiet, moved)
     assert moved['generation']['quietForMs'] < 900, moved
     assert moved['generation']['elapsedMs'] >= quiet['generation']['elapsedMs'], (quiet, moved)

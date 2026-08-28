@@ -1,0 +1,47 @@
+{
+  "version": "0.14.10",
+  "codename": "State Convergence",
+  "status": "convergence-verification-green",
+  "base": "v0.14.9",
+  "base_commit": "7eb692cb74416c0b434cb09b3fdf48a0796e7be1",
+  "focus": [
+    "make canonical live state, Execution Pulse rendering, and Constellation-owned tab grouping converge after recovery",
+    "prevent stale hidden HUD watchdog state from self-latching a healthy/running chat into Needs Attention",
+    "verify Chrome managed-group mutations before caching presentation success and self-heal transient failures",
+    "reject stale pre-upgrade Sentinel pushes/replies during hot upgrade",
+    "preserve true stall/runway/provider-failure attention state and No Surprise Navigation"
+  ],
+  "targeted_verification": {
+    "state_convergence_smoke": "pass",
+    "tab_group_convergence_contract": "pass",
+    "live_sentinel_smoke": "pass",
+    "live_health_state_stability": "pass",
+    "runway_hot_upgrade": "pass",
+    "background_smoke": "pass",
+    "live_chat_state_smoke": "pass",
+    "content_320_turn_smoke": "pass",
+    "popup_smoke": "pass",
+    "pulse_ux_smoke": "pass",
+    "tab_beacon_smoke": "pass",
+    "approval_background_no_surprise_navigation": "pass"
+  },
+  "drive_checkpoint": {
+    "folder_id": "1eOuf6Q713B05Z6C851hAxiSnwLGOgg1P",
+    "file_id": "137ip-jDlOSvfZUW0WK_GYMzdTiwVF0KW",
+    "file": "Project-Constellation-v0.14.10-state-convergence-targeted-green.tgz",
+    "sha256": "23f2a1c04e455d422c1968b5ee876727348c8171a6af7511818b38f43b9de54a",
+    "size": 3726467,
+    "roundtrip_verified": true
+  },
+  "updated_at": "2026-08-28T04:55:00Z",
+  "verification": {
+    "unit_contract_validate_build": "pass",
+    "smoke_workflows": "27/27 pass across continued bounded gates",
+    "broad_verifier_note": "npm run verify reached the tool 120-second wrapper after smoke 8/27; remaining smokes continued from the durable log boundary without rerunning already-green work",
+    "exact_state_convergence": "pass",
+    "transient_group_failure_self_heal": "pass",
+    "runway_121s_stall": "pass",
+    "runway_270_turn_handoff": "pass",
+    "no_surprise_navigation": "pass"
+  }
+}

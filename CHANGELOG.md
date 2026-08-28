@@ -2,6 +2,28 @@
 
 All notable Project Constellation changes are recorded here.
 
+## 0.14.10 - State Convergence
+
+### Fixed
+
+- Fixed a split-brain state where Execution Pulse could visibly recover to `Tool working` while a stale hidden HUD watchdog state kept the tab in the Constellation Needs Attention group.
+- Removed the current-version dual-renderer race: Health Core now owns the v8 HUD while Live Sentinel emits a sanitized transition event that triggers an urgent bounded content refresh.
+- Fresh Sentinel `tool-running` evidence now clears an older content-loop stall; true current stalls, provider interruptions, and capacity warnings remain authoritative.
+- Managed tab-group moves are now verified before their presentation signature is cached. A transient Chrome group API failure schedules repair instead of making the wrong group sticky.
+- Added a live managed-group convergence audit so Constellation-owned Active / Needs Attention / Completed grouping self-heals when browser state drifts, while user-created groups remain untouched.
+- Rejected pre-upgrade Sentinel state pushes/replies so an old already-open listener cannot race the current version and move a recovered tab backward.
+
+### QoL
+
+- Active and Needs Attention Constellation groups expand when used so current work and required intervention stay visible.
+- Current-state transitions refresh the single Execution Pulse renderer promptly instead of waiting for the ordinary health-poll interval.
+
+### Tests
+
+- Added exact screenshot-shaped state-convergence coverage for stale hidden warning state + fresh ModForge inspection progress.
+- Added deterministic managed-group failure/retry coverage proving an identical healthy state can repair a transiently failed group move.
+- Preserved Runway Sentinel stall/capacity regressions and No Surprise Navigation coverage.
+
 ## 0.14.9 - Interruption Guardian
 
 ### Added

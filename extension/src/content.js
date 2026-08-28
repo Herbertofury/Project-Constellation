@@ -16,6 +16,7 @@
   const METRICS_KEY = 'projectConstellationPerformanceMetrics';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
+  const LIVE_SENTINEL_STATE_EVENT = 'project-constellation:live-sentinel-state';
   const settings = { ...perf.DEFAULTS };
   let approvalSettings = { enabled: false, acknowledged: false, alwaysAllow: true, fallbackAllowOnce: true, autoRecoverPaused: true };
   let liveHealthSettings = { ...health.DEFAULTS };
@@ -1812,29 +1813,47 @@
     const label = brain.normalizeText(row.label || sentinel.generation?.toolLabel || '', 150);
     const protectedStates = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
     const capacityAttention = ['watch','handoff','reached'].includes(snapshot.capacity?.state || '');
+    const sentinelHealthState = String(sentinel.chat?.healthState || '');
+    const sentinelProtected = protectedStates.has(sentinelHealthState);
+    const sentinelCapacityAttention = ['capacity-watch','capacity-handoff','capacity-reached'].includes(sentinelHealthState);
 
     if (status === 'running') {
       const toolActive = Boolean(row.active || row.busy);
       const activity = toolActive
         ? { kind:'tool', phase:brain.normalizeText(row.phase || sentinel.generation?.toolPhase || 'tool', 60), label:label || 'Tool activity', entryCount:Math.max(1, Number(row.entryCount || 1)), ageMs:Math.max(0, Date.now() - Number(row.lastProgressAt || Date.now())) }
         : { kind:'model', phase:brain.normalizeText(sentinel.generation?.phase || 'responding', 60), label:'Response in progress', entryCount:0, ageMs:Math.max(0, Number(sentinel.generation?.quietForMs || 0)) };
-      // Sentinel running/idle is authoritative for *lifecycle*, but it is not a heartbeat.
-      // Preserve the watchdog when unchanged tool/transcript evidence has gone quiet long
-      // enough to classify a real stall/dead state.
-      if (protectedStates.has(snapshot.state)) return { ...snapshot, activity };
+      // Sentinel is now independently running the same watchdog core. Preserve a stall or
+      // provider interruption only when Sentinel still agrees it is current. This lets a
+      // fresh progress heartbeat clear an older content-loop warning instead of pinning the
+      // tab in Needs Attention after recovery.
+      if (sentinelProtected) {
+        const health = sentinel.health || {};
+        return { ...snapshot, state:sentinelHealthState, level:health.level || snapshot.level, title:health.title || snapshot.title, detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity };
+      }
       // Capacity warnings are allowed to stay primary even while a response is active so
       // a long chat never hides its handoff warning behind "Chat is still working".
       if (capacityAttention) {
         const capacity = snapshot.capacity || {};
         return { ...snapshot, state:capacity.state === 'reached' ? 'capacity-reached' : capacity.state === 'handoff' ? 'capacity-handoff' : 'capacity-watch', level:capacity.level || snapshot.level, title:capacity.title || snapshot.title, detail:capacity.detail || snapshot.detail, recommendedAction:capacity.recommendedAction || snapshot.recommendedAction, activity };
       }
-      return { ...snapshot, state:toolActive ? 'tool-running' : 'working', level:snapshot.level === 'warning' || snapshot.level === 'danger' || snapshot.level === 'critical' ? snapshot.level : 'active', title:toolActive && label ? `Tool working · ${label}` : 'Chat is still working', detail:'Live Sentinel confirms the current turn is active; stall health is decided separately from meaningful progress heartbeats.', activity };
+      if (sentinelCapacityAttention) {
+        const health = sentinel.health || {};
+        return { ...snapshot, state:sentinelHealthState, level:health.level || 'warning', title:health.title || 'Conversation runway narrowing', detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity };
+      }
+      return { ...snapshot, state:toolActive ? 'tool-running' : 'working', level:'active', title:toolActive && label ? `Tool working · ${label}` : 'Chat is still working', detail:'Live Sentinel confirms the current turn is active and current progress evidence is healthy.', activity };
     }
     if (status === 'idle') {
-      if (protectedStates.has(snapshot.state) || capacityAttention || ['capacity-watch','capacity-handoff','capacity-reached'].includes(snapshot.state)) return snapshot;
+      if (sentinelProtected) {
+        const health = sentinel.health || {};
+        return { ...snapshot, state:sentinelHealthState, level:health.level || snapshot.level, title:health.title || snapshot.title, detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity:null };
+      }
+      if (capacityAttention || sentinelCapacityAttention || ['capacity-watch','capacity-handoff','capacity-reached'].includes(snapshot.state)) return snapshot;
       return { ...snapshot, state:'healthy', level:'healthy', title:'Chat complete', detail:'Current response is settled. Secondary project/output warnings remain available below.', activity:null };
     }
-    if (protectedStates.has(snapshot.state)) return snapshot;
+    if (sentinelProtected) {
+      const health = sentinel.health || {};
+      return { ...snapshot, state:sentinelHealthState, level:health.level || snapshot.level, title:health.title || snapshot.title, detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity:null };
+    }
     const level = ['errored','refresh-required','rate-limited','unavailable','delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(status) ? 'danger' : 'warning';
     return { ...snapshot, state:status, level, title:`Chat ${status.replaceAll('-', ' ')}`, detail:'Live Sentinel detected a current chat attention state.', activity:null };
   }
@@ -1867,7 +1886,7 @@
     } finally { liveHealthPollBusy = false; }
   }
 
-  function scheduleLiveHealthPulse(delay) {
+  function scheduleLiveHealthPulse(delay, urgent = false) {
     if (liveHealthTimer) clearTimeout(liveHealthTimer);
     if (!liveHealthSettings.enabled) { if (liveHealthHost) liveHealthHost.dataset.visible = '0'; return; }
     // Output Vault mismatch is intentionally secondary and must not promote a
@@ -1876,7 +1895,8 @@
     const active = ['running','blocked-approval','paused','refresh-required','rate-limited','stalled'].includes(lastStatus) || ['working','tool-running','tool-quiet','tool-stalled','tool-dead','quiet-working','request-stalled','stalled','dead'].includes(liveHealthSnapshot?.state || '');
     const pressureDelay = metrics.lastPressure === 'high' ? 5000 : 0;
     const nextDelay = delay ?? (document.hidden ? 30000 : active ? liveHealthSettings.pollActiveMs : liveHealthSettings.pollIdleMs);
-    liveHealthTimer = setTimeout(() => { liveHealthTimer = 0; updateLiveHealth().finally(() => scheduleLiveHealthPulse()); }, Math.max(900, pressureDelay, Number(nextDelay || 2500)));
+    const minimumDelay = urgent ? 60 : 900;
+    liveHealthTimer = setTimeout(() => { liveHealthTimer = 0; updateLiveHealth().finally(() => scheduleLiveHealthPulse()); }, Math.max(minimumDelay, pressureDelay, Number(nextDelay || 2500)));
   }
 
   const ACTIVE_TOOL_LABEL_PATTERN = /\b(searching|retrieving|fetching|reading|browsing|running|executing|building|verifying|updating|creating|uploading|downloading|processing|calling|generating)\b/i;
@@ -2488,6 +2508,18 @@
     return false;
   });
 
+  function onLiveSentinelStateEvent(event) {
+    const detail = event?.detail || {};
+    const sentinel = liveSentinelState(false);
+    if (!sentinel?.ok || sentinel.source !== 'live-sentinel') return;
+    if (detail.version && detail.version !== sentinel.version) return;
+    // A live-state transition should be visible to the user almost immediately, not on
+    // the next idle health poll. Content remains the sole current-version HUD renderer.
+    detectStatus();
+    scheduleLiveHealthPulse(70, true);
+  }
+  window.addEventListener(LIVE_SENTINEL_STATE_EVENT, onLiveSentinelStateEvent, { passive:true });
+
   document.addEventListener('visibilitychange', () => {
     // Re-sample before going quiet so a response that started just before the user
     // switched tabs is not left classified as idle for the next 30 seconds.
@@ -2512,6 +2544,7 @@
 
   window.addEventListener('pagehide', () => {
     stopPerformanceObserver(); captureObserver?.disconnect(); approvalObserver?.disconnect(); navCleanup?.(); closeOutputVault();
+    window.removeEventListener(LIVE_SENTINEL_STATE_EVENT, onLiveSentinelStateEvent);
     if (recoveryTimer) clearTimeout(recoveryTimer); if (statusTimer) clearTimeout(statusTimer); if (liveHealthTimer) clearTimeout(liveHealthTimer); if (approvalAutopilotTimer) clearTimeout(approvalAutopilotTimer);
     cancelCapture(); cancelPendingPersist(); flushBrainOutbox();
     chrome.storage.local.set({ [METRICS_KEY]: { ...metrics } }).catch(() => {});

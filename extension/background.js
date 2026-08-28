@@ -50,7 +50,7 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.9';
+const LIVE_SENTINEL_VERSION = '0.14.10';
 const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
@@ -66,6 +66,8 @@ const capacityStatsCache = new Map();
 const liveRowContextCache = new Map();
 const LIVE_ROW_CONTEXT_TTL_MS = 10000;
 const tabPresentationSignatures = new Map();
+const tabPresentationPendingSignatures = new Map();
+const tabPresentationRepairTimers = new Map();
 let pulseUxCache = null;
 let tabTagsCache = null;
 let attentionBadgeCount = 0;
@@ -3954,58 +3956,111 @@ async function managedGroupFor(windowId, bucket, cfg) {
   const found = groups.find((group) => managedGroupBucket(group.title) === bucket);
   if (!found) return null;
   const presentation = bucketPresentation(bucket, cfg);
-  await chrome.tabGroups.update(found.id, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor }).catch(() => {});
+  // Cosmetic normalization is best effort; bucket ownership is already proven by title.
+  await chrome.tabGroups.update(found.id, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor, ...(bucket === 'active' || bucket === 'stale' ? { collapsed:false } : {}) }).catch(() => {});
   return found.id;
 }
 
+async function verifyManagedTabGroup(tabId, expectedBucket) {
+  if (!chrome.tabs?.get || !chrome.tabGroups?.get) return { ok:true, skipped:'group-verification-unavailable' };
+  const tab = await chrome.tabs.get(Number(tabId)).catch(() => null);
+  if (!tab) return { ok:false, error:'tab-unavailable' };
+  const groupId = Number(tab.groupId ?? -1);
+  if (groupId < 0) return { ok:false, error:'managed-group-missing' };
+  const group = await chrome.tabGroups.get(groupId).catch(() => null);
+  const actualBucket = managedGroupBucket(group?.title || '');
+  return actualBucket === expectedBucket
+    ? { ok:true, groupId, bucket:actualBucket }
+    : { ok:false, error:'managed-group-mismatch', groupId, expectedBucket, actualBucket };
+}
+
 async function syncTabGroupNow(row, cfg) {
-  if (!chrome.tabs?.get || !chrome.tabs?.group || !chrome.tabGroups) return;
-  const tab = await chrome.tabs.get(Number(row.tabId)).catch(() => null);
-  if (!tab) return;
-  const currentGroupId = Number(tab.groupId ?? -1);
-  let currentManagedBucket = '';
-  if (currentGroupId >= 0) {
-    const group = await chrome.tabGroups.get(currentGroupId).catch(() => null);
-    currentManagedBucket = managedGroupBucket(group?.title || '');
-    if (!currentManagedBucket) return; // User-created groups stay exactly where the user put them.
-  }
-  if (!cfg.tabBeaconsEnabled || !cfg.tabGroupingEnabled) {
-    if (currentManagedBucket) await chrome.tabs.ungroup(tab.id).catch(() => {});
-    return;
-  }
-  const bucket = row.bucket || 'completed';
-  let target = await managedGroupFor(tab.windowId, bucket, cfg);
-  if (target === null) {
-    const groupId = await chrome.tabs.group({ tabIds:[tab.id] }).catch(() => null);
-    if (groupId === null || groupId === undefined) return;
-    const presentation = bucketPresentation(bucket, cfg);
-    await chrome.tabGroups.update(groupId, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor, collapsed:false }).catch(() => {});
-    target = groupId;
-  } else if (currentGroupId !== target) {
-    await chrome.tabs.group({ groupId:target, tabIds:[tab.id] }).catch(() => {});
+  if (!chrome.tabs?.get || !chrome.tabs?.group || !chrome.tabGroups) return { ok:true, skipped:'grouping-unavailable' };
+  try {
+    const tab = await chrome.tabs.get(Number(row.tabId));
+    if (!tab) return { ok:false, error:'tab-unavailable' };
+    const currentGroupId = Number(tab.groupId ?? -1);
+    let currentManagedBucket = '';
+    if (currentGroupId >= 0) {
+      const group = await chrome.tabGroups.get(currentGroupId).catch(() => null);
+      currentManagedBucket = managedGroupBucket(group?.title || '');
+      if (!currentManagedBucket) return { ok:true, skipped:'user-group' }; // User-created groups stay exactly where the user put them.
+    }
+    if (!cfg.tabBeaconsEnabled || !cfg.tabGroupingEnabled) {
+      if (currentManagedBucket) {
+        await chrome.tabs.ungroup(tab.id);
+        const verified = await chrome.tabs.get(tab.id).catch(() => null);
+        if (verified && Number(verified.groupId ?? -1) >= 0) return { ok:false, error:'managed-ungroup-not-applied' };
+      }
+      return { ok:true, skipped:'grouping-disabled' };
+    }
+    const bucket = row.bucket || 'completed';
+    let target = await managedGroupFor(tab.windowId, bucket, cfg);
+    if (target === null) {
+      const groupId = await chrome.tabs.group({ tabIds:[tab.id] });
+      if (groupId === null || groupId === undefined) return { ok:false, error:'managed-group-create-failed' };
+      const presentation = bucketPresentation(bucket, cfg);
+      await chrome.tabGroups.update(groupId, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor, collapsed:false });
+      target = groupId;
+    } else if (currentGroupId !== target) {
+      await chrome.tabs.group({ groupId:target, tabIds:[tab.id] });
+    }
+    return verifyManagedTabGroup(tab.id, bucket);
+  } catch (error) {
+    return { ok:false, error:String(error?.message || error || 'group-sync-failed') };
   }
 }
 
 function syncTabGroup(row, cfg) {
   // Serialize group mutations so ten chats changing state at once cannot race and create
-  // duplicate PC status groups. Failures never poison the queue.
-  tabGroupSyncQueue = tabGroupSyncQueue.catch(() => {}).then(() => syncTabGroupNow(row, cfg));
+  // duplicate PC status groups. A failed move returns a retryable result instead of being
+  // cached as success forever.
+  tabGroupSyncQueue = tabGroupSyncQueue.catch(() => ({ ok:false, error:'previous-group-sync-failed' })).then(() => syncTabGroupNow(row, cfg));
   return tabGroupSyncQueue;
 }
 
-async function syncTabPresentation(row, { force = false } = {}) {
+function scheduleTabPresentationRepair(tabId, delay = 420) {
+  const id = Number(tabId || 0);
+  if (!id) return;
+  const existing = tabPresentationRepairTimers.get(id);
+  if (existing) clearTimeout(existing);
+  const timer = setTimeout(async () => {
+    tabPresentationRepairTimers.delete(id);
+    const row = liveTabStateByTab.get(id);
+    if (!row) return;
+    await syncTabPresentation(row, { force:true, repairAttempt:true }).catch(() => {});
+  }, Math.max(120, Number(delay || 420)));
+  tabPresentationRepairTimers.set(id, timer);
+}
+
+async function syncTabPresentation(row, { force = false, repairAttempt = false } = {}) {
   const tabId = Number(row?.tabId || 0);
-  if (!tabId) return;
+  if (!tabId) return { ok:false, error:'tab-id-missing' };
   const cfg = await pulseUxSettings();
   const tag = await tabTagForRow(row);
   const display = bucketPresentation(row.bucket || 'completed', cfg);
   const signature = JSON.stringify([row.bucket, tag, cfg.tabBeaconsEnabled, cfg.tabTitleStatusEnabled, cfg.tabFaviconStatusEnabled, cfg.tabGroupingEnabled, display.emoji, display.color, display.groupColor]);
-  if (!force && tabPresentationSignatures.get(tabId) === signature) return;
-  tabPresentationSignatures.set(tabId, signature);
-  if (await ensureTabBeacon(tabId)) {
-    await chrome.tabs.sendMessage(tabId, { type:'PC_TAB_BEACON_APPLY', presentation:{ enabled:cfg.tabBeaconsEnabled, titleEnabled:cfg.tabTitleStatusEnabled, faviconEnabled:cfg.tabFaviconStatusEnabled, emoji:display.emoji, color:display.color, tag } }).catch(() => {});
+  if (!force && tabPresentationSignatures.get(tabId) === signature) return { ok:true, cached:true };
+  if (!force && tabPresentationPendingSignatures.get(tabId) === signature) return { ok:true, pending:true };
+  tabPresentationPendingSignatures.set(tabId, signature);
+  let beaconOk = cfg.tabBeaconsEnabled === false;
+  let groupResult = { ok:true, skipped:'grouping-disabled' };
+  try {
+    if (cfg.tabBeaconsEnabled !== false && await ensureTabBeacon(tabId)) {
+      const response = await chrome.tabs.sendMessage(tabId, { type:'PC_TAB_BEACON_APPLY', presentation:{ enabled:cfg.tabBeaconsEnabled, titleEnabled:cfg.tabTitleStatusEnabled, faviconEnabled:cfg.tabFaviconStatusEnabled, emoji:display.emoji, color:display.color, tag } }).catch(() => null);
+      beaconOk = response?.ok === true;
+    }
+    groupResult = await syncTabGroup(row, cfg);
+    const ok = beaconOk && groupResult?.ok !== false;
+    if (ok) tabPresentationSignatures.set(tabId, signature);
+    else {
+      tabPresentationSignatures.delete(tabId);
+      if (!repairAttempt) scheduleTabPresentationRepair(tabId);
+    }
+    return { ok, beaconOk, group:groupResult };
+  } finally {
+    if (tabPresentationPendingSignatures.get(tabId) === signature) tabPresentationPendingSignatures.delete(tabId);
   }
-  await syncTabGroup(row, cfg).catch(() => {});
 }
 
 async function refreshAllTabPresentations() {
@@ -4142,7 +4197,10 @@ async function readLiveSentinelState(tabId) {
   if (!tabId || !chrome.tabs?.sendMessage) return null;
   try {
     const state = await chrome.tabs.sendMessage(Number(tabId), { type:'PC_GET_LIVE_SENTINEL_STATE' });
-    return state?.ok && state?.source === 'live-sentinel' ? state : null;
+    // During a hot upgrade an old content-world listener can answer for a few milliseconds
+    // before its dispose path completes. Never let a stale Sentinel become canonical merely
+    // because it won the message-response race; force the normal reinjection/reconcile path.
+    return state?.ok && state?.source === 'live-sentinel' && state?.version === LIVE_SENTINEL_VERSION ? state : null;
   } catch (_) { return null; }
 }
 
@@ -4429,6 +4487,12 @@ async function liveChatPulse({ force = false } = {}) {
     };
     liveChatPulseCache = snapshot; liveChatPulseCacheAt = Date.now();
     await renderActionBadge(snapshot).catch(() => {});
+    // Periodic convergence pass: if Chrome reports a Constellation-owned group that no
+    // longer matches the canonical bucket, repair it even when a prior transition call
+    // was dropped. User-created groups are intentionally excluded.
+    for (const row of rows) {
+      if (row?.tabGroup?.managed && row.tabGroup.managedBucket !== row.bucket) syncTabPresentation(row, { force:true }).catch(() => {});
+    }
     return snapshot;
   })().finally(() => { liveChatPulseRequest = null; });
   return liveChatPulseRequest;
@@ -4437,10 +4501,15 @@ async function liveChatPulse({ force = false } = {}) {
 async function handleLiveChatStatePush(message, sender) {
   const tab = sender?.tab;
   if (!tab?.id || !tab?.url) return { ok:false, error:'No sender tab.' };
-  // Only the versioned Live Sentinel is allowed to mutate the canonical live-tab map.
-  // The legacy content health loop can lag or disagree during hot upgrades and was racing
-  // the Sentinel, producing visible red/green/blue flips and false completion changes.
+  // Only the current versioned Live Sentinel is allowed to mutate the canonical live-tab
+  // map. A pre-upgrade Sentinel can remain alive for a few milliseconds while the new
+  // script is injected; accepting its late push can move a recovered tab back into the
+  // old warning group. Ignore it and let the current probe reconcile the tab instead.
   if (message?.state?.sentinel !== true || message?.state?.source !== 'live-sentinel') return { ok:true, ignored:true, reason:'non-sentinel-live-state' };
+  if (String(message?.state?.version || '') !== LIVE_SENTINEL_VERSION) {
+    scheduleLiveTabReconcile(Number(tab.id), 120);
+    return { ok:true, ignored:true, reason:'stale-sentinel-version', expectedVersion:LIVE_SENTINEL_VERSION };
+  }
   const provider = providers.detectProvider(tab.url);
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return { ok:true, ignored:true };
   const network = networkStateForTab(tab.id);
@@ -4581,10 +4650,10 @@ if (chrome.webRequest?.onBeforeRequest) {
   chrome.webRequest.onCompleted.addListener((details) => noteNetworkDone(details, false), filter);
   chrome.webRequest.onErrorOccurred.addListener((details) => noteNetworkDone(details, true), filter);
 }
-if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); liveChatPulseCacheAt = 0; });
+if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; });
 if (chrome.tabs?.onCreated) chrome.tabs.onCreated.addListener(() => { liveChatPulseCacheAt = 0; });
 if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo) => { if (changeInfo?.url || changeInfo?.status || changeInfo?.title) { liveChatPulseCacheAt = 0; if (changeInfo?.url) { liveTabStateByTab.delete(Number(tabId)); tabPresentationSignatures.delete(Number(tabId)); } } });
-if (chrome.tabs?.onReplaced) chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => { liveTabStateByTab.delete(Number(removedTabId)); tabPresentationSignatures.delete(Number(removedTabId)); liveChatPulseCacheAt = 0; void addedTabId; });
+if (chrome.tabs?.onReplaced) chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => { const id=Number(removedTabId); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; void addedTabId; });
 if (chrome.tabGroups?.onUpdated) chrome.tabGroups.onUpdated.addListener(() => { liveChatPulseCacheAt = 0; tabPresentationSignatures.clear(); });
 if (chrome.tabGroups?.onRemoved) chrome.tabGroups.onRemoved.addListener(() => { liveChatPulseCacheAt = 0; tabPresentationSignatures.clear(); });
 

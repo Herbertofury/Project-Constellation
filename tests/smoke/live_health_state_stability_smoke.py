@@ -37,6 +37,7 @@ with sync_playwright() as p:
     page.evaluate("document.getElementById('genuineProgress').textContent='Searched the web'")
     page.wait_for_timeout(2800)
     done=page.evaluate("__send({type:'PC_GET_LIVE_CHAT_STATE'})")
+    page.wait_for_timeout(180)  # event-driven content HUD convergence is bounded below one frame cluster, not a second renderer race.
     after=page.evaluate("""() => {const h=document.getElementById('projectConstellationHealthHud'),s=h.shadowRoot;return {level:h.dataset.level,state:h.dataset.state,title:s.getElementById('pcHealthTitle').textContent,page:s.getElementById('pcHealthPage').textContent,network:s.getElementById('pcHealthNetwork').textContent,diag:ProjectConstellationLiveSentinel.diagnostics()};}""")
     print(json.dumps({'completed':completed,'before':before,'stable':stable,'active':active,'activeHud':activeHud,'done':done,'after':after,'errors':errors},sort_keys=True))
     assert completed['ok'] and completed['chat']['status']=='idle' and completed['generation']['active'] is False

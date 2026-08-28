@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Project Constellation",
-  "version": "0.14.9",
+  "version": "0.14.10",
   "minimum_chrome_version": "116",
   "description": "Performance-first AI workspace with hot-swappable live Chat Pulse, completion notifications, Execution Pulse + Tool Watchdog, Knowledge Vault, Capacity Guard + editable Branch & Continue, project continuity intelligence, Approval Autopilot, durable chat/file lineage, and verified remote checkpoints.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",

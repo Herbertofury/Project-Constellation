@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 7;
+  const VERSION = 8;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,

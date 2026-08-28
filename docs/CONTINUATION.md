@@ -11,7 +11,7 @@ ProjectDump is historical input only. Do not write Project Constellation changes
 
 ## Start-of-work checklist
 
-1. Read `AGENTS.md`, this document, latest `CHANGELOG.md`, release receipt, and the highest-versioned `brain/` state (currently `brain/v0.14.0`).
+1. Read `AGENTS.md`, this document, latest `CHANGELOG.md`, release receipt, and the highest-versioned `brain/` state present. Never hardcode an older brain version as the continuation authority.
 2. Run `git status`, inspect remote/tag/release state, and compare Drive checkpoint metadata before assuming currentness.
 3. Run `npm run verify` to establish the local baseline.
 4. Treat generated `build/` and `logs/` as disposable; never infer release success from stale output.
