@@ -1,0 +1,31 @@
+name: Apply v0.14.10 verified patch
+on:
+  push:
+    branches:
+      - feat/v0.14.10-state-convergence
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, 'Stage v0.14.10 verified patch')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Apply exact verified patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .pcx-stage/v0.14.10/part-*.b64 | base64 -d > /tmp/v01410.patch.xz
+          echo "55df16431a4106f69f23b3fdf4cfb64a9acc052bf64df673618b4325a7844fdb  /tmp/v01410.patch.xz" | sha256sum -c -
+          xz -dc /tmp/v01410.patch.xz > /tmp/v01410.patch
+          echo "0adca4a33292f0a6ae9ac5d32d28f733416a0bbe948dcc38f6f32f40f0c16fa0  /tmp/v01410.patch" | sha256sum -c -
+          git apply --check /tmp/v01410.patch
+          git apply /tmp/v01410.patch
+          rm -rf .pcx-stage/v0.14.10 .github/workflows/apply-v01410-patch.yml
+          git config user.name "Project Constellation CI"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "v0.14.10: State Convergence"
+          git push origin HEAD:${GITHUB_REF_NAME}
