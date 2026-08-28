@@ -66,13 +66,15 @@ const fullCaptureStart = background.indexOf('async function ensureFullCaptureWin
 const fullCaptureEnd = background.indexOf('async function waitForTabComplete', fullCaptureStart);
 const fullCaptureBlock = fullCaptureStart >= 0 && fullCaptureEnd > fullCaptureStart ? background.slice(fullCaptureStart, fullCaptureEnd) : '';
 if (fullCaptureBlock.includes("state: 'minimized'") || fullCaptureBlock.includes('state:"minimized"')) throw new Error('Full Capture must not use minimized windows; hidden-page throttling breaks reliability.');
-if (!background.includes('APPROVAL_RECOVERY_STATE_KEY') || !background.includes("state: 'minimized'")) throw new Error('Approval Recovery must keep its explicit one-tab background lane separate from Full Capture.');
+if (!background.includes('APPROVAL_RECOVERY_STATE_KEY') || !background.includes('openRecoveryTabForItem') || background.includes("chrome.windows.create({ url: item.url")) throw new Error('Approval Recovery must be open-tabs-only and must never create a ChatGPT recovery window.');
+if (background.includes('chrome.tabs.reload(')) throw new Error('Passive recovery must never reload an AI tab automatically.');
+if (background.includes('chrome.tabs.create({ url:requestedUrl')) throw new Error('Pulse focus must never recreate a missing AI chat URL.');
 for (const marker of ['PC_GITHUB_OAUTH_START','PC_GITHUB_OAUTH_POLL','PC_DRIVE_CONNECT','PC_PROVIDER_SESSION_STATUS','PC_CONNECTIONS_STATUS','PC_FULL_CAPTURE_RUNNER_DONE','PC_APPROVAL_RECOVERY_START','PC_APPROVAL_RECOVERY_STOP','PC_REFRESH_RECOVERY_REQUEST','PC_INTEGRITY_SCAN','PC_REQUEST_GOVERNOR_STATUS','PC_KNOWLEDGE_SUMMARY','PC_KNOWLEDGE_LIST','PC_KNOWLEDGE_REINDEX','knowledgeItems','projectContinuity','watchForStalls','updateAttentionBadge']) if (!background.includes(marker)) throw new Error(`Readiness backend missing: ${marker}`);
 if (!background.includes('onMessage.addListener((message, sender, sendResponse)')) throw new Error('Capture runner sender identity must be preserved.');
 const homeHtml = fs.readFileSync(path.join(root, 'home.html'), 'utf8');
 const homeJs = fs.readFileSync(path.join(root, 'home.js'), 'utf8');
 if (!homeHtml.includes('Capture all chats')) throw new Error('Home must expose the explicit Capture all chats control.');
-for (const marker of ['Connections','Sign in with Google','Sign in with GitHub','Capture all chats','Always allow all connected-app prompts','Fix all known ChatGPT chats']) if (!homeHtml.includes(marker)) throw new Error(`Premium readiness control missing: ${marker}`);
+for (const marker of ['Connections','Sign in with Google','Sign in with GitHub','Capture all chats','Always allow all connected-app prompts','Scan all open ChatGPT chats']) if (!homeHtml.includes(marker)) throw new Error(`Premium readiness control missing: ${marker}`);
 for (const marker of ['Projects & Groups','+ Group','+ Smart collection','+ Project','orgProjectGrid','orgBulkBar']) if (!homeHtml.includes(marker)) throw new Error(`Organization Home control missing: ${marker}`);
 for (const marker of ['PC_ORG_SUMMARY','PC_ORG_CHATS','PC_ORG_PROJECT_CREATE','PC_ORG_CHAT_PATCH','application/x-project-constellation-chat','application/x-project-constellation-project']) if (!homeJs.includes(marker) && !background.includes(marker)) throw new Error(`Organization workflow missing: ${marker}`);
 for (const marker of ['groups:', 'smartCollections:', 'workspaceProjectStatus', 'workspaceProjectId']) if (!background.includes(marker)) throw new Error(`Organization database index missing: ${marker}`);
