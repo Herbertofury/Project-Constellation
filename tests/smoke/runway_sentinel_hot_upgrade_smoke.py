@@ -28,7 +28,7 @@ with sync_playwright() as p:
     if chromium: launch['executable_path']=chromium
     browser=p.chromium.launch(**launch)
 
-    # Scenario 1: an already-open legacy tab must gain the v6 watchdog without refresh.
+    # Scenario 1: an already-open legacy tab must gain the v7 watchdog without refresh.
     page=browser.new_page(); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
     page.set_content(base,wait_until='load'); page.evaluate(mock)
     page.evaluate("""() => { const main=document.getElementById('main'); main.innerHTML='<section data-testid="conversation-turn-1"><div data-message-author-role="user" data-message-id="u1">Build this.</div></section><div id="progress" class="text-token-text-tertiary">Inspecting project state</div>'; __oldHud(); }""")

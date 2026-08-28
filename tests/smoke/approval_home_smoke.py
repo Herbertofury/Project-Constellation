@@ -35,7 +35,7 @@ mock=f"""
 }})();
 """
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
     page=browser.new_page(viewport={'width':1440,'height':1000}); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
     rendered=html.replace('<link rel="stylesheet" href="home.css">',f'<style>{css}</style>').replace('<script src="home.js"></script>','')
     page.set_content(rendered); page.add_script_tag(content=mock); page.add_script_tag(content=js); page.wait_for_timeout(160)

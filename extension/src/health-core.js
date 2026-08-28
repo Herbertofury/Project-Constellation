@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 6;
+  const VERSION = 7;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -30,6 +30,57 @@
     const text = String(value || '').replace(/\s+/g, ' ').trim();
     return text.length > max ? `${text.slice(0, Math.max(1, max - 1)).trimEnd()}…` : text;
   };
+
+  const FAILURE_STATES = Object.freeze([
+    'delivery-timeout',
+    'connection-interrupted',
+    'response-interrupted',
+    'send-failed'
+  ]);
+
+  function classifyProviderFailure(text = '', hints = {}) {
+    const raw = String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+    const lower = raw.toLowerCase();
+    const retryAvailable = Boolean(hints.retryAvailable);
+    const retryLabel = shortLabel(hints.retryLabel || '', 80);
+    const partialAssistantChars = Math.max(0, Number(hints.partialAssistantChars || 0));
+    const toolActivitySeen = Boolean(hints.toolActivitySeen);
+    const observedAfterUser = hints.observedAfterUser !== false;
+    const common = (state, title, detail, status = state) => ({
+      active:true, state, status, title, detail, rawText:raw.slice(0, 700),
+      fingerprint:`${state}:${raw.slice(0, 500).toLowerCase()}`,
+      retryAvailable, retryLabel, recommendedAction:retryAvailable ? 'retry' : 'refresh',
+      partialAssistantChars, toolActivitySeen, observedAfterUser
+    });
+
+    if (/message delivery timed out|delivery timed out/.test(lower)) {
+      return common('delivery-timeout','Message delivery timed out', retryAvailable
+        ? 'ChatGPT stopped the current turn with an explicit delivery timeout. A native Retry control is available; Constellation will only use it when you click Retry.'
+        : 'ChatGPT stopped the current turn with an explicit delivery timeout. Constellation preserved the interruption as Needs Attention and will not retry or refresh automatically.');
+    }
+    if (/connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|a network error occurred|network error occurred|error occurred while connecting to the websocket|websocket (?:connection )?(?:error|failed|closed)/.test(lower)) {
+      return common('connection-interrupted','Connection interrupted', retryAvailable
+        ? 'The provider reported a network/connection interruption and exposes a native recovery control. Constellation will not activate it without an explicit click.'
+        : 'The provider reported a network/connection interruption. The current tab is left untouched; refresh remains a manual fallback if no native recovery control appears.');
+    }
+    if (/failed to send (?:the )?(?:message|prompt)|message (?:was )?not sent|message failed to send|could(?:n['’]t| not) send (?:the )?(?:message|prompt)|failed to deliver your message/.test(lower)) {
+      return common('send-failed','Message was not sent', retryAvailable
+        ? 'The provider reports that the outgoing message was not delivered. A native Retry/Resend control is available and remains user-triggered.'
+        : 'The provider reports that the outgoing message was not delivered. Constellation records the failure instead of assuming the prompt reached the model.');
+    }
+    if (/there was an error generating (?:a )?response|error generating (?:a )?response|failed to (?:generate|respond)|response generation failed|generation (?:was )?interrupted|response (?:was )?interrupted|something went wrong(?: while generating)?/.test(lower)) {
+      return common('response-interrupted','Response interrupted', retryAvailable
+        ? 'The provider ended the response with an explicit generation error. A native Retry/Regenerate control is available; Constellation leaves it manual to avoid duplicating side effects from tool calls.'
+        : 'The provider ended the response with an explicit generation error. Constellation records the interruption and does not silently retry tool or model work.');
+    }
+    if (/failed to deliver message/.test(lower)) {
+      const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
+      return common(responseSide ? 'response-interrupted' : 'send-failed', responseSide ? 'Response delivery failed' : 'Message delivery failed', retryAvailable
+        ? 'The provider exposes a native Retry control for this delivery failure. Constellation will only activate it after an explicit user action.'
+        : 'The provider reports a delivery failure. Constellation records it without guessing whether a retry is safe.');
+    }
+    return { active:false, state:'', status:'', title:'', detail:'', rawText:'', fingerprint:'', retryAvailable:false, retryLabel:'', recommendedAction:'', partialAssistantChars, toolActivitySeen, observedAfterUser };
+  }
 
   function normalizeSettings(input = {}) {
     const settings = { ...DEFAULTS, ...(input || {}) };
@@ -157,7 +208,7 @@
       };
       if (capacity.score >= LEVEL.warning) {
         merged.chips = [...new Set([...(merged.chips || []), ...(capacity.chips || []).slice(0, 2)])].slice(0, 8);
-        if (capacity.score > Number(merged.score || 0) && !['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','output-regressed','degraded','stale-page','project-rollback','tool-dead','dead'].includes(merged.state)) {
+        if (capacity.score > Number(merged.score || 0) && !['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','output-regressed','degraded','stale-page','project-rollback','tool-dead','dead'].includes(merged.state)) {
           merged.level = capacity.level; merged.score = capacity.score;
         }
         if (['healthy','follow-up'].includes(merged.state)) {
@@ -167,6 +218,23 @@
       }
       return merged;
     };
+
+    const providerFailure = input.failure?.active ? input.failure : (FAILURE_STATES.includes(rawStatus) ? { active:true, state:rawStatus, status:rawStatus } : null);
+    if (providerFailure?.active) {
+      const state = FAILURE_STATES.includes(String(providerFailure.state || providerFailure.status || '')) ? String(providerFailure.state || providerFailure.status) : 'response-interrupted';
+      const titles = { 'delivery-timeout':'Message delivery timed out', 'connection-interrupted':'Connection interrupted', 'response-interrupted':'Response interrupted', 'send-failed':'Message was not sent' };
+      const retryAvailable = Boolean(providerFailure.retryAvailable);
+      const partial = Math.max(0, Number(providerFailure.partialAssistantChars || 0));
+      const failureChips = [
+        ...chips,
+        retryAvailable ? `${shortLabel(providerFailure.retryLabel || 'Retry', 30)} available` : 'manual recovery',
+        partial ? (partial < 1000 ? `${partial} partial chars preserved` : `${Math.round(partial / 100) / 10}k partial chars preserved`) : '',
+        providerFailure.toolActivitySeen ? 'tool activity preceded failure' : ''
+      ];
+      return emit(result(state,'danger', providerFailure.title || titles[state] || 'Provider interruption', providerFailure.detail || 'The provider explicitly interrupted the current turn. Constellation recorded the failure and left recovery under user control.', {
+        recommendedAction:providerFailure.recommendedAction || (retryAvailable ? 'retry' : 'refresh'), chips:failureChips, pageRisk:true, rawStatus:state, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity
+      }));
+    }
 
     if (rawStatus === 'refresh-required' || page.refreshRequired) {
       return emit(result('refresh-required','critical','Refresh required','The page hit a delivery/connection state that Constellation classifies as browser-refresh recovery. Retry is not used.',{ recommendedAction:'refresh', chips, pageRisk:true, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
@@ -245,7 +313,7 @@
 
     return emit(result('healthy','healthy','Chat healthy','The rendered conversation, provider activity, and catalogued project state look consistent.',{ chips, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
   }
-  const api = Object.freeze({ VERSION, DEFAULTS, normalizeSettings, deriveCapacity, deriveHealth });
+  const api = Object.freeze({ VERSION, DEFAULTS, FAILURE_STATES, classifyProviderFailure, normalizeSettings, deriveCapacity, deriveHealth });
   globalThis.ProjectConstellationHealthCore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

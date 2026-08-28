@@ -83,4 +83,22 @@ assert.equal(row.state,'refresh-required');
 assert.equal(row.recommendedAction,'refresh');
 assert.equal(row.capacity.recommendedAction,'handoff');
 
+
+for (const [text, state, title] of [
+  ['Message delivery timed out. Please try again.','delivery-timeout','Message delivery timed out'],
+  ['A network error occurred. Please check your connection and try again.','connection-interrupted','Connection interrupted'],
+  ['There was an error generating a response.','response-interrupted','Response interrupted'],
+  ['Message was not sent.','send-failed','Message was not sent']
+]) {
+  const failure = core.classifyProviderFailure(text, { retryAvailable:true, retryLabel:'Retry', partialAssistantChars:45, toolActivitySeen:true });
+  assert.equal(failure.active, true); assert.equal(failure.state, state); assert.equal(failure.retryAvailable, true);
+  const failureRow = core.deriveHealth({ now, chatStatus:'running', running:true, lastTurnProgressAt:now-500, failure, capacity:{storedTurns:260}, settings:{capacityWarningTurns:180,capacityHandoffTurns:260} });
+  assert.equal(failureRow.state, state, `${state} must outrank stale running/capacity evidence`);
+  assert.equal(failureRow.level, 'danger'); assert.equal(failureRow.title, title); assert.equal(failureRow.recommendedAction, 'retry');
+  assert.ok(failureRow.chips.includes('45 partial chars preserved'));
+}
+const noRetryFailure = core.classifyProviderFailure('Message delivery timed out. Please try again.', {});
+assert.equal(noRetryFailure.recommendedAction, 'refresh');
+assert.equal(core.deriveHealth({ now, chatStatus:'delivery-timeout', failure:noRetryFailure }).state, 'delivery-timeout');
+
 console.log('health-core.test.mjs: PASS');

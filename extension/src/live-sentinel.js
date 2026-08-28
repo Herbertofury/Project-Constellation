@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.8';
+  const VERSION = '0.14.9';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -41,9 +41,10 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
-  const HEALTH_CORE_VERSION = '6';
+  const HEALTH_CORE_VERSION = '7';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
-  const WATCHDOG_PRIMARY_STATES = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','capacity-watch','capacity-handoff','capacity-reached']);
+  const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
+  const WATCHDOG_PRIMARY_STATES = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','capacity-watch','capacity-handoff','capacity-reached',...FAILURE_PRIMARY_STATES]);
   const CHATGPT_PAGE_PROBE_REQUEST_SOURCE = 'project-constellation';
 
 
@@ -86,6 +87,10 @@
   let pageMessageListener = null;
   let storageListener = null;
   let healthSettings = null;
+  let lastFailureFingerprint = '';
+  let failureDetectedAt = 0;
+  let lastFailureClearedAt = 0;
+  let failureRetryAttempts = 0;
 
 
   const clean = (value, max = 240) => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -440,11 +445,77 @@
     return values.join(' | ').slice(-12000);
   }
 
+  const FAILURE_RECOVERY_CONTROL_PATTERN = /^(?:retry|try again|regenerate(?: response)?|resend(?: message)?|reconnect)$/i;
+
+  function failureControlLabel(node) {
+    return clean(node?.getAttribute?.('aria-label') || node?.getAttribute?.('title') || node?.textContent || '', 120);
+  }
+
+  function recoveryControlNear(surface) {
+    const scopes = [];
+    let cursor = surface instanceof Element ? surface : null;
+    for (let depth = 0; cursor && cursor !== document.body && depth < 5; depth += 1, cursor = cursor.parentElement) scopes.push(cursor);
+    for (const scope of scopes) {
+      const controls = [...(scope.querySelectorAll?.('button,[role="button"]') || [])].filter((node) => !isOwnedNode(node) && isUsable(node));
+      const exact = controls.find((node) => FAILURE_RECOVERY_CONTROL_PATTERN.test(failureControlLabel(node)));
+      if (exact) return exact;
+    }
+    return null;
+  }
+
+  function failureSurfaceEvidence(frontier = null, rows = [], transcript = null) {
+    const core = healthCore();
+    if (!core?.classifyProviderFailure) return { active:false };
+    const nodes = [...document.querySelectorAll(ALERT_SELECTOR)].slice(-80).reverse();
+    for (const node of nodes) {
+      if (isOwnedNode(node) || !isUsable(node) || !isCurrentFrontierNode(node, frontier)) continue;
+      const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 1600);
+      if (!text) continue;
+      const control = recoveryControlNear(node);
+      const retryLabel = failureControlLabel(control);
+      const partialAssistantChars = Math.max(0, Number(transcript?.latestAssistantChars || 0), String(frontier?.assistantAfterUser?.textContent || '').length);
+      const failure = core.classifyProviderFailure(text, {
+        retryAvailable:Boolean(control),
+        retryLabel,
+        partialAssistantChars,
+        toolActivitySeen:Boolean(rows?.length),
+        observedAfterUser:Boolean(frontier?.latestUser)
+      });
+      if (!failure?.active) continue;
+      const at = now();
+      if (failure.fingerprint !== lastFailureFingerprint) {
+        lastFailureFingerprint = failure.fingerprint;
+        failureDetectedAt = at;
+        failureRetryAttempts = 0;
+        lastActivityAt = at;
+      }
+      return {
+        ...failure,
+        control,
+        detectedAt:Number(failureDetectedAt || at),
+        ageMs:Math.max(0, at - Number(failureDetectedAt || at)),
+        retryAttempts:Number(failureRetryAttempts || 0),
+        clearedAt:0
+      };
+    }
+    if (lastFailureFingerprint) {
+      lastFailureClearedAt = now();
+      lastFailureFingerprint = '';
+      failureDetectedAt = 0;
+      failureRetryAttempts = 0;
+    }
+    return { active:false, clearedAt:Number(lastFailureClearedAt || 0) };
+  }
+
   function nonRunningStatus(text) {
     const lower = String(text || '').toLowerCase();
     if (/continue generating|resume generation|resume response/.test(lower)) return 'paused';
     if (/allow chatgpt to use|permission required|approval required/.test(lower)) return 'blocked-approval';
-    if (/message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message/.test(lower)) return 'refresh-required';
+    const failure = healthCore()?.classifyProviderFailure?.(text, {});
+    if (failure?.active) return failure.status || failure.state;
+    if (/message delivery timed out|delivery timed out/.test(lower)) return 'delivery-timeout';
+    if (/connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed/.test(lower)) return 'connection-interrupted';
+    if (/failed to deliver message|response (?:was )?interrupted|generation (?:was )?interrupted/.test(lower)) return 'response-interrupted';
     if (/too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429/.test(lower)) return 'rate-limited';
     if (/something went wrong|there was an error|network error|failed to (generate|respond|send)/.test(lower)) return 'errored';
     if (/session expired/.test(lower)) return 'auth-required';
@@ -480,7 +551,7 @@
     return { explicitLimitSignal:Boolean(match), explicitLimitText:match ? clean(match[0], 220) : '' };
   }
 
-  function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase }) {
+  function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure }) {
     const core = healthCore();
     const settings = normalizedHealthSettings();
     if (!core || !settings || settings.enabled === false) return null;
@@ -515,13 +586,25 @@
         entryCount:Math.max(0, Number(rows?.length || 0))
       },
       capacity:capacityInput,
+      failure:failure?.active ? {
+        active:true,
+        state:String(failure.state || failure.status || ''),
+        status:String(failure.status || failure.state || ''),
+        title:clean(failure.title || '', 180),
+        detail:clean(failure.detail || '', 420),
+        retryAvailable:Boolean(failure.retryAvailable),
+        retryLabel:clean(failure.retryLabel || '', 80),
+        recommendedAction:String(failure.recommendedAction || ''),
+        partialAssistantChars:Math.max(0, Number(failure.partialAssistantChars || 0)),
+        toolActivitySeen:Boolean(failure.toolActivitySeen)
+      } : null,
       lastTurnProgressAt:Number(lastProgressAt || 0),
       lastDomProgressAt:Number(lastProgressAt || 0),
       lastStatusChangeAt:0
     });
     const capacity = derived?.capacity || core.deriveCapacity(capacityInput, settings);
     const capacityAttention = ['watch','handoff','reached'].includes(capacity?.state || '');
-    const severe = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','errored']);
+    const severe = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','errored',...FAILURE_PRIMARY_STATES]);
     if (capacityAttention && !severe.has(String(derived?.state || ''))) {
       return {
         ...derived,
@@ -592,12 +675,18 @@
     const transcript = freshTranscript(frontier, at);
     const transcriptFinal = Boolean(transcript?.final && transcript?.transcriptStatus === 'finished');
     const transcriptRunning = Boolean(transcript?.running && transcript?.transcriptStatus === 'running');
+    const failure = failureSurfaceEvidence(frontier, rows, transcript);
     const domActive = Boolean(stopControl || streamingNode || assistantBusyEvidence || progressiveTool || toolBusyEvidence || assistantGrowing || awaitingResponse);
-    const rawActive = transcriptFinal ? false : transcriptRunning ? true : domActive;
+    const rawActive = failure.active ? false : transcriptFinal ? false : transcriptRunning ? true : domActive;
 
     if (providerInfo().id === 'chatgpt') requestTranscript(rawActive && !transcript);
-    const inactiveStatus = nonRunningStatus(statusSurfaceText());
-    const resolved = resolveStatus(rawActive, inactiveStatus, at);
+    const inactiveStatus = failure.active ? String(failure.status || failure.state || 'errored') : nonRunningStatus(statusSurfaceText());
+    let resolved;
+    if (failure.active) {
+      idleCandidateSince = 0;
+      setStableStatus(inactiveStatus, at);
+      resolved = { status:inactiveStatus, settling:false };
+    } else resolved = resolveStatus(rawActive, inactiveStatus, at);
     const status = resolved.status;
     if (status === 'running') {
       const transcriptStart = Number(transcript?.responseStartedAt || transcript?.latestAssistantCreatedAt || transcript?.latestUserCreatedAt || 0);
@@ -612,11 +701,12 @@
     const provider = providerInfo();
     const toolLabel = clean((currentActive || currentBusy || informative)?.label || '', 160);
     const toolPhase = transcript?.phase || (currentActive || currentBusy || informative)?.phase || '';
-    const fallbackHealth = standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase });
+    const fallbackHealth = standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure });
     const watchdogState = watchdogHudState();
     const healthState = watchdogState || String(fallbackHealth?.state || '') || (status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status);
     const stale = WATCHDOG_PRIMARY_STATES.has(healthState) || (status !== 'running' && status !== 'idle');
-    const source = transcriptFinal ? 'chatgpt-transcript-finished'
+    const source = failure.active ? 'provider-failure-surface'
+      : transcriptFinal ? 'chatgpt-transcript-finished'
       : transcriptRunning ? 'chatgpt-transcript-running'
       : stopControl ? 'stop-control'
       : streamingNode ? 'streaming-marker'
@@ -643,7 +733,7 @@
       awaitingResponse,
       toolLabel,
       toolPhase,
-      phase:transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
+      phase:failure.active ? 'interrupted' : transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
       modelSlug:clean(transcript?.modelSlug || '', 100),
       progressPercent:Number.isFinite(Number(transcript?.progressPercent)) ? Number(transcript.progressPercent) : null,
       transcriptStatus:transcript?.transcriptStatus || 'unavailable',
@@ -672,7 +762,13 @@
       capacityState:String(fallbackHealth?.capacity?.state || 'clear'),
       capacitySafetyPercent:Math.max(0, Number(fallbackHealth?.capacity?.safetyPercent || 0)),
       capacityTurnCount:Math.max(0, Number(fallbackHealth?.capacity?.turnCount || 0)),
-      capacityChars:Math.max(0, Number(fallbackHealth?.capacity?.capturedChars || 0))
+      capacityChars:Math.max(0, Number(fallbackHealth?.capacity?.capturedChars || 0)),
+      interrupted:Boolean(failure.active),
+      failureState:String(failure.active ? (failure.state || failure.status || '') : ''),
+      failureDetectedAt:Number(failure.detectedAt || 0),
+      failureAgeMs:Math.max(0, Number(failure.ageMs || 0)),
+      retryAvailable:Boolean(failure.retryAvailable),
+      retryLabel:clean(failure.retryLabel || '', 80)
     };
     const state = {
       ok:true,
@@ -689,8 +785,40 @@
         lastActivityAt,
         hasConversation:frontier.turns.length > 0,
         turnCount:frontier.turns.length,
-        healthState
+        healthState,
+        failure:failure.active ? {
+          active:true,
+          state:String(failure.state || failure.status || ''),
+          status:String(failure.status || failure.state || ''),
+          title:clean(failure.title || '', 180),
+          detail:clean(failure.detail || '', 420),
+          rawText:clean(failure.rawText || '', 700),
+          detectedAt:Number(failure.detectedAt || 0),
+          ageMs:Math.max(0, Number(failure.ageMs || 0)),
+          retryAvailable:Boolean(failure.retryAvailable),
+          retryLabel:clean(failure.retryLabel || '', 80),
+          recommendedAction:String(failure.recommendedAction || ''),
+          retryAttempts:Math.max(0, Number(failure.retryAttempts || 0)),
+          partialAssistantChars:Math.max(0, Number(failure.partialAssistantChars || 0)),
+          toolActivitySeen:Boolean(failure.toolActivitySeen)
+        } : null
       },
+      failure:failure.active ? {
+        active:true,
+        state:String(failure.state || failure.status || ''),
+        status:String(failure.status || failure.state || ''),
+        title:clean(failure.title || '', 180),
+        detail:clean(failure.detail || '', 420),
+        rawText:clean(failure.rawText || '', 700),
+        detectedAt:Number(failure.detectedAt || 0),
+        ageMs:Math.max(0, Number(failure.ageMs || 0)),
+        retryAvailable:Boolean(failure.retryAvailable),
+        retryLabel:clean(failure.retryLabel || '', 80),
+        recommendedAction:String(failure.recommendedAction || ''),
+        retryAttempts:Math.max(0, Number(failure.retryAttempts || 0)),
+        partialAssistantChars:Math.max(0, Number(failure.partialAssistantChars || 0)),
+        toolActivitySeen:Boolean(failure.toolActivitySeen)
+      } : null,
       generation,
       health:fallbackHealth ? { state:String(fallbackHealth.state || ''), level:String(fallbackHealth.level || ''), title:clean(fallbackHealth.title || '', 180), detail:clean(fallbackHealth.detail || '', 360), recommendedAction:String(fallbackHealth.recommendedAction || ''), progressAgeMs:Math.max(0, Number(fallbackHealth.progressAgeMs || 0)), capacity:fallbackHealth.capacity || null } : null,
       tool:{
@@ -718,6 +846,22 @@
     schedulePulse(status === 'running' ? (document.hidden ? 1500 : 900) : (document.hidden ? 10000 : 5000));
     if (provider.id === 'chatgpt') scheduleTranscript(status === 'running' ? CHATGPT_TRANSCRIPT_RUNNING_POLL_MS : CHATGPT_TRANSCRIPT_IDLE_POLL_MS);
     return state;
+  }
+
+  function retryCurrentFailure() {
+    const frontier = conversationFrontier();
+    const transcript = freshTranscript(frontier, now());
+    const failure = failureSurfaceEvidence(frontier, toolRows(frontier), transcript);
+    if (!failure?.active || !failure.retryAvailable || !failure.control || !isUsable(failure.control)) {
+      return { ok:false, action:'retry-unavailable', error:'The provider no longer exposes a current-turn Retry control. Constellation left the tab untouched.' };
+    }
+    failureRetryAttempts += 1;
+    const label = failure.retryLabel || 'Retry';
+    failure.control.click();
+    lastActivityAt = now();
+    lastProgressAt = lastActivityAt;
+    scheduleScan(80);
+    return { ok:true, action:'retry', state:String(failure.state || failure.status || ''), label, attempt:failureRetryAttempts };
   }
 
   function setIfChanged(node, value) {
@@ -760,6 +904,21 @@
     const nowDetail = shadow.getElementById('pcHealthNowDetail');
     const activity = shadow.getElementById('pcHealthActivity');
     const tool = shadow.getElementById('pcHealthTool');
+    let retryButton = shadow.getElementById('pcHealthRetry');
+    const actions = shadow.querySelector?.('.actions');
+    if (!retryButton && actions) {
+      retryButton = document.createElement('button');
+      retryButton.className = 'btn primary';
+      retryButton.id = 'pcHealthRetry';
+      retryButton.hidden = true;
+      retryButton.textContent = 'Retry response';
+      retryButton.addEventListener('click', () => {
+        retryButton.disabled = true;
+        const result = retryCurrentFailure();
+        if (!result?.ok) retryButton.disabled = false;
+      });
+      actions.insertBefore(retryButton, actions.firstChild || null);
+    }
     const status = state.chat.status;
     const label = state.tool?.label || '';
     const toolActive = Boolean(state.tool?.active || state.tool?.busy);
@@ -767,8 +926,8 @@
     const authoritativeWatchdog = host.dataset.watchdog === HEALTH_CORE_VERSION;
     const sentinelHealthState = String(state.chat?.healthState || '');
     const sentinelPrimary = WATCHDOG_PRIMARY_STATES.has(sentinelHealthState);
-    // The current v6 renderer remains authoritative when it already owns a watchdog/capacity
-    // warning. On a hot-upgraded legacy tab, however, the Sentinel carries v6 health logic
+    // The current v7 renderer remains authoritative when it already owns a watchdog/capacity
+    // warning. On a hot-upgraded legacy tab, however, the Sentinel carries v7 health logic
     // itself so the old renderer cannot erase a real stall/runway warning until page reload.
     if ((authoritativeWatchdog && WATCHDOG_PRIMARY_STATES.has(host.dataset.state || '')) || (authoritativeWatchdog && capacityAttention)) return;
 
@@ -778,23 +937,43 @@
       if (sentinelPrimary) {
         const health = state.health || {};
         const capacity = health.capacity || {};
-        const level = health.level || (['tool-dead','dead'].includes(sentinelHealthState) ? 'critical' : 'warning');
+        const failure = state.failure?.active ? state.failure : state.chat?.failure?.active ? state.chat.failure : null;
+        const level = health.level || (['tool-dead','dead'].includes(sentinelHealthState) ? 'critical' : FAILURE_PRIMARY_STATES.has(sentinelHealthState) ? 'danger' : 'warning');
         if (host.dataset.level !== level) host.dataset.level = level;
         if (host.dataset.state !== sentinelHealthState) host.dataset.state = sentinelHealthState;
         if (sentinelHealthState.startsWith('capacity-')) host.dataset.capacity = String(capacity.state || state.generation?.capacityState || 'watch');
         setIfChanged(title, health.title || sentinelHealthState.replaceAll('-', ' '));
         setIfChanged(mini, health.detail || `Runway Sentinel · ${sentinelHealthState.replaceAll('-', ' ')}`);
-        setIfChanged(nowTitle, label || (sentinelHealthState.startsWith('capacity-') ? 'Conversation runway' : 'No meaningful progress'));
-        setIfChanged(nowDetail, sentinelHealthState.startsWith('capacity-') ? `Measured branch load ${Math.max(0, Number(state.generation?.capacitySafetyPercent || 0))}% of the configured safety threshold.` : `Response elapsed ${Math.round(Number(state.generation?.elapsedMs || 0) / 1000)}s · no meaningful progress ${Math.round(Number(state.generation?.quietForMs || 0) / 1000)}s.`);
+        setIfChanged(nowTitle, failure?.active ? (failure.title || 'Provider interruption') : label || (sentinelHealthState.startsWith('capacity-') ? 'Conversation runway' : 'No meaningful progress'));
+        setIfChanged(nowDetail, failure?.active ? `${Math.round(Number(failure.ageMs || 0) / 1000)}s since detected${Number(failure.partialAssistantChars || 0) ? ` · ${Number(failure.partialAssistantChars || 0)} partial chars preserved` : ''}${failure.retryAvailable ? ' · Retry available.' : ' · Manual recovery.'}` : sentinelHealthState.startsWith('capacity-') ? `Measured branch load ${Math.max(0, Number(state.generation?.capacitySafetyPercent || 0))}% of the configured safety threshold.` : `Response elapsed ${Math.round(Number(state.generation?.elapsedMs || 0) / 1000)}s · no meaningful progress ${Math.round(Number(state.generation?.quietForMs || 0) / 1000)}s.`);
         setIfChanged(activity, toolActive ? 'tool' : sentinelHealthState.startsWith('capacity-') ? 'runway' : 'model');
         setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
         const capacityNode = shadow.getElementById('pcHealthCapacity');
         if (capacityNode && sentinelHealthState.startsWith('capacity-')) setIfChanged(capacityNode, capacity.state === 'reached' ? 'provider limit' : `${Math.max(0, Number(capacity.safetyPercent || state.generation?.capacitySafetyPercent || 0))}% · ${capacity.state === 'handoff' ? 'secure' : 'watch'}`);
         const handoff = shadow.getElementById('pcHealthHandoff');
         if (handoff && ['capacity-handoff','capacity-reached'].includes(sentinelHealthState)) handoff.hidden = false;
+        if (retryButton) {
+          if (failure?.retryAvailable) {
+            if (retryButton.hidden) retryButton.hidden = false;
+            if (retryButton.disabled) retryButton.disabled = false;
+            setIfChanged(retryButton, failure.retryLabel || 'Retry response');
+            const retryTitle = `Use ChatGPT’s visible ${failure.retryLabel || 'Retry'} control once. Constellation never retries automatically.`;
+            if (retryButton.title !== retryTitle) retryButton.title = retryTitle;
+          } else {
+            if (!retryButton.hidden) retryButton.hidden = true;
+            if (retryButton.disabled) retryButton.disabled = false;
+            setIfChanged(retryButton, 'Retry response');
+          }
+        }
+        const refreshButton = shadow.getElementById('pcHealthRefresh');
+        if (refreshButton && failure?.active) {
+          const shouldHide = failure.recommendedAction === 'retry';
+          if (refreshButton.hidden !== shouldHide) refreshButton.hidden = shouldHide;
+        }
         return;
       }
       if (status === 'running') {
+        if (retryButton && !retryButton.hidden) retryButton.hidden = true;
         if (host.dataset.level !== 'active') host.dataset.level = 'active';
         const liveState = toolActive ? 'tool-running' : 'working';
         if (host.dataset.state !== liveState) host.dataset.state = liveState;
@@ -805,6 +984,7 @@
         setIfChanged(activity, toolActive ? 'tool' : 'model');
         setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
       } else if (status === 'idle') {
+        if (retryButton && !retryButton.hidden) retryButton.hidden = true;
         if (host.dataset.level !== 'healthy') host.dataset.level = 'healthy';
         if (host.dataset.state !== 'healthy') host.dataset.state = 'healthy';
         setIfChanged(title, 'Chat complete');
@@ -814,7 +994,7 @@
         setIfChanged(activity, 'idle');
         setIfChanged(tool, '—');
       } else {
-        const danger = ['errored','refresh-required','rate-limited','unavailable'].includes(status);
+        const danger = ['errored','refresh-required','rate-limited','unavailable',...FAILURE_PRIMARY_STATES].includes(status);
         const level = danger ? 'danger' : 'warning';
         if (host.dataset.level !== level) host.dataset.level = level;
         if (host.dataset.state !== status) host.dataset.state = status;
@@ -869,8 +1049,8 @@
         const element = elementFor(node);
         if (!element) continue;
         if (currentTurnMutation(element)) return true;
-        if (element.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`)) return true;
-        if (element.querySelector?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR}`)) return true;
+        if (element.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR},${ALERT_SELECTOR}`)) return true;
+        if (element.querySelector?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR},${ALERT_SELECTOR}`)) return true;
         const text = clean(element.textContent || '', 320);
         if (text && (ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_PROGRESS_LINE_PATTERN.test(text) || GENERIC_TOOL_PATTERN.test(text))) return true;
       }
@@ -933,6 +1113,10 @@
       sendResponse({ ok:true, requested, state:scan(true) });
       return false;
     }
+    if (message?.type === 'PC_LIVE_SENTINEL_RETRY_FAILURE') {
+      sendResponse(retryCurrentFailure());
+      return false;
+    }
     if (message?.type !== 'PC_GET_LIVE_SENTINEL_STATE') return false;
     sendResponse(scan(true));
     return false;
@@ -954,7 +1138,8 @@
     getState:(force = false) => scan(Boolean(force)),
     peek:() => lastState || scan(true),
     rescan:() => scan(true),
-    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, responseStartedAt, lastResponseDurationMs, lastResponseCompletedAt, lastToolProgressSignature, lastTranscriptProgressSignature, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
+    diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, responseStartedAt, lastResponseDurationMs, lastResponseCompletedAt, lastToolProgressSignature, lastTranscriptProgressSignature, lastFailureFingerprint, failureDetectedAt, lastFailureClearedAt, failureRetryAttempts, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
+    retryFailure:() => retryCurrentFailure(),
     dispose:() => {
       pageObserver?.disconnect(); pageObserver = null;
       hudHostObserver?.disconnect(); hudHostObserver = null;

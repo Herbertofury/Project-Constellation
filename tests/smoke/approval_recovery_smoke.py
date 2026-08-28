@@ -12,7 +12,7 @@ def message(page, msg):
     return page.evaluate("""(msg)=>new Promise(resolve=>window.__pcMessageListener(msg,null,resolve))""", msg)
 
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
     page=browser.new_page(viewport={'width':1200,'height':800}); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
     page.set_content('''<!doctype html><html><body><main id="main"></main></body></html>''')
     page.evaluate(mock);page.add_script_tag(content=core);page.add_script_tag(content=brain);page.add_script_tag(content=health);page.add_script_tag(content=content);page.wait_for_timeout(100)
@@ -52,11 +52,11 @@ with sync_playwright() as p:
     assert unconfirmed['ok'] is False and unconfirmed['action']=='failed' and 'unconfirmed' in unconfirmed['strategy']
     assert page.evaluate('window.__clicks.includes("unconfirmed-allow")')
 
-    # Delivery timeout / connection interruption is NEVER a Retry click. It is a browser-refresh recovery class.
+    # Delivery timeout is a first-class interruption. Recovery scanning reports the provider's native Retry, but never clicks it automatically.
     page.evaluate('''() => { window.__clicks=[];const main=document.getElementById('main');main.innerHTML=`<div role="alert" id="deliveryError"><strong>Message delivery timed out. Please try again.</strong><button id="retry">Retry</button></div>`;document.getElementById('retry').onclick=()=>window.__clicks.push('retry'); }''')
     refresh=message(page,{'type':'PC_APPROVAL_RECOVERY_SCAN','options':{'alwaysAllow':True,'fallbackAllowOnce':True,'recoverPaused':True}})
     page.wait_for_timeout(80); refresh_clicks=page.evaluate('window.__clicks.slice()')
-    assert refresh['ok'] and refresh['action']=='refresh-required' and refresh['strategy']=='browser-refresh' and refresh['retryForbidden'] is True
+    assert refresh['ok'] and refresh['action']=='delivery-timeout' and refresh['strategy']=='native-retry-available' and refresh['retryForbidden'] is False and refresh['automaticRetryForbidden'] is True and refresh['retryAvailable'] is True
     assert 'retry' not in refresh_clicks
 
     # Provider rate limits enter a shared cooldown. They NEVER click Retry either.

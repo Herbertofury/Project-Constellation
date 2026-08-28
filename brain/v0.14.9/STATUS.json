@@ -1,0 +1,30 @@
+{
+  "version": "0.14.9",
+  "codename": "Interruption Guardian",
+  "status": "local-bounded-verification-green",
+  "base": "v0.14.8",
+  "base_commit": "1f9dd51855e7e4885d0d8c8410048568ee15e7ef",
+  "focus": [
+    "first-class delivery-timeout, connection-interrupted, response-interrupted, and send-failed states",
+    "current-turn-only failure ownership so historical error banners cannot poison newer work",
+    "explicit-user-only native Retry with no automatic retry after potentially side-effecting tool/app calls",
+    "preserve No Surprise Navigation: passive monitoring never opens, focuses, navigates, recreates, or reloads ChatGPT",
+    "preserve Runway Sentinel response/no-progress timing, stall detection, and capacity handoff",
+    "consistent system-Chromium smoke harness override for deterministic local QA"
+  ],
+  "local_verification": {
+    "unit_contract_suites": "9/9 pass",
+    "browser_smokes_bounded": "26/26 pass",
+    "exact_timeout_fixture": "pass",
+    "historical_timeout_guard": "pass",
+    "automatic_retry_clicks": 0,
+    "explicit_retry_clicks_expected": 1
+  },
+  "drive_checkpoint": {
+    "folder_id": "1j6lIbR3RS7wVKHTJW_j4jYanfKtduqEg",
+    "file": "v0.14.9-interruption-guardian-bounded-green.tgz",
+    "sha256": "028d6b6471c89b3b76fe20c50cf7593101d2046869a792ee863e99d8938b5b35",
+    "size": 3716500
+  },
+  "updated_at": "2026-08-28T02:55:00Z"
+}

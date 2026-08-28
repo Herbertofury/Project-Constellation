@@ -15,7 +15,7 @@
   const HEALTH_CLASS = Object.freeze({
     healthy:'running','tool-running':'running',running:'running',
     'tool-quiet':'waiting-user','request-stalled':'stalled','tool-stalled':'stalled',stalled:'stalled',
-    'tool-dead':'errored',dead:'errored',errored:'errored','refresh-required':'refresh-required','blocked-approval':'blocked-approval','rate-limited':'rate-limited',
+    'tool-dead':'errored',dead:'errored',errored:'errored','delivery-timeout':'errored','connection-interrupted':'errored','response-interrupted':'errored','send-failed':'errored','refresh-required':'refresh-required','blocked-approval':'blocked-approval','rate-limited':'rate-limited',
     'waiting-user':'waiting-user','auth-required':'auth-required',paused:'paused','output-regressed':'errored'
   });
   const statusClass = (s) => esc(HEALTH_CLASS[String(s || '').toLowerCase()] || s || 'idle');

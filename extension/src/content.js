@@ -703,14 +703,66 @@
     return Math.max(30_000, Math.min(60 * 60 * 1000, Math.round(ms)));
   }
 
+  const FAILURE_RECOVERY_CONTROL_PATTERN = /^(?:retry|try again|regenerate(?: response)?|resend(?: message)?|reconnect)$/i;
+  const FAILURE_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
+
+  function failureRecoveryControl(surface) {
+    const scopes = [];
+    let cursor = surface instanceof Element ? surface : null;
+    for (let depth = 0; cursor && cursor !== document.body && depth < 5; depth += 1, cursor = cursor.parentElement) scopes.push(cursor);
+    for (const scope of scopes) {
+      const controls = [...(scope.querySelectorAll?.('button,[role="button"]') || [])].filter(isUsableControl);
+      const found = controls.find((node) => FAILURE_RECOVERY_CONTROL_PATTERN.test(elementLabel(node, 120)));
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function nodeFollows(node, boundary) {
+    if (!node || !boundary || node === boundary || boundary.contains?.(node)) return false;
+    try { return Boolean(boundary.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING); }
+    catch (_) { return false; }
+  }
+
+  function providerFailureSurface() {
+    const sentinel = liveSentinelState(false);
+    const sentinelFailure = sentinel?.failure?.active ? sentinel.failure : sentinel?.chat?.failure?.active ? sentinel.chat.failure : null;
+    if (sentinelFailure) return { ...sentinelFailure, node:null, control:null, source:'live-sentinel' };
+    if (!health?.classifyProviderFailure) return null;
+    const turns = turnNodes(document);
+    const latestUser = [...turns].reverse().find((node) => roleForTurn(node) === 'user') || null;
+    const latestAssistant = latestUser ? [...turns].reverse().find((node) => roleForTurn(node) === 'assistant' && nodeFollows(node, latestUser)) || null : null;
+    const candidates = [...document.querySelectorAll('[role="alert"],[role="status"],[aria-live],[data-testid*="error" i],[data-testid*="warning" i]')].slice(-120).reverse();
+    for (const node of candidates) {
+      if (!isUsableControl(node) || (latestUser && !nodeFollows(node, latestUser) && !latestUser.contains?.(node))) continue;
+      const label = elementLabel(node, 1600);
+      if (!label) continue;
+      const control = failureRecoveryControl(node);
+      const retryLabel = elementLabel(control, 120);
+      const failure = health.classifyProviderFailure(label, {
+        retryAvailable:Boolean(control),
+        retryLabel,
+        partialAssistantChars:Math.max(0, Number(sentinel?.generation?.latestAssistantChars || 0), String(latestAssistant?.textContent || '').length),
+        toolActivitySeen:Boolean(detectToolEvidence(true)?.present),
+        observedAfterUser:Boolean(latestUser)
+      });
+      if (failure?.active) return { ...failure, node, control, source:'page' };
+    }
+    return null;
+  }
+
+  function retryFailure() {
+    const sentinel = globalThis.ProjectConstellationLiveSentinel;
+    if (!sentinel?.retryFailure) return { ok:false, action:'retry-unavailable', error:'Live Sentinel is not ready to validate the provider Retry control.' };
+    return sentinel.retryFailure();
+  }
+
   function refreshRequiredSurface() {
     const patterns = [
-      /message delivery timed out/i,
-      /connection interrupted/i,
-      /connection (?:was )?lost/i,
-      /network connection (?:was )?lost/i,
-      /reconnect(?:ion)? failed/i,
-      /failed to deliver message/i
+      /refresh (?:the )?(?:page|chat|conversation)/i,
+      /reload (?:the )?(?:page|chat|conversation)/i,
+      /please (?:refresh|reload)/i,
+      /refresh required/i
     ];
     const candidates = [...document.querySelectorAll('[role="alert"], [aria-live], main, article, div')];
     for (const node of candidates.slice(-800)) {
@@ -726,6 +778,20 @@
     if (approvalAutopilotBusy) return { ok: true, action: 'busy', reason: 'Approval recovery is already running.' };
     approvalAutopilotBusy = true;
     try {
+      const failure = providerFailureSurface();
+      if (failure?.active) {
+        return {
+          ok:true,
+          action:String(failure.state || failure.status || 'response-interrupted'),
+          strategy:failure.retryAvailable ? 'native-retry-available' : 'manual-refresh',
+          connector:'',
+          retryForbidden:false,
+          automaticRetryForbidden:true,
+          retryAvailable:Boolean(failure.retryAvailable),
+          retryLabel:brain.normalizeText(failure.retryLabel || '', 80),
+          reason:String(failure.rawText || failure.detail || '').slice(0, 600)
+        };
+      }
       const refresh = refreshRequiredSurface();
       if (refresh) {
         return { ok: true, action: 'refresh-required', strategy: 'browser-refresh', connector: '', retryForbidden: true, reason: refresh.label.slice(0, 600) };
@@ -1544,7 +1610,7 @@
     const atBottom = isConversationBottom();
     const authoritativeCoverage = ['full-export','official-export','full-dom-walk'].includes(String(context.chat?.coverage || '')) || /export/i.test(String(context.chat?.source || ''));
     const catalogNewerThanPage = Number(context.chat?.updatedAt || context.chat?.catalogFetchedAt || 0) > routeStartedAt + 1500;
-    const canCompare = hydrated && atBottom && (authoritativeCoverage || catalogNewerThanPage) && !['running','blocked-approval','refresh-required','rate-limited'].includes(lastStatus);
+    const canCompare = hydrated && atBottom && (authoritativeCoverage || catalogNewerThanPage) && !['running','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited'].includes(lastStatus);
     const catalogAhead = Boolean(canCompare && known.length && current && !match);
     const missingLatest = Boolean(canCompare && known.length && !current && document.readyState === 'complete');
     const outputRegression = outputCompareSummary || context.chat?.outputRegression || null;
@@ -1575,12 +1641,13 @@
     host.id = 'projectConstellationHealthHud';
     host.dataset.corner = liveHealthSettings.corner || 'bottom-right'; host.dataset.density = liveHealthSettings.density || 'compact'; host.dataset.collapsed = '0'; host.dataset.visible = '1';
     const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="quickVault" id="pcHealthVaultQuick" title="Open the durable Output Vault" aria-label="Open Output Vault">⇄</button><button class="quickBranch" id="pcHealthBranchQuick" title="Branch early into a linked continuation chat" aria-label="Branch and continue in a new chat">✦</button><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Response time</span><strong id="pcHealthElapsed">—</strong></div><div class="metric"><span>No progress</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p></div><div class="actions"><button class="btn vault" id="pcHealthVault" title="Open every saved output and compare it with this page">⇄ Output Vault</button><button class="btn branch" id="pcHealthBranch" title="Create a recoverable continuation in a new chat">✦ Branch &amp; continue</button><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></section>`;
+    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="quickVault" id="pcHealthVaultQuick" title="Open the durable Output Vault" aria-label="Open Output Vault">⇄</button><button class="quickBranch" id="pcHealthBranchQuick" title="Branch early into a linked continuation chat" aria-label="Branch and continue in a new chat">✦</button><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Response time</span><strong id="pcHealthElapsed">—</strong></div><div class="metric"><span>No progress</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p></div><div class="actions"><button class="btn vault" id="pcHealthVault" title="Open every saved output and compare it with this page">⇄ Output Vault</button><button class="btn branch" id="pcHealthBranch" title="Create a recoverable continuation in a new chat">✦ Branch &amp; continue</button><button class="btn primary" id="pcHealthRetry" hidden>Retry response</button><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></section>`;
     document.documentElement.appendChild(host);
     liveHealthHost = host; liveHealthShadow = shadow;
     shadow.getElementById('pcHealthCollapse').addEventListener('click', () => { setPulseCollapsed(host.dataset.collapsed !== '1', false); syncConstellationDock(); });
     shadow.getElementById('pcHealthOpen').addEventListener('click', () => chrome.runtime.sendMessage({ type:'PC_OPEN_CONSTELLATION_PAGE', view:'attention' }).catch(() => {}));
     shadow.getElementById('pcHealthSettings').addEventListener('click', () => chrome.runtime.sendMessage({ type:'PC_OPEN_CONSTELLATION_PAGE', view:'attention', focus:'live-health' }).catch(() => {}));
+    shadow.getElementById('pcHealthRetry').addEventListener('click', (event) => { const button = event.currentTarget; button.disabled = true; const result = retryFailure(); if (!result?.ok) button.disabled = false; });
     shadow.getElementById('pcHealthRefresh').addEventListener('click', () => location.reload());
     shadow.getElementById('pcHealthHandoff').addEventListener('click', (event) => secureConversationHandoff(event.currentTarget));
     shadow.getElementById('pcHealthBranch').addEventListener('click', (event) => branchConversation(event.currentTarget));
@@ -1672,6 +1739,7 @@
     const sentinelState = liveSentinelState(false);
     const generationTiming = sentinelState?.ok && sentinelState.source === 'live-sentinel' ? (sentinelState.generation || {}) : {};
     const responseRunning = String(sentinelState?.chat?.status || '') === 'running' || ['working','tool-running','tool-quiet','quiet-working','request-stalled','stalled','tool-stalled','dead','tool-dead'].includes(snapshot.state);
+    const failure = sentinelState?.failure?.active ? sentinelState.failure : sentinelState?.chat?.failure?.active ? sentinelState.chat.failure : null;
     const timingNetwork = context.network || {};
     const earliestInflight = (Array.isArray(timingNetwork.inflight) ? timingNetwork.inflight : []).map((row)=>Number(row?.startedAt || 0)).filter((value)=>value > 0).sort((a,b)=>a-b)[0] || 0;
     const networkResponseStartedAt = Number(timingNetwork.pending || 0) > 0 ? Number(timingNetwork.oldestPendingAt || earliestInflight || timingNetwork.lastStartAt || 0) : 0;
@@ -1687,7 +1755,7 @@
     const networkText = snapshot.networkActive ? `${activeRequests} agent request${activeRequests === 1 ? '' : 's'}${auxiliaryPending ? ` · ${auxiliaryPending} site` : ''}${snapshot.networkProgressAgeMs >= 1000 ? ` · ${ageText(snapshot.networkProgressAgeMs)}` : ''}` : auxiliaryPending ? `${auxiliaryPending} site background` : network.observed ? 'quiet' : 'DOM only';
     setHealthText(shadow, 'pcHealthNetwork', networkText);
     const activity = snapshot.activity || null;
-    const activityKind = activity?.kind === 'tool' ? (activity.phase || 'tool') : activity?.kind === 'model' ? (activity.phase || 'model') : snapshot.state === 'blocked-approval' ? 'approval' : snapshot.state === 'paused' ? 'paused' : 'model';
+    const activityKind = failure?.active ? 'interrupted' : activity?.kind === 'tool' ? (activity.phase || 'tool') : activity?.kind === 'model' ? (activity.phase || 'model') : snapshot.state === 'blocked-approval' ? 'approval' : snapshot.state === 'paused' ? 'paused' : 'model';
     setHealthText(shadow, 'pcHealthActivity', activityKind);
     setHealthText(shadow, 'pcHealthTool', activity?.kind === 'tool' ? `${activity.entryCount || 1} step${Number(activity.entryCount || 1) === 1 ? '' : 's'} · ${ageText(activity.ageMs || 0)}` : '—');
     const miniParts = [];
@@ -1704,9 +1772,9 @@
     renderActivityTimeline(host, shadow, uniqueEvents, now);
     const activeRequest = (Array.isArray(network.inflight) ? network.inflight : []).at(-1);
     const newest = uniqueEvents[0] || null;
-    const nowTitle = activity?.kind === 'tool' && activity.label ? activity.label : snapshot.networkActive && activeRequest?.category ? `${activeRequest.category} in progress` : newest?.label || snapshot.title || 'Monitoring this chat';
+    const nowTitle = failure?.active ? (failure.title || 'Provider interruption') : activity?.kind === 'tool' && activity.label ? activity.label : snapshot.networkActive && activeRequest?.category ? `${activeRequest.category} in progress` : newest?.label || snapshot.title || 'Monitoring this chat';
     const nowAt = activity?.kind === 'tool' ? now - Number(activity.ageMs || 0) : activeRequest?.startedAt || newest?.at || now - Number(snapshot.progressAgeMs || 0);
-    const nowDetail = activity?.kind === 'tool' ? `${activity.phase || 'tool'} · ${activity.entryCount || 1} observed step${Number(activity.entryCount || 1) === 1 ? '' : 's'}${snapshot.networkActive ? ` · ${network.pending || 1} live request${Number(network.pending || 1) === 1 ? '' : 's'}` : ' · DOM proof only'}` : snapshot.networkActive ? `${network.pending || 1} categorized provider request${Number(network.pending || 1) === 1 ? '' : 's'} in flight` : newest?.detail || snapshot.detail;
+    const nowDetail = failure?.active ? `${Math.round(Number(failure.ageMs || 0) / 1000)}s since detected${Number(failure.partialAssistantChars || 0) ? ` · ${Number(failure.partialAssistantChars || 0)} partial chars preserved` : ''}${failure.retryAvailable ? ' · Retry available.' : ' · Manual recovery.'}` : activity?.kind === 'tool' ? `${activity.phase || 'tool'} · ${activity.entryCount || 1} observed step${Number(activity.entryCount || 1) === 1 ? '' : 's'}${snapshot.networkActive ? ` · ${network.pending || 1} live request${Number(network.pending || 1) === 1 ? '' : 's'}` : ' · DOM proof only'}` : snapshot.networkActive ? `${network.pending || 1} categorized provider request${Number(network.pending || 1) === 1 ? '' : 's'} in flight` : newest?.detail || snapshot.detail;
     setHealthText(shadow, 'pcHealthNowTitle', nowTitle);
     setHealthText(shadow, 'pcHealthNowDetail', nowDetail);
     setHealthText(shadow, 'pcHealthNowTime', ageText(Math.max(0, now - Number(nowAt || now))));
@@ -1725,7 +1793,14 @@
     for (const branch of [shadow.getElementById('pcHealthBranch'), shadow.getElementById('pcHealthBranchQuick')]) { branch.dataset.urgent = branchUrgent; branch.title = branchTitle; }
     const vaultUrgent = page.outputRegression?.active ? '1' : '0'; const vaultTitle = page.outputRegression?.active ? `Saved output is missing · ${page.outputRegression.detail || 'open Output Vault to recover it'}` : 'Open every saved response, file, link, code block, and media output';
     for (const vault of [shadow.getElementById('pcHealthVault'),shadow.getElementById('pcHealthVaultQuick')]) { vault.dataset.urgent=vaultUrgent; vault.title=vaultTitle; }
-    shadow.getElementById('pcHealthRefresh').hidden = snapshot.recommendedAction !== 'refresh';
+    const retryButton = shadow.getElementById('pcHealthRetry');
+    retryButton.hidden = !Boolean(failure?.retryAvailable);
+    retryButton.disabled = false;
+    if (failure?.retryAvailable) {
+      retryButton.textContent = failure.retryLabel || 'Retry response';
+      retryButton.title = `Use ChatGPT’s visible ${failure.retryLabel || 'Retry'} control once. Constellation never retries automatically.`;
+    }
+    shadow.getElementById('pcHealthRefresh').hidden = failure?.active ? failure.recommendedAction !== 'refresh' : snapshot.recommendedAction !== 'refresh';
     shadow.getElementById('pcHealthHandoff').hidden = capacity.recommendedAction !== 'handoff';
   }
 
@@ -1735,7 +1810,7 @@
     const status = String(sentinel.chat?.status || 'idle');
     const row = sentinel.tool || {};
     const label = brain.normalizeText(row.label || sentinel.generation?.toolLabel || '', 150);
-    const protectedStates = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead']);
+    const protectedStates = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
     const capacityAttention = ['watch','handoff','reached'].includes(snapshot.capacity?.state || '');
 
     if (status === 'running') {
@@ -1760,7 +1835,7 @@
       return { ...snapshot, state:'healthy', level:'healthy', title:'Chat complete', detail:'Current response is settled. Secondary project/output warnings remain available below.', activity:null };
     }
     if (protectedStates.has(snapshot.state)) return snapshot;
-    const level = ['errored','refresh-required','rate-limited','unavailable'].includes(status) ? 'danger' : 'warning';
+    const level = ['errored','refresh-required','rate-limited','unavailable','delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(status) ? 'danger' : 'warning';
     return { ...snapshot, state:status, level, title:`Chat ${status.replaceAll('-', ' ')}`, detail:'Live Sentinel detected a current chat attention state.', activity:null };
   }
 
@@ -1777,7 +1852,9 @@
       if (observedRegression) context.chat = { ...(context.chat || {}), outputRegression:observedRegression };
       const page = pageHealthEvidence(context);
       const capacity = conversationCapacityEvidence(context);
-      const snapshot = reconcileHealthSnapshotWithSentinel(health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt }));
+      const sentinel = liveSentinelState(false);
+      const failure = sentinel?.failure?.active ? sentinel.failure : sentinel?.chat?.failure?.active ? sentinel.chat.failure : providerFailureSurface();
+      const snapshot = reconcileHealthSnapshotWithSentinel(health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, failure, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt }));
       const prior = healthEvidence.lastHealthState || '';
       const activitySignature = hashText(`${snapshot.state}|${snapshot.level}|${snapshot.activity?.kind || ''}|${snapshot.activity?.phase || ''}|${snapshot.activity?.label || ''}|${snapshot.activity?.entryCount || 0}|${snapshot.networkActive ? 1 : 0}`);
       if (prior !== snapshot.state || activitySignature !== healthEvidence.lastHealthActivitySignature) {
@@ -1882,6 +1959,7 @@
         version:sentinel.version || '',
         provider:{ id:provider.id, name:provider.name },
         chat:{ ...sentinel.chat, id:currentChatId(), status, rawStatus:status, title:document.title || provider.name, url:location.href, lastActivityAt:Number(sentinel.chat?.lastActivityAt || lastSemanticActivityAt), hasConversation:turns.length > 0 || !currentChatId().endsWith(':home'), turnCount:turns.length, healthState, health:liveHealthSnapshot ? { ...liveHealthSnapshot } : null },
+        failure:sentinel.failure?.active ? { ...sentinel.failure } : sentinel.chat?.failure?.active ? { ...sentinel.chat.failure } : null,
         generation,
         tool:{ present:Boolean(tool.present), current:Boolean(tool.current), active:Boolean(tool.active), busy:Boolean(tool.busy), label:brain.normalizeText(tool.label || generation.toolLabel || '', 140), phase:brain.normalizeText(tool.phase || generation.toolPhase || '', 60), lastProgressAt:Number(tool.lastProgressAt || 0), entryCount:Number(tool.entryCount || 0) },
         healthActive:status === 'running',
@@ -1894,9 +1972,9 @@
     const generation = activeGenerationEvidence(tool);
     const healthState = String(liveHealthSnapshot?.state || '');
     const healthActive = ['working','tool-running','tool-quiet','quiet-working'].includes(healthState);
-    const healthStale = ['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page'].includes(healthState);
+    const healthStale = ['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page'].includes(healthState);
     let observedStatus = lastStatus;
-    if ((generation.active || healthActive) && !['refresh-required','rate-limited','blocked-approval','auth-required','unavailable','errored','stalled'].includes(observedStatus)) observedStatus = 'running';
+    if ((generation.active || healthActive) && !['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','errored','stalled'].includes(observedStatus)) observedStatus = 'running';
     const turns = turnNodes(document);
     const hasConversation = turns.length > 0 || !currentChatId().endsWith(':home');
     return {
@@ -1917,36 +1995,56 @@
     const lower = statusText.toLowerCase();
     const sentinel = liveSentinelState(true);
     const sentinelStatus = sentinel?.ok && sentinel.source === 'live-sentinel' ? String(sentinel.chat?.status || 'idle') : '';
+    const sentinelFailure = sentinel?.failure?.active ? sentinel.failure : sentinel?.chat?.failure?.active ? sentinel.chat.failure : null;
+    const localFailure = sentinelFailure || providerFailureSurface();
+    const failureState = String(localFailure?.state || localFailure?.status || sentinelStatus || '');
     const generation = activeGenerationEvidence(detectToolEvidence(true));
     const signals = {
       text: statusText,
-      // When the Live Sentinel is present it is the only authority for running/idle.
-      // Broad prose words such as "thinking", "building", or "verification" in a final
-      // answer must never resurrect a completed chat.
       running: sentinelStatus ? sentinelStatus === 'running' : generation.active || /stop generating|stop response|cancel generation|generating|thinking|reasoning/.test(lower),
       paused: sentinelStatus ? sentinelStatus === 'paused' : /continue generating|resume generation|resume response/.test(lower),
       approval: sentinelStatus === 'blocked-approval' || (provider.id === 'chatgpt' && (Boolean(approvalSurface()) || /(allow|approve|permission|confirm).{0,180}(drive|github|connector|connected app|plugin|access|tool|use|continue)/.test(lower))),
-      refreshRequired: sentinelStatus === 'refresh-required' || Boolean(refreshRequiredSurface()) || /message delivery timed out|connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|failed to deliver message/.test(lower),
+      deliveryTimeout: failureState === 'delivery-timeout',
+      connectionInterrupted: failureState === 'connection-interrupted',
+      responseInterrupted: failureState === 'response-interrupted',
+      sendFailed: failureState === 'send-failed',
+      refreshRequired: sentinelStatus === 'refresh-required' || Boolean(refreshRequiredSurface()),
       rateLimited: sentinelStatus === 'rate-limited' || Boolean(rateLimitSurface()) || /too many requests|rate limit(?:ed| exceeded)?|http\s*429|error\s*429|status\s*429/.test(lower),
-      error: sentinelStatus === 'errored' || (!sentinelStatus && /something went wrong|there was an error|retry|try again|network error|failed to (generate|respond|send)/.test(lower)),
+      error: sentinelStatus === 'errored' || (!sentinelStatus && !localFailure?.active && /something went wrong|there was an error|retry|try again|network error|failed to (generate|respond|send)/.test(lower)),
       authRequired: sentinelStatus === 'auth-required' || (!sentinelStatus && /sign in|log in|login required|session expired/.test(lower)),
       unavailable: sentinelStatus === 'unavailable' || (!sentinelStatus && /conversation.{0,30}(not found|unavailable|deleted)|page not found/.test(lower))
     };
     healthEvidence.lastStatusText = statusText;
     const statusHash = hashText(statusText);
     if (statusHash && statusHash !== lastStatusTextHash) { lastStatusTextHash = statusHash; healthEvidence.lastDomProgressAt = Date.now(); }
-    const next = sentinelStatus || brain.classifyChatStatus(signals);
+    const next = localFailure?.active ? failureState : (sentinelStatus || brain.classifyChatStatus(signals));
     if (signals.approval) maybeRunApprovalAutopilot(signals);
     if (next !== lastStatus) {
       lastStatus = next;
       healthEvidence.lastStatusChangeAt = Date.now();
       lastSemanticActivityAt = healthEvidence.lastStatusChangeAt;
-      noteLiveActivity(['errored','stalled','refresh-required','rate-limited','auth-required','unavailable'].includes(next) ? 'warning' : 'status', `Chat status · ${next.replaceAll('-', ' ')}`, next === 'running' ? 'The page exposes an active generation signal' : 'Observable page status changed', 'status:current', healthEvidence.lastStatusChangeAt);
-      sendBrain('STATUS_EVENT', { providerId: provider.id, chatId: currentChatId(), status: next, detail: statusText.slice(0, 1200), url: location.href, approvalConnector: signals.approval ? connectorNameFromApproval(approvalSurface()) : '', recoveryKind: signals.refreshRequired ? 'browser-refresh' : signals.rateLimited ? 'provider-cooldown' : '', retryForbidden: Boolean(signals.refreshRequired || signals.rateLimited), rateLimitWaitMs: signals.rateLimited ? rateLimitWaitMs(statusText) : 0, updatedAt: Date.now() });
-      chrome.runtime.sendMessage({ type:'PC_LIVE_CHAT_STATE_PUSH', state:{ status:next, generation, chat:{ id:currentChatId(), status:next, rawStatus:next, title:document.title || provider.name, url:location.href, lastActivityAt:lastSemanticActivityAt, healthState:String(liveHealthSnapshot?.state || '') } } }).catch(() => {});
-      if (signals.refreshRequired) chrome.runtime.sendMessage({ type: 'PC_REFRESH_RECOVERY_REQUEST', chatId: currentChatId(), url: location.href, detail: statusText.slice(0, 600) }).catch(() => {});
+      const interrupted = FAILURE_STATES.has(next);
+      noteLiveActivity(['errored','stalled','refresh-required','rate-limited','auth-required','unavailable',...FAILURE_STATES].includes(next) ? 'warning' : 'status', `Chat status · ${next.replaceAll('-', ' ')}`, interrupted ? (localFailure?.detail || 'The provider interrupted this turn.') : next === 'running' ? 'The page exposes an active generation signal' : 'Observable page status changed', 'status:current', healthEvidence.lastStatusChangeAt);
+      const recoveryKind = interrupted ? (localFailure?.retryAvailable ? 'native-retry-available' : 'manual-refresh') : signals.refreshRequired ? 'browser-refresh' : signals.rateLimited ? 'provider-cooldown' : '';
+      sendBrain('STATUS_EVENT', {
+        providerId:provider.id, chatId:currentChatId(), status:next,
+        detail:(localFailure?.rawText || localFailure?.detail || statusText).slice(0, 1200), url:location.href,
+        approvalConnector:signals.approval ? connectorNameFromApproval(approvalSurface()) : '',
+        recoveryKind,
+        retryForbidden:Boolean(signals.refreshRequired || signals.rateLimited),
+        automaticRetryForbidden:Boolean(interrupted),
+        failureKind:interrupted ? next : '',
+        failureRetryAvailable:Boolean(interrupted && localFailure?.retryAvailable),
+        failureRetryLabel:interrupted ? brain.normalizeText(localFailure?.retryLabel || '', 80) : '',
+        failureDetectedAt:interrupted ? Number(localFailure?.detectedAt || Date.now()) : 0,
+        failurePartialAssistantChars:interrupted ? Math.max(0, Number(localFailure?.partialAssistantChars || 0)) : 0,
+        rateLimitWaitMs:signals.rateLimited ? rateLimitWaitMs(statusText) : 0,
+        updatedAt:Date.now()
+      });
+      chrome.runtime.sendMessage({ type:'PC_LIVE_CHAT_STATE_PUSH', state:{ status:next, failure:interrupted ? { ...localFailure, control:undefined, node:undefined } : null, generation, chat:{ id:currentChatId(), status:next, rawStatus:next, title:document.title || provider.name, url:location.href, lastActivityAt:lastSemanticActivityAt, healthState:String(liveHealthSnapshot?.state || ''), failure:interrupted ? { ...localFailure, control:undefined, node:undefined } : null } } }).catch(() => {});
+      if (signals.refreshRequired) chrome.runtime.sendMessage({ type:'PC_REFRESH_RECOVERY_REQUEST', chatId:currentChatId(), url:location.href, detail:statusText.slice(0, 600) }).catch(() => {});
     } else if (next === 'running') {
-      sendBrain('STATUS_HEARTBEAT', { providerId: provider.id, chatId: currentChatId(), status: next, lastActivityAt: lastSemanticActivityAt, url: location.href, updatedAt: Date.now() });
+      sendBrain('STATUS_HEARTBEAT', { providerId:provider.id, chatId:currentChatId(), status:next, lastActivityAt:lastSemanticActivityAt, url:location.href, updatedAt:Date.now() });
     }
     return lastStatus;
   }
@@ -2386,6 +2484,7 @@
     if (message?.type === 'PC_MANUAL_CAPTURE_CONTROL') { manualCaptureCommand = message.action === 'pause' ? 'pause' : message.action === 'stop' ? 'stop' : 'run'; sendResponse({ ok: true, command: manualCaptureCommand }); return false; }
     if (message?.type === 'PC_GET_PROVIDER') { sendResponse({ ok: true, provider }); return false; }
     if (message?.type === 'PC_APPROVAL_RECOVERY_SCAN') { runApprovalRecoveryScan(message.options || {}).then(sendResponse).catch((error) => sendResponse({ ok: false, action: 'failed', error: String(error?.message || error) })); return true; }
+    if (message?.type === 'PC_RETRY_CURRENT_FAILURE') { sendResponse(retryFailure()); return false; }
     return false;
   });
 

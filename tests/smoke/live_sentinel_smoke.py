@@ -38,9 +38,9 @@ with sync_playwright() as p:
     # The no-progress clock must keep aging while total response time also advances.
     page.wait_for_timeout(1400)
     quiet=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
-    # The v6 health renderer owns watchdog/capacity severity. The Sentinel must carry
+    # The v7 health renderer owns watchdog/capacity severity. The Sentinel must carry
     # that state into canonical Chat Pulse instead of repainting it as merely active.
-    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='6'; h.dataset.state='tool-stalled'; h.dataset.level='danger'; }""")
+    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='7'; h.dataset.state='tool-stalled'; h.dataset.level='danger'; }""")
     page.wait_for_timeout(220)
     watchdog=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); delete h.dataset.watchdog; h.dataset.state='tool-running'; h.dataset.level='active'; }""")
