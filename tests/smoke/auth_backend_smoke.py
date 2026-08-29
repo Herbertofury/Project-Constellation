@@ -4,8 +4,8 @@ root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project
 manifest=json.loads((root/'manifest.json').read_text())
 manifest.setdefault('oauth2', {'scopes':['https://www.googleapis.com/auth/drive.file']})
 manifest['oauth2']['client_id']='pc-test.apps.googleusercontent.com'
-brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); health=(root/'src/health-core.js').read_text(); bg=(root/'background.js').read_text()
-bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
+brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); health=(root/'src/health-core.js').read_text(); bg=(root/'background.js').read_text()
+bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|project-memory-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
 mock=f"""
 (()=>{{
  const local={{}}, session={{}}, listeners={{}}, calls=[], opened=[];
@@ -36,7 +36,7 @@ mock=f"""
 with sync_playwright() as p:
   browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
   page=browser.new_page(); errors=[]; page.on('pageerror',lambda e: errors.append(str(e)))
-  page.set_content('<!doctype html><html><body></body></html>'); page.add_script_tag(content=mock); page.add_script_tag(content=brain); page.add_script_tag(content=providers); page.add_script_tag(content=integrity); page.add_script_tag(content=knowledge); page.add_script_tag(content=health); page.add_script_tag(content=bg); page.wait_for_timeout(40)
+  page.set_content('<!doctype html><html><body></body></html>'); page.add_script_tag(content=mock); page.add_script_tag(content=brain); page.add_script_tag(content=providers); page.add_script_tag(content=integrity); page.add_script_tag(content=knowledge); page.add_script_tag(content=memory); page.add_script_tag(content=health); page.add_script_tag(content=bg); page.wait_for_timeout(40)
   result=page.evaluate("""async()=>{
     const ghStart=await __send({type:'PC_GITHUB_OAUTH_START',clientId:'Iv1.projectconstellation'});
     const ghPoll=await __send({type:'PC_GITHUB_OAUTH_POLL'});

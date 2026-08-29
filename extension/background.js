@@ -2,12 +2,14 @@ import './src/brain-core.js';
 import './src/provider-core.js';
 import './src/integrity-core.js';
 import './src/knowledge-core.js';
+import './src/project-memory-core.js';
 import './src/health-core.js';
 
 const brain = globalThis.ProjectConstellationBrainCore;
 const providers = globalThis.ProjectConstellationProviders;
 const integrity = globalThis.ProjectConstellationIntegrityCore;
 const knowledge = globalThis.ProjectConstellationKnowledgeCore;
+const projectMemory = globalThis.ProjectConstellationProjectMemoryCore;
 const health = globalThis.ProjectConstellationHealthCore;
 
 const DB_NAME = 'project-constellation-brain';
@@ -1451,7 +1453,7 @@ async function updateProjectContinuity(items = [], chat = null) {
   if (!projectId) return;
   const now = Math.max(...items.map((item) => Number(item.updatedAt || 0)), Date.now());
   const existing = await getOne('projectContinuity', projectId) || { id: projectId, projectId };
-  const next = { ...existing, id: projectId, projectId, projectName: chat.workspaceProjectName || chat.projectName || existing.projectName || 'Project', providerId: chat.providerId || existing.providerId || '', latestChatId: chat.id, latestChatTitle: chat.title || existing.latestChatTitle || '', latestChatUrl: chat.url || existing.latestChatUrl || '', lastKnowledgeAt: Math.max(Number(existing.lastKnowledgeAt || 0), now), updatedAt: Math.max(Number(existing.updatedAt || 0), now) };
+  const next = { ...existing, id: projectId, projectId, projectName: chat.workspaceProjectName || chat.projectName || existing.projectName || 'Project', providerId: chat.providerId || existing.providerId || '', latestChatId: chat.id, latestChatTitle: chat.title || existing.latestChatTitle || '', latestChatUrl: chat.url || existing.latestChatUrl || '', lastKnowledgeAt: Math.max(Number(existing.lastKnowledgeAt || 0), now), brainDirtyAt:Math.max(Number(existing.brainDirtyAt||0),now), updatedAt: Math.max(Number(existing.updatedAt || 0), now) };
   const fieldMap = { recommendation: 'latestRecommendation', decision: 'latestDecision', 'follow-up': 'latestFollowUp', idea: 'latestIdea', code: 'latestCode', command: 'latestCode', version: 'latestVersion', repository: 'latestReference', mod: 'latestReference', package: 'latestReference', document: 'latestReference', link: 'latestReference' };
   for (const item of items) {
     const field = fieldMap[item.kind]; if (!field) continue;
@@ -1478,17 +1480,22 @@ async function rebuildWorkspaceContinuity(projectId) {
   if (!projectId) return null;
   const project = await getOne('projects', projectId);
   if (!project || project.deletedAt) { await deleteOneRecord('projectContinuity', projectId); return null; }
-  const [items, files] = await Promise.all([
+  const existingContinuity=await getOne('projectContinuity',projectId)||{};
+  const memoryPolicyLedger=existingContinuity.memoryPolicyLedger&&typeof existingContinuity.memoryPolicyLedger==='object'?existingContinuity.memoryPolicyLedger:{};
+  const [items, files, projectChats] = await Promise.all([
     recentByCompoundIndex('knowledgeItems', 'workspaceProjectUpdatedAt', projectId, 320, 0),
-    getAllByIndex('files', 'workspaceProjectId', projectId)
+    getAllByIndex('files', 'workspaceProjectId', projectId),
+    getAllByIndex('chats', 'workspaceProjectId', projectId)
   ]);
   files.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-  if (!items.length && !files.length) { await deleteOneRecord('projectContinuity', projectId); return null; }
-  const chatIds = [...new Set([...items.map((item)=>item.chatId), ...files.map((file)=>file.chatId)].filter(Boolean))];
+  if (!items.length && !files.length && !projectChats.length) { await deleteOneRecord('projectContinuity', projectId); return null; }
+  const effectiveItems=items.map((item)=>{const policy=memoryPolicyLedger[item.canonicalKey||item.id];return policy?{...item,memoryDisposition:policy.disposition||'active',memoryPinned:Boolean(policy.pinned),memoryUpdatedAt:Number(policy.updatedAt||0)}:item;});
+  const chatIds = [...new Set([...effectiveItems.map((item)=>item.chatId), ...files.map((file)=>file.chatId)].filter(Boolean))];
   const chats = new Map((await getMany('chats', chatIds)).map((chat)=>[chat.id, chat]));
-  const row = { id: projectId, projectId, projectName: project.name || 'Project', updatedAt: 0, lastKnowledgeAt: 0, lastArtifactAt: 0 };
+  const row = { id: projectId, projectId, projectName: project.name || 'Project', memoryPolicyLedger, updatedAt: 0, lastKnowledgeAt: 0, lastArtifactAt: 0 };
   const fieldMap = { recommendation: 'latestRecommendation', decision: 'latestDecision', 'follow-up': 'latestFollowUp', idea: 'latestIdea', code: 'latestCode', command: 'latestCode', version: 'latestVersion', repository: 'latestReference', mod: 'latestReference', package: 'latestReference', document: 'latestReference', link: 'latestReference', media: 'latestReference', reference: 'latestReference' };
-  for (const item of items) {
+  for (const item of effectiveItems) {
+    if(projectMemory.disposition(item)!=='active')continue;
     const field = fieldMap[item.kind]; if (!field || row[field]) continue;
     const chat = chats.get(item.chatId) || {};
     row[field] = { itemId:item.id, kind:item.kind, title:item.title||item.text||'', text:String(item.text||'').slice(0,800), url:item.url||'', chatId:item.chatId||'', chatTitle:chat.title||'', chatUrl:chat.url||item.sourceUrl||'', turnId:item.sourceTurnId||'', updatedAt:item.updatedAt||0 };
@@ -1499,9 +1506,11 @@ async function rebuildWorkspaceContinuity(projectId) {
     const chat = chats.get(file.chatId) || {}; const stamp=Number(file.updatedAt||0);
     row.latestArtifact={fileId:file.id,title:file.name||'Artifact',url:file.externalUrl||file.href||'',chatId:file.chatId||'',chatTitle:chat.title||'',chatUrl:chat.url||file.sourcePage||'',updatedAt:stamp}; row.latestArtifactAt=stamp; row.lastArtifactAt=stamp; row.updatedAt=Math.max(row.updatedAt,stamp);
   }
-  const latestCandidates=[...items.slice(0,12).map((item)=>({chatId:item.chatId,at:Number(item.updatedAt||0)})),...files.slice(0,12).map((fileRow)=>({chatId:fileRow.chatId,at:Number(fileRow.updatedAt||0)}))].filter((x)=>x.chatId).sort((a,b)=>b.at-a.at);
+  const latestCandidates=[...effectiveItems.filter((item)=>projectMemory.disposition(item)==='active').slice(0,12).map((item)=>({chatId:item.chatId,at:Number(item.updatedAt||0)})),...files.slice(0,12).map((fileRow)=>({chatId:fileRow.chatId,at:Number(fileRow.updatedAt||0)}))].filter((x)=>x.chatId).sort((a,b)=>b.at-a.at);
   const latestChat=latestCandidates.length?chats.get(latestCandidates[0].chatId):null;
   if (latestChat) { row.providerId=latestChat.providerId||''; row.latestChatId=latestChat.id; row.latestChatTitle=latestChat.title||''; row.latestChatUrl=latestChat.url||''; }
+  const compiled=projectMemory.compileProjectBrain({project,chats:projectChats,items:effectiveItems,files});
+  row.compiledBrain=compiled; row.compiledBrainVersion=projectMemory.VERSION; row.compiledBrainFingerprint=compiled.fingerprint; row.brainDirtyAt=0; row.updatedAt=Math.max(row.updatedAt,compiled.compiledAt||0);
   await upsert('projectContinuity', row); return row;
 }
 
@@ -1515,7 +1524,7 @@ async function updateContinuityFromFiles(files = []) {
     const projectId = chat.workspaceProjectId || chat.projectId || ''; if (!projectId) continue;
     rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)); const file = rows[0]; const existing = await getOne('projectContinuity', projectId) || { id: projectId, projectId };
     const stamp = Number(file.updatedAt || Date.now());
-    const next = { ...existing, id: projectId, projectId, projectName: chat.workspaceProjectName || chat.projectName || existing.projectName || 'Project', providerId: chat.providerId || existing.providerId || '', latestChatId: chat.id, latestChatTitle: chat.title || existing.latestChatTitle || '', latestChatUrl: chat.url || existing.latestChatUrl || '', lastArtifactAt: Math.max(Number(existing.lastArtifactAt || 0), stamp), updatedAt: Math.max(Number(existing.updatedAt || 0), stamp) };
+    const next = { ...existing, id: projectId, projectId, projectName: chat.workspaceProjectName || chat.projectName || existing.projectName || 'Project', providerId: chat.providerId || existing.providerId || '', latestChatId: chat.id, latestChatTitle: chat.title || existing.latestChatTitle || '', latestChatUrl: chat.url || existing.latestChatUrl || '', lastArtifactAt: Math.max(Number(existing.lastArtifactAt || 0), stamp), brainDirtyAt:Math.max(Number(existing.brainDirtyAt||0),stamp), updatedAt: Math.max(Number(existing.updatedAt || 0), stamp) };
     if (stamp >= Number(existing.latestArtifactAt || 0)) {
       next.latestArtifact = { fileId: file.id, title: file.name || 'Artifact', url: file.externalUrl || file.href || '', chatId: chat.id, chatTitle: chat.title || '', chatUrl: chat.url || '', updatedAt: stamp }; next.latestArtifactAt = stamp;
     }
@@ -1531,6 +1540,8 @@ async function replaceKnowledgeForTurn(turn, sourceRecord = null) {
   const chat = await getOne('chats', turn.chatId);
   const result = knowledge.extractTurnKnowledge(turn, { providerId: chat?.providerId || turn.providerId || '', projectId: chat?.projectId || '', workspaceProjectId: chat?.workspaceProjectId || '', workspaceProjectName: chat?.workspaceProjectName || '', chatUrl: chat?.url || turn.url || '' });
   const previous = await getAllByIndex('knowledgeItems', 'sourceTurnId', turn.id);
+  const priorMemory=new Map(previous.map((row)=>[row.canonicalKey||row.id,{memoryDisposition:row.memoryDisposition,memoryPinned:row.memoryPinned,memoryUpdatedAt:row.memoryUpdatedAt}]));
+  for(const row of result.items){const saved=priorMemory.get(row.canonicalKey||row.id);if(saved){if(saved.memoryDisposition)row.memoryDisposition=saved.memoryDisposition;if(saved.memoryPinned!==undefined)row.memoryPinned=Boolean(saved.memoryPinned);if(saved.memoryUpdatedAt)row.memoryUpdatedAt=saved.memoryUpdatedAt;}}
   if (previous.length) {
     await deleteByIndex('knowledgeItems', 'sourceTurnId', turn.id);
     await deleteSearchDocs(previous.map((item) => `knowledge:${item.id}`));
@@ -1687,9 +1698,31 @@ async function knowledgeList(filters = {}) {
   return items.map((item) => ({ ...item, chat: chats.get(item.chatId) ? { id: item.chatId, title: chats.get(item.chatId).title || 'Untitled chat', url: chats.get(item.chatId).url || item.sourceUrl || '', providerId: chats.get(item.chatId).providerId || item.providerId || '', projectId: chats.get(item.chatId).workspaceProjectId || chats.get(item.chatId).projectId || '', projectName: chats.get(item.chatId).workspaceProjectName || chats.get(item.chatId).projectName || '' } : null }));
 }
 
+async function projectBrainGet(projectId, { rebuild = false } = {}) {
+  const id=String(projectId||''); if(!id)throw new Error('Project id is required.');
+  let row=await getOne('projectContinuity',id); if(rebuild||!row?.compiledBrain||Number(row.compiledBrainVersion||0)!==Number(projectMemory.VERSION)||Number(row.brainDirtyAt||0)>Number(row.compiledBrain?.compiledAt||0))row=await rebuildWorkspaceContinuity(id);
+  if(!row){const project=await getOne('projects',id);if(!project)throw new Error('Project not found.');return {projectId:id,projectName:project.name||'Project',compiledBrain:projectMemory.compileProjectBrain({project,chats:[],items:[],files:[]})};}
+  return row;
+}
+
+async function projectMemoryGate(itemId, action) {
+  const id=String(itemId||''); if(!id)throw new Error('Memory item id is required.');
+  const item=await getOne('knowledgeItems',id); if(!item)throw new Error('Memory item not found.');
+  const normalized=String(action||'restore'); const projectId=item.workspaceProjectId||item.projectId||''; const key=item.canonicalKey||item.id; const at=Date.now();
+  const current=projectId?await getOne('projectContinuity',projectId):null; const ledger={...(current?.memoryPolicyLedger||{})}; const oldPolicy=ledger[key]||{};
+  const policy={ disposition:normalized==='ignore'?'ignored':normalized==='supersede'?'superseded':'active', pinned:normalized==='pin'?true:normalized==='unpin'?false:Boolean(oldPolicy.pinned||item.memoryPinned), updatedAt:at };
+  if(normalized==='restore')policy.pinned=Boolean(oldPolicy.pinned||item.memoryPinned); ledger[key]=policy;
+  if(projectId)await upsert('projectContinuity',{id:projectId,memoryPolicyLedger:ledger,brainDirtyAt:at,updatedAt:Math.max(Number(current?.updatedAt||0),at)});
+  const candidates=projectId?await getAllByIndex('knowledgeItems','workspaceProjectId',projectId):[item]; const matching=candidates.filter((row)=>(row.canonicalKey||row.id)===key);
+  const updates=matching.map((row)=>({...row,memoryDisposition:policy.disposition,memoryPinned:policy.pinned,memoryUpdatedAt:at})); if(updates.length){await putManyChunked('knowledgeItems',updates,220);await putSearchDocs(updates.map((row)=>searchDoc('knowledge',row)));}
+  if(projectId)await rebuildWorkspaceContinuity(projectId);
+  await addEvent('project-memory-gate','knowledge',item.id,item.chatId||'',{action:normalized,projectId,canonicalKey:key,affected:updates.length,previousDisposition:oldPolicy.disposition||item.memoryDisposition||'active',pinned:policy.pinned}); markDriveDirty().catch(()=>{});
+  return {item:(updates.find((row)=>row.id===item.id)||item),projectId,brain:projectId?(await getOne('projectContinuity',projectId))?.compiledBrain||null:null};
+}
+
 async function resetKnowledgeIndex() {
-  await Promise.all([clearStore('knowledgeItems'), clearStore('knowledgeSources'), clearStore('projectContinuity')]);
-  const docs = await getAll(SEARCH_STORE); await deleteSearchDocs(docs.filter((doc) => doc.entityType === 'knowledge').map((doc) => doc.id));
+  await Promise.all([clearStore('knowledgeSources')]);
+  const continuities=await getAll('projectContinuity');for(const row of continuities)await upsert('projectContinuity',{...row,brainDirtyAt:Date.now(),compiledBrain:null,compiledBrainFingerprint:'',compiledBrainVersion:0});
   await saveKnowledgeBackfillState({ active: true, lastKey: '', queued: 0, startedAt: Date.now(), completedAt: 0 });
   await chrome.alarms.create(KNOWLEDGE_INDEX_ALARM, { when: Date.now() + 300 });
   return { ok: true, state: await knowledgeBackfillState() };
@@ -1942,13 +1975,12 @@ async function organizationProjectMetrics(projectIds = []) {
   const db=await openDb();
   try {
     const tx=db.transaction(['chats','files'],'readonly'); const chats=tx.objectStore('chats'),files=tx.objectStore('files');
-    const projectIndex=chats.index('workspaceProjectId'), statusIndex=chats.index('workspaceProjectStatus'), fileIndex=files.index('workspaceProjectId');
-    const attentionStatuses=['blocked-approval','refresh-required','errored','stalled','auth-required','unavailable'];
+    const projectIndex=chats.index('workspaceProjectId'), fileIndex=files.index('workspaceProjectId');
     const entries=await Promise.all(ids.map(async(id)=>{
-      const [chatCount,fileCount,...attention]=await Promise.all([
-        requestResult(projectIndex.count(indexedDbOnly(id, 'chats.workspaceProjectId'))),requestResult(fileIndex.count(indexedDbOnly(id, 'files.workspaceProjectId'))),
-        ...attentionStatuses.map((status)=>requestResult(statusIndex.count(indexedDbOnly([id,status], 'chats.workspaceProjectStatus'))))
-      ]); return [id,{chatCount,fileCount,attentionCount:attention.reduce((sum,n)=>sum+Number(n||0),0)}];
+      const [projectChats,fileCount]=await Promise.all([requestResult(projectIndex.getAll(indexedDbOnly(id, 'chats.workspaceProjectId'))),requestResult(fileIndex.count(indexedDbOnly(id, 'files.workspaceProjectId')))]);
+      const counts={activeCount:0,attentionCount:0,completedCount:0,archivedCount:0};
+      for(const chat of projectChats||[]){const lane=projectMemory.bucket(chat);if(lane==='active')counts.activeCount+=1;else if(lane==='attention')counts.attentionCount+=1;else if(lane==='archived')counts.archivedCount+=1;else counts.completedCount+=1;}
+      return [id,{chatCount:(projectChats||[]).length,fileCount:Number(fileCount||0),...counts}];
     })); return new Map(entries);
   } finally { db.close(); }
 }
@@ -3797,6 +3829,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_KNOWLEDGE_SUMMARY': return { ok: true, knowledge: await knowledgeSummary(message.limit || 24) };
       case 'PC_KNOWLEDGE_LIST': return { ok: true, items: await knowledgeList(message.filters || {}) };
       case 'PC_KNOWLEDGE_REINDEX': return resetKnowledgeIndex();
+      case 'PC_PROJECT_BRAIN_GET': return { ok:true, continuity:await projectBrainGet(message.projectId,{rebuild:Boolean(message.rebuild)}) };
+      case 'PC_PROJECT_MEMORY_GATE': return { ok:true, result:await projectMemoryGate(message.itemId,message.action) };
       case 'PC_ORG_SUMMARY': return { ok: true, organization: await organizationSummary() };
       case 'PC_ORG_CHATS': return { ok: true, items: await organizationChats(message.filters || {}) };
       case 'PC_ORG_GROUP_CREATE': return { ok: true, item: await createGroup(message.input || {}) };
@@ -3934,6 +3968,7 @@ const TAB_BEACON_DEFAULTS = Object.freeze({
   tabTitleStatusEnabled:true,
   tabFaviconStatusEnabled:true,
   tabGroupingEnabled:true,
+  tabGroupingMode:'project-status',
   activeEmoji:'🟣',
   staleEmoji:'⚠️',
   completedEmoji:'✅',
@@ -3958,6 +3993,7 @@ function normalizePulseUx(input = {}) {
   next.tabTitleStatusEnabled = next.tabTitleStatusEnabled !== false;
   next.tabFaviconStatusEnabled = next.tabFaviconStatusEnabled !== false;
   next.tabGroupingEnabled = next.tabGroupingEnabled !== false;
+  next.tabGroupingMode = ['project-status','status'].includes(next.tabGroupingMode) ? next.tabGroupingMode : TAB_BEACON_DEFAULTS.tabGroupingMode;
   next.activeEmoji = String(next.activeEmoji || TAB_BEACON_DEFAULTS.activeEmoji).trim().slice(0, 12);
   next.staleEmoji = String(next.staleEmoji || TAB_BEACON_DEFAULTS.staleEmoji).trim().slice(0, 12);
   next.completedEmoji = String(next.completedEmoji || TAB_BEACON_DEFAULTS.completedEmoji).trim().slice(0, 12);
@@ -4043,26 +4079,37 @@ async function ensureTabBeacon(tabId) {
 function managedGroupBucket(title = '') {
   const value = String(title || '').trim();
   if (!value.startsWith(`${TAB_GROUP_PREFIX} `)) return '';
-  // Only groups with Constellation's exact status suffixes are considered owned. Any
-  // other existing group is treated as user-owned and is never ungrouped or stolen.
   if (/\sActive$/i.test(value)) return 'active';
   if (/\s(?:Needs attention|Attention)$/i.test(value)) return 'stale';
   if (/\sCompleted$/i.test(value)) return 'completed';
   return '';
 }
 
-async function managedGroupFor(windowId, bucket, cfg) {
+function compactGroupProjectName(value = '') { return String(value || '').replace(/\s+/g,' ').trim().slice(0,54); }
+
+function tabGroupProjectName(row = {}, cfg = {}) {
+  if (cfg.tabGroupingMode !== 'project-status') return '';
+  return compactGroupProjectName(row?.context?.projectName || row?.workspaceProjectName || '');
+}
+
+function managedGroupTitle(bucket, cfg, projectName = '') {
+  const presentation=bucketPresentation(bucket,cfg);
+  const project=compactGroupProjectName(projectName);
+  return `${TAB_GROUP_PREFIX} ${presentation.emoji} ${project ? `${project} · ` : ``}${presentation.label}`;
+}
+
+async function managedGroupFor(windowId, bucket, cfg, projectName = '') {
   if (!chrome.tabGroups?.query) return null;
   const groups = await chrome.tabGroups.query({ windowId }).catch(() => []);
-  const found = groups.find((group) => managedGroupBucket(group.title) === bucket);
+  const title=managedGroupTitle(bucket,cfg,projectName);
+  const found = groups.find((group) => String(group.title || '').trim() === title);
   if (!found) return null;
   const presentation = bucketPresentation(bucket, cfg);
-  // Cosmetic normalization is best effort; bucket ownership is already proven by title.
-  await chrome.tabGroups.update(found.id, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor, ...(bucket === 'active' || bucket === 'stale' ? { collapsed:false } : {}) }).catch(() => {});
+  await chrome.tabGroups.update(found.id, { title, color:presentation.groupColor, collapsed:bucket === 'completed' }).catch(() => {});
   return found.id;
 }
 
-async function verifyManagedTabGroup(tabId, expectedBucket) {
+async function verifyManagedTabGroup(tabId, expectedBucket, cfg, projectName = '') {
   if (!chrome.tabs?.get || !chrome.tabGroups?.get) return { ok:true, skipped:'group-verification-unavailable' };
   const tab = await chrome.tabs.get(Number(tabId)).catch(() => null);
   if (!tab) return { ok:false, error:'tab-unavailable' };
@@ -4070,9 +4117,11 @@ async function verifyManagedTabGroup(tabId, expectedBucket) {
   if (groupId < 0) return { ok:false, error:'managed-group-missing' };
   const group = await chrome.tabGroups.get(groupId).catch(() => null);
   const actualBucket = managedGroupBucket(group?.title || '');
-  return actualBucket === expectedBucket
-    ? { ok:true, groupId, bucket:actualBucket }
-    : { ok:false, error:'managed-group-mismatch', groupId, expectedBucket, actualBucket };
+  const expectedTitle=managedGroupTitle(expectedBucket,cfg,projectName);
+  const actualTitle=String(group?.title||'').trim();
+  return actualBucket === expectedBucket && actualTitle === expectedTitle
+    ? { ok:true, groupId, bucket:actualBucket, projectName:projectName||'', title:actualTitle }
+    : { ok:false, error:'managed-group-mismatch', groupId, expectedBucket, actualBucket, expectedTitle, actualTitle };
 }
 
 async function syncTabGroupNow(row, cfg) {
@@ -4096,17 +4145,18 @@ async function syncTabGroupNow(row, cfg) {
       return { ok:true, skipped:'grouping-disabled' };
     }
     const bucket = row.bucket || 'completed';
-    let target = await managedGroupFor(tab.windowId, bucket, cfg);
+    const projectName=tabGroupProjectName(row,cfg);
+    let target = await managedGroupFor(tab.windowId, bucket, cfg, projectName);
     if (target === null) {
       const groupId = await chrome.tabs.group({ tabIds:[tab.id] });
       if (groupId === null || groupId === undefined) return { ok:false, error:'managed-group-create-failed' };
       const presentation = bucketPresentation(bucket, cfg);
-      await chrome.tabGroups.update(groupId, { title:`${TAB_GROUP_PREFIX} ${presentation.emoji} ${presentation.label}`, color:presentation.groupColor, collapsed:false });
+      await chrome.tabGroups.update(groupId, { title:managedGroupTitle(bucket,cfg,projectName), color:presentation.groupColor, collapsed:bucket === 'completed' });
       target = groupId;
     } else if (currentGroupId !== target) {
       await chrome.tabs.group({ groupId:target, tabIds:[tab.id] });
     }
-    return verifyManagedTabGroup(tab.id, bucket);
+    return verifyManagedTabGroup(tab.id, bucket, cfg, projectName);
   } catch (error) {
     return { ok:false, error:String(error?.message || error || 'group-sync-failed') };
   }
@@ -4140,7 +4190,7 @@ async function syncTabPresentation(row, { force = false, repairAttempt = false }
   const cfg = await pulseUxSettings();
   const tag = await tabTagForRow(row);
   const display = bucketPresentation(row.bucket || 'completed', cfg);
-  const signature = JSON.stringify([row.bucket, tag, cfg.tabBeaconsEnabled, cfg.tabTitleStatusEnabled, cfg.tabFaviconStatusEnabled, cfg.tabGroupingEnabled, display.emoji, display.color, display.groupColor]);
+  const signature = JSON.stringify([row.bucket, tag, row?.context?.projectName||'', cfg.tabBeaconsEnabled, cfg.tabTitleStatusEnabled, cfg.tabFaviconStatusEnabled, cfg.tabGroupingEnabled, cfg.tabGroupingMode, display.emoji, display.color, display.groupColor]);
   if (!force && tabPresentationSignatures.get(tabId) === signature) return { ok:true, cached:true };
   if (!force && tabPresentationPendingSignatures.get(tabId) === signature) return { ok:true, pending:true };
   tabPresentationPendingSignatures.set(tabId, signature);

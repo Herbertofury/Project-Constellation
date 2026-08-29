@@ -2,8 +2,8 @@ from playwright.sync_api import sync_playwright
 import pathlib, json, re, os
 root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation'))
 manifest=json.loads((root/'manifest.json').read_text())
-brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); health=(root/'src/health-core.js').read_text(); bg=(root/'background.js').read_text()
-bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
+brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); health=(root/'src/health-core.js').read_text(); bg=(root/'background.js').read_text()
+bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|project-memory-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
 mock=f"""
 (() => {{
  const bag={{}}, listeners={{}}, dbStores=new Map();
@@ -42,7 +42,7 @@ mock=f"""
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
     page=browser.new_page(); errors=[]; page.on('pageerror',lambda exc: errors.append(str(exc)))
-    page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=health);page.add_script_tag(content=bg);page.wait_for_timeout(80)
+    page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=health);page.add_script_tag(content=bg);page.wait_for_timeout(80)
     result=page.evaluate("""async()=>{
       const start=await __pcSend({type:'PC_FULL_CAPTURE_START',providerIds:['chatgpt'],speed:'fast'});
       let state=start.state; const doneResponses=[];
