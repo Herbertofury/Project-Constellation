@@ -140,6 +140,8 @@ with sync_playwright() as p:
         __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{liveHealth:{showHealthy:false}}})
       ]);
       const settingsGet=await __pcSend({type:'PC_BRAIN_SETTINGS_GET'});
+      const capacityMigration=migrateLiveHealthCapacityProfile({capacityWarningTurns:180,capacityHandoffTurns:260,capacityWarningChars:240000,capacityHandoffChars:400000});
+      const capacityCustom=migrateLiveHealthCapacityProfile({capacityWarningTurns:150,capacityHandoffTurns:230,capacityWarningChars:200000,capacityHandoffChars:330000});
       const homeAfterSettings=await __pcSend({type:'PC_HOME_SUMMARY'});
       const search=await __pcSend({type:'PC_BRAIN_SEARCH',query:'Google Drive recovery',limit:20});
       const integrityScan={ok:true,summary:{findings:[]}};
@@ -179,13 +181,13 @@ with sync_playwright() as p:
       __pcDbStores.get('turns').rows.delete('chatgpt:live-a:user:9');
       globalThis.__pcNotifications=[]; chrome.notifications={create:async(id,options)=>{__pcNotifications.push({id,options});return id;}};
       const legacyIgnored=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
-      const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.10',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+      const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.11',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
       await new Promise(r=>setTimeout(r,15));
       const completionNotifications=structuredClone(__pcNotifications);
-      await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.10',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'working',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:61000,quietForMs:1200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
-      const attentionPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.10',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'capacity-handoff',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:62000,quietForMs:2200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+      await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.11',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'working',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:61000,quietForMs:1200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+      const attentionPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.11',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'capacity-handoff',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:62000,quietForMs:2200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
       await new Promise(r=>setTimeout(r,15));
-      const failurePush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.10',status:'delivery-timeout',failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'},chat:{id:'chatgpt:live-b',status:'delivery-timeout',rawStatus:'delivery-timeout',healthState:'delivery-timeout',title:'Live B',lastActivityAt:Date.now(),failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'}},generation:{active:false,interrupted:true}}},{tab:{id:102,windowId:1,url:'https://chatgpt.com/c/live-b',title:'Live B'}});
+      const failurePush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.14.11',status:'delivery-timeout',failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'},chat:{id:'chatgpt:live-b',status:'delivery-timeout',rawStatus:'delivery-timeout',healthState:'delivery-timeout',title:'Live B',lastActivityAt:Date.now(),failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'}},generation:{active:false,interrupted:true}}},{tab:{id:102,windowId:1,url:'https://chatgpt.com/c/live-b',title:'Live B'}});
       await new Promise(r=>setTimeout(r,15));
       const attentionNotifications=structuredClone(__pcNotifications);
       const createdBeforeMissingFocus=__pcCreatedTabs.length;
@@ -202,7 +204,7 @@ with sync_playwright() as p:
       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
-      return {ingest,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,livePulse,legacyIgnored,completedPush,attentionPush,failurePush,completionNotifications,attentionNotifications,missingFocus,createdBeforeMissingFocus,createdAfterMissingFocus,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
+      return {ingest,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,capacityMigration,capacityCustom,homeAfterSettings,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,livePulse,legacyIgnored,completedPush,attentionPush,failurePush,completionNotifications,attentionNotifications,missingFocus,createdBeforeMissingFocus,createdAfterMissingFocus,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
     }""")
     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
     assert result['ingest']['ok']
@@ -233,6 +235,15 @@ with sync_playwright() as p:
     assert result['settingsGet']['settings']['approvalAutopilot']['acknowledged'] is True
     assert result['settingsGet']['settings']['approvalAutopilot']['fallbackAllowOnce'] is False
     assert result['settingsGet']['settings']['liveHealth']['showHealthy'] is False
+    assert result['settingsGet']['settings']['liveHealth']['capacityWarningTurns']==120
+    assert result['settingsGet']['settings']['liveHealth']['capacityHandoffTurns']==180
+    assert result['settingsGet']['settings']['liveHealth']['capacityProfileVersion']==2
+    assert result['capacityMigration']['capacityWarningTurns']==120 and result['capacityMigration']['capacityHandoffTurns']==180
+    assert result['capacityMigration']['capacityWarningChars']==160000 and result['capacityMigration']['capacityHandoffChars']==280000
+    assert result['capacityMigration']['capacityProfileVersion']==2
+    assert result['capacityCustom']['capacityWarningTurns']==150 and result['capacityCustom']['capacityHandoffTurns']==230
+    assert result['capacityCustom']['capacityWarningChars']==200000 and result['capacityCustom']['capacityHandoffChars']==330000
+    assert result['capacityCustom']['capacityProfileVersion']==2
     assert result['homeAfterSettings']['ok'] and result['homeAfterSettings']['home']['approvalAutopilot']['acknowledged'] is True
     assert result['homeAfterSettings']['home']['liveHealth']['showHealthy'] is False
     assert len(result['snapshot']['groups'])==1 and len(result['snapshot']['smartCollections'])==1

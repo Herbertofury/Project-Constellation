@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.10';
+  const VERSION = '0.14.11';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -41,7 +41,7 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
-  const HEALTH_CORE_VERSION = '8';
+  const HEALTH_CORE_VERSION = '9';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const STATE_EVENT = 'project-constellation:live-sentinel-state';
   const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
@@ -548,8 +548,14 @@
 
   function explicitCapacitySignal() {
     const text = statusSurfaceText();
-    const match = text.match(/(?:maximum conversation length|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
-    return { explicitLimitSignal:Boolean(match), explicitLimitText:match ? clean(match[0], 220) : '' };
+    const hard = text.match(/(?:you(?:'|’)?ve reached the maximum length for this conversation|maximum length for this conversation|maximum conversation length(?:.{0,40}(?:reached|exceeded))?|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|keep talking by starting a new chat|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
+    const near = hard ? null : text.match(/(?:(?:approaching|close to|near|nearing|almost at).{0,80}(?:conversation|context).{0,40}(?:limit|maximum)|(?:conversation|context).{0,50}(?:approaching|nearing|close to).{0,40}(?:limit|maximum)|start a new chat soon|consider starting a new chat)/i);
+    return {
+      explicitLimitSignal:Boolean(hard),
+      explicitLimitText:hard ? clean(hard[0], 220) : '',
+      nearLimitSignal:Boolean(near),
+      nearLimitText:near ? clean(near[0], 220) : ''
+    };
   }
 
   function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure }) {
@@ -564,6 +570,9 @@
       mountedTurns:Math.max(0, Number(frontier?.turns?.length || 0)),
       capturedChars:0,
       transcriptTurns,
+      activeBranchMessages:Math.max(0, Number(transcript?.activeBranchMessages || 0)),
+      structuredMessages:Math.max(0, Number(transcript?.structuredMessages || 0)),
+      toolMessages:Math.max(0, Number(transcript?.toolMessages || 0)),
       transcriptChars:Math.max(0, Number(transcript?.contextChars || transcript?.visibleChars || 0)),
       recentAverageChars:Math.max(0, Number(transcript?.recentAverageChars || 0)),
       transcriptRecentAverageChars:Math.max(0, Number(transcript?.recentAverageChars || 0)),
@@ -752,6 +761,8 @@
       toolCount:Number(transcript?.toolCount || 0),
       conversationTurnCount:Number(transcript?.visibleTurnCount || frontier.turns.length || 0),
       activeBranchMessages:Number(transcript?.activeBranchMessages || 0),
+      structuredMessages:Number(transcript?.structuredMessages || 0),
+      toolMessages:Number(transcript?.toolMessages || 0),
       conversationChars:Number(transcript?.contextChars || transcript?.visibleChars || 0),
       visibleChars:Number(transcript?.visibleChars || 0),
       recentAverageChars:Number(transcript?.recentAverageChars || 0),
@@ -959,11 +970,17 @@
         setIfChanged(title, health.title || sentinelHealthState.replaceAll('-', ' '));
         setIfChanged(mini, health.detail || `Runway Sentinel · ${sentinelHealthState.replaceAll('-', ' ')}`);
         setIfChanged(nowTitle, failure?.active ? (failure.title || 'Provider interruption') : label || (sentinelHealthState.startsWith('capacity-') ? 'Conversation runway' : 'No meaningful progress'));
-        setIfChanged(nowDetail, failure?.active ? `${Math.round(Number(failure.ageMs || 0) / 1000)}s since detected${Number(failure.partialAssistantChars || 0) ? ` · ${Number(failure.partialAssistantChars || 0)} partial chars preserved` : ''}${failure.retryAvailable ? ' · Retry available.' : ' · Manual recovery.'}` : sentinelHealthState.startsWith('capacity-') ? `Measured branch load ${Math.max(0, Number(state.generation?.capacitySafetyPercent || 0))}% of the configured safety threshold.` : `Response elapsed ${Math.round(Number(state.generation?.elapsedMs || 0) / 1000)}s · no meaningful progress ${Math.round(Number(state.generation?.quietForMs || 0) / 1000)}s.`);
+        const legacyCapacityPercent = Math.max(0, Number(state.generation?.capacitySafetyPercent || 0));
+        const legacyCapacityPercentLabel = legacyCapacityPercent >= 100 ? '100%+' : `${legacyCapacityPercent}%`;
+        setIfChanged(nowDetail, failure?.active ? `${Math.round(Number(failure.ageMs || 0) / 1000)}s since detected${Number(failure.partialAssistantChars || 0) ? ` · ${Number(failure.partialAssistantChars || 0)} partial chars preserved` : ''}${failure.retryAvailable ? ' · Retry available.' : ' · Manual recovery.'}` : sentinelHealthState.startsWith('capacity-') ? `Measured branch load ${legacyCapacityPercentLabel} of the configured safety threshold.` : `Response elapsed ${Math.round(Number(state.generation?.elapsedMs || 0) / 1000)}s · no meaningful progress ${Math.round(Number(state.generation?.quietForMs || 0) / 1000)}s.`);
         setIfChanged(activity, toolActive ? 'tool' : sentinelHealthState.startsWith('capacity-') ? 'runway' : 'model');
         setIfChanged(tool, toolActive ? `${Math.max(1, Number(state.tool?.entryCount || 1))} live step${Number(state.tool?.entryCount || 1) === 1 ? '' : 's'}` : '—');
         const capacityNode = shadow.getElementById('pcHealthCapacity');
-        if (capacityNode && sentinelHealthState.startsWith('capacity-')) setIfChanged(capacityNode, capacity.state === 'reached' ? 'provider limit' : `${Math.max(0, Number(capacity.safetyPercent || state.generation?.capacitySafetyPercent || 0))}% · ${capacity.state === 'handoff' ? 'secure' : 'watch'}`);
+        if (capacityNode && sentinelHealthState.startsWith('capacity-')) {
+          const rawPercent = Math.max(0, Number(capacity.safetyPercent || state.generation?.capacitySafetyPercent || 0));
+          const percentLabel = rawPercent >= 100 ? '100%+' : `${rawPercent}%`;
+          setIfChanged(capacityNode, capacity.state === 'reached' ? 'provider limit' : `${percentLabel} · ${capacity.state === 'handoff' ? 'secure' : 'watch'}`);
+        }
         const handoff = shadow.getElementById('pcHealthHandoff');
         if (handoff && ['capacity-handoff','capacity-reached'].includes(sentinelHealthState)) handoff.hidden = false;
         if (retryButton) {

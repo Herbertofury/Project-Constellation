@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.7';
+  const VERSION = '0.14.11';
   const REQUEST_SOURCE = 'project-constellation';
   const RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
   const REQUEST_KIND = 'chatgpt-transcript-request';
@@ -183,13 +183,15 @@
         currentNodeId:clean(conversation?.current_node || '', 200), latestUserMessageId:'', latestAssistantMessageId:'',
         latestRole:'', latestMessageStatus:'', endTurn:false, isComplete:false, modelSlug:'', asyncTaskId:'',
         widgetStatus:'', progressPercent:null, toolCount:0, phase:'unknown', visibleTurnCount:0,
-        activeBranchMessages:0, contextChars:0, visibleChars:0, recentAverageChars:0,
+        activeBranchMessages:0, structuredMessages:0, toolMessages:0, contextChars:0, visibleChars:0, recentAverageChars:0,
         latestAssistantChars:0, responseStartedAt:0, latestUserCreatedAt:0, latestAssistantCreatedAt:0, latestAssistantUpdatedAt:0, observedAt:Date.now()
       };
     }
 
     let activeBranchMessages = 0;
     let visibleTurnCount = 0;
+    let structuredMessages = 0;
+    let toolMessages = 0;
     let contextChars = 0;
     let visibleChars = 0;
     const recentVisibleChars = [];
@@ -203,6 +205,9 @@
         visibleTurnCount += 1;
         visibleChars += chars;
         if (chars > 0) recentVisibleChars.push(chars);
+      } else {
+        structuredMessages += 1;
+        if (role === 'tool' || /tool|browser|python|research|connector|app/i.test(authorNameOf(entry.message))) toolMessages += 1;
       }
     }
     const recentWindow = recentVisibleChars.slice(-12);
@@ -285,6 +290,8 @@
       phase,
       visibleTurnCount,
       activeBranchMessages,
+      structuredMessages,
+      toolMessages,
       contextChars,
       visibleChars,
       recentAverageChars,

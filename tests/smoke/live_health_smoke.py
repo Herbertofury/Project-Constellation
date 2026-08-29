@@ -30,7 +30,7 @@ with sync_playwright() as p:
     assert active['collapsed']=='0' and active['nowTitle']=='Implementing truthful execution activity ledger'
     assert 'HIGH observable confidence' in active['proof'] and any('Started response stream' in row for row in active['timeline'])
     collapsed_branch=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;s.getElementById('pcHealthCollapse').click();const q=s.getElementById('pcHealthBranchQuick');const result={collapsed:h.dataset.collapsed,visible:getComputedStyle(q).display!=='none',urgent:q.dataset.urgent,label:q.getAttribute('aria-label')};s.getElementById('pcHealthCollapse').click();return result; }''')
-    assert collapsed_branch=={'collapsed':'1','visible':True,'urgent':'1','label':'Branch and continue in a new chat'}
+    assert collapsed_branch=={'collapsed':'1','visible':True,'urgent':'1','label':'Runway tight — branch safely now before the chat breaks'}
     capacity_shot=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_CAPACITY_SCREENSHOT',str(root/'dist/execution-pulse-v014.png'))); capacity_shot.parent.mkdir(parents=True,exist_ok=True); page.screenshot(path=str(capacity_shot),full_page=False)
     page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthBranch').click()")
     page.wait_for_timeout(120)

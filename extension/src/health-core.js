@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 8;
+  const VERSION = 9;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -15,10 +15,11 @@
     networkObservation: true,
     toolWatchdogEnabled: true,
     capacityGuardEnabled: true,
-    capacityWarningTurns: 180,
-    capacityHandoffTurns: 260,
-    capacityWarningChars: 240000,
-    capacityHandoffChars: 400000
+    capacityProfileVersion: 2,
+    capacityWarningTurns: 120,
+    capacityHandoffTurns: 180,
+    capacityWarningChars: 160000,
+    capacityHandoffChars: 280000
   });
 
   const LEVEL = Object.freeze({ healthy: 0, info: 1, active: 2, warning: 3, danger: 4, critical: 5 });
@@ -109,31 +110,60 @@
     const mountedTurns = Math.max(0, Number(input.mountedTurns || 0));
     const transcriptTurns = Math.max(0, Number(input.transcriptTurns || 0));
     const turnCount = Math.max(storedTurns, sessionTurns, mountedTurns, transcriptTurns);
+    const suppliedBranchMessages = Math.max(0, Number(input.activeBranchMessages || 0));
+    const activeBranchMessages = Math.max(turnCount, suppliedBranchMessages);
+    const observedStructuredDelta = suppliedBranchMessages > 0 && transcriptTurns > 0 ? Math.max(0, suppliedBranchMessages - transcriptTurns) : 0;
+    const structuredMessages = Math.max(0, Number(input.structuredMessages || 0), observedStructuredDelta);
+    const toolMessages = Math.max(0, Math.min(activeBranchMessages, Number(input.toolMessages || 0)));
     const storedChars = Math.max(0, Number(input.storedChars || 0));
     const transcriptChars = Math.max(0, Number(input.transcriptChars || 0));
     const capturedChars = Math.max(0, Number(input.capturedChars || 0), Number(input.mountedChars || 0), storedChars, transcriptChars);
     const recentAverageChars = Math.max(0, Number(input.recentAverageChars || 0), Number(input.transcriptRecentAverageChars || 0));
     const explicitLimitSignal = Boolean(input.explicitLimitSignal);
     const explicitLimitText = String(input.explicitLimitText || '').slice(0, 240);
+    const nearLimitSignal = Boolean(input.nearLimitSignal);
+    const nearLimitText = String(input.nearLimitText || '').slice(0, 240);
+
+    // ChatGPT tool/app work can add many branch messages while user/assistant text
+    // remains deceptively small. Keep those pressure lanes separate rather than
+    // pretending provider capacity is a single character counter.
+    const branchWarningMessages = Math.max(cfg.capacityWarningTurns + 12, Math.round(cfg.capacityWarningTurns * 1.15));
+    const branchHandoffMessages = Math.max(cfg.capacityHandoffTurns + 18, Math.round(cfg.capacityHandoffTurns * 1.15));
+    const structuredWarningMessages = Math.max(24, Math.round(cfg.capacityWarningTurns * 0.40));
+    const structuredHandoffMessages = Math.max(40, Math.round(cfg.capacityHandoffTurns * 0.40));
+    const toolWarningMessages = Math.max(18, Math.round(cfg.capacityWarningTurns * 0.30));
+    const toolHandoffMessages = Math.max(30, Math.round(cfg.capacityHandoffTurns * 0.30));
+
     const turnRatio = cfg.capacityHandoffTurns ? turnCount / cfg.capacityHandoffTurns : 0;
     const charRatio = cfg.capacityHandoffChars ? capturedChars / cfg.capacityHandoffChars : 0;
-    const safetyLoad = Math.max(turnRatio, charRatio);
+    const branchRatio = branchHandoffMessages ? activeBranchMessages / branchHandoffMessages : 0;
+    const structuredRatio = structuredHandoffMessages ? structuredMessages / structuredHandoffMessages : 0;
+    const toolRatio = toolHandoffMessages ? toolMessages / toolHandoffMessages : 0;
+    const safetyLoad = Math.max(turnRatio, charRatio, branchRatio, structuredRatio, toolRatio);
     const safetyPercent = Math.max(0, Math.round(safetyLoad * 100));
     const remainingTurns = Math.max(0, cfg.capacityHandoffTurns - turnCount);
     const remainingChars = Math.max(0, cfg.capacityHandoffChars - capturedChars);
     const projectedMessages = recentAverageChars > 0 ? Math.max(0, remainingChars / recentAverageChars) : null;
     const predictiveWatch = Boolean(projectedMessages !== null && capturedChars >= Math.min(cfg.capacityWarningChars * 0.55, cfg.capacityHandoffChars * 0.45) && projectedMessages <= 3);
+    const structuredPressure = Math.max(branchRatio, structuredRatio, toolRatio);
+    const adaptiveWatch = Boolean(structuredPressure >= 0.66 && (structuredMessages > 0 || toolMessages > 0));
+    const adaptiveHandoff = Boolean(structuredPressure >= 0.86 && (structuredMessages >= Math.max(12, Math.round(structuredWarningMessages * 0.60)) || toolMessages >= Math.max(9, Math.round(toolWarningMessages * 0.60))));
     const chips = [];
-    if (turnCount) chips.push(`${turnCount} captured turn${turnCount === 1 ? '' : 's'}`);
+    if (turnCount) chips.push(`${turnCount} visible/stored message${turnCount === 1 ? '' : 's'}`);
+    if (activeBranchMessages > turnCount) chips.push(`${activeBranchMessages} active-branch messages`);
+    if (structuredMessages) chips.push(`${structuredMessages} structured/tool-app messages`);
+    if (toolMessages) chips.push(`${toolMessages} tool messages`);
     if (capturedChars >= 1000) chips.push(`${Math.max(1, Math.round(capturedChars / 1000))}k measured chars`);
-    if (transcriptTurns || transcriptChars) chips.push('full-branch measurement');
+    if (transcriptTurns || transcriptChars || suppliedBranchMessages > 0) chips.push('full-branch measurement');
     if (predictiveWatch) chips.push('heavy-turn runway');
+    if (adaptiveWatch || adaptiveHandoff) chips.push('structured branch pressure');
 
-    const common = { turnCount, capturedChars, storedChars, transcriptChars, transcriptTurns, recentAverageChars, safetyLoad, safetyPercent, remainingTurns, remainingChars, projectedMessages, predictiveWatch, chips };
+    const common = { turnCount, activeBranchMessages, structuredMessages, toolMessages, capturedChars, storedChars, transcriptChars, transcriptTurns, recentAverageChars, safetyLoad, safetyPercent, remainingTurns, remainingChars, projectedMessages, predictiveWatch, adaptiveWatch, adaptiveHandoff, branchWarningMessages, branchHandoffMessages, structuredWarningMessages, structuredHandoffMessages, toolWarningMessages, toolHandoffMessages, chips };
     if (!cfg.capacityGuardEnabled) return { state:'off', level:'healthy', score:LEVEL.healthy, title:'Capacity Guard off', detail:'Conversation Capacity Guard is disabled.', recommendedAction:'', ...common, chips:[] };
-    if (explicitLimitSignal) return { state:'reached', level:'critical', score:LEVEL.critical, title:'Provider limit signal detected', detail:explicitLimitText || 'The provider is signaling that this conversation has reached or is very near its usable limit. Secure a handoff before continuing elsewhere.', recommendedAction:'handoff', ...common, safetyLoad:Math.max(1, safetyLoad), safetyPercent:Math.max(100, safetyPercent), chips:[...chips,'provider limit signal'] };
-    if (turnCount >= cfg.capacityHandoffTurns || capturedChars >= cfg.capacityHandoffChars) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Secure a handoff now', detail:'This conversation crossed your proactive safety threshold. Provider limits vary by model and are not exposed exactly; Constellation measures the full captured/observable branch so this warning survives reloads and long hidden histories.', recommendedAction:'handoff', ...common, chips:[...chips,'handoff threshold'] };
-    if (turnCount >= cfg.capacityWarningTurns || capturedChars >= cfg.capacityWarningChars || predictiveWatch) return { state:'watch', level:'warning', score:LEVEL.warning, title:'Conversation runway narrowing', detail:predictiveWatch ? 'Recent turns are unusually large, so Constellation is warning before the normal threshold. This is a conservative local runway estimate, not a claim about the provider’s exact remaining context.' : 'This chat is getting large. Constellation is warning early using the full stored/transcript branch instead of only what mounted after the extension loaded.', recommendedAction:'handoff', ...common, chips:[...chips,'early warning'] };
+    if (explicitLimitSignal) return { state:'reached', level:'critical', score:LEVEL.critical, title:'Conversation maximum reached', detail:explicitLimitText || 'The provider says this conversation has reached its maximum length. Branch now; Constellation will not navigate or submit anything without your explicit action.', recommendedAction:'handoff', ...common, safetyLoad:Math.max(1, safetyLoad), safetyPercent:Math.max(100, safetyPercent), chips:[...chips,'provider hard limit'] };
+    if (nearLimitSignal) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Branch now — provider runway warning', detail:nearLimitText || 'The provider is warning that this conversation is close to its usable limit. Secure a continuation now while the current branch is still available.', recommendedAction:'handoff', ...common, chips:[...chips,'provider near-limit signal'] };
+    if (turnCount >= cfg.capacityHandoffTurns || capturedChars >= cfg.capacityHandoffChars || activeBranchMessages >= branchHandoffMessages || structuredMessages >= structuredHandoffMessages || toolMessages >= toolHandoffMessages || adaptiveHandoff) return { state:'handoff', level:'danger', score:LEVEL.danger, title:'Branch now — runway is tight', detail:'This chat crossed a proactive runway boundary. Constellation now counts the full active branch, including structured tool/app messages that can consume conversation capacity without adding much visible text.', recommendedAction:'handoff', ...common, chips:[...chips,adaptiveHandoff ? 'adaptive handoff zone' : 'handoff threshold'] };
+    if (turnCount >= cfg.capacityWarningTurns || capturedChars >= cfg.capacityWarningChars || activeBranchMessages >= branchWarningMessages || structuredMessages >= structuredWarningMessages || toolMessages >= toolWarningMessages || predictiveWatch || adaptiveWatch) return { state:'watch', level:'warning', score:LEVEL.warning, title:'Branch soon — runway narrowing', detail:predictiveWatch ? 'Recent turns are unusually large, so Constellation is warning before the normal threshold. This is a conservative local runway estimate, not a claim about the provider’s exact remaining context.' : (adaptiveWatch ? 'Tool/app activity is expanding the active branch faster than visible turn counts suggest. Branch early while the chat is still healthy.' : 'This chat is getting large. Constellation is warning early from the strongest stored, transcript, character, and structured-message evidence.'), recommendedAction:'handoff', ...common, chips:[...chips,'early branch warning'] };
     return { state:'clear', level:'healthy', score:LEVEL.healthy, title:'Capacity runway clear', detail:'Conversation size is below your proactive warning thresholds.', recommendedAction:'', ...common };
   }
 

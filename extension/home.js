@@ -346,8 +346,8 @@
     $('liveHealthSoftStall').value=String(healthCfg.softStallMs||45000);
     $('liveHealthHardStall').value=String(healthCfg.hardStallMs||120000);
     $('liveHealthDeadStall').value=String(healthCfg.deadStallMs||240000);
-    $('liveHealthCapacityWarning').value=String(healthCfg.capacityWarningTurns||180);
-    $('liveHealthCapacityHandoff').value=String(healthCfg.capacityHandoffTurns||260);
+    $('liveHealthCapacityWarning').value=String(healthCfg.capacityWarningTurns||120);
+    $('liveHealthCapacityHandoff').value=String(healthCfg.capacityHandoffTurns||180);
     if($('liveHealthSettingsStatus').dataset.state==='ready'){$('liveHealthSettingsStatus').dataset.state='saved';$('liveHealthSettingsStatus').textContent=healthCfg.enabled===false?'Saved automatically · Live Chat Health is off.':`Saved automatically · Execution Pulse on · Watchdog ${healthCfg.toolWatchdogEnabled===false?'off':'on'} · Capacity Guard ${healthCfg.capacityGuardEnabled===false?'off':'on'}.`;}
     $('approvalRiskAcknowledged').checked=Boolean(cfg.acknowledged);
     $('approvalAutopilotEnabled').checked=Boolean(cfg.enabled);

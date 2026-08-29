@@ -40,7 +40,7 @@ with sync_playwright() as p:
     quiet=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     # The current Health Core owns richer persisted capacity evidence. Sentinel may carry
     # capacity attention from the content HUD, but it independently derives stall/failure state.
-    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='8'; h.dataset.state='capacity-handoff'; h.dataset.level='danger'; }""")
+    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='9'; h.dataset.state='capacity-handoff'; h.dataset.level='danger'; }""")
     page.wait_for_timeout(220)
     watchdog=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); delete h.dataset.watchdog; h.dataset.state='tool-running'; h.dataset.level='active'; }""")
