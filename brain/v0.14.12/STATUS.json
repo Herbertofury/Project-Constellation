@@ -1,7 +1,7 @@
 {
   "version": "0.14.12",
   "codename": "Black Box Truth + Work Rescue",
-  "status": "materialized-github-head-awaiting-clean-room-ci",
+  "status": "released-green",
   "base": "v0.14.11",
   "base_commit": "3395512bb16fd79b3ee4dd17623592db0109b5ea",
   "focus": [
@@ -14,27 +14,40 @@
   "verification": {
     "health_core_v10": "pass",
     "integrity_core_v2": "pass",
-    "chatgpt_transcript_probe_smoke": "pass with sanitized activity trail",
-    "live_sentinel_smoke": "pass",
-    "background_smoke": "pass including ACK rescue, retry flag recovery, live attention, uncertain exclusion, and v0.14.12 hot-upgrade gate",
-    "home_smoke": "pass",
-    "full_verify": "equivalent local gate complete: unit + validate + dev build + all 27 smokes",
     "unit_contract": "10/10 pass",
     "validate": "pass (56 UI message types owned)",
-    "browser_smokes": "27/27 pass in bounded system-Chromium gates",
-    "hot_upgrade_uncertain_hud": "pass",
-    "materialization_gate": "pass: payload and decompressed patch SHA-256 verified before source mutation",
-    "clean_room_ci": "pending user-authored PR head run"
+    "local_browser_smokes": "27/27 pass on system Chromium",
+    "clean_room_ci": "pass: Verify run 64 on exact PR head a9cfdf6903c7e126efac31fb7fe023052f1b2b28",
+    "production_release_ci": "pass: Production release run 16 / run id 33267457806",
+    "production_oauth": "pass: Google and GitHub OAuth present, stable extension ID",
+    "tag_target": "pass: annotated v0.14.12 tag points to 93cd4a11e0f50f8cb3bbe29fc730b58275f23cbc",
+    "drive_round_trip": "pass: canonical production assets re-downloaded byte-for-byte identical"
   },
-  "publication": {
-    "github_pr": "https://github.com/Herbertofury/Project-Constellation/pull/15",
-    "materialized_head": "7816d880d0e842369aa9c810a91afd4397a39a00",
-    "github": "22-file source delta materialized; bootstrap payload removed; awaiting normal PR CI",
-    "drive_folder_id": "13ivZVHJLkqDIctpxdH-BmH6YkzZP38La",
-    "drive_dev_unpacked_file_id": "1vI-v4bHtsk-i849nTaCtgqhzitS5iO1U",
-    "drive_source_checkpoint_file_id": "1eiCis2zkouohVkFK2rwfdWVMOv3dHA3D",
-    "drive_checksums_file_id": "1s3OhSii3JsRfEkIumL20xVowRKpqrMwg",
-    "drive": "dev/source checkpoint round-trip verified by exact byte size and SHA-256"
+  "release": {
+    "github_release": "https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.14.12",
+    "tag": "v0.14.12",
+    "source_commit": "93cd4a11e0f50f8cb3bbe29fc730b58275f23cbc",
+    "extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig",
+    "actions_artifact_id": 9719103469,
+    "actions_artifact_digest": "sha256:35bf14a859d340b4db8c16c9d6b959369f2ea33ff0fbb4fe4f7f1601613e98f7",
+    "unpacked": {
+      "bytes": 270387,
+      "sha256": "1b49b53f63d6cc73fce1dbd369e37def013a04b5856096db1621e02272b0077e",
+      "drive_file_id": "1fDCyXrytr2U6Vcove6SNbh47GPXGCLWQ"
+    },
+    "source": {
+      "bytes": 3014445,
+      "sha256": "e6ed8c2c7d952966b0c7b58d40d881312fdd3b21fa32d0063b372ef47bcd639f",
+      "drive_file_id": "1g1m2UC6zCJk6UdmupBq93KEFueJsIz62"
+    },
+    "release_receipt_drive_file_id": "1P-rR-SOTzMre72iPEdBWCyLCYWf_WSZH",
+    "sha256sums_drive_file_id": "1sCHnOcDJQfLSWThbN5Tes-LUQbcUixI3",
+    "actions_artifact_drive_file_id": "13L05hNTRIKx5nHU48hoOC5KIXaZiHAQR",
+    "drive_folder_id": "13ivZVHJLkqDIctpxdH-BmH6YkzZP38La"
   },
-  "updated_at": "2026-08-29T18:06:00Z"
+  "notes": [
+    "A later status-only release-branch run failed closed because canonical run 16 had already created v0.14.12; no tag was moved and no partial replacement release was published.",
+    "The immutable release tag remains the reproducible v0.14.12 source boundary; this post-release status record is metadata only."
+  ],
+  "updated_at": "2026-08-29T18:14:30Z"
 }
