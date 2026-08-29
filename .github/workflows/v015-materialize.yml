@@ -1,0 +1,43 @@
+name: v0.15.0 materialize exact source
+
+on:
+  push:
+    branches:
+      - feat/v0.15.0-project-atlas-compounding-brain
+    paths:
+      - '.pc-v015/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct and verify frozen patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .pc-v015/part-* > /tmp/v0.15.0.patch.b64
+          printf '%s  %s\n' '1a851fa2840f65edc00c134af1e1493fb10fa9961a48d7d5a52e64bbcfd8e180' '/tmp/v0.15.0.patch.b64' | sha256sum -c -
+          base64 -d /tmp/v0.15.0.patch.b64 > /tmp/v0.15.0.patch.gz
+          printf '%s  %s\n' 'b3305b3302b0c6d377c67b854f4b873977d34c5243e49900afb705f98195864c' '/tmp/v0.15.0.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/v0.15.0.patch.gz > /tmp/v0.15.0.patch
+          printf '%s  %s\n' '10ddb2bd9ed2daa2f48baa27bc32435b2227fed5ded2269480932bdd3e59c4f1' '/tmp/v0.15.0.patch' | sha256sum -c -
+          git apply --check /tmp/v0.15.0.patch
+      - name: Materialize clean feature head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply /tmp/v0.15.0.patch
+          rm -rf .pc-v015
+          rm -f .github/workflows/v015-materialize.yml
+          git config user.name 'Project Constellation Release Bot'
+          git config user.email 'project-constellation@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: Project Atlas + Compounding Brain'
+          git push origin HEAD:feat/v0.15.0-project-atlas-compounding-brain
