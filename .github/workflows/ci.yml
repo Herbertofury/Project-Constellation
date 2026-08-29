@@ -28,7 +28,7 @@ jobs:
             echo "Bootstrap payload already consumed; continuing normal CI."
             exit 0
           fi
-          test "${#parts[@]}" -eq 6
+          test "${#parts[@]}" -eq 10
           cat "${parts[@]}" > /tmp/v0.14.12.patch.gz.b64
           echo "49671c54d9e254f63815cd07b73a45057090f9e60cff567107f1936afb32846d  /tmp/v0.14.12.patch.gz.b64" | sha256sum -c -
           base64 -d /tmp/v0.14.12.patch.gz.b64 | gzip -dc > /tmp/v0.14.12.patch
