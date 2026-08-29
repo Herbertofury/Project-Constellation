@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = 1;
+  const VERSION = 2;
   const STOP = new Set('a an and are as at be been being by chat chats complete completed did do does done for from has have i in into is it its latest new of on or our project projects support supported supports that the this to user verified version was we with works working'.split(' '));
 
   const normalize = (value, max = 12000) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -68,6 +68,23 @@
   const POSITIVE_RE = /\b(implemented|added|fixed|working|works|verified|passed|supported|supports|completed|complete|ready)\b/i;
   const NEGATIVE_RE = /\b(regressed|regression|broken|broke|failing|failed|missing|removed|lost|corrupt(?:ed|ion)?|no longer works|stopped working|doesn't work|does not work|not working)\b/i;
   const FOLLOWUP_RE = /\b(todo|remaining|still need(?:s)?|needs? to|next step|follow[- ]?up|blocked on|waiting on|not yet|unfinished|pending)\b/i;
+  const LIVE_HEALTH_STALE_MS = 15 * 60 * 1000;
+  const EXECUTION_ACTIVE_STATES = new Set(['healthy','running','tool-running','quiet-working','tool-quiet','uncertain-working','waiting-user']);
+  const EXECUTION_CRITICAL_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','blocked-approval','dead','tool-dead','capacity-reached','degraded','stale-page']);
+  const EXECUTION_WARNING_STATES = new Set(['rate-limited','errored','auth-required','unavailable','stalled','request-stalled','tool-stalled','capacity-watch','capacity-handoff']);
+
+  function liveHealthFresh(chat = {}, now = Date.now()) {
+    const observedAt = Number(chat.liveHealthUpdatedAt || 0);
+    return Boolean(chat.liveHealthState && observedAt && now - observedAt <= LIVE_HEALTH_STALE_MS);
+  }
+
+  function executionState(chat = {}, now = Date.now()) {
+    return String(liveHealthFresh(chat, now) ? chat.liveHealthState : (chat.status || 'idle')).toLowerCase();
+  }
+
+  function executionDetail(chat = {}, now = Date.now()) {
+    return normalize(liveHealthFresh(chat, now) ? (chat.liveHealthDetail || chat.statusDetail || '') : (chat.statusDetail || chat.liveHealthDetail || ''), 1200);
+  }
 
   function sentenceSignals(text, updatedAt = 0, sourceId = '') {
     const sentences = String(text || '').split(/(?<=[.!?\n])\s+/).map((part) => normalize(part, 600)).filter(Boolean).slice(0, 500);
@@ -114,11 +131,12 @@
 
     if (latest) {
       for (const chat of chats) {
-        if (['archived','unavailable'].includes(chat.status)) continue;
+        const state = executionState(chat, now);
+        if (['archived','unavailable'].includes(state)) continue;
         const cv = projectScopedVersion(`${chat.title || ''} ${chat.lastExcerpt || ''}`, project);
         if (!cv || compareVersions(cv, latest) >= 0) continue;
         findings.push({
-          type: 'old-version-chat', severity: ['running','paused','stalled','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required'].includes(chat.status) ? 'critical' : 'warning',
+          type: 'old-version-chat', severity: (EXECUTION_ACTIVE_STATES.has(state) || EXECUTION_CRITICAL_STATES.has(state) || ['paused','stalled','request-stalled','tool-stalled'].includes(state)) ? 'critical' : 'warning',
           projectId: project.id, chatId: chat.id, title: `Chat appears to be on v${cv.version} while project is at v${latest.version}`,
           detail: `${chat.title || 'Untitled chat'} may be working from an older project state.`, evidence: { chatVersion: cv.version, latestVersion: latest.version, latestSource: latest.label || latest.sourceId }, updatedAt: now
         });
@@ -168,9 +186,11 @@
     const turnsByChat = new Map();
     for (const turn of orderedTurns) { const list = turnsByChat.get(turn.chatId) || []; list.push(turn); turnsByChat.set(turn.chatId, list); }
     for (const [chatId, list] of turnsByChat) {
-      const chat = chatById.get(chatId); if (!chat || !list.length || ['archived','unavailable'].includes(chat.status)) continue;
+      const chat = chatById.get(chatId); if (!chat || !list.length) continue;
+      const state = executionState(chat, now);
+      if (['archived','unavailable'].includes(state)) continue;
       const last = list.at(-1);
-      if (last?.role === 'user' && !['running','waiting-user'].includes(chat.status)) {
+      if (last?.role === 'user' && !EXECUTION_ACTIVE_STATES.has(state)) {
         findings.push({ type: 'unanswered-chat', severity: 'warning', projectId: project.id, chatId, title: 'Chat may need a follow-up', detail: `${chat.title || 'Untitled chat'} ends with a user turn and no later assistant turn was captured.`, updatedAt: now });
       } else if (last?.role === 'assistant' && FOLLOWUP_RE.test(last.text || '')) {
         findings.push({ type: 'follow-up-needed', severity: 'info', projectId: project.id, chatId, title: 'Assistant left follow-up work', detail: normalize(last.text, 320), updatedAt: now });
@@ -178,14 +198,20 @@
     }
 
     for (const chat of chats) {
-      if (['delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(chat.status)) {
+      const state = executionState(chat, now);
+      const detail = executionDetail(chat, now);
+      if (['delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(state)) {
         const titles = { 'delivery-timeout':'Message delivery timed out', 'connection-interrupted':'Chat connection interrupted', 'response-interrupted':'Response interrupted', 'send-failed':'Message was not sent' };
         const recovery = chat.failureRetryAvailable ? `${chat.failureRetryLabel || 'Retry'} is available as an explicit user action in the already-open tab.` : 'No native retry is currently available; recovery remains manual.';
-        findings.push({ type:`chat-${chat.status}`, severity:'critical', projectId:project.id, chatId:chat.id, title:titles[chat.status], detail:`${chat.statusDetail || 'The provider interrupted the current turn.'} ${recovery} Constellation never retries automatically.`, updatedAt:now });
+        findings.push({ type:`chat-${state}`, severity:'critical', projectId:project.id, chatId:chat.id, title:titles[state], detail:`${detail || 'The provider interrupted the current turn.'} ${recovery} Constellation never retries automatically.`, updatedAt:now });
       }
-      else if (chat.status === 'refresh-required') findings.push({ type: 'refresh-required', severity: 'critical', projectId: project.id, chatId: chat.id, title: 'Chat requires a browser refresh', detail: `${chat.statusDetail || 'The provider explicitly requires a page refresh.'} Recovery policy: manual browser refresh.`, updatedAt: now });
-      else if (chat.status === 'rate-limited') findings.push({ type: 'chat-rate-limited', severity: 'warning', projectId: project.id, chatId: chat.id, title: 'Chat is provider rate limited', detail: `${chat.statusDetail || 'Too many requests detected.'} Constellation will wait for the provider cooldown instead of retrying aggressively.`, updatedAt: now });
-      else if (['blocked-approval','stalled','errored','auth-required'].includes(chat.status)) findings.push({ type: `chat-${chat.status}`, severity: chat.status === 'blocked-approval' ? 'critical' : 'warning', projectId: project.id, chatId: chat.id, title: `Chat is ${chat.status.replace(/-/g,' ')}`, detail: chat.statusDetail || chat.title || 'Chat needs attention.', updatedAt: now });
+      else if (state === 'refresh-required') findings.push({ type: 'refresh-required', severity: 'critical', projectId: project.id, chatId: chat.id, title: 'Chat requires a browser refresh', detail: `${detail || 'The provider explicitly requires a page refresh.'} Recovery policy: manual browser refresh.`, updatedAt: now });
+      else if (state === 'rate-limited') findings.push({ type: 'chat-rate-limited', severity: 'warning', projectId: project.id, chatId: chat.id, title: 'Chat is provider rate limited', detail: `${detail || 'Too many requests detected.'} Constellation will wait for the provider cooldown instead of retrying aggressively.`, updatedAt: now });
+      else if (state === 'capacity-watch') findings.push({ type: 'chat-capacity-watch', severity: 'warning', projectId: project.id, chatId: chat.id, title: 'Conversation runway is getting low', detail: detail || 'Capacity Guard recommends preparing a continuation before provider limits become urgent.', updatedAt: now });
+      else if (state === 'capacity-handoff') findings.push({ type: 'chat-capacity-handoff', severity: 'warning', projectId: project.id, chatId: chat.id, title: 'Conversation handoff is recommended now', detail: detail || 'Capacity Guard recommends creating a continuation checkpoint now.', updatedAt: now });
+      else if (state === 'capacity-reached') findings.push({ type: 'chat-capacity-reached', severity: 'critical', projectId: project.id, chatId: chat.id, title: 'Conversation capacity was reached', detail: detail || 'The provider reports that this conversation can no longer continue normally.', updatedAt: now });
+      else if (['dead','tool-dead','degraded','stale-page'].includes(state)) findings.push({ type: `chat-${state}`, severity: 'critical', projectId: project.id, chatId: chat.id, title: `Chat health is ${state.replace(/-/g,' ')}`, detail: detail || chat.title || 'The current run has corroborated critical health evidence.', updatedAt: now });
+      else if (['blocked-approval','stalled','request-stalled','tool-stalled','errored','auth-required','unavailable'].includes(state)) findings.push({ type: `chat-${state}`, severity: state === 'blocked-approval' ? 'critical' : 'warning', projectId: project.id, chatId: chat.id, title: `Chat is ${state.replace(/-/g,' ')}`, detail: detail || chat.title || 'Chat needs attention.', updatedAt: now });
     }
 
     const deduped = [...new Map(findings.map((finding) => [`${finding.type}:${finding.chatId || ''}:${(finding.fileIds || []).join(',')}:${finding.title}`, finding])).values()];
@@ -197,7 +223,7 @@
     };
   }
 
-  const api = Object.freeze({ VERSION, parseVersion, compareVersions, projectScopedVersion, normalizeArtifactStem, sentenceSignals, overlapScore, analyzeProject });
+  const api = Object.freeze({ VERSION, parseVersion, compareVersions, projectScopedVersion, normalizeArtifactStem, sentenceSignals, overlapScore, liveHealthFresh, executionState, analyzeProject });
   globalThis.ProjectConstellationIntegrityCore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

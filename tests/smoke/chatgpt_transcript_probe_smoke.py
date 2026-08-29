@@ -58,6 +58,8 @@ with sync_playwright() as p:
     assert deep_state['visibleTurnCount']==2 and deep_state['activeBranchMessages']==3
     assert deep_state['structuredMessages']==1 and deep_state['toolMessages']==1
     assert deep_state['contextChars'] > 40 and deep_state['latestAssistantChars'] > 20
+    assert any(row['kind']=='deep-research' and row['operation']=='research_kickoff_tool.start_research_task' and row['status']=='running' and row['progressPercent']==42 for row in deep_state['activityTrail'])
+    assert all(set(row).issubset({'kind','operation','status','progressPercent','observedAt'}) for row in deep_state['activityTrail'])
     assert 'SECRET_MUST_STAY_IN_MAIN_WORLD' not in serialized
     assert not errors
     browser.close()

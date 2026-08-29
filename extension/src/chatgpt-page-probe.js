@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.11';
+  const VERSION = '0.14.12';
   const REQUEST_SOURCE = 'project-constellation';
   const RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
   const REQUEST_KIND = 'chatgpt-transcript-request';
@@ -156,6 +156,43 @@
     return 'waiting-response';
   }
 
+
+  function safeOperation(message) {
+    const candidates = [
+      message?.metadata?.tool_name,
+      message?.metadata?.operation,
+      message?.metadata?.command,
+      message?.recipient,
+      message?.author?.name,
+      message?.content?.content_type
+    ];
+    for (const candidate of candidates) {
+      const value = clean(candidate || '', 140);
+      if (!value) continue;
+      const token = value.replace(/[^a-zA-Z0-9_.:/-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
+      if (token) return token;
+    }
+    return '';
+  }
+
+  function activityTrailFromTail(tail = []) {
+    const trail = [];
+    for (const entry of tail.slice(-12)) {
+      const message = entry?.message;
+      if (!message || roleOf(message) === 'user') continue;
+      const widget = findWidgetState(message);
+      const status = widgetStatus(widget) || messageStatus(message);
+      trail.push({
+        kind:phaseFromMessage(message, widget),
+        operation:safeOperation(message),
+        status,
+        progressPercent:widgetProgress(widget),
+        observedAt:messageTimeMs(message, 'update_time') || messageTimeMs(message, 'create_time') || 0
+      });
+    }
+    return trail.slice(-8);
+  }
+
   function buildActiveChain(conversation) {
     const mapping = conversation?.mapping;
     if (!mapping || typeof mapping !== 'object') return [];
@@ -184,7 +221,7 @@
         latestRole:'', latestMessageStatus:'', endTurn:false, isComplete:false, modelSlug:'', asyncTaskId:'',
         widgetStatus:'', progressPercent:null, toolCount:0, phase:'unknown', visibleTurnCount:0,
         activeBranchMessages:0, structuredMessages:0, toolMessages:0, contextChars:0, visibleChars:0, recentAverageChars:0,
-        latestAssistantChars:0, responseStartedAt:0, latestUserCreatedAt:0, latestAssistantCreatedAt:0, latestAssistantUpdatedAt:0, observedAt:Date.now()
+        latestAssistantChars:0, responseStartedAt:0, latestUserCreatedAt:0, latestAssistantCreatedAt:0, latestAssistantUpdatedAt:0, activityTrail:[], observedAt:Date.now()
       };
     }
 
@@ -300,6 +337,7 @@
       latestUserCreatedAt:messageTimeMs(latestUser?.message, 'create_time'),
       latestAssistantCreatedAt:messageTimeMs(assistantMessage, 'create_time'),
       latestAssistantUpdatedAt:messageTimeMs(assistantMessage, 'update_time') || messageTimeMs(assistantMessage, 'create_time'),
+      activityTrail:activityTrailFromTail(tail),
       observedAt:Date.now()
     };
   }

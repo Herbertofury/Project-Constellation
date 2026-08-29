@@ -26,4 +26,25 @@ const rollback = core.analyzeProject({
   turns:[], previousBaseline:{latestVersion:'0.10.0',latestVersionSource:'Project-Constellation-v0.10.0-source.zip'}, now:50
 });
 assert(rollback.findings.some((f)=>f.type==='project-version-rollback'&&f.severity==='critical'&&f.evidence.previousVersion==='0.10.0'&&f.evidence.currentVersion==='0.9.0'));
+
+const now = 2_000_000;
+const liveTruth = core.analyzeProject({
+  project:{id:'p3',name:'Project Constellation'},
+  chats:[
+    {id:'live-stall',title:'Project Constellation v0.14.12 truth run',status:'running',liveHealthState:'tool-stalled',liveHealthDetail:'Tool card and request lifecycle are both stale.',liveHealthUpdatedAt:now-1000,updatedAt:now-1000},
+    {id:'uncertain',title:'Project Constellation v0.14.12 uncertain run',status:'running',liveHealthState:'uncertain-working',liveHealthDetail:'Activity uncertain · do not interrupt yet',liveHealthUpdatedAt:now-1000,updatedAt:now-1000},
+    {id:'capacity',title:'Project Constellation v0.14.12 capacity run',status:'running',liveHealthState:'capacity-reached',liveHealthDetail:'Provider reports conversation maximum length.',liveHealthUpdatedAt:now-1000,updatedAt:now-1000},
+    {id:'stale-live',title:'Project Constellation v0.14.12 stale health',status:'running',liveHealthState:'tool-dead',liveHealthUpdatedAt:now-(16*60*1000),updatedAt:now-1000}
+  ],
+  files:[],
+  turns:[
+    {id:'u1',chatId:'uncertain',role:'user',ordinal:1,text:'Continue the work.',updatedAt:now-1500}
+  ], now
+});
+assert(liveTruth.findings.some((f)=>f.type==='chat-tool-stalled'&&f.chatId==='live-stall'&&f.severity==='warning'));
+assert(liveTruth.findings.some((f)=>f.type==='chat-capacity-reached'&&f.chatId==='capacity'&&f.severity==='critical'));
+assert(!liveTruth.findings.some((f)=>f.chatId==='uncertain'&&(f.type==='unanswered-chat'||f.type==='chat-uncertain-working')));
+assert(!liveTruth.findings.some((f)=>f.chatId==='stale-live'&&f.type==='chat-tool-dead'));
+assert.equal(core.executionState({status:'running',liveHealthState:'tool-stalled',liveHealthUpdatedAt:now-1},now),'tool-stalled');
+assert.equal(core.executionState({status:'running',liveHealthState:'tool-stalled',liveHealthUpdatedAt:now-(16*60*1000)},now),'running');
 console.log('integrity-core.test.mjs: PASS');

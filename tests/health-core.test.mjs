@@ -11,6 +11,7 @@ assert.equal(row.activity.kind,'tool');
 assert.equal(row.activity.entryCount,4);
 assert.equal(row.proof.evidenceOnly,true);
 assert.equal(row.proof.certainty,'high');
+assert.equal(row.proof.verdict,'active');
 assert.deepEqual(new Set(row.proof.sources.map((item)=>item.kind)),new Set(['network','tool','response','status']));
 
 row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-180000, network:{pending:1,oldestPendingAt:now-175000,lastStartAt:now-175000,lastResponseAt:now-175000}, tool:{present:true,active:true,label:'Called tool',phase:'tool call',lastProgressAt:now-180000,entryCount:9}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
@@ -24,11 +25,20 @@ assert.equal(row.level,'critical');
 assert.match(row.title,/appears dead/i);
 
 row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-260000, network:{pending:0,lastCompleteAt:now-270000}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
-assert.equal(row.state,'dead');
-assert.equal(row.level,'critical');
+assert.equal(row.state,'uncertain-working', 'a stale running label alone must never create a false dead-chat alarm');
+assert.equal(row.proof.verdict,'uncertain');
+assert.equal(row.recommendedAction,'');
 
 row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-180000, network:{pending:0,lastCompleteAt:now-180000}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
-assert.equal(row.state,'stalled');
+assert.equal(row.state,'uncertain-working', 'a stale running label alone must never create a false stall alarm');
+
+row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-180000, provider:{status:'in_progress',observedAt:now-1000,currentTurnOwned:true}, tool:{present:true,active:true,label:'Deep research',lastProgressAt:now-180000}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
+assert.equal(row.state,'tool-running', 'fresh provider transcript heartbeat outranks a stale visible tool card');
+assert.equal(row.proof.verdict,'active');
+assert(row.proof.sources.some((item)=>item.kind==='provider' && item.active));
+
+row = core.deriveHealth({ now, chatStatus:'running', lastTurnProgressAt:now-180000, runtime:{currentTurnOwned:true,requestActive:true,stopControl:true}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
+assert.equal(row.state,'stalled', 'a stall still requires corroborated current-turn activity, not just status text');
 
 row = core.deriveHealth({ now, chatStatus:'idle', page:{catalogAhead:true} });
 assert.equal(row.state,'stale-page');

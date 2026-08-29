@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -15,33 +15,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Materialize verified v0.14.12 source
-        if: github.event_name == 'pull_request' && github.head_ref == 'feat/v0.14.12-black-box-truth-work-rescue'
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          parts=(.constellation/v0.14.12.patch.part*)
-          if [ "${#parts[@]}" -eq 0 ]; then
-            echo "Bootstrap payload already consumed; continuing normal CI."
-            exit 0
-          fi
-          test "${#parts[@]}" -eq 10
-          cat "${parts[@]}" > /tmp/v0.14.12.patch.gz.b64
-          echo "49671c54d9e254f63815cd07b73a45057090f9e60cff567107f1936afb32846d  /tmp/v0.14.12.patch.gz.b64" | sha256sum -c -
-          base64 -d /tmp/v0.14.12.patch.gz.b64 | gzip -dc > /tmp/v0.14.12.patch
-          echo "ed270e7d327822e37766590e261cb195a6a2ed32451c829f285ab8b72c3a6337  /tmp/v0.14.12.patch" | sha256sum -c -
-          patch -p1 --batch --forward < /tmp/v0.14.12.patch
-          rm -rf .constellation
-          git show 3395512bb16fd79b3ee4dd17623592db0109b5ea:.github/workflows/ci.yml > .github/workflows/ci.yml
-          git diff --check
-          git config user.name "Project Constellation CI"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -m "feat: Project Constellation v0.14.12 Black Box Truth + Work Rescue"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
       - uses: actions/setup-node@v7
         with:
           node-version: 24

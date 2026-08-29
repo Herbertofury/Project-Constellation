@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.14.12 — Black Box Truth + Work Rescue
+
+- Replaces single-signal stall conclusions with Health Core v10 multi-signal arbitration across provider/transcript heartbeats, DOM/tool progress, network/request lifecycle, current-turn ownership, composer/stop state, and contradiction evidence.
+- Adds `uncertain-working` as an explicit **do not interrupt yet** verdict when stale running UI is not corroborated; stale labels alone no longer become a stall incident.
+- Adds a privacy-bounded ChatGPT provider activity trail containing only categorical phase/operation/status/progress/timestamps—never prompt text, answer text, tool arguments, auth material, or chain-of-thought.
+- Adds ACK-backed Work Rescue journaling: streaming assistant revisions are reported saved only after the IndexedDB rescue transaction commits, with bounded self-retry and newest-revision preservation.
+- Clears stale `retryForbidden`, `automaticRetryForbidden`, and failure metadata after genuine recovery, and propagates fresh truth state into Home, Needs Attention, Project Integrity, and hot-upgrade HUD rendering.
+- Keeps `uncertain-working` out of Needs Attention/Integrity incidents while preserving corroborated stall/dead, provider interruption, capacity, and output-integrity alerts.
+- Preserves No Surprise Navigation: passive monitoring never retries, reloads, branches, opens, focuses, or navigates provider tabs automatically.
+
 ## 0.14.11 — Early Branch Guard
 
 - Fixes missed maximum-conversation warnings by counting full active-branch messages and structured tool/app overhead in Capacity Guard instead of relying mainly on visible turns and measured text.

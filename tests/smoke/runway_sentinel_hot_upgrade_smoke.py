@@ -65,10 +65,11 @@ with sync_playwright() as p:
     result={'first':first,'stalled':stalled,'stalledHud':stalled_hud,'runway':runway,'runwayHud':runway_hud,'early':early,'hardLimit':hard_limit,'errors':errors+errors2+errors3+errors4}
     print(json.dumps(result,sort_keys=True))
     assert first['chat']['status']=='running' and first['chat']['healthState'] in ('tool-running','working'), first
-    assert stalled['chat']['status']=='running' and stalled['chat']['healthState']=='tool-stalled', stalled
-    assert stalled['healthStale'] is True and stalled['healthActive'] is False
-    assert stalled_hud['state']=='tool-stalled' and stalled_hud['level']=='danger', stalled_hud
-    assert 'stuck' in stalled_hud['title'].lower() or 'stall' in stalled_hud['title'].lower(), stalled_hud
+    assert stalled['chat']['status']=='running' and stalled['chat']['healthState']=='uncertain-working', stalled
+    assert stalled['healthStale'] is False and stalled['healthActive'] is True
+    assert stalled['health']['proof']['verdict']=='uncertain' and stalled['health']['recommendedAction']=='', stalled
+    assert stalled_hud['state']=='uncertain-working' and stalled_hud['level']=='info', stalled_hud
+    assert 'uncertain' in stalled_hud['title'].lower() and 'interrupt' in stalled_hud['title'].lower(), stalled_hud
     assert runway['chat']['status']=='idle' and runway['chat']['healthState']=='capacity-handoff', runway
     assert runway['generation']['capacityTurnCount'] >= 260, runway
     assert runway_hud['state']=='capacity-handoff' and runway_hud['capacity']=='handoff', runway_hud

@@ -43,13 +43,16 @@ with sync_playwright() as p:
     pulse=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:h.dataset.state,title:s.getElementById('pcHealthTitle').textContent,tool:s.getElementById('pcHealthTool').textContent,activity:s.getElementById('pcHealthActivity').textContent,mini:s.getElementById('pcHealthMini').textContent}; }''')
     assert pulse['state']=='tool-running' and int(pulse['tool'].split()[0]) >= initial_steps + 3
     assert 'live request' in pulse['mini'] and 'Implementing truthful execution activity ledger' in pulse['mini'] and pulse['activity']
-    # A tool card that remains on-screen and busy with no fresh request or DOM/tool progress must become explicitly stuck.
+    # Black Box Truth: a stale visible tool card by itself is not enough evidence to tell
+    # the user to interrupt a run. Without provider/current-turn corroboration the HUD must
+    # fall back to uncertainty; the health-core contract separately proves that corroborated
+    # current-turn/runtime evidence still escalates to tool-stalled.
     page.evaluate('''() => { const now=Date.now();window.__healthContext={...window.__healthContext,capacity:{storedTurns:0},network:{pending:0,observed:true,oldestPendingAt:0,lastStartAt:now-20000,lastResponseAt:now-19000,lastCompleteAt:now-18000,lastErrorAt:0,lastStatusCode:200,rateLimited:false,streamLikely:false}}; }''')
     page.wait_for_timeout(11200)
     stuck=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:h.dataset.state,title:s.getElementById('pcHealthTitle').textContent,detail:s.getElementById('pcHealthDetail').textContent,network:s.getElementById('pcHealthNetwork').textContent,tool:s.getElementById('pcHealthTool').textContent,elapsed:s.getElementById('pcHealthElapsed').textContent,noProgress:s.getElementById('pcHealthProgress').textContent,level:h.dataset.level,branchText:s.getElementById('pcHealthBranch').textContent,branchUrgent:s.getElementById('pcHealthBranch').dataset.urgent}; }''')
-    assert stuck['state']=='tool-stalled' and stuck['title'].startswith('Tool call looks stuck') and stuck['network']=='quiet' and stuck['level']=='danger'
-    assert 'no live provider request' in stuck['detail'].lower() and 'step' in stuck['tool']
-    assert stuck['elapsed']!='—' and stuck['noProgress']!='—' and stuck['noProgress']!=active['noProgress'], (active, stuck)
+    assert stuck['state']=='uncertain-working' and 'do not interrupt' in stuck['title'].lower() and stuck['network']=='quiet', stuck
+    assert stuck['level'] in ['info','warning'] and 'stale running label alone is not enough' in stuck['detail'].lower(), stuck
+    assert stuck['noProgress']!='—' and stuck['noProgress']!=active['noProgress'], (active, stuck)
     assert 'Branch' in stuck['branchText'] and stuck['branchUrgent']=='0'
     page.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthHandoff').click()")
     page.wait_for_timeout(250)

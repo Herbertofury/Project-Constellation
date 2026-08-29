@@ -1,0 +1,34 @@
+{
+  "version": "0.14.12",
+  "codename": "Black Box Truth + Work Rescue",
+  "status": "local-full-verification-green-awaiting-github-ci",
+  "base": "v0.14.11",
+  "base_commit": "3395512bb16fd79b3ee4dd17623592db0109b5ea",
+  "focus": [
+    "truth-based multi-signal health consensus that prefers uncertain over false stall",
+    "privacy-bounded provider activity metadata with no prompt/answer/tool-argument leakage",
+    "ACK-backed streaming Work Rescue journaling with self-retry and newest-revision preservation",
+    "clear stale retryForbidden and legacy failure metadata after genuine recovery",
+    "propagate live truth into Home, Needs Attention, and Project Integrity without treating uncertain-working as an incident"
+  ],
+  "verification": {
+    "health_core_v10": "pass",
+    "integrity_core_v2": "pass",
+    "chatgpt_transcript_probe_smoke": "pass with sanitized activity trail",
+    "live_sentinel_smoke": "pass",
+    "background_smoke": "pass including ACK rescue, retry flag recovery, live attention, uncertain exclusion, and v0.14.12 hot-upgrade gate",
+    "home_smoke": "pass",
+    "full_verify": "equivalent gate complete: unit + validate + dev build + all 27 smokes",
+    "unit_contract": "10/10 pass",
+    "validate": "pass (56 UI message types owned)",
+    "browser_smokes": "27/27 pass in bounded system-Chromium gates",
+    "hot_upgrade_uncertain_hud": "pass"
+  },
+  "publication": {
+    "github": "pending coherent v0.14.12 branch/PR clean-room CI",
+    "drive_folder_id": "13ivZVHJLkqDIctpxdH-BmH6YkzZP38La",
+    "drive_dev_unpacked_file_id": "1vI-v4bHtsk-i849nTaCtgqhzitS5iO1U",
+    "drive": "dev checkpoint will be refreshed after this final local mutation set"
+  },
+  "updated_at": "2026-08-29T17:54:00Z"
+}
