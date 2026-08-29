@@ -21,6 +21,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git show 0432c3bf9a5044b7eaa81d482557901f158b572a:.pc-v015/part-005 > /tmp/part-005.original
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('/tmp/part-005.original')
+          s=p.read_text()
+          old='qmsJlsxr148'
+          new='qmsJlsxxr148'
+          assert s.count(old) == 1, f'expected one repair target, got {s.count(old)}'
+          p.write_text(s.replace(old,new))
+          PY
+          test "$(wc -c < /tmp/part-005.original)" = '3000'
+          test "$(git hash-object /tmp/part-005.original)" = '859ac1f47060b86252173766930c36bd06b64a15'
+          cp /tmp/part-005.original .pc-v015/part-005
           cat .pc-v015/part-* > /tmp/v0.15.0.patch.b64
           printf '%s  %s\n' '1a851fa2840f65edc00c134af1e1493fb10fa9961a48d7d5a52e64bbcfd8e180' '/tmp/v0.15.0.patch.b64' | sha256sum -c -
           base64 -d /tmp/v0.15.0.patch.b64 > /tmp/v0.15.0.patch.gz
