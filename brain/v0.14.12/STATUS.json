@@ -1,7 +1,7 @@
 {
   "version": "0.14.12",
   "codename": "Black Box Truth + Work Rescue",
-  "status": "materialized-github-head-awaiting-clean-room-ci",
+  "status": "release-workflow-pending",
   "base": "v0.14.11",
   "base_commit": "3395512bb16fd79b3ee4dd17623592db0109b5ea",
   "focus": [
@@ -18,23 +18,26 @@
     "live_sentinel_smoke": "pass",
     "background_smoke": "pass including ACK rescue, retry flag recovery, live attention, uncertain exclusion, and v0.14.12 hot-upgrade gate",
     "home_smoke": "pass",
-    "full_verify": "equivalent local gate complete: unit + validate + dev build + all 27 smokes",
+    "local_full_verify": "pass: unit + validate + dev build + all 27 browser smokes",
     "unit_contract": "10/10 pass",
     "validate": "pass (56 UI message types owned)",
     "browser_smokes": "27/27 pass in bounded system-Chromium gates",
     "hot_upgrade_uncertain_hud": "pass",
     "materialization_gate": "pass: payload and decompressed patch SHA-256 verified before source mutation",
-    "clean_room_ci": "pending user-authored PR head run"
+    "clean_room_ci": "pass: Verify run 64 on PR head a9cfdf6903c7e126efac31fb7fe023052f1b2b28"
   },
   "publication": {
     "github_pr": "https://github.com/Herbertofury/Project-Constellation/pull/15",
     "materialized_head": "7816d880d0e842369aa9c810a91afd4397a39a00",
-    "github": "22-file source delta materialized; bootstrap payload removed; awaiting normal PR CI",
+    "verified_pr_head": "a9cfdf6903c7e126efac31fb7fe023052f1b2b28",
+    "main_merge_commit": "93cd4a11e0f50f8cb3bbe29fc730b58275f23cbc",
+    "release_branch": "release/v0.14.12",
+    "github": "PR merged after exact-head clean-room CI; production release workflow pending",
     "drive_folder_id": "13ivZVHJLkqDIctpxdH-BmH6YkzZP38La",
     "drive_dev_unpacked_file_id": "1vI-v4bHtsk-i849nTaCtgqhzitS5iO1U",
     "drive_source_checkpoint_file_id": "1eiCis2zkouohVkFK2rwfdWVMOv3dHA3D",
     "drive_checksums_file_id": "1s3OhSii3JsRfEkIumL20xVowRKpqrMwg",
     "drive": "dev/source checkpoint round-trip verified by exact byte size and SHA-256"
   },
-  "updated_at": "2026-08-29T18:06:00Z"
+  "updated_at": "2026-08-29T18:10:00Z"
 }
