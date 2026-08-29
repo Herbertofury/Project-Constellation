@@ -2,7 +2,7 @@
 
 ## Workspace and organization
 
-Home provides cross-provider search, projects/groups, smart collections, pinned/favorite chats, artifact lineage, activity, attention queues, and configurable workbench panels. Knowledge Vault derives bounded local records for decisions, recommendations, links, code, commands, versions, packages, media, and follow-ups.
+Home provides cross-provider search, projects/groups, smart collections, pinned/favorite chats, artifact lineage, activity, attention queues, and configurable workbench panels. **Project Atlas** groups work by project and then Active / Needs attention / Completed / Archived state, while **Project Brain** compiles a bounded working context from source-backed Knowledge Vault records. Knowledge Vault continues to preserve the detailed local records for decisions, recommendations, links, code, commands, versions, packages, media, and follow-ups.
 
 ## Capture modes
 
@@ -23,7 +23,7 @@ The HUD never sends provider requests and never claims access to hidden model re
 
 The popup Chat Pulse and the collapsed in-page Pulse navigator share one canonical live-tab snapshot. Opening Active, Needs Attention, or Completed shows every matching open chat with a compact three-level row: the provider/browser title, a bounded task context line, then project/provider/state/model/group metadata. When the browser title is vague, the task line uses the latest locally captured user request; active chats can additionally show the current observable tool label as `Now: …`. Completed chats retain `Last task · …` so a finished tab is still recognizable later.
 
-Project names come from Constellation’s existing local workspace/provider catalog. A user-created Chrome tab group remains explicitly a **Group**, not a guessed project. Context enrichment is local IndexedDB work only: capture maintains a bounded latest-user excerpt for fast reads, older records use a bounded reverse lookup, and no new provider-page request or transcript-wide scan is introduced by opening Pulse.
+Project names come from Constellation’s existing local workspace/provider catalog. Native managed groups default to **Project + state** when that identity is known, with a State-only compatibility option. A user-created Chrome tab group remains explicitly a **Group**, not a guessed project, and is never stolen by automatic sorting. Context enrichment is local IndexedDB work only: capture maintains a bounded latest-user excerpt for fast reads, older records use a bounded reverse lookup, and no new provider-page request or transcript-wide scan is introduced by opening Pulse.
 
 ### Output Vault
 

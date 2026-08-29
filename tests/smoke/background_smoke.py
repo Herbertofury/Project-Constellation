@@ -6,9 +6,10 @@ brain=(root/'src/brain-core.js').read_text()
 providers=(root/'src/provider-core.js').read_text()
 integrity=(root/'src/integrity-core.js').read_text()
 knowledge=(root/'src/knowledge-core.js').read_text()
+memory=(root/'src/project-memory-core.js').read_text()
 health=(root/'src/health-core.js').read_text()
 bg=(root/'background.js').read_text()
-bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
+bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|project-memory-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
 mock=f"""
 (() => {{
  const bag={{}}; const listeners={{}};
@@ -86,6 +87,7 @@ with sync_playwright() as p:
     page.add_script_tag(content=providers)
     page.add_script_tag(content=integrity)
     page.add_script_tag(content=knowledge)
+    page.add_script_tag(content=memory)
     page.add_script_tag(content=health)
     page.add_script_tag(content=bg)
     page.wait_for_timeout(100)

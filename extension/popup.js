@@ -19,6 +19,7 @@
     tabTitleStatusEnabled:true,
     tabFaviconStatusEnabled:true,
     tabGroupingEnabled:true,
+    tabGroupingMode:'project-status',
     activeEmoji:'🟣', staleEmoji:'⚠️', completedEmoji:'✅',
     activeColor:'#8b5cf6', staleColor:'#e0a458', completedColor:'#45bd8c',
     activeGroupColor:'purple', staleGroupColor:'orange', completedGroupColor:'green'
@@ -31,7 +32,7 @@
     'enabled','responsiveScrolling','adaptiveMotionRelief','pressure','status','longTasks','maxTask','provider','chatState','resetMetrics',
     'openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','activeSummary','staleSummary','completedSummary','activeCount','staleCount','completedCount',
     'activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled',
-    'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor',
+    'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor',
     'activeGroupColor','staleGroupColor','completedGroupColor','customTabTag','applyTabTag','clearTabTag','tabTagHint','tagPresets','chatListPanel','chatListEyebrow','chatListTitle','chatList','closeChatList'
   ];
   const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
@@ -60,6 +61,7 @@
     for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].checked = Boolean(currentSettings[key]);
     for (const key of ['statusPinEnabled','outputWarningsEnabled','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled']) els[key].checked = pulseSettings[key] !== false;
     els.outputWarningStrictness.value = ['relaxed','balanced','strict'].includes(pulseSettings.outputWarningStrictness) ? pulseSettings.outputWarningStrictness : 'balanced';
+    els.tabGroupingMode.value = ['project-status','status'].includes(pulseSettings.tabGroupingMode) ? pulseSettings.tabGroupingMode : 'project-status';
     for (const key of ['activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].value = pulseSettings[key] || PULSE_DEFAULTS[key];
     els.chatPulse.hidden = pulseSettings.statusPinEnabled === false;
   }
@@ -288,6 +290,7 @@
       tabTitleStatusEnabled:els.tabTitleStatusEnabled.checked,
       tabFaviconStatusEnabled:els.tabFaviconStatusEnabled.checked,
       tabGroupingEnabled:els.tabGroupingEnabled.checked,
+      tabGroupingMode:els.tabGroupingMode.value,
       activeEmoji:safe(els.activeEmoji.value, 12) || PULSE_DEFAULTS.activeEmoji,
       staleEmoji:safe(els.staleEmoji.value, 12) || PULSE_DEFAULTS.staleEmoji,
       completedEmoji:safe(els.completedEmoji.value, 12) || PULSE_DEFAULTS.completedEmoji,
@@ -310,7 +313,7 @@
   }
 
   for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].addEventListener('change', savePerformance);
-  for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
+  for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
 
   for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click', () => {
     const bucket = card.dataset.chatBucket || (card === els.completedSummary ? 'completed' : card === els.staleSummary ? 'stale' : 'active');

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.0 — Project Atlas + Compounding Brain
+
+- Adds a deterministic, source-backed Project Brain compiler over Knowledge Vault/project continuity with bounded working context, provenance, confidence, active work, and memory coverage.
+- Adds a durable concept-level memory policy ledger: Pin, Ignore, Restore, and superseded history survive recompilation/re-indexing without deleting raw evidence.
+- Reorganizes Home around Project + state clusters and Active / Needs attention / Completed / Archived lanes, with State-only and Flat compatibility modes.
+- Makes native Chrome groups project-aware by default while preserving the existing never-steal-user-groups and verify-before-cache convergence contracts.
+- Grounds the second-brain architecture in the full WikiSkill paper review under `docs/research/wikiskill-2608.27454-integration.md`.
+- Preserves v0.14.12 Black Box Truth, Work Rescue, Capacity Guard, Output Vault, No Surprise Navigation, and recovery behavior.
+
 ## 0.14.12 — Black Box Truth + Work Rescue
 
 - Replaces single-signal stall conclusions with Health Core v10 multi-signal arbitration across provider/transcript heartbeats, DOM/tool progress, network/request lifecycle, current-turn ownership, composer/stop state, and contradiction evidence.

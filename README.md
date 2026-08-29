@@ -2,16 +2,17 @@
 
 Project Constellation is a privacy-conscious Chrome extension that turns AI chats into an organized, searchable, recoverable workspace. It passively captures mounted conversation state, tracks generated artifacts and project continuity, detects stalled or blocked work, and creates verified recovery checkpoints without adding network traffic from the content script.
 
-The v0.14 line is the standalone successor to v0.13.0. This repository is now the canonical source; it no longer depends on ProjectDump.
+The v0.15 line builds on the standalone v0.14 foundation with Project Atlas + Compounding Brain. This repository is the canonical source; it no longer depends on ProjectDump.
 
 ## What it does
 
-- Organizes chats, projects, groups, files, links, decisions, recommendations, and follow-ups across supported AI providers.
+- Organizes chats, projects, groups, files, links, decisions, recommendations, and follow-ups across supported AI providers, with Project + state lanes for concurrent work.
+- Compiles source-backed project knowledge into a bounded Project Brain working set with provenance, confidence, and durable Pin / Ignore / Restore policy history.
 - Preserves a local IndexedDB “brain,” immutable assistant-output revisions, full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.
 - Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, safe handoff guidance, and an always-available **Branch & continue** action.
 - Uses deeper ChatGPT-specific live-state proof when available: the page-world probe reduces the current transcript branch to sanitized status metadata (`finished_successfully`, `end_turn`, model/task/widget state) while the extension keeps exact current-turn DOM evidence as a fallback. Conversation text and ChatGPT authentication material never cross that probe boundary.
-- Adds **Tab Beacons** for open AI chats: configurable Active/Needs Attention/Completed emoji in tab titles, dynamic status favicons, optional native Chrome status groups, toolbar live counts, persistent custom emoji/short tags, and right-click tag presets.
+- Adds **Tab Beacons** for open AI chats: configurable Active/Needs Attention/Completed emoji in tab titles, dynamic status favicons, optional native Chrome Project + state groups, toolbar live counts, persistent custom emoji/short tags, and right-click tag presets.
 - Adds a **Context Lens** to Chat Pulse and the collapsed Execution Pulse navigator: beneath each open-chat title it can show the latest locally captured task, canonical Constellation project, current observable tool step, provider/model/state, and tab-group context. Generic browser titles stay useful without any extra provider request.
 - Resolves opted-in ChatGPT connected-app cards as soon as they mount, including the current split **Allow ▾** control and provider-specific **Allow … for this conversation** option; recovered prompts are recorded only after the card visibly clears.
 - Adds an always-available, collapsible and full-workspace **Output Vault** beside Execution Pulse. The two surfaces share a collision-free corner dock, with Vault stacked above a compact live Pulse. It keeps the richest captured revision when a provider refresh replaces it with a shorter/tool-only state, reconstructs ChatGPT-like headings/lists/quotes/tables/code/links in Reader mode (with Raw text one click away), and recovers media references, inline media, files, builds, and revision history through copy, Markdown download, or a continuation branch.

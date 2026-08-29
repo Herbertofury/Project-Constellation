@@ -10,7 +10,8 @@ assert.ok(start >= 0 && end > start, 'group presentation implementation can be i
 const groups = new Map([
   [10, { id:10, windowId:1, title:'PC ✦ ⚠ Needs attention', color:'orange', collapsed:false }],
   [11, { id:11, windowId:1, title:'PC ✦ ✦ Active', color:'purple', collapsed:false }],
-  [12, { id:12, windowId:1, title:'My work', color:'blue', collapsed:false }]
+  [12, { id:12, windowId:1, title:'My work', color:'blue', collapsed:false }],
+  [13, { id:13, windowId:1, title:'PC ✦ ✦ Atlas · Active', color:'purple', collapsed:false }]
 ]);
 const tab = { id:7, windowId:1, groupId:10 };
 let failNextManagedMove = false;
@@ -93,6 +94,18 @@ result = await context.syncTabGroupNow(activeRow, cfg);
 assert.equal(result.ok, true, 'same desired active state is retryable');
 assert.equal(tab.groupId, 11, 'second reconciliation moves tab into Active');
 assert.equal(result.bucket, 'active', 'post-move verification confirms the actual managed bucket');
+
+// Project + state mode keeps parallel project work in its own managed lane.
+cfg.tabGroupingMode = 'project-status';
+tab.groupId = 10;
+const projectRow = { tabId:7, bucket:'active', context:{ projectName:'Atlas' } };
+result = await context.syncTabGroupNow(projectRow, cfg);
+assert.equal(result.ok, true, 'project-aware reconciliation succeeds');
+assert.equal(tab.groupId, 13, 'project-aware mode moves the tab into Atlas Active rather than the global Active lane');
+assert.equal(result.title, 'PC ✦ ✦ Atlas · Active');
+
+// State-only remains a first-class compatibility option.
+cfg.tabGroupingMode = 'status';
 
 // User-created groups are immutable under automatic status sorting.
 tab.groupId = 12;

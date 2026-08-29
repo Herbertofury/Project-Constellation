@@ -1,0 +1,34 @@
+{
+  "version": "0.15.0",
+  "codename": "Project Atlas + Compounding Brain",
+  "status": "local-acceptance-green-awaiting-github-ci",
+  "base": "v0.14.12",
+  "base_release_commit": "93cd4a11e0f50f8cb3bbe29fc730b58275f23cbc",
+  "focus": [
+    "source-backed project brain compiled from immutable evidence and Knowledge Vault records",
+    "concept-level memory policy ledger with pin, ignore, restore, provenance, and reindex persistence",
+    "project plus state organization in Home with active, attention, completed, and archived lanes",
+    "project-aware native Chrome tab groups while preserving user-created group ownership"
+  ],
+  "research": {
+    "paper": "https://arxiv.org/html/2608.27454",
+    "note": "docs/research/wikiskill-2608.27454-integration.md"
+  },
+  "verification": {
+    "project_memory_core": "pass",
+    "tab_group_convergence": "pass including project-aware mode",
+    "unit_suites": "11/11 pass",
+    "validate": "pass (58 UI message types owned)",
+    "browser_smokes": "27/27 pass in bounded system-Chromium runs",
+    "project_atlas_browser": "pass: project clusters + active/attention lanes + Project Brain provenance + memory gate",
+    "popup_grouping": "pass: project-status default + state-only persistence",
+    "full_verify": "equivalent complete local acceptance; monolithic wrapper time-limited after repeated green components"
+  },
+  "publication": {
+    "drive_folder_id": "12-V1gd6jUEM7PZkezGDWhqMa5o3wlVdT",
+    "checkpoint_dev_id": "1GCgY8axarNihEnIJbgTto49bcNpMF07g",
+    "checkpoint_source_id": "1ygJTWZDERJBwYoXRFPrC7o5Ia6nStg4v",
+    "drive_round_trip": "initial checkpoint exact; final checkpoint update pending"
+  },
+  "updated_at": "2026-08-29T18:50:53.957Z"
+}
