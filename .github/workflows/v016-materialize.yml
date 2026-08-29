@@ -1,0 +1,44 @@
+name: v0.16 materialize exact source
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify and apply exact v0.16 source delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'bec45b735d5000abbc6e946602027c696c603a6ab650a32448c53a9657b5fde3  .pc-v016/payload.b64' | sha256sum -c -
+          base64 -d .pc-v016/payload.b64 > /tmp/v016.patch.gz
+          echo '9c4b6d435badc0e12f11a3099a60af7000ea9b4112c420d421dea66c8e02f55e  /tmp/v016.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/v016.patch.gz > /tmp/v016.patch
+          echo 'd7f8dba02e49bc9bedf3e8299c94c842e0d03ee053a7dfb290be94cac935d0bd  /tmp/v016.patch' | sha256sum -c -
+          git apply --check /tmp/v016.patch
+          git apply /tmp/v016.patch
+          git diff --check
+          test "$(node -p "require('./package.json').version")" = '0.16.0'
+          test "$(node -p "require('./extension/manifest.json').version")" = '0.16.0'
+          test -f extension/src/project-router-core.js
+          test -f tests/project-scale.test.mjs
+          test -f docs/v0.16.0-release-notes.md
+      - name: Commit clean source and remove transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .pc-v016 .github/workflows/v016-materialize.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'Project Constellation Materializer'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'Build v0.16.0 Living Project Rooms + Safe Router'
+          git push origin HEAD:${GITHUB_REF_NAME}
