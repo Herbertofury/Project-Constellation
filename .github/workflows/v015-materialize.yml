@@ -60,6 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           git apply /tmp/v0.15.0.patch
+          sed -i 's/[[:space:]]\+$//' docs/research/wikiskill-2608.27454-integration.md
           rm -rf .pc-v015
           rm -f .github/workflows/v015-materialize.yml
           git config user.name 'Project Constellation Release Bot'
