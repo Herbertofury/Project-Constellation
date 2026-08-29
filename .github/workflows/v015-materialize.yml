@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git show 0432c3bf9a5044b7eaa81d482557901f158b572a:.pc-v015/part-005 > /tmp/part-005.original
+          git show deaf34c4c47d2b4523f8695886ba58c7e5976331:.pc-v015/part-005 > /tmp/part-005.original
           python3 - <<'PY'
           from pathlib import Path
           p=Path('/tmp/part-005.original')
