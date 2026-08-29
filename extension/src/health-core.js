@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 9;
+  const VERSION = 10;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -192,13 +192,28 @@
     const network = input.network || {};
     const page = input.page || {};
     const tool = input.tool || {};
+    const provider = input.provider || {};
+    const runtime = input.runtime || {};
     const findings = Array.isArray(input.integrityFindings) ? input.integrityFindings : [];
     const types = findingTypes(findings);
     const pending = Math.max(0, Number(network.pending || 0));
     const oldestPendingAt = Math.max(0, Number(network.oldestPendingAt || (pending ? network.lastStartAt : 0) || 0));
     const lastNetworkProgressAt = Math.max(Number(network.lastResponseAt || 0), Number(network.lastCompleteAt || 0), Number(network.lastErrorAt || 0));
     const lastNetworkAt = Math.max(Number(network.lastStartAt || 0), lastNetworkProgressAt);
-    const lastProgressAt = Math.max(Number(input.lastTurnProgressAt || 0), Number(input.lastDomProgressAt || 0), Number(input.lastStatusChangeAt || 0), Number(tool.lastProgressAt || 0));
+    const providerObservedAt = Math.max(0, Number(provider.observedAt || provider.transcriptObservedAt || 0));
+    const providerActivityAt = Math.max(0, Number(provider.lastActivityAt || provider.activityAt || 0), ...((Array.isArray(provider.activityTrail) ? provider.activityTrail : []).map((item) => Number(item?.observedAt || item?.at || 0))));
+    const providerStatus = String(provider.status || provider.transcriptStatus || '').toLowerCase();
+    const providerActiveClaim = ['running','in_progress','in-progress','streaming','thinking','generating','tool-running','active'].includes(providerStatus);
+    const providerFinalClaim = ['final','finished','complete','completed','done','idle'].includes(providerStatus);
+    const providerHeartbeatWindowMs = Math.max(12000, Math.min(30000, Math.round(cfg.softStallMs * 0.6)));
+    const providerHeartbeatFresh = providerActiveClaim && providerObservedAt > 0 && age(now, providerObservedAt) <= providerHeartbeatWindowMs;
+    const providerActivityFresh = providerActivityAt > 0 && age(now, providerActivityAt) <= cfg.hardStallMs;
+    const currentTurnOwned = runtime.currentTurnOwned === true || provider.currentTurnOwned === true;
+    const currentTurnRejected = runtime.currentTurnOwned === false || provider.currentTurnOwned === false;
+    const requestLifecycleActive = runtime.requestActive === true || provider.requestActive === true;
+    const stopControlActive = runtime.stopControl === true || provider.stopControl === true;
+    const composerBusy = runtime.composerBusy === true || runtime.busy === true || provider.composerBusy === true;
+    const lastProgressAt = Math.max(Number(input.lastTurnProgressAt || 0), Number(input.lastDomProgressAt || 0), Number(input.lastStatusChangeAt || 0), Number(tool.lastProgressAt || 0), providerActivityAt);
     const progressAgeMs = age(now, lastProgressAt);
     const networkAgeMs = age(now, lastNetworkAt);
     const networkProgressAgeMs = age(now, lastNetworkProgressAt || network.lastStartAt);
@@ -217,7 +232,14 @@
     if (toolPresent) chips.push(toolLabel || 'tool activity');
     if (toolEntryCount > 1) chips.push(`${toolEntryCount} tool steps seen`);
     if (input.baselineVersion) chips.push(`project v${input.baselineVersion}`);
-    const running = rawStatus === 'running' || Boolean(input.running);
+    const running = rawStatus === 'running' || Boolean(input.running) || providerHeartbeatFresh || requestLifecycleActive || stopControlActive || composerBusy;
+    const freshResponse = Number(input.lastTurnProgressAt || 0) > 0 && age(now, Number(input.lastTurnProgressAt || 0)) <= cfg.hardStallMs;
+    const freshDom = Number(input.lastDomProgressAt || 0) > 0 && age(now, Number(input.lastDomProgressAt || 0)) <= cfg.hardStallMs;
+    const freshTool = toolPresent && Number(tool.lastProgressAt || tool.startedAt || 0) > 0 && toolAgeMs <= cfg.hardStallMs;
+    const activeEvidenceScore = (providerHeartbeatFresh ? 5 : 0) + (providerActivityFresh ? 2 : 0) + (networkActive ? 3 : 0) + (freshResponse ? 2 : 0) + (freshDom ? 2 : 0) + (freshTool ? 2 : 0) + (currentTurnOwned ? 2 : 0) + (requestLifecycleActive ? 2 : 0) + (stopControlActive ? 1 : 0) + (composerBusy ? 1 : 0);
+    const contradictionScore = (currentTurnRejected ? 4 : 0) + (providerFinalClaim ? 4 : 0);
+    const consensusActive = providerHeartbeatFresh || activeEvidenceScore - contradictionScore >= 5;
+    const consensusUncertain = running && !consensusActive && !networkSilent;
 
     const emit = (row) => {
       const merged = { ...row, capacity };
@@ -226,13 +248,20 @@
       if (toolPresent) proofSources.push({ kind:'tool', label:toolLabel || 'tool activity', active:toolActive, at:Number(tool.lastProgressAt || tool.startedAt || 0) });
       if (Number(input.lastTurnProgressAt || 0)) proofSources.push({ kind:'response', label:'rendered response progress', active:running, at:Number(input.lastTurnProgressAt || 0) });
       if (Number(input.lastDomProgressAt || 0)) proofSources.push({ kind:'dom', label:'page DOM progress', active:running, at:Number(input.lastDomProgressAt || 0) });
-      if (rawStatus !== 'idle') proofSources.push({ kind:'status', label:`page reports ${rawStatus.replaceAll('-', ' ')}`, active:running, at:Number(input.lastStatusChangeAt || 0) });
+      if (providerObservedAt || providerStatus) proofSources.push({ kind:'provider', label:providerHeartbeatFresh ? `fresh provider heartbeat · ${providerStatus || 'active'}` : providerFinalClaim ? `provider reports ${providerStatus}` : `provider heartbeat ${providerStatus || 'observed'}`, active:providerHeartbeatFresh, at:providerObservedAt || providerActivityAt || 0 });
+      if (currentTurnOwned || currentTurnRejected) proofSources.push({ kind:'ownership', label:currentTurnOwned ? 'activity belongs to current turn' : 'activity does not match current turn', active:currentTurnOwned, at:providerObservedAt || now });
+      if (requestLifecycleActive) proofSources.push({ kind:'lifecycle', label:'current request lifecycle is active', active:true, at:lastNetworkAt || providerObservedAt || now });
+      if (stopControlActive || composerBusy) proofSources.push({ kind:'controls', label:stopControlActive ? 'provider stop control is active' : 'composer reports busy', active:true, at:providerObservedAt || now });
+      if (rawStatus !== 'idle') proofSources.push({ kind:'status', label:`page reports ${rawStatus.replaceAll('-', ' ')}`, active:false, at:Number(input.lastStatusChangeAt || 0) });
       if (page.catalogAhead || page.staleRevision || page.renderDegraded || page.refreshRequired || page.outputRegression?.active) proofSources.push({ kind:'page', label:page.outputRegression?.active ? 'saved output differs from page' : 'page integrity signal', active:false, at:now });
       const uniqueProof = [...new Map(proofSources.map((item) => [`${item.kind}:${item.label}`, item])).values()].slice(0, 8);
       const freshProof = uniqueProof.filter((item) => item.active || (item.at && now - item.at <= cfg.hardStallMs));
       merged.proof = {
         evidenceOnly:true,
-        certainty:freshProof.length >= 2 ? 'high' : freshProof.length === 1 ? 'medium' : 'limited',
+        certainty:consensusActive ? (activeEvidenceScore >= 7 ? 'high' : 'medium') : freshProof.length ? 'limited' : 'unknown',
+        verdict:consensusActive ? 'active' : consensusUncertain ? 'uncertain' : (providerFinalClaim || currentTurnRejected ? 'contradicted' : 'inactive'),
+        activeScore:activeEvidenceScore,
+        contradictionScore,
         sources:uniqueProof,
         lastObservedAt:Math.max(0, ...uniqueProof.map((item) => Number(item.at || 0)))
       };
@@ -297,7 +326,13 @@
 
     if (running || networkActive) {
       if (cfg.toolWatchdogEnabled && toolActive) {
-        const noProof = (!pending && progressAgeMs >= cfg.hardStallMs) || networkSilent;
+        const noProof = (!pending && progressAgeMs >= cfg.hardStallMs && !consensusActive) || networkSilent;
+        if (!networkSilent && providerHeartbeatFresh) {
+          return emit(result('tool-running','active',`Tool working · ${toolLabel}`,'The visible tool card is quiet, but a fresh provider/transcript heartbeat confirms the current turn is still advancing.',{ chips:[...chips,'provider heartbeat'], networkActive, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk, activity:toolActivity }));
+        }
+        if (!pending && noProof && consensusUncertain && toolAgeMs >= cfg.hardStallMs) {
+          return emit(result('uncertain-working','info','Activity uncertain · do not interrupt yet',`The page still claims this tool is running, but Constellation has no fresh provider, network, response, or tool heartbeat proving either progress or a stall. The stale running label alone is not enough to call the run stuck.`,{ chips:[...chips,'stale running claim','waiting for corroboration'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk, activity:toolActivity }));
+        }
         if (noProof && toolAgeMs >= cfg.deadStallMs && progressAgeMs >= cfg.deadStallMs) {
           return emit(result('tool-dead','critical',`Tool call appears dead · ${toolLabel}`,`The current tool step has shown no tool-card, conversation, or provider-network progress for ${Math.round(Math.max(toolAgeMs, progressAgeMs) / 1000)} seconds. Constellation is not auto-clicking Retry or pretending the tool is still healthy.`,{ chips:[...chips,'no proof of progress'], networkActive, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk, activity:toolActivity }));
         }
@@ -320,11 +355,14 @@
         }
         return emit(result('working','active','Chat is still working',pending ? 'The page may look quiet, but a provider request is in flight and recent progress evidence is still healthy.' : 'Recent provider network activity says the chat is still alive.',{ chips:[...chips,'network active'], networkActive:true, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk, activity:{ kind:'model', label:'Model / provider', phase:'working', ageMs:progressAgeMs } }));
       }
-      if (progressAgeMs >= cfg.deadStallMs) {
-        return emit(result('dead','critical','Chat appears dead',`No conversation, tool, or provider-network progress has been observed for ${Math.round(progressAgeMs / 1000)} seconds even though the page still reports active work.`,{ chips:[...chips,'no live request','no progress'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk }));
+      if (progressAgeMs >= cfg.hardStallMs && consensusUncertain) {
+        return emit(result('uncertain-working','info','Activity uncertain · do not interrupt yet',`The page still reports active work, but there is no fresh provider heartbeat, owned request, response growth, DOM growth, or tool progress to prove what is happening. Constellation will not turn one stale running label into a stall warning.`,{ chips:[...chips,'no corroborating heartbeat'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk }));
       }
-      if (progressAgeMs >= cfg.hardStallMs) {
-        return emit(result('stalled','danger','Chat stalled',`No conversation, tool, or provider-network progress has been observed for ${Math.round(progressAgeMs / 1000)} seconds while the chat still reports active work.`,{ chips:[...chips,'no live request'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk }));
+      if (progressAgeMs >= cfg.deadStallMs && consensusActive) {
+        return emit(result('dead','critical','Chat appears dead',`Multiple signals still identify this as the active current turn, but no conversation, tool, or provider-network progress has been observed for ${Math.round(progressAgeMs / 1000)} seconds.`,{ chips:[...chips,'active turn · no progress'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk }));
+      }
+      if (progressAgeMs >= cfg.hardStallMs && consensusActive) {
+        return emit(result('stalled','danger','Chat stalled',`Multiple current-turn signals still say work is active, but no observable progress has been seen for ${Math.round(progressAgeMs / 1000)} seconds.`,{ chips:[...chips,'active turn · no progress'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk }));
       }
       if (progressAgeMs >= cfg.softStallMs) {
         return emit(result('quiet-working','warning','Working quietly',`The UI has been quiet for ${Math.round(progressAgeMs / 1000)} seconds. Constellation is watching for network, tool-card, or DOM progress before declaring a stall.`,{ chips, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, projectRisk }));

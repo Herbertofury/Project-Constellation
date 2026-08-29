@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.11';
+  const VERSION = '0.14.12';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -41,11 +41,15 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
-  const HEALTH_CORE_VERSION = '9';
+  const HEALTH_CORE_VERSION = '10';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const STATE_EVENT = 'project-constellation:live-sentinel-state';
   const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
   const WATCHDOG_PRIMARY_STATES = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','capacity-watch','capacity-handoff','capacity-reached',...FAILURE_PRIMARY_STATES]);
+  // `uncertain-working` is a first-class truth verdict for presentation, but it is not
+  // an incident/stale state. Keep it out of WATCHDOG_PRIMARY_STATES so Attention and
+  // healthActive semantics never tell the user to interrupt an unproven stall.
+  const HUD_PRIMARY_STATES = new Set([...WATCHDOG_PRIMARY_STATES, 'uncertain-working']);
   const CHATGPT_PAGE_PROBE_REQUEST_SOURCE = 'project-constellation';
 
 
@@ -558,7 +562,7 @@
     };
   }
 
-  function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure }) {
+  function standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, stopControl, streamingNode, assistantBusy, failure }) {
     const core = healthCore();
     const settings = normalizedHealthSettings();
     if (!core || !settings || settings.enabled === false) return null;
@@ -596,6 +600,20 @@
         entryCount:Math.max(0, Number(rows?.length || 0))
       },
       capacity:capacityInput,
+      provider:transcript ? {
+        status:String(transcript.transcriptStatus || ''),
+        observedAt:Number(transcript.observedAt || 0),
+        lastActivityAt:Math.max(Number(transcript.latestAssistantUpdatedAt || 0), ...((Array.isArray(transcript.activityTrail) ? transcript.activityTrail : []).map((item) => Number(item?.observedAt || 0)))),
+        currentTurnOwned:true,
+        requestActive:Boolean(transcript.running),
+        activityTrail:Array.isArray(transcript.activityTrail) ? transcript.activityTrail.slice(-8) : []
+      } : null,
+      runtime:{
+        currentTurnOwned:Boolean(transcript),
+        requestActive:Boolean(transcript?.running),
+        stopControl:Boolean(stopControl),
+        composerBusy:Boolean(assistantBusy || streamingNode)
+      },
       failure:failure?.active ? {
         active:true,
         state:String(failure.state || failure.status || ''),
@@ -711,7 +729,7 @@
     const provider = providerInfo();
     const toolLabel = clean((currentActive || currentBusy || informative)?.label || '', 160);
     const toolPhase = transcript?.phase || (currentActive || currentBusy || informative)?.phase || '';
-    const fallbackHealth = standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, failure });
+    const fallbackHealth = standaloneHealth({ at, status, rows, transcript, frontier, progressiveTool, toolBusy, toolLabel, toolPhase, stopControl, streamingNode, assistantBusy:assistantBusyEvidence, failure });
     const watchdogState = watchdogHudState();
     const fallbackHealthState = String(fallbackHealth?.state || '');
     // A current Sentinel health result must be allowed to recover from a previously
@@ -757,6 +775,7 @@
       transcriptStatus:transcript?.transcriptStatus || 'unavailable',
       transcriptProof:Boolean(transcript),
       transcriptObservedAt:Number(transcript?.observedAt || 0),
+      providerActivityTrail:Array.isArray(transcript?.activityTrail) ? transcript.activityTrail.slice(-8).map((item) => ({ kind:clean(item?.kind || '', 50), operation:clean(item?.operation || '', 120), status:clean(item?.status || '', 60), progressPercent:Number.isFinite(Number(item?.progressPercent)) ? Number(item.progressPercent) : null, observedAt:Math.max(0, Number(item?.observedAt || 0)) })) : [],
       asyncTaskId:clean(transcript?.asyncTaskId || '', 160),
       toolCount:Number(transcript?.toolCount || 0),
       conversationTurnCount:Number(transcript?.visibleTurnCount || frontier.turns.length || 0),
@@ -840,7 +859,7 @@
         toolActivitySeen:Boolean(failure.toolActivitySeen)
       } : null,
       generation,
-      health:fallbackHealth ? { state:String(fallbackHealth.state || ''), level:String(fallbackHealth.level || ''), title:clean(fallbackHealth.title || '', 180), detail:clean(fallbackHealth.detail || '', 360), recommendedAction:String(fallbackHealth.recommendedAction || ''), progressAgeMs:Math.max(0, Number(fallbackHealth.progressAgeMs || 0)), capacity:fallbackHealth.capacity || null } : null,
+      health:fallbackHealth ? { state:String(fallbackHealth.state || ''), level:String(fallbackHealth.level || ''), title:clean(fallbackHealth.title || '', 180), detail:clean(fallbackHealth.detail || '', 360), recommendedAction:String(fallbackHealth.recommendedAction || ''), progressAgeMs:Math.max(0, Number(fallbackHealth.progressAgeMs || 0)), capacity:fallbackHealth.capacity || null, proof:fallbackHealth.proof || null } : null,
       tool:{
         present:Boolean(informative || currentActive || currentBusy),
         current:Boolean(currentActive || currentBusy || informative),
@@ -949,7 +968,7 @@
     const capacityAttention = ['watch','handoff','reached'].includes(host.dataset.capacity || '');
     const authoritativeWatchdog = host.dataset.watchdog === HEALTH_CORE_VERSION;
     const sentinelHealthState = String(state.chat?.healthState || '');
-    const sentinelPrimary = WATCHDOG_PRIMARY_STATES.has(sentinelHealthState);
+    const sentinelPrimary = HUD_PRIMARY_STATES.has(sentinelHealthState);
     // One renderer owns a current-version HUD. Sentinel only patches legacy HUDs during
     // hot upgrade. Letting both v0.14.9 renderers mutate the same nodes produced mixed
     // clocks (for example 32s in Observed now while the metric said 8s) and could leave
@@ -1126,7 +1145,7 @@
     if (state?.ok) {
       transcriptState = state;
       transcriptBackoffUntil = 0;
-      const transcriptSignature = [state.currentNodeId,state.latestAssistantMessageId,state.latestMessageStatus,state.endTurn ? 1 : 0,state.isComplete ? 1 : 0,state.progressPercent ?? '',state.toolCount,state.phase,state.widgetStatus,state.transcriptStatus,state.latestAssistantChars,state.responseStartedAt,state.latestAssistantUpdatedAt].join('|');
+      const transcriptSignature = [state.currentNodeId,state.latestAssistantMessageId,state.latestMessageStatus,state.endTurn ? 1 : 0,state.isComplete ? 1 : 0,state.progressPercent ?? '',state.toolCount,state.phase,state.widgetStatus,state.transcriptStatus,state.latestAssistantChars,state.responseStartedAt,state.latestAssistantUpdatedAt,JSON.stringify(state.activityTrail || [])].join('|');
       if (state.running && transcriptSignature !== lastTranscriptProgressSignature) {
         lastTranscriptProgressSignature = transcriptSignature;
         const at = now();

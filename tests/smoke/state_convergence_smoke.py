@@ -29,7 +29,7 @@ with sync_playwright() as p:
     browser=p.chromium.launch(**launch)
 
     # Exact screenshot-shaped recovery: pre-upgrade HUD says tool-stalled while the
-    # current turn has fresh real tool progress. v0.14.11 must converge to healthy.
+    # current turn has fresh real tool progress. v0.14.12 must converge to healthy.
     page=browser.new_page(); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
     page.set_content(base,wait_until='load'); page.evaluate(mock)
     page.evaluate("""() => {
@@ -48,7 +48,7 @@ with sync_playwright() as p:
     page2.evaluate("""() => {
       const main=document.getElementById('main');
       main.innerHTML='<section data-testid="conversation-turn-1"><div data-message-author-role="user" data-message-id="u1">Keep working.</div></section><div id="progress" class="text-token-text-tertiary">Inspecting ModForge source and report formats</div>';
-      __hud('9','tool-stalled');
+      __hud('10','tool-stalled');
     }""")
     before=page2.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthTitle').textContent")
     page2.add_script_tag(content=health); page2.add_script_tag(content=sentinel); page2.wait_for_timeout(220)

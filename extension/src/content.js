@@ -83,6 +83,75 @@
   let routeStartedAt = Date.now();
   const healthEvidence = { lastTurnProgressAt: Date.now(), lastDomProgressAt: Date.now(), lastStatusChangeAt: Date.now(), lastToolProgressAt: 0, lastToolStartedAt: 0, lastToolEntryCount: 0, lastToolSignature: '', lastToolLabel: '', lastHealthActivitySignature: '', latestMountedTurn: null, lastToolHash: '' };
 
+  const rescueJournal = {
+    pendingByTurn:new Map(),
+    ackByTurn:new Map(),
+    inFlight:false,
+    timer:0,
+    status:'waiting',
+    committedAt:0,
+    committedChars:0,
+    turnId:'',
+    fingerprint:'',
+    retryDelayMs:0,
+    error:''
+  };
+
+  function scheduleRescueJournal(delay = 500) {
+    if (rescueJournal.timer) clearTimeout(rescueJournal.timer);
+    rescueJournal.timer = setTimeout(() => { rescueJournal.timer = 0; void flushRescueJournal(); }, Math.max(80, Number(delay || 0)));
+  }
+
+  function queueRescueRevision(turn) {
+    if (!turn?.id || turn.role !== 'assistant') return;
+    const prior = rescueJournal.ackByTurn.get(turn.id) || null;
+    const chars = String(turn.text || '').length;
+    const richCount = (turn.links?.length || 0) + (turn.codeBlocks?.length || 0) + (turn.assets?.length || 0);
+    const priorRich = Number(prior?.richCount || 0);
+    const meaningful = !prior || chars - Number(prior.chars || 0) >= 256 || richCount > priorRich || String(prior.fingerprint || '') !== String(turn.contentFingerprint || '') && chars >= Number(prior.chars || 0) + 96;
+    rescueJournal.pendingByTurn.set(turn.id, { ...turn, rescueRichCount:richCount });
+    rescueJournal.status = rescueJournal.inFlight ? 'saving' : 'pending';
+    rescueJournal.error = '';
+    scheduleRescueJournal(meaningful ? 100 : 700);
+  }
+
+  async function flushRescueJournal() {
+    if (rescueJournal.inFlight || !rescueJournal.pendingByTurn.size) return;
+    const pending = [...rescueJournal.pendingByTurn.values()].sort((a,b)=>Number(b.updatedAt||0)-Number(a.updatedAt||0))[0];
+    if (!pending) return;
+    rescueJournal.pendingByTurn.delete(pending.id);
+    rescueJournal.inFlight = true;
+    rescueJournal.status = 'saving';
+    try {
+      const response = await chrome.runtime.sendMessage({ type:'PC_RESCUE_TURN_COMMIT', turn:pending });
+      if (!response?.ok || !response?.committed) throw new Error(response?.error || response?.reason || 'Rescue commit was not acknowledged.');
+      const ack = { chars:Number(response.chars || String(pending.text || '').length), fingerprint:String(response.fingerprint || pending.contentFingerprint || ''), richCount:Number(pending.rescueRichCount || 0), committedAt:Number(response.committedAt || Date.now()), revisionId:String(response.revisionId || '') };
+      rescueJournal.ackByTurn.set(pending.id, ack);
+      rescueJournal.status = 'saved';
+      rescueJournal.committedAt = ack.committedAt;
+      rescueJournal.committedChars = ack.chars;
+      rescueJournal.turnId = pending.id;
+      rescueJournal.fingerprint = ack.fingerprint;
+      rescueJournal.retryDelayMs = 0;
+      rescueJournal.error = '';
+      noteLiveActivity('rescue', 'Work Rescue saved', `${ack.chars.toLocaleString()} assistant characters committed to IndexedDB`, `rescue:${pending.id}`, ack.committedAt);
+    } catch (error) {
+      rescueJournal.status = 'pending';
+      rescueJournal.error = brain.normalizeText(error?.message || error || 'Rescue save pending', 180);
+      rescueJournal.retryDelayMs = Math.min(10000, Math.max(750, Number(rescueJournal.retryDelayMs || 0) * 2 || 750));
+      // A newer DOM revision can arrive while this older revision is awaiting its ACK.
+      // Never overwrite that newer pending copy just because the older commit failed.
+      if (!rescueJournal.pendingByTurn.has(pending.id)) rescueJournal.pendingByTurn.set(pending.id, pending);
+    } finally {
+      rescueJournal.inFlight = false;
+      if (rescueJournal.pendingByTurn.size) scheduleRescueJournal(rescueJournal.status === 'pending' ? rescueJournal.retryDelayMs : 120);
+      if (liveHealthShadow) {
+        const rescueText = rescueJournal.status === 'saved' && rescueJournal.committedAt ? `saved · ${ageText(Math.max(0, Date.now() - rescueJournal.committedAt))}` : rescueJournal.status === 'saving' ? 'saving…' : rescueJournal.status === 'pending' ? 'visible · save pending' : 'waiting';
+        setHealthText(liveHealthShadow, 'pcHealthRescue', rescueText);
+      }
+    }
+  }
+
   const brainOutbox = [];
   let brainFlushTimer = 0;
   function flushBrainOutbox() {
@@ -452,7 +521,9 @@
       healthEvidence.lastDomProgressAt = healthEvidence.lastTurnProgressAt;
       lastSemanticActivityAt = healthEvidence.lastTurnProgressAt;
       noteLiveActivity(role === 'assistant' ? 'response' : 'message', role === 'assistant' ? 'Response content updated' : 'Message captured', `${text.length.toLocaleString()} rendered characters · turn ${ordinal + 1}`, `turn:${id}`, healthEvidence.lastTurnProgressAt);
-      sendBrain('TURN_UPSERT', { id, providerId: provider.id, chatId, messageId, role, ordinal, text, formattedText, links, codeBlocks, assets, contentFingerprint:signature, source: 'mounted-dom', url: location.href, updatedAt: Date.now() });
+      const turnRecord = { id, providerId: provider.id, chatId, messageId, role, ordinal, text, formattedText, links, codeBlocks, assets, contentFingerprint:signature, source: 'mounted-dom', url: location.href, updatedAt: Date.now() };
+      sendBrain('TURN_UPSERT', turnRecord);
+      if (role === 'assistant') queueRescueRevision(turnRecord);
       for (const asset of assets) sendBrain('FILE_UPSERT', {
         id:brain.fileKey(chatId, asset.url, asset.alt || asset.kind), providerId:provider.id, chatId, parentTurnId:id,
         name:asset.alt || `${asset.kind} from turn ${ordinal + 1}`, href:asset.url, kind:asset.kind, width:asset.width, height:asset.height,
@@ -1648,7 +1719,7 @@
     host.id = 'projectConstellationHealthHud';
     host.dataset.corner = liveHealthSettings.corner || 'bottom-right'; host.dataset.density = liveHealthSettings.density || 'compact'; host.dataset.collapsed = '0'; host.dataset.visible = '1';
     const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="quickVault" id="pcHealthVaultQuick" title="Open the durable Output Vault" aria-label="Open Output Vault">⇄</button><button class="quickBranch" id="pcHealthBranchQuick" title="Branch early into a linked continuation chat" aria-label="Branch and continue in a new chat">✦</button><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Response time</span><strong id="pcHealthElapsed">—</strong></div><div class="metric"><span>No progress</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p></div><div class="actions"><button class="btn vault" id="pcHealthVault" title="Open every saved output and compare it with this page">⇄ Output Vault</button><button class="btn branch" id="pcHealthBranch" title="Create a recoverable continuation in a new chat">✦ Branch &amp; continue</button><button class="btn primary" id="pcHealthRetry" hidden>Retry response</button><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></section>`;
+    shadow.innerHTML = `<style>${healthHudCss()}</style><section class="hud" role="complementary" aria-label="Project Constellation execution pulse"><div class="top"><span class="orb"></span><div class="brand" aria-live="polite" aria-atomic="true"><div class="eyebrow">CONSTELLATION · EXECUTION PULSE</div><div class="state" id="pcHealthTitle">Starting monitor…</div><div class="substate" id="pcHealthMini">Watching model, tool, DOM, and network proof…</div></div><div class="tools"><button class="quickVault" id="pcHealthVaultQuick" title="Open the durable Output Vault" aria-label="Open Output Vault">⇄</button><button class="quickBranch" id="pcHealthBranchQuick" title="Branch early into a linked continuation chat" aria-label="Branch and continue in a new chat">✦</button><button class="icon" id="pcHealthOpen" title="Open Project Constellation" aria-label="Open Project Constellation">↗</button><button class="icon" id="pcHealthCollapse" title="Expand or collapse" aria-label="Collapse execution pulse">−</button></div></div><div class="body"><p class="detail" id="pcHealthDetail">Building a local execution-health picture without making provider requests.</p><div class="now"><div class="nowHead"><span>Observed now</span><span id="pcHealthNowTime">now</span></div><div class="nowTitle" id="pcHealthNowTitle">Starting local monitor</div><div class="nowDetail" id="pcHealthNowDetail">Waiting for the first observable browser signal.</div></div><div class="proof"><span class="proofDot"></span><span id="pcHealthProof">Local browser evidence · no hidden reasoning guessed</span></div><div class="chips" id="pcHealthChips"></div><div class="timelineWrap"><div class="sectionHead"><span>Recent observed activity</span><span id="pcHealthEventCount">0 events</span></div><div class="timeline" id="pcHealthTimeline" aria-live="off"></div></div><div class="metrics"><div class="metric"><span>Response time</span><strong id="pcHealthElapsed">—</strong></div><div class="metric"><span>No progress</span><strong id="pcHealthProgress">—</strong></div><div class="metric"><span>Network</span><strong id="pcHealthNetwork">observing</strong></div><div class="metric"><span>Activity</span><strong id="pcHealthActivity">model</strong></div><div class="metric"><span>Tool pulse</span><strong id="pcHealthTool">—</strong></div><div class="metric"><span>Work Rescue</span><strong id="pcHealthRescue">waiting</strong></div><div class="metric"><span>Project</span><strong id="pcHealthProject">—</strong></div><div class="metric"><span>Page</span><strong id="pcHealthPage">current</strong></div><div class="metric capacity"><span>Capacity</span><strong id="pcHealthCapacity">clear</strong></div><div class="metric"><span>Handoff</span><strong id="pcHealthHandoffState">ready</strong></div></div><p class="truth">Reports only observable page, tool-card, response, status, and provider-request evidence. It never exposes or invents private reasoning.</p></div><div class="actions"><button class="btn vault" id="pcHealthVault" title="Open every saved output and compare it with this page">⇄ Output Vault</button><button class="btn branch" id="pcHealthBranch" title="Create a recoverable continuation in a new chat">✦ Branch &amp; continue</button><button class="btn primary" id="pcHealthRetry" hidden>Retry response</button><button class="btn primary" id="pcHealthRefresh" hidden>Refresh chat</button><button class="btn primary" id="pcHealthHandoff" hidden>Secure handoff</button><button class="btn" id="pcHealthSettings">Health settings</button></div></section>`;
     document.documentElement.appendChild(host);
     liveHealthHost = host; liveHealthShadow = shadow;
     shadow.getElementById('pcHealthCollapse').addEventListener('click', () => { setPulseCollapsed(host.dataset.collapsed !== '1', false); syncConstellationDock(); });
@@ -1765,6 +1836,12 @@
     const activityKind = failure?.active ? 'interrupted' : activity?.kind === 'tool' ? (activity.phase || 'tool') : activity?.kind === 'model' ? (activity.phase || 'model') : snapshot.state === 'blocked-approval' ? 'approval' : snapshot.state === 'paused' ? 'paused' : 'model';
     setHealthText(shadow, 'pcHealthActivity', activityKind);
     setHealthText(shadow, 'pcHealthTool', activity?.kind === 'tool' ? `${activity.entryCount || 1} step${Number(activity.entryCount || 1) === 1 ? '' : 's'} · ${ageText(activity.ageMs || 0)}` : '—');
+    const rescueText = rescueJournal.status === 'saved' && rescueJournal.committedAt
+      ? `saved · ${ageText(Math.max(0, now - rescueJournal.committedAt))}`
+      : rescueJournal.status === 'saving' ? 'saving…'
+      : rescueJournal.status === 'pending' ? 'visible · save pending'
+      : 'waiting';
+    setHealthText(shadow, 'pcHealthRescue', rescueText);
     const miniParts = [];
     if (activity?.kind === 'tool') miniParts.push(activity.label || activity.phase || 'tool');
     else miniParts.push(snapshot.state === 'working' ? 'model active' : snapshot.state.replaceAll('-', ' '));
@@ -1822,6 +1899,7 @@
     const row = sentinel.tool || {};
     const label = brain.normalizeText(row.label || sentinel.generation?.toolLabel || '', 150);
     const protectedStates = new Set(['tool-stalled','tool-dead','request-stalled','stalled','dead','delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
+    const truthStates = new Set(['uncertain-working']);
     const capacityAttention = ['watch','handoff','reached'].includes(snapshot.capacity?.state || '');
     const sentinelHealthState = String(sentinel.chat?.healthState || '');
     const sentinelProtected = protectedStates.has(sentinelHealthState);
@@ -1839,6 +1917,10 @@
       if (sentinelProtected) {
         const health = sentinel.health || {};
         return { ...snapshot, state:sentinelHealthState, level:health.level || snapshot.level, title:health.title || snapshot.title, detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity };
+      }
+      if (truthStates.has(sentinelHealthState)) {
+        const health = sentinel.health || {};
+        return { ...snapshot, state:sentinelHealthState, level:health.level || 'info', title:health.title || 'Activity uncertain · do not interrupt yet', detail:health.detail || snapshot.detail, recommendedAction:'', proof:health.proof || snapshot.proof, activity };
       }
       // Capacity warnings are allowed to stay primary even while a response is active so
       // a long chat never hides its handoff warning behind "Chat is still working".
@@ -1883,14 +1965,14 @@
       const capacity = conversationCapacityEvidence(context);
       const sentinel = liveSentinelState(false);
       const failure = sentinel?.failure?.active ? sentinel.failure : sentinel?.chat?.failure?.active ? sentinel.chat.failure : providerFailureSurface();
-      const snapshot = reconcileHealthSnapshotWithSentinel(health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, failure, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt }));
+      const snapshot = reconcileHealthSnapshotWithSentinel(health.deriveHealth({ now:Date.now(), settings:liveHealthSettings, chatStatus:lastStatus, running:lastStatus==='running', network:context.network || {}, tool, page, capacity, failure, provider:sentinel?.generation?.transcriptProof ? { status:sentinel.generation.transcriptStatus, observedAt:Number(sentinel.generation.transcriptObservedAt || 0), lastActivityAt:Number(sentinel.generation.latestAssistantUpdatedAt || 0), currentTurnOwned:true, requestActive:Boolean(sentinel.generation.active), activityTrail:Array.isArray(sentinel.generation.providerActivityTrail) ? sentinel.generation.providerActivityTrail : [] } : null, runtime:sentinel?.generation ? { currentTurnOwned:Boolean(sentinel.generation.transcriptProof), requestActive:Boolean(sentinel.generation.active && sentinel.generation.transcriptProof), stopControl:Boolean(sentinel.generation.stopControl), composerBusy:Boolean(sentinel.generation.streaming || sentinel.generation.assistantBusy) } : null, integrityFindings:context.integrityFindings || [], baselineVersion:context.baseline?.latestVersion || '', lastTurnProgressAt:healthEvidence.lastTurnProgressAt, lastDomProgressAt:healthEvidence.lastDomProgressAt, lastStatusChangeAt:healthEvidence.lastStatusChangeAt }));
       const prior = healthEvidence.lastHealthState || '';
       const activitySignature = hashText(`${snapshot.state}|${snapshot.level}|${snapshot.activity?.kind || ''}|${snapshot.activity?.phase || ''}|${snapshot.activity?.label || ''}|${snapshot.activity?.entryCount || 0}|${snapshot.networkActive ? 1 : 0}`);
       if (prior !== snapshot.state || activitySignature !== healthEvidence.lastHealthActivitySignature) {
         noteLiveActivity(['warning','danger','critical'].includes(snapshot.level) ? 'warning' : 'health', snapshot.title, snapshot.detail, 'health:current');
         healthEvidence.lastHealthState = snapshot.state;
         healthEvidence.lastHealthActivitySignature = activitySignature;
-        sendBrain('CHAT_UPSERT', { id:currentChatId(), providerId:provider.id, url:location.href, liveHealthState:snapshot.state, liveHealthLevel:snapshot.level, liveHealthTitle:snapshot.title, liveHealthDetail:snapshot.detail, liveHealthActivityKind:snapshot.activity?.kind || '', liveHealthActivityPhase:snapshot.activity?.phase || '', liveHealthActivityLabel:snapshot.activity?.label || '', liveHealthToolSteps:Number(snapshot.activity?.entryCount || 0), liveHealthNetworkActive:Boolean(snapshot.networkActive), liveHealthProgressAgeMs:Number(snapshot.progressAgeMs || 0), liveHealthUpdatedAt:Date.now(), updatedAt:Date.now() });
+        sendBrain('CHAT_UPSERT', { id:currentChatId(), providerId:provider.id, url:location.href, liveHealthState:snapshot.state, liveHealthLevel:snapshot.level, liveHealthTitle:snapshot.title, liveHealthDetail:snapshot.detail, liveHealthActivityKind:snapshot.activity?.kind || '', liveHealthActivityPhase:snapshot.activity?.phase || '', liveHealthActivityLabel:snapshot.activity?.label || '', liveHealthToolSteps:Number(snapshot.activity?.entryCount || 0), liveHealthNetworkActive:Boolean(snapshot.networkActive), liveHealthProgressAgeMs:Number(snapshot.progressAgeMs || 0), liveHealthProofVerdict:String(snapshot.proof?.verdict || ''), liveHealthProofCertainty:String(snapshot.proof?.certainty || ''), rescueJournalStatus:rescueJournal.status, rescueJournalCommittedAt:Number(rescueJournal.committedAt || 0), rescueJournalTurnId:String(rescueJournal.turnId || ''), rescueJournalFingerprint:String(rescueJournal.fingerprint || ''), rescueJournalChars:Number(rescueJournal.committedChars || 0), liveHealthUpdatedAt:Date.now(), updatedAt:Date.now() });
       }
       renderLiveHealthHud(snapshot, context, page);
     } finally { liveHealthPollBusy = false; }
@@ -1902,7 +1984,7 @@
     // Output Vault mismatch is intentionally secondary and must not promote a
     // completed chat to the active polling lane. Only primary execution/attention
     // states get the fast cadence.
-    const active = ['running','blocked-approval','paused','refresh-required','rate-limited','stalled'].includes(lastStatus) || ['working','tool-running','tool-quiet','tool-stalled','tool-dead','quiet-working','request-stalled','stalled','dead'].includes(liveHealthSnapshot?.state || '');
+    const active = ['running','blocked-approval','paused','refresh-required','rate-limited','stalled'].includes(lastStatus) || ['working','tool-running','tool-quiet','tool-stalled','tool-dead','quiet-working','uncertain-working','request-stalled','stalled','dead'].includes(liveHealthSnapshot?.state || '');
     const pressureDelay = metrics.lastPressure === 'high' ? 5000 : 0;
     const nextDelay = delay ?? (document.hidden ? 30000 : active ? liveHealthSettings.pollActiveMs : liveHealthSettings.pollIdleMs);
     const minimumDelay = urgent ? 60 : 900;
@@ -2478,7 +2560,7 @@
       statusTimer = 0;
       detectStatus();
       maybeObserveOutputIntegrity().catch(() => {});
-      const activeNow = lastStatus === 'running' || ['working','tool-running','tool-quiet','quiet-working'].includes(String(liveHealthSnapshot?.state || ''));
+      const activeNow = lastStatus === 'running' || ['working','tool-running','tool-quiet','quiet-working','uncertain-working'].includes(String(liveHealthSnapshot?.state || ''));
       scheduleStatusPulse(document.hidden ? (activeNow ? 3500 : 30000) : (activeNow ? 1400 : 8000));
     }, delay ?? (document.hidden ? 30000 : 8000));
   }
@@ -2534,7 +2616,7 @@
     // Re-sample before going quiet so a response that started just before the user
     // switched tabs is not left classified as idle for the next 30 seconds.
     detectStatus();
-    if (document.hidden) { stopPerformanceObserver(); captureObserver?.disconnect(); cancelCapture(); }
+    if (document.hidden) { void flushRescueJournal(); stopPerformanceObserver(); captureObserver?.disconnect(); cancelCapture(); }
     else { if (settings.enabled) startPerformanceObserver(); applyPressure(pressure.tick()); setupCaptureObserver(); }
     const activeNow = lastStatus === 'running' || ['working','tool-running','tool-quiet','quiet-working'].includes(String(liveHealthSnapshot?.state || ''));
     scheduleStatusPulse(document.hidden ? (activeNow ? 1800 : 12000) : 500);
@@ -2556,7 +2638,7 @@
     stopPerformanceObserver(); captureObserver?.disconnect(); approvalObserver?.disconnect(); navCleanup?.(); closeOutputVault();
     window.removeEventListener(LIVE_SENTINEL_STATE_EVENT, onLiveSentinelStateEvent);
     if (recoveryTimer) clearTimeout(recoveryTimer); if (statusTimer) clearTimeout(statusTimer); if (liveHealthTimer) clearTimeout(liveHealthTimer); if (approvalAutopilotTimer) clearTimeout(approvalAutopilotTimer);
-    cancelCapture(); cancelPendingPersist(); flushBrainOutbox();
+    cancelCapture(); cancelPendingPersist(); void flushRescueJournal(); flushBrainOutbox();
     chrome.storage.local.set({ [METRICS_KEY]: { ...metrics } }).catch(() => {});
   }, { once: true });
 })();

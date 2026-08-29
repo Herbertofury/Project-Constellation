@@ -50,8 +50,8 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.11';
-const CHATGPT_PAGE_PROBE_VERSION = '0.14.11';
+const LIVE_SENTINEL_VERSION = '0.14.12';
+const CHATGPT_PAGE_PROBE_VERSION = '0.14.12';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
@@ -1095,6 +1095,19 @@ const FAILURE_STATUSES = Object.freeze(['delivery-timeout','connection-interrupt
 const FAILURE_STATUS_SET = new Set(FAILURE_STATUSES);
 const ATTENTION_STATUSES = Object.freeze(['blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
 const RECOVERY_STATUSES = Object.freeze(['blocked-approval','paused']);
+const LIVE_HEALTH_ATTENTION_TTL_MS = 15 * 60 * 1000;
+const LIVE_HEALTH_ATTENTION_STATES = new Set([
+  ...FAILURE_STATUSES,
+  'blocked-approval','refresh-required','rate-limited','errored','auth-required','unavailable',
+  'stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page',
+  'capacity-watch','capacity-handoff','capacity-reached'
+]);
+
+function hasFreshLiveAttention(chat, now = Date.now()) {
+  const state = String(chat?.liveHealthState || '').toLowerCase();
+  const observedAt = Number(chat?.liveHealthUpdatedAt || 0);
+  return Boolean(state && LIVE_HEALTH_ATTENTION_STATES.has(state) && observedAt && now - observedAt <= LIVE_HEALTH_ATTENTION_TTL_MS);
+}
 
 async function chatsForStatuses(statuses = ATTENTION_STATUSES) {
   const groups = await Promise.all(statuses.map((status) => getAllByIndex('chats', 'status', status)));
@@ -1104,7 +1117,8 @@ async function chatsForStatuses(statuses = ATTENTION_STATUSES) {
 
 async function updateAttentionBadge() {
   const [statusChats, allChats] = await Promise.all([chatsForStatuses(ATTENTION_STATUSES), getAll('chats')]);
-  const chats = [...new Map([...statusChats, ...allChats.filter((chat)=>chat.outputRegression?.active)].map((chat)=>[chat.id,chat])).values()];
+  const now = Date.now();
+  const chats = [...new Map([...statusChats, ...allChats.filter((chat)=>chat.outputRegression?.active || hasFreshLiveAttention(chat, now))].map((chat)=>[chat.id,chat])).values()];
   attentionBadgeCount = chats.length;
   await renderActionBadge().catch(() => {});
   return { count:attentionBadgeCount };
@@ -1703,6 +1717,58 @@ async function watchForStalls() {
   return { stalled: stale.length };
 }
 
+function normalizeRecoveredChatState(record = {}) {
+  const status = String(record?.status || '');
+  if (!status) return record;
+  if (!FAILURE_STATUS_SET.has(status) && !['refresh-required','rate-limited'].includes(status)) {
+    return {
+      ...record,
+      retryForbidden:false,
+      automaticRetryForbidden:false,
+      failureKind:'',
+      failureRetryAvailable:false,
+      failureRetryLabel:'',
+      failureDetectedAt:0,
+      failurePartialAssistantChars:0
+    };
+  }
+  return record;
+}
+
+async function commitRescueTurn(record = {}) {
+  const cfg = await settings();
+  if (!cfg.captureEnabled) return { ok:false, ignored:true, reason:'capture-disabled' };
+  if (!record?.id || !record?.chatId || String(record?.role || '').toLowerCase() !== 'assistant') return { ok:false, error:'A current assistant turn is required.' };
+  const committedAt = Date.now();
+  const preserved = await preserveTurnRevisions([{ ...record, updatedAt:Number(record.updatedAt || committedAt) }]);
+  const turn = preserved.turns?.[0];
+  if (!turn) return { ok:false, error:'No assistant revision was committed.' };
+  const revisionId = String(turn.lastObservedRevisionId || `${turn.id}:revision:${turn.lastObservedFingerprint || turn.contentFingerprint || ''}`);
+  await upsert('chats', {
+    id:turn.chatId,
+    providerId:turn.providerId || '',
+    rescueJournalStatus:'saved',
+    rescueJournalCommittedAt:committedAt,
+    rescueJournalTurnId:turn.id,
+    rescueJournalRevisionId:revisionId,
+    rescueJournalFingerprint:String(turn.lastObservedFingerprint || turn.contentFingerprint || ''),
+    rescueJournalChars:String(turn.text || '').length,
+    updatedAt:Math.max(Number(turn.updatedAt || 0), committedAt)
+  });
+  markDriveDirty().catch(() => {});
+  return {
+    ok:true,
+    committed:true,
+    committedAt,
+    chatId:turn.chatId,
+    turnId:turn.id,
+    revisionId,
+    fingerprint:String(turn.lastObservedFingerprint || turn.contentFingerprint || ''),
+    chars:String(turn.text || '').length,
+    revisionCount:Math.max(1, Number(turn.revisionCount || 1))
+  };
+}
+
 async function ingestBatch(items) {
   const cfg = await settings();
   if (!cfg.captureEnabled || !Array.isArray(items) || !items.length) return { ok: true, ignored: true };
@@ -1720,7 +1786,7 @@ async function ingestBatch(items) {
     const data = item?.data || {};
     if (type === 'PROVIDER_SEEN' && data.id) providerRecords.push({ ...data, updatedAt: data.updatedAt || now });
     else if (type === 'CHAT_UPSERT' && data.id) {
-      chats.push({ ...data, updatedAt: data.updatedAt || now });
+      chats.push(normalizeRecoveredChatState({ ...data, updatedAt: data.updatedAt || now }));
       const projectId = data.projectId || `${data.providerId || 'unknown'}:inbox`;
       projects.push({ id: projectId, providerId: data.providerId || '', name: data.projectName || (projectId.endsWith(':inbox') ? 'Inbox' : projectId), sourceType: 'provider', updatedAt: now });
     } else if (type === 'TURN_UPSERT' && data.id) turns.push({ ...data, updatedAt: data.updatedAt || now });
@@ -1731,7 +1797,7 @@ async function ingestBatch(items) {
       files.push(file);
     }
     else if (type === 'STATUS_EVENT' && data.chatId) statusEvents.push(data);
-    else if (type === 'STATUS_HEARTBEAT' && data.chatId) chats.push({ id: data.chatId, providerId: data.providerId || '', status: data.status || 'running', lastActivityAt: data.lastActivityAt || now, lastSeenAt: now, url: data.url || '', updatedAt: now });
+    else if (type === 'STATUS_HEARTBEAT' && data.chatId) chats.push(normalizeRecoveredChatState({ id: data.chatId, providerId: data.providerId || '', status: data.status || 'running', lastActivityAt: data.lastActivityAt || now, lastSeenAt: now, url: data.url || '', updatedAt: now }));
     else if (type === 'ROUTE_EVENT') routeEvents.push(data);
   }
 
@@ -2153,6 +2219,7 @@ async function homeSummary() {
   const attentionGroups = await Promise.all(attentionStatuses.map((status) => getByIndex('chats','status',status,10)));
   const liveGroups = await Promise.all(liveStatuses.map((status) => getByIndex('chats','status',status,10)));
   const statusCounts = {};
+  const now = Date.now();
   const db = await openDb();
   try {
     const tx = db.transaction('chats','readonly'); const index = tx.objectStore('chats').index('status');
@@ -2161,7 +2228,7 @@ async function homeSummary() {
   return {
     counts: { providers: providerCount, projects: projectCount, chats: chatCount, turns: turnCount, files: fileCount, knowledge: knowledgeCount }, statusCounts,
     recentChats, recentFiles, recentProjects, recentEvents,
-    attention: [...new Map([...attentionGroups.flat(), ...topicChats.filter((chat)=>chat.outputRegression?.active)].map((chat)=>[chat.id,chat])).values()].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
+    attention: [...new Map([...attentionGroups.flat(), ...topicChats.filter((chat)=>chat.outputRegression?.active || hasFreshLiveAttention(chat, now))].map((chat)=>[chat.id,chat])).values()].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
     live: liveGroups.flat().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
     topics: buildTopicHints(topicChats, recentProjects),
     catalog: publicCatalogState(catalog), fullCapture: publicFullCaptureState(fullCapture), discovery: { browserHistoryGranted: historyGranted, mode: 'zero-tab-default', hiddenTabs: false, manualFullCapture: true },
@@ -3720,6 +3787,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message?.type) {
       case 'PC_BRAIN_INGEST': return ingest(message.payload);
       case 'PC_BRAIN_INGEST_BATCH': return ingestBatch(message.payload || []);
+      case 'PC_RESCUE_TURN_COMMIT': return commitRescueTurn(message.turn || {});
       case 'PC_BRAIN_SNAPSHOT': return { ok: true, snapshot: await snapshot() };
       case 'PC_BRAIN_DASHBOARD': return { ok: true, dashboard: await dashboard() };
       case 'PC_BRAIN_SEARCH': return { ok: true, results: await searchBrain(message.query || '', message.limit || 60) };
@@ -3841,7 +3909,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 
-const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working']);
+const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working','uncertain-working']);
 const LIVE_STALE_HEALTH_STATES = new Set([...FAILURE_STATUSES,'refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page','capacity-watch','capacity-handoff','capacity-reached']);
 const LIVE_NOTIFY_ATTENTION_STATES = new Set([...FAILURE_STATUSES,'stalled','dead','request-stalled','tool-stalled','tool-dead','capacity-watch','capacity-handoff','capacity-reached']);
 const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);

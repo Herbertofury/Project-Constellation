@@ -14,8 +14,11 @@
   const LIVE_HEALTH_STALE_MS = 15 * 60 * 1000;
   const HEALTH_CLASS = Object.freeze({
     healthy:'running','tool-running':'running',running:'running',
-    'tool-quiet':'waiting-user','request-stalled':'stalled','tool-stalled':'stalled',stalled:'stalled',
-    'tool-dead':'errored',dead:'errored',errored:'errored','delivery-timeout':'errored','connection-interrupted':'errored','response-interrupted':'errored','send-failed':'errored','refresh-required':'refresh-required','blocked-approval':'blocked-approval','rate-limited':'rate-limited',
+    'quiet-working':'waiting-user','tool-quiet':'waiting-user','uncertain-working':'waiting-user',
+    'request-stalled':'stalled','tool-stalled':'stalled',stalled:'stalled',
+    'tool-dead':'errored',dead:'errored',errored:'errored','degraded':'errored','stale-page':'errored',
+    'capacity-watch':'waiting-user','capacity-handoff':'waiting-user','capacity-reached':'errored',
+    'delivery-timeout':'errored','connection-interrupted':'errored','response-interrupted':'errored','send-failed':'errored','refresh-required':'refresh-required','blocked-approval':'blocked-approval','rate-limited':'rate-limited',
     'waiting-user':'waiting-user','auth-required':'auth-required',paused:'paused','output-regressed':'errored'
   });
   const statusClass = (s) => esc(HEALTH_CLASS[String(s || '').toLowerCase()] || s || 'idle');
@@ -29,9 +32,11 @@
     if(!liveHealthFresh(chat)) return chat?.statusDetail || chat?.lastExcerpt || '';
     const bits=[];
     if(chat.liveHealthDetail)bits.push(chat.liveHealthDetail);
+    if(chat.liveHealthProofVerdict)bits.push(`truth ${chat.liveHealthProofVerdict}${chat.liveHealthProofCertainty ? ` (${chat.liveHealthProofCertainty})` : ''}`);
     const activity=[chat.liveHealthActivityPhase,chat.liveHealthActivityLabel].filter(Boolean).join(' · ');
     if(activity)bits.push(activity);
     if(Number(chat.liveHealthToolSteps||0)>0)bits.push(`${Number(chat.liveHealthToolSteps)} tool step${Number(chat.liveHealthToolSteps)===1?'':'s'}`);
+    if(chat.rescueJournalStatus === 'saved' && Number(chat.rescueJournalCommittedAt||0)>0)bits.push(`Work Rescue saved ${ago(chat.rescueJournalCommittedAt)}${Number(chat.rescueJournalChars||0)>0 ? ` · ${fmt(chat.rescueJournalChars)} chars` : ''}`);
     return bits.join(' · ') || chat?.statusDetail || chat?.lastExcerpt || '';
   };
   const stableHash = (value) => {
