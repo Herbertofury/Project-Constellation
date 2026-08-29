@@ -1,6 +1,9 @@
 name: v0.16 materialize exact source
 
 on:
+  push:
+    branches:
+      - feat/v0.16.0-living-project-rooms-safe-router
   workflow_dispatch:
 
 permissions:
