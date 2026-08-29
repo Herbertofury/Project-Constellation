@@ -50,8 +50,8 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.10';
-const CHATGPT_PAGE_PROBE_VERSION = '0.14.7';
+const LIVE_SENTINEL_VERSION = '0.14.11';
+const CHATGPT_PAGE_PROBE_VERSION = '0.14.11';
 const TAB_BEACON_VERSION = '0.14.4';
 const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
@@ -72,6 +72,36 @@ let pulseUxCache = null;
 let tabTagsCache = null;
 let attentionBadgeCount = 0;
 let liveToolbarSnapshot = { active:0, stale:0, completed:0, open:0 };
+
+const CAPACITY_PROFILE_VERSION = 2;
+const LEGACY_CAPACITY_DEFAULTS = Object.freeze({ capacityWarningTurns:180, capacityHandoffTurns:260, capacityWarningChars:240000, capacityHandoffChars:400000 });
+
+function migrateLiveHealthCapacityProfile(input = {}) {
+  const source = { ...(input || {}) };
+  if (Number(source.capacityProfileVersion || 0) >= CAPACITY_PROFILE_VERSION) return source;
+  const keys = Object.keys(LEGACY_CAPACITY_DEFAULTS);
+  const hasAnyCapacityValue = keys.some((key) => source[key] !== undefined && source[key] !== null);
+  const untouchedLegacyTuple = hasAnyCapacityValue && keys.every((key) => Number(source[key]) === Number(LEGACY_CAPACITY_DEFAULTS[key]));
+  if (untouchedLegacyTuple) {
+    source.capacityWarningTurns = health.DEFAULTS.capacityWarningTurns;
+    source.capacityHandoffTurns = health.DEFAULTS.capacityHandoffTurns;
+    source.capacityWarningChars = health.DEFAULTS.capacityWarningChars;
+    source.capacityHandoffChars = health.DEFAULTS.capacityHandoffChars;
+  }
+  source.capacityProfileVersion = CAPACITY_PROFILE_VERSION;
+  return source;
+}
+
+async function ensureLiveHealthCapacityProfileMigration() {
+  const stored = await chrome.storage.local.get(SETTINGS_KEY);
+  const current = stored?.[SETTINGS_KEY];
+  if (!current || typeof current !== 'object') return false;
+  const before = current.liveHealth || {};
+  const after = migrateLiveHealthCapacityProfile(before);
+  const changed = JSON.stringify(before) !== JSON.stringify(after);
+  if (changed) await chrome.storage.local.set({ [SETTINGS_KEY]: { ...current, liveHealth:after } });
+  return changed;
+}
 
 const defaultBrainSettings = Object.freeze({
   captureEnabled: true,
@@ -871,6 +901,7 @@ async function pruneEvents() {
 }
 
 function deepMergeSettings(stored = {}) {
+  const migratedLiveHealth = migrateLiveHealthCapacityProfile(stored.liveHealth || {});
   return {
     ...defaultBrainSettings, ...stored,
     github: { ...defaultBrainSettings.github, ...(stored.github || {}) },
@@ -879,7 +910,7 @@ function deepMergeSettings(stored = {}) {
     refreshRecovery: { ...defaultBrainSettings.refreshRecovery, ...(stored.refreshRecovery || {}) },
     projectIntegrity: { ...defaultBrainSettings.projectIntegrity, ...(stored.projectIntegrity || {}) },
     knowledge: { ...defaultBrainSettings.knowledge, ...(stored.knowledge || {}) },
-    liveHealth: health.normalizeSettings({ ...defaultBrainSettings.liveHealth, ...(stored.liveHealth || {}) }),
+    liveHealth: health.normalizeSettings({ ...defaultBrainSettings.liveHealth, ...migratedLiveHealth }),
     approvalAutopilot: { ...defaultBrainSettings.approvalAutopilot, ...(stored.approvalAutopilot || {}) }
   };
 }
@@ -3445,6 +3476,7 @@ async function showFullCaptureWindow() {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
+  await ensureLiveHealthCapacityProfileMigration().catch(() => false);
   await stopLegacyApprovalNavigation('v0.14.8 disabled legacy hidden ChatGPT navigation.').catch(() => {});
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
   await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
@@ -3461,6 +3493,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  await ensureLiveHealthCapacityProfileMigration().catch(() => false);
   await stopLegacyApprovalNavigation('Background ChatGPT navigation remains disabled.').catch(() => {});
   await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });

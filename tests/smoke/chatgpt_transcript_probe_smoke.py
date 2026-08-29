@@ -56,6 +56,7 @@ with sync_playwright() as p:
     assert deep_state['running'] is True and deep_state['phase']=='deep-research'
     assert deep_state['progressPercent']==42 and deep_state['asyncTaskId']=='deepresch_test'
     assert deep_state['visibleTurnCount']==2 and deep_state['activeBranchMessages']==3
+    assert deep_state['structuredMessages']==1 and deep_state['toolMessages']==1
     assert deep_state['contextChars'] > 40 and deep_state['latestAssistantChars'] > 20
     assert 'SECRET_MUST_STAY_IN_MAIN_WORLD' not in serialized
     assert not errors

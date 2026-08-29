@@ -1,0 +1,38 @@
+{
+  "version": "0.14.11",
+  "codename": "Early Branch Guard",
+  "status": "local-verification-green-awaiting-pr",
+  "base": "v0.14.10",
+  "base_commit": "a32f01c278529b5d598f707bb17c2266597f94c5",
+  "focus": [
+    "warn before ChatGPT reaches the maximum conversation-length banner",
+    "count active-branch and structured tool/app message pressure in addition to visible turns and measured characters",
+    "recognize the exact current provider maximum-length copy and near-limit wording",
+    "migrate untouched legacy runway defaults earlier while preserving custom user thresholds",
+    "make Branch soon / Branch now urgency obvious without automatic navigation"
+  ],
+  "drive_checkpoint": {
+    "folder_id": "1vgnNohRG09qEZZpJM-vEeF-q5sIzKST3",
+    "dev_unpacked_file_id": "1aAnFN276GO3R9dnQujxRpw5SQDFHrclN",
+    "dev_unpacked_sha256": "57726f0d3ac086c58623229bcf4a50541aba5a91632b4492355108a3b7b4e6eb",
+    "dev_unpacked_size": 266694,
+    "source_checkpoint_file_id": "10SN6PvgRRU1i9PsZainRo5DXnbd4edrf",
+    "source_checkpoint_sha256": "recorded externally after archive creation",
+    "roundtrip_verified": true
+  },
+  "verification": {
+    "unit_contract": "10/10 pass",
+    "validate": "pass",
+    "browser_smokes": "27/27 pass in bounded gates",
+    "exact_130_message_early_watch": "pass",
+    "exact_provider_maximum_length": "pass",
+    "structured_tool_branch_pressure": "pass",
+    "legacy_default_migration_and_custom_preservation": "pass",
+    "runway_121s_stall": "pass",
+    "runway_270_turn_handoff": "pass",
+    "interruption_guardian": "pass",
+    "state_convergence": "pass",
+    "no_surprise_navigation": "pass"
+  },
+  "updated_at": "2026-08-29T01:20:00Z"
+}

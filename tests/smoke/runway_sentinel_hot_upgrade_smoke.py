@@ -47,7 +47,22 @@ with sync_playwright() as p:
     runway=page2.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
     runway_hud=page2.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); const s=h.shadowRoot; return {state:h.dataset.state,level:h.dataset.level,capacity:h.dataset.capacity,title:s.getElementById('pcHealthTitle').textContent,capacityText:s.getElementById('pcHealthCapacity').textContent,handoffHidden:s.getElementById('pcHealthHandoff').hidden}; }""")
 
-    result={'first':first,'stalled':stalled,'stalledHud':stalled_hud,'runway':runway,'runwayHud':runway_hud,'errors':errors+errors2}
+    # Scenario 3: warn materially before the terminal provider banner. This is the
+    # exact failure class that v0.14.11 exists to prevent.
+    page3=browser.new_page(); errors3=[]; page3.on('pageerror',lambda exc:errors3.append(str(exc)))
+    page3.set_content(base,wait_until='load'); page3.evaluate(mock)
+    page3.evaluate("""() => { const main=document.getElementById('main'); for(let i=0;i<130;i++){const sec=document.createElement('section');sec.setAttribute('data-testid',`conversation-turn-${i+1}`);const role=i%2===0?'user':'assistant';sec.innerHTML=`<div data-message-author-role="${role}" data-message-id="e${i}">${role==='user'?'Keep developing the project.':'Verified progress.'}${role==='assistant'?'<button aria-label="Copy">Copy</button>':''}</div>`;main.appendChild(sec);} __oldHud(); }""")
+    page3.add_script_tag(content=health); page3.add_script_tag(content=sentinel); page3.wait_for_timeout(180)
+    early=page3.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+
+    # Scenario 4: recognize ChatGPT's current exact terminal copy as a hard limit.
+    page4=browser.new_page(); errors4=[]; page4.on('pageerror',lambda exc:errors4.append(str(exc)))
+    page4.set_content(base,wait_until='load'); page4.evaluate(mock)
+    page4.evaluate("""() => { const main=document.getElementById('main'); const sec=document.createElement('section'); sec.setAttribute('data-testid','conversation-turn-1'); sec.innerHTML='<div data-message-author-role="user" data-message-id="u1">Continue.</div>'; main.appendChild(sec); const alert=document.createElement('div'); alert.setAttribute('role','alert'); alert.textContent="You've reached the maximum length for this conversation, but you can keep talking by starting a new chat."; main.appendChild(alert); __oldHud(); }""")
+    page4.add_script_tag(content=health); page4.add_script_tag(content=sentinel); page4.wait_for_timeout(180)
+    hard_limit=page4.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+
+    result={'first':first,'stalled':stalled,'stalledHud':stalled_hud,'runway':runway,'runwayHud':runway_hud,'early':early,'hardLimit':hard_limit,'errors':errors+errors2+errors3+errors4}
     print(json.dumps(result,sort_keys=True))
     assert first['chat']['status']=='running' and first['chat']['healthState'] in ('tool-running','working'), first
     assert stalled['chat']['status']=='running' and stalled['chat']['healthState']=='tool-stalled', stalled
@@ -59,5 +74,9 @@ with sync_playwright() as p:
     assert runway_hud['state']=='capacity-handoff' and runway_hud['capacity']=='handoff', runway_hud
     assert runway_hud['handoffHidden'] is False, runway_hud
     assert 'runway' in runway_hud['title'].lower() or 'handoff' in runway_hud['title'].lower(), runway_hud
+    assert early['chat']['healthState']=='capacity-watch', early
+    assert early['generation']['capacityTurnCount'] >= 120, early
+    assert hard_limit['chat']['healthState']=='capacity-reached', hard_limit
+    assert hard_limit['generation']['capacityState']=='reached', hard_limit
     assert not result['errors'], result['errors']
     browser.close()

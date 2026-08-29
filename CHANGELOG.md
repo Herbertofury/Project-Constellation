@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.14.11 — Early Branch Guard
+
+- Fixes missed maximum-conversation warnings by counting full active-branch messages and structured tool/app overhead in Capacity Guard instead of relying mainly on visible turns and measured text.
+- Recognizes ChatGPT’s exact hard-stop copy: “You’ve reached the maximum length for this conversation … starting a new chat.”
+- Moves the default runway profile earlier and migrates only untouched legacy 0.14.10 defaults; explicit user-custom thresholds remain preserved.
+- Adds adaptive watch/handoff zones so high branch pressure can warn before a fixed threshold is crossed.
+- Keeps capacity warnings primary while healthy tool work continues, and keeps Branch & continue urgent in both expanded and collapsed Execution Pulse.
+- Preserves Interruption Guardian, State Convergence, Runway Sentinel, and No Surprise Navigation behavior.
+
 All notable Project Constellation changes are recorded here.
 
 ## 0.14.10 - State Convergence

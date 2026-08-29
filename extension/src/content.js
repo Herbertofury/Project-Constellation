@@ -1105,7 +1105,8 @@
 
   function conversationCapacityEvidence(context = {}) {
     const statusText = String(healthEvidence.lastStatusText || '');
-    const explicitMatch = statusText.match(/(?:maximum conversation length|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
+    const explicitMatch = statusText.match(/(?:you(?:'|’)?ve reached the maximum length for this conversation|maximum length for this conversation|maximum conversation length(?:.{0,40}(?:reached|exceeded))?|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|keep talking by starting a new chat|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
+    const nearLimitMatch = explicitMatch ? null : statusText.match(/(?:(?:approaching|close to|near|nearing|almost at).{0,80}(?:conversation|context).{0,40}(?:limit|maximum)|(?:conversation|context).{0,50}(?:approaching|nearing|close to).{0,40}(?:limit|maximum)|start a new chat soon|consider starting a new chat)/i);
     const sentinel = liveSentinelState(false);
     const generation = sentinel?.ok && sentinel.source === 'live-sentinel' ? (sentinel.generation || {}) : {};
     const storedRecentAverage = Math.max(0, Number(context.capacity?.recentAverageChars || 0));
@@ -1117,11 +1118,16 @@
       mountedTurns: seenTurnHashes.size,
       capturedChars: seenTurnTextChars,
       transcriptTurns: Math.max(0, Number(generation.conversationTurnCount || 0)),
+      activeBranchMessages: Math.max(0, Number(generation.activeBranchMessages || 0)),
+      structuredMessages: Math.max(0, Number(generation.structuredMessages || 0)),
+      toolMessages: Math.max(0, Number(generation.toolMessages || 0)),
       transcriptChars: Math.max(0, Number(generation.conversationChars || 0)),
       recentAverageChars: Math.max(storedRecentAverage, transcriptRecentAverage),
       transcriptRecentAverageChars: transcriptRecentAverage,
       explicitLimitSignal: Boolean(explicitMatch),
-      explicitLimitText: explicitMatch ? brain.normalizeText(explicitMatch[0], 220) : ''
+      explicitLimitText: explicitMatch ? brain.normalizeText(explicitMatch[0], 220) : '',
+      nearLimitSignal: Boolean(nearLimitMatch),
+      nearLimitText: nearLimitMatch ? brain.normalizeText(nearLimitMatch[0], 220) : ''
     };
   }
 
@@ -1787,11 +1793,15 @@
     const capacity = snapshot.capacity || {};
     const turns = Number(capacity.turnCount || 0);
     const safetyPercent = Math.max(0, Number(capacity.safetyPercent || 0));
+    const safetyPercentLabel = safetyPercent >= 100 ? '100%+' : String(safetyPercent || 'high');
     host.dataset.capacity = capacity.state || 'clear';
-    setHealthText(shadow, 'pcHealthCapacity', capacity.state === 'reached' ? 'provider limit' : capacity.state === 'handoff' ? `${safetyPercent || 'high'}% · secure` : capacity.state === 'watch' ? `${safetyPercent || 'high'}% · watch` : turns ? `${safetyPercent}% · clear` : 'clear');
+    setHealthText(shadow, 'pcHealthCapacity', capacity.state === 'reached' ? 'provider limit' : capacity.state === 'handoff' ? `${safetyPercentLabel} · secure` : capacity.state === 'watch' ? `${safetyPercentLabel} · watch` : turns ? `${Math.min(100, safetyPercent)}% · clear` : 'clear');
     setHealthText(shadow, 'pcHealthHandoffState', capacity.recommendedAction === 'handoff' ? (capacity.state === 'watch' ? 'ready early' : 'checkpoint now') : 'armed');
-    const branchUrgent = ['watch','handoff','reached'].includes(capacity.state) ? '1' : '0'; const branchTitle = capacity.state === 'reached' ? 'Provider limit reached — branch into a linked continuation chat' : capacity.state === 'handoff' ? 'Capacity threshold reached — branch safely before the chat breaks' : capacity.state === 'watch' ? 'Runway narrowing — branch early while everything is still healthy' : 'Branch early into a linked continuation chat';
-    for (const branch of [shadow.getElementById('pcHealthBranch'), shadow.getElementById('pcHealthBranchQuick')]) { branch.dataset.urgent = branchUrgent; branch.title = branchTitle; }
+    const branchUrgent = ['watch','handoff','reached'].includes(capacity.state) ? '1' : '0';
+    const branchTitle = capacity.state === 'reached' ? 'Maximum reached — branch into a linked continuation chat now' : capacity.state === 'handoff' ? 'Runway tight — branch safely now before the chat breaks' : capacity.state === 'watch' ? 'Runway narrowing — branch soon while everything is still healthy' : 'Branch early into a linked continuation chat';
+    const branchLabel = capacity.state === 'reached' ? '✦ Branch now' : capacity.state === 'handoff' ? '✦ Branch now' : capacity.state === 'watch' ? '✦ Branch soon' : '✦ Branch & continue';
+    for (const branch of [shadow.getElementById('pcHealthBranch'), shadow.getElementById('pcHealthBranchQuick')]) { branch.dataset.urgent = branchUrgent; branch.title = branchTitle; branch.setAttribute('aria-label', branchTitle); }
+    const branchMain = shadow.getElementById('pcHealthBranch'); if (branchMain) branchMain.textContent = branchLabel;
     const vaultUrgent = page.outputRegression?.active ? '1' : '0'; const vaultTitle = page.outputRegression?.active ? `Saved output is missing · ${page.outputRegression.detail || 'open Output Vault to recover it'}` : 'Open every saved response, file, link, code block, and media output';
     for (const vault of [shadow.getElementById('pcHealthVault'),shadow.getElementById('pcHealthVaultQuick')]) { vault.dataset.urgent=vaultUrgent; vault.title=vaultTitle; }
     const retryButton = shadow.getElementById('pcHealthRetry');
