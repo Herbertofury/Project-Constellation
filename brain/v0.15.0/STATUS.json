@@ -1,9 +1,13 @@
 {
   "version": "0.15.0",
   "codename": "Project Atlas + Compounding Brain",
-  "status": "local-acceptance-green-awaiting-github-ci",
+  "status": "released-green",
   "base": "v0.14.12",
   "base_release_commit": "93cd4a11e0f50f8cb3bbe29fc730b58275f23cbc",
+  "release_source_commit": "1e5058a1409c7ac79f1660d35d853617baf139a5",
+  "release_tag": "v0.15.0",
+  "release_tag_object": "2820d5162edd8f3ed795e928e47b318926ac37f3",
+  "release_url": "https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.15.0",
   "focus": [
     "source-backed project brain compiled from immutable evidence and Knowledge Vault records",
     "concept-level memory policy ledger with pin, ignore, restore, provenance, and reindex persistence",
@@ -22,13 +26,30 @@
     "browser_smokes": "27/27 pass in bounded system-Chromium runs",
     "project_atlas_browser": "pass: project clusters + active/attention lanes + Project Brain provenance + memory gate",
     "popup_grouping": "pass: project-status default + state-only persistence",
-    "full_verify": "equivalent complete local acceptance; monolithic wrapper time-limited after repeated green components"
+    "pr_verify": "pass: workflow Verify #68 / run 33269963557 on clean feature head e76c91aacece1e797479fe203bad11c8e2adddc1",
+    "production_release": "pass: Production release #18 / run 33270084924",
+    "tag_target": "pass: annotated tag v0.15.0 resolves exactly to release_source_commit",
+    "drive_round_trip": "pass: canonical production files and Actions artifact byte-for-byte exact"
   },
   "publication": {
     "drive_folder_id": "12-V1gd6jUEM7PZkezGDWhqMa5o3wlVdT",
-    "checkpoint_dev_id": "1GCgY8axarNihEnIJbgTto49bcNpMF07g",
-    "checkpoint_source_id": "1ygJTWZDERJBwYoXRFPrC7o5Ia6nStg4v",
-    "drive_round_trip": "initial checkpoint exact; final checkpoint update pending"
+    "unpacked_drive_id": "1GCgY8axarNihEnIJbgTto49bcNpMF07g",
+    "source_drive_id": "1ygJTWZDERJBwYoXRFPrC7o5Ia6nStg4v",
+    "receipt_drive_id": "1oueb2rmOT2boxep4BD8AlQnsk2eO1IfR",
+    "checksums_drive_id": "1yzgRgjtLzlLr_iOaU50wGH4XD-KCVoez",
+    "actions_artifact_drive_id": "1DgYOIvtuBjj8VpTR3oRxx2Rj7xEoodGx",
+    "actions_artifact_id": 9719861785,
+    "actions_artifact_sha256": "86f9bf6bb43a385f5d027ab656b216ec4b579095eeb5f6e8cba4b2ce75368e1b",
+    "unpacked": {
+      "bytes": 274397,
+      "sha256": "e0d142ed3f164332fc4772e0041051e4e81be001388d3c6725f8050f906f722d"
+    },
+    "source": {
+      "bytes": 3031228,
+      "sha256": "0d3020aa0b4d35419a83e48901a3f910a834e73cd3a468f9251cda376e8382ed"
+    },
+    "release_receipt_sha256": "73404097d8c80fb4cbb99688711b5fac5d2690123edb97b5f79f00298ce2121e",
+    "checksums_sha256": "259bd7a4855455286c5ca05b52add49af527508cc8add81a96ac4d5969f74b90"
   },
-  "updated_at": "2026-08-29T18:50:53.957Z"
+  "updated_at": "2026-08-29T19:13:30Z"
 }
