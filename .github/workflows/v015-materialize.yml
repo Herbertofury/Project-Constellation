@@ -22,18 +22,32 @@ jobs:
         run: |
           set -euo pipefail
           git show deaf34c4c47d2b4523f8695886ba58c7e5976331:.pc-v015/part-005 > /tmp/part-005.original
+          test "$(wc -c < /tmp/part-005.original)" = '2999'
+          test "$(git hash-object /tmp/part-005.original)" = 'cc1259f5af2347b88419a10b02a4beb013623955'
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('/tmp/part-005.original')
-          s=p.read_text()
-          old='qmsJlsxr148'
-          new='qmsJlsxxr148'
-          assert s.count(old) == 1, f'expected one repair target, got {s.count(old)}'
-          p.write_text(s.replace(old,new))
+          from hashlib import sha1
+          data=Path('/tmp/part-005.original').read_bytes()
+          target='859ac1f47060b86252173766930c36bd06b64a15'
+          alphabet=b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+          def git_blob_hash(blob):
+              return sha1(b'blob '+str(len(blob)).encode()+b'\0'+blob).hexdigest()
+          found=None
+          for pos in range(len(data)+1):
+              prefix=data[:pos]; suffix=data[pos:]
+              for ch in alphabet:
+                  candidate=prefix+bytes([ch])+suffix
+                  if git_blob_hash(candidate)==target:
+                      found=(pos,ch,candidate); break
+              if found: break
+          assert found is not None, 'single-byte canonical repair not found'
+          pos,ch,candidate=found
+          print(f'canonical part-005 repair: insert {chr(ch)!r} at byte {pos}')
+          Path('/tmp/part-005.canonical').write_bytes(candidate)
           PY
-          test "$(wc -c < /tmp/part-005.original)" = '3000'
-          test "$(git hash-object /tmp/part-005.original)" = '859ac1f47060b86252173766930c36bd06b64a15'
-          cp /tmp/part-005.original .pc-v015/part-005
+          test "$(wc -c < /tmp/part-005.canonical)" = '3000'
+          test "$(git hash-object /tmp/part-005.canonical)" = '859ac1f47060b86252173766930c36bd06b64a15'
+          cp /tmp/part-005.canonical .pc-v015/part-005
           cat .pc-v015/part-* > /tmp/v0.15.0.patch.b64
           printf '%s  %s\n' '1a851fa2840f65edc00c134af1e1493fb10fa9961a48d7d5a52e64bbcfd8e180' '/tmp/v0.15.0.patch.b64' | sha256sum -c -
           base64 -d /tmp/v0.15.0.patch.b64 > /tmp/v0.15.0.patch.gz
