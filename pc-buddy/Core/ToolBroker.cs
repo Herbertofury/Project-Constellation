@@ -28,7 +28,7 @@ public sealed class ToolBroker
     {
         var tools = new List<Dictionary<string, object?>>
         {
-            Function("pc_status", "Read PC Buddy health, Windows identity, allowed folders, and enabled local capabilities.",
+            Function("pc_status", "Read Project Constellation health, Windows identity, allowed folders, and enabled local capabilities.",
                 Schema(new Dictionary<string, object?>(), Array.Empty<string>())),
             Function("fs_stat", "Read metadata for one existing file or folder inside an allowed root.",
                 Schema(new Dictionary<string, object?> { ["path"] = new { type = "string" } }, ["path"])),
@@ -54,7 +54,7 @@ public sealed class ToolBroker
     {
         var settings = _settings();
         if (settings.EmergencyLocked)
-            return Failure(name, "PC Buddy emergency lock is active; local tools are disabled.", "PC_BUDDY_LOCKED");
+            return Failure(name, "Project Constellation emergency lock is active; local tools are disabled.", "PC_BUDDY_LOCKED");
 
         try
         {
@@ -113,8 +113,8 @@ public sealed class ToolBroker
 
     private static object Status(AppSettings s) => new
     {
-        app = "PC Buddy Portable",
-        version = "0.3.0-session",
+        app = "Project Constellation",
+        version = "0.4.0-constellation",
         machine = Environment.MachineName,
         user = Environment.UserName,
         os = Environment.OSVersion.VersionString,
@@ -254,7 +254,7 @@ public sealed class ToolBroker
             if (relative == "." || (!relative.StartsWith(".." + Path.DirectorySeparatorChar) && relative != ".." && !Path.IsPathRooted(relative)))
                 return realCandidate;
         }
-        throw new UnauthorizedAccessException("Path is outside the folders enabled in PC Buddy > Access.");
+        throw new UnauthorizedAccessException("Path is outside the folders enabled in Project Constellation > Access.");
     }
 
     private static string ResolveFinalPath(string path)
