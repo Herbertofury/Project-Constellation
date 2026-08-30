@@ -46,7 +46,7 @@ public partial class App : Application
     private void RunUiSmoke()
     {
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        var receiptPath = Path.Combine(AppContext.BaseDirectory, "pc-buddy-ui-smoke.json");
+        var receiptPath = Path.Combine(AppContext.BaseDirectory, "project-constellation-ui-smoke.json");
         MainWindow? window = null;
         DispatcherTimer? timeout = null;
         var finished = false;
@@ -58,8 +58,8 @@ public partial class App : Application
             timeout?.Stop();
             var receipt = new
             {
-                app = "PC Buddy Portable",
-                version = "0.3.0-session",
+                app = "Project Constellation",
+                version = "0.4.0-constellation",
                 timestampUtc = DateTimeOffset.UtcNow,
                 passed,
                 failure,
