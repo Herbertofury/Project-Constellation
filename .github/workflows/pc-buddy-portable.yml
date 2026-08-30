@@ -88,6 +88,25 @@ jobs:
             throw 'Self-test receipt does not prove the no-API ChatGPT-session transport.'
           }
 
+      - name: Run packaged WebView2 bridge DOM smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          $proc = Start-Process -FilePath $exe -ArgumentList '--bridge-dom-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
+          if (-not $proc.WaitForExit(30000)) {
+            try { $proc.Kill($true) } catch {}
+            throw 'PC Buddy WebView2 bridge DOM smoke did not exit within 30 seconds.'
+          }
+          if ($proc.ExitCode -ne 0) { throw "PC Buddy WebView2 bridge DOM smoke failed with exit code $($proc.ExitCode)" }
+          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json'
+          if (-not (Test-Path $receipt)) { throw 'WebView2 bridge DOM smoke receipt was not produced.' }
+          Get-Content $receipt
+          $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
+          if (-not $parsed.passed -or -not $parsed.sessionStateObserved -or -not $parsed.toolCallObserved -or -not $parsed.sendInjected -or -not $parsed.internalHidden) {
+            throw 'WebView2 bridge DOM smoke did not prove the complete bridge script flow.'
+          }
+
       - name: Run packaged WPF UI launch smoke
         shell: pwsh
         run: |
@@ -123,6 +142,7 @@ jobs:
           Copy-Item $loader (Join-Path $package 'WebView2Loader.dll')
           Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
           Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
+          Copy-Item 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
           Copy-Item 'build/pc-buddy/pc-buddy-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
           $exeHash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           $loaderHash = (Get-FileHash (Join-Path $package 'WebView2Loader.dll') -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -148,6 +168,7 @@ jobs:
             build/package/README.txt
             build/package/SHA256SUMS.txt
             build/package/SELF-TEST-RECEIPT.json
+            build/package/BRIDGE-DOM-SMOKE-RECEIPT.json
             build/package/UI-SMOKE-RECEIPT.json
           if-no-files-found: error
           retention-days: 30
