@@ -6,7 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PCBuddy</RootNamespace>
-    <AssemblyName>PCBuddy</AssemblyName>
+    <AssemblyName>ProjectConstellation</AssemblyName>
+    <Product>Project Constellation</Product>
+    <Title>Project Constellation</Title>
+    <Description>Project Constellation desktop workspace and guarded local-computer companion for ChatGPT.</Description>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
@@ -15,7 +18,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <PublishTrimmed>false</PublishTrimmed>
     <DebugType>embedded</DebugType>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
