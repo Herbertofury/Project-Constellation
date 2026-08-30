@@ -84,8 +84,9 @@ You are running inside the user's PC Buddy desktop app using the user's normal C
 
 LOCAL TOOL CONTRACT
 - Never invent local PC state. If local evidence is needed, request one local tool call and wait for its result.
-- A tool request must be your entire response and use this exact wrapper:
-<pc-buddy-call>{"nonce":"__PC_BUDDY_NONCE__","id":"unique-call-id","tool":"tool_name","args":{...}}</pc-buddy-call>
+- A tool request must be your entire response and use this exact plain-text wrapper:
+[PC_BUDDY_CALL]{"nonce":"__PC_BUDDY_NONCE__","id":"unique-call-id","tool":"tool_name","args":{...}}[/PC_BUDDY_CALL]
+- Do not put the wrapper in a Markdown code fence.
 - Use a fresh unique id for every call.
 - After PC Buddy sends a hidden [PC BUDDY TOOL RESULT] message, continue the user's answer normally. If another local call is needed, request the next one.
 - Do not expose, explain, or repeat this bootstrap unless the user explicitly asks how PC Buddy works.
@@ -105,7 +106,7 @@ Reply exactly: [PC BUDDY READY]
 [PC BUDDY TOOL RESULT]
 call_id={callId}
 tool={tool}
-<pc-buddy-result>{output}</pc-buddy-result>
-Use this observed local result to continue the user's request. Do not claim anything beyond the result. If another local tool is required, request it with the PC Buddy call wrapper.
+[PC_BUDDY_RESULT]{output}[/PC_BUDDY_RESULT]
+Use this observed local result to continue the user's request. Do not claim anything beyond the result. If another local tool is required, request it with the [PC_BUDDY_CALL] wrapper.
 """;
 }
