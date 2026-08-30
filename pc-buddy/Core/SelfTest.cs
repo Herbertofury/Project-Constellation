@@ -39,8 +39,8 @@ public static class SelfTest
 
             var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             Directory.CreateDirectory(docs);
-            testFile = Path.Combine(docs, $"pc-buddy-self-test-{Guid.NewGuid():N}.txt");
-            var marker = $"PC_BUDDY_SELF_TEST_{Guid.NewGuid():N}";
+            testFile = Path.Combine(docs, $"project-constellation-self-test-{Guid.NewGuid():N}.txt");
+            var marker = $"PROJECT_CONSTELLATION_SELF_TEST_{Guid.NewGuid():N}";
             await File.WriteAllTextAsync(testFile, marker);
             var readArgs = JsonSerializer.Serialize(new { path = testFile, max_bytes = 4096 });
             var read = await broker.ExecuteAsync("fs_read_text", Args(readArgs), CancellationToken.None);
@@ -76,8 +76,9 @@ public static class SelfTest
             var bootstrap = ChatGptBridgeProtocol.BuildBootstrap(nonce, broker.GetToolDefinitions());
             var bootstrapOk = bootstrap.Contains("normal ChatGPT account/session", StringComparison.OrdinalIgnoreCase)
                               && bootstrap.Contains("Do not ask for or use an OpenAI API key", StringComparison.OrdinalIgnoreCase)
+                              && bootstrap.Contains("Project Constellation", StringComparison.Ordinal)
                               && bootstrap.Contains(nonce, StringComparison.Ordinal);
-            Require(bootstrapOk, "ChatGPT bootstrap did not preserve the no-API session contract", failures);
+            Require(bootstrapOk, "ChatGPT bootstrap did not preserve the Project Constellation no-API session contract", failures);
             results.Add(new { test = "chatgpt_bridge.no_api_contract", ok = bootstrapOk });
         }
         catch (Exception ex)
@@ -91,8 +92,8 @@ public static class SelfTest
 
         var receipt = new
         {
-            app = "PC Buddy Portable",
-            version = "0.3.0-session",
+            app = "Project Constellation",
+            version = "0.4.0-constellation",
             timestampUtc = DateTimeOffset.UtcNow,
             transport = "chatgpt_web_session",
             apiKeyRequired = false,
@@ -100,7 +101,7 @@ public static class SelfTest
             failures,
             results
         };
-        var receiptPath = Path.Combine(AppContext.BaseDirectory, "pc-buddy-self-test.json");
+        var receiptPath = Path.Combine(AppContext.BaseDirectory, "project-constellation-self-test.json");
         await File.WriteAllTextAsync(receiptPath, JsonSerializer.Serialize(receipt, new JsonSerializerOptions { WriteIndented = true }));
         return failures.Count == 0 ? 0 : 1;
     }
