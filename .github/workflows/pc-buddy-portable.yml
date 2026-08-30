@@ -51,8 +51,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
-          & $exe --self-test
-          if ($LASTEXITCODE -ne 0) { throw "PC Buddy self-test failed with exit code $LASTEXITCODE" }
+          $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory (Split-Path $exe) -Wait -PassThru
+          if ($proc.ExitCode -ne 0) { throw "PC Buddy self-test failed with exit code $($proc.ExitCode)" }
           $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-self-test.json'
           if (-not (Test-Path $receipt)) { throw 'Self-test receipt was not produced.' }
           Get-Content $receipt
