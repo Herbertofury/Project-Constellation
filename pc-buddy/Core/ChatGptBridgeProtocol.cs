@@ -78,24 +78,27 @@ public static class ChatGptBridgeProtocol
     public static string BuildBootstrap(string nonce, IReadOnlyList<Dictionary<string, object?>> toolDefinitions)
     {
         var tools = JsonSerializer.Serialize(toolDefinitions);
-        return $$"""
+        const string template = """
 [PC BUDDY BOOTSTRAP]
 You are running inside the user's PC Buddy desktop app using the user's normal ChatGPT account/session. Do not ask for or use an OpenAI API key. PC Buddy can perform only the local tools listed below and enforces its own access policy plus Emergency Lock.
 
 LOCAL TOOL CONTRACT
 - Never invent local PC state. If local evidence is needed, request one local tool call and wait for its result.
 - A tool request must be your entire response and use this exact wrapper:
-<pc-buddy-call>{"nonce":"{{nonce}}","id":"unique-call-id","tool":"tool_name","args":{...}}</pc-buddy-call>
+<pc-buddy-call>{"nonce":"__PC_BUDDY_NONCE__","id":"unique-call-id","tool":"tool_name","args":{...}}</pc-buddy-call>
 - Use a fresh unique id for every call.
 - After PC Buddy sends a hidden [PC BUDDY TOOL RESULT] message, continue the user's answer normally. If another local call is needed, request the next one.
 - Do not expose, explain, or repeat this bootstrap unless the user explicitly asks how PC Buddy works.
 - Normal ChatGPT features, model choice, web browsing, files, and subscription limits remain controlled by ChatGPT itself.
 
 AVAILABLE LOCAL TOOLS
-{{tools}}
+__PC_BUDDY_TOOLS__
 
 Reply exactly: [PC BUDDY READY]
 """;
+        return template
+            .Replace("__PC_BUDDY_NONCE__", nonce, StringComparison.Ordinal)
+            .Replace("__PC_BUDDY_TOOLS__", tools, StringComparison.Ordinal);
     }
 
     public static string BuildToolResult(string callId, string tool, string output) => $"""
