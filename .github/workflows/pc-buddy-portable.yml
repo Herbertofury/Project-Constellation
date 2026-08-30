@@ -1,4 +1,4 @@
-name: PC Buddy Portable
+name: Project Constellation Portable
 
 on:
   push:
@@ -27,13 +27,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          if (Test-Path 'pc-buddy/Core/OpenAiBuddyClient.cs') { throw 'Billable OpenAI API client must not exist in PC Buddy Session.' }
-          if (Test-Path 'pc-buddy/Core/SecretStore.cs') { throw 'API-key secret store must not exist in PC Buddy Session.' }
+          if (Test-Path 'pc-buddy/Core/OpenAiBuddyClient.cs') { throw 'Billable OpenAI API client must not exist in Project Constellation.' }
+          if (Test-Path 'pc-buddy/Core/SecretStore.cs') { throw 'API-key secret store must not exist in Project Constellation.' }
           $source = Get-ChildItem 'pc-buddy' -Recurse -File | Where-Object { $_.Extension -in '.cs', '.xaml', '.csproj' }
           $hits = $source | Select-String -Pattern 'api\.openai\.com|OPENAI_API_KEY|/v1/responses'
           if ($hits) {
             $hits | ForEach-Object { Write-Host $_ }
-            throw 'Billable OpenAI API transport string found in PC Buddy Session source.'
+            throw 'Billable OpenAI API transport string found in Project Constellation source.'
           }
 
       - uses: actions/setup-dotnet@v5
@@ -58,21 +58,22 @@ jobs:
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:DebugType=embedded
           -p:ContinuousIntegrationBuild=true
-          -o build/pc-buddy
+          -o build/project-constellation
 
       - name: Run packaged executable self-test
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
-          if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          if (-not (Test-Path $exe)) { throw 'Published ProjectConstellation.exe was not produced.' }
           $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory (Split-Path $exe) -Wait -PassThru
-          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-self-test.json'
+          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-self-test.json'
           if (-not (Test-Path $receipt)) { throw 'Self-test receipt was not produced.' }
           Get-Content $receipt
-          if ($proc.ExitCode -ne 0) { throw "PC Buddy self-test failed with exit code $($proc.ExitCode)" }
+          if ($proc.ExitCode -ne 0) { throw "Project Constellation self-test failed with exit code $($proc.ExitCode)" }
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'Self-test receipt did not report passed=true.' }
+          if ($parsed.app -ne 'Project Constellation') { throw 'Self-test receipt has stale product identity.' }
           if ($parsed.transport -ne 'chatgpt_web_session' -or $parsed.apiKeyRequired -ne $false) {
             throw 'Self-test receipt does not prove the no-API ChatGPT-session transport.'
           }
@@ -81,16 +82,16 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
-          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json'
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-bridge-dom-smoke.json'
           $proc = Start-Process -FilePath $exe -ArgumentList '--bridge-dom-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
           if (-not $proc.WaitForExit(30000)) {
             try { $proc.Kill($true) } catch {}
             if (Test-Path $receipt) { Get-Content $receipt }
-            throw 'PC Buddy WebView2 bridge DOM smoke did not exit within 30 seconds.'
+            throw 'Project Constellation WebView2 bridge DOM smoke did not exit within 30 seconds.'
           }
           if (Test-Path $receipt) { Get-Content $receipt }
-          if ($proc.ExitCode -ne 0) { throw "PC Buddy WebView2 bridge DOM smoke failed with exit code $($proc.ExitCode)" }
+          if ($proc.ExitCode -ne 0) { throw "Project Constellation WebView2 bridge DOM smoke failed with exit code $($proc.ExitCode)" }
           if (-not (Test-Path $receipt)) { throw 'WebView2 bridge DOM smoke receipt was not produced.' }
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed -or -not $parsed.sessionStateObserved -or -not $parsed.toolCallObserved -or -not $parsed.sendInjected -or -not $parsed.internalHidden) {
@@ -101,19 +102,20 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
-          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-ui-smoke.json'
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-ui-smoke.json'
           $proc = Start-Process -FilePath $exe -ArgumentList '--ui-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
           if (-not $proc.WaitForExit(20000)) {
             try { $proc.Kill($true) } catch {}
             if (Test-Path $receipt) { Get-Content $receipt }
-            throw 'PC Buddy UI smoke did not exit within 20 seconds.'
+            throw 'Project Constellation UI smoke did not exit within 20 seconds.'
           }
           if (Test-Path $receipt) { Get-Content $receipt }
-          if ($proc.ExitCode -ne 0) { throw "PC Buddy UI smoke failed with exit code $($proc.ExitCode)" }
+          if ($proc.ExitCode -ne 0) { throw "Project Constellation UI smoke failed with exit code $($proc.ExitCode)" }
           if (-not (Test-Path $receipt)) { throw 'UI smoke receipt was not produced.' }
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'UI smoke receipt did not report passed=true.' }
+          if ($parsed.window.Title -ne 'Project Constellation') { throw 'Rendered window title is not Project Constellation.' }
 
       - name: Assemble portable package
         shell: pwsh
@@ -121,22 +123,20 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $package = Join-Path $PWD 'build/package'
           New-Item -ItemType Directory -Force -Path $package | Out-Null
-          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
-          if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
-          Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          if (-not (Test-Path $exe)) { throw 'Published ProjectConstellation.exe was not produced.' }
+          Copy-Item $exe (Join-Path $package 'Project Constellation.exe')
           Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
-          Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
-          Copy-Item 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
-          Copy-Item 'build/pc-buddy/pc-buddy-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
+          Copy-Item 'build/project-constellation/project-constellation-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
+          Copy-Item 'build/project-constellation/project-constellation-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
+          Copy-Item 'build/project-constellation/project-constellation-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
           $hashLines = @()
-          $exeHash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
-          $hashLines += "$exeHash *PC Buddy.exe"
+          $exeHash = (Get-FileHash (Join-Path $package 'Project Constellation.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hashLines += "$exeHash *Project Constellation.exe"
 
-          # WebView2Loader may be embedded into the single-file bundle by IncludeNativeLibrariesForSelfExtract.
-          # If publish emits a sidecar loader, include it too; runtime DOM smoke above is the decisive gate either way.
           $loaderCandidates = @(
-            (Join-Path $PWD 'build/pc-buddy/WebView2Loader.dll'),
-            (Join-Path $PWD 'build/pc-buddy/runtimes/win-x64/native/WebView2Loader.dll')
+            (Join-Path $PWD 'build/project-constellation/WebView2Loader.dll'),
+            (Join-Path $PWD 'build/project-constellation/runtimes/win-x64/native/WebView2Loader.dll')
           )
           $loader = $loaderCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
           if ($loader) {
@@ -149,17 +149,17 @@ jobs:
           }
 
           $hashLines | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
-          $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
+          $zip = Join-Path $PWD 'Project-Constellation-Portable-win-x64.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path (Join-Path $package '*') -DestinationPath $zip -CompressionLevel Optimal
           if ((Get-Item $zip).Length -lt 1MB) { throw 'Portable ZIP is unexpectedly small.' }
           Write-Host "Portable ZIP: $zip"
           Write-Host "EXE SHA256: $exeHash"
 
-      - name: Upload directly portable artifact
+      - name: Upload portable artifact
         uses: actions/upload-artifact@v5
         with:
-          name: PC-Buddy-Portable-win-x64
+          name: Project-Constellation-Portable-win-x64
           path: build/package/*
           if-no-files-found: error
           retention-days: 30
