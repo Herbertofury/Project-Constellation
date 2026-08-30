@@ -100,11 +100,11 @@ public partial class MainWindow : Window
 
         (PageTitle.Text, PageSubtitle.Text) = page switch
         {
-            "Chat" => ("Buddy Chat", "Your normal ChatGPT session with guarded local PC tools"),
-            "Access" => ("Access", "Choose exactly what the local bridge can inspect"),
+            "Chat" => ("ChatGPT Workspace", "Your normal ChatGPT session with guarded local PC tools"),
+            "Access" => ("Access", "Choose exactly what Project Constellation can inspect"),
             "Activity" => ("Activity", "Observed local tool calls and outcomes"),
             "Settings" => ("Settings", "ChatGPT session, startup, and portable data"),
-            _ => ("Home", "Your normal ChatGPT session with guarded local PC tools")
+            _ => ("Home", "One workspace for ChatGPT, projects, and guarded local PC tools")
         };
     }
 
@@ -125,7 +125,7 @@ public partial class MainWindow : Window
     private void RefreshStatus()
     {
         var locked = _settings.EmergencyLocked;
-        HeaderStatusText.Text = locked ? "LOCKED" : _chatReady ? "BUDDY READY" : "CHATGPT SESSION";
+        HeaderStatusText.Text = locked ? "LOCKED" : _chatReady ? "CONSTELLATION READY" : "CHATGPT SESSION";
         StatusPill.Background = locked
             ? (System.Windows.Media.Brush)FindResource("CardBrush")
             : (System.Windows.Media.Brush)FindResource("AccentDarkBrush");
@@ -159,7 +159,7 @@ public partial class MainWindow : Window
         {
             _store.SetAutoStart(_settings.AutoStart);
             _store.SaveSettings(_settings);
-            RecordActivity("settings", _settings.AutoStart ? "Windows autostart enabled" : "Windows autostart disabled", true);
+            RecordActivity("settings", _settings.AutoStart ? "Project Constellation Windows autostart enabled" : "Project Constellation Windows autostart disabled", true);
         }
         catch (Exception ex)
         {
@@ -186,7 +186,7 @@ public partial class MainWindow : Window
     private void NewBuddyChat_Click(object sender, RoutedEventArgs e)
     {
         _chatSession?.NewBuddyChat();
-        RecordActivity("chatgpt_session", "Fresh Buddy conversation requested", true);
+        RecordActivity("chatgpt_session", "Fresh ChatGPT conversation requested", true);
     }
 
     private void OpenChatGptBrowser_Click(object sender, RoutedEventArgs e) =>
