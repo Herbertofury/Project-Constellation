@@ -23,6 +23,9 @@ public static class BridgeDomSmoke
         var toolCallObserved = false;
         var sendInjected = false;
         var internalHidden = false;
+        var bridgeFunctionInstalled = false;
+        var promptFound = false;
+        var finalSource = string.Empty;
 
         try
         {
@@ -80,9 +83,22 @@ public static class BridgeDomSmoke
                 failures.Add("Bridge script did not report both a ready chat surface and the fixture assistant tool call.");
             }
 
+            finalSource = core.Source;
+            bridgeFunctionInstalled = string.Equals(
+                await core.ExecuteScriptAsync("typeof window.__pcBuddySend === 'function'"),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+            promptFound = string.Equals(
+                await core.ExecuteScriptAsync("!!document.querySelector('#prompt-textarea')"),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
+            if (!bridgeFunctionInstalled) failures.Add("Bridge send function was not installed in the mapped ChatGPT fixture.");
+            if (!promptFound) failures.Add("Fixture prompt was not present after navigation.");
+
             var sendResult = await core.ExecuteScriptAsync("window.__pcBuddySend && window.__pcBuddySend('PC_BUDDY_DOM_SMOKE_TEXT')");
             if (!string.Equals(sendResult, "true", StringComparison.OrdinalIgnoreCase))
-                failures.Add("Bridge send function was not installed or rejected the fixture prompt.");
+                failures.Add("Bridge send function rejected the fixture prompt.");
 
             await Task.Delay(450);
             var sentRaw = await core.ExecuteScriptAsync("document.body.dataset.sent || ''");
@@ -113,6 +129,9 @@ public static class BridgeDomSmoke
             version = "0.3.0-session",
             timestampUtc = DateTimeOffset.UtcNow,
             passed = failures.Count == 0,
+            finalSource,
+            bridgeFunctionInstalled,
+            promptFound,
             sessionStateObserved,
             toolCallObserved,
             sendInjected,
@@ -132,7 +151,7 @@ public static class BridgeDomSmoke
     <div id="prompt-textarea" contenteditable="true"></div>
     <button data-testid="send-button" onclick="document.body.dataset.sent = document.getElementById('prompt-textarea').innerText">Send</button>
     <div data-message-author-role="user">[PC BUDDY BOOTSTRAP] hidden fixture</div>
-    <div data-message-author-role="assistant"><pc-buddy-call>{"nonce":"fixture","id":"dom-smoke-call","tool":"pc_status","args":{}}</pc-buddy-call></div>
+    <div data-message-author-role="assistant">[PC_BUDDY_CALL]{"nonce":"fixture","id":"dom-smoke-call","tool":"pc_status","args":{}}[/PC_BUDDY_CALL]</div>
   </main>
 </body>
 </html>
