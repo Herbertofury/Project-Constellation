@@ -56,20 +56,20 @@ The `PC Buddy Portable` GitHub Actions workflow builds a self-contained .NET 10 
 
 1. a source gate that rejects the previous billable API transport and API-key store
 2. compile and self-contained publish
-3. a WebView2 native-loader presence gate
-4. packaged executable local-tool/protocol self-test
-5. a real WebView2 DOM bridge smoke using a local ChatGPT-shaped fixture
-6. packaged WPF UI launch smoke
-7. portable artifact assembly with SHA-256 receipts
+3. packaged executable local-tool/protocol self-test
+4. a real WebView2 DOM bridge smoke using a local ChatGPT-shaped fixture; this is also the decisive proof that the published executable can instantiate the WebView2 native runtime
+5. packaged WPF UI launch smoke
+6. portable artifact assembly with SHA-256 receipts
 
 The portable package contains:
 
 - `PC Buddy.exe`
-- `WebView2Loader.dll` (the required x64 native .NET WebView2 loader)
 - `README.txt`
 - `SELF-TEST-RECEIPT.json`
 - `BRIDGE-DOM-SMOKE-RECEIPT.json`
 - `UI-SMOKE-RECEIPT.json`
 - `SHA256SUMS.txt`
+
+If .NET publish emits `WebView2Loader.dll` as a sidecar, the workflow packages it too. With the current single-file settings (`IncludeNativeLibrariesForSelfExtract=true`) the native loader may instead be embedded into the executable; the real packaged WebView2 DOM smoke, not the presence of a ceremonial sidecar file, is the release gate.
 
 No separate .NET runtime is required on the target PC. Web rendering uses Microsoft's WebView2 runtime, which is part of current Windows 11 / Microsoft Edge installations. The project pins the current stable `Microsoft.Web.WebView2` SDK package used for the WPF host.
