@@ -14,9 +14,9 @@ public static class BridgeDomSmoke
     public static async Task<int> RunAsync()
     {
         var failures = new List<string>();
-        var siteDirectory = Path.Combine(Path.GetTempPath(), $"pc-buddy-dom-site-{Guid.NewGuid():N}");
-        var profileDirectory = Path.Combine(Path.GetTempPath(), $"pc-buddy-dom-profile-{Guid.NewGuid():N}");
-        var receiptPath = Path.Combine(AppContext.BaseDirectory, "pc-buddy-bridge-dom-smoke.json");
+        var siteDirectory = Path.Combine(Path.GetTempPath(), $"project-constellation-dom-site-{Guid.NewGuid():N}");
+        var profileDirectory = Path.Combine(Path.GetTempPath(), $"project-constellation-dom-profile-{Guid.NewGuid():N}");
+        var receiptPath = Path.Combine(AppContext.BaseDirectory, "project-constellation-bridge-dom-smoke.json");
         Window? window = null;
         WebView2? webView = null;
         var sessionStateObserved = false;
@@ -96,20 +96,20 @@ public static class BridgeDomSmoke
             if (!bridgeFunctionInstalled) failures.Add("Bridge send function was not installed in the mapped ChatGPT fixture.");
             if (!promptFound) failures.Add("Fixture prompt was not present after navigation.");
 
-            var sendResult = await core.ExecuteScriptAsync("window.__pcBuddySend && window.__pcBuddySend('PC_BUDDY_DOM_SMOKE_TEXT')");
+            var sendResult = await core.ExecuteScriptAsync("window.__pcBuddySend && window.__pcBuddySend('PROJECT_CONSTELLATION_DOM_SMOKE_TEXT')");
             if (!string.Equals(sendResult, "true", StringComparison.OrdinalIgnoreCase))
                 failures.Add("Bridge send function rejected the fixture prompt.");
 
             await Task.Delay(450);
             var sentRaw = await core.ExecuteScriptAsync("document.body.dataset.sent || ''");
             var sent = JsonSerializer.Deserialize<string>(sentRaw) ?? string.Empty;
-            sendInjected = sent.Contains("PC_BUDDY_DOM_SMOKE_TEXT", StringComparison.Ordinal);
+            sendInjected = sent.Contains("PROJECT_CONSTELLATION_DOM_SMOKE_TEXT", StringComparison.Ordinal);
             if (!sendInjected) failures.Add("Bridge send function did not drive the fixture prompt/send button.");
 
             var hiddenRaw = await core.ExecuteScriptAsync("getComputedStyle(document.querySelector('[data-message-author-role=\"user\"]')).display");
             var hidden = JsonSerializer.Deserialize<string>(hiddenRaw) ?? string.Empty;
             internalHidden = string.Equals(hidden, "none", StringComparison.OrdinalIgnoreCase);
-            if (!internalHidden) failures.Add("Internal PC Buddy bootstrap chatter was not hidden by the bridge script.");
+            if (!internalHidden) failures.Add("Internal Project Constellation bootstrap chatter was not hidden by the bridge script.");
         }
         catch (Exception ex)
         {
@@ -125,8 +125,8 @@ public static class BridgeDomSmoke
 
         var receipt = new
         {
-            app = "PC Buddy Portable",
-            version = "0.3.0-session",
+            app = "Project Constellation",
+            version = "0.4.0-constellation",
             timestampUtc = DateTimeOffset.UtcNow,
             passed = failures.Count == 0,
             finalSource,
@@ -145,7 +145,7 @@ public static class BridgeDomSmoke
     private const string FixtureHtml = """
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>PC Buddy DOM fixture</title></head>
+<head><meta charset="utf-8"><title>Project Constellation DOM fixture</title></head>
 <body>
   <main>
     <div id="prompt-textarea" contenteditable="true"></div>
