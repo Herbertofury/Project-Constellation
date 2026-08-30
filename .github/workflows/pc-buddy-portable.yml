@@ -59,6 +59,23 @@ jobs:
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'Self-test receipt did not report passed=true.' }
 
+      - name: Run packaged WPF UI launch smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          $proc = Start-Process -FilePath $exe -ArgumentList '--ui-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
+          if (-not $proc.WaitForExit(20000)) {
+            try { $proc.Kill($true) } catch {}
+            throw 'PC Buddy UI smoke did not exit within 20 seconds.'
+          }
+          if ($proc.ExitCode -ne 0) { throw "PC Buddy UI smoke failed with exit code $($proc.ExitCode)" }
+          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-ui-smoke.json'
+          if (-not (Test-Path $receipt)) { throw 'UI smoke receipt was not produced.' }
+          Get-Content $receipt
+          $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
+          if (-not $parsed.passed) { throw 'UI smoke receipt did not report passed=true.' }
+
       - name: Assemble portable package
         shell: pwsh
         run: |
@@ -70,6 +87,7 @@ jobs:
           Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
           Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
           Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
+          Copy-Item 'build/pc-buddy/pc-buddy-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
           $hash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash *PC Buddy.exe" | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
@@ -88,5 +106,6 @@ jobs:
             build/package/README.txt
             build/package/SHA256SUMS.txt
             build/package/SELF-TEST-RECEIPT.json
+            build/package/UI-SMOKE-RECEIPT.json
           if-no-files-found: error
           retention-days: 30
