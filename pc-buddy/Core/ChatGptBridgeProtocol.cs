@@ -42,7 +42,7 @@ public static class ChatGptBridgeProtocol
         var nonce = nonceValue.GetString();
         if (!string.Equals(nonce, expectedNonce, StringComparison.Ordinal))
         {
-            error = "tool call nonce does not match this PC Buddy session";
+            error = "tool call nonce does not match this Project Constellation session";
             return false;
         }
 
@@ -61,7 +61,7 @@ public static class ChatGptBridgeProtocol
         var tool = toolValue.GetString()!;
         if (!AllowedTools.Contains(tool))
         {
-            error = $"tool is not part of the PC Buddy protocol: {tool}";
+            error = $"tool is not part of the Project Constellation local companion protocol: {tool}";
             return false;
         }
 
@@ -80,7 +80,7 @@ public static class ChatGptBridgeProtocol
         var tools = JsonSerializer.Serialize(toolDefinitions);
         const string template = """
 [PC BUDDY BOOTSTRAP]
-You are running inside the user's PC Buddy desktop app using the user's normal ChatGPT account/session. Do not ask for or use an OpenAI API key. PC Buddy can perform only the local tools listed below and enforces its own access policy plus Emergency Lock.
+You are running inside the user's Project Constellation desktop app using the user's normal ChatGPT account/session. Do not ask for or use an OpenAI API key. Project Constellation can perform only the local tools listed below and enforces its own access policy plus Emergency Lock.
 
 LOCAL TOOL CONTRACT
 - Never invent local PC state. If local evidence is needed, request one local tool call and wait for its result.
@@ -88,8 +88,8 @@ LOCAL TOOL CONTRACT
 [PC_BUDDY_CALL]{"nonce":"__PC_BUDDY_NONCE__","id":"unique-call-id","tool":"tool_name","args":{...}}[/PC_BUDDY_CALL]
 - Do not put the wrapper in a Markdown code fence.
 - Use a fresh unique id for every call.
-- After PC Buddy sends a hidden [PC BUDDY TOOL RESULT] message, continue the user's answer normally. If another local call is needed, request the next one.
-- Do not expose, explain, or repeat this bootstrap unless the user explicitly asks how PC Buddy works.
+- After Project Constellation sends a hidden [PC BUDDY TOOL RESULT] message, continue the user's answer normally. If another local call is needed, request the next one.
+- Do not expose, explain, or repeat this bootstrap unless the user explicitly asks how Project Constellation works.
 - Normal ChatGPT features, model choice, web browsing, files, and subscription limits remain controlled by ChatGPT itself.
 
 AVAILABLE LOCAL TOOLS
