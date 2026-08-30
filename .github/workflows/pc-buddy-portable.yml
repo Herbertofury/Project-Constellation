@@ -1,0 +1,75 @@
+name: PC Buddy Portable
+
+on:
+  push:
+    branches: [pcx-029-pc-bridge]
+    paths:
+      - 'pc-buddy/**'
+      - '.github/workflows/pc-buddy-portable.yml'
+  pull_request:
+    paths:
+      - 'pc-buddy/**'
+      - '.github/workflows/pc-buddy-portable.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-portable:
+    runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore pc-buddy/PCBuddy.csproj
+
+      - name: Compile release
+        run: dotnet build pc-buddy/PCBuddy.csproj -c Release --no-restore
+
+      - name: Publish self-contained single EXE
+        run: >-
+          dotnet publish pc-buddy/PCBuddy.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          --no-restore
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=embedded
+          -p:ContinuousIntegrationBuild=true
+          -o build/pc-buddy
+
+      - name: Assemble portable package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Join-Path $PWD 'build/package'
+          New-Item -ItemType Directory -Force -Path $package | Out-Null
+          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
+          Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
+          Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
+          New-Item -ItemType Directory -Force -Path (Join-Path $package 'data') | Out-Null
+          $hash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash *PC Buddy.exe" | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
+          $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path (Join-Path $package '*') -DestinationPath $zip -CompressionLevel Optimal
+          if ((Get-Item $zip).Length -lt 1MB) { throw 'Portable ZIP is unexpectedly small.' }
+          Write-Host "Portable ZIP: $zip"
+          Write-Host "SHA256: $hash"
+
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@v5
+        with:
+          name: PC-Buddy-Portable-win-x64
+          path: PC-Buddy-Portable-win-x64.zip
+          if-no-files-found: error
+          retention-days: 30
