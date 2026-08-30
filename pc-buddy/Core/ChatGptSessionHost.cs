@@ -284,24 +284,29 @@ public sealed class ChatGptSessionHost : IDisposable
     });
     document.querySelectorAll('[data-message-author-role="assistant"]').forEach(node => {
       const text = node.innerText || '';
-      if (text.includes('[PC BUDDY READY]') || text.includes('<pc-buddy-call>')) node.style.display = 'none';
+      if (text.includes('[PC BUDDY READY]') || text.includes('[PC_BUDDY_CALL]') || node.querySelector('pc-buddy-call')) node.style.display = 'none';
     });
+  }
+
+  function postCall(raw) {
+    try {
+      const call = JSON.parse(raw);
+      const key = String(call.id || '') + '|' + String(call.nonce || '');
+      if (!key || postedCalls.has(key)) return;
+      postedCalls.add(key);
+      chrome.webview.postMessage({ type: 'tool_call', call });
+    } catch (_) { }
   }
 
   function scanAssistantCalls() {
     document.querySelectorAll('[data-message-author-role="assistant"]').forEach(node => {
       const text = node.innerText || '';
-      const regex = /<pc-buddy-call>([\s\S]*?)<\/pc-buddy-call>/gi;
+      const regex = /\[PC_BUDDY_CALL\]([\s\S]*?)\[\/PC_BUDDY_CALL\]/gi;
       let match;
-      while ((match = regex.exec(text)) !== null) {
-        try {
-          const call = JSON.parse(match[1]);
-          const key = String(call.id || '') + '|' + String(call.nonce || '');
-          if (!key || postedCalls.has(key)) continue;
-          postedCalls.add(key);
-          chrome.webview.postMessage({ type: 'tool_call', call });
-        } catch (_) { }
-      }
+      while ((match = regex.exec(text)) !== null) postCall(match[1]);
+
+      // Fallback for renderers that materialize a custom element instead of visible sentinel text.
+      node.querySelectorAll('pc-buddy-call').forEach(element => postCall(element.textContent || ''));
     });
   }
 
