@@ -56,7 +56,6 @@ jobs:
           if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
           Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
           Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
-          New-Item -ItemType Directory -Force -Path (Join-Path $package 'data') | Out-Null
           $hash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash *PC Buddy.exe" | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
@@ -64,12 +63,15 @@ jobs:
           Compress-Archive -Path (Join-Path $package '*') -DestinationPath $zip -CompressionLevel Optimal
           if ((Get-Item $zip).Length -lt 1MB) { throw 'Portable ZIP is unexpectedly small.' }
           Write-Host "Portable ZIP: $zip"
-          Write-Host "SHA256: $hash"
+          Write-Host "EXE SHA256: $hash"
 
-      - name: Upload portable ZIP
+      - name: Upload directly portable artifact
         uses: actions/upload-artifact@v5
         with:
           name: PC-Buddy-Portable-win-x64
-          path: PC-Buddy-Portable-win-x64.zip
+          path: |
+            build/package/PC Buddy.exe
+            build/package/README.txt
+            build/package/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
