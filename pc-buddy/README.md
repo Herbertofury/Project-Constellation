@@ -41,24 +41,35 @@ State includes settings, activity receipts, and the persistent ChatGPT WebView2 
 - Windows final-path resolution is used before filesystem access so junction/symlink escape does not bypass enabled roots.
 - Diagnostic commands have fixed executable names and fixed arguments.
 - ChatGPT local-tool requests are accepted only when they carry the current per-conversation random nonce.
+- The nonce rotates when the embedded ChatGPT conversation changes.
 - Duplicate tool-call IDs are ignored.
 - Activity is recorded locally as JSONL.
-- No API key or API token is stored by PC Buddy Session mode.
+- No API key or API token is stored or read by PC Buddy Session mode.
 
 ## Compatibility MCP bridge
 
 The older PCX-029 MCP bridge remains in `pc-bridge/` for supported ChatGPT Apps/MCP deployments. It is optional and is not required for PC Buddy Session mode.
 
-## Build
+## Build and verification
 
 The `PC Buddy Portable` GitHub Actions workflow builds a self-contained .NET 10 Windows x64 executable and runs:
 
-1. compile
-2. self-contained publish
-3. packaged executable local-tool/protocol self-test
-4. packaged WPF UI launch smoke
-5. portable artifact assembly with SHA-256 receipts
+1. a source gate that rejects the previous billable API transport and API-key store
+2. compile and self-contained publish
+3. a WebView2 native-loader presence gate
+4. packaged executable local-tool/protocol self-test
+5. a real WebView2 DOM bridge smoke using a local ChatGPT-shaped fixture
+6. packaged WPF UI launch smoke
+7. portable artifact assembly with SHA-256 receipts
 
-The package contains `PC Buddy.exe`, `README.txt`, and verification receipts. No separate .NET runtime is required on the target PC.
+The portable package contains:
 
-Web rendering uses Microsoft's WebView2 runtime, which is part of current Windows 11 / Microsoft Edge installations. The project pins the current stable `Microsoft.Web.WebView2` SDK package used for the WPF host.
+- `PC Buddy.exe`
+- `WebView2Loader.dll` (the required x64 native .NET WebView2 loader)
+- `README.txt`
+- `SELF-TEST-RECEIPT.json`
+- `BRIDGE-DOM-SMOKE-RECEIPT.json`
+- `UI-SMOKE-RECEIPT.json`
+- `SHA256SUMS.txt`
+
+No separate .NET runtime is required on the target PC. Web rendering uses Microsoft's WebView2 runtime, which is part of current Windows 11 / Microsoft Edge installations. The project pins the current stable `Microsoft.Web.WebView2` SDK package used for the WPF host.
