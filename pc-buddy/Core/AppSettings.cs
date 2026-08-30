@@ -8,9 +8,6 @@ namespace PCBuddy.Core;
 
 public sealed class AppSettings
 {
-    public string Model { get; set; } = "gpt-5.6-sol";
-    public string ReasoningEffort { get; set; } = "medium";
-    public bool WebSearchEnabled { get; set; } = true;
     public bool AllowDesktop { get; set; } = true;
     public bool AllowDocuments { get; set; } = true;
     public bool AllowDownloads { get; set; } = false;
@@ -23,7 +20,6 @@ public sealed class AppSettings
     public bool EmergencyLocked { get; set; } = false;
     public int MaxReadBytes { get; set; } = 262_144;
     public int MaxListEntries { get; set; } = 300;
-    public string? LastResponseId { get; set; }
 
     [JsonIgnore]
     public IEnumerable<string> AllowedRoots
