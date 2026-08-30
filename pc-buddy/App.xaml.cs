@@ -23,6 +23,15 @@ public partial class App : Application
             return;
         }
 
+        if (e.Args.Any(arg => string.Equals(arg, "--bridge-dom-smoke", StringComparison.OrdinalIgnoreCase)))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var exitCode = await BridgeDomSmoke.RunAsync();
+            Environment.ExitCode = exitCode;
+            Shutdown(exitCode);
+            return;
+        }
+
         if (e.Args.Any(arg => string.Equals(arg, "--ui-smoke", StringComparison.OrdinalIgnoreCase)))
         {
             RunUiSmoke();
