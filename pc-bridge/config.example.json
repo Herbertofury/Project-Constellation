@@ -1,0 +1,16 @@
+{
+  "roots": [
+    "%USERPROFILE%\\Desktop",
+    "%USERPROFILE%\\Documents",
+    "%USERPROFILE%\\Downloads"
+  ],
+  "maxListEntries": 500,
+  "maxReadBytes": 1048576,
+  "commandTimeoutMs": 15000,
+  "commands": {
+    "identity": { "file": "whoami.exe", "args": [] },
+    "hostname": { "file": "hostname.exe", "args": [] },
+    "ipconfig": { "file": "ipconfig.exe", "args": ["/all"] },
+    "systeminfo": { "file": "systeminfo.exe", "args": [], "timeoutMs": 30000 }
+  }
+}
