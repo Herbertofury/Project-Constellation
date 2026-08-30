@@ -20,6 +20,7 @@ public sealed class ChatGptSessionHost : IDisposable
     private readonly SemaphoreSlim _primeGate = new(1, 1);
     private CancellationTokenSource _sessionCts = new();
     private string _nonce = ChatGptBridgeProtocol.CreateNonce();
+    private string _conversationKey = string.Empty;
     private bool _primed;
     private bool _ready;
     private bool _disposed;
@@ -55,15 +56,21 @@ public sealed class ChatGptSessionHost : IDisposable
 
     public void NewBuddyChat()
     {
+        ResetConversationState();
+        _ready = false;
+        _conversationKey = string.Empty;
+        _status("Opening a fresh ChatGPT conversation…", false);
+        _webView.CoreWebView2?.Navigate("https://chatgpt.com/");
+    }
+
+    private void ResetConversationState()
+    {
         _sessionCts.Cancel();
         _sessionCts.Dispose();
         _sessionCts = new CancellationTokenSource();
         _nonce = ChatGptBridgeProtocol.CreateNonce();
         _primed = false;
-        _ready = false;
         _completedCalls.Clear();
-        _status("Opening a fresh ChatGPT conversation…", false);
-        _webView.CoreWebView2?.Navigate("https://chatgpt.com/");
     }
 
     private void Core_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -86,6 +93,12 @@ public sealed class ChatGptSessionHost : IDisposable
             {
                 _ready = root.TryGetProperty("ready", out var readyValue) && readyValue.ValueKind == JsonValueKind.True;
                 var url = root.TryGetProperty("url", out var urlValue) ? urlValue.GetString() ?? string.Empty : string.Empty;
+                var key = root.TryGetProperty("conversationKey", out var keyValue) && keyValue.ValueKind == JsonValueKind.String
+                    ? keyValue.GetString() ?? string.Empty
+                    : string.Empty;
+
+                ObserveConversationKey(key);
+
                 if (_ready)
                 {
                     _status(_primed ? "ChatGPT + local bridge ready" : "ChatGPT signed in — arming local bridge…", true);
@@ -101,6 +114,12 @@ public sealed class ChatGptSessionHost : IDisposable
             }
 
             if (type != "tool_call" || !root.TryGetProperty("call", out var callElement)) return;
+            if (!_primed)
+            {
+                _activity("chatgpt_bridge", "ignored a tool marker before this conversation was armed", false);
+                return;
+            }
+
             if (!ChatGptBridgeProtocol.TryParseToolCall(callElement, _nonce, out var call, out var error) || call is null)
             {
                 _activity("chatgpt_bridge", error, false);
@@ -118,10 +137,41 @@ public sealed class ChatGptSessionHost : IDisposable
             _activity(call.Tool, delivered ? "result returned to ChatGPT" : "could not return result to ChatGPT", delivered);
             if (!delivered) _status("Local tool ran, but ChatGPT's message box could not be controlled. Reload ChatGPT.", false);
         }
+        catch (OperationCanceledException)
+        {
+            _activity("chatgpt_bridge", "local bridge operation cancelled", false);
+        }
         catch (Exception ex)
         {
             _activity("chatgpt_bridge", ex.Message, false);
             _status($"ChatGPT bridge error: {ex.Message}", false);
+        }
+    }
+
+    private void ObserveConversationKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return;
+        if (string.IsNullOrWhiteSpace(_conversationKey))
+        {
+            _conversationKey = key;
+            return;
+        }
+
+        if (string.Equals(_conversationKey, key, StringComparison.Ordinal)) return;
+
+        // The first bootstrap message turns the blank '/' route into '/c/<id>'.
+        // That is the same conversation, not a reason to inject a second bootstrap.
+        if (_primed && _conversationKey == "/" && key.StartsWith("/c/", StringComparison.Ordinal))
+        {
+            _conversationKey = key;
+            return;
+        }
+
+        _conversationKey = key;
+        if (_primed)
+        {
+            ResetConversationState();
+            _activity("chatgpt_session", "conversation changed; local bridge nonce rotated", true);
         }
     }
 
@@ -172,6 +222,8 @@ public sealed class ChatGptSessionHost : IDisposable
         }
         _webView.Dispose();
     }
+
+    internal static string BridgeScriptForTesting => BridgeScript;
 
     private const string BridgeScript = """
 (() => {
@@ -254,7 +306,15 @@ public sealed class ChatGptSessionHost : IDisposable
   }
 
   function postState() {
-    try { chrome.webview.postMessage({ type: 'session_state', ready: !!promptElement(), url: location.href, title: document.title }); } catch (_) { }
+    try {
+      chrome.webview.postMessage({
+        type: 'session_state',
+        ready: !!promptElement(),
+        url: location.href,
+        title: document.title,
+        conversationKey: location.pathname
+      });
+    } catch (_) { }
   }
 
   function scan() {
