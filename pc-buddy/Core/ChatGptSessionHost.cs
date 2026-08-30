@@ -231,6 +231,7 @@ public sealed class ChatGptSessionHost : IDisposable
   window.__pcBuddyInstalled = true;
   const postedCalls = new Set();
   let scanTimer = 0;
+  let observerStarted = false;
 
   function promptElement() {
     return document.querySelector('#prompt-textarea') ||
@@ -332,9 +333,25 @@ public sealed class ChatGptSessionHost : IDisposable
     clearTimeout(scanTimer);
     scanTimer = setTimeout(scan, 180);
   });
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-  setInterval(postState, 2500);
-  scan();
+
+  function startMonitoring() {
+    if (observerStarted) return;
+    const root = document.documentElement;
+    if (!root) {
+      setTimeout(startMonitoring, 0);
+      return;
+    }
+    observerStarted = true;
+    observer.observe(root, { childList: true, subtree: true, characterData: true });
+    setInterval(postState, 2500);
+    scan();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startMonitoring, { once: true });
+  } else {
+    startMonitoring();
+  }
 })();
 """;
 }
