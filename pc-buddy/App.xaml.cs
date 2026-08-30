@@ -50,7 +50,7 @@ public partial class App : Application
             var receipt = new
             {
                 app = "PC Buddy Portable",
-                version = "0.2.0-alpha",
+                version = "0.3.0-session",
                 timestampUtc = DateTimeOffset.UtcNow,
                 passed,
                 failure,
@@ -72,7 +72,7 @@ public partial class App : Application
 
         try
         {
-            window = new MainWindow
+            window = new MainWindow(skipChatSession: true)
             {
                 ShowInTaskbar = false,
                 Opacity = 0.02,
@@ -87,8 +87,9 @@ public partial class App : Application
             {
                 var required = new[]
                 {
-                    "HomePage", "ChatPage", "AccessPage", "ActivityPage", "SettingsPage",
-                    "EmergencyButton", "ChatInput", "SendButton", "ApiKeyBox", "ModelCombo"
+                    "HomePage", "ChatPage", "ChatHost", "ChatSessionStatusText", "ChatSessionHomeStatusText",
+                    "AccessPage", "ActivityPage", "SettingsPage", "EmergencyButton", "ReloadChatButton",
+                    "NewBuddyChatButton", "AutoStartCheck", "SessionProfilePathText"
                 };
                 var checks = required.ToDictionary(name => name, name => window.FindName(name) is not null, StringComparer.Ordinal);
                 var passed = window.IsLoaded && window.ActualWidth > 0 && window.ActualHeight > 0 && checks.Values.All(value => value);
