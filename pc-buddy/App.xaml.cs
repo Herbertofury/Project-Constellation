@@ -1,4 +1,6 @@
 using PCBuddy.Core;
+using System;
+using System.Linq;
 using System.Windows;
 
 namespace PCBuddy;
