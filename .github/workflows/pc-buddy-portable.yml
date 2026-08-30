@@ -22,6 +22,20 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v5
+
+      - name: Enforce ChatGPT-session transport
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (Test-Path 'pc-buddy/Core/OpenAiBuddyClient.cs') { throw 'Billable OpenAI API client must not exist in PC Buddy Session.' }
+          if (Test-Path 'pc-buddy/Core/SecretStore.cs') { throw 'API-key secret store must not exist in PC Buddy Session.' }
+          $source = Get-ChildItem 'pc-buddy' -Recurse -File | Where-Object { $_.Extension -in '.cs', '.xaml', '.csproj' }
+          $hits = $source | Select-String -Pattern 'api\.openai\.com|OPENAI_API_KEY|/v1/responses'
+          if ($hits) {
+            $hits | ForEach-Object { Write-Host $_ }
+            throw 'Billable OpenAI API transport string found in PC Buddy Session source.'
+          }
+
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
@@ -32,7 +46,7 @@ jobs:
       - name: Compile release
         run: dotnet build pc-buddy/PCBuddy.csproj -c Release --no-restore
 
-      - name: Publish self-contained single EXE
+      - name: Publish self-contained app
         run: >-
           dotnet publish pc-buddy/PCBuddy.csproj
           -c Release
@@ -46,6 +60,18 @@ jobs:
           -p:ContinuousIntegrationBuild=true
           -o build/pc-buddy
 
+      - name: Verify WebView2 native loader
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(
+            (Join-Path $PWD 'build/pc-buddy/WebView2Loader.dll'),
+            (Join-Path $PWD 'build/pc-buddy/runtimes/win-x64/native/WebView2Loader.dll')
+          )
+          $loader = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $loader) { throw 'Published app is missing x64 WebView2Loader.dll.' }
+          Write-Host "WebView2 loader: $loader"
+
       - name: Run packaged executable self-test
         shell: pwsh
         run: |
@@ -58,6 +84,9 @@ jobs:
           Get-Content $receipt
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'Self-test receipt did not report passed=true.' }
+          if ($parsed.transport -ne 'chatgpt_web_session' -or $parsed.apiKeyRequired -ne $false) {
+            throw 'Self-test receipt does not prove the no-API ChatGPT-session transport.'
+          }
 
       - name: Run packaged WPF UI launch smoke
         shell: pwsh
@@ -84,18 +113,30 @@ jobs:
           New-Item -ItemType Directory -Force -Path $package | Out-Null
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
           if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
+          $loaderCandidates = @(
+            (Join-Path $PWD 'build/pc-buddy/WebView2Loader.dll'),
+            (Join-Path $PWD 'build/pc-buddy/runtimes/win-x64/native/WebView2Loader.dll')
+          )
+          $loader = $loaderCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $loader) { throw 'WebView2Loader.dll was not available for portable packaging.' }
           Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
+          Copy-Item $loader (Join-Path $package 'WebView2Loader.dll')
           Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
           Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
           Copy-Item 'build/pc-buddy/pc-buddy-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
-          $hash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash *PC Buddy.exe" | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
+          $exeHash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+          $loaderHash = (Get-FileHash (Join-Path $package 'WebView2Loader.dll') -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            "$exeHash *PC Buddy.exe",
+            "$loaderHash *WebView2Loader.dll"
+          ) | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path (Join-Path $package '*') -DestinationPath $zip -CompressionLevel Optimal
           if ((Get-Item $zip).Length -lt 1MB) { throw 'Portable ZIP is unexpectedly small.' }
           Write-Host "Portable ZIP: $zip"
-          Write-Host "EXE SHA256: $hash"
+          Write-Host "EXE SHA256: $exeHash"
+          Write-Host "WebView2Loader SHA256: $loaderHash"
 
       - name: Upload directly portable artifact
         uses: actions/upload-artifact@v5
@@ -103,6 +144,7 @@ jobs:
           name: PC-Buddy-Portable-win-x64
           path: |
             build/package/PC Buddy.exe
+            build/package/WebView2Loader.dll
             build/package/README.txt
             build/package/SHA256SUMS.txt
             build/package/SELF-TEST-RECEIPT.json
