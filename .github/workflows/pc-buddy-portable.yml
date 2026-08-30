@@ -60,23 +60,12 @@ jobs:
           -p:ContinuousIntegrationBuild=true
           -o build/pc-buddy
 
-      - name: Verify WebView2 native loader
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $candidates = @(
-            (Join-Path $PWD 'build/pc-buddy/WebView2Loader.dll'),
-            (Join-Path $PWD 'build/pc-buddy/runtimes/win-x64/native/WebView2Loader.dll')
-          )
-          $loader = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $loader) { throw 'Published app is missing x64 WebView2Loader.dll.' }
-          Write-Host "WebView2 loader: $loader"
-
       - name: Run packaged executable self-test
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
           $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory (Split-Path $exe) -Wait -PassThru
           if ($proc.ExitCode -ne 0) { throw "PC Buddy self-test failed with exit code $($proc.ExitCode)" }
           $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-self-test.json'
@@ -132,43 +121,43 @@ jobs:
           New-Item -ItemType Directory -Force -Path $package | Out-Null
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
           if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
+          Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
+          Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
+          Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
+          Copy-Item 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
+          Copy-Item 'build/pc-buddy/pc-buddy-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
+          $hashLines = @()
+          $exeHash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hashLines += "$exeHash *PC Buddy.exe"
+
+          # WebView2Loader may be embedded into the single-file bundle by IncludeNativeLibrariesForSelfExtract.
+          # If publish emits a sidecar loader, include it too; runtime DOM smoke above is the decisive gate either way.
           $loaderCandidates = @(
             (Join-Path $PWD 'build/pc-buddy/WebView2Loader.dll'),
             (Join-Path $PWD 'build/pc-buddy/runtimes/win-x64/native/WebView2Loader.dll')
           )
           $loader = $loaderCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $loader) { throw 'WebView2Loader.dll was not available for portable packaging.' }
-          Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
-          Copy-Item $loader (Join-Path $package 'WebView2Loader.dll')
-          Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
-          Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
-          Copy-Item 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
-          Copy-Item 'build/pc-buddy/pc-buddy-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
-          $exeHash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
-          $loaderHash = (Get-FileHash (Join-Path $package 'WebView2Loader.dll') -Algorithm SHA256).Hash.ToLowerInvariant()
-          @(
-            "$exeHash *PC Buddy.exe",
-            "$loaderHash *WebView2Loader.dll"
-          ) | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
+          if ($loader) {
+            Copy-Item $loader (Join-Path $package 'WebView2Loader.dll')
+            $loaderHash = (Get-FileHash (Join-Path $package 'WebView2Loader.dll') -Algorithm SHA256).Hash.ToLowerInvariant()
+            $hashLines += "$loaderHash *WebView2Loader.dll"
+            Write-Host "WebView2Loader sidecar emitted and packaged: $loaderHash"
+          } else {
+            Write-Host 'No WebView2Loader sidecar emitted; packaged WebView2 DOM smoke already proved the published single EXE can instantiate WebView2.'
+          }
+
+          $hashLines | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path (Join-Path $package '*') -DestinationPath $zip -CompressionLevel Optimal
           if ((Get-Item $zip).Length -lt 1MB) { throw 'Portable ZIP is unexpectedly small.' }
           Write-Host "Portable ZIP: $zip"
           Write-Host "EXE SHA256: $exeHash"
-          Write-Host "WebView2Loader SHA256: $loaderHash"
 
       - name: Upload directly portable artifact
         uses: actions/upload-artifact@v5
         with:
           name: PC-Buddy-Portable-win-x64
-          path: |
-            build/package/PC Buddy.exe
-            build/package/WebView2Loader.dll
-            build/package/README.txt
-            build/package/SHA256SUMS.txt
-            build/package/SELF-TEST-RECEIPT.json
-            build/package/BRIDGE-DOM-SMOKE-RECEIPT.json
-            build/package/UI-SMOKE-RECEIPT.json
+          path: build/package/*
           if-no-files-found: error
           retention-days: 30
