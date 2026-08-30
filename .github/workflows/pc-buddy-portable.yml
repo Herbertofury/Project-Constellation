@@ -46,6 +46,19 @@ jobs:
           -p:ContinuousIntegrationBuild=true
           -o build/pc-buddy
 
+      - name: Run packaged executable self-test
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          & $exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw "PC Buddy self-test failed with exit code $LASTEXITCODE" }
+          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-self-test.json'
+          if (-not (Test-Path $receipt)) { throw 'Self-test receipt was not produced.' }
+          Get-Content $receipt
+          $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
+          if (-not $parsed.passed) { throw 'Self-test receipt did not report passed=true.' }
+
       - name: Assemble portable package
         shell: pwsh
         run: |
@@ -56,6 +69,7 @@ jobs:
           if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
           Copy-Item $exe (Join-Path $package 'PC Buddy.exe')
           Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
+          Copy-Item 'build/pc-buddy/pc-buddy-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
           $hash = (Get-FileHash (Join-Path $package 'PC Buddy.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash *PC Buddy.exe" | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'PC-Buddy-Portable-win-x64.zip'
@@ -73,5 +87,6 @@ jobs:
             build/package/PC Buddy.exe
             build/package/README.txt
             build/package/SHA256SUMS.txt
+            build/package/SELF-TEST-RECEIPT.json
           if-no-files-found: error
           retention-days: 30
