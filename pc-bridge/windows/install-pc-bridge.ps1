@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Source = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$Source = Split-Path -Parent $PSScriptRoot
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
   throw 'Node.js 22+ is required and was not found on PATH.'
 }
@@ -23,7 +23,9 @@ if (-not (Test-Path "$InstallDir\config.json")) {
 [Environment]::SetEnvironmentVariable('PCX_BRIDGE_CONFIG', "$InstallDir\config.json", 'User')
 
 if ($Mode -eq 'http') {
-  $token = -join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Maximum 16) })
+  $tokenBytes = New-Object byte[] 48
+  [Security.Cryptography.RandomNumberGenerator]::Fill($tokenBytes)
+  $token = [Convert]::ToBase64String($tokenBytes).TrimEnd('=').Replace('+','-').Replace('/','_')
   [Environment]::SetEnvironmentVariable('PCX_BRIDGE_TOKEN', $token, 'User')
   [Environment]::SetEnvironmentVariable('PCX_BRIDGE_PORT', "$Port", 'User')
   $launcher = @"
