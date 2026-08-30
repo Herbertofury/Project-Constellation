@@ -210,17 +210,22 @@ public sealed class ToolBroker
         };
         foreach (var arg in spec.Item2) psi.ArgumentList.Add(arg);
         using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start diagnostic command.");
+        var stdoutTask = process.StandardOutput.ReadToEndAsync(ct);
+        var stderrTask = process.StandardError.ReadToEndAsync(ct);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(id.Equals("systeminfo", StringComparison.OrdinalIgnoreCase) ? 45 : 20));
-        try { await process.WaitForExitAsync(timeout.Token); }
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+            var stdout = await stdoutTask;
+            var stderr = await stderrTask;
+            return new { id, exitCode = process.ExitCode, stdout = Truncate(stdout, 1_000_000), stderr = Truncate(stderr, 200_000) };
+        }
         catch
         {
             try { process.Kill(entireProcessTree: true); } catch { }
             throw;
         }
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
-        return new { id, exitCode = process.ExitCode, stdout = Truncate(stdout, 1_000_000), stderr = Truncate(stderr, 200_000) };
     }
 
     private static string Truncate(string value, int max) => value.Length <= max ? value : value[..max] + "\n[truncated]";
@@ -253,7 +258,7 @@ public sealed class ToolBroker
         if (handle.IsInvalid) throw new IOException($"Could not resolve path: {path} (Win32 {Marshal.GetLastWin32Error()})");
         var sb = new StringBuilder(4096);
         var length = GetFinalPathNameByHandle(handle, sb, (uint)sb.Capacity, 0);
-        if (length == 0 || length >= sb.Capacity) throw new IOException("Could not resolve the final Windows path.");
+        if (length == 0 || length >= (uint)sb.Capacity) throw new IOException("Could not resolve the final Windows path.");
         var final = sb.ToString();
         if (final.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase)) return @"\\" + final[8..];
         if (final.StartsWith(@"\\?\", StringComparison.OrdinalIgnoreCase)) return final[4..];
