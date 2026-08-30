@@ -67,10 +67,10 @@ jobs:
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
           if (-not (Test-Path $exe)) { throw 'Published PCBuddy.exe was not produced.' }
           $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory (Split-Path $exe) -Wait -PassThru
-          if ($proc.ExitCode -ne 0) { throw "PC Buddy self-test failed with exit code $($proc.ExitCode)" }
           $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-self-test.json'
           if (-not (Test-Path $receipt)) { throw 'Self-test receipt was not produced.' }
           Get-Content $receipt
+          if ($proc.ExitCode -ne 0) { throw "PC Buddy self-test failed with exit code $($proc.ExitCode)" }
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'Self-test receipt did not report passed=true.' }
           if ($parsed.transport -ne 'chatgpt_web_session' -or $parsed.apiKeyRequired -ne $false) {
@@ -82,15 +82,16 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json'
           $proc = Start-Process -FilePath $exe -ArgumentList '--bridge-dom-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
           if (-not $proc.WaitForExit(30000)) {
             try { $proc.Kill($true) } catch {}
+            if (Test-Path $receipt) { Get-Content $receipt }
             throw 'PC Buddy WebView2 bridge DOM smoke did not exit within 30 seconds.'
           }
+          if (Test-Path $receipt) { Get-Content $receipt }
           if ($proc.ExitCode -ne 0) { throw "PC Buddy WebView2 bridge DOM smoke failed with exit code $($proc.ExitCode)" }
-          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-bridge-dom-smoke.json'
           if (-not (Test-Path $receipt)) { throw 'WebView2 bridge DOM smoke receipt was not produced.' }
-          Get-Content $receipt
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed -or -not $parsed.sessionStateObserved -or -not $parsed.toolCallObserved -or -not $parsed.sendInjected -or -not $parsed.internalHidden) {
             throw 'WebView2 bridge DOM smoke did not prove the complete bridge script flow.'
@@ -101,15 +102,16 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $PWD 'build/pc-buddy/PCBuddy.exe'
+          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-ui-smoke.json'
           $proc = Start-Process -FilePath $exe -ArgumentList '--ui-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
           if (-not $proc.WaitForExit(20000)) {
             try { $proc.Kill($true) } catch {}
+            if (Test-Path $receipt) { Get-Content $receipt }
             throw 'PC Buddy UI smoke did not exit within 20 seconds.'
           }
+          if (Test-Path $receipt) { Get-Content $receipt }
           if ($proc.ExitCode -ne 0) { throw "PC Buddy UI smoke failed with exit code $($proc.ExitCode)" }
-          $receipt = Join-Path $PWD 'build/pc-buddy/pc-buddy-ui-smoke.json'
           if (-not (Test-Path $receipt)) { throw 'UI smoke receipt was not produced.' }
-          Get-Content $receipt
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'UI smoke receipt did not report passed=true.' }
 
