@@ -114,7 +114,7 @@ public sealed class ToolBroker
     private static object Status(AppSettings s) => new
     {
         app = "PC Buddy Portable",
-        version = "0.2.0-alpha",
+        version = "0.3.0-session",
         machine = Environment.MachineName,
         user = Environment.UserName,
         os = Environment.OSVersion.VersionString,
