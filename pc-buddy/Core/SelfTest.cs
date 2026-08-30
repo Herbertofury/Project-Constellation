@@ -30,13 +30,12 @@ public static class SelfTest
         void Activity(string tool, string detail, bool ok) => results.Add(new { kind = "activity", tool, detail, ok });
         var broker = new ToolBroker(() => settings, Activity);
         string? testFile = null;
-        string? secretDir = null;
 
         try
         {
             var status = await broker.ExecuteAsync("pc_status", Args("{}"), CancellationToken.None);
             Require(status.Contains("\"ok\":true", StringComparison.Ordinal), "pc_status did not return success", failures);
-            results.Add(new { test = "pc_status", ok = !failures.Any(x => x.Contains("pc_status", StringComparison.Ordinal)) });
+            results.Add(new { test = "pc_status", ok = status.Contains("\"ok\":true", StringComparison.Ordinal) });
 
             var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             Directory.CreateDirectory(docs);
@@ -58,16 +57,28 @@ public static class SelfTest
             results.Add(new { test = "emergency_lock", ok = locked.Contains("PC_BUDDY_LOCKED", StringComparison.Ordinal) });
             settings.EmergencyLocked = false;
 
-            secretDir = Path.Combine(Path.GetTempPath(), $"pc-buddy-secret-test-{Guid.NewGuid():N}");
-            Directory.CreateDirectory(secretDir);
-            var secrets = new SecretStore(secretDir);
-            const string secret = "self-test-secret-not-an-api-key";
-            secrets.SaveApiKey(secret);
-            var loaded = secrets.LoadApiKey();
-            var secretOk = string.Equals(secret, loaded, StringComparison.Ordinal);
-            Require(secretOk, "Windows DPAPI secret round-trip failed", failures);
-            secrets.ForgetApiKey();
-            results.Add(new { test = "dpapi_round_trip", ok = secretOk });
+            var nonce = ChatGptBridgeProtocol.CreateNonce();
+            using var validDoc = JsonDocument.Parse(JsonSerializer.Serialize(new
+            {
+                nonce,
+                id = "self-test-call",
+                tool = "pc_status",
+                args = new { }
+            }));
+            var valid = ChatGptBridgeProtocol.TryParseToolCall(validDoc.RootElement, nonce, out var parsedCall, out _);
+            Require(valid && parsedCall?.Tool == "pc_status", "ChatGPT bridge protocol rejected a valid local tool request", failures);
+            results.Add(new { test = "chatgpt_bridge.valid_call", ok = valid && parsedCall?.Tool == "pc_status" });
+
+            var wrongNonce = ChatGptBridgeProtocol.TryParseToolCall(validDoc.RootElement, nonce + "x", out _, out _);
+            Require(!wrongNonce, "ChatGPT bridge protocol accepted a call from the wrong session nonce", failures);
+            results.Add(new { test = "chatgpt_bridge.nonce_rejection", ok = !wrongNonce });
+
+            var bootstrap = ChatGptBridgeProtocol.BuildBootstrap(nonce, broker.GetToolDefinitions());
+            var bootstrapOk = bootstrap.Contains("normal ChatGPT account/session", StringComparison.OrdinalIgnoreCase)
+                              && bootstrap.Contains("Do not ask for or use an OpenAI API key", StringComparison.OrdinalIgnoreCase)
+                              && bootstrap.Contains(nonce, StringComparison.Ordinal);
+            Require(bootstrapOk, "ChatGPT bootstrap did not preserve the no-API session contract", failures);
+            results.Add(new { test = "chatgpt_bridge.no_api_contract", ok = bootstrapOk });
         }
         catch (Exception ex)
         {
@@ -76,14 +87,15 @@ public static class SelfTest
         finally
         {
             try { if (testFile is not null && File.Exists(testFile)) File.Delete(testFile); } catch { }
-            try { if (secretDir is not null && Directory.Exists(secretDir)) Directory.Delete(secretDir, true); } catch { }
         }
 
         var receipt = new
         {
             app = "PC Buddy Portable",
-            version = "0.2.0-alpha",
+            version = "0.3.0-session",
             timestampUtc = DateTimeOffset.UtcNow,
+            transport = "chatgpt_web_session",
+            apiKeyRequired = false,
             passed = failures.Count == 0,
             failures,
             results
