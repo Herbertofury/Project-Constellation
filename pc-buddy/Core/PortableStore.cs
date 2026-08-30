@@ -32,7 +32,7 @@ public sealed class PortableStore
         {
             DataDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "PCBuddyPortable", "data");
+                "ProjectConstellation", "data");
             Directory.CreateDirectory(DataDirectory);
             IsPortable = false;
         }
@@ -78,8 +78,8 @@ public sealed class PortableStore
         using var runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", writable: true)
                           ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
         if (enabled)
-            runKey.SetValue("PC Buddy", $"\"{Environment.ProcessPath}\"");
+            runKey.SetValue("Project Constellation", $"\"{Environment.ProcessPath}\"");
         else
-            runKey.DeleteValue("PC Buddy", throwOnMissingValue: false);
+            runKey.DeleteValue("Project Constellation", throwOnMissingValue: false);
     }
 }
