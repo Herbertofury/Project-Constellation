@@ -3,7 +3,6 @@
 
   const VERSION = '0.4.0';
   const INTERNAL_CONTEXT_MARKER = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
-  const INTERNAL_CONTEXT_END = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
   const TOOL_RESULT_MARKER = '[PC BUDDY TOOL RESULT]';
   const TOOL_CALL_RE = /\[PC_BUDDY_CALL\]([\s\S]*?)\[\/PC_BUDDY_CALL\]/gi;
   const LOCAL_INTENT_RE = /\b(project\s+constellation|use\s+constellation|my\s+(?:pc|computer|desktop|downloads?|documents?|files?|windows)|this\s+(?:pc|computer)|on\s+my\s+(?:pc|computer)|running\s+(?:processes|apps)|open\s+windows|files?\s+on\s+(?:my|this)\s+(?:pc|computer))\b/i;
@@ -79,9 +78,22 @@
     return `${location.pathname || '/'}${location.search || ''}`.slice(0, 512);
   }
 
+  function sameConversationOrInitialRouteTransition() {
+    if (!activeSession) return false;
+    const current = currentConversationKey();
+    if (activeSession.conversationKey === current) return true;
+    const previousPath = String(activeSession.conversationKey || '').split('?', 1)[0];
+    const currentPath = String(current || '').split('?', 1)[0];
+    if ((previousPath === '/' || previousPath === '') && currentPath.startsWith('/c/')) {
+      activeSession.conversationKey = current;
+      return true;
+    }
+    return false;
+  }
+
   function sessionNeedsRefresh() {
     if (!activeSession) return true;
-    if (activeSession.conversationKey !== currentConversationKey()) return true;
+    if (!sameConversationOrInitialRouteTransition()) return true;
     const expires = Date.parse(activeSession.expiresAtUtc || '');
     return !Number.isFinite(expires) || expires - Date.now() < SESSION_REFRESH_MS;
   }
@@ -219,7 +231,7 @@
     completedCalls.add(id);
     assistantNode.style.display = 'none';
 
-    if (!activeSession || activeSession.conversationKey !== currentConversationKey()) {
+    if (!activeSession || !sameConversationOrInitialRouteTransition()) {
       const rearm = await handshake();
       if (!rearm?.ok) {
         showStatus(`Project Constellation tool request could not run: ${rearm?.error || 'local companion offline'}`, false);
