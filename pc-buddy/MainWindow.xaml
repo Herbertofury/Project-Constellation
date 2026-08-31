@@ -1,19 +1,20 @@
 <Window x:Class="PCBuddy.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Project Constellation" Width="1220" Height="800" MinWidth="960" MinHeight="640"
+        Title="Project Constellation" Width="1280" Height="840" MinWidth="1000" MinHeight="680"
         WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Closed="Window_Closed">
     <Grid Background="{StaticResource BgBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="228" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
             <DockPanel Margin="16">
                 <StackPanel DockPanel.Dock="Top" Margin="4,10,4,22">
-                    <TextBlock Text="PROJECT CONSTELLATION" FontSize="20" FontWeight="Bold" />
-                    <TextBlock Text="Chats • projects • your PC" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,3,0,0" />
+                    <TextBlock Text="PROJECT" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock Text="CONSTELLATION" FontSize="21" FontWeight="Bold" Margin="0,-1,0,0" />
+                    <TextBlock Text="Chats • projects • your PC" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,4,0,0" />
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Bottom" Margin="4,10,4,4">
@@ -27,6 +28,7 @@
 
                 <StackPanel>
                     <Button Style="{StaticResource NavButton}" Tag="Home" Click="Nav_Click" Content="⌂   Home" />
+                    <Button Style="{StaticResource NavButton}" Tag="Projects" Click="Nav_Click" Content="✦   Projects" />
                     <Button Style="{StaticResource NavButton}" Tag="Chat" Click="Nav_Click" Content="●   ChatGPT Workspace" />
                     <Button Style="{StaticResource NavButton}" Tag="Access" Click="Nav_Click" Content="▣   Access" />
                     <Button Style="{StaticResource NavButton}" Tag="Activity" Click="Nav_Click" Content="≡   Activity" />
@@ -65,41 +67,161 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="Project Constellation" FontSize="26" FontWeight="Bold" />
-                                        <TextBlock Text="Runs the real ChatGPT website with your normal ChatGPT login while Project Constellation adds guarded local-computer and project continuity capabilities — without the separately billed OpenAI API." Foreground="{StaticResource MutedBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,20,0" />
+                                        <TextBlock Text="Project Constellation" FontSize="28" FontWeight="Bold" />
+                                        <TextBlock Text="Your persistent command center for normal ChatGPT, project continuity, and guarded local-computer access — without the separately billed OpenAI API." Foreground="{StaticResource MutedBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,24,0" MaxWidth="760" />
                                         <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
                                             <Border Background="{StaticResource AccentDarkBrush}" CornerRadius="8" Padding="9,5" Margin="0,0,8,0"><TextBlock Text="No API key" Foreground="{StaticResource AccentBrush}" FontSize="11"/></Border>
                                             <Border Background="{StaticResource AccentDarkBrush}" CornerRadius="8" Padding="9,5" Margin="0,0,8,0"><TextBlock Text="No API credits" Foreground="{StaticResource AccentBrush}" FontSize="11"/></Border>
                                             <Border Background="{StaticResource AccentDarkBrush}" CornerRadius="8" Padding="9,5"><TextBlock Text="No terminal" Foreground="{StaticResource AccentBrush}" FontSize="11"/></Border>
                                         </StackPanel>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Open ChatGPT Workspace" Click="GoChat_Click" VerticalAlignment="Center" Padding="20,12" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource PrimaryButton}" Content="Open Projects" Click="GoProjects_Click" Padding="20,12" Margin="0,0,0,8" />
+                                        <Button Style="{StaticResource SecondaryButton}" Content="Open ChatGPT Workspace" Click="GoChat_Click" Padding="20,10" />
+                                    </StackPanel>
                                 </Grid>
                             </Border>
 
-                            <UniformGrid Columns="4" Margin="0,0,0,14">
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,6,0">
+                            <UniformGrid Columns="5" Margin="0,0,0,14">
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,5,0">
+                                    <StackPanel><TextBlock Text="Projects" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ProjectCountText" Text="0 projects" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
+                                </Border>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="2,0">
                                     <StackPanel><TextBlock Text="ChatGPT session" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ChatSessionHomeStatusText" Text="Starting…" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="3,0">
-                                    <StackPanel><TextBlock Text="Browser companion" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="BrowserCompanionStatusText" Text="Starting…" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="2,0">
+                                    <StackPanel><TextBlock Text="Browser companion" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="BrowserCompanionStatusText" Text="Starting…" FontSize="15" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="3,0">
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="2,0">
                                     <StackPanel><TextBlock Text="Local tools" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="LocalToolsStatusText" Text="Ready" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="6,0,0,0">
-                                    <StackPanel><TextBlock Text="Access policy" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="AccessStatusText" Text="Read-only guarded" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="5,0,0,0">
+                                    <StackPanel><TextBlock Text="Access policy" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="AccessStatusText" Text="Read-only guarded" FontSize="15" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
                                 </Border>
                             </UniformGrid>
 
                             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
                                 <StackPanel>
-                                    <TextBlock Text="How this build works" FontSize="16" FontWeight="SemiBold" />
-                                    <TextBlock Text="ChatGPT stays ChatGPT: your account, chats, model picker, subscription limits, and web UI are the normal site. Project Constellation adds a guarded local-tool bridge plus project continuity around that session. The browser companion listens only on this PC's loopback interface, so normal ChatGPT browser tabs can reach the same guarded tools when the Project Constellation extension is installed." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="22" />
+                                    <TextBlock Text="One product, two ChatGPT surfaces" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="Use the embedded ChatGPT Workspace here, or keep using normal chatgpt.com browser tabs. With the Project Constellation extension active, those browser chats can reach the same guarded local tools through a loopback-only companion. Project tabs preserve the active chat, local workspace, GitHub/Drive lineage, checkpoint, blocker, and exact next action." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="22" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
+                </Grid>
+
+                <Grid x:Name="ProjectsPage" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Project workspaces" FontSize="18" FontWeight="SemiBold" />
+                            <TextBlock Text="Each tab is durable project state, not a temporary view." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Button Grid.Column="1" x:Name="AddProjectButton" Style="{StaticResource PrimaryButton}" Content="＋ Add project" Click="AddProject_Click" Padding="15,9" />
+                    </Grid>
+
+                    <TabControl Grid.Row="1" x:Name="ProjectTabs" ItemsSource="{Binding Projects}" Background="Transparent" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0">
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="8,2" MaxWidth="180" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                        <TabControl.ContentTemplate>
+                            <DataTemplate>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel Margin="2,12,2,4">
+                                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="Project identity" FontSize="16" FontWeight="SemiBold" />
+                                                        <TextBlock Text="Name this tab the way you think about the project." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,3,0,8" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding UpdatedAtUtc, StringFormat='Updated {0:yyyy-MM-dd HH:mm} UTC'}" Foreground="{StaticResource MutedBrush}" FontSize="11" VerticalAlignment="Top" />
+                                                </Grid>
+                                                <TextBlock Text="Name" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,4" />
+                                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                                                <StackPanel>
+                                                    <TextBlock Text="ChatGPT lineage" FontSize="16" FontWeight="SemiBold" />
+                                                    <TextBlock Text="Primary active conversation" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4" />
+                                                    <TextBox Text="{Binding ChatUrl, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <WrapPanel Margin="0,10,0,0">
+                                                        <Button Style="{StaticResource PrimaryButton}" Content="Open in workspace" Click="OpenProjectChat_Click" Margin="0,0,7,7" />
+                                                        <Button Style="{StaticResource SecondaryButton}" Content="Capture current chat" Click="CaptureProjectChat_Click" Margin="0,0,7,7" />
+                                                        <Button Style="{StaticResource SecondaryButton}" Content="Open in browser" Click="OpenProjectChatBrowser_Click" Margin="0,0,0,7" />
+                                                    </WrapPanel>
+                                                    <TextBlock Text="Related ChatGPT URLs — one per line" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4" />
+                                                    <TextBox Text="{Binding RelatedChatUrls, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="78" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
+                                                    <Button Style="{StaticResource SecondaryButton}" Content="Open related chats" Click="OpenRelatedChats_Click" HorizontalAlignment="Left" Margin="0,9,0,0" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Border Grid.Column="2" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                                                <StackPanel>
+                                                    <TextBlock Text="Workspace &amp; remote lineage" FontSize="16" FontWeight="SemiBold" />
+                                                    <TextBlock Text="Local root" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4" />
+                                                    <TextBox Text="{Binding LocalRoot, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <WrapPanel Margin="0,8,0,0">
+                                                        <Button Style="{StaticResource SecondaryButton}" Content="Choose folder" Click="BrowseProjectRoot_Click" Margin="0,0,7,0" />
+                                                        <Button Style="{StaticResource SecondaryButton}" Content="Open folder" Click="OpenProjectRoot_Click" />
+                                                    </WrapPanel>
+                                                    <TextBlock Text="GitHub URL" Foreground="{StaticResource MutedBrush}" Margin="0,12,0,4" />
+                                                    <TextBox Text="{Binding GitHubUrl, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <Button Style="{StaticResource SecondaryButton}" Content="Open GitHub" Click="OpenProjectGitHub_Click" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                                                    <TextBlock Text="Google Drive URL" Foreground="{StaticResource MutedBrush}" Margin="0,12,0,4" />
+                                                    <TextBox Text="{Binding DriveUrl, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <Button Style="{StaticResource SecondaryButton}" Content="Open Drive" Click="OpenProjectDrive_Click" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                                                <StackPanel>
+                                                    <TextBlock Text="Continuity ledger" FontSize="16" FontWeight="SemiBold" />
+                                                    <TextBlock Text="Latest checkpoint / accepted state" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4" />
+                                                    <TextBox Text="{Binding Checkpoint, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="105" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
+                                                    <TextBlock Text="Current blocker" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4" />
+                                                    <TextBox Text="{Binding Blocker, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="72" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Border Grid.Column="2" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                                                <StackPanel>
+                                                    <TextBlock Text="Execution" FontSize="16" FontWeight="SemiBold" />
+                                                    <TextBlock Text="Exact next action" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4" />
+                                                    <TextBox Text="{Binding NextAction, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="105" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
+                                                    <TextBlock Text="Notes" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4" />
+                                                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="72" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+
+                                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="Save writes this project ledger atomically to Project Constellation portable data." Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
+                                                <Button Grid.Column="1" Style="{StaticResource DangerButton}" Content="Delete tab" Click="DeleteProject_Click" Margin="0,0,8,0" />
+                                                <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Save project" Click="SaveProject_Click" />
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
                 </Grid>
 
                 <Grid x:Name="ChatPage" Visibility="Collapsed">
@@ -135,6 +257,14 @@
                                     <CheckBox x:Name="DesktopCheck" Content="Desktop" />
                                     <CheckBox x:Name="DocumentsCheck" Content="Documents" />
                                     <CheckBox x:Name="DownloadsCheck" Content="Downloads" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Text="ChatGPT browser companion" FontSize="18" FontWeight="SemiBold" />
+                            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,10,0,18">
+                                <StackPanel>
+                                    <CheckBox x:Name="BrowserCompanionCheck" Content="Let normal chatgpt.com tabs use Project Constellation local tools through the installed Constellation extension" />
+                                    <TextBlock Text="The broker binds only to 127.0.0.1 and uses short-lived browser sessions plus per-chat nonces. Changing this option takes effect on the next Project Constellation start." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" FontSize="11" Margin="24,5,0,0" />
                                 </StackPanel>
                             </Border>
 
