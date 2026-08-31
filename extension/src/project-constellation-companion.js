@@ -1,24 +1,26 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.1';
   const INTERNAL_CONTEXT_MARKER = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
   const TOOL_RESULT_MARKER = '[PC BUDDY TOOL RESULT]';
   const TOOL_CALL_RE = /\[PC_BUDDY_CALL\]([\s\S]*?)\[\/PC_BUDDY_CALL\]/gi;
-  const LOCAL_INTENT_RE = /\b(project\s+constellation|use\s+constellation|my\s+(?:pc|computer|desktop|downloads?|documents?|files?|windows)|this\s+(?:pc|computer)|on\s+my\s+(?:pc|computer)|running\s+(?:processes|apps)|open\s+windows|files?\s+on\s+(?:my|this)\s+(?:pc|computer))\b/i;
+  const LOCAL_INTENT_RE = /\b(project\s+constellation|use\s+(?:project\s+)?constellation|constellation\s+(?:app|agent|bridge)|my\s+(?:pc|computer|desktop|downloads?|documents?|files?|windows)|this\s+(?:pc|computer)|on\s+my\s+(?:pc|computer|desktop)|running\s+(?:processes|apps)|open\s+windows|files?\s+on\s+(?:my|this)\s+(?:pc|computer)|create\s+.*\s+on\s+my\s+desktop|save\s+.*\s+on\s+my\s+desktop)\b/i;
+  const RETRY_RE = /^(?:try\s*(?:it\s*)?(?:again|now)?|retry|again|do\s*it|continue|go\s*ahead|run\s*it|use\s*it|yes|yep|now)$/i;
   const SESSION_REFRESH_MS = 5 * 60 * 1000;
 
   const previous = globalThis.ProjectConstellationCompanion;
-  if (previous?.version === VERSION) return;
   try { previous?.dispose?.(); } catch (_) {}
 
   let disposed = false;
   let activeSession = null;
+  let localConversationArmed = false;
   let arming = false;
   let bypassSend = 0;
   let scanTimer = 0;
   let observer = null;
   let pendingOriginalText = '';
+  let routeKey = currentConversationKey();
   const completedCalls = new Set();
 
   function promptElement() {
@@ -47,13 +49,28 @@
       const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
       const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
       if (setter) setter.call(el, text); else el.value = text;
-    } else {
+      el.dispatchEvent(new InputEvent('input', { bubbles:true, inputType:'insertText', data:text }));
+      el.dispatchEvent(new Event('change', { bubbles:true }));
+      return true;
+    }
+
+    let inserted = false;
+    try {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      inserted = document.execCommand('insertText', false, text);
+    } catch (_) {}
+
+    if (!inserted) {
       el.replaceChildren();
       const p = document.createElement('p');
       p.textContent = text;
       el.appendChild(p);
+      el.dispatchEvent(new InputEvent('input', { bubbles:true, inputType:'insertText', data:text }));
     }
-    el.dispatchEvent(new InputEvent('input', { bubbles:true, inputType:'insertText', data:text }));
     el.dispatchEvent(new Event('change', { bubbles:true }));
     return true;
   }
@@ -78,12 +95,36 @@
     return `${location.pathname || '/'}${location.search || ''}`.slice(0, 512);
   }
 
+  function pathOnly(key) {
+    return String(key || '').split('?', 1)[0];
+  }
+
+  function syncRoute() {
+    const current = currentConversationKey();
+    if (current === routeKey) return;
+    const previousPath = pathOnly(routeKey);
+    const currentPath = pathOnly(current);
+    routeKey = current;
+
+    if ((previousPath === '/' || previousPath === '') && currentPath.startsWith('/c/')) {
+      if (activeSession) activeSession.conversationKey = current;
+      return;
+    }
+
+    activeSession = null;
+    localConversationArmed = false;
+    pendingOriginalText = '';
+    completedCalls.clear();
+    recoverArmedFromConversation();
+  }
+
   function sameConversationOrInitialRouteTransition() {
+    syncRoute();
     if (!activeSession) return false;
     const current = currentConversationKey();
     if (activeSession.conversationKey === current) return true;
-    const previousPath = String(activeSession.conversationKey || '').split('?', 1)[0];
-    const currentPath = String(current || '').split('?', 1)[0];
+    const previousPath = pathOnly(activeSession.conversationKey);
+    const currentPath = pathOnly(current);
     if ((previousPath === '/' || previousPath === '') && currentPath.startsWith('/c/')) {
       activeSession.conversationKey = current;
       return true;
@@ -99,6 +140,7 @@
   }
 
   async function handshake() {
+    syncRoute();
     const conversationKey = currentConversationKey();
     const response = await runtimeMessage({ type:'pcx-local-handshake', conversationKey });
     if (!response?.ok || !response.sessionKey || !response.context) {
@@ -117,7 +159,19 @@
   }
 
   function needsLocalCompanion(text) {
-    return LOCAL_INTENT_RE.test(String(text || ''));
+    const value = String(text || '').trim();
+    if (LOCAL_INTENT_RE.test(value)) return true;
+    return localConversationArmed && RETRY_RE.test(value);
+  }
+
+  function recoverArmedFromConversation() {
+    try {
+      const messages = [...document.querySelectorAll('[data-message-author-role="user"]')].slice(-10);
+      localConversationArmed = messages.some((node) => {
+        const text = String(node.innerText || node.textContent || '');
+        return LOCAL_INTENT_RE.test(text) || text.includes(INTERNAL_CONTEXT_MARKER);
+      });
+    } catch (_) {}
   }
 
   function isSendClick(target) {
@@ -149,6 +203,7 @@
   async function armAndSend(original) {
     if (arming || disposed) return;
     arming = true;
+    localConversationArmed = true;
     try {
       let handshakeResult = { ok:true };
       if (sessionNeedsRefresh()) handshakeResult = await handshake();
@@ -173,28 +228,32 @@
     }
   }
 
-  function onClickCapture(event) {
-    if (disposed || !isSendClick(event.target)) return;
-    if (bypassSend > 0) { bypassSend -= 1; return; }
-    const text = promptText();
-    if (!text || !needsLocalCompanion(text)) return;
-    if (activeSession && !sessionNeedsRefresh()) return;
+  function interceptSend(text, event) {
+    syncRoute();
+    const explicit = LOCAL_INTENT_RE.test(String(text || ''));
+    if (explicit) localConversationArmed = true;
+    if (!needsLocalCompanion(text)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
     event.stopPropagation();
     void armAndSend(text);
+    return true;
+  }
+
+  function onClickCapture(event) {
+    if (disposed || !isSendClick(event.target)) return;
+    if (bypassSend > 0) { bypassSend -= 1; return; }
+    const text = promptText();
+    if (!text) return;
+    interceptSend(text, event);
   }
 
   function onKeyCapture(event) {
     if (disposed || !shouldInterceptKey(event)) return;
     if (bypassSend > 0) { bypassSend -= 1; return; }
     const text = promptText();
-    if (!text || !needsLocalCompanion(text)) return;
-    if (activeSession && !sessionNeedsRefresh()) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    void armAndSend(text);
+    if (!text) return;
+    interceptSend(text, event);
   }
 
   function deepestContaining(root, marker) {
@@ -215,6 +274,7 @@
       return;
     }
     if (!text.includes(INTERNAL_CONTEXT_MARKER)) return;
+    localConversationArmed = true;
     const target = deepestContaining(node, INTERNAL_CONTEXT_MARKER) || node;
     const targetText = String(target.innerText || target.textContent || '');
     const markerIndex = targetText.indexOf(INTERNAL_CONTEXT_MARKER);
@@ -227,8 +287,10 @@
     let call = null;
     try { call = JSON.parse(raw); } catch (_) { return; }
     const id = String(call?.id || '');
-    if (!id || completedCalls.has(id)) return;
-    completedCalls.add(id);
+    const dedupeKey = `${id}|${String(call?.nonce || '')}`;
+    if (!id || completedCalls.has(dedupeKey)) return;
+    completedCalls.add(dedupeKey);
+    localConversationArmed = true;
     assistantNode.style.display = 'none';
 
     if (!activeSession || !sameConversationOrInitialRouteTransition()) {
@@ -241,7 +303,7 @@
       return;
     }
 
-    let response = await runtimeMessage({
+    const response = await runtimeMessage({
       type:'pcx-local-tool',
       sessionKey:activeSession.sessionKey,
       call
@@ -291,6 +353,7 @@
   }
 
   function sanitizeInternalMessages() {
+    syncRoute();
     document.querySelectorAll('[data-message-author-role="user"]').forEach(scrubUserInternal);
     scanAssistantCalls();
   }
@@ -302,7 +365,7 @@
 
   function showStatus(message, ok) {
     globalThis.dispatchEvent(new CustomEvent('project-constellation-companion-status', {
-      detail:{ message:String(message || ''), ok:Boolean(ok), at:Date.now() }
+      detail:{ message:String(message || ''), ok:Boolean(ok), at:Date.now(), version:VERSION, armed:localConversationArmed }
     }));
   }
 
@@ -321,6 +384,7 @@
       if (!document.documentElement) { setTimeout(attachObserver, 0); return; }
       observer = new MutationObserver(scheduleScan);
       observer.observe(document.documentElement, { childList:true, subtree:true, characterData:true });
+      recoverArmedFromConversation();
       sanitizeInternalMessages();
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attachObserver, { once:true });
@@ -344,9 +408,11 @@
     health,
     dispose,
     get status() {
+      syncRoute();
       return {
         connected:Boolean(activeSession),
-        conversationKey:activeSession?.conversationKey || '',
+        armed:localConversationArmed,
+        conversationKey:activeSession?.conversationKey || routeKey,
         expiresAtUtc:activeSession?.expiresAtUtc || ''
       };
     }
