@@ -1,0 +1,34 @@
+name: PCX-029 PC Bridge
+
+on:
+  pull_request:
+    paths:
+      - 'pc-bridge/**'
+      - '.github/workflows/pcx-029-pc-bridge.yml'
+  push:
+    branches: [main, pcx-029-pc-bridge]
+    paths:
+      - 'pc-bridge/**'
+      - '.github/workflows/pcx-029-pc-bridge.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: pc-bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: pc-bridge/package.json
+      - run: npm test

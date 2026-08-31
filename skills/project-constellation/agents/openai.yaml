@@ -1,0 +1,3 @@
+interface:
+  display_name: "Project Constellation"
+  short_description: "Connect ChatGPT to Project Constellation projects and guarded PC tools"
