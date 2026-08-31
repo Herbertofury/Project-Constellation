@@ -25,6 +25,8 @@ public sealed class ChatGptSessionHost : IDisposable
     private bool _ready;
     private bool _disposed;
 
+    public string CurrentUrl => _webView.CoreWebView2?.Source ?? string.Empty;
+
     public ChatGptSessionHost(WebView2 webView, ToolBroker tools, string dataDirectory,
         Action<string, bool> status, Action<string, string, bool> activity)
     {
@@ -61,6 +63,27 @@ public sealed class ChatGptSessionHost : IDisposable
         _conversationKey = string.Empty;
         _status("Opening a fresh ChatGPT conversation…", false);
         _webView.CoreWebView2?.Navigate("https://chatgpt.com/");
+    }
+
+    public bool OpenChat(string url)
+    {
+        if (_webView.CoreWebView2 is null || !TryNormalizeChatUrl(url, out var normalized)) return false;
+        ResetConversationState();
+        _ready = false;
+        _conversationKey = string.Empty;
+        _status("Opening linked ChatGPT conversation…", false);
+        _webView.CoreWebView2.Navigate(normalized);
+        return true;
+    }
+
+    public static bool TryNormalizeChatUrl(string? url, out string normalized)
+    {
+        normalized = string.Empty;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) return false;
+        if (!string.Equals(uri.Host, "chatgpt.com", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(uri.Host, "chat.openai.com", StringComparison.OrdinalIgnoreCase)) return false;
+        normalized = uri.AbsoluteUri;
+        return true;
     }
 
     private void ResetConversationState()
@@ -101,7 +124,7 @@ public sealed class ChatGptSessionHost : IDisposable
 
                 if (_ready)
                 {
-                    _status(_primed ? "ChatGPT + local bridge ready" : "ChatGPT signed in — arming local bridge…", true);
+                    _status(_primed ? "ChatGPT + local bridge ready" : "ChatGPT signed in — arming Project Constellation…", true);
                     if (!_primed) await EnsurePrimedAsync();
                 }
                 else
@@ -159,8 +182,6 @@ public sealed class ChatGptSessionHost : IDisposable
 
         if (string.Equals(_conversationKey, key, StringComparison.Ordinal)) return;
 
-        // The first bootstrap message turns the blank '/' route into '/c/<id>'.
-        // That is the same conversation, not a reason to inject a second bootstrap.
         if (_primed && _conversationKey == "/" && key.StartsWith("/c/", StringComparison.Ordinal))
         {
             _conversationKey = key;
@@ -191,7 +212,7 @@ public sealed class ChatGptSessionHost : IDisposable
             }
             else
             {
-                _status("ChatGPT is open, but Buddy could not arm the local bridge. Click Reload ChatGPT.", false);
+                _status("ChatGPT is open, but Project Constellation could not arm the local bridge. Click Reload ChatGPT.", false);
             }
         }
         finally
@@ -305,8 +326,6 @@ public sealed class ChatGptSessionHost : IDisposable
       const regex = /\[PC_BUDDY_CALL\]([\s\S]*?)\[\/PC_BUDDY_CALL\]/gi;
       let match;
       while ((match = regex.exec(text)) !== null) postCall(match[1]);
-
-      // Fallback for renderers that materialize a custom element instead of visible sentinel text.
       node.querySelectorAll('pc-buddy-call').forEach(element => postCall(element.textContent || ''));
     });
   }
