@@ -13,10 +13,12 @@ public partial class MainWindow : Window
     private readonly PortableStore _store;
     private readonly AppSettings _settings;
     private readonly ToolBroker _tools;
+    private readonly LocalCompanionServer _localCompanion;
     private readonly bool _skipChatSession;
     private WebView2? _webView;
     private ChatGptSessionHost? _chatSession;
     private bool _chatReady;
+    private bool _browserCompanionReady;
 
     public ObservableCollection<ActivityEntry> Activities { get; } = new();
 
@@ -28,6 +30,7 @@ public partial class MainWindow : Window
         _store = new PortableStore();
         _settings = _store.LoadSettings();
         _tools = new ToolBroker(() => _settings, RecordActivity);
+        _localCompanion = new LocalCompanionServer(_tools, () => _settings, RecordActivity);
         LoadSettingsIntoUi();
         SetPage("Home");
     }
@@ -42,7 +45,22 @@ public partial class MainWindow : Window
         if (_skipChatSession)
         {
             UpdateChatStatus("UI smoke mode — ChatGPT session intentionally not started.", false);
+            UpdateBrowserCompanionStatus("UI smoke mode", false);
             return;
+        }
+
+        try
+        {
+            await _localCompanion.StartAsync();
+            _browserCompanionReady = _localCompanion.IsRunning;
+            UpdateBrowserCompanionStatus(_browserCompanionReady
+                ? $"Ready on 127.0.0.1:{_localCompanion.Port}"
+                : "Disabled by policy", _browserCompanionReady);
+        }
+        catch (Exception ex)
+        {
+            RecordActivity("browser_companion", ex.Message, false);
+            UpdateBrowserCompanionStatus($"Unavailable: {ex.Message}", false);
         }
 
         try
@@ -64,9 +82,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Window_Closed(object? sender, EventArgs e)
+    private async void Window_Closed(object? sender, EventArgs e)
     {
         try { _chatSession?.Dispose(); } catch { }
+        try { await _localCompanion.DisposeAsync(); } catch { }
     }
 
     private void LoadSettingsIntoUi()
@@ -122,10 +141,23 @@ public partial class MainWindow : Window
         RefreshStatus();
     }
 
+    private void UpdateBrowserCompanionStatus(string message, bool ready)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(() => UpdateBrowserCompanionStatus(message, ready));
+            return;
+        }
+
+        _browserCompanionReady = ready;
+        BrowserCompanionStatusText.Text = message;
+        RefreshStatus();
+    }
+
     private void RefreshStatus()
     {
         var locked = _settings.EmergencyLocked;
-        HeaderStatusText.Text = locked ? "LOCKED" : _chatReady ? "CONSTELLATION READY" : "CHATGPT SESSION";
+        HeaderStatusText.Text = locked ? "LOCKED" : (_chatReady || _browserCompanionReady) ? "CONSTELLATION READY" : "STARTING";
         StatusPill.Background = locked
             ? (System.Windows.Media.Brush)FindResource("CardBrush")
             : (System.Windows.Media.Brush)FindResource("AccentDarkBrush");
