@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +23,7 @@ public static class SelfTest
             AllowDocuments = true,
             AllowDownloads = false,
             AllowProcessInspection = true,
+            AllowBrowserCompanion = true,
             AllowIdentity = true,
             AllowHostname = true,
             AllowIpConfig = false,
@@ -29,12 +33,14 @@ public static class SelfTest
 
         void Activity(string tool, string detail, bool ok) => results.Add(new { kind = "activity", tool, detail, ok });
         var broker = new ToolBroker(() => settings, Activity);
+        LocalCompanionServer? localServer = null;
         string? testFile = null;
 
         try
         {
             var status = await broker.ExecuteAsync("pc_status", Args("{}"), CancellationToken.None);
             Require(status.Contains("\"ok\":true", StringComparison.Ordinal), "pc_status did not return success", failures);
+            Require(status.Contains("Project Constellation", StringComparison.Ordinal), "pc_status has stale product identity", failures);
             results.Add(new { test = "pc_status", ok = status.Contains("\"ok\":true", StringComparison.Ordinal) });
 
             var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -80,6 +86,53 @@ public static class SelfTest
                               && bootstrap.Contains(nonce, StringComparison.Ordinal);
             Require(bootstrapOk, "ChatGPT bootstrap did not preserve the Project Constellation no-API session contract", failures);
             results.Add(new { test = "chatgpt_bridge.no_api_contract", ok = bootstrapOk });
+
+            localServer = new LocalCompanionServer(broker, () => settings, Activity, port:17343);
+            await localServer.StartAsync();
+            using var http = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:17343"), Timeout = TimeSpan.FromSeconds(10) };
+            http.DefaultRequestHeaders.Add("X-Project-Constellation-Client", LocalCompanionServer.ExtensionId);
+
+            var healthResponse = await http.GetAsync("/v1/health");
+            var healthText = await healthResponse.Content.ReadAsStringAsync();
+            var healthOk = healthResponse.IsSuccessStatusCode && healthText.Contains("loopback_browser_companion", StringComparison.Ordinal);
+            Require(healthOk, "loopback browser companion health check failed", failures);
+            results.Add(new { test = "browser_companion.health", ok = healthOk });
+
+            var sessionResponse = await http.PostAsync("/v1/session",
+                new StringContent(JsonSerializer.Serialize(new { conversationKey = "/c/self-test", tabKey = "ci" }), Encoding.UTF8, "application/json"));
+            var sessionText = await sessionResponse.Content.ReadAsStringAsync();
+            using var sessionDoc = JsonDocument.Parse(sessionText);
+            var sessionRoot = sessionDoc.RootElement;
+            var sessionOk = sessionResponse.IsSuccessStatusCode
+                            && sessionRoot.TryGetProperty("sessionToken", out var tokenElement)
+                            && sessionRoot.TryGetProperty("nonce", out var browserNonceElement)
+                            && sessionRoot.TryGetProperty("context", out var contextElement)
+                            && contextElement.GetString()?.Contains("PROJECT CONSTELLATION LOCAL CONTEXT", StringComparison.Ordinal) == true;
+            Require(sessionOk, "loopback browser companion session handshake failed", failures);
+            results.Add(new { test = "browser_companion.handshake", ok = sessionOk });
+
+            if (sessionOk)
+            {
+                var token = tokenElement.GetString()!;
+                var browserNonce = browserNonceElement.GetString()!;
+                var toolBody = JsonSerializer.Serialize(new
+                {
+                    call = new { nonce = browserNonce, id = "browser-self-test-call", tool = "pc_status", args = new { } }
+                });
+                using var toolRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/tool")
+                {
+                    Content = new StringContent(toolBody, Encoding.UTF8, "application/json")
+                };
+                toolRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var toolResponse = await http.SendAsync(toolRequest);
+                var toolText = await toolResponse.Content.ReadAsStringAsync();
+                var toolOk = toolResponse.IsSuccessStatusCode
+                             && toolText.Contains("browser-self-test-call", StringComparison.Ordinal)
+                             && toolText.Contains("Project Constellation", StringComparison.Ordinal)
+                             && toolText.Contains("PC BUDDY TOOL RESULT", StringComparison.Ordinal);
+                Require(toolOk, "loopback browser companion did not execute and return a real tool result", failures);
+                results.Add(new { test = "browser_companion.tool_roundtrip", ok = toolOk });
+            }
         }
         catch (Exception ex)
         {
@@ -87,6 +140,10 @@ public static class SelfTest
         }
         finally
         {
+            if (localServer is not null)
+            {
+                try { await localServer.DisposeAsync(); } catch { }
+            }
             try { if (testFile is not null && File.Exists(testFile)) File.Delete(testFile); } catch { }
         }
 
@@ -96,6 +153,7 @@ public static class SelfTest
             version = "0.4.0-constellation",
             timestampUtc = DateTimeOffset.UtcNow,
             transport = "chatgpt_web_session",
+            browserCompanion = "loopback_tokenized",
             apiKeyRequired = false,
             passed = failures.Count == 0,
             failures,
