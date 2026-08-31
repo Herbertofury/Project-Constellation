@@ -12,6 +12,7 @@ public sealed class AppSettings
     public bool AllowDocuments { get; set; } = true;
     public bool AllowDownloads { get; set; } = false;
     public bool AllowProcessInspection { get; set; } = true;
+    public bool AllowBrowserCompanion { get; set; } = true;
     public bool AllowIdentity { get; set; } = true;
     public bool AllowHostname { get; set; } = true;
     public bool AllowIpConfig { get; set; } = true;
