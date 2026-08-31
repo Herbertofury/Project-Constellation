@@ -44,6 +44,7 @@ jobs:
           node --check extension/src/service-worker.js
           node --check extension/src/local-companion-background.js
           node --check extension/src/project-constellation-companion-v2.js
+          node --check extension/src/project-constellation-companion.js
           $m = Get-Content extension/manifest.json -Raw | ConvertFrom-Json
           if ($m.name -ne 'Project Constellation') { throw 'Stale extension identity.' }
           if ([version]$m.version -lt [version]'0.16.1') { throw 'Hardened browser companion version missing.' }
@@ -51,9 +52,11 @@ jobs:
           if ($m.host_permissions -notcontains 'http://127.0.0.1:17342/*') { throw 'Loopback permission missing.' }
           $companion = $m.content_scripts | Where-Object { $_.js -contains 'src/project-constellation-companion-v2.js' }
           if (-not $companion) { throw 'Manifest is not loading the hardened companion.' }
-          $source = Get-Content extension/src/project-constellation-companion-v2.js -Raw
-          foreach ($needle in @('recoverArmedFromConversation','RETRY_RE','document.execCommand','pcx-local-handshake','pcx-local-tool')) {
-            if ($source -notmatch [regex]::Escape($needle)) { throw "Missing browser companion hardening: $needle" }
+          foreach ($path in @('extension/src/project-constellation-companion-v2.js','extension/src/project-constellation-companion.js')) {
+            $source = Get-Content $path -Raw
+            foreach ($needle in @('recoverArmedFromConversation','RETRY_RE','document.execCommand','pcx-local-handshake','pcx-local-tool')) {
+              if ($source -notmatch [regex]::Escape($needle)) { throw "Missing browser companion hardening in $path`: $needle" }
+            }
           }
 
       - name: Validate Project Constellation Skill source
@@ -95,10 +98,27 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          $root = Join-Path $PWD 'build/project-constellation'
+          $exe = Join-Path $root 'ProjectConstellation.exe'
           if (-not (Test-Path $exe)) { throw 'ProjectConstellation.exe missing.' }
-          $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory (Split-Path $exe) -Wait -PassThru
-          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-self-test.json'
+
+          # Reproduce the stale-build failure from the user's real machine. The new
+          # Project Constellation process must disable a sibling legacy PC Buddy EXE
+          # before any Work-agent test is allowed to pass.
+          $legacy = Join-Path $root 'PC Buddy.exe'
+          $legacyDisabled = "$legacy.legacy-disabled"
+          $migrationReceipt = Join-Path $root 'project-constellation-legacy-migration.json'
+          Remove-Item $legacy,$legacyDisabled,$migrationReceipt -Force -ErrorAction SilentlyContinue
+          Copy-Item $exe $legacy -Force
+
+          $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory $root -Wait -PassThru
+          if (Test-Path $legacy) { throw 'Legacy PC Buddy executable survived Project Constellation startup.' }
+          if (-not (Test-Path $legacyDisabled)) { throw 'Legacy PC Buddy executable was not quarantined.' }
+          if (-not (Test-Path $migrationReceipt)) { throw 'Legacy migration receipt missing.' }
+          $migration = Get-Content $migrationReceipt -Raw | ConvertFrom-Json
+          if ($migration.DisabledExecutables -notcontains 'PC Buddy.exe.legacy-disabled') { throw 'Legacy migration receipt did not record the quarantined PC Buddy executable.' }
+
+          $receipt = Join-Path $root 'project-constellation-self-test.json'
           if (-not (Test-Path $receipt)) { throw 'Self-test receipt missing.' }
           Get-Content $receipt
           if ($proc.ExitCode -ne 0) { throw "Work-agent self-test failed: $($proc.ExitCode)" }
@@ -164,6 +184,7 @@ jobs:
           Copy-Item 'build/project-constellation/project-constellation-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
           Copy-Item 'build/project-constellation/project-constellation-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
           Copy-Item 'build/project-constellation/project-constellation-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
+          Copy-Item 'build/project-constellation/project-constellation-legacy-migration.json' (Join-Path $package 'LEGACY-MIGRATION-RECEIPT.json')
           Copy-Item 'extension' (Join-Path $package 'Browser Extension') -Recurse
           $skillDir = Join-Path $package 'ChatGPT Skill'
           New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
@@ -178,7 +199,7 @@ jobs:
             }
           } finally { $archive.Dispose() }
           $hashes = @()
-          foreach ($relative in @('Project Constellation.exe','Browser Extension/manifest.json','ChatGPT Skill/skill.zip')) {
+          foreach ($relative in @('Project Constellation.exe','Browser Extension/manifest.json','ChatGPT Skill/skill.zip','LEGACY-MIGRATION-RECEIPT.json')) {
             $path = Join-Path $package $relative
             $hash = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
             $hashes += "$hash *$relative"
