@@ -9,6 +9,7 @@ on:
       - 'extension/src/service-worker.js'
       - 'extension/src/local-companion-background.js'
       - 'extension/src/project-constellation-companion.js'
+      - 'skills/project-constellation/**'
       - '.github/workflows/pc-buddy-portable.yml'
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - 'extension/src/service-worker.js'
       - 'extension/src/local-companion-background.js'
       - 'extension/src/project-constellation-companion.js'
+      - 'skills/project-constellation/**'
       - '.github/workflows/pc-buddy-portable.yml'
   workflow_dispatch:
 
@@ -52,6 +54,19 @@ jobs:
           node --check extension/src/local-companion-background.js
           node --check extension/src/project-constellation-companion.js
           node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('extension/manifest.json','utf8')); if(m.name!=='Project Constellation'||m.version!=='0.16.0') process.exit(2); if(m.background?.service_worker!=='src/service-worker.js') process.exit(3); if(!m.host_permissions?.includes('http://127.0.0.1:17342/*')) process.exit(4); const scripts=(m.content_scripts||[]).flatMap(x=>x.js||[]); if(!scripts.includes('src/project-constellation-companion.js')) process.exit(5);"
+
+      - name: Validate Project Constellation Skill source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $skill = 'skills/project-constellation/SKILL.md'
+          $protocol = 'skills/project-constellation/references/protocol.md'
+          $agent = 'skills/project-constellation/agents/openai.yaml'
+          foreach ($path in @($skill, $protocol, $agent)) { if (-not (Test-Path $path)) { throw "Missing Skill file: $path" } }
+          $skillText = Get-Content $skill -Raw
+          if ($skillText -notmatch '(?m)^name:\s*project-constellation\s*$') { throw 'Skill name is invalid.' }
+          if ($skillText -notmatch 'browser companion' -or $skillText -notmatch 'zero-loss-chat-accelerator') { throw 'Skill is missing browser-companion or zero-loss continuity instructions.' }
+          if ($skillText -match 'TODO') { throw 'Skill still contains TODO content.' }
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -97,9 +112,16 @@ jobs:
           if ($parsed.browserCompanion -ne 'loopback_tokenized') {
             throw 'Self-test receipt does not prove the tokenized loopback browser companion.'
           }
+          if ($parsed.projectWorkspaces -ne 'persistent_atomic_json') {
+            throw 'Self-test receipt does not prove durable project workspace persistence.'
+          }
           $browserRoundtrip = $parsed.results | Where-Object { $_.test -eq 'browser_companion.tool_roundtrip' }
           if (-not $browserRoundtrip -or -not $browserRoundtrip.ok) {
             throw 'Self-test did not prove a browser-companion tool round trip.'
+          }
+          $projectRoundtrip = $parsed.results | Where-Object { $_.test -eq 'projects.persistence_roundtrip' }
+          if (-not $projectRoundtrip -or -not $projectRoundtrip.ok) {
+            throw 'Self-test did not prove project workspace persistence.'
           }
 
       - name: Run packaged WebView2 bridge DOM smoke
@@ -140,6 +162,9 @@ jobs:
           $parsed = Get-Content $receipt -Raw | ConvertFrom-Json
           if (-not $parsed.passed) { throw 'UI smoke receipt did not report passed=true.' }
           if ($parsed.window.Title -ne 'Project Constellation') { throw 'Rendered window title is not Project Constellation.' }
+          foreach ($required in @('ProjectsPage','ProjectTabs','AddProjectButton','BrowserCompanionCheck')) {
+            if (-not $parsed.controls.$required) { throw "UI smoke did not instantiate $required." }
+          }
 
       - name: Assemble portable package
         shell: pwsh
@@ -155,6 +180,29 @@ jobs:
           Copy-Item 'build/project-constellation/project-constellation-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
           Copy-Item 'build/project-constellation/project-constellation-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
           Copy-Item 'extension' (Join-Path $package 'Browser Extension') -Recurse
+
+          $skillPackageDir = Join-Path $package 'ChatGPT Skill'
+          New-Item -ItemType Directory -Force -Path $skillPackageDir | Out-Null
+          $skillZip = Join-Path $skillPackageDir 'skill.zip'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::Open($skillZip, [System.IO.Compression.ZipArchiveMode]::Create)
+          try {
+            $skillRoot = (Resolve-Path 'skills').Path
+            Get-ChildItem 'skills/project-constellation' -Recurse -File | ForEach-Object {
+              $relative = [System.IO.Path]::GetRelativePath($skillRoot, $_.FullName).Replace('\','/')
+              [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $_.FullName, $relative, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
+            }
+          } finally {
+            $archive.Dispose()
+          }
+          $skillArchive = [System.IO.Compression.ZipFile]::OpenRead($skillZip)
+          try {
+            $entryNames = $skillArchive.Entries | ForEach-Object FullName
+            if ($entryNames -notcontains 'project-constellation/SKILL.md') { throw 'Packaged skill.zip is missing project-constellation/SKILL.md.' }
+          } finally {
+            $skillArchive.Dispose()
+          }
+
           $hashLines = @()
           $exeHash = (Get-FileHash (Join-Path $package 'Project Constellation.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           $hashLines += "$exeHash *Project Constellation.exe"
@@ -174,7 +222,9 @@ jobs:
           }
 
           $manifestHash = (Get-FileHash (Join-Path $package 'Browser Extension/manifest.json') -Algorithm SHA256).Hash.ToLowerInvariant()
+          $skillHash = (Get-FileHash $skillZip -Algorithm SHA256).Hash.ToLowerInvariant()
           $hashLines += "$manifestHash *Browser Extension/manifest.json"
+          $hashLines += "$skillHash *ChatGPT Skill/skill.zip"
           $hashLines | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'Project-Constellation-Portable-win-x64.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
@@ -183,6 +233,7 @@ jobs:
           Write-Host "Portable ZIP: $zip"
           Write-Host "EXE SHA256: $exeHash"
           Write-Host "Extension manifest SHA256: $manifestHash"
+          Write-Host "Skill SHA256: $skillHash"
 
       - name: Upload portable artifact
         uses: actions/upload-artifact@v5
