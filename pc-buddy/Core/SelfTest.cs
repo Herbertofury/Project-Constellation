@@ -103,27 +103,30 @@ public static class SelfTest
             var sessionText = await sessionResponse.Content.ReadAsStringAsync();
             using var sessionDoc = JsonDocument.Parse(sessionText);
             var sessionRoot = sessionDoc.RootElement;
+            var hasToken = sessionRoot.TryGetProperty("sessionToken", out var tokenValue);
+            var hasNonce = sessionRoot.TryGetProperty("nonce", out var nonceValue);
+            var hasContext = sessionRoot.TryGetProperty("context", out var contextValue);
+            var sessionToken = hasToken && tokenValue.ValueKind == JsonValueKind.String ? tokenValue.GetString() : null;
+            var browserNonce = hasNonce && nonceValue.ValueKind == JsonValueKind.String ? nonceValue.GetString() : null;
+            var contextText = hasContext && contextValue.ValueKind == JsonValueKind.String ? contextValue.GetString() : null;
             var sessionOk = sessionResponse.IsSuccessStatusCode
-                            && sessionRoot.TryGetProperty("sessionToken", out var tokenElement)
-                            && sessionRoot.TryGetProperty("nonce", out var browserNonceElement)
-                            && sessionRoot.TryGetProperty("context", out var contextElement)
-                            && contextElement.GetString()?.Contains("PROJECT CONSTELLATION LOCAL CONTEXT", StringComparison.Ordinal) == true;
+                            && !string.IsNullOrWhiteSpace(sessionToken)
+                            && !string.IsNullOrWhiteSpace(browserNonce)
+                            && contextText?.Contains("PROJECT CONSTELLATION LOCAL CONTEXT", StringComparison.Ordinal) == true;
             Require(sessionOk, "loopback browser companion session handshake failed", failures);
             results.Add(new { test = "browser_companion.handshake", ok = sessionOk });
 
             if (sessionOk)
             {
-                var token = tokenElement.GetString()!;
-                var browserNonce = browserNonceElement.GetString()!;
                 var toolBody = JsonSerializer.Serialize(new
                 {
-                    call = new { nonce = browserNonce, id = "browser-self-test-call", tool = "pc_status", args = new { } }
+                    call = new { nonce = browserNonce!, id = "browser-self-test-call", tool = "pc_status", args = new { } }
                 });
                 using var toolRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/tool")
                 {
                     Content = new StringContent(toolBody, Encoding.UTF8, "application/json")
                 };
-                toolRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                toolRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken!);
                 var toolResponse = await http.SendAsync(toolRequest);
                 var toolText = await toolResponse.Content.ReadAsStringAsync();
                 var toolOk = toolResponse.IsSuccessStatusCode
