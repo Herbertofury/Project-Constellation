@@ -35,6 +35,7 @@ public static class SelfTest
         var broker = new ToolBroker(() => settings, Activity);
         LocalCompanionServer? localServer = null;
         string? testFile = null;
+        string? projectTestDirectory = null;
 
         try
         {
@@ -86,6 +87,35 @@ public static class SelfTest
                               && bootstrap.Contains(nonce, StringComparison.Ordinal);
             Require(bootstrapOk, "ChatGPT bootstrap did not preserve the Project Constellation no-API session contract", failures);
             results.Add(new { test = "chatgpt_bridge.no_api_contract", ok = bootstrapOk });
+
+            projectTestDirectory = Path.Combine(Path.GetTempPath(), $"project-constellation-project-store-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(projectTestDirectory);
+            var projectStore = new ProjectWorkspaceStore(projectTestDirectory);
+            var project = new ProjectWorkspace
+            {
+                Name = "Project Store Self Test",
+                ChatUrl = "https://chatgpt.com/c/project-constellation-self-test",
+                RelatedChatUrls = "https://chatgpt.com/c/related-self-test",
+                LocalRoot = docs,
+                GitHubUrl = "https://github.com/Herbertofury/Project-Constellation",
+                DriveUrl = "https://drive.google.com/drive/my-drive",
+                Checkpoint = marker,
+                Blocker = "none",
+                NextAction = "verify persistence",
+                Notes = "Project Constellation self-test"
+            };
+            projectStore.Save(new[] { project });
+            var reloaded = projectStore.Load();
+            var projectOk = reloaded.Count == 1
+                            && reloaded[0].Name == project.Name
+                            && reloaded[0].ChatUrl == project.ChatUrl
+                            && reloaded[0].LocalRoot == project.LocalRoot
+                            && reloaded[0].GitHubUrl == project.GitHubUrl
+                            && reloaded[0].DriveUrl == project.DriveUrl
+                            && reloaded[0].Checkpoint == marker
+                            && reloaded[0].NextAction == project.NextAction;
+            Require(projectOk, "project workspace metadata did not survive an atomic save/reload round trip", failures);
+            results.Add(new { test = "projects.persistence_roundtrip", ok = projectOk });
 
             localServer = new LocalCompanionServer(broker, () => settings, Activity, port:17343);
             await localServer.StartAsync();
@@ -148,6 +178,7 @@ public static class SelfTest
                 try { await localServer.DisposeAsync(); } catch { }
             }
             try { if (testFile is not null && File.Exists(testFile)) File.Delete(testFile); } catch { }
+            try { if (projectTestDirectory is not null && Directory.Exists(projectTestDirectory)) Directory.Delete(projectTestDirectory, true); } catch { }
         }
 
         var receipt = new
@@ -157,6 +188,7 @@ public static class SelfTest
             timestampUtc = DateTimeOffset.UtcNow,
             transport = "chatgpt_web_session",
             browserCompanion = "loopback_tokenized",
+            projectWorkspaces = "persistent_atomic_json",
             apiKeyRequired = false,
             passed = failures.Count == 0,
             failures,
