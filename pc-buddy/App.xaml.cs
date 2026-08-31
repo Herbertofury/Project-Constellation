@@ -96,13 +96,15 @@ public partial class App : Application
             {
                 var required = new[]
                 {
-                    "HomePage", "ChatPage", "ChatHost", "ChatSessionStatusText", "ChatSessionHomeStatusText",
-                    "AccessPage", "ActivityPage", "SettingsPage", "EmergencyButton", "ReloadChatButton",
-                    "NewBuddyChatButton", "AutoStartCheck", "SessionProfilePathText"
+                    "HomePage", "ProjectCountText", "ProjectsPage", "ProjectTabs", "AddProjectButton",
+                    "ChatPage", "ChatHost", "ChatSessionStatusText", "ChatSessionHomeStatusText",
+                    "BrowserCompanionStatusText", "AccessPage", "BrowserCompanionCheck", "ActivityPage",
+                    "SettingsPage", "EmergencyButton", "ReloadChatButton", "NewBuddyChatButton",
+                    "AutoStartCheck", "SessionProfilePathText"
                 };
                 var checks = required.ToDictionary(name => name, name => window.FindName(name) is not null, StringComparer.Ordinal);
                 var passed = window.IsLoaded && window.ActualWidth > 0 && window.ActualHeight > 0 && checks.Values.All(value => value);
-                Finish(passed, checks, passed ? null : "One or more required UI controls failed to instantiate.");
+                Finish(passed, checks, passed ? null : "One or more required Project Constellation UI controls failed to instantiate.");
             };
             timeout.Start();
             window.Show();
