@@ -77,22 +77,25 @@
                                 </Grid>
                             </Border>
 
-                            <UniformGrid Columns="3" Margin="0,0,0,14">
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,8,0">
-                                    <StackPanel><TextBlock Text="ChatGPT session" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ChatSessionHomeStatusText" Text="Starting…" FontSize="18" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
+                            <UniformGrid Columns="4" Margin="0,0,0,14">
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,6,0">
+                                    <StackPanel><TextBlock Text="ChatGPT session" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ChatSessionHomeStatusText" Text="Starting…" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="4,0">
-                                    <StackPanel><TextBlock Text="Local tools" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="LocalToolsStatusText" Text="Ready" FontSize="18" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="3,0">
+                                    <StackPanel><TextBlock Text="Browser companion" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="BrowserCompanionStatusText" Text="Starting…" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0" TextWrapping="Wrap"/></StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="8,0,0,0">
-                                    <StackPanel><TextBlock Text="Access policy" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="AccessStatusText" Text="Read-only guarded" FontSize="18" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="3,0">
+                                    <StackPanel><TextBlock Text="Local tools" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="LocalToolsStatusText" Text="Ready" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
+                                </Border>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="6,0,0,0">
+                                    <StackPanel><TextBlock Text="Access policy" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="AccessStatusText" Text="Read-only guarded" FontSize="16" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
                                 </Border>
                             </UniformGrid>
 
                             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
                                 <StackPanel>
                                     <TextBlock Text="How this build works" FontSize="16" FontWeight="SemiBold" />
-                                    <TextBlock Text="ChatGPT stays ChatGPT: your account, chats, model picker, subscription limits, and web UI are the normal site. Project Constellation adds a guarded local-tool bridge plus project continuity around that session. The first launch may ask you to sign in to ChatGPT inside Project Constellation once; that login is retained in the portable profile." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="22" />
+                                    <TextBlock Text="ChatGPT stays ChatGPT: your account, chats, model picker, subscription limits, and web UI are the normal site. Project Constellation adds a guarded local-tool bridge plus project continuity around that session. The browser companion listens only on this PC's loopback interface, so normal ChatGPT browser tabs can reach the same guarded tools when the Project Constellation extension is installed." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="22" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
