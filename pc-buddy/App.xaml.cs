@@ -14,6 +14,25 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        var legacyGuard = LegacyBuildGuard.DisableLegacyBuilds();
+        if (legacyGuard.ChangedAnything || legacyGuard.Warnings.Count > 0)
+        {
+            try
+            {
+                var receiptPath = Path.Combine(AppContext.BaseDirectory, "project-constellation-legacy-migration.json");
+                File.WriteAllText(receiptPath, JsonSerializer.Serialize(new
+                {
+                    app = "Project Constellation",
+                    timestampUtc = DateTimeOffset.UtcNow,
+                    legacyGuard.StoppedProcesses,
+                    legacyGuard.DisabledExecutables,
+                    legacyGuard.Warnings
+                }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch { }
+        }
+
         if (e.Args.Any(arg => string.Equals(arg, "--self-test", StringComparison.OrdinalIgnoreCase)))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -59,7 +78,7 @@ public partial class App : Application
             var receipt = new
             {
                 app = "Project Constellation",
-                version = "0.4.0-constellation",
+                version = "0.5.1-work-agent",
                 timestampUtc = DateTimeOffset.UtcNow,
                 passed,
                 failure,
