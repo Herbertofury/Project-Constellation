@@ -39,7 +39,7 @@ public sealed class AppSettings
             if (AllowDownloads)
                 yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
-            foreach (var root in CustomRoots.Where(root => !string.IsNullOrWhiteSpace(root)))
+            foreach (var root in CustomRoots.Concat(ProjectRootRegistry.Snapshot()).Where(root => !string.IsNullOrWhiteSpace(root)))
             {
                 string? full = null;
                 try { full = Path.GetFullPath(Environment.ExpandEnvironmentVariables(root)); } catch { }
