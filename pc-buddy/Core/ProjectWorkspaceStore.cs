@@ -28,18 +28,25 @@ public sealed class ProjectWorkspaceStore
     {
         try
         {
-            if (!File.Exists(ProjectsPath)) return new List<ProjectWorkspace>();
+            if (!File.Exists(ProjectsPath))
+            {
+                ProjectRootRegistry.Replace(Array.Empty<string>());
+                return new List<ProjectWorkspace>();
+            }
             var projects = JsonSerializer.Deserialize<List<ProjectWorkspace>>(File.ReadAllText(ProjectsPath, Encoding.UTF8), Json)
                            ?? new List<ProjectWorkspace>();
-            return projects
+            var normalized = projects
                 .Where(project => project is not null)
                 .Select(Normalize)
                 .OrderByDescending(project => project.UpdatedAtUtc)
                 .ToList();
+            ProjectRootRegistry.Replace(normalized.Select(project => project.LocalRoot));
+            return normalized;
         }
         catch
         {
             TryBackupCorruptFile();
+            ProjectRootRegistry.Replace(Array.Empty<string>());
             return new List<ProjectWorkspace>();
         }
     }
@@ -55,6 +62,7 @@ public sealed class ProjectWorkspaceStore
         var temp = ProjectsPath + ".tmp";
         File.WriteAllText(temp, JsonSerializer.Serialize(normalized, Json), Encoding.UTF8);
         File.Move(temp, ProjectsPath, true);
+        ProjectRootRegistry.Replace(normalized.Select(project => project.LocalRoot));
     }
 
     private static ProjectWorkspace Normalize(ProjectWorkspace project)
