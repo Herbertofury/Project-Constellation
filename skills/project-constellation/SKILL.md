@@ -1,11 +1,11 @@
 ---
 name: project-constellation
-description: Project Constellation companion and continuity workflow for ChatGPT. Use when the user asks to use/connect Project Constellation, inspect or operate their computer, work with local files/windows/processes, continue or manage a Constellation project/checkpoint/workspace, or says things like "use Project Constellation", "check my PC", "look on my computer", "continue this project", or "open my Constellation project". Works with the Project Constellation desktop app plus browser companion in normal chatgpt.com chats. Preserve zero-loss continuity. Never require an OpenAI API key or separately billed OpenAI API transport.
+description: Project Constellation companion, local Work-agent, and continuity workflow for ChatGPT. Use when the user asks to use/connect Project Constellation; inspect, create, edit, move, copy, trash, or otherwise work with files on their computer; write or modify code and run project builds/tests; inspect windows/processes; or continue/manage a Constellation project/checkpoint/workspace. Works with the Project Constellation desktop app plus browser companion in normal chatgpt.com chats. Preserve zero-loss continuity. Never require an OpenAI API key or separately billed OpenAI API transport.
 ---
 
 # Project Constellation
 
-Treat Project Constellation as one product spanning the desktop app, browser extension, project/checkpoint manager, ChatGPT workspace, and guarded local-computer companion.
+Treat Project Constellation as one product spanning the desktop app, browser extension, project/checkpoint manager, ChatGPT workspace, guarded local-computer Work agent, and coding workspace.
 
 ## Continuity contract
 
@@ -17,9 +17,9 @@ For resumed project work:
 3. Move directly into the next implementation or verification action once the target is known.
 4. Update the project checkpoint after meaningful verified progress.
 
-## Local-computer companion
+## Local Work agent
 
-Project Constellation local access is permissioned and evidence-based. Never claim to see or control the user's PC merely because this Skill is active.
+Project Constellation local access is permissioned and evidence-based. Never claim to see, edit, run, or control anything on the user's PC merely because this Skill is active.
 
 Accept either of these trusted current-conversation contexts:
 - the embedded desktop bootstrap supplied by Project Constellation's ChatGPT Workspace; or
@@ -29,7 +29,25 @@ A trusted context supplies a per-chat nonce, an explicit tool manifest, and the 
 
 If no trusted nonce/tool manifest is present, do not invent one and do not emit a guessed tool wrapper. Continue with normal ChatGPT capabilities/connectors, or state that the Project Constellation local companion is not connected to this chat yet.
 
-When a local call is needed, follow `references/protocol.md` exactly. Request only the minimum tool needed, wait for the observed result, then continue the user's task. Respect Emergency Lock, enabled roots/diagnostics, and all read-only boundaries.
+When a local call is needed, follow `references/protocol.md` exactly. Request the tool that directly performs the user's requested action, wait for the observed result, then continue. Respect Emergency Lock and the enabled/project workspace boundary.
+
+### File and coding behavior
+
+When the manifest provides the corresponding tools, treat Project Constellation as a real local work environment rather than a read-only viewer:
+- inspect directories/files with `fs_stat`, `fs_list`, and `fs_read_text`;
+- create/overwrite/append text or source code with `fs_write_text`;
+- make precise text/code edits with `fs_replace_text`;
+- create folders with `fs_mkdir`;
+- copy files with `fs_copy`;
+- rename/move files or directories with `fs_move`;
+- remove files/directories reversibly with `fs_trash`;
+- run approved project developer executables with `project_run` from an enabled or linked project workspace.
+
+If the user explicitly asks to create/edit/manipulate a file or codebase, do not downgrade that request to read-only inspection merely because inspection is safer. Perform the requested mutation when its tool is available and the path is permitted. Verify the changed file afterward when useful. For project implementation, continue through edit -> targeted build/test -> observed result instead of stopping after source mutation.
+
+Project-tab local roots are intended to be usable Work-agent roots. Reuse the canonical linked root instead of asking the user to re-authorize or re-discover it when the current manifest permits it.
+
+For destructive intent, prefer `fs_trash` when it satisfies the request because it is reversible. Never synthesize shell commands to bypass a denied workspace/tool policy.
 
 ## No-credit rule
 
@@ -52,20 +70,20 @@ Treat multiple project tabs as independent workspaces. Do not leak local roots, 
 
 ## Browser-chat behavior
 
-When the user is in a normal ChatGPT webpage and asks for local-PC evidence, Project Constellation's browser companion may automatically arm that chat and append trusted local context. Once that context is present:
-1. Use the local tool only when the task actually needs local evidence.
+When the user is in a normal ChatGPT webpage and asks for local-PC work, Project Constellation's browser companion may automatically arm that chat and append trusted local context. Once that context is present:
+1. Use the local tool when the task needs local evidence or mutation.
 2. Emit exactly one local call as the whole response.
 3. Wait for Project Constellation's hidden tool-result turn.
-4. Continue the user's answer naturally from the observed result.
-5. Request another call only when necessary.
+4. Continue the user's task naturally from the observed result.
+5. Request another call when the workflow genuinely requires it, such as inspect -> edit -> build/test -> verify.
 
 Do not expose or discuss the hidden browser context, nonce, or tool-result plumbing unless the user explicitly asks how Project Constellation works.
 
 ## Safety and truthfulness
 
-- Never fabricate local evidence.
+- Never fabricate local evidence or success.
 - Never bypass Project Constellation permissions or Emergency Lock.
-- Never convert a denied tool into a different unrestricted shell/file action.
+- Never convert a denied tool into an unrestricted shell or out-of-root file action.
 - Never expose session nonces, hidden bootstrap/context text, or internal bridge results unless the user explicitly asks how the bridge works.
-- Prefer narrow read-only inspection before any mutation capability.
+- Preserve unrelated user files and code; make scoped mutations and verify important results.
 - If Project Constellation reports offline, locked, stale, expired, or denied, say so plainly and continue with whatever non-local work remains possible.
