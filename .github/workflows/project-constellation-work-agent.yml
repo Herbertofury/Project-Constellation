@@ -1,0 +1,188 @@
+name: Project Constellation Work Agent
+
+on:
+  push:
+    branches: [pcx-029-pc-bridge]
+    paths:
+      - 'pc-buddy/**'
+      - 'extension/**'
+      - 'skills/project-constellation/**'
+      - '.github/workflows/project-constellation-work-agent.yml'
+  pull_request:
+    paths:
+      - 'pc-buddy/**'
+      - 'extension/**'
+      - 'skills/project-constellation/**'
+      - '.github/workflows/project-constellation-work-agent.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-work-agent:
+    runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Enforce subscription-session transport
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (Test-Path 'pc-buddy/Core/OpenAiBuddyClient.cs') { throw 'Billable OpenAI API client must not exist.' }
+          if (Test-Path 'pc-buddy/Core/SecretStore.cs') { throw 'API-key store must not exist.' }
+          $source = Get-ChildItem 'pc-buddy' -Recurse -File | Where-Object { $_.Extension -in '.cs', '.xaml', '.csproj' }
+          $hits = $source | Select-String -Pattern 'api\.openai\.com|OPENAI_API_KEY|/v1/responses'
+          if ($hits) { $hits | ForEach-Object { Write-Host $_ }; throw 'Billable OpenAI API transport reappeared.' }
+
+      - name: Validate browser companion
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          node --check extension/src/service-worker.js
+          node --check extension/src/local-companion-background.js
+          node --check extension/src/project-constellation-companion.js
+          $m = Get-Content extension/manifest.json -Raw | ConvertFrom-Json
+          if ($m.name -ne 'Project Constellation') { throw 'Stale extension identity.' }
+          if ($m.background.service_worker -ne 'src/service-worker.js') { throw 'Wrong service worker.' }
+          if ($m.host_permissions -notcontains 'http://127.0.0.1:17342/*') { throw 'Loopback permission missing.' }
+
+      - name: Validate Project Constellation Skill source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($path in @('skills/project-constellation/SKILL.md','skills/project-constellation/references/protocol.md','skills/project-constellation/agents/openai.yaml')) {
+            if (-not (Test-Path $path)) { throw "Missing Skill file: $path" }
+          }
+          $skill = Get-Content skills/project-constellation/SKILL.md -Raw
+          if ($skill -notmatch '(?m)^name:\s*project-constellation\s*$') { throw 'Invalid Skill name.' }
+          if ($skill -notmatch 'browser companion' -or $skill -notmatch 'zero-loss-chat-accelerator') { throw 'Skill continuity/companion contract missing.' }
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore pc-buddy/PCBuddy.csproj
+
+      - name: Compile release
+        run: dotnet build pc-buddy/PCBuddy.csproj -c Release --no-restore
+
+      - name: Publish self-contained app
+        run: >-
+          dotnet publish pc-buddy/PCBuddy.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          --no-restore
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=embedded
+          -p:ContinuousIntegrationBuild=true
+          -o build/project-constellation
+
+      - name: Run real Work-agent acceptance
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          if (-not (Test-Path $exe)) { throw 'ProjectConstellation.exe missing.' }
+          $proc = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory (Split-Path $exe) -Wait -PassThru
+          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-self-test.json'
+          if (-not (Test-Path $receipt)) { throw 'Self-test receipt missing.' }
+          Get-Content $receipt
+          if ($proc.ExitCode -ne 0) { throw "Work-agent self-test failed: $($proc.ExitCode)" }
+          $r = Get-Content $receipt -Raw | ConvertFrom-Json
+          if (-not $r.passed) { throw 'Self-test did not report passed=true.' }
+          if ($r.transport -ne 'chatgpt_web_session' -or $r.apiKeyRequired -ne $false) { throw 'No-credit ChatGPT-session contract failed.' }
+          if ($r.browserCompanion -ne 'loopback_tokenized') { throw 'Browser companion contract failed.' }
+          if ($r.projectWorkspaces -ne 'persistent_atomic_json') { throw 'Project persistence contract failed.' }
+          if ($r.fileWorkspace -ne 'read_write_guarded') { throw 'Read/write workspace contract failed.' }
+          if ($r.developerCommands -ne 'allowlisted_no_shell') { throw 'Developer command contract failed.' }
+          foreach ($name in @(
+            'fs_write_text.desktop_create',
+            'fs_replace_text.desktop_edit',
+            'fs_read_text.desktop_verify',
+            'fs_copy.desktop',
+            'fs_move.desktop',
+            'workspace.custom_root_write',
+            'project_run.dotnet',
+            'emergency_lock.blocks_writes',
+            'projects.persistence_roundtrip',
+            'browser_companion.desktop_write_roundtrip'
+          )) {
+            $test = $r.results | Where-Object { $_.test -eq $name }
+            if (-not $test -or -not $test.ok) { throw "Required Work-agent acceptance failed: $name" }
+          }
+
+      - name: Run WebView2 bridge smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-bridge-dom-smoke.json'
+          $proc = Start-Process -FilePath $exe -ArgumentList '--bridge-dom-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
+          if (-not $proc.WaitForExit(30000)) { try { $proc.Kill($true) } catch {}; throw 'WebView2 bridge smoke timeout.' }
+          if ($proc.ExitCode -ne 0 -or -not (Test-Path $receipt)) { if (Test-Path $receipt) { Get-Content $receipt }; throw 'WebView2 bridge smoke failed.' }
+          $r = Get-Content $receipt -Raw | ConvertFrom-Json
+          if (-not $r.passed -or -not $r.sessionStateObserved -or -not $r.toolCallObserved -or -not $r.sendInjected -or -not $r.internalHidden) { throw 'Incomplete WebView2 bridge proof.' }
+
+      - name: Run WPF UI smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          $receipt = Join-Path $PWD 'build/project-constellation/project-constellation-ui-smoke.json'
+          $proc = Start-Process -FilePath $exe -ArgumentList '--ui-smoke' -WorkingDirectory (Split-Path $exe) -PassThru
+          if (-not $proc.WaitForExit(20000)) { try { $proc.Kill($true) } catch {}; throw 'UI smoke timeout.' }
+          if ($proc.ExitCode -ne 0 -or -not (Test-Path $receipt)) { if (Test-Path $receipt) { Get-Content $receipt }; throw 'UI smoke failed.' }
+          $r = Get-Content $receipt -Raw | ConvertFrom-Json
+          if (-not $r.passed -or $r.window.Title -ne 'Project Constellation') { throw 'Project Constellation UI proof failed.' }
+          foreach ($required in @('ProjectsPage','ProjectTabs','AddProjectButton','BrowserCompanionCheck','AccessPage')) {
+            if (-not $r.controls.$required) { throw "Missing rendered control: $required" }
+          }
+
+      - name: Assemble Work-agent portable package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Join-Path $PWD 'build/package'
+          New-Item -ItemType Directory -Force -Path $package | Out-Null
+          $exe = Join-Path $PWD 'build/project-constellation/ProjectConstellation.exe'
+          Copy-Item $exe (Join-Path $package 'Project Constellation.exe')
+          Copy-Item 'pc-buddy/README.md' (Join-Path $package 'README.txt')
+          Copy-Item 'build/project-constellation/project-constellation-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
+          Copy-Item 'build/project-constellation/project-constellation-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
+          Copy-Item 'build/project-constellation/project-constellation-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
+          Copy-Item 'extension' (Join-Path $package 'Browser Extension') -Recurse
+          $skillDir = Join-Path $package 'ChatGPT Skill'
+          New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
+          $skillZip = Join-Path $skillDir 'skill.zip'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::Open($skillZip, [System.IO.Compression.ZipArchiveMode]::Create)
+          try {
+            $skillRoot = (Resolve-Path 'skills').Path
+            Get-ChildItem 'skills/project-constellation' -Recurse -File | ForEach-Object {
+              $relative = [System.IO.Path]::GetRelativePath($skillRoot, $_.FullName).Replace('\','/')
+              [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $_.FullName, $relative, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
+            }
+          } finally { $archive.Dispose() }
+          $hashes = @()
+          foreach ($relative in @('Project Constellation.exe','Browser Extension/manifest.json','ChatGPT Skill/skill.zip')) {
+            $path = Join-Path $package $relative
+            $hash = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            $hashes += "$hash *$relative"
+          }
+          $hashes | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
+          Compress-Archive -Path (Join-Path $package '*') -DestinationPath (Join-Path $PWD 'Project-Constellation-Work-Agent-win-x64.zip') -CompressionLevel Optimal -Force
+
+      - name: Upload Work-agent artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: Project-Constellation-Work-Agent-win-x64
+          path: build/package/*
+          if-no-files-found: error
+          retention-days: 30
