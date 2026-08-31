@@ -37,17 +37,24 @@ jobs:
           $hits = $source | Select-String -Pattern 'api\.openai\.com|OPENAI_API_KEY|/v1/responses'
           if ($hits) { $hits | ForEach-Object { Write-Host $_ }; throw 'Billable OpenAI API transport reappeared.' }
 
-      - name: Validate browser companion
+      - name: Validate hardened browser companion
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           node --check extension/src/service-worker.js
           node --check extension/src/local-companion-background.js
-          node --check extension/src/project-constellation-companion.js
+          node --check extension/src/project-constellation-companion-v2.js
           $m = Get-Content extension/manifest.json -Raw | ConvertFrom-Json
           if ($m.name -ne 'Project Constellation') { throw 'Stale extension identity.' }
+          if ([version]$m.version -lt [version]'0.16.1') { throw 'Hardened browser companion version missing.' }
           if ($m.background.service_worker -ne 'src/service-worker.js') { throw 'Wrong service worker.' }
           if ($m.host_permissions -notcontains 'http://127.0.0.1:17342/*') { throw 'Loopback permission missing.' }
+          $companion = $m.content_scripts | Where-Object { $_.js -contains 'src/project-constellation-companion-v2.js' }
+          if (-not $companion) { throw 'Manifest is not loading the hardened companion.' }
+          $source = Get-Content extension/src/project-constellation-companion-v2.js -Raw
+          foreach ($needle in @('recoverArmedFromConversation','RETRY_RE','document.execCommand','pcx-local-handshake','pcx-local-tool')) {
+            if ($source -notmatch [regex]::Escape($needle)) { throw "Missing browser companion hardening: $needle" }
+          }
 
       - name: Validate Project Constellation Skill source
         shell: pwsh
