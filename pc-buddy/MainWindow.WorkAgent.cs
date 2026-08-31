@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,10 +20,14 @@ public partial class MainWindow
         if (_workAgentUiInstalled) return;
         _workAgentUiInstalled = true;
 
-        VersionText.Text = "v0.5.0-work-agent";
+        VersionText.Text = "v0.5.1-work-agent";
         InstallWorkAgentAccessCard();
         RewriteReadOnlyCopy();
         RefreshWorkAgentStatus();
+
+        var legacyReceipt = Path.Combine(AppContext.BaseDirectory, "project-constellation-legacy-migration.json");
+        if (File.Exists(legacyReceipt))
+            RecordActivity("legacy_migration", "Legacy PC Buddy runtime detected and disabled by Project Constellation", true);
 
         EmergencyButton.AddHandler(Button.ClickEvent, new RoutedEventHandler((_, _) =>
             Dispatcher.BeginInvoke(RefreshWorkAgentStatus, DispatcherPriority.Background)));
