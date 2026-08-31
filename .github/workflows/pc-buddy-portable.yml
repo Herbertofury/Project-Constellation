@@ -5,10 +5,18 @@ on:
     branches: [pcx-029-pc-bridge]
     paths:
       - 'pc-buddy/**'
+      - 'extension/manifest.json'
+      - 'extension/src/service-worker.js'
+      - 'extension/src/local-companion-background.js'
+      - 'extension/src/project-constellation-companion.js'
       - '.github/workflows/pc-buddy-portable.yml'
   pull_request:
     paths:
       - 'pc-buddy/**'
+      - 'extension/manifest.json'
+      - 'extension/src/service-worker.js'
+      - 'extension/src/local-companion-background.js'
+      - 'extension/src/project-constellation-companion.js'
       - '.github/workflows/pc-buddy-portable.yml'
   workflow_dispatch:
 
@@ -35,6 +43,15 @@ jobs:
             $hits | ForEach-Object { Write-Host $_ }
             throw 'Billable OpenAI API transport string found in Project Constellation source.'
           }
+
+      - name: Validate browser companion extension
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          node --check extension/src/service-worker.js
+          node --check extension/src/local-companion-background.js
+          node --check extension/src/project-constellation-companion.js
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('extension/manifest.json','utf8')); if(m.name!=='Project Constellation'||m.version!=='0.16.0') process.exit(2); if(m.background?.service_worker!=='src/service-worker.js') process.exit(3); if(!m.host_permissions?.includes('http://127.0.0.1:17342/*')) process.exit(4); const scripts=(m.content_scripts||[]).flatMap(x=>x.js||[]); if(!scripts.includes('src/project-constellation-companion.js')) process.exit(5);"
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -76,6 +93,13 @@ jobs:
           if ($parsed.app -ne 'Project Constellation') { throw 'Self-test receipt has stale product identity.' }
           if ($parsed.transport -ne 'chatgpt_web_session' -or $parsed.apiKeyRequired -ne $false) {
             throw 'Self-test receipt does not prove the no-API ChatGPT-session transport.'
+          }
+          if ($parsed.browserCompanion -ne 'loopback_tokenized') {
+            throw 'Self-test receipt does not prove the tokenized loopback browser companion.'
+          }
+          $browserRoundtrip = $parsed.results | Where-Object { $_.test -eq 'browser_companion.tool_roundtrip' }
+          if (-not $browserRoundtrip -or -not $browserRoundtrip.ok) {
+            throw 'Self-test did not prove a browser-companion tool round trip.'
           }
 
       - name: Run packaged WebView2 bridge DOM smoke
@@ -130,6 +154,7 @@ jobs:
           Copy-Item 'build/project-constellation/project-constellation-self-test.json' (Join-Path $package 'SELF-TEST-RECEIPT.json')
           Copy-Item 'build/project-constellation/project-constellation-bridge-dom-smoke.json' (Join-Path $package 'BRIDGE-DOM-SMOKE-RECEIPT.json')
           Copy-Item 'build/project-constellation/project-constellation-ui-smoke.json' (Join-Path $package 'UI-SMOKE-RECEIPT.json')
+          Copy-Item 'extension' (Join-Path $package 'Browser Extension') -Recurse
           $hashLines = @()
           $exeHash = (Get-FileHash (Join-Path $package 'Project Constellation.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           $hashLines += "$exeHash *Project Constellation.exe"
@@ -148,6 +173,8 @@ jobs:
             Write-Host 'No WebView2Loader sidecar emitted; packaged WebView2 DOM smoke already proved the published single EXE can instantiate WebView2.'
           }
 
+          $manifestHash = (Get-FileHash (Join-Path $package 'Browser Extension/manifest.json') -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hashLines += "$manifestHash *Browser Extension/manifest.json"
           $hashLines | Set-Content -Encoding ascii (Join-Path $package 'SHA256SUMS.txt')
           $zip = Join-Path $PWD 'Project-Constellation-Portable-win-x64.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
@@ -155,6 +182,7 @@ jobs:
           if ((Get-Item $zip).Length -lt 1MB) { throw 'Portable ZIP is unexpectedly small.' }
           Write-Host "Portable ZIP: $zip"
           Write-Host "EXE SHA256: $exeHash"
+          Write-Host "Extension manifest SHA256: $manifestHash"
 
       - name: Upload portable artifact
         uses: actions/upload-artifact@v5
