@@ -82,22 +82,22 @@ public sealed class LocalCompanionServer : IAsyncDisposable
     {
         using (client)
         {
+            client.NoDelay = true;
+            await using var stream = client.GetStream();
             try
             {
-                client.NoDelay = true;
-                await using var stream = client.GetStream();
                 var request = await ReadRequestAsync(stream, cancellationToken).ConfigureAwait(false);
                 var response = await RouteAsync(request, cancellationToken).ConfigureAwait(false);
                 await WriteResponseAsync(stream, response, cancellationToken).ConfigureAwait(false);
             }
             catch (RequestException ex)
             {
-                try { await WriteResponseAsync(client.GetStream(), JsonResponse(ex.StatusCode, new { ok = false, error = ex.Message }), cancellationToken).ConfigureAwait(false); } catch { }
+                try { await WriteResponseAsync(stream, JsonResponse(ex.StatusCode, new { ok = false, error = ex.Message }), cancellationToken).ConfigureAwait(false); } catch { }
             }
             catch (Exception ex)
             {
                 _activity("browser_companion", ex.Message, false);
-                try { await WriteResponseAsync(client.GetStream(), JsonResponse(500, new { ok = false, error = "local companion request failed" }), cancellationToken).ConfigureAwait(false); } catch { }
+                try { await WriteResponseAsync(stream, JsonResponse(500, new { ok = false, error = "local companion request failed" }), cancellationToken).ConfigureAwait(false); } catch { }
             }
         }
     }
