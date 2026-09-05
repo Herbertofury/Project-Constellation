@@ -47,10 +47,7 @@ jobs:
           text = text.replace('more_rpg_library_version=2.7.0+1.21.1', 'more_rpg_library_version=2.7.1+1.21.1')
           props.write_text(text)
 
-          for rel, spell_file in [
-              ('common/build.gradle', '8786005'),
-              ('neoforge/build.gradle', '8786009'),
-          ]:
+          for rel in ('common/build.gradle', 'neoforge/build.gradle'):
               p = root / rel
               s = p.read_text()
               marker = "repositories {\n"
@@ -58,28 +55,27 @@ jobs:
               if "https://www.cursemaven.com" not in s:
                   s = s.replace(marker, curse_repo, 1)
 
-              # The migrated branch used the author's mavenLocal() coordinates for More RPG Library.
-              # Resolve the exact public 2.7.0 Spell Engine 1.10 migration artifact instead.
+              old_more = 'modImplementation("net.more_rpg_classes:more_rpg_library-${platform}:${project.more_rpg_library_version}") { transitive = false }'
+              old_spell = 'modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}-${platform}")'
+
               if rel.startswith('common/'):
-                  old_more = 'modImplementation("net.more_rpg_classes:more_rpg_library-${platform}:${project.more_rpg_library_version}") { transitive = false }'
-                  old_spell = 'modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}-${platform}")'
-                  s = s.replace(old_more, 'modImplementation("maven.modrinth:Wkc3lwHo:u3Hm3TQK") { transitive = false }')
-                  # Two duplicate Spell Engine declarations exist upstream; preserve one exact 1.10.5 Fabric compile dependency.
-                  s = s.replace(old_spell + '\n    ' + old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786005")')
-                  s = s.replace(old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786005")')
+                  more = 'modImplementation("curse.maven:more-rpg-library-923030:8715798") { transitive = false }'
+                  spell = 'modImplementation("curse.maven:spell-engine-807653:8786005")'
               else:
-                  old_more = 'modImplementation("net.more_rpg_classes:more_rpg_library-${platform}:${project.more_rpg_library_version}") { transitive = false }'
-                  old_spell = 'modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}-${platform}")'
-                  s = s.replace(old_more, 'modImplementation("maven.modrinth:Wkc3lwHo:u3Hm3TQK") { transitive = false }')
-                  s = s.replace(old_spell + '\n    ' + old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786009")')
-                  s = s.replace(old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786009")')
+                  more = 'modImplementation("curse.maven:more-rpg-library-923030:8715793") { transitive = false }'
+                  spell = 'modImplementation("curse.maven:spell-engine-807653:8786009")'
+
+              s = s.replace(old_more, more)
+              # Upstream currently declares Spell Engine twice. Collapse both to one exact artifact.
+              s = s.replace(old_spell + '\n    ' + old_spell, spell)
+              s = s.replace(old_spell, spell)
               p.write_text(s)
           PY
 
           echo '--- patched versions ---'
           grep -E '^(mod_version|minecraft_version|neoforge_version|spell_engine_version|more_rpg_library_version)' mrpgc-src/gradle.properties
           echo '--- dependency substitutions ---'
-          grep -R -nE 'cursemaven|spell-engine-807653|Wkc3lwHo' mrpgc-src/common/build.gradle mrpgc-src/neoforge/build.gradle
+          grep -R -nE 'cursemaven|spell-engine-807653|more-rpg-library-923030' mrpgc-src/common/build.gradle mrpgc-src/neoforge/build.gradle
 
       - name: Build migrated NeoForge MRPGC
         shell: bash
@@ -102,7 +98,7 @@ jobs:
 
           if [ "${BUILD_STATUS:-1}" -eq 0 ]; then
             mapfile -t jars < <(find mrpgc-src/neoforge/build/libs -maxdepth 1 -type f -name '*.jar' \
-              ! -name '*-sources.jar' ! -name '*dev-shadow*.jar' | sort)
+              ! -name '*-sources.jar' ! -name '*dev-shadow*.jar | sort)
             if [ "${#jars[@]}" -ne 1 ]; then
               echo "Expected exactly one production NeoForge jar, found ${#jars[@]}" | tee -a mrpgc-build.log
               printf '%s\n' "${jars[@]}" | tee -a mrpgc-build.log
@@ -116,7 +112,7 @@ jobs:
               rm -rf /tmp/mrpgc-verify && mkdir -p /tmp/mrpgc-verify
               unzip -q "$out" -d /tmp/mrpgc-verify || verify=1
 
-              # A full 1.10 migration must contain no legacy ParticleBatch or api.config symbolic references.
+              # Full Spell Engine 1.10 migration gate: old package/API symbols must be gone.
               if grep -R -a -n -E 'net/spell_engine/api/spell/fx/ParticleBatch|net/spell_engine/api/config' /tmp/mrpgc-verify --include='*.class' > repair-artifacts/legacy-symbol-scan.txt; then
                 echo 'Legacy Spell Engine 1.9 symbols remain in production classes.' | tee -a mrpgc-build.log
                 verify=1
@@ -124,13 +120,12 @@ jobs:
                 echo 'PASS: no legacy ParticleBatch/api.config symbols' > repair-artifacts/legacy-symbol-scan.txt
               fi
 
-              # Prove the exact class that crashed now implements the current ParticleGroup contract.
+              # Prove the exact class from the user's crash now exposes the current ParticleGroup ABI.
               javap -classpath "$out" -p com.mrpgc_skill_tree.effect.ShadowsRefugeStatusEffect \
                 > repair-artifacts/ShadowsRefugeStatusEffect.javap.txt 2>&1 || verify=1
               grep -q 'net.spell_engine.api.spell.fx.ParticleGroup stealthPopParticles()' \
                 repair-artifacts/ShadowsRefugeStatusEffect.javap.txt || verify=1
 
-              # Metadata and content identity evidence.
               unzip -p "$out" META-INF/neoforge.mods.toml > repair-artifacts/neoforge.mods.toml || verify=1
               sha256sum "$out" > repair-artifacts/SHA256SUMS.txt
               stat -c '%n %s bytes' "$out" > repair-artifacts/SIZES.txt
@@ -142,8 +137,10 @@ jobs:
                 echo 'Upstream migrated mod version: 1.3.0'
                 echo 'Minecraft: 1.21.1'
                 echo 'NeoForge compile target: 21.1.249'
-                echo 'Spell Engine compile artifact: 1.10.5+1.21.1 (CurseForge NeoForge file 8786009; Fabric compile file 8786005)'
-                echo 'More RPG Library compile artifact: 2.7.0+1.21.1-neoforge/fabric public Modrinth migration artifact u3Hm3TQK'
+                echo 'Spell Engine Fabric compile artifact: CurseForge 807653/8786005 (1.10.5+1.21.1)'
+                echo 'Spell Engine NeoForge compile artifact: CurseForge 807653/8786009 (1.10.5+1.21.1)'
+                echo 'More RPG Library Fabric compile artifact: CurseForge 923030/8715798 (2.7.1+1.21.1)'
+                echo 'More RPG Library NeoForge compile artifact: CurseForge 923030/8715793 (2.7.1+1.21.1)'
                 echo 'Static gate: ZIP integrity, legacy-symbol scan, ShadowsRefuge ParticleGroup signature, metadata extraction, SHA-256'
                 echo "Build status: ${BUILD_STATUS:-unset}"
                 echo "Static verify status: $verify"
