@@ -1,0 +1,179 @@
+name: Build MRPGC Spell Engine repair
+
+on:
+  push:
+    branches:
+      - repair-mrpgc-spellengine-1-10
+    paths:
+      - .github/workflows/build-mrpgc-spellengine.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Checkout upstream migrated MRPGC
+        uses: actions/checkout@v4
+        with:
+          repository: ProfessorFichte/MRPG-SkillTree-Add-On
+          ref: 09c0b5c98882abfbc553a5545063302f0d8b047a
+          path: mrpgc-src
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '21'
+
+      - name: Patch build-only dependency resolution for clean CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('mrpgc-src')
+          props = root / 'gradle.properties'
+          text = props.read_text()
+          text = text.replace('neoforge_version = 21.1.201', 'neoforge_version = 21.1.249')
+          text = text.replace('spell_engine_version=1.10.2+1.21.1', 'spell_engine_version=1.10.5+1.21.1')
+          text = text.replace('more_rpg_library_version=2.7.0+1.21.1', 'more_rpg_library_version=2.7.1+1.21.1')
+          props.write_text(text)
+
+          for rel, spell_file in [
+              ('common/build.gradle', '8786005'),
+              ('neoforge/build.gradle', '8786009'),
+          ]:
+              p = root / rel
+              s = p.read_text()
+              marker = "repositories {\n"
+              curse_repo = "repositories {\n    maven { url 'https://www.cursemaven.com' }\n"
+              if "https://www.cursemaven.com" not in s:
+                  s = s.replace(marker, curse_repo, 1)
+
+              # The migrated branch used the author's mavenLocal() coordinates for More RPG Library.
+              # Resolve the exact public 2.7.0 Spell Engine 1.10 migration artifact instead.
+              if rel.startswith('common/'):
+                  old_more = 'modImplementation("net.more_rpg_classes:more_rpg_library-${platform}:${project.more_rpg_library_version}") { transitive = false }'
+                  old_spell = 'modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}-${platform}")'
+                  s = s.replace(old_more, 'modImplementation("maven.modrinth:Wkc3lwHo:u3Hm3TQK") { transitive = false }')
+                  # Two duplicate Spell Engine declarations exist upstream; preserve one exact 1.10.5 Fabric compile dependency.
+                  s = s.replace(old_spell + '\n    ' + old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786005")')
+                  s = s.replace(old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786005")')
+              else:
+                  old_more = 'modImplementation("net.more_rpg_classes:more_rpg_library-${platform}:${project.more_rpg_library_version}") { transitive = false }'
+                  old_spell = 'modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}-${platform}")'
+                  s = s.replace(old_more, 'modImplementation("maven.modrinth:Wkc3lwHo:u3Hm3TQK") { transitive = false }')
+                  s = s.replace(old_spell + '\n    ' + old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786009")')
+                  s = s.replace(old_spell, 'modImplementation("curse.maven:spell-engine-807653:8786009")')
+              p.write_text(s)
+          PY
+
+          echo '--- patched versions ---'
+          grep -E '^(mod_version|minecraft_version|neoforge_version|spell_engine_version|more_rpg_library_version)' mrpgc-src/gradle.properties
+          echo '--- dependency substitutions ---'
+          grep -R -nE 'cursemaven|spell-engine-807653|Wkc3lwHo' mrpgc-src/common/build.gradle mrpgc-src/neoforge/build.gradle
+
+      - name: Build migrated NeoForge MRPGC
+        shell: bash
+        run: |
+          set +e
+          cd mrpgc-src
+          chmod +x gradlew
+          ./gradlew --no-daemon :neoforge:build --stacktrace 2>&1 | tee ../mrpgc-build.log
+          status=${PIPESTATUS[0]}
+          cd ..
+          echo "BUILD_STATUS=$status" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Package and statically verify candidate
+        shell: bash
+        run: |
+          set +e
+          verify=0
+          mkdir -p repair-artifacts
+
+          if [ "${BUILD_STATUS:-1}" -eq 0 ]; then
+            mapfile -t jars < <(find mrpgc-src/neoforge/build/libs -maxdepth 1 -type f -name '*.jar' \
+              ! -name '*-sources.jar' ! -name '*dev-shadow*.jar' | sort)
+            if [ "${#jars[@]}" -ne 1 ]; then
+              echo "Expected exactly one production NeoForge jar, found ${#jars[@]}" | tee -a mrpgc-build.log
+              printf '%s\n' "${jars[@]}" | tee -a mrpgc-build.log
+              verify=1
+            else
+              src="${jars[0]}"
+              out='repair-artifacts/mrpgc_skill_tree-neoforge-1.3.0+1.21.1-Noxviola-SpellEngine-1.10.5.jar'
+              cp "$src" "$out"
+
+              unzip -t "$out" > repair-artifacts/zip-test.txt 2>&1 || verify=1
+              rm -rf /tmp/mrpgc-verify && mkdir -p /tmp/mrpgc-verify
+              unzip -q "$out" -d /tmp/mrpgc-verify || verify=1
+
+              # A full 1.10 migration must contain no legacy ParticleBatch or api.config symbolic references.
+              if grep -R -a -n -E 'net/spell_engine/api/spell/fx/ParticleBatch|net/spell_engine/api/config' /tmp/mrpgc-verify --include='*.class' > repair-artifacts/legacy-symbol-scan.txt; then
+                echo 'Legacy Spell Engine 1.9 symbols remain in production classes.' | tee -a mrpgc-build.log
+                verify=1
+              else
+                echo 'PASS: no legacy ParticleBatch/api.config symbols' > repair-artifacts/legacy-symbol-scan.txt
+              fi
+
+              # Prove the exact class that crashed now implements the current ParticleGroup contract.
+              javap -classpath "$out" -p com.mrpgc_skill_tree.effect.ShadowsRefugeStatusEffect \
+                > repair-artifacts/ShadowsRefugeStatusEffect.javap.txt 2>&1 || verify=1
+              grep -q 'net.spell_engine.api.spell.fx.ParticleGroup stealthPopParticles()' \
+                repair-artifacts/ShadowsRefugeStatusEffect.javap.txt || verify=1
+
+              # Metadata and content identity evidence.
+              unzip -p "$out" META-INF/neoforge.mods.toml > repair-artifacts/neoforge.mods.toml || verify=1
+              sha256sum "$out" > repair-artifacts/SHA256SUMS.txt
+              stat -c '%n %s bytes' "$out" > repair-artifacts/SIZES.txt
+
+              {
+                echo 'Noxviola Aeronautics MRPGC / Spell Engine repair build'
+                echo 'Upstream source: ProfessorFichte/MRPG-SkillTree-Add-On'
+                echo 'Upstream commit: 09c0b5c98882abfbc553a5545063302f0d8b047a'
+                echo 'Upstream migrated mod version: 1.3.0'
+                echo 'Minecraft: 1.21.1'
+                echo 'NeoForge compile target: 21.1.249'
+                echo 'Spell Engine compile artifact: 1.10.5+1.21.1 (CurseForge NeoForge file 8786009; Fabric compile file 8786005)'
+                echo 'More RPG Library compile artifact: 2.7.0+1.21.1-neoforge/fabric public Modrinth migration artifact u3Hm3TQK'
+                echo 'Static gate: ZIP integrity, legacy-symbol scan, ShadowsRefuge ParticleGroup signature, metadata extraction, SHA-256'
+                echo "Build status: ${BUILD_STATUS:-unset}"
+                echo "Static verify status: $verify"
+              } > repair-artifacts/BUILD-RECEIPT.txt
+            fi
+          else
+            echo 'Gradle build failed; see BUILD-FAILURE.log.' > repair-artifacts/BUILD-RECEIPT.txt
+            cp mrpgc-build.log repair-artifacts/BUILD-FAILURE.log
+            verify=1
+          fi
+
+          echo "VERIFY_STATUS=$verify" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Publish repair evidence to repair branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Noxviola Repair CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add repair-artifacts
+          if git diff --cached --quiet; then
+            echo 'No repair artifact changes to commit.'
+          else
+            git commit -m 'repair: publish MRPGC Spell Engine build result [skip ci]'
+            git push origin HEAD:repair-mrpgc-spellengine-1-10
+          fi
+
+      - name: Final gate
+        shell: bash
+        run: |
+          test "${BUILD_STATUS:-1}" -eq 0
+          test "${VERIFY_STATUS:-1}" -eq 0
