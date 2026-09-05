@@ -19,11 +19,11 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Checkout upstream migrated MRPGC
+      - name: Checkout last clean upstream MRPGC Spell Engine migration
         uses: actions/checkout@v4
         with:
           repository: ProfessorFichte/MRPG-SkillTree-Add-On
-          ref: 09c0b5c98882abfbc553a5545063302f0d8b047a
+          ref: 9daf68d1d716cfd6e760ec6a7e519271e092a985
           path: mrpgc-src
 
       - name: Set up JDK 21
@@ -32,7 +32,18 @@ jobs:
           distribution: microsoft
           java-version: '21'
 
-      - name: Patch build-only dependency resolution for clean CI
+      - name: Verify clean migration source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd mrpgc-src
+          if grep -R -n -E 'import net\.spell_engine\.api\.spell\.fx\.ParticleBatch|new ParticleBatch|ParticleBatch\[\]|import net\.spell_engine\.api\.config' common/src/main/java; then
+            echo 'ERROR: selected baseline contains executable legacy Spell Engine 1.9 source'
+            exit 1
+          fi
+          echo 'PASS: pre-regression baseline contains no executable ParticleBatch/api.config references'
+
+      - name: Patch build-only dependency resolution for Noxviola runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -72,9 +83,9 @@ jobs:
           PY
 
           echo '--- patched versions ---'
-          grep -E '^(mod_version|minecraft_version|neoforge_version|spell_engine_version|more_rpg_library_version)' mrpgc-src/gradle.properties
+          grep -E '^(mod_version|minecraft_version|neoforge_version|spell_engine_version|more_rpg_library_version|skill_tree_version)' mrpgc-src/gradle.properties
           echo '--- dependency substitutions ---'
-          grep -R -nE 'cursemaven|spell-engine-807653|more-rpg-library-923030' mrpgc-src/common/build.gradle mrpgc-src/neoforge/build.gradle
+          grep -R -nE 'cursemaven|spell-engine-807653|more-rpg-library-923030|maven.modrinth:skill-tree' mrpgc-src/common/build.gradle mrpgc-src/neoforge/build.gradle
 
       - name: Build migrated NeoForge MRPGC
         shell: bash
@@ -115,7 +126,7 @@ jobs:
                 echo 'Legacy Spell Engine 1.9 symbols remain in production classes.' | tee -a mrpgc-build.log
                 verify=1
               else
-                echo 'PASS: no legacy ParticleBatch/api.config symbols' > repair-artifacts/legacy-symbol-scan.txt
+                echo 'PASS: no legacy ParticleBatch/api.config symbols in production classes' > repair-artifacts/legacy-symbol-scan.txt
               fi
 
               javap -classpath "$out" -p com.mrpgc_skill_tree.effect.ShadowsRefugeStatusEffect \
@@ -124,21 +135,26 @@ jobs:
                 repair-artifacts/ShadowsRefugeStatusEffect.javap.txt || verify=1
 
               unzip -p "$out" META-INF/neoforge.mods.toml > repair-artifacts/neoforge.mods.toml || verify=1
+              grep -q 'modId = "spell_engine"' repair-artifacts/neoforge.mods.toml || verify=1
+              grep -q 'versionRange = "\[1.10.5,)"' repair-artifacts/neoforge.mods.toml || verify=1
+              grep -q 'versionRange = "\[2.7.1,)"' repair-artifacts/neoforge.mods.toml || verify=1
+
               sha256sum "$out" > repair-artifacts/SHA256SUMS.txt
               stat -c '%n %s bytes' "$out" > repair-artifacts/SIZES.txt
 
               {
                 echo 'Noxviola Aeronautics MRPGC / Spell Engine repair build'
-                echo 'Upstream source: ProfessorFichte/MRPG-SkillTree-Add-On'
-                echo 'Upstream commit: 09c0b5c98882abfbc553a5545063302f0d8b047a'
-                echo 'Upstream migrated mod version: 1.3.0'
+                echo 'Clean upstream source baseline: ProfessorFichte/MRPG-SkillTree-Add-On'
+                echo 'Baseline commit: 9daf68d1d716cfd6e760ec6a7e519271e092a985'
+                echo 'Reason: last pre-regression commit retaining complete Spell Engine 1.10 migration; later merge caa7ea7 reintroduced 1.9 ParticleBatch code'
+                echo 'Mod version: 1.3.0'
                 echo 'Minecraft: 1.21.1'
                 echo 'NeoForge compile target: 21.1.249'
                 echo 'Spell Engine Fabric compile artifact: CurseForge 807653/8786005 (1.10.5+1.21.1)'
                 echo 'Spell Engine NeoForge compile artifact: CurseForge 807653/8786009 (1.10.5+1.21.1)'
                 echo 'More RPG Library Fabric compile artifact: CurseForge 923030/8715798 (2.7.1+1.21.1)'
                 echo 'More RPG Library NeoForge compile artifact: CurseForge 923030/8715793 (2.7.1+1.21.1)'
-                echo 'Static gate: ZIP integrity, legacy-symbol scan, ShadowsRefuge ParticleGroup signature, metadata extraction, SHA-256'
+                echo 'Static gate: source legacy scan, ZIP integrity, production legacy-symbol scan, ShadowsRefuge ParticleGroup ABI, dependency metadata, SHA-256'
                 echo "Build status: ${BUILD_STATUS:-unset}"
                 echo "Static verify status: $verify"
               } > repair-artifacts/BUILD-RECEIPT.txt
