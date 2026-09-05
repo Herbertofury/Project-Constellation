@@ -66,7 +66,6 @@ jobs:
                   spell = 'modImplementation("curse.maven:spell-engine-807653:8786009")'
 
               s = s.replace(old_more, more)
-              # Upstream currently declares Spell Engine twice. Collapse both to one exact artifact.
               s = s.replace(old_spell + '\n    ' + old_spell, spell)
               s = s.replace(old_spell, spell)
               p.write_text(s)
@@ -98,7 +97,7 @@ jobs:
 
           if [ "${BUILD_STATUS:-1}" -eq 0 ]; then
             mapfile -t jars < <(find mrpgc-src/neoforge/build/libs -maxdepth 1 -type f -name '*.jar' \
-              ! -name '*-sources.jar' ! -name '*dev-shadow*.jar | sort)
+              ! -name '*-sources.jar' ! -name '*dev-shadow*.jar' | sort)
             if [ "${#jars[@]}" -ne 1 ]; then
               echo "Expected exactly one production NeoForge jar, found ${#jars[@]}" | tee -a mrpgc-build.log
               printf '%s\n' "${jars[@]}" | tee -a mrpgc-build.log
@@ -112,7 +111,6 @@ jobs:
               rm -rf /tmp/mrpgc-verify && mkdir -p /tmp/mrpgc-verify
               unzip -q "$out" -d /tmp/mrpgc-verify || verify=1
 
-              # Full Spell Engine 1.10 migration gate: old package/API symbols must be gone.
               if grep -R -a -n -E 'net/spell_engine/api/spell/fx/ParticleBatch|net/spell_engine/api/config' /tmp/mrpgc-verify --include='*.class' > repair-artifacts/legacy-symbol-scan.txt; then
                 echo 'Legacy Spell Engine 1.9 symbols remain in production classes.' | tee -a mrpgc-build.log
                 verify=1
@@ -120,7 +118,6 @@ jobs:
                 echo 'PASS: no legacy ParticleBatch/api.config symbols' > repair-artifacts/legacy-symbol-scan.txt
               fi
 
-              # Prove the exact class from the user's crash now exposes the current ParticleGroup ABI.
               javap -classpath "$out" -p com.mrpgc_skill_tree.effect.ShadowsRefugeStatusEffect \
                 > repair-artifacts/ShadowsRefugeStatusEffect.javap.txt 2>&1 || verify=1
               grep -q 'net.spell_engine.api.spell.fx.ParticleGroup stealthPopParticles()' \
