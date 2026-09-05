@@ -1,1 +1,15 @@
-Gradle build failed; see BUILD-FAILURE.log.
+Noxviola Aeronautics MRPGC / Spell Engine repair build
+Clean upstream source baseline: ProfessorFichte/MRPG-SkillTree-Add-On
+Baseline commit: 9daf68d1d716cfd6e760ec6a7e519271e092a985
+Reason: last pre-regression commit retaining complete Spell Engine 1.10 migration; later merge caa7ea7 reintroduced 1.9 ParticleBatch code
+Mod version: 1.3.0
+Minecraft: 1.21.1
+NeoForge compile target: 21.1.249
+Build graph: common + neoforge only
+Spell Engine common compile artifact: CurseForge 807653/8786005 (1.10.5+1.21.1)
+Spell Engine NeoForge compile artifact: CurseForge 807653/8786009 (1.10.5+1.21.1)
+More RPG Library common compile artifact: CurseForge 923030/8715798 (2.7.1+1.21.1)
+More RPG Library NeoForge compile artifact: CurseForge 923030/8715793 (2.7.1+1.21.1)
+Static gate: source legacy scan, ZIP integrity, production legacy-symbol scan, ShadowsRefuge ParticleGroup ABI, identity/dependency metadata, SHA-256
+Build status: 0
+Static verify status: 1

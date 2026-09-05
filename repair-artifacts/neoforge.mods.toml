@@ -1,0 +1,53 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+#issueTrackerURL = ""
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "mrpgc_skill_tree"
+version = "1.3.0"
+displayName = "More RPG Classes - Skill Tree"
+authors = "Fichte"
+description = '''
+RPG Series Skill Tree Add-On for the More RPG Classes!
+'''
+#logoFile = ""
+
+[[dependencies.mrpgc_skill_tree]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mrpgc_skill_tree]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mrpgc_skill_tree]]
+modId = "spell_engine"
+type = "required"
+versionRange = "[1.10.5,)"
+ordering = "BEFORE"
+side = "BOTH"
+
+[[dependencies.mrpgc_skill_tree]]
+modId = "skill_tree_rpgs"
+type = "required"
+versionRange = "[1.6.0,)"
+ordering = "BEFORE"
+side = "BOTH"
+
+[[dependencies.mrpgc_skill_tree]]
+modId = "more_rpg_classes"
+type = "required"
+versionRange = "[2.7.1,)"
+ordering = "BEFORE"
+side = "BOTH"
+
+
+[[mixins]]
+config = "mrpgc-skill-tree-add-on.mixins.json"

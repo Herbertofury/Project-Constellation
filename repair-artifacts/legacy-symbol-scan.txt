@@ -1,0 +1,1 @@
+PASS: no legacy ParticleBatch/api.config symbols in production classes

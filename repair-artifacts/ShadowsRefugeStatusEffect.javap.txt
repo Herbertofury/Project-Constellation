@@ -1,0 +1,10 @@
+Compiled from "ShadowsRefugeStatusEffect.java"
+public class com.mrpgc_skill_tree.effect.ShadowsRefugeStatusEffect extends net.more_rpg_classes.effect.StealthStatusEffect {
+  private static final net.spell_engine.api.spell.fx.ParticleGroup POP_PARTICLES;
+  protected com.mrpgc_skill_tree.effect.ShadowsRefugeStatusEffect(net.minecraft.world.effect.MobEffectCategory, int);
+  public net.spell_engine.api.spell.fx.ParticleGroup stealthPopParticles();
+  public double stealthFollowRange();
+  public double stealthVisibilityMultiplier();
+  private static void lambda$static$0(net.spell_engine.api.spell.fx.ParticleGroup$Batch);
+  static {};
+}
