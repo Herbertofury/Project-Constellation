@@ -1,0 +1,34 @@
+name: Export MRPGC Repair Artifact
+
+on:
+  push:
+    branches:
+      - repair-mrpgc-spellengine-1-10
+    paths:
+      - .github/workflows/export-mrpgc-repair-artifact.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v4
+
+      - name: Export verified native repair
+        uses: actions/upload-artifact@v4
+        with:
+          name: Noxviola-MRPGC-SpellEngine-Native-Repair
+          path: |
+            repair-artifacts/mrpgc_skill_tree-neoforge-1.3.0+1.21.1-Noxviola-SpellEngine-1.10.5.jar
+            repair-artifacts/BUILD-RECEIPT.txt
+            repair-artifacts/SHA256SUMS.txt
+            repair-artifacts/SIZES.txt
+            repair-artifacts/legacy-symbol-scan.txt
+            repair-artifacts/ShadowsRefugeStatusEffect.javap.txt
+            repair-artifacts/neoforge.mods.toml
+            repair-artifacts/zip-test.txt
+          if-no-files-found: error
+          compression-level: 0
