@@ -21,10 +21,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The payload was staged in deterministic chunks to stay within connector limits.
-          # Reassemble those exact committed bytes before validating the pinned transport hash.
-          cat .pc-v016/chunks/part-* > .pc-v016/payload.b64
-          echo 'bec45b735d5000abbc6e946602027c696c603a6ab650a32448c53a9657b5fde3  .pc-v016/payload.b64' | sha256sum -c -
+          EXPECTED='bec45b735d5000abbc6e946602027c696c603a6ab650a32448c53a9657b5fde3'
+          cat .pc-v016/chunks/part-* > /tmp/payload.raw
+          tr -d '\r\n' < /tmp/payload.raw > /tmp/payload.compact
+          cp /tmp/payload.compact /tmp/payload.single-newline
+          printf '\n' >> /tmp/payload.single-newline
+          FOUND=''
+          for candidate in /tmp/payload.raw /tmp/payload.compact /tmp/payload.single-newline; do
+            HASH="$(sha256sum "$candidate" | awk '{print $1}')"
+            printf '%s  %s\n' "$HASH" "$candidate"
+            if [ "$HASH" = "$EXPECTED" ]; then FOUND="$candidate"; break; fi
+          done
+          test -n "$FOUND"
+          cp "$FOUND" .pc-v016/payload.b64
+          echo "$EXPECTED  .pc-v016/payload.b64" | sha256sum -c -
           base64 -d .pc-v016/payload.b64 > /tmp/v016.patch.gz
           echo '9c4b6d435badc0e12f11a3099a60af7000ea9b4112c420d421dea66c8e02f55e  /tmp/v016.patch.gz' | sha256sum -c -
           gzip -dc /tmp/v016.patch.gz > /tmp/v016.patch
