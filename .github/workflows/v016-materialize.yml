@@ -28,6 +28,13 @@ jobs:
           test "$(wc -c < .pc-v016/recovered/part-02)" -eq 9000
           test "$(wc -c < .pc-v016/recovered/part-03)" -eq 9000
           test "$(wc -c < .pc-v016/recovered/part-04)" -eq 2096
+          echo '7f7a493f436ecff32634bf2f9786cac9fc8b142de249bf05707c38f8cdf8009f  .pc-v016/recovered/part-00a' | sha256sum -c -
+          echo 'c3fae1845a44b859f28128a614878ebf4780b86c15afed4f6b5188e017266dc8  .pc-v016/recovered/part-00b' | sha256sum -c -
+          echo '02c838ab846e95f09398a49cf7d372ce4ecc75361ca67e6909539cc977bd0288  .pc-v016/recovered/part-00c' | sha256sum -c -
+          echo 'f6d17a793e5c521df4ee2f29da5ecd83512da65890a9520493d3b5c40af07004  .pc-v016/recovered/part-01' | sha256sum -c -
+          echo 'ce2a969fb338538b6a4b96551fc0e6fcb5c154630f5ea25c7833249da4f446ba  .pc-v016/recovered/part-02' | sha256sum -c -
+          echo '16c23057f11a19afe54c6ff82cd696e1362f8e05a31586d0fb591bde32e351bb  .pc-v016/recovered/part-03' | sha256sum -c -
+          echo '76b8f3b484fab2eba2bc7100a14ec542dd1f7f999cb090aca4f24e25d4de588c  .pc-v016/recovered/part-04' | sha256sum -c -
           cat \
             .pc-v016/recovered/part-00a \
             .pc-v016/recovered/part-00b \
