@@ -13,7 +13,7 @@ assert.match(packageJson.scripts.test, /command-center-action-core\.test\.mjs/);
 assert.match(packageJson.scripts.test, /closed-chat-watch-core\.test\.mjs/);
 assert.match(packageJson.scripts.test, /chat-vault-static\.test\.mjs/);
 const buildScript = read('tools/build.mjs');
-for (const token of ['background-entry.js','popup-organizer.js','chat-vault.html','chat-vault-core.js','chat-organizer.js','notification-repair.js','command-center-action-core.js','closed-chat-watch-core.js','closed-chat-watch.js','command-center-actions.js']) {
+for (const token of ['background-entry.js','popup-organizer.js','chat-vault.html','chat-vault-core.js','chat-organizer.js','notification-repair.js','command-center-action-core.js','closed-chat-watch-core.js','closed-chat-watch.js','closed-chat-watch-ui.js','command-center-actions.js']) {
   assert.ok(buildScript.includes(token), `build must ship ${token}`);
 }
 
@@ -73,7 +73,7 @@ assert.match(notifier, /pc-chat-attention:/);
 assert.match(notifier, /notifications\.onClicked/);
 
 const html = read('extension/chat-vault.html');
-for (const token of ['AI Command Center','Gather all AI chats','WORKING','ATTENTION','COMPLETED','Live Sentinel is event-driven','Organize live tabs']) {
+for (const token of ['AI Command Center','Gather all AI chats','WORKING','ATTENTION','COMPLETED','Sentinel + adaptive remote heartbeat','never keeps hidden provider tabs alive','closed-chat-watch-core.js','closed-chat-watch-ui.js','Organize live tabs']) {
   assert.ok(html.includes(token), `Command Center UI missing ${token}`);
 }
 assert.doesNotMatch(html, /OneTab/i, 'Command Center must be its own workspace, not a OneTab handoff');
@@ -112,14 +112,21 @@ for (const token of ['WATCH_KEY','ALARM_NAME','NO_PROGRESS_MAX_MS','ABSOLUTE_MAX
 }
 
 const watchRuntime = read('extension/src/closed-chat-watch.js');
-for (const token of ['PC_LIVE_CHAT_STATE_PUSH','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','PC_CLOSED_CHAT_WATCH_SNAPSHOT','chrome.tabs.onRemoved','chrome.alarms.onAlarm','credentials:\'include\'','cache:\'no-store\'','projectConstellationRequestGovernor','MAX_PROBES_PER_RUN','FETCH_TIMEOUT_MS','backgroundHtml','PC_OFFSCREEN_PARSE_HTML']) {
+for (const token of ['PC_LIVE_CHAT_STATE_PUSH','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','PC_CLOSED_CHAT_WATCH_SNAPSHOT','PC_CLOSED_CHAT_WATCH_NOW','chrome.tabs.onRemoved','chrome.alarms.onAlarm','credentials:\'include\'','cache:\'no-store\'','projectConstellationRequestGovernor','MAX_PROBES_PER_RUN','FETCH_TIMEOUT_MS','backgroundHtml','PC_OFFSCREEN_PARSE_HTML']) {
   assert.ok(watchRuntime.includes(token), `closed-chat heartbeat runtime missing ${token}`);
 }
 assert.match(watchRuntime, /chrome\.runtime\.getContexts/,'heartbeat parser must reuse the extension offscreen parser rather than hidden provider tabs');
 assert.doesNotMatch(watchRuntime, /periodInMinutes|periodInSeconds/,'closed-chat heartbeat must use adaptive one-shot alarms, not a recurring watchdog');
-assert.doesNotMatch(watchRuntime, /active\s*:\s*false[^\n]*chrome\.tabs\.create|chrome\.tabs\.create\([^\n]*active\s*:\s*false/,'heartbeat runtime must not create hidden/background provider tabs');
+assert.doesNotMatch(watchRuntime, /chrome\.tabs\.create\([^\n]*active\s*:\s*false/,'heartbeat runtime must not create hidden/background provider tabs');
 assert.doesNotMatch(watchRuntime, /chrome\.tabs\.reload\s*\(/,'heartbeat runtime must never auto-reload provider chats');
 assert.doesNotMatch(watchRuntime, /setInterval\s*\(/,'heartbeat runtime must not spin a permanent interval');
+
+const watchUi = read('extension/src/closed-chat-watch-ui.js');
+for (const token of ['Heartbeat now','PC_CLOSED_CHAT_WATCH_NOW','new MutationObserver','requestAnimationFrame','remote ·','sentinel','pcRemoteWatch']) {
+  assert.ok(watchUi.includes(token), `closed-chat heartbeat UI missing ${token}`);
+}
+assert.doesNotMatch(watchUi, /setInterval\s*\(/,'Command Center remote watch UI must remain mutation/event driven');
+assert.doesNotMatch(watchUi, /\bfetch\s*\(/,'Command Center UI must not perform provider network requests itself');
 
 const vaultCore = read('extension/src/chat-vault-core.js');
 for (const token of ['COMMAND_CENTER_PREFS_KEY','LIVE_PROJECT_NAME','livePresentation','tool-stalled','request-stalled','mergeItems','ensureStack','stateCounts']) {
