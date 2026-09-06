@@ -1,0 +1,363 @@
+name: Project Constellation v0.16.0 full release transaction
+
+on:
+  push:
+    branches:
+      - release/v0.16.0-candidate
+    paths:
+      - '.release/v0.16.0-trigger.txt'
+
+concurrency:
+  group: project-constellation-v0.16.0-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FEATURE_BRANCH: feature/chat-vault-pulse-rename-decorations
+      BASE_BRANCH: feat/v0.16.0-living-project-rooms-safe-router
+      CANDIDATE_BRANCH: release/v0.16.0-candidate
+      VERSION: 0.16.0
+      TAG: v0.16.0
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Prepare latest feature + clean v0.16 integration tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Give any already-running one-shot acceptance push a bounded moment to finish,
+          # then deliberately start from the latest remote feature head.
+          sleep 20
+          git fetch origin "$FEATURE_BRANCH" "$BASE_BRANCH"
+          git reset --hard "origin/$FEATURE_BRANCH"
+          FEATURE_START="$(git rev-parse HEAD)"
+          printf '%s\n' "$FEATURE_START" > /tmp/feature-start-sha
+          PRE_VERIFY_RUN="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow Verify --branch "$FEATURE_BRANCH" --event pull_request --limit 1 --json databaseId --jq '.[0].databaseId // 0' 2>/dev/null || echo 0)"
+          printf '%s\n' "$PRE_VERIFY_RUN" > /tmp/pre-verify-run
+
+          git config user.name 'Project Constellation Release Integrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git merge --no-commit --no-ff "origin/$BASE_BRANCH" || true
+
+          cat > package.json <<'JSON'
+          {
+            "name": "project-constellation-extension",
+            "version": "0.16.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/ui-qol-static.test.mjs",
+              "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
+              "build": "node tools/build.mjs --mode=production",
+              "build:dev": "node tools/build.mjs --mode=development",
+              "package": "node tools/package-release.mjs",
+              "package:dev": "node tools/package-release.mjs --allow-development",
+              "test:smoke": "node tools/run-smokes.mjs",
+              "verify": "npm test && npm run validate && npm run build:dev && npm run test:smoke",
+              "test:live-browser": "python3 tools/live_browser_acceptance.py",
+              "test:scale": "node tests/project-scale.test.mjs"
+            }
+          }
+          JSON
+
+          cat > extension/manifest.json <<'JSON'
+          {
+            "manifest_version": 3,
+            "name": "Project Constellation",
+            "version": "0.16.0",
+            "minimum_chrome_version": "116",
+            "description": "Performance-first AI workspace with AI Command Center, Living Project Rooms + Safe Router, live Chat Pulse, adaptive closed-chat heartbeat, durable notifications, Capacity Guard, project continuity intelligence, Approval Autopilot, and verified remote checkpoints.",
+            "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",
+            "permissions": ["storage","sidePanel","tabs","alarms","identity","unlimitedStorage","idle","offscreen","webRequest","scripting","notifications","tabGroups","contextMenus"],
+            "optional_permissions": ["downloads","history"],
+            "optional_host_permissions": ["https://api.github.com/*","https://www.googleapis.com/*","https://github.com/*"],
+            "host_permissions": ["https://chatgpt.com/*","https://chat.openai.com/*","https://claude.ai/*","https://gemini.google.com/*","https://grok.com/*","https://chat.deepseek.com/*","https://perplexity.ai/*","https://www.perplexity.ai/*","https://copilot.microsoft.com/*","https://chat.mistral.ai/*","https://poe.com/*","https://meta.ai/*","https://www.meta.ai/*","https://chat.qwen.ai/*","https://kimi.com/*","https://www.kimi.com/*","https://character.ai/*","https://www.character.ai/*","https://huggingface.co/*","https://you.com/*","https://www.you.com/*","https://pi.ai/*","https://www.pi.ai/*","https://duck.ai/*"],
+            "oauth2": {"client_id":"PROJECT_CONSTELLATION_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com","scopes":["https://www.googleapis.com/auth/drive.file"]},
+            "background": {"service_worker":"background-entry.js","type":"module"},
+            "action": {"default_title":"Project Constellation","default_popup":"popup.html"},
+            "side_panel": {"default_path":"sidepanel.html"},
+            "content_scripts": [
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*"],"js":["src/chatgpt-page-probe.js"],"run_at":"document_start","world":"MAIN"},
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*","https://claude.ai/*","https://gemini.google.com/*","https://grok.com/*","https://chat.deepseek.com/*","https://perplexity.ai/*","https://www.perplexity.ai/*","https://copilot.microsoft.com/*","https://chat.mistral.ai/*","https://poe.com/*","https://meta.ai/*","https://www.meta.ai/*","https://chat.qwen.ai/*","https://kimi.com/*","https://www.kimi.com/*","https://character.ai/*","https://www.character.ai/*","https://huggingface.co/chat/*","https://you.com/*","https://www.you.com/*","https://pi.ai/*","https://www.pi.ai/*","https://duck.ai/*"],"js":["src/core.js","src/brain-core.js","src/provider-core.js","src/health-core.js","src/live-sentinel.js","src/tab-beacon.js","src/content.js","src/pulse-ux.js"],"css":["src/styles.css"],"run_at":"document_start"},
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*"],"js":["src/chat-vault-core.js","src/chat-organizer.js"],"css":["src/chat-organizer.css"],"run_at":"document_idle"}
+            ]
+          }
+          JSON
+
+          # Promote the deterministic installed-Chromium harness if the feature branch
+          # still carries it under its temporary v2 name.
+          if [ -f tools/live_browser_acceptance_v2.py ]; then
+            mv tools/live_browser_acceptance_v2.py tools/live_browser_acceptance.py
+          fi
+
+          # No temporary recovery/diagnostic/release-control files survive the product tree.
+          rm -rf diagnostics .integration .release .pc-v016
+          rm -f \
+            .github/workflows/pr21-v016-integration.yml \
+            .github/workflows/pr21-v016-integration-v2.yml \
+            .github/workflows/pr21-live-browser-diagnostic.yml \
+            .github/workflows/live-browser-diagnostic-commit.yml \
+            .github/workflows/v016-full-release-transaction.yml
+
+          mkdir -p docs
+          cat > docs/v0.16.0-release-notes.md <<'MD'
+          # Project Constellation v0.16.0 — Living Project Rooms + Safe Router
+
+          Project Constellation v0.16.0 combines the Living Project Rooms + Safe Router architecture with the first-party AI Command Center, adaptive closed-chat continuity, durable notifications, and a broad no-dead-button QOL hardening pass.
+
+          ## Highlights
+          - **Living Project Rooms + Safe Router**: project-aware chat routing, safer project continuity, and scale coverage through 500 projects / 10,000 chats.
+          - **AI Command Center**: organize ChatGPT and other supported AI conversations into projects; search live and saved chats; gather open AI tabs; open missing chats; import/export backups; and see working, attention, completed, and parked states.
+          - **Safe one-click AI-tab actions**: Keep Live / Gather, Smart Collapse, and verified Stash + Close. Destructive close happens only after vault save + read-back verification; pinned, working, attention, or uncertain chats fail safe where appropriate.
+          - **Adaptive closed-chat heartbeat**: observes provider-persisted progress for supported providers without hidden provider tabs, invisible duplicate sessions, automatic reloads, permanent intervals, or recurring watchdog alarms. Requests are bounded and back off adaptively, with a hard six-hour ceiling.
+          - **Manual-close continuity**: meaningful active/attention state survives MV3 worker suspension through compact session candidates. Newly watched unsaved closed chats are parked in Live AI Sessions so remote work cannot become invisible.
+          - **Native ChatGPT chat QOL**: rename and local emoji/color/text styling from Constellation, with unsupported provider actions removed rather than left as dead controls.
+          - **No-dead-button hardening**: explicit dialog Cancel/X ownership, duplicate-tab prevention, stale Focus fallbacks, repeat backup import, visible disabled states/tooltips, empty-project and no-destination guards, busy/refresh feedback, and heartbeat error cleanup.
+          - **Stall & runway alerts fixed**: the previously stale popup toggle now has direct capture-phase persistence, preserves unrelated settings, and resolves rapid toggles in user order.
+          - **Durable MV3 notifications**: completion and attention transitions persist across service-worker suspension and focus the relevant conversation when clicked.
+
+          ## Safety and performance
+          - No hidden/background provider tabs are created for continuity monitoring.
+          - No automatic provider-tab reload loop or permanent polling interval was added.
+          - Remote heartbeat is bounded, adaptive, and stops on repeated auth/provider errors or hard ceilings.
+          - Smart Collapse keeps unproven/uncertain, running, attention, and pinned conversations open.
+          - Stash/close verifies persisted vault state before removing any tab.
+
+          ## Verification
+          The release transaction requires all of the following before publication:
+          - complete Node unit/regression suite;
+          - validation + UI/message contracts;
+          - development build and all browser smoke workflows;
+          - project scale test (500 projects / 10,000 chats);
+          - deterministic **real Chromium + real unpacked extension** acceptance using a ChatGPT-origin fixture fulfilled inside Chromium, exercising the actual MV3 manifest host match, automatic content scripts, service worker, runtime messaging, storage, popup routing, Command Center dialogs, and alert persistence;
+          - normal PR **Verify** check on the exact integrated PR head.
+
+          The Chromium acceptance intentionally isolates provider CDN/login/network variability. It is real installed-extension browser testing, but it is **not a claim that a user's signed-in local Chrome profile or authenticated provider account was exercised in CI**.
+          MD
+
+          git add -A
+          conflicts="$(git diff --name-only --diff-filter=U)"
+          if [ -n "$conflicts" ]; then
+            echo 'Unexpected unresolved conflicts:'
+            echo "$conflicts"
+            exit 1
+          fi
+          git diff --check
+          test "$(node -p "require('./package.json').version")" = '0.16.0'
+          test "$(node -p "require('./extension/manifest.json').version")" = '0.16.0'
+          test "$(node -p "require('./extension/manifest.json').background.service_worker")" = 'background-entry.js'
+          test -f extension/src/project-router-core.js
+          test -f tests/project-scale.test.mjs
+          test -f extension/src/closed-chat-watch.js
+          test -f extension/src/closed-chat-vault-bridge.js
+          test -f extension/src/ui-qol.js
+          test -f tools/live_browser_acceptance.py
+          grep -q 'LIVE_BROWSER_ACCEPTANCE_OK' tools/live_browser_acceptance.py
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements-dev.txt
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+
+      - name: Full verification
+        run: npm run verify
+
+      - name: Project scale gate
+        run: npm run test:scale
+
+      - name: Deterministic real Chromium installed-extension acceptance
+        shell: bash
+        run: xvfb-run -a .venv/bin/python -u tools/live_browser_acceptance.py
+
+      - name: Commit accepted integrated v0.16 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Accepted integration tree already committed.'
+          else
+            git commit -m 'Finalize Project Constellation v0.16.0'
+          fi
+          ACCEPTED_SHA="$(git rev-parse HEAD)"
+          echo "ACCEPTED_SHA=$ACCEPTED_SHA" >> "$GITHUB_ENV"
+          git push origin HEAD:"$CANDIDATE_BRANCH"
+
+          git fetch origin "$FEATURE_BRANCH"
+          FEATURE_START="$(cat /tmp/feature-start-sha)"
+          FEATURE_NOW="$(git rev-parse "origin/$FEATURE_BRANCH")"
+          if [ "$FEATURE_NOW" != "$FEATURE_START" ]; then
+            echo "Feature branch moved during acceptance ($FEATURE_START -> $FEATURE_NOW); refusing to publish stale work."
+            exit 1
+          fi
+          git merge-base --is-ancestor "$FEATURE_NOW" HEAD
+          git push origin HEAD:"$FEATURE_BRANCH"
+
+      - name: Wait for normal PR Verify on exact accepted head
+        shell: bash
+        run: |
+          set -euo pipefail
+          PRE="$(cat /tmp/pre-verify-run)"
+          VERIFY_RUN=0
+          for _ in $(seq 1 60); do
+            row="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow Verify --branch "$FEATURE_BRANCH" --event pull_request --limit 1 --json databaseId,status,conclusion --jq '.[0] // {}' 2>/dev/null || true)"
+            id="$(printf '%s' "$row" | jq -r '.databaseId // 0')"
+            if [ "$id" != "0" ] && [ "$id" != "$PRE" ]; then
+              VERIFY_RUN="$id"
+              break
+            fi
+            sleep 5
+          done
+          if [ "$VERIFY_RUN" = 0 ]; then
+            echo 'Timed out waiting for the normal PR Verify run.'
+            exit 1
+          fi
+          echo "VERIFY_RUN=$VERIFY_RUN" >> "$GITHUB_ENV"
+          gh run watch "$VERIFY_RUN" --repo "$GITHUB_REPOSITORY" --exit-status --interval 10
+          conclusion="$(gh run view "$VERIFY_RUN" --repo "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')"
+          test "$conclusion" = success
+
+          head="$(gh pr view 21 --repo "$GITHUB_REPOSITORY" --json headRefOid --jq '.headRefOid')"
+          test "$head" = "$ACCEPTED_SHA"
+
+      - name: Merge PR 21 with exact-head guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh pr merge 21 --repo "$GITHUB_REPOSITORY" --merge --match-head-commit "$ACCEPTED_SHA"
+          MERGED_SHA="$(gh pr view 21 --repo "$GITHUB_REPOSITORY" --json mergeCommit,mergedAt,state --jq '.mergeCommit.oid')"
+          test -n "$MERGED_SHA"
+          echo "MERGED_SHA=$MERGED_SHA" >> "$GITHUB_ENV"
+          echo "merged_sha=$MERGED_SHA"
+
+      - name: Checkout merged release source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BASE_BRANCH"
+          git checkout --detach "$MERGED_SHA"
+          test "$(git rev-parse HEAD)" = "$MERGED_SHA"
+          test "$(node -p "require('./package.json').version")" = '0.16.0'
+          test ! -e .integration
+          test ! -e diagnostics
+          test ! -e .pc-v016
+          test ! -e .github/workflows/v016-full-release-transaction.yml
+
+      - name: Production build and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          npm run package
+          mkdir -p artifacts
+
+          mapfile -t candidate_zips < <(find release dist build -type f -name '*.zip' 2>/dev/null | sort || true)
+          EXT_ZIP=''
+          for zipfile in "${candidate_zips[@]}"; do
+            if unzip -Z1 "$zipfile" | grep -qx 'manifest.json'; then
+              version="$(unzip -p "$zipfile" manifest.json | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).version))")"
+              if [ "$version" = '0.16.0' ]; then EXT_ZIP="$zipfile"; break; fi
+            fi
+          done
+
+          if [ -z "$EXT_ZIP" ]; then
+            echo 'Authoritative package script did not emit a root-manifest extension ZIP; building canonical release ZIP from the validated extension tree.'
+            (cd extension && zip -qr ../artifacts/Project-Constellation-v0.16.0-extension.zip .)
+          else
+            cp "$EXT_ZIP" artifacts/Project-Constellation-v0.16.0-extension.zip
+          fi
+
+          unzip -p artifacts/Project-Constellation-v0.16.0-extension.zip manifest.json > /tmp/release-manifest.json
+          test "$(node -p "require('/tmp/release-manifest.json').version")" = '0.16.0'
+          test "$(node -p "require('/tmp/release-manifest.json').background.service_worker")" = 'background-entry.js'
+
+          git archive --format=zip --output=artifacts/Project-Constellation-v0.16.0-source.zip "$MERGED_SHA"
+          cp docs/v0.16.0-release-notes.md artifacts/RELEASE-NOTES.md
+          (cd artifacts && sha256sum Project-Constellation-v0.16.0-extension.zip Project-Constellation-v0.16.0-source.zip > SHA256SUMS.txt)
+
+          cat > artifacts/RELEASE-RECEIPT.txt <<EOF
+          Project Constellation v0.16.0 — Living Project Rooms + Safe Router
+          PR: https://github.com/${GITHUB_REPOSITORY}/pull/21
+          Accepted PR head: ${ACCEPTED_SHA}
+          Merged release commit: ${MERGED_SHA}
+          Normal PR Verify run: ${VERIFY_RUN}
+          Release transaction run: ${GITHUB_RUN_ID}
+          Chromium acceptance: PASS — real Playwright Chromium + real unpacked extension + ChatGPT-origin fixture inside Chromium.
+          Chromium acceptance scope: deterministic installed-extension runtime acceptance; not a signed-in user's local Chrome/provider session.
+          Scale gate: PASS — project scale regression suite.
+          Temporary diagnostic/recovery workflows in release tree: none.
+          EOF
+          cat artifacts/SHA256SUMS.txt >> artifacts/RELEASE-RECEIPT.txt
+          sha256sum artifacts/RELEASE-RECEIPT.txt >> artifacts/SHA256SUMS.txt
+          cat artifacts/SHA256SUMS.txt
+
+      - name: Create stable release branch and GitHub release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "release/v0.16.0" >/tmp/release-branch.txt 2>/dev/null; then
+            existing="$(cut -f1 /tmp/release-branch.txt)"
+            test "$existing" = "$MERGED_SHA"
+          else
+            git push origin "$MERGED_SHA":refs/heads/release/v0.16.0
+          fi
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to overwrite an existing published release."
+            exit 1
+          fi
+
+          gh release create "$TAG" \
+            artifacts/Project-Constellation-v0.16.0-extension.zip \
+            artifacts/Project-Constellation-v0.16.0-source.zip \
+            artifacts/SHA256SUMS.txt \
+            artifacts/RELEASE-RECEIPT.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$MERGED_SHA" \
+            --title 'Project Constellation v0.16.0 — Living Project Rooms + Safe Router' \
+            --notes-file artifacts/RELEASE-NOTES.md
+
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,tagName,targetCommitish,isDraft,isPrerelease > artifacts/GITHUB-RELEASE.json
+          cat artifacts/GITHUB-RELEASE.json
+
+      - name: Upload complete release bundle for Drive archival
+        uses: actions/upload-artifact@v4
+        with:
+          name: Project-Constellation-v0.16.0-full-release
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Release summary
+        shell: bash
+        run: |
+          {
+            echo '# Project Constellation v0.16.0 released'
+            echo
+            echo "- Accepted PR head: \`$ACCEPTED_SHA\`"
+            echo "- Merged commit: \`$MERGED_SHA\`"
+            echo "- Normal PR Verify: run #$VERIFY_RUN — success"
+            echo "- Chromium installed-extension acceptance — success"
+            echo "- GitHub tag: \`$TAG\`"
+          } >> "$GITHUB_STEP_SUMMARY"
