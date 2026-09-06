@@ -1,0 +1,1 @@
+Capture the exact current live Chromium harness result into diagnostics/.
