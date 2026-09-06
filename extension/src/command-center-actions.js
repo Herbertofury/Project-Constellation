@@ -249,7 +249,7 @@
 
   function scheduleStartupReconcile() {
     for (const delay of RECONCILE_DELAYS) scheduleMenuReconcile(delay);
-    chrome.alarms?.create?.(MENU_RECONCILE_ALARM,{when:Date.now() + 8000}).catch?.(() => {});
+    try { chrome.alarms?.create?.(MENU_RECONCILE_ALARM,{when:Date.now() + 8000}); } catch (_) {}
   }
 
   async function openCommandCenter() {
