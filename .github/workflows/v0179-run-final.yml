@@ -1,0 +1,122 @@
+name: v0.17.9 final verified publisher
+
+on:
+  push:
+    branches:
+      - release/v0.17.9-command-center-heartbeat
+    paths:
+      - '.pc-v0178/RUNFINAL'
+
+permissions:
+  contents: write
+
+env:
+  DONOR_REF: 2086ddf2f075aea3923c42a0c12b328324e854f8
+  RELEASE_VERSION: 0.17.9
+
+jobs:
+  final-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Extract already-audited integration scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('.github/workflows/v0179-materialize-integrate.yml').read_text().splitlines()
+          blocks=[]; i=0
+          while i < len(src):
+            if src[i] == '        run: |':
+              i += 1; out=[]
+              while i < len(src):
+                line=src[i]
+                if line.strip() and len(line)-len(line.lstrip()) <= 8:
+                  break
+                if line.startswith('          '): out.append(line[10:])
+                else: out.append('')
+                i += 1
+              blocks.append('\n'.join(out)+'\n')
+              continue
+            i += 1
+          if len(blocks) != 7:
+            raise SystemExit(f'Expected 7 audited shell blocks, found {len(blocks)}')
+          for n,body in enumerate(blocks):
+            p=Path(f'/tmp/v0179-step-{n}.sh'); p.write_text('#!/usr/bin/env bash\n'+body); p.chmod(0o755)
+          print('Extracted',len(blocks),'audited shell blocks')
+          PY
+
+      - name: Materialize exact verified v0.17.8 baseline
+        shell: bash
+        run: /tmp/v0179-step-0.sh
+
+      - name: Forward-port clean Command Center heartbeat and QOL donor
+        shell: bash
+        run: /tmp/v0179-step-1.sh
+
+      - name: Union v0.17.8 and donor wiring without regressions
+        shell: bash
+        run: /tmp/v0179-step-2.sh
+
+      - name: Seal clean v0.17.9 candidate tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .pc-v0178
+          rm -f .github/workflows/v0179-materialize-integrate.yml .github/workflows/v0179-run-final.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'Project Constellation v0.17.9 Integrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'Project Constellation v0.17.9: AI Command Center + closed-chat heartbeat'
+          echo "RELEASE_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Full v0.17.8 plus v0.17.9 verification
+        run: npm run verify
+
+      - name: 500-project / 10,000-chat scale gate
+        run: npm run test:scale
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements-dev.txt
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+
+      - name: Deterministic real Chromium Command Center acceptance
+        shell: bash
+        run: xvfb-run -a .venv/bin/python -u tools/live_browser_acceptance_v2.py
+
+      - name: Push exact green release source
+        shell: bash
+        run: /tmp/v0179-step-4.sh
+
+      - name: Build and package verified development release
+        shell: bash
+        run: /tmp/v0179-step-5.sh
+
+      - name: Publish GitHub v0.17.9 release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: /tmp/v0179-step-6.sh
+
+      - name: Upload exact release bundle for Drive handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: Project-Constellation-v0.17.9-full-release
+          path: releases/v0.17.9/
+          if-no-files-found: error
+          retention-days: 30
