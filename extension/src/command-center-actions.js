@@ -14,6 +14,7 @@
     modePrefix:'pc-command-center-mode:'
   });
   const RECONCILE_DELAYS = Object.freeze([250,2200,6500]);
+  const ERROR_NOTIFICATION_ID = 'pc-command-center-quick-action-error';
   let menuTimers = [];
 
   const clean = vaultCore.clean;
@@ -36,6 +37,12 @@
     await chrome.storage.local.set({ [actionCore.QUICK_ACTION_KEY]:mode });
     scheduleMenuReconcile(80);
     return mode;
+  }
+
+  async function recordResult(result) {
+    const row = { ...(result || {}),finishedAt:Number(result?.finishedAt || Date.now()) };
+    await chrome.storage.local.set({ [actionCore.LAST_ACTION_KEY]:row }).catch(() => {});
+    return row;
   }
 
   async function querySupportedTabs() {
@@ -120,24 +127,26 @@
   async function runQuickAction(modeOverride = '') {
     const mode = actionCore.normalizeMode(modeOverride || await readMode());
     const tabs = await querySupportedTabs();
-    if (!tabs.length) return { ok:false,error:'No open supported AI chat tabs found.',mode };
+    if (!tabs.length) return recordResult({ ok:false,error:'No open supported AI chat tabs found.',mode,saved:0,closed:0,kept:0 });
 
     const saved = await saveAndVerifyTabs(tabs);
     if (!saved.verified) {
-      return { ok:false,error:'Safety verification failed. No AI tabs were closed.',mode,saved:0,closed:0,kept:tabs.length };
+      return recordResult({ ok:false,error:'Safety verification failed. No AI tabs were closed.',mode,saved:0,closed:0,kept:tabs.length });
     }
 
     const dispositions = await dispositionsFor(mode,tabs);
-    const closeIds = dispositions.filter((row) => row.close).map((row) => row.tab.id);
+    const closeRows = dispositions.filter((row) => row.close);
+    const closeIds = closeRows.map((row) => row.tab.id);
     const closedIds = await closeTabIds(closeIds);
-    const closedSet = new Set(closedIds);
+    const closedSet = new Set(closedIds.map(Number));
     const keptRows = dispositions.filter((row) => !closedSet.has(Number(row.tab.id)));
+    const failedCloseRows = closeRows.filter((row) => !closedSet.has(Number(row.tab.id)));
     const reasons = keptRows.reduce((out,row) => {
       out[row.reason] = Number(out[row.reason] || 0) + 1;
       return out;
     },{});
 
-    const result = {
+    return recordResult({
       ok:true,
       mode,
       modeLabel:actionCore.modeMeta(mode).shortLabel,
@@ -145,16 +154,14 @@
       projectName:saved.target?.name || vaultCore.LIVE_PROJECT_NAME,
       saved:saved.items.length,
       closed:closedIds.length,
+      closeFailed:failedCloseRows.length,
       kept:keptRows.length,
       pinnedKept:Number(reasons.pinned || 0),
       workingKept:Number(reasons.working || 0),
       attentionKept:Number(reasons.attention || 0),
       uncertainKept:Number(reasons.unproven || 0) + Number(reasons.uncertain || 0),
-      reasons,
-      finishedAt:Date.now()
-    };
-    await chrome.storage.local.set({ [actionCore.LAST_ACTION_KEY]:result }).catch(() => {});
-    return result;
+      reasons
+    });
   }
 
   function resultMessage(result) {
@@ -166,9 +173,28 @@
       if (result.attentionKept) kept.push(`${result.attentionKept} attention`);
       if (result.pinnedKept) kept.push(`${result.pinnedKept} pinned`);
       if (result.uncertainKept) kept.push(`${result.uncertainKept} uncertain`);
+      if (result.closeFailed) kept.push(`${result.closeFailed} close failed`);
       return `Smart-collapsed ${result.closed} finished AI tab${result.closed === 1 ? '' : 's'} after saving ${result.saved}.${kept.length ? ` Kept ${kept.join(', ')} open.` : ''}`;
     }
-    return `Stashed ${result.saved} AI chat${result.saved === 1 ? '' : 's'} and closed ${result.closed} unpinned tab${result.closed === 1 ? '' : 's'}${result.pinnedKept ? `; ${result.pinnedKept} pinned stayed open` : ''}.`;
+    const tail = [];
+    if (result.pinnedKept) tail.push(`${result.pinnedKept} pinned stayed open`);
+    if (result.closeFailed) tail.push(`${result.closeFailed} could not be closed`);
+    return `Stashed ${result.saved} AI chat${result.saved === 1 ? '' : 's'} and closed ${result.closed} unpinned tab${result.closed === 1 ? '' : 's'}${tail.length ? `; ${tail.join(', ')}` : ''}.`;
+  }
+
+  async function notifyContextFailure(result) {
+    if (result?.ok || !chrome.notifications?.create) return;
+    const message = clean(result?.error || 'The AI tab quick action stopped safely.',220);
+    await chrome.notifications.clear(ERROR_NOTIFICATION_ID).catch(() => {});
+    await chrome.notifications.create(ERROR_NOTIFICATION_ID,{
+      type:'basic',
+      iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
+      title:'AI tab action stopped safely',
+      message,
+      contextMessage:'Project Constellation Command Center',
+      priority:1,
+      requireInteraction:false
+    }).catch(() => null);
   }
 
   function contextCreate(props) {
@@ -231,6 +257,7 @@
   async function runFromContext(mode = '') {
     const result = await runQuickAction(mode);
     if (result?.ok) await openCommandCenter().catch(() => {});
+    else await notifyContextFailure(result);
     return result;
   }
 
