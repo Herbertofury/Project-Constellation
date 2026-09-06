@@ -2,11 +2,13 @@
 
 Project Constellation is a privacy-conscious Chrome extension that turns AI chats into an organized, searchable, recoverable workspace. It passively captures mounted conversation state, tracks generated artifacts and project continuity, detects stalled or blocked work, and creates verified recovery checkpoints without adding network traffic from the content script.
 
-The v0.15 line builds on the standalone v0.14 foundation with Project Atlas + Compounding Brain. This repository is the canonical source; it no longer depends on ProjectDump.
+The v0.16 line builds on the standalone v0.14 foundation and v0.15 Project Atlas with Living Project Rooms + Safe Router. This repository is the canonical source; it no longer depends on ProjectDump.
 
 ## What it does
 
 - Organizes chats, projects, groups, files, links, decisions, recommendations, and follow-ups across supported AI providers, with Project + state lanes for concurrent work.
+- Adds a confirmation-only local Project Router: Constellation can suggest a likely project, but it never silently assigns an unrelated chat; Confirm, Not this project, and manual Move remain user-owned decisions.
+- Turns each selected project into a Living Project Room with next actions, decisions, live chats, bounded coordination signals, curated working memory, evidence, artifacts, and project-scoped universal search.
 - Compiles source-backed project knowledge into a bounded Project Brain working set with provenance, confidence, and durable Pin / Ignore / Restore policy history.
 - Preserves a local IndexedDB “brain,” immutable assistant-output revisions, full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.

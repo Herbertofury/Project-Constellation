@@ -3,6 +3,7 @@ import './src/provider-core.js';
 import './src/integrity-core.js';
 import './src/knowledge-core.js';
 import './src/project-memory-core.js';
+import './src/project-router-core.js';
 import './src/health-core.js';
 
 const brain = globalThis.ProjectConstellationBrainCore;
@@ -10,6 +11,7 @@ const providers = globalThis.ProjectConstellationProviders;
 const integrity = globalThis.ProjectConstellationIntegrityCore;
 const knowledge = globalThis.ProjectConstellationKnowledgeCore;
 const projectMemory = globalThis.ProjectConstellationProjectMemoryCore;
+const projectRouter = globalThis.ProjectConstellationProjectRouterCore;
 const health = globalThis.ProjectConstellationHealthCore;
 
 const DB_NAME = 'project-constellation-brain';
@@ -2097,7 +2099,7 @@ async function patchChatOrganization(chatIds = [], patch = {}) {
   for (const id of ids) {
     const old=await getOne('chats',id); if(!old)continue; if(old.workspaceProjectId)oldWorkspaceProjects.add(old.workspaceProjectId);
     const next={id,updatedAt:now};
-    if(Object.prototype.hasOwnProperty.call(patch,'workspaceProjectId')){next.workspaceProjectId=project?.id||'';next.workspaceProjectName=project?.name||'';next.workspaceGroupId=project?.groupId||'';}
+    if(Object.prototype.hasOwnProperty.call(patch,'workspaceProjectId')){next.workspaceProjectId=project?.id||'';next.workspaceProjectName=project?.name||'';next.workspaceGroupId=project?.groupId||'';next.projectAssignmentConfirmed=Boolean(project?.id);next.projectAssignmentMethod=project?.id?'manual':'';next.projectAssignmentConfirmedAt=project?.id?now:0;next.projectRouteSuppressed=false;}
     if(Object.prototype.hasOwnProperty.call(patch,'tags')) next.tags=normalizeTags(patch.tags);
     if(Object.prototype.hasOwnProperty.call(patch,'addTags')) next.tags=normalizeTags([...(old.tags||[]),...normalizeTags(patch.addTags)]);
     if(Object.prototype.hasOwnProperty.call(patch,'removeTag')) next.tags=normalizeTags(old.tags).filter((tag)=>tag!==String(patch.removeTag||'').toLocaleLowerCase());
@@ -2122,6 +2124,46 @@ async function patchChatOrganization(chatIds = [], patch = {}) {
     scheduleIntegrityScan(1600).catch(()=>{});
   }
   await addEvent('organization-chat-update','chat',ids[0],ids[0],{count:merged.length,projectId:project?.id||'',fields:Object.keys(patch)}); markDriveDirty().catch(()=>{}); return merged;
+}
+
+
+async function projectRouteSuggestions({ projectId = '', limit = 24 } = {}) {
+  const [projects, recentChats] = await Promise.all([getAll('projects'), getRecent('chats', 1200)]);
+  const workspaceProjects = projects.filter((row)=>row?.sourceType==='workspace' && !row.deletedAt && !row.archived);
+  const rows = projectRouter.suggestions({ projects:workspaceProjects, chats:recentChats, limit:Math.max(1,Math.min(Number(limit)||24,80)), projectId:String(projectId||'') });
+  return rows;
+}
+
+async function projectRouteReview(chatId, projectId, action, fingerprint = '') {
+  const id=String(chatId||''); const target=String(projectId||''); const verb=String(action||'');
+  if(!id)throw new Error('Chat is required.');
+  const chat=await getOne('chats',id); if(!chat)throw new Error('Chat not found.');
+  const now=Date.now();
+  if(verb==='confirm'){
+    if(!target)throw new Error('Project is required.');
+    const project=await getOne('projects',target); if(!project||project.sourceType!=='workspace'||project.deletedAt)throw new Error('Target Constellation project not found.');
+    await patchChatOrganization([id],{workspaceProjectId:target});
+    const merged=await upsert('chats',{id,projectAssignmentConfirmed:true,projectAssignmentMethod:'router-confirmed',projectAssignmentConfirmedAt:now,projectRouteLastReviewedAt:now,projectRouteLastFingerprint:String(fingerprint||''),updatedAt:now});
+    await putSearchDocs([searchDoc('chat',merged)]);
+    await addEvent('project-route-confirmed','chat',id,id,{projectId:target,fingerprint:String(fingerprint||'')});
+    markDriveDirty().catch(()=>{});
+    return {chat:merged,confirmed:true,projectId:target};
+  }
+  if(verb==='dismiss'){
+    if(!target)throw new Error('Project is required.');
+    const prior=Array.isArray(chat.projectRouteDismissals)?chat.projectRouteDismissals:[];
+    const next=[...prior.filter((row)=>row?.projectId!==target||row?.fingerprint!==String(fingerprint||'')),{projectId:target,fingerprint:String(fingerprint||''),dismissedAt:now}].slice(-32);
+    const merged=await upsert('chats',{id,projectRouteDismissals:next,projectRouteLastReviewedAt:now,updatedAt:now});
+    await putSearchDocs([searchDoc('chat',merged)]);
+    await addEvent('project-route-dismissed','chat',id,id,{projectId:target,fingerprint:String(fingerprint||'')});
+    markDriveDirty().catch(()=>{});
+    return {chat:merged,dismissed:true,projectId:target};
+  }
+  if(verb==='reconsider'){
+    const merged=await upsert('chats',{id,projectRouteDismissals:[],projectRouteSuppressed:false,projectRouteLastReviewedAt:now,updatedAt:now});
+    await putSearchDocs([searchDoc('chat',merged)]); markDriveDirty().catch(()=>{}); return {chat:merged,reconsidered:true};
+  }
+  throw new Error('Unsupported route review action.');
 }
 
 async function organizationChats(filters = {}) {
@@ -2285,7 +2327,7 @@ async function listBrainEntities(entityType, limit = 80, offset = 0) {
   return getRecent(store, limit, offset);
 }
 
-async function groupedHomeSearch(query, limit = 40) {
+async function groupedHomeSearch(query, limit = 40, workspaceProjectId = '') {
   const hits = await searchBrain(query, 120);
   const groups = new Map();
   const standalone = [];
@@ -2299,13 +2341,16 @@ async function groupedHomeSearch(query, limit = 40) {
   for (const group of [...groups.values()].sort((a,b)=>b.score-a.score).slice(0, Math.min(Number(limit)||40,60))) {
     const [chat, files] = await Promise.all([getOne('chats', group.chatId), getByIndex('files','chatId',group.chatId,40)]);
     if (!chat) continue;
+    if (workspaceProjectId && chat.workspaceProjectId !== workspaceProjectId) continue;
     enriched.push({
       chat, score: group.score,
       matches: group.hits.slice(0,8).map((hit) => ({ entityType: hit.entityType, title: hit.title, excerpt: hit.excerpt, updatedAt: hit.updatedAt, kind: hit.kind || '', url: hit.url || '' })),
       files: files.slice(0,12)
     });
   }
-  return { groups: enriched, standalone: standalone.slice(0,20), totalHits: hits.length };
+  const scopedStandalone=workspaceProjectId?standalone.filter((hit)=>hit.workspaceProjectId===workspaceProjectId||(hit.entityType==='project'&&hit.entityId===workspaceProjectId)):standalone;
+  const totalHits=enriched.reduce((sum,row)=>sum+Number(row.matches?.length||0),0)+scopedStandalone.length;
+  return { groups: enriched, standalone: scopedStandalone.slice(0,20), totalHits, workspaceProjectId:workspaceProjectId||'' };
 }
 
 async function snapshot() {
@@ -3825,12 +3870,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_BRAIN_SEARCH': return { ok: true, results: await searchBrain(message.query || '', message.limit || 60) };
       case 'PC_BRAIN_COUNTS': return { ok: true, counts: await brainCounts() };
       case 'PC_HOME_SUMMARY': return { ok: true, home: await homeSummary() };
-      case 'PC_HOME_SEARCH': return { ok: true, result: await groupedHomeSearch(message.query || '', message.limit || 40) };
+      case 'PC_HOME_SEARCH': return { ok: true, result: await groupedHomeSearch(message.query || '', message.limit || 40, message.workspaceProjectId || '') };
       case 'PC_KNOWLEDGE_SUMMARY': return { ok: true, knowledge: await knowledgeSummary(message.limit || 24) };
       case 'PC_KNOWLEDGE_LIST': return { ok: true, items: await knowledgeList(message.filters || {}) };
       case 'PC_KNOWLEDGE_REINDEX': return resetKnowledgeIndex();
       case 'PC_PROJECT_BRAIN_GET': return { ok:true, continuity:await projectBrainGet(message.projectId,{rebuild:Boolean(message.rebuild)}) };
       case 'PC_PROJECT_MEMORY_GATE': return { ok:true, result:await projectMemoryGate(message.itemId,message.action) };
+      case 'PC_PROJECT_ROUTE_SUGGESTIONS': return { ok:true, items:await projectRouteSuggestions({projectId:message.projectId||'',limit:message.limit||24}) };
+      case 'PC_PROJECT_ROUTE_REVIEW': return { ok:true, result:await projectRouteReview(message.chatId,message.projectId,message.action,message.fingerprint||'') };
       case 'PC_ORG_SUMMARY': return { ok: true, organization: await organizationSummary() };
       case 'PC_ORG_CHATS': return { ok: true, items: await organizationChats(message.filters || {}) };
       case 'PC_ORG_GROUP_CREATE': return { ok: true, item: await createGroup(message.input || {}) };

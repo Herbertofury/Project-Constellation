@@ -4,8 +4,8 @@ const memory = globalThis.ProjectConstellationProjectMemoryCore;
 const now = 2_000_000_000_000;
 const project = {id:'p1',name:'Atlas'};
 const chats = [
-  {id:'c1',title:'Build brain',status:'running',updatedAt:now},
-  {id:'c2',title:'Fix tabs',status:'stalled',updatedAt:now-5},
+  {id:'c1',title:'Build project brain router',lastExcerpt:'Project router and brain work',status:'running',updatedAt:now},
+  {id:'c2',title:'Test project brain router',lastExcerpt:'Project router regression test',status:'stalled',updatedAt:now-5},
   {id:'c3',title:'Released',status:'idle',updatedAt:now-10},
   {id:'c4',title:'Old',status:'idle',organizedArchived:true,updatedAt:now-20}
 ];
@@ -23,6 +23,9 @@ assert.equal(brain.sections.nextActions[0].id,'f1');
 assert.equal(brain.coverage.ignored,1);
 assert.equal(brain.coverage.pinned,1);
 assert.equal(brain.activeChats.length,2);
+assert.ok(brain.coordination.pairs.length>=1,'parallel/attention chats with shared project focus should produce a coordination signal');
+assert.ok(brain.coordination.sharedFocus.some((row)=>row.term==='router'));
+assert.ok(brain.coordination.pairs.length<=12,'coordination output stays bounded');
 assert.ok(brain.workingSet.some((row)=>row.id==='r1'));
 const same = memory.compileProjectBrain({project,chats,items,files:[{id:'x',name:'build.zip',updatedAt:now-6}],now:now+999});
 assert.equal(brain.fingerprint,same.fingerprint,'fingerprint must not depend on compile time');

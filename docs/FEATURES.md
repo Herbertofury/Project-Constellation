@@ -2,7 +2,7 @@
 
 ## Workspace and organization
 
-Home provides cross-provider search, projects/groups, smart collections, pinned/favorite chats, artifact lineage, activity, attention queues, and configurable workbench panels. **Project Atlas** groups work by project and then Active / Needs attention / Completed / Archived state, while **Project Brain** compiles a bounded working context from source-backed Knowledge Vault records. Knowledge Vault continues to preserve the detailed local records for decisions, recommendations, links, code, commands, versions, packages, media, and follow-ups.
+Home provides cross-provider search, projects/groups, smart collections, pinned/favorite chats, artifact lineage, activity, attention queues, and configurable workbench panels. **Project Atlas** groups work by project and then Active / Needs attention / Completed / Archived state, while **Project Brain** compiles a bounded working context from source-backed Knowledge Vault records. In v0.16, a **Living Project Room** layers next actions, decisions, live work, coordination signals, latest artifacts, evidence, and project-scoped search over that brain. The **Safe Router** can rank likely project homes locally, but it never auto-assigns: Confirm and manual Move are the only assignment paths, while Not this project records a fingerprint-specific dismissal. Knowledge Vault continues to preserve the detailed local records for decisions, recommendations, links, code, commands, versions, packages, media, and follow-ups.
 
 ## Capture modes
 
@@ -46,7 +46,7 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 
 ## Performance engine
 
-Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs disconnect broad capture observation and use slow health/status pulses; a separate narrowly filtered approval observer remains available so an opted-in permission card cannot silently strand work.
+Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs disconnect broad capture observation and use slow health/status pulses; a separate narrowly filtered approval observer remains available so an opted-in permission card cannot silently strand work. Project routing and multi-chat coordination are local bounded organizer operations rather than live-provider capture work. A dedicated scale test exercises 500 projects and 10,000 chats and asserts hard result bounds plus runtime budgets so second-brain growth cannot quietly become a chat-stall path.
 
 ## Visual identity and accessibility
 

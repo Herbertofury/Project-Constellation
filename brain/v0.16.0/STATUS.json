@@ -1,0 +1,33 @@
+{
+  "version": "0.16.0",
+  "codename": "Living Project Rooms + Safe Router",
+  "status": "local-acceptance-green-awaiting-publication",
+  "base": "v0.15.0",
+  "base_release_commit": "1e5058a1409c7ac79f1660d35d853617baf139a5",
+  "focus": [
+    "confirmation-only local Project Router with user-owned assignment decisions",
+    "Living Project Room with next actions, decisions, live work, evidence, artifacts, and scoped search",
+    "bounded multi-chat coordination for concurrent project work",
+    "scale torture coverage that keeps second-brain organization off the live chat capture critical path"
+  ],
+  "safety_invariants": [
+    "router suggestions never auto-assign chats to projects",
+    "dismissed project suggestions are fingerprint-specific and reversible",
+    "user-created Chrome groups remain owned by the user",
+    "router and coordination analysis do not add provider-page requests"
+  ],
+  "verification": {
+    "unit_suites": "pass",
+    "validate": "pass (60 UI message types owned)",
+    "scale": "pass: 500 projects / 10000 chats; representative optimized router ~1.1s; large Project Brain ~62ms",
+    "browser_smokes": "27/27 pass in bounded system-Chromium runs",
+    "project_room_browser": "pass: confirm-only router + scoped search + coordination + memory controls + organizer reassignment",
+    "monolithic_smoke_wrapper": "time-limited after 8 green workflows; remaining workflows resumed from exact next test and all passed"
+  },
+  "publication": {
+    "drive": "pending",
+    "github": "pending",
+    "release": "pending"
+  },
+  "updated_at": "2026-08-29T19:45:55.581011+00:00"
+}

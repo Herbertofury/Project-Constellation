@@ -63,7 +63,7 @@ with sync_playwright() as p:
     page.locator('#recentFiles [data-chat-id]').first.click(); page.wait_for_timeout(40)
     page.fill('#globalSearch','minecraft'); page.keyboard.press('Enter'); page.wait_for_timeout(80)
     title=page.locator('#searchResults .search-card h3').first.text_content(); file_text=page.locator('#searchResults .related-files').first.text_content()
-    page.locator('#searchResults [data-open-url]').first.click(); page.wait_for_timeout(20)
+    page.locator('#searchResults button:has-text("Open exact chat")').first.click(); page.wait_for_timeout(20)
     export=[{
         'id':'imported-1','title':'Minecraft ideas','create_time':1760000000,'update_time':1760000100,
         'mapping':{'1':{'id':'1','message':{'id':'m1','author':{'role':'user'},'create_time':1760000000,'content':{'parts':['minecraft datapack idea']}}}}

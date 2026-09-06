@@ -1,10 +1,10 @@
 {
   "name": "project-constellation-extension",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs",
+    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs",
     "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
     "build": "node tools/build.mjs --mode=production",
     "build:dev": "node tools/build.mjs --mode=development",
@@ -12,6 +12,7 @@
     "package:dev": "node tools/package-release.mjs --allow-development",
     "test:smoke": "node tools/run-smokes.mjs",
     "verify": "npm test && npm run validate && npm run build:dev && npm run test:smoke",
-    "test:live-browser": "python3 tools/live_browser_acceptance.py"
+    "test:live-browser": "python3 tools/live_browser_acceptance.py",
+    "test:scale": "node tests/project-scale.test.mjs"
   }
 }

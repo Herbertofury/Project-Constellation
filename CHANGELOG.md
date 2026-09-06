@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.16.0 — Living Project Rooms + Safe Router
+
+- Adds a confirmation-only local Project Router that ranks likely project homes without ever auto-assigning a chat; every assignment still requires an explicit user Confirm or Move action, and dismissed matches stay suppressed for that exact evidence fingerprint.
+- Upgrades the selected-project surface into a Living Project Room with next actions, decisions, live project work, curated memory, project evidence, latest artifacts, and exact source navigation.
+- Adds bounded multi-chat coordination signals so simultaneous active/attention chats can surface shared focus, parallel-work overlap, and handoff risk without pretending an inferred overlap is a proven conflict.
+- Extends universal search with project-scoped retrieval across chats, source turns, knowledge, files, artifacts, and indexed standalone evidence, plus direct source/chat actions and Project Room command-palette entry points.
+- Adds a 500-project / 10,000-chat scale torture test and optimizes router scoring to vectorize each chat once before project comparison; representative local routing fell from about 5.2 s to about 1.1 s while keeping the benchmark unchanged.
+- Keeps router and coordination computation local and bounded, outside live provider capture; preserves v0.15 Project Brain, native project/state grouping, user-created group ownership, and all v0.14 safety/recovery invariants.
+- Hardens organizer drag/drop with a standards-compatible `text/plain` fallback while retaining the Constellation-specific MIME payload.
+
 ## 0.15.0 — Project Atlas + Compounding Brain
 
 - Adds a deterministic, source-backed Project Brain compiler over Knowledge Vault/project continuity with bounded working context, provenance, confidence, active work, and memory coverage.
