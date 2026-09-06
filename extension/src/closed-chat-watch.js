@@ -9,6 +9,7 @@
 
   const GOVERNOR_KEY = 'projectConstellationRequestGovernor';
   const PULSE_UX_KEY = 'projectConstellationPulseUxSettings';
+  const CANDIDATE_PREFIX = 'projectConstellationClosedChatCandidate:';
   const OFFSCREEN_PATH = 'offscreen.html';
   const MAX_PROBES_PER_RUN = 2;
   const FETCH_TIMEOUT_MS = 12000;
@@ -20,6 +21,7 @@
   const tabMeta = new Map();
   const liveStateByTab = new Map();
   const preflightByTab = new Map();
+  const candidateSignatures = new Map();
   let stateCache = null;
   let writeChain = Promise.resolve();
   let runPromise = null;
@@ -93,7 +95,7 @@
   }
 
   function sourceInfo(state) {
-    if (!state) return {known:false,active:false,attention:false,complete:false};
+    if (!state) return {known:false,active:false,attention:false,complete:false,status:'',health:''};
     const info = actionCore.sentinelInfo(state);
     return { known:true,...info };
   }
@@ -103,6 +105,71 @@
     if (info.known && info.complete) return false;
     if (info.active || info.attention) return true;
     return Boolean(explicit && !info.known);
+  }
+
+  function candidateStorage() {
+    return chrome.storage?.session || null;
+  }
+
+  function candidateStorageKey(tabId) {
+    return `${CANDIDATE_PREFIX}${Math.max(0,Number(tabId || 0))}`;
+  }
+
+  function compactCandidateState(state = {}) {
+    const info = sourceInfo(state);
+    return {
+      chat:{
+        status:info.status || clean(state?.chat?.status || state?.status || 'idle',80),
+        rawStatus:clean(state?.chat?.rawStatus || state?.chat?.status || state?.status || '',80),
+        healthState:info.health || clean(state?.chat?.healthState || state?.health?.state || state?.healthState || '',100)
+      },
+      generation:{active:Boolean(state?.generation?.active || info.active)},
+      healthActive:Boolean(state?.healthActive)
+    };
+  }
+
+  async function syncCandidate(tabId,meta,state) {
+    const area = candidateStorage();
+    const id = Math.max(0,Number(tabId || 0));
+    if (!area || !id || !meta?.key) return false;
+    const key = candidateStorageKey(id);
+    const info = sourceInfo(state);
+    const keep = Boolean(info.active || info.attention);
+    if (!keep) {
+      if (candidateSignatures.get(id) === '') return false;
+      candidateSignatures.set(id,'');
+      await area.remove(key).catch(() => {});
+      return false;
+    }
+
+    const compact = compactCandidateState(state);
+    const signature = [meta.key,meta.title,info.status,info.health,info.active ? '1' : '0',info.attention ? '1' : '0'].join('|');
+    if (candidateSignatures.get(id) === signature) return false;
+    const row = {meta:{...meta,observedAt:Date.now()},state:compact,updatedAt:Date.now()};
+    await area.set({[key]:row});
+    candidateSignatures.set(id,signature);
+    return true;
+  }
+
+  async function readCandidate(tabId) {
+    const area = candidateStorage();
+    const id = Math.max(0,Number(tabId || 0));
+    if (!area || !id) return null;
+    const key = candidateStorageKey(id);
+    const stored = await area.get(key).catch(() => ({}));
+    const row = stored?.[key] || null;
+    if (!row?.meta?.key || !row?.meta?.url) return null;
+    return row;
+  }
+
+  async function clearCandidate(tabId) {
+    const area = candidateStorage();
+    const id = Math.max(0,Number(tabId || 0));
+    if (!id) return false;
+    candidateSignatures.set(id,'');
+    if (!area) return false;
+    await area.remove(candidateStorageKey(id)).catch(() => {});
+    return true;
   }
 
   async function registerClosed(meta,state,{reason = 'closed-tab',explicit = false} = {}) {
@@ -185,13 +252,10 @@
       const meta = rememberTab(tab);
       if (!meta) return null;
       const tabId = Number(tab.id);
-      // Arm the explicit-stash fallback before any async probe. If the destructive
-      // action closes a very fast tab first, onRemoved still has enough metadata
-      // to create a conservative watch rather than silently losing it.
-      preflightByTab.set(tabId,{ meta,state:null,explicit:true,capturedAt:stamp,expiresAt:stamp + PREFLIGHT_TTL_MS });
+      preflightByTab.set(tabId,{meta,state:null,explicit:true,capturedAt:stamp,expiresAt:stamp + PREFLIGHT_TTL_MS});
       const state = await withTimeout(chrome.tabs.sendMessage(tabId,{type:'PC_GET_LIVE_SENTINEL_STATE'}),PREFLIGHT_TIMEOUT_MS,null);
       const current = preflightByTab.get(tabId);
-      if (current?.meta?.key === meta.key) preflightByTab.set(tabId,{ ...current,state });
+      if (current?.meta?.key === meta.key) preflightByTab.set(tabId,{...current,state});
       return meta;
     }));
     return rows.filter(Boolean).length;
@@ -272,7 +336,7 @@
       if (!parsed?.ok) return {error:clean(parsed?.error || 'Could not parse provider heartbeat response.',300)};
       if (parsed.authRequired) return {authRequired:true,detail:'Provider session appears signed out or expired; reopen the chat to refresh authentication.'};
       const fp = watchCore.parsedFingerprint(parsed,sampleHash);
-      return { ...fp,etag,lastModified,title:clean(parsed.title || '',300) };
+      return {...fp,etag,lastModified,title:clean(parsed.title || '',300)};
     } catch (error) {
       const message = error?.name === 'AbortError' ? 'Heartbeat request timed out' : clean(error?.message || error,300);
       return {error:message};
@@ -351,10 +415,33 @@
     for (const [tabId,row] of preflightByTab.entries()) if (Number(row?.expiresAt || 0) < now) preflightByTab.delete(tabId);
   }
 
+  async function handleTabRemoved(tabId) {
+    cleanPreflight();
+    const id = Number(tabId || 0);
+    const preflight = preflightByTab.get(id) || null;
+    const live = liveStateByTab.get(id) || null;
+    const volatileMeta = tabMeta.get(id) || null;
+    const persisted = await readCandidate(id);
+    const meta = preflight?.meta || live?.meta || persisted?.meta || volatileMeta || null;
+    const state = preflight?.state || live?.state || persisted?.state || null;
+    const explicit = Boolean(preflight?.explicit);
+    if (meta) await registerClosed(meta,state,{reason:explicit ? 'one-tab-style-stash' : 'manual-close',explicit});
+    await clearCandidate(id);
+    preflightByTab.delete(id);
+    liveStateByTab.delete(id);
+    tabMeta.delete(id);
+    candidateSignatures.delete(id);
+  }
+
   chrome.runtime.onMessage.addListener((message,sender,sendResponse) => {
     if (message?.type === 'PC_LIVE_CHAT_STATE_PUSH' && sender?.tab?.id) {
+      const tabId = Number(sender.tab.id);
       const meta = rememberTab(sender.tab);
-      if (meta) liveStateByTab.set(Number(sender.tab.id),{state:message.state || null,observedAt:Date.now(),meta});
+      if (meta) {
+        const state = message.state || null;
+        liveStateByTab.set(tabId,{state,observedAt:Date.now(),meta});
+        syncCandidate(tabId,meta,state).catch(() => {});
+      }
       return false;
     }
     if (message?.type === 'PC_COMMAND_CENTER_RUN_QUICK_ACTION') {
@@ -386,27 +473,35 @@
 
   chrome.tabs.onCreated.addListener((tab) => { rememberTab(tab); });
   chrome.tabs.onUpdated.addListener((tabId,changeInfo,tab) => {
-    if (changeInfo.url || changeInfo.status === 'complete') {
+    const id = Number(tabId || 0);
+    if (changeInfo.url) {
+      const previous = tabMeta.get(id) || null;
+      const next = tabRecord(tab);
+      if (next) tabMeta.set(id,next); else tabMeta.delete(id);
+      if (!next || previous?.key !== next.key) clearCandidate(id).catch(() => {});
+      if (next?.key) cancelWatch(next.key).catch(() => {});
+      return;
+    }
+    if (changeInfo.status === 'complete') {
       const meta = rememberTab(tab);
       if (meta?.key) cancelWatch(meta.key).catch(() => {});
-    } else if (tabMeta.has(Number(tabId)) && tab?.title) {
-      const current = tabMeta.get(Number(tabId));
-      tabMeta.set(Number(tabId),{...current,title:clean(tab.title,300),pinned:Boolean(tab.pinned)});
+      return;
+    }
+    if (tabMeta.has(id) && tab?.title) {
+      const current = tabMeta.get(id);
+      tabMeta.set(id,{...current,title:clean(tab.title,300),pinned:Boolean(tab.pinned)});
     }
   });
 
   chrome.tabs.onRemoved.addListener((tabId) => {
-    cleanPreflight();
-    const id = Number(tabId || 0);
-    const preflight = preflightByTab.get(id) || null;
-    const live = liveStateByTab.get(id) || null;
-    const meta = preflight?.meta || live?.meta || tabMeta.get(id) || null;
-    const state = preflight?.state || live?.state || null;
-    const explicit = Boolean(preflight?.explicit);
-    if (meta) registerClosed(meta,state,{reason:explicit ? 'one-tab-style-stash' : 'manual-close',explicit}).catch(() => {});
-    preflightByTab.delete(id);
-    liveStateByTab.delete(id);
-    tabMeta.delete(id);
+    handleTabRemoved(tabId).catch(() => {
+      const id = Number(tabId || 0);
+      preflightByTab.delete(id);
+      liveStateByTab.delete(id);
+      tabMeta.delete(id);
+      candidateSignatures.delete(id);
+      clearCandidate(id).catch(() => {});
+    });
   });
 
   chrome.alarms.onAlarm.addListener((alarm) => {
