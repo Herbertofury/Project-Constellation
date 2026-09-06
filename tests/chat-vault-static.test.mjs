@@ -9,9 +9,10 @@ const manifest = JSON.parse(read('extension/manifest.json'));
 
 const packageJson = JSON.parse(read('package.json'));
 assert.match(packageJson.scripts.test, /chat-vault-core\.test\.mjs/);
+assert.match(packageJson.scripts.test, /command-center-action-core\.test\.mjs/);
 assert.match(packageJson.scripts.test, /chat-vault-static\.test\.mjs/);
 const buildScript = read('tools/build.mjs');
-for (const token of ['background-entry.js','popup-organizer.js','chat-vault.html','chat-vault-core.js','chat-organizer.js','notification-repair.js']) {
+for (const token of ['background-entry.js','popup-organizer.js','chat-vault.html','chat-vault-core.js','chat-organizer.js','notification-repair.js','command-center-action-core.js','command-center-actions.js']) {
   assert.ok(buildScript.includes(token), `build must ship ${token}`);
 }
 
@@ -19,7 +20,15 @@ assert.equal(manifest.background.service_worker, 'background-entry.js');
 assert.ok(manifest.permissions.includes('notifications'));
 assert.ok(manifest.permissions.includes('scripting'));
 assert.ok(manifest.permissions.includes('tabGroups'));
+assert.ok(manifest.permissions.includes('contextMenus'));
 assert.equal(manifest.permissions.includes('clipboardWrite'), false, 'obsolete OneTab clipboard permission must be removed');
+
+const backgroundEntry = read('extension/background-entry.js');
+for (const token of ['src/chat-vault-core.js','src/command-center-action-core.js','background.js','src/notification-repair.js','src/command-center-actions.js']) {
+  assert.ok(backgroundEntry.includes(token), `background entry must load ${token}`);
+}
+assert.ok(backgroundEntry.indexOf('src/chat-vault-core.js') < backgroundEntry.indexOf('src/command-center-actions.js'), 'Command Center storage core must load before quick actions');
+assert.ok(backgroundEntry.indexOf('src/command-center-action-core.js') < backgroundEntry.indexOf('src/command-center-actions.js'), 'quick action policy core must load before quick actions');
 
 const chatScript = manifest.content_scripts.find((entry) => entry.js?.includes('src/chat-organizer.js'));
 assert.ok(chatScript, 'ChatGPT organizer content script must be registered');
@@ -34,13 +43,11 @@ assert.match(popup, /src\/chat-vault-core\.js/);
 assert.match(popup, /popup-organizer\.js/);
 
 const pulse = read('extension/popup-organizer.js');
-for (const token of ['PC_CHAT_ORGANIZER_RENAME','PC_CHAT_ORGANIZER_OPEN_EDITOR','Command Center','Gather AI chats','PC_TAB_BEACON_REFRESH']) {
+for (const token of ['PC_CHAT_ORGANIZER_RENAME','PC_CHAT_ORGANIZER_OPEN_EDITOR','Command Center','PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_TAB_BEACON_REFRESH','Right-click the pinned Project Constellation extension icon']) {
   assert.ok(pulse.includes(token), `Pulse integration missing ${token}`);
 }
-assert.match(pulse, /currentPrefs\?\.view === 'project'/, 'Pulse gather may use a selected project only when the user explicitly left Command Center in project view');
-assert.match(pulse, /core\.LIVE_PROJECT_NAME/, 'Pulse gather needs a safe Live AI Sessions fallback');
 assert.doesNotMatch(pulse, /OneTab/i, 'Pulse must not hand chats to OneTab');
-assert.doesNotMatch(pulse, /tabs\.remove\s*\(/, 'Gather must never close live AI tabs');
+assert.doesNotMatch(pulse, /tabs\.remove\s*\(/, 'Pulse must delegate verified tab closing to the background quick-action service');
 
 const organizer = read('extension/src/chat-organizer.js');
 assert.match(organizer, /new MutationObserver/);
@@ -71,6 +78,24 @@ for (const token of ['PC_LIVE_CHAT_PULSE','PC_TAB_BEACON_REFRESH','PC_FOCUS_LIVE
 assert.doesNotMatch(commandCenter, /tabs\.remove\s*\(/, 'Command Center gather must preserve live provider tabs');
 assert.doesNotMatch(commandCenter, /OneTab/i, 'Command Center must not contain OneTab integration');
 assert.doesNotMatch(commandCenter, /chrome\.tabs\.reload\s*\(/, 'Command Center must never auto-reload provider chats');
+
+const actionCore = read('extension/src/command-center-action-core.js');
+for (const token of ['gather','smart-collapse','stash-close','QUICK_ACTION_KEY','smartDisposition','one-tab-style','pinned','unproven']) {
+  assert.ok(actionCore.includes(token), `quick action policy core missing ${token}`);
+}
+
+const actions = read('extension/src/command-center-actions.js');
+for (const token of ['PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_SET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','contexts:[\'action\']','type:\'radio\'','Stash + close AI chats now','saveAndVerifyTabs','chrome.tabs.remove','chrome.runtime.getURL(\'chat-vault.html\')']) {
+  assert.ok(actions.includes(token), `quick action runtime missing ${token}`);
+}
+assert.match(actions, /prefs\?\.view === 'project'/, 'quick action may use a selected project only when Command Center is explicitly in project view');
+assert.match(actions, /vaultCore\.LIVE_PROJECT_NAME/, 'quick action needs a safe Live AI Sessions fallback');
+assert.match(actions, /tab\?\.pinned/, 'OneTab-style stash must preserve pinned tabs');
+assert.doesNotMatch(actions, /contextMenus\.removeAll/, 'right-click menu integration must not destroy existing page-level Constellation menus');
+assert.doesNotMatch(actions, /chrome\.tabs\.reload\s*\(/, 'quick actions must never auto-reload provider chats');
+assert.doesNotMatch(actions, /\bfetch\s*\(/, 'quick actions must not add provider fetches');
+assert.doesNotMatch(actions, /XMLHttpRequest/, 'quick actions must not add provider XHR');
+assert.ok(actions.indexOf('if (!saved.verified)') >= 0 && actions.indexOf('if (!saved.verified)') < actions.indexOf('closeTabIds(closeIds)'), 'verified persistence must happen before any AI tab close');
 
 const vaultCore = read('extension/src/chat-vault-core.js');
 for (const token of ['COMMAND_CENTER_PREFS_KEY','LIVE_PROJECT_NAME','livePresentation','tool-stalled','request-stalled','mergeItems','ensureStack','stateCounts']) {
