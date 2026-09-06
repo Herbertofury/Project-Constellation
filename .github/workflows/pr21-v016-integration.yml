@@ -1,0 +1,107 @@
+name: PR21 v0.16 integration acceptance
+
+on:
+  push:
+    branches:
+      - feature/chat-vault-pulse-rename-decorations
+    paths:
+      - '.integration/pr21-v016-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Merge clean v0.16 base and resolve intentional overlaps
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Project Constellation Integrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git fetch origin feat/v0.16.0-living-project-rooms-safe-router
+          git merge --no-commit --no-ff origin/feat/v0.16.0-living-project-rooms-safe-router || true
+          cat > package.json <<'JSON'
+          {
+            "name": "project-constellation-extension",
+            "version": "0.16.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/ui-qol-static.test.mjs",
+              "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
+              "build": "node tools/build.mjs --mode=production",
+              "build:dev": "node tools/build.mjs --mode=development",
+              "package": "node tools/package-release.mjs",
+              "package:dev": "node tools/package-release.mjs --allow-development",
+              "test:smoke": "node tools/run-smokes.mjs",
+              "verify": "npm test && npm run validate && npm run build:dev && npm run test:smoke",
+              "test:live-browser": "python3 tools/live_browser_acceptance.py",
+              "test:scale": "node tests/project-scale.test.mjs"
+            }
+          }
+          JSON
+          cat > extension/manifest.json <<'JSON'
+          {
+            "manifest_version": 3,
+            "name": "Project Constellation",
+            "version": "0.16.0",
+            "minimum_chrome_version": "116",
+            "description": "Performance-first AI workspace with AI Command Center, Living Project Rooms + Safe Router, live Chat Pulse, adaptive closed-chat heartbeat, durable notifications, Capacity Guard, project continuity intelligence, Approval Autopilot, and verified remote checkpoints.",
+            "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",
+            "permissions": ["storage","sidePanel","tabs","alarms","identity","unlimitedStorage","idle","offscreen","webRequest","scripting","notifications","tabGroups","contextMenus"],
+            "optional_permissions": ["downloads","history"],
+            "optional_host_permissions": ["https://api.github.com/*","https://www.googleapis.com/*","https://github.com/*"],
+            "host_permissions": ["https://chatgpt.com/*","https://chat.openai.com/*","https://claude.ai/*","https://gemini.google.com/*","https://grok.com/*","https://chat.deepseek.com/*","https://perplexity.ai/*","https://www.perplexity.ai/*","https://copilot.microsoft.com/*","https://chat.mistral.ai/*","https://poe.com/*","https://meta.ai/*","https://www.meta.ai/*","https://chat.qwen.ai/*","https://kimi.com/*","https://www.kimi.com/*","https://character.ai/*","https://www.character.ai/*","https://huggingface.co/*","https://you.com/*","https://www.you.com/*","https://pi.ai/*","https://www.pi.ai/*","https://duck.ai/*"],
+            "oauth2": {"client_id":"PROJECT_CONSTELLATION_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com","scopes":["https://www.googleapis.com/auth/drive.file"]},
+            "background": {"service_worker":"background-entry.js","type":"module"},
+            "action": {"default_title":"Project Constellation","default_popup":"popup.html"},
+            "side_panel": {"default_path":"sidepanel.html"},
+            "content_scripts": [
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*"],"js":["src/chatgpt-page-probe.js"],"run_at":"document_start","world":"MAIN"},
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*","https://claude.ai/*","https://gemini.google.com/*","https://grok.com/*","https://chat.deepseek.com/*","https://perplexity.ai/*","https://www.perplexity.ai/*","https://copilot.microsoft.com/*","https://chat.mistral.ai/*","https://poe.com/*","https://meta.ai/*","https://www.meta.ai/*","https://chat.qwen.ai/*","https://kimi.com/*","https://www.kimi.com/*","https://character.ai/*","https://www.character.ai/*","https://huggingface.co/chat/*","https://you.com/*","https://www.you.com/*","https://pi.ai/*","https://www.pi.ai/*","https://duck.ai/*"],"js":["src/core.js","src/brain-core.js","src/provider-core.js","src/health-core.js","src/live-sentinel.js","src/tab-beacon.js","src/content.js","src/pulse-ux.js"],"css":["src/styles.css"],"run_at":"document_start"},
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*"],"js":["src/chat-vault-core.js","src/chat-organizer.js"],"css":["src/chat-organizer.css"],"run_at":"document_idle"}
+            ]
+          }
+          JSON
+          git add package.json extension/manifest.json
+          conflicts="$(git diff --name-only --diff-filter=U)"
+          if [ -n "$conflicts" ]; then
+            echo 'Unexpected unresolved conflicts:'
+            echo "$conflicts"
+            exit 1
+          fi
+          git diff --check
+          test "$(node -p "require('./package.json').version")" = '0.16.0'
+          test "$(node -p "require('./extension/manifest.json').version")" = '0.16.0'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements-dev.txt
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+      - name: Full verification
+        run: npm run verify
+      - name: Real Chromium live-browser acceptance
+        shell: bash
+        run: xvfb-run -a .venv/bin/python tools/live_browser_acceptance.py
+      - name: Commit accepted integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .integration/pr21-v016-trigger.txt .github/workflows/pr21-v016-integration.yml
+          rmdir .integration 2>/dev/null || true
+          git add -A
+          git diff --cached --check
+          git commit -m 'Integrate AI Command Center into v0.16.0'
+          git push origin HEAD:feature/chat-vault-pulse-rename-decorations
