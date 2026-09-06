@@ -1,0 +1,1 @@
+Run one-shot v0.16 integration + full verify + live Chromium acceptance.
