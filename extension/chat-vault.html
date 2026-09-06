@@ -96,30 +96,30 @@
 
   <dialog id="projectDialog" class="pc-dialog">
     <form method="dialog" id="projectForm">
-      <div class="dialog-head"><div><span class="eyebrow">AI PROJECT</span><h3 id="projectDialogTitle">New project</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <div class="dialog-head"><div><span class="eyebrow">AI PROJECT</span><h3 id="projectDialogTitle">New project</h3></div><button type="button" data-dialog-close="projectDialog" class="icon-button" aria-label="Close">&#215;</button></div>
       <label>Project name<input id="projectNameInput" maxlength="120" autocomplete="off" placeholder="Example: Spellbrook Mod"></label>
       <label>Accent<input id="projectColorInput" type="color" value="#8b5cf6"></label>
-      <div class="dialog-actions"><button value="cancel" class="quiet">Cancel</button><button id="saveProjectDialog" value="default" class="primary">Save project</button></div>
+      <div class="dialog-actions"><button type="button" data-dialog-close="projectDialog" class="quiet">Cancel</button><button id="saveProjectDialog" type="submit" value="default" class="primary">Save project</button></div>
     </form>
   </dialog>
 
   <dialog id="importDialog" class="pc-dialog wide-dialog">
     <form method="dialog" id="importForm">
-      <div class="dialog-head"><div><span class="eyebrow">IMPORT</span><h3>Bring chats into the Command Center</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <div class="dialog-head"><div><span class="eyebrow">IMPORT</span><h3>Bring chats into the Command Center</h3></div><button type="button" data-dialog-close="importDialog" class="icon-button" aria-label="Close">&#215;</button></div>
       <p class="dialog-copy">Paste supported AI chat URLs, optionally as <code>URL | Title</code>, or import a Project Constellation JSON backup.</p>
       <textarea id="urlImportText" rows="10" placeholder="https://chatgpt.com/c/... | Chat title"></textarea>
-      <div class="dialog-actions spread"><label class="file-button">Choose JSON backup<input id="jsonImportFile" type="file" accept="application/json,.json"></label><span id="importCountHint"></span><button value="cancel" class="quiet">Cancel</button><button id="runTextImport" value="default" class="primary">Import chats</button></div>
+      <div class="dialog-actions spread"><label class="file-button">Choose JSON backup<input id="jsonImportFile" type="file" accept="application/json,.json"></label><span id="importCountHint"></span><button type="button" data-dialog-close="importDialog" class="quiet">Cancel</button><button id="runTextImport" type="button" value="default" class="primary">Import chats</button></div>
     </form>
   </dialog>
 
   <dialog id="styleDialog" class="pc-dialog">
     <form method="dialog" id="styleForm">
-      <div class="dialog-head"><div><span class="eyebrow">CHAT STYLE</span><h3 id="styleChatTitle">Style chat</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <div class="dialog-head"><div><span class="eyebrow">CHAT STYLE</span><h3 id="styleChatTitle">Style chat</h3></div><button type="button" data-dialog-close="styleDialog" class="icon-button" aria-label="Close">&#215;</button></div>
       <label>Emoji<input id="styleEmoji" maxlength="16" autocomplete="off" placeholder="emoji"></label>
       <div id="styleEmojiPresets" class="emoji-presets"></div>
       <label class="toggle-color">Custom color <span><input id="styleColor" type="color" value="#8b5cf6"><input id="styleColorEnabled" type="checkbox"></span></label>
       <label>Text style<select id="styleText"><option value="clean">Clean</option><option value="bold">Bold</option><option value="serif">Serif</option><option value="italic">Italic</option><option value="mono">Mono</option><option value="wide">Wide</option><option value="glow">Glow</option><option value="soft">Soft pill</option></select></label>
-      <div class="dialog-actions"><button id="clearStyle" value="none" class="quiet">Clear</button><span class="spacer"></span><button value="cancel" class="quiet">Cancel</button><button id="saveStyle" value="default" class="primary">Save style</button></div>
+      <div class="dialog-actions"><button id="clearStyle" type="button" value="none" class="quiet">Clear</button><span class="spacer"></span><button type="button" data-dialog-close="styleDialog" class="quiet">Cancel</button><button id="saveStyle" type="submit" value="default" class="primary">Save style</button></div>
     </form>
   </dialog>
 
@@ -127,5 +127,6 @@
   <script src="src/closed-chat-watch-core.js"></script>
   <script src="chat-vault.js"></script>
   <script src="src/closed-chat-watch-ui.js"></script>
+  <script src="src/ui-qol.js"></script>
 </body>
 </html>
