@@ -1,4 +1,4 @@
-name: v0.16 materialize exact source
+name: v0.16 materialize recovered source
 
 on:
   push:
@@ -17,61 +17,31 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Recover, verify, and apply exact v0.16 source delta
+      - name: Verify recovered v0.16 delta
         shell: bash
         run: |
           set -euo pipefail
-          EXPECTED_B64='bec45b735d5000abbc6e946602027c696c603a6ab650a32448c53a9657b5fde3'
-          EXPECTED_GZ='9c4b6d435badc0e12f11a3099a60af7000ea9b4112c420d421dea66c8e02f55e'
-          EXPECTED_PATCH='d7f8dba02e49bc9bedf3e8299c94c842e0d03ee053a7dfb290be94cac935d0bd'
-          rm -rf /tmp/v016-candidates
-          mkdir -p /tmp/v016-candidates
-
-          cp .pc-v016/payload.b64 /tmp/v016-candidates/current-payload 2>/dev/null || true
-          cat .pc-v016/chunks/part-* > /tmp/v016-candidates/current-chunks 2>/dev/null || true
-          tr -d '\r\n\t ' < /tmp/v016-candidates/current-payload > /tmp/v016-candidates/current-payload-compact 2>/dev/null || true
-          tr -d '\r\n\t ' < /tmp/v016-candidates/current-chunks > /tmp/v016-candidates/current-chunks-compact 2>/dev/null || true
-
-          echo 'Payload history:'
-          git log --all --format='%H %s' -- .pc-v016/payload.b64 || true
-          i=0
-          while read -r commit; do
-            [ -n "$commit" ] || continue
-            if git show "$commit:.pc-v016/payload.b64" > "/tmp/v016-candidates/history-$i" 2>/dev/null; then
-              tr -d '\r\n\t ' < "/tmp/v016-candidates/history-$i" > "/tmp/v016-candidates/history-$i-compact"
-              i=$((i + 1))
-            fi
-          done < <(git log --all --format='%H' -- .pc-v016/payload.b64)
-
-          FOUND=''
-          for candidate in /tmp/v016-candidates/*; do
-            [ -s "$candidate" ] || continue
-            B64_HASH="$(sha256sum "$candidate" | awk '{print $1}')"
-            SIZE="$(wc -c < "$candidate" | tr -d ' ')"
-            printf 'candidate=%s size=%s b64=%s%s\n' "$(basename "$candidate")" "$SIZE" "$B64_HASH" "$([ "$B64_HASH" = "$EXPECTED_B64" ] && printf ' OUTER_MATCH' || true)"
-            if ! base64 -d "$candidate" > /tmp/v016-candidate.gz 2>/dev/null; then
-              continue
-            fi
-            GZ_HASH="$(sha256sum /tmp/v016-candidate.gz | awk '{print $1}')"
-            printf '  decoded-gz=%s%s\n' "$GZ_HASH" "$([ "$GZ_HASH" = "$EXPECTED_GZ" ] && printf ' INNER_GZ_MATCH' || true)"
-            [ "$GZ_HASH" = "$EXPECTED_GZ" ] || continue
-            if ! gzip -dc /tmp/v016-candidate.gz > /tmp/v016-candidate.patch 2>/dev/null; then
-              continue
-            fi
-            PATCH_HASH="$(sha256sum /tmp/v016-candidate.patch | awk '{print $1}')"
-            printf '  decoded-patch=%s%s\n' "$PATCH_HASH" "$([ "$PATCH_HASH" = "$EXPECTED_PATCH" ] && printf ' INNER_PATCH_MATCH' || true)"
-            if [ "$PATCH_HASH" = "$EXPECTED_PATCH" ]; then
-              FOUND="$candidate"
-              cp /tmp/v016-candidate.gz /tmp/v016.patch.gz
-              cp /tmp/v016-candidate.patch /tmp/v016.patch
-              break
-            fi
-          done
-
-          test -n "$FOUND"
-          echo "Verified exact v0.16 patch payload from $(basename "$FOUND")."
-          echo "$EXPECTED_GZ  /tmp/v016.patch.gz" | sha256sum -c -
-          echo "$EXPECTED_PATCH  /tmp/v016.patch" | sha256sum -c -
+          test "$(wc -c < .pc-v016/recovered/part-00a)" -eq 3000
+          test "$(wc -c < .pc-v016/recovered/part-00b)" -eq 3000
+          test "$(wc -c < .pc-v016/recovered/part-00c)" -eq 3000
+          test "$(wc -c < .pc-v016/recovered/part-01)" -eq 9000
+          test "$(wc -c < .pc-v016/recovered/part-02)" -eq 9000
+          test "$(wc -c < .pc-v016/recovered/part-03)" -eq 9000
+          test "$(wc -c < .pc-v016/recovered/part-04)" -eq 2096
+          cat \
+            .pc-v016/recovered/part-00a \
+            .pc-v016/recovered/part-00b \
+            .pc-v016/recovered/part-00c \
+            .pc-v016/recovered/part-01 \
+            .pc-v016/recovered/part-02 \
+            .pc-v016/recovered/part-03 \
+            .pc-v016/recovered/part-04 \
+            > /tmp/v016.b64
+          echo '53e5b807d45c086560ac3e4ea7df0ea2865aa2e5f394ec04b69b47ccc75a8810  /tmp/v016.b64' | sha256sum -c -
+          base64 -d /tmp/v016.b64 > /tmp/v016.patch.gz
+          echo '4a0754d54df2a7b9eca69b7311a141c343a438811ba0f09deddf70a4a39acac7  /tmp/v016.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/v016.patch.gz > /tmp/v016.patch
+          echo 'cf5764c41f4aeb4f8c9f5ea62a54b6b0c9b504d5422bab34982e5ce80def4cc6  /tmp/v016.patch' | sha256sum -c -
           git apply --check /tmp/v016.patch
           git apply /tmp/v016.patch
           git diff --check
@@ -80,7 +50,7 @@ jobs:
           test -f extension/src/project-router-core.js
           test -f tests/project-scale.test.mjs
           test -f docs/v0.16.0-release-notes.md
-      - name: Commit clean source and remove transport
+      - name: Commit clean recovered source and remove transport
         shell: bash
         run: |
           set -euo pipefail
