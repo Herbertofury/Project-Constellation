@@ -1,0 +1,26 @@
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled{
+  cursor:not-allowed!important;
+  opacity:.48!important;
+}
+button:disabled{
+  filter:saturate(.55);
+  box-shadow:none!important;
+  transform:none!important;
+}
+button:disabled:hover{
+  background:var(--raised)!important;
+  border-color:var(--line)!important;
+}
+button.primary:disabled{
+  filter:grayscale(.2) saturate(.45)!important;
+}
+.tag-presets button:disabled,
+.tag-custom button:disabled{
+  pointer-events:auto;
+}
+input:disabled::placeholder{
+  color:var(--muted2);
+}

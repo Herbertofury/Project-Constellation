@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Command Center - Project Constellation</title>
+  <link rel="stylesheet" href="chat-vault.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">&#10022;</span>
+        <div><span class="eyebrow">PROJECT CONSTELLATION</span><h1>AI Command Center</h1></div>
+        <span class="local-pill">local-first</span>
+      </div>
+      <div class="top-actions">
+        <button id="gatherOpenChats" class="primary" type="button">Gather all AI chats</button>
+        <button id="refreshLive" class="secondary" type="button">Refresh live state</button>
+        <button id="newProject" class="secondary accent" type="button">+ Project</button>
+        <button id="importChats" class="quiet" type="button">Import</button>
+        <button id="exportVault" class="quiet" type="button">Export backup</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="search-wrap"><span>&#8981;</span><input id="vaultSearch" type="search" placeholder="Search chats, projects, providers" autocomplete="off"></div>
+
+        <div class="side-section-title"><span>LIVE OPERATIONS</span><strong id="monitorMode">sentinel</strong></div>
+        <nav id="liveFilters" class="live-filters" aria-label="Live chat filters">
+          <button id="liveAll" type="button" data-view="all" class="active"><span class="view-icon all"></span><span>All chats</span><strong id="allCount">0</strong></button>
+          <button id="liveActive" type="button" data-view="active"><span class="view-icon active"></span><span>Working now</span><strong id="activeCount">0</strong></button>
+          <button id="liveAttention" type="button" data-view="attention"><span class="view-icon attention"></span><span>Needs attention</span><strong id="attentionCount">0</strong></button>
+          <button id="liveDone" type="button" data-view="done"><span class="view-icon done"></span><span>Completed</span><strong id="doneCount">0</strong></button>
+          <button id="liveSaved" type="button" data-view="saved"><span class="view-icon saved"></span><span>Saved / offline</span><strong id="savedCount">0</strong></button>
+        </nav>
+
+        <div class="side-section-title"><span>PROJECTS</span><strong id="totalSavedCount">0 chats</strong></div>
+        <button id="newProjectSide" class="new-stack" type="button"><span>+</span> New project</button>
+        <nav id="projectList" class="stack-list" aria-label="AI chat projects"></nav>
+
+        <div class="sidebar-note monitor-note">
+          <strong><span class="monitor-dot"></span> Sentinel + adaptive remote heartbeat</strong>
+          <p>Open chats stay event-driven in their real provider tabs. If a working chat is closed, Constellation can keep a tiny persisted watch lease and check provider-side persisted progress with adaptive backoff. It never keeps hidden provider tabs alive, never auto-reloads a chat, and stops polling when the signal is no longer useful.</p>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <section class="command-hero">
+          <div class="hero-copy">
+            <span id="viewEyebrow" class="eyebrow">ALL AI CHATS</span>
+            <div class="stack-title-line"><h2 id="viewTitle">Mission control</h2><button id="renameProject" class="icon-button" type="button" title="Rename selected project" aria-label="Rename selected project">&#9998;</button></div>
+            <p id="viewMeta">One place to organize every AI chat and see what is working, blocked, stalled, dead, finished, remotely watched, or parked.</p>
+          </div>
+          <div class="hero-actions">
+            <button id="openMissing" class="secondary" type="button">Open missing chats</button>
+            <button id="organizeTabs" class="secondary" type="button">Organize live tabs</button>
+            <button id="deleteProject" class="danger-quiet" type="button">Delete project</button>
+          </div>
+        </section>
+
+        <section class="metric-strip" aria-label="Live AI summary">
+          <button type="button" class="metric-card" data-view="all"><span>OPEN NOW</span><strong id="metricOpen">0</strong><small id="metricOpenDetail">provider tabs</small></button>
+          <button type="button" class="metric-card running" data-view="active"><span>WORKING</span><strong id="metricRunning">0</strong><small>generating / tools</small></button>
+          <button type="button" class="metric-card attention" data-view="attention"><span>ATTENTION</span><strong id="metricAttention">0</strong><small>blocked / stalled / dead</small></button>
+          <button type="button" class="metric-card done" data-view="done"><span>COMPLETED</span><strong id="metricDone">0</strong><small>latest turn finished</small></button>
+          <button type="button" class="metric-card saved" data-view="saved"><span>PARKED</span><strong id="metricSaved">0</strong><small>saved, tab closed</small></button>
+        </section>
+
+        <section class="command-toolbar">
+          <div id="activeViewLabel">Showing every organized and live AI chat</div>
+          <div class="toolbar-actions">
+            <label class="compact-toggle"><input id="attentionFirst" type="checkbox" checked> attention first</label>
+            <span id="lastLiveUpdate">Not checked yet</span>
+          </div>
+        </section>
+
+        <section id="emptyState" class="empty-state">
+          <div class="empty-orbit"><span>&#10022;</span></div>
+          <h3>Turn the tab pile into an AI operations room.</h3>
+          <p>Gather every open supported AI chat into a project with one click. Keep live work in normal tabs when you want, or stash tabs and let Constellation use a low-impact remote heartbeat only for chats that still need watching.</p>
+          <button id="emptyGather" class="primary" type="button">Gather my open AI chats</button>
+        </section>
+
+        <section id="searchSummary" class="search-summary" hidden></section>
+        <section id="chatGrid" class="chat-grid" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <footer class="statusbar">
+      <span id="vaultStatus">Ready.</span>
+      <span>Monitoring is local-first and session-preserving. Remote heartbeat uses conditional provider checks only after a watched tab closes; no provider login is duplicated and no chat is auto-reloaded.</span>
+    </footer>
+  </div>
+
+  <dialog id="projectDialog" class="pc-dialog">
+    <form method="dialog" id="projectForm">
+      <div class="dialog-head"><div><span class="eyebrow">AI PROJECT</span><h3 id="projectDialogTitle">New project</h3></div><button type="button" data-dialog-close="projectDialog" class="icon-button" aria-label="Close">&#215;</button></div>
+      <label>Project name<input id="projectNameInput" maxlength="120" autocomplete="off" placeholder="Example: Spellbrook Mod"></label>
+      <label>Accent<input id="projectColorInput" type="color" value="#8b5cf6"></label>
+      <div class="dialog-actions"><button type="button" data-dialog-close="projectDialog" class="quiet">Cancel</button><button id="saveProjectDialog" type="submit" value="default" class="primary">Save project</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="importDialog" class="pc-dialog wide-dialog">
+    <form method="dialog" id="importForm">
+      <div class="dialog-head"><div><span class="eyebrow">IMPORT</span><h3>Bring chats into the Command Center</h3></div><button type="button" data-dialog-close="importDialog" class="icon-button" aria-label="Close">&#215;</button></div>
+      <p class="dialog-copy">Paste supported AI chat URLs, optionally as <code>URL | Title</code>, or import a Project Constellation JSON backup.</p>
+      <textarea id="urlImportText" rows="10" placeholder="https://chatgpt.com/c/... | Chat title"></textarea>
+      <div class="dialog-actions spread"><label class="file-button">Choose JSON backup<input id="jsonImportFile" type="file" accept="application/json,.json"></label><span id="importCountHint"></span><button type="button" data-dialog-close="importDialog" class="quiet">Cancel</button><button id="runTextImport" type="button" value="default" class="primary">Import chats</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="styleDialog" class="pc-dialog">
+    <form method="dialog" id="styleForm">
+      <div class="dialog-head"><div><span class="eyebrow">CHAT STYLE</span><h3 id="styleChatTitle">Style chat</h3></div><button type="button" data-dialog-close="styleDialog" class="icon-button" aria-label="Close">&#215;</button></div>
+      <label>Emoji<input id="styleEmoji" maxlength="16" autocomplete="off" placeholder="emoji"></label>
+      <div id="styleEmojiPresets" class="emoji-presets"></div>
+      <label class="toggle-color">Custom color <span><input id="styleColor" type="color" value="#8b5cf6"><input id="styleColorEnabled" type="checkbox"></span></label>
+      <label>Text style<select id="styleText"><option value="clean">Clean</option><option value="bold">Bold</option><option value="serif">Serif</option><option value="italic">Italic</option><option value="mono">Mono</option><option value="wide">Wide</option><option value="glow">Glow</option><option value="soft">Soft pill</option></select></label>
+      <div class="dialog-actions"><button id="clearStyle" type="button" value="none" class="quiet">Clear</button><span class="spacer"></span><button type="button" data-dialog-close="styleDialog" class="quiet">Cancel</button><button id="saveStyle" type="submit" value="default" class="primary">Save style</button></div>
+    </form>
+  </dialog>
+
+  <script src="src/chat-vault-core.js"></script>
+  <script src="src/closed-chat-watch-core.js"></script>
+  <script src="chat-vault.js"></script>
+  <script src="src/closed-chat-watch-ui.js"></script>
+  <script src="src/ui-qol.js"></script>
+</body>
+</html>
