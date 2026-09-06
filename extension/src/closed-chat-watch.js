@@ -476,6 +476,8 @@
     const id = Number(tabId || 0);
     if (changeInfo.url) {
       const previous = tabMeta.get(id) || null;
+      liveStateByTab.delete(id);
+      preflightByTab.delete(id);
       const next = tabRecord(tab);
       if (next) tabMeta.set(id,next); else tabMeta.delete(id);
       if (!next || previous?.key !== next.key) clearCandidate(id).catch(() => {});
@@ -499,8 +501,7 @@
       preflightByTab.delete(id);
       liveStateByTab.delete(id);
       tabMeta.delete(id);
-      candidateSignatures.delete(id);
-      clearCandidate(id).catch(() => {});
+      clearCandidate(id).catch(() => {}).finally(() => candidateSignatures.delete(id));
     });
   });
 
