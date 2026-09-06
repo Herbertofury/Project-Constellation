@@ -65,20 +65,50 @@
     bindExtensionPageButton('openAccounts', 'home.html?view=connections', 'home.html');
 
     const attention = $('attentionNotificationsEnabled');
+    const pulseControlIds = [
+      'statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled',
+      'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','activeEmoji','staleEmoji','completedEmoji',
+      'activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor'
+    ];
+    let desiredAttention = null;
+    let attentionTouched = false;
+    let attentionRepairTimer = 0;
+
+    const loadDesiredAttention = async () => {
+      const stored = await chrome.storage.local.get(PULSE_UX_KEY).catch(() => ({}));
+      if (attentionTouched) return;
+      const saved = stored?.[PULSE_UX_KEY]?.attentionNotificationsEnabled;
+      desiredAttention = saved !== false;
+      if (attention) attention.checked = desiredAttention;
+    };
+
+    const repairAttention = () => {
+      if (!attention || desiredAttention === null) return;
+      if (attentionRepairTimer) clearTimeout(attentionRepairTimer);
+      attentionRepairTimer = setTimeout(async () => {
+        const stored = await chrome.storage.local.get(PULSE_UX_KEY).catch(() => ({}));
+        const current = stored?.[PULSE_UX_KEY] || {};
+        if (current.attentionNotificationsEnabled !== desiredAttention) {
+          await chrome.storage.local.set({ [PULSE_UX_KEY]:{ ...current,attentionNotificationsEnabled:desiredAttention } }).catch(() => {});
+        }
+        attention.checked = desiredAttention;
+      },100);
+    };
+
     if (attention && !bound.has(attention)) {
       bound.add(attention);
       attention.addEventListener('change', () => {
-        // Capture before popup.js finishes its async save/render cycle, because its
-        // legacy spread preserved the previous value and can repaint the checkbox.
-        const desired = Boolean(attention.checked);
-        setTimeout(async () => {
-          const stored = await chrome.storage.local.get(PULSE_UX_KEY).catch(() => ({}));
-          const next = { ...(stored?.[PULSE_UX_KEY] || {}), attentionNotificationsEnabled:desired };
-          await chrome.storage.local.set({ [PULSE_UX_KEY]:next }).catch(() => {});
-          attention.checked = desired;
-        }, 80);
-      });
+        attentionTouched = true;
+        desiredAttention = Boolean(attention.checked);
+        repairAttention();
+      },true);
     }
+    for (const id of pulseControlIds) {
+      const control = $(id);
+      if (!control || control === attention) continue;
+      control.addEventListener('change',repairAttention,true);
+    }
+    loadDesiredAttention().catch(() => {});
 
     const tagHint = $('tabTagHint');
     const tagInput = $('customTabTag');
@@ -122,8 +152,6 @@
       const row = shell.querySelector('.chat-list-row');
       const provider = core.providerForUrl(row?.dataset?.url || '');
       if (provider?.id === 'chatgpt' && core.conversationId(row?.dataset?.url || '')) continue;
-      // Native rename/style is currently ChatGPT-only. Do not render controls that
-      // can only answer "unsupported" for every click.
       shell.querySelector(':scope > .pc-popup-row-actions')?.remove();
       shell.querySelector(':scope > .pc-popup-inline-rename')?.remove();
     }
@@ -153,8 +181,31 @@
     const chatList = $('chatList');
     const chatPulse = $('chatPulse');
     if (!chatList || !chatPulse) return;
+
+    chatList.addEventListener('click', async (event) => {
+      const row = event.target?.closest?.('.chat-list-row');
+      if (!row) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const tabId = Number(row.dataset.tabId || 0);
+      const windowId = Number(row.dataset.windowId || 0);
+      const url = row.dataset.url || '';
+      row.disabled = true;
+      try {
+        const focused = tabId ? await chrome.runtime.sendMessage({ type:'PC_FOCUS_LIVE_CHAT',tabId,windowId,url }).catch(() => null) : null;
+        if (!focused?.ok) {
+          if (!url) throw new Error(focused?.error || 'That chat is no longer available.');
+          await openOrFocusChat(url);
+        }
+        if (typeof window.close === 'function') window.close();
+      } catch (error) {
+        report(clean(error?.message || 'Could not open that chat.',220));
+        row.disabled = false;
+      }
+    },true);
+
     const sync = () => { hardenOrganizerRows(); hardenOrganizerToolbar(); };
-    new MutationObserver(sync).observe(chatPulse, { childList:true, subtree:true });
+    new MutationObserver(sync).observe(chatPulse, { childList:true,subtree:true });
     sync();
   }
 
@@ -205,11 +256,11 @@
     if (!canonical || !key) throw new Error('This saved chat URL is no longer valid.');
     const tabs = await chrome.tabs.query({});
     const existing = tabs.find((tab) => core.chatKey(tab.url || '') === key);
-    const tab = existing?.id ? existing : await chrome.tabs.create({ url:canonical, active:true });
+    const tab = existing?.id ? existing : await chrome.tabs.create({ url:canonical,active:true });
     if (existing?.id) await focusTab(existing);
-    await touchVaultChat(key, tab);
+    await touchVaultChat(key,tab);
     chrome.runtime.sendMessage({ type:'PC_TAB_BEACON_REFRESH' }).catch(() => {});
-    return { tab, reused:Boolean(existing?.id) };
+    return { tab,reused:Boolean(existing?.id) };
   }
 
   function syncMoveSelects() {
@@ -226,7 +277,7 @@
     const status = $('vaultStatus');
     const busy = status?.classList?.contains('busy') || false;
     const viewMeta = $('viewMeta');
-    const emptyProject = /^0 organized chat/i.test(clean(viewMeta?.textContent || '', 120));
+    const emptyProject = /^0 organized chat/i.test(clean(viewMeta?.textContent || '',120));
     const openMissing = $('openMissing');
     const guarded = ['gatherOpenChats','emptyGather','organizeTabs','newProject','newProjectSide','renameProject','deleteProject','importChats','exportVault'];
     for (const id of guarded) {
@@ -267,23 +318,23 @@
       button.textContent = old === 'Focus' ? 'Focusing…' : 'Opening…';
       try {
         const result = await openOrFocusChat(url);
-        report(result.reused ? 'Focused the existing provider tab. No duplicate was opened.' : 'Opened the saved provider chat.', 'success');
+        report(result.reused ? 'Focused the existing provider tab. No duplicate was opened.' : 'Opened the saved provider chat.','success');
       } catch (error) {
-        report(clean(error?.message || 'Could not open that chat.', 220), 'error');
+        report(clean(error?.message || 'Could not open that chat.',220),'error');
       } finally {
         button.disabled = false;
         button.textContent = old;
       }
-    }, true);
+    },true);
 
     const status = $('vaultStatus');
     const viewMeta = $('viewMeta');
     const lastLive = $('lastLiveUpdate');
     const sync = () => { syncMoveSelects(); syncCommandButtons(); syncRefreshButton(); };
-    new MutationObserver(sync).observe(grid, { childList:true, subtree:true });
-    if (status) new MutationObserver(sync).observe(status, { childList:true, characterData:true, attributes:true, attributeFilter:['class'], subtree:true });
-    if (viewMeta) new MutationObserver(sync).observe(viewMeta, { childList:true, characterData:true, subtree:true });
-    if (lastLive) new MutationObserver(sync).observe(lastLive, { childList:true, characterData:true, subtree:true });
+    new MutationObserver(sync).observe(grid, { childList:true,subtree:true });
+    if (status) new MutationObserver(sync).observe(status, { childList:true,characterData:true,attributes:true,attributeFilter:['class'],subtree:true });
+    if (viewMeta) new MutationObserver(sync).observe(viewMeta, { childList:true,characterData:true,subtree:true });
+    if (lastLive) new MutationObserver(sync).observe(lastLive, { childList:true,characterData:true,subtree:true });
     sync();
   }
 
