@@ -16,8 +16,8 @@
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const QUICK_FALLBACK = Object.freeze({
     gather:{buttonLabel:'Gather AI chats',description:'Save and organize open AI chats while keeping provider tabs live.'},
-    'smart-collapse':{buttonLabel:'Smart collapse AI chats',description:'Save everything, close clearly finished chats, and keep working or uncertain chats alive.'},
-    'stash-close':{buttonLabel:'Stash + close AI chats',description:'Save and verify everything, then close unpinned AI chat tabs.'}
+    'smart-collapse':{buttonLabel:'Smart collapse',description:'Save everything, close clearly finished chats, and keep working or uncertain chats alive.'},
+    'stash-close':{buttonLabel:'Stash + close',description:'Save and verify everything, then close unpinned AI chat tabs.'}
   });
 
   function conversationId(url) {
@@ -140,25 +140,19 @@
   }
 
   async function runConfiguredQuickAction() {
-    const result = await chrome.runtime.sendMessage({type:'PC_COMMAND_CENTER_RUN_QUICK_ACTION'});
+    // The background worker owns opening Command Center after the action. That is
+    // intentional: stash-close may close the tab hosting this popup mid-operation.
+    const result = await chrome.runtime.sendMessage({type:'PC_COMMAND_CENTER_RUN_QUICK_ACTION',openCommandCenter:true});
     if (!result?.ok) {
       setToast(clean(result?.error || 'AI tab quick action failed.',180),'error');
       return null;
     }
-    await chrome.runtime.sendMessage({type:'PC_TAB_BEACON_REFRESH'}).catch(() => null);
     setToast(clean(result.message || `Saved ${Number(result.saved || 0)} AI chats.`,220),'success');
     return result;
   }
 
   function openCommandCenter() {
     chrome.tabs.create({url:chrome.runtime.getURL('chat-vault.html'),active:true}).then(() => window.close()).catch(() => {});
-  }
-
-  async function runQuickActionAndOpen() {
-    const result = await runConfiguredQuickAction();
-    if (!result) return;
-    await delay(220);
-    openCommandCenter();
   }
 
   function installToolbar() {
@@ -169,7 +163,7 @@
     const renameMode = document.createElement('button'); renameMode.type = 'button'; renameMode.textContent = 'Rename mode'; renameMode.title = 'Show rename fields for every chat in the current Pulse list';
     quickActionButton = quick;
     center.addEventListener('click',openCommandCenter);
-    quick.addEventListener('click',() => runQuickActionAndOpen().catch((error) => setToast(clean(error?.message || error,160),'error')));
+    quick.addEventListener('click',() => runConfiguredQuickAction().catch((error) => setToast(clean(error?.message || error,160),'error')));
     renameMode.addEventListener('click',() => {
       batchRenameMode = !batchRenameMode; renameMode.classList.toggle('active',batchRenameMode); renameMode.textContent = batchRenameMode ? 'Rename mode on' : 'Rename mode';
       for (const shell of chatList.querySelectorAll('.chat-list-row-shell')) {
