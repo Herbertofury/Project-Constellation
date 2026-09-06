@@ -10,15 +10,18 @@ const popupHtml = read('extension/popup.html');
 const popupQolCss = read('extension/popup-qol.css');
 const commandHtml = read('extension/chat-vault.html');
 const qol = read('extension/src/ui-qol.js');
+const attentionOwner = read('extension/src/popup-attention-qol.js');
 const watchUi = read('extension/src/closed-chat-watch-ui.js');
 const build = read('tools/build.mjs');
 const uiContract = read('tools/ui-contract.mjs');
 
 assert.match(popupHtml,/popup-qol\.css/,'popup must load visible disabled-state QOL styling');
 assert.match(popupHtml,/src\/ui-qol\.js/,'popup must load shared QOL hardening');
+assert.match(popupHtml,/src\/popup-attention-qol\.js/,'popup must load the direct attention-alert toggle owner');
 assert.match(commandHtml,/src\/ui-qol\.js/,'Command Center must load shared QOL hardening');
 assert.match(build,/popup-qol\.css/,'release build must ship popup QOL styling');
 assert.match(build,/ui-qol\.js/,'release build must ship shared QOL hardening');
+assert.match(build,/popup-attention-qol\.js/,'release build must ship the attention-alert toggle owner');
 assert.match(uiContract,/chat-vault\.html/,'UI contract must audit Command Center buttons too');
 assert.match(uiContract,/popup-organizer\.js/,'popup dynamic controls need an owner in the UI contract');
 assert.match(uiContract,/src\/ui-qol\.js/,'UI contract must include QOL-owned controls');
@@ -52,8 +55,13 @@ for (const token of [
   "data-dialog-close"
 ]) assert.ok(qol.includes(token),`shared QOL hardening missing ${token}`);
 
-assert.match(qol,/attention\.addEventListener\('change',[\s\S]*attentionTouched = true;[\s\S]*desiredAttention = Boolean\(attention\.checked\);[\s\S]*repairAttention\(\);[\s\S]*,true\);/,'attention toggle repair must capture the user choice before the legacy popup handler');
-assert.match(qol,/for \(const id of pulseControlIds\)[\s\S]*control\.addEventListener\('change',repairAttention,true\)/,'every Pulse-setting change must reassert the chosen attention-alert preference');
+assert.match(attentionOwner,/attentionNotificationsEnabled/,'attention owner must persist the correct setting key');
+assert.match(attentionOwner,/event\.stopImmediatePropagation\(\)/,'attention owner must block the legacy stale-value handler');
+assert.ok(attentionOwner.indexOf('const desired = Boolean(input.checked)') < attentionOwner.indexOf('event.stopImmediatePropagation()'),'attention owner must capture the user choice before suppressing the legacy handler');
+assert.match(attentionOwner,/writeChain = writeChain\.then\(\(\) => persist\(desired\)\)/,'rapid attention toggles must serialize rather than race');
+assert.doesNotMatch(attentionOwner,/setTimeout\s*\(/,'direct attention persistence must not depend on a timing delay');
+
+assert.match(qol,/for \(const id of pulseControlIds\)[\s\S]*control\.addEventListener\('change',repairAttention,true\)/,'later Pulse-setting changes must reassert the chosen attention-alert preference');
 assert.match(qol,/if \(current\.attentionNotificationsEnabled !== desiredAttention\)/,'attention preference repair must avoid needless storage writes when already correct');
 assert.match(qol,/observe\(chatPulse, \{ childList:true,subtree:true \}\)/,'popup organizer hardening should observe only the Pulse surface, not the entire document');
 assert.match(qol,/chatList\.addEventListener\('click',[\s\S]*if \(!focused\?\.ok\)[\s\S]*await openOrFocusChat\(url\)/,'stale Pulse rows must fall back to safe open/focus instead of becoming dead clicks');
