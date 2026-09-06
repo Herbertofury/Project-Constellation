@@ -26,7 +26,7 @@ const topFiles = [
 ];
 const sourceFiles = [
   'core.js','brain-core.js','provider-core.js','integrity-core.js','knowledge-core.js','health-core.js','chatgpt-page-probe.js','live-sentinel.js','tab-beacon.js','content.js','pulse-ux.js','styles.css',
-  'chat-vault-core.js','chat-organizer.js','chat-organizer.css','notification-repair.js','command-center-action-core.js','closed-chat-watch-core.js','closed-chat-watch.js','closed-chat-watch-ui.js','closed-chat-vault-bridge.js','ui-qol.js','command-center-actions.js'
+  'chat-vault-core.js','chat-organizer.js','chat-organizer.css','notification-repair.js','command-center-action-core.js','closed-chat-watch-core.js','closed-chat-watch.js','closed-chat-watch-ui.js','closed-chat-vault-bridge.js','ui-qol.js','popup-attention-qol.js','command-center-actions.js'
 ];
 for (const file of topFiles) fs.copyFileSync(path.join(sourceRoot, file), path.join(unpacked, file));
 for (const file of sourceFiles) fs.copyFileSync(path.join(sourceRoot, 'src', file), path.join(unpacked, 'src', file));
