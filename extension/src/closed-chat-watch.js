@@ -140,6 +140,8 @@
   async function cancelWatch(key) {
     const safe = clean(key,1200);
     if (!safe) return false;
+    const current = await loadState();
+    if (!current?.watches?.[safe]) return false;
     return mutateState((draft) => {
       if (!draft.watches[safe]) return false;
       delete draft.watches[safe];
@@ -155,10 +157,17 @@
       const meta = rememberTab(tab);
       if (meta?.key) openKeys.add(meta.key);
     }
+    const current = await loadState();
+    const cancellable = [...openKeys].filter((key) => current?.watches?.[key]);
+    if (!cancellable.length) {
+      scheduleAlarmFrom(current);
+      return 0;
+    }
     await mutateState((draft) => {
-      for (const key of openKeys) delete draft.watches[key];
+      for (const key of cancellable) delete draft.watches[key];
       draft.updatedAt = Date.now();
     });
+    return cancellable.length;
   }
 
   async function readConfiguredMode(modeHint = '') {
@@ -175,8 +184,14 @@
     const rows = await Promise.all(tabs.map(async (tab) => {
       const meta = rememberTab(tab);
       if (!meta) return null;
-      const state = await withTimeout(chrome.tabs.sendMessage(tab.id,{type:'PC_GET_LIVE_SENTINEL_STATE'}),PREFLIGHT_TIMEOUT_MS,null);
-      preflightByTab.set(Number(tab.id),{ meta,state,explicit:true,capturedAt:stamp,expiresAt:stamp + PREFLIGHT_TTL_MS });
+      const tabId = Number(tab.id);
+      // Arm the explicit-stash fallback before any async probe. If the destructive
+      // action closes a very fast tab first, onRemoved still has enough metadata
+      // to create a conservative watch rather than silently losing it.
+      preflightByTab.set(tabId,{ meta,state:null,explicit:true,capturedAt:stamp,expiresAt:stamp + PREFLIGHT_TTL_MS });
+      const state = await withTimeout(chrome.tabs.sendMessage(tabId,{type:'PC_GET_LIVE_SENTINEL_STATE'}),PREFLIGHT_TIMEOUT_MS,null);
+      const current = preflightByTab.get(tabId);
+      if (current?.meta?.key === meta.key) preflightByTab.set(tabId,{ ...current,state });
       return meta;
     }));
     return rows.filter(Boolean).length;
