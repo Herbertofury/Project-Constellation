@@ -41,8 +41,8 @@
         <nav id="projectList" class="stack-list" aria-label="AI chat projects"></nav>
 
         <div class="sidebar-note monitor-note">
-          <strong><span class="monitor-dot"></span> Live Sentinel is event-driven</strong>
-          <p>Chats stay signed in and keep running in their real provider tabs. Constellation watches local tab state, provider activity, and progress signals without reloading or logging into another session.</p>
+          <strong><span class="monitor-dot"></span> Sentinel + adaptive remote heartbeat</strong>
+          <p>Open chats stay event-driven in their real provider tabs. If a working chat is closed, Constellation can keep a tiny persisted watch lease and check provider-side persisted progress with adaptive backoff. It never keeps hidden provider tabs alive, never auto-reloads a chat, and stops polling when the signal is no longer useful.</p>
         </div>
       </aside>
 
@@ -51,7 +51,7 @@
           <div class="hero-copy">
             <span id="viewEyebrow" class="eyebrow">ALL AI CHATS</span>
             <div class="stack-title-line"><h2 id="viewTitle">Mission control</h2><button id="renameProject" class="icon-button" type="button" title="Rename selected project" aria-label="Rename selected project">&#9998;</button></div>
-            <p id="viewMeta">One place to organize every AI chat and see what is working, blocked, stalled, dead, finished, or parked.</p>
+            <p id="viewMeta">One place to organize every AI chat and see what is working, blocked, stalled, dead, finished, remotely watched, or parked.</p>
           </div>
           <div class="hero-actions">
             <button id="openMissing" class="secondary" type="button">Open missing chats</button>
@@ -79,7 +79,7 @@
         <section id="emptyState" class="empty-state">
           <div class="empty-orbit"><span>&#10022;</span></div>
           <h3>Turn the tab pile into an AI operations room.</h3>
-          <p>Gather every open supported AI chat into a project with one click. The real tabs stay alive so work can continue, while Constellation shows progress, blockers, stalls, dead runs, completions, and saved chats here.</p>
+          <p>Gather every open supported AI chat into a project with one click. Keep live work in normal tabs when you want, or stash tabs and let Constellation use a low-impact remote heartbeat only for chats that still need watching.</p>
           <button id="emptyGather" class="primary" type="button">Gather my open AI chats</button>
         </section>
 
@@ -90,7 +90,7 @@
 
     <footer class="statusbar">
       <span id="vaultStatus">Ready.</span>
-      <span>Monitoring is local and session-preserving. No provider login is duplicated and no chat is auto-reloaded.</span>
+      <span>Monitoring is local-first and session-preserving. Remote heartbeat uses conditional provider checks only after a watched tab closes; no provider login is duplicated and no chat is auto-reloaded.</span>
     </footer>
   </div>
 
@@ -124,6 +124,8 @@
   </dialog>
 
   <script src="src/chat-vault-core.js"></script>
+  <script src="src/closed-chat-watch-core.js"></script>
   <script src="chat-vault.js"></script>
+  <script src="src/closed-chat-watch-ui.js"></script>
 </body>
 </html>
