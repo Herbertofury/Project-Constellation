@@ -1,0 +1,44 @@
+name: v0.17.9 repair verified transport
+
+on:
+  push:
+    branches:
+      - release/v0.17.9-command-center-heartbeat
+    paths:
+      - '.pc-v0178/REPAIR'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Reassemble only the proven-bad combined transport file
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '53e8208c1a434dc25b378c73a1de5fdb5e4723687bdb64d3b36b7d76a13266aa  .pc-v0178/part-03' | sha256sum -c -
+          echo '11f5fd435076f9073fb413fa53f60c8bb8ce8d87d04e5e667baa307aa8f83b62  .pc-v0178/part-04' | sha256sum -c -
+          echo '728a7afc606d19555bbd148e62e3377045207707b05103061697af4c6a8aab5b  .pc-v0178/part-05' | sha256sum -c -
+          echo '74ed97cb9316bace45fd01dc8c6a3096823f18f0d10f61a3a14a0b746effdec6  .pc-v0178/part-06' | sha256sum -c -
+          cat .pc-v0178/part-03 .pc-v0178/part-04 .pc-v0178/part-05 .pc-v0178/part-06 > .pc-v0178/part-03-06
+          test "$(wc -c < .pc-v0178/part-03-06)" -eq 80000
+          echo '72e0727bfa09bc85cda4c030b0a30202025779a048ad195ed2d4aa6a9c3d9621  .pc-v0178/part-03-06' | sha256sum -c -
+          test "$(wc -c < .pc-v0178/part-07-11)" -eq 93156
+          echo 'ab19f5b81025f7f8d69e6f0f502a9281f10171c18ab4d8eb6470a699eb6ac120  .pc-v0178/part-07-11' | sha256sum -c -
+      - name: Commit repaired verified transport and remove this helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/v0179-repair-transport.yml .pc-v0178/REPAIR
+          git add -A
+          git diff --cached --check
+          git config user.name 'Project Constellation Transport Repair'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'Repair verified v0.17.8 materialization transport'
+          git push origin HEAD:release/v0.17.9-command-center-heartbeat
