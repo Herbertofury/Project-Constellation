@@ -83,6 +83,7 @@ const actionCore = read('extension/src/command-center-action-core.js');
 for (const token of ['gather','smart-collapse','stash-close','QUICK_ACTION_KEY','smartDisposition','one-tab-style','pinned','unproven']) {
   assert.ok(actionCore.includes(token), `quick action policy core missing ${token}`);
 }
+assert.match(actionCore, /tab\?\.pinned/, 'OneTab-style stash policy must preserve pinned tabs');
 
 const actions = read('extension/src/command-center-actions.js');
 for (const token of ['PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_SET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','contexts:[\'action\']','type:\'radio\'','Stash + close AI chats now','saveAndVerifyTabs','chrome.tabs.remove','chrome.runtime.getURL(\'chat-vault.html\')']) {
@@ -90,7 +91,6 @@ for (const token of ['PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_SET
 }
 assert.match(actions, /prefs\?\.view === 'project'/, 'quick action may use a selected project only when Command Center is explicitly in project view');
 assert.match(actions, /vaultCore\.LIVE_PROJECT_NAME/, 'quick action needs a safe Live AI Sessions fallback');
-assert.match(actions, /tab\?\.pinned/, 'OneTab-style stash must preserve pinned tabs');
 assert.doesNotMatch(actions, /contextMenus\.removeAll/, 'right-click menu integration must not destroy existing page-level Constellation menus');
 assert.doesNotMatch(actions, /chrome\.tabs\.reload\s*\(/, 'quick actions must never auto-reload provider chats');
 assert.doesNotMatch(actions, /\bfetch\s*\(/, 'quick actions must not add provider fetches');
