@@ -128,6 +128,16 @@
       return normalizeWatch({ ...next,phase:'heartbeat',active:true,errorCount:errors,lastError:probe.error,detail:'Heartbeat temporarily backed off after a provider error.',nextCheckAt:now + retryMs });
     }
 
+    if (age >= ABSOLUTE_MAX_MS) {
+      return normalizeWatch({
+        ...next,
+        phase:'dormant',
+        active:false,
+        detail:'Remote heartbeat reached its six-hour hard ceiling and stopped to prevent indefinite background traffic. Reopen the chat to resume live monitoring.',
+        nextCheckAt:0
+      });
+    }
+
     const fp = clean(probe.fingerprint || '',300);
     const signal = probe.signal === 'turns' ? 'turns' : 'page';
     const changed = Boolean(watch.fingerprint && fp && watch.fingerprint !== fp);
@@ -185,7 +195,7 @@
       return normalizeWatch(next);
     }
 
-    if (age >= NO_PROGRESS_MAX_MS || age >= ABSOLUTE_MAX_MS) {
+    if (age >= NO_PROGRESS_MAX_MS) {
       next.phase = 'dormant';
       next.active = false;
       next.detail = 'No trustworthy persisted progress appeared during the low-impact watch window. Monitoring stopped instead of polling forever.';
