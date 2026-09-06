@@ -10,9 +10,10 @@ const manifest = JSON.parse(read('extension/manifest.json'));
 const packageJson = JSON.parse(read('package.json'));
 assert.match(packageJson.scripts.test, /chat-vault-core\.test\.mjs/);
 assert.match(packageJson.scripts.test, /command-center-action-core\.test\.mjs/);
+assert.match(packageJson.scripts.test, /closed-chat-watch-core\.test\.mjs/);
 assert.match(packageJson.scripts.test, /chat-vault-static\.test\.mjs/);
 const buildScript = read('tools/build.mjs');
-for (const token of ['background-entry.js','popup-organizer.js','chat-vault.html','chat-vault-core.js','chat-organizer.js','notification-repair.js','command-center-action-core.js','command-center-actions.js']) {
+for (const token of ['background-entry.js','popup-organizer.js','chat-vault.html','chat-vault-core.js','chat-organizer.js','notification-repair.js','command-center-action-core.js','closed-chat-watch-core.js','closed-chat-watch.js','command-center-actions.js']) {
   assert.ok(buildScript.includes(token), `build must ship ${token}`);
 }
 
@@ -22,14 +23,18 @@ assert.ok(manifest.permissions.includes('scripting'));
 assert.ok(manifest.permissions.includes('tabGroups'));
 assert.ok(manifest.permissions.includes('contextMenus'));
 assert.ok(manifest.permissions.includes('alarms'));
+assert.ok(manifest.permissions.includes('offscreen'));
 assert.equal(manifest.permissions.includes('clipboardWrite'), false, 'obsolete OneTab clipboard permission must be removed');
 
 const backgroundEntry = read('extension/background-entry.js');
-for (const token of ['src/chat-vault-core.js','src/command-center-action-core.js','background.js','src/notification-repair.js','src/command-center-actions.js']) {
+for (const token of ['src/chat-vault-core.js','src/command-center-action-core.js','src/closed-chat-watch-core.js','background.js','src/notification-repair.js','src/closed-chat-watch.js','src/command-center-actions.js']) {
   assert.ok(backgroundEntry.includes(token), `background entry must load ${token}`);
 }
 assert.ok(backgroundEntry.indexOf('src/chat-vault-core.js') < backgroundEntry.indexOf('src/command-center-actions.js'), 'Command Center storage core must load before quick actions');
 assert.ok(backgroundEntry.indexOf('src/command-center-action-core.js') < backgroundEntry.indexOf('src/command-center-actions.js'), 'quick action policy core must load before quick actions');
+assert.ok(backgroundEntry.indexOf('src/closed-chat-watch-core.js') < backgroundEntry.indexOf('src/closed-chat-watch.js'), 'closed-chat heartbeat policy must load before its runtime');
+assert.ok(backgroundEntry.indexOf('background.js') < backgroundEntry.indexOf('src/closed-chat-watch.js'), 'provider globals must exist before closed-chat runtime starts');
+assert.ok(backgroundEntry.indexOf('src/closed-chat-watch.js') < backgroundEntry.indexOf('src/command-center-actions.js'), 'heartbeat preflight listener should arm before quick-action listener');
 
 const chatScript = manifest.content_scripts.find((entry) => entry.js?.includes('src/chat-organizer.js'));
 assert.ok(chatScript, 'ChatGPT organizer content script must be registered');
@@ -100,6 +105,21 @@ assert.doesNotMatch(actions, /\bfetch\s*\(/, 'quick actions must not add provide
 assert.doesNotMatch(actions, /XMLHttpRequest/, 'quick actions must not add provider XHR');
 assert.ok(actions.indexOf('if (!saved.verified)') >= 0 && actions.indexOf('if (!saved.verified)') < actions.indexOf('closeTabIds(closeIds)'), 'verified persistence must happen before any AI tab close');
 assert.ok(actions.indexOf('message.openCommandCenter') > actions.indexOf('runQuickAction(message.mode'), 'background must complete the destructive action before opening Command Center');
+
+const watchPolicy = read('extension/src/closed-chat-watch-core.js');
+for (const token of ['WATCH_KEY','ALARM_NAME','NO_PROGRESS_MAX_MS','ABSOLUTE_MAX_MS','parsedFingerprint','reduceProbe','Remote progress','Remote settled','Provider terminal state was not fabricated']) {
+  assert.ok(watchPolicy.includes(token), `closed-chat heartbeat policy missing ${token}`);
+}
+
+const watchRuntime = read('extension/src/closed-chat-watch.js');
+for (const token of ['PC_LIVE_CHAT_STATE_PUSH','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','PC_CLOSED_CHAT_WATCH_SNAPSHOT','chrome.tabs.onRemoved','chrome.alarms.onAlarm','credentials:\'include\'','cache:\'no-store\'','projectConstellationRequestGovernor','MAX_PROBES_PER_RUN','FETCH_TIMEOUT_MS','backgroundHtml','PC_OFFSCREEN_PARSE_HTML']) {
+  assert.ok(watchRuntime.includes(token), `closed-chat heartbeat runtime missing ${token}`);
+}
+assert.match(watchRuntime, /chrome\.runtime\.getContexts/,'heartbeat parser must reuse the extension offscreen parser rather than hidden provider tabs');
+assert.doesNotMatch(watchRuntime, /periodInMinutes|periodInSeconds/,'closed-chat heartbeat must use adaptive one-shot alarms, not a recurring watchdog');
+assert.doesNotMatch(watchRuntime, /active\s*:\s*false[^\n]*chrome\.tabs\.create|chrome\.tabs\.create\([^\n]*active\s*:\s*false/,'heartbeat runtime must not create hidden/background provider tabs');
+assert.doesNotMatch(watchRuntime, /chrome\.tabs\.reload\s*\(/,'heartbeat runtime must never auto-reload provider chats');
+assert.doesNotMatch(watchRuntime, /setInterval\s*\(/,'heartbeat runtime must not spin a permanent interval');
 
 const vaultCore = read('extension/src/chat-vault-core.js');
 for (const token of ['COMMAND_CENTER_PREFS_KEY','LIVE_PROJECT_NAME','livePresentation','tool-stalled','request-stalled','mergeItems','ensureStack','stateCounts']) {
