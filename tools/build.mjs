@@ -21,7 +21,7 @@ if (production && !validGithubClient) throw new Error('Production build blocked:
 fs.rmSync(unpacked, { recursive: true, force: true });
 fs.mkdirSync(path.join(unpacked, 'src'), { recursive: true });
 const topFiles = [
-  'manifest.json','background.js','background-entry.js','popup.html','popup.css','popup-pulse.css','popup-organizer.css','popup.js','popup-organizer.js',
+  'manifest.json','background.js','background-entry.js','popup.html','popup.css','popup-pulse.css','popup-organizer.css','popup-qol.css','popup.js','popup-organizer.js',
   'chat-vault.html','chat-vault.css','chat-vault.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js'
 ];
 const sourceFiles = [
