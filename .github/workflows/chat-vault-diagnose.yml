@@ -1,0 +1,44 @@
+name: Chat Vault Diagnose
+
+on:
+  push:
+    branches:
+      - feature/chat-vault-pulse-rename-decorations
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  npm-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Capture npm test output
+        id: npmtest
+        shell: bash
+        run: |
+          mkdir -p diagnostics
+          set +e
+          npm test > diagnostics/npm-test.log 2>&1
+          code=$?
+          echo "$code" > diagnostics/npm-test.exit
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          set -e
+      - name: Upload diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chat-vault-npm-test-log
+          path: diagnostics/
+          if-no-files-found: error
+          retention-days: 2
+      - name: Preserve test result
+        if: steps.npmtest.outputs.exit_code != '0'
+        run: exit 1
