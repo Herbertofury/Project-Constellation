@@ -10,9 +10,15 @@
   let batchRenameMode = false;
   let rowObserver = null;
   let toastTimer = 0;
+  let quickActionButton = null;
 
   const clean = core.clean;
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const QUICK_FALLBACK = Object.freeze({
+    gather:{buttonLabel:'Gather AI chats',description:'Save and organize open AI chats while keeping provider tabs live.'},
+    'smart-collapse':{buttonLabel:'Smart collapse AI chats',description:'Save everything, close clearly finished chats, and keep working or uncertain chats alive.'},
+    'stash-close':{buttonLabel:'Stash + close AI chats',description:'Save and verify everything, then close unpinned AI chat tabs.'}
+  });
 
   function conversationId(url) {
     return core.conversationId(url || '');
@@ -25,7 +31,7 @@
     }
     node.textContent = message; node.dataset.kind = kind; node.hidden = false;
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { node.hidden = true; },3200);
+    toastTimer = setTimeout(() => { node.hidden = true; },3600);
   }
 
   async function ensureOrganizer(tabId) {
@@ -117,40 +123,40 @@
     for (const shell of chatList.querySelectorAll('.chat-list-row-shell')) enhanceRow(shell);
   }
 
-  async function gatherOpenTabsIntoCommandCenter() {
-    const tabs = (await chrome.tabs.query({})).filter((tab) => core.isSupportedChatUrl(tab.url || ''));
-    if (!tabs.length) { setToast('No open supported AI chat tabs found.','error'); return null; }
-    const stamp = Date.now(); const items = tabs.map((tab) => core.tabToItem(tab,stamp)).filter(Boolean);
-    const stored = await chrome.storage.local.get([core.VAULT_KEY,core.COMMAND_CENTER_PREFS_KEY]);
-    let vault = core.normalizeVault(stored?.[core.VAULT_KEY]);
-    const currentPrefs = stored?.[core.COMMAND_CENTER_PREFS_KEY] || {};
-    let target = currentPrefs?.view === 'project' ? vault.stacks.find((stack) => stack.id === vault.selectedStackId) || null : null;
-    if (!target) {
-      const ensured = core.ensureStack(vault,core.LIVE_PROJECT_NAME,{select:true,color:'#8b5cf6'});
-      vault = ensured.vault; target = ensured.stack;
+  function applyQuickActionState(result) {
+    if (!quickActionButton) return;
+    const mode = result?.mode || 'gather';
+    const meta = result?.meta || QUICK_FALLBACK[mode] || QUICK_FALLBACK.gather;
+    quickActionButton.textContent = meta.buttonLabel || QUICK_FALLBACK[mode]?.buttonLabel || 'AI tabs';
+    quickActionButton.title = `${meta.description || QUICK_FALLBACK[mode]?.description || ''} Right-click the pinned Project Constellation extension icon to change this one-click behavior.`.trim();
+    quickActionButton.dataset.mode = mode;
+  }
+
+  async function refreshQuickActionState() {
+    try {
+      const result = await chrome.runtime.sendMessage({type:'PC_COMMAND_CENTER_GET_QUICK_ACTION'});
+      if (result?.ok) applyQuickActionState(result);
+    } catch (_) {}
+  }
+
+  async function runConfiguredQuickAction() {
+    const result = await chrome.runtime.sendMessage({type:'PC_COMMAND_CENTER_RUN_QUICK_ACTION'});
+    if (!result?.ok) {
+      setToast(clean(result?.error || 'AI tab quick action failed.',180),'error');
+      return null;
     }
-    for (const item of items) {
-      for (const stack of vault.stacks) if (stack.id !== target.id) stack.items = stack.items.filter((row) => row.key !== item.key);
-    }
-    target = vault.stacks.find((stack) => stack.id === target.id) || target;
-    target.items = core.mergeItems(target.items,items); target.updatedAt = Date.now(); vault.selectedStackId = target.id;
-    await chrome.storage.local.set({[core.VAULT_KEY]:vault,[core.COMMAND_CENTER_PREFS_KEY]:{view:'project',attentionFirst:true}});
-    const verify = await chrome.storage.local.get(core.VAULT_KEY);
-    const saved = core.normalizeVault(verify?.[core.VAULT_KEY]).stacks.find((row) => row.id === target.id);
-    const keys = new Set(saved?.items?.map((item) => item.key) || []);
-    if (!items.every((item) => keys.has(item.key))) { setToast('Safety verification failed. No tabs were touched.','error'); return null; }
     await chrome.runtime.sendMessage({type:'PC_TAB_BEACON_REFRESH'}).catch(() => null);
-    setToast(`Gathered ${items.length} AI chat${items.length === 1 ? '' : 's'} into ${target.name}. Tabs stayed open.`,'success');
-    return target;
+    setToast(clean(result.message || `Saved ${Number(result.saved || 0)} AI chats.`,220),'success');
+    return result;
   }
 
   function openCommandCenter() {
     chrome.tabs.create({url:chrome.runtime.getURL('chat-vault.html'),active:true}).then(() => window.close()).catch(() => {});
   }
 
-  async function gatherAndOpen() {
-    const project = await gatherOpenTabsIntoCommandCenter();
-    if (!project) return;
+  async function runQuickActionAndOpen() {
+    const result = await runConfiguredQuickAction();
+    if (!result) return;
     await delay(220);
     openCommandCenter();
   }
@@ -159,10 +165,11 @@
     if (document.getElementById('pcPopupOrganizerBar')) return;
     const bar = document.createElement('div'); bar.id = 'pcPopupOrganizerBar'; bar.className = 'pc-popup-organizer-bar';
     const center = document.createElement('button'); center.type = 'button'; center.textContent = 'Command Center'; center.title = 'Open the Project Constellation AI operations room';
-    const gather = document.createElement('button'); gather.type = 'button'; gather.textContent = 'Gather AI chats'; gather.title = 'Save every open supported AI chat into the Command Center without closing or reloading provider tabs';
+    const quick = document.createElement('button'); quick.type = 'button'; quick.textContent = 'AI tabs…'; quick.title = 'Run the configured AI tab quick action';
     const renameMode = document.createElement('button'); renameMode.type = 'button'; renameMode.textContent = 'Rename mode'; renameMode.title = 'Show rename fields for every chat in the current Pulse list';
+    quickActionButton = quick;
     center.addEventListener('click',openCommandCenter);
-    gather.addEventListener('click',() => gatherAndOpen().catch((error) => setToast(clean(error?.message || error,160),'error')));
+    quick.addEventListener('click',() => runQuickActionAndOpen().catch((error) => setToast(clean(error?.message || error,160),'error')));
     renameMode.addEventListener('click',() => {
       batchRenameMode = !batchRenameMode; renameMode.classList.toggle('active',batchRenameMode); renameMode.textContent = batchRenameMode ? 'Rename mode on' : 'Rename mode';
       for (const shell of chatList.querySelectorAll('.chat-list-row-shell')) {
@@ -170,9 +177,10 @@
         else { const form = shell.querySelector(':scope > .pc-popup-inline-rename'); if (form) form.hidden = true; }
       }
     });
-    bar.append(center,gather,renameMode);
+    bar.append(center,quick,renameMode);
     const head = chatPulse.querySelector('.section-head');
     if (head?.nextSibling) chatPulse.insertBefore(bar,head.nextSibling); else chatPulse.appendChild(bar);
+    refreshQuickActionState().catch(() => {});
   }
 
   installToolbar(); enhanceRows();
