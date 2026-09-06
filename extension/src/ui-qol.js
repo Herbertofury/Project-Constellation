@@ -68,12 +68,14 @@
     if (attention && !bound.has(attention)) {
       bound.add(attention);
       attention.addEventListener('change', () => {
-        // popup.js historically preserved the old value through ...pulseSettings.
-        // Commit the user's current checkbox after that handler finishes.
+        // Capture before popup.js finishes its async save/render cycle, because its
+        // legacy spread preserved the previous value and can repaint the checkbox.
+        const desired = Boolean(attention.checked);
         setTimeout(async () => {
           const stored = await chrome.storage.local.get(PULSE_UX_KEY).catch(() => ({}));
-          const next = { ...(stored?.[PULSE_UX_KEY] || {}), attentionNotificationsEnabled:Boolean(attention.checked) };
+          const next = { ...(stored?.[PULSE_UX_KEY] || {}), attentionNotificationsEnabled:desired };
           await chrome.storage.local.set({ [PULSE_UX_KEY]:next }).catch(() => {});
+          attention.checked = desired;
         }, 80);
       });
     }
@@ -149,9 +151,10 @@
 
   function installPopupOrganizerQol() {
     const chatList = $('chatList');
-    if (!chatList) return;
+    const chatPulse = $('chatPulse');
+    if (!chatList || !chatPulse) return;
     const sync = () => { hardenOrganizerRows(); hardenOrganizerToolbar(); };
-    new MutationObserver(sync).observe(document.body, { childList:true, subtree:true });
+    new MutationObserver(sync).observe(chatPulse, { childList:true, subtree:true });
     sync();
   }
 
