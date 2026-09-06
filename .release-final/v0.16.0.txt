@@ -1,0 +1,1 @@
+Publish Project Constellation v0.16.0 only after exact-tree Verify, scale, and installed-Chromium acceptance pass.
