@@ -18,7 +18,8 @@
     "scripting",
     "notifications",
     "tabGroups",
-    "contextMenus"
+    "contextMenus",
+    "clipboardWrite"
   ],
   "optional_permissions": [
     "downloads",
@@ -62,7 +63,7 @@
     ]
   },
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "background-entry.js",
     "type": "module"
   },
   "action": {
@@ -125,6 +126,20 @@
         "src/styles.css"
       ],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/chat-vault-core.js",
+        "src/chat-organizer.js"
+      ],
+      "css": [
+        "src/chat-organizer.css"
+      ],
+      "run_at": "document_idle"
     }
   ]
 }

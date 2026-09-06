@@ -1,7 +1,7 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"><link rel="stylesheet" href="popup-pulse.css"></head>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"><link rel="stylesheet" href="popup-pulse.css"><link rel="stylesheet" href="popup-organizer.css"></head>
 <body><main class="panel">
-  <div class="hero"><div><div class="brand-line"><span class="brand-mark">✦</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Performance Engine</h1></div><span id="pressure" class="badge">offline</span></div>
+  <div class="hero"><div><div class="brand-line"><span class="brand-mark">&#10022;</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Performance Engine</h1></div><span id="pressure" class="badge">offline</span></div>
   <p class="status" id="status">Performance protection and continuity monitoring.</p>
   <div class="launch-actions">
     <button id="openHome" class="primary">Open Project Constellation</button>
@@ -17,12 +17,12 @@
     </div>
     <p class="chat-pulse-hint" id="chatPulseHint">Click a status card to browse every matching live chat.</p>
     <div class="chat-list-panel" id="chatListPanel" hidden>
-      <div class="chat-list-head"><div><span id="chatListEyebrow">ACTIVE CHATS</span><strong id="chatListTitle">Active chats</strong></div><button id="closeChatList" type="button" aria-label="Close chat list">×</button></div>
+      <div class="chat-list-head"><div><span id="chatListEyebrow">ACTIVE CHATS</span><strong id="chatListTitle">Active chats</strong></div><button id="closeChatList" type="button" aria-label="Close chat list">&#215;</button></div>
       <div class="chat-list" id="chatList" role="list"></div>
     </div>
   </section>
   <section class="tab-beacons" id="tabBeaconsPanel" aria-label="Tab beacon settings">
-    <div class="section-head"><span>TAB BEACONS</span><small>title · favicon · groups</small></div>
+    <div class="section-head"><span>TAB BEACONS</span><small>title - favicon - groups</small></div>
     <div class="beacon-toggle-grid">
       <label><span>Master</span><input id="tabBeaconsEnabled" type="checkbox"></label>
       <label><span>Title</span><input id="tabTitleStatusEnabled" type="checkbox"></label>
@@ -37,7 +37,7 @@
     </div>
     <div class="tab-tag-editor">
       <div><strong>Emoji tag for this tab</strong><small>Persists with this chat. Right-click the page for quick tags too.</small></div>
-      <div class="tag-presets" id="tagPresets"><button type="button" data-tag="🔥">🔥</button><button type="button" data-tag="📌">📌</button><button type="button" data-tag="💡">💡</button><button type="button" data-tag="🧪">🧪</button><button type="button" data-tag="✅">✅</button></div>
+      <div class="tag-presets" id="tagPresets"><button type="button" data-tag="&#128293;">&#128293;</button><button type="button" data-tag="&#128204;">&#128204;</button><button type="button" data-tag="&#128161;">&#128161;</button><button type="button" data-tag="&#129514;">&#129514;</button><button type="button" data-tag="&#9989;">&#9989;</button></div>
       <div class="tag-custom"><input id="customTabTag" maxlength="24" placeholder="emoji or short tag"><button id="applyTabTag" type="button">Apply</button><button id="clearTabTag" type="button">Clear</button></div>
       <small id="tabTagHint">Open a supported AI chat to tag it.</small>
     </div>
@@ -53,6 +53,6 @@
     <label class="row"><span><strong>Output Vault warnings</strong><small>Keep saved/page mismatch warnings secondary to chat health</small></span><input id="outputWarningsEnabled" type="checkbox"></label>
     <label class="row select-row"><span><strong>Output warning sensitivity</strong><small>Balanced ignores low-confidence tool/activity-card churn</small></span><select id="outputWarningStrictness"><option value="relaxed">Relaxed</option><option value="balanced">Balanced</option><option value="strict">Strict</option></select></label>
   </section>
-  <section class="metrics"><div><span>Provider</span><strong id="provider">—</strong></div><div><span>Chat state</span><strong id="chatState">—</strong></div><div><span>Long tasks</span><strong id="longTasks">0</strong></div><div><span>Max task</span><strong id="maxTask">0 ms</strong></div></section>
+  <section class="metrics"><div><span>Provider</span><strong id="provider">-</strong></div><div><span>Chat state</span><strong id="chatState">-</strong></div><div><span>Long tasks</span><strong id="longTasks">0</strong></div><div><span>Max task</span><strong id="maxTask">0 ms</strong></div></section>
   <button id="resetMetrics">Reset session metrics</button>
-</main><script src="popup.js"></script></body></html>
+</main><script src="src/chat-vault-core.js"></script><script src="popup.js"></script><script src="popup-organizer.js"></script></body></html>

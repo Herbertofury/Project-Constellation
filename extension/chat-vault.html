@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat Vault - Project Constellation</title>
+  <link rel="stylesheet" href="chat-vault.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">&#10022;</span>
+        <div><span class="eyebrow">PROJECT CONSTELLATION</span><h1>Chat Vault</h1></div>
+        <span class="local-pill">local-first</span>
+      </div>
+      <div class="top-actions">
+        <button id="saveOpenChats" class="secondary" type="button">Save open chats</button>
+        <button id="stashOpenChats" class="primary" type="button">Stash + close</button>
+        <button id="oneTabHandoff" class="secondary accent" type="button">OneTab handoff</button>
+        <button id="importTabs" class="quiet" type="button">Import</button>
+        <button id="exportVault" class="quiet" type="button">Export backup</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="search-wrap"><span>&#8981;</span><input id="vaultSearch" type="search" placeholder="Search every saved chat" autocomplete="off"></div>
+        <button id="newStack" class="new-stack" type="button"><span>+</span> New stack</button>
+        <div class="side-section-title"><span>STACKS</span><strong id="totalSavedCount">0 saved</strong></div>
+        <nav id="stackList" class="stack-list" aria-label="Saved chat stacks"></nav>
+        <div class="sidebar-note">
+          <strong>OneTab mode, but chat-aware.</strong>
+          <p>Stash saves first, verifies the write, then closes only the chat tabs that were safely captured. Pinned chat tabs are saved but left open.</p>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <section class="stack-hero">
+          <div>
+            <span id="stackEyebrow" class="eyebrow">CHAT STACK</span>
+            <div class="stack-title-line"><h2 id="stackTitle">No saved chats yet</h2><button id="renameStack" class="icon-button" type="button" title="Rename stack" aria-label="Rename stack">&#9998;</button></div>
+            <p id="stackMeta">Use Save open chats or Stash + close to start a recoverable list.</p>
+          </div>
+          <div class="stack-actions">
+            <button id="restoreAll" class="secondary" type="button">Restore all</button>
+            <button id="copyOneTab" class="secondary" type="button">Copy OneTab list</button>
+            <button id="deleteStack" class="danger-quiet" type="button">Delete stack</button>
+          </div>
+        </section>
+
+        <section id="emptyState" class="empty-state">
+          <div class="empty-orbit"><span>&#10022;</span></div>
+          <h3>Your chats can leave the tab bar without disappearing.</h3>
+          <p>Capture open AI conversations into named stacks, close them to release memory, restore them as a native Chrome group, and keep per-chat emoji/color styling with the chat.</p>
+          <button id="emptyStash" class="primary" type="button">Stash my open chats</button>
+        </section>
+
+        <section id="searchSummary" class="search-summary" hidden></section>
+        <section id="chatGrid" class="chat-grid" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <footer class="statusbar">
+      <span id="vaultStatus">Ready.</span>
+      <span>Stored in this browser profile. Nothing is uploaded by Chat Vault.</span>
+    </footer>
+  </div>
+
+  <dialog id="stackDialog" class="pc-dialog">
+    <form method="dialog" id="stackForm">
+      <div class="dialog-head"><div><span class="eyebrow">CHAT STACK</span><h3 id="stackDialogTitle">New stack</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <label>Stack name<input id="stackNameInput" maxlength="120" autocomplete="off" placeholder="Example: Performance debugging"></label>
+      <label>Accent<input id="stackColorInput" type="color" value="#8b5cf6"></label>
+      <div class="dialog-actions"><button value="cancel" class="quiet">Cancel</button><button id="saveStackDialog" value="default" class="primary">Save stack</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="importDialog" class="pc-dialog wide-dialog">
+    <form method="dialog" id="importForm">
+      <div class="dialog-head"><div><span class="eyebrow">IMPORT</span><h3>Bring chats into the Vault</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <p class="dialog-copy">Paste OneTab export lines in <code>URL | Title</code> format, plain chat URLs, or import a Project Constellation JSON backup.</p>
+      <textarea id="oneTabImportText" rows="10" placeholder="https://chatgpt.com/c/... | Chat title"></textarea>
+      <div class="dialog-actions spread"><label class="file-button">Choose JSON backup<input id="jsonImportFile" type="file" accept="application/json,.json"></label><span id="importCountHint"></span><button value="cancel" class="quiet">Cancel</button><button id="runTextImport" value="default" class="primary">Import text</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="styleDialog" class="pc-dialog">
+    <form method="dialog" id="styleForm">
+      <div class="dialog-head"><div><span class="eyebrow">CHAT STYLE</span><h3 id="styleChatTitle">Style chat</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <label>Emoji<input id="styleEmoji" maxlength="16" autocomplete="off" placeholder="emoji"></label>
+      <div id="styleEmojiPresets" class="emoji-presets"></div>
+      <label class="toggle-color">Custom color <span><input id="styleColor" type="color" value="#8b5cf6"><input id="styleColorEnabled" type="checkbox"></span></label>
+      <label>Text style<select id="styleText"><option value="clean">Clean</option><option value="bold">Bold</option><option value="serif">Serif</option><option value="italic">Italic</option><option value="mono">Mono</option><option value="wide">Wide</option><option value="glow">Glow</option><option value="soft">Soft pill</option></select></label>
+      <div class="dialog-actions"><button id="clearStyle" value="none" class="quiet">Clear</button><span class="spacer"></span><button value="cancel" class="quiet">Cancel</button><button id="saveStyle" value="default" class="primary">Save style</button></div>
+    </form>
+  </dialog>
+
+  <script src="src/chat-vault-core.js"></script>
+  <script src="chat-vault.js"></script>
+</body>
+</html>
