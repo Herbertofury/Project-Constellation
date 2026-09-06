@@ -45,6 +45,12 @@ assert.match(removed,/await clearCandidate\(id\)/,'session candidate must be cle
 const pushHandler = bodyBetween("if (message?.type === 'PC_LIVE_CHAT_STATE_PUSH'","if (message?.type === 'PC_COMMAND_CENTER_RUN_QUICK_ACTION'");
 assert.match(pushHandler,/syncCandidate\(tabId,meta,state\)/,'live-state transitions must maintain the MV3-safe candidate');
 
+const tabUpdated = bodyBetween('chrome.tabs.onUpdated.addListener','chrome.tabs.onRemoved.addListener');
+const urlBranch = tabUpdated.slice(tabUpdated.indexOf('if (changeInfo.url)'));
+assert.match(urlBranch,/liveStateByTab\.delete\(id\)/,'navigation must discard volatile state from the previous chat before a manual close can consume it');
+assert.match(urlBranch,/preflightByTab\.delete\(id\)/,'navigation must discard stale stash preflight state');
+assert.match(urlBranch,/clearCandidate\(id\)/,'navigation to a different chat must clear the old session candidate');
+
 assert.doesNotMatch(source,/CANDIDATE_PREFIX[\s\S]{0,600}chrome\.storage\.local/,'manual-close candidates must not be persisted to local storage');
 assert.doesNotMatch(source,/setInterval\s*\(/,'heartbeat runtime must not spin continuously');
 assert.doesNotMatch(source,/periodInMinutes|periodInSeconds/,'heartbeat runtime must not install a recurring alarm');
