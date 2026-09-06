@@ -1,0 +1,373 @@
+name: v0.17.9 verified forward-port and release
+
+on:
+  push:
+    branches:
+      - release/v0.17.9-command-center-heartbeat
+    paths:
+      - '.pc-v0178/TRIGGER'
+
+permissions:
+  contents: write
+
+env:
+  DONOR_REF: 2086ddf2f075aea3923c42a0c12b328324e854f8
+  RELEASE_VERSION: 0.17.9
+
+jobs:
+  integrate-verify-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify and materialize exact Drive-backed v0.17.8 baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          verify_part() {
+            local f="$1" size="$2" sha="$3"
+            test "$(wc -c < "$f")" -eq "$size"
+            echo "$sha  $f" | sha256sum -c -
+          }
+          verify_part .pc-v0178/part-00 20000 c9658c76624b7ff0b58614d0ebced025816d68905721615b2e3d37c279b91008
+          verify_part .pc-v0178/part-01 20000 2798365ac93e3e3a2f7f46adcc460027de02e56fb2be1c8182a6ee29df8b1d97
+          verify_part .pc-v0178/part-02 20000 3ee56163e875336b7ee6cb49a8ec9a9f69249fb57e7eb89cd9de83df2da2b746
+          verify_part .pc-v0178/part-03-06 80000 72e0727bfa09bc85cda4c030b0a30202025779a048ad195ed2d4aa6a9c3d9621
+          verify_part .pc-v0178/part-07-11 93156 ab19f5b81025f7f8d69e6f0f502a9281f10171c18ab4d8eb6470a699eb6ac120
+          cat .pc-v0178/part-00 .pc-v0178/part-01 .pc-v0178/part-02 .pc-v0178/part-03-06 .pc-v0178/part-07-11 > /tmp/v0178.b64
+          test "$(wc -c < /tmp/v0178.b64)" -eq 233156
+          echo '99797f9107f411ab82906615a1c5624e95c4e1d52eafe16eb110d4157f068d60  /tmp/v0178.b64' | sha256sum -c -
+          base64 -d /tmp/v0178.b64 > /tmp/v0178.patch.gz
+          test "$(wc -c < /tmp/v0178.patch.gz)" -eq 174866
+          echo '6aa26a3d0724015ce8194e7eb7f9f4ecf98948facce19b75953a555a29dfb5f5  /tmp/v0178.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/v0178.patch.gz > /tmp/v0178.patch
+          test "$(wc -c < /tmp/v0178.patch)" -eq 720817
+          echo '9fcf1476af0509c360b1d06fec0dc7db2dc2f2b8ad749da092c7f15275df5ec8  /tmp/v0178.patch' | sha256sum -c -
+          git apply --check /tmp/v0178.patch
+          git apply /tmp/v0178.patch
+          test "$(node -p "require('./package.json').version")" = '0.17.8'
+          test "$(node -p "require('./extension/manifest.json').version")" = '0.17.8'
+          test -f extension/src/scheduled-task-guardian-core.js
+          test -f extension/src/scheduled-task-observer.js
+          test -f tests/scheduled-task-guardian.test.mjs
+          test -f docs/v0.17.8-release-notes.md
+          git diff --check
+
+      - name: Forward-port clean Command Center heartbeat and QOL donor
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin feature/chat-vault-pulse-rename-decorations
+          git cat-file -e "${DONOR_REF}^{commit}"
+          git checkout "$DONOR_REF" -- \
+            extension/background-entry.js \
+            extension/chat-vault.css \
+            extension/chat-vault.html \
+            extension/chat-vault.js \
+            extension/popup-organizer.css \
+            extension/popup-organizer.js \
+            extension/popup-qol.css \
+            extension/src/chat-organizer.css \
+            extension/src/chat-organizer.js \
+            extension/src/chat-vault-core.js \
+            extension/src/closed-chat-vault-bridge.js \
+            extension/src/closed-chat-watch-core.js \
+            extension/src/closed-chat-watch-ui.js \
+            extension/src/closed-chat-watch.js \
+            extension/src/command-center-action-core.js \
+            extension/src/command-center-actions.js \
+            extension/src/notification-repair.js \
+            extension/src/popup-attention-qol.js \
+            extension/src/ui-qol.js \
+            tests/chat-vault-core.test.mjs \
+            tests/chat-vault-static.test.mjs \
+            tests/closed-chat-vault-bridge-static.test.mjs \
+            tests/closed-chat-watch-core.test.mjs \
+            tests/closed-chat-watch-runtime-static.test.mjs \
+            tests/command-center-action-core.test.mjs \
+            tests/command-center-actions-runtime.test.mjs \
+            tests/popup-attention-qol.test.mjs \
+            tests/ui-qol-static.test.mjs \
+            tools/live_browser_acceptance_v2.py \
+            tools/ui-contract.mjs
+
+      - name: Union v0.17.8 and donor wiring without regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          version='0.17.9'
+
+          # Manifest: preserve every v0.17.8 provider and Scheduled Task content script.
+          p=Path('extension/manifest.json')
+          m=json.loads(p.read_text())
+          m['version']=version
+          m['description']='Performance-first AI workspace with Scheduled Task Command Center, AI Command Center, project organization, live Chat Pulse, adaptive closed-chat heartbeat, durable notifications, Capacity Guard, and verified project continuity.'
+          m['background']={'service_worker':'background-entry.js','type':'module'}
+          organizer={
+            'matches':['https://chatgpt.com/*','https://chat.openai.com/*'],
+            'js':['src/chat-vault-core.js','src/chat-organizer.js'],
+            'css':['src/chat-organizer.css'],
+            'run_at':'document_idle'
+          }
+          scripts=m.setdefault('content_scripts',[])
+          if not any('src/chat-organizer.js' in (row.get('js') or []) for row in scripts): scripts.append(organizer)
+          p.write_text(json.dumps(m,indent=2)+'\n')
+
+          # Popup: keep the complete v0.17.8 body/cards/scheduled controls and add owners/styles.
+          p=Path('extension/popup.html')
+          s=p.read_text()
+          for css in ['popup-organizer.css','popup-qol.css']:
+            token=f'<link rel="stylesheet" href="{css}">'
+            if token not in s: s=s.replace('</head>',token+'</head>')
+          old='<script src="popup.js"></script>'
+          new='<script src="src/chat-vault-core.js"></script><script src="popup.js"></script><script src="popup-organizer.js"></script><script src="src/ui-qol.js"></script><script src="src/popup-attention-qol.js"></script>'
+          if old not in s and 'popup-organizer.js' not in s: raise SystemExit('popup.js script anchor not found')
+          if old in s: s=s.replace(old,new)
+          p.write_text(s)
+
+          # Package: preserve all v0.17.8 tests and append donor regressions exactly once.
+          p=Path('package.json')
+          pkg=json.loads(p.read_text())
+          pkg['version']=version
+          existing=[x.strip() for x in pkg['scripts']['test'].split('&&') if x.strip()]
+          donor_tests=[
+            'node tests/chat-vault-core.test.mjs',
+            'node tests/command-center-action-core.test.mjs',
+            'node tests/closed-chat-watch-core.test.mjs',
+            'node tests/closed-chat-watch-runtime-static.test.mjs',
+            'node tests/closed-chat-vault-bridge-static.test.mjs',
+            'node tests/command-center-actions-runtime.test.mjs',
+            'node tests/popup-attention-qol.test.mjs',
+            'node tests/chat-vault-static.test.mjs',
+            'node tests/ui-qol-static.test.mjs'
+          ]
+          for test in donor_tests:
+            if test not in existing: existing.append(test)
+          pkg['scripts']['test']=' && '.join(existing)
+          pkg['scripts']['test:command-center-browser']='python3 tools/live_browser_acceptance_v2.py'
+          p.write_text(json.dumps(pkg,indent=2)+'\n')
+
+          # Lockfile identity only; dependencies remain untouched.
+          p=Path('package-lock.json')
+          lock=json.loads(p.read_text())
+          lock['version']=version
+          if '' in lock.get('packages',{}): lock['packages']['']['version']=version
+          p.write_text(json.dumps(lock,indent=2)+'\n')
+
+          # Build: preserve v0.17.8 recursive src closure, add only new top-level artifacts,
+          # plus explicit source validation tokens required by Command Center static QA.
+          p=Path('tools/build.mjs')
+          s=p.read_text()
+          old="const topFiles = ['manifest.json','background.js','popup.html','popup.css','popup-pulse.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js'];"
+          new="const topFiles = ['manifest.json','background.js','background-entry.js','popup.html','popup.css','popup-pulse.css','popup-organizer.css','popup-qol.css','popup.js','popup-organizer.js','chat-vault.html','chat-vault.css','chat-vault.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js'];"
+          if old not in s: raise SystemExit('v0.17.8 topFiles anchor not found')
+          s=s.replace(old,new)
+          marker="for (const file of topFiles) fs.copyFileSync(path.join(sourceRoot, file), path.join(unpacked, file));"
+          validation="""const requiredSrcArtifacts = ['chat-vault-core.js','chat-organizer.js','notification-repair.js','command-center-action-core.js','closed-chat-watch-core.js','closed-chat-watch.js','closed-chat-watch-ui.js','command-center-actions.js','ui-qol.js','popup-attention-qol.js'];\nfor (const name of requiredSrcArtifacts) {\n  if (!fs.existsSync(path.join(sourceRoot, 'src', name))) throw new Error(`Missing required src artifact: ${name}`);\n}\n"""
+          if validation.strip() not in s: s=s.replace(marker,validation+marker)
+          p.write_text(s)
+          PY
+
+          cat > docs/v0.17.9-release-notes.md <<'MD'
+          # Project Constellation v0.17.9 — AI Command Center + Closed-Chat Heartbeat
+
+          v0.17.9 is a strict forward-port onto the verified Drive-backed **v0.17.8 Scheduled Task Command Center** baseline. It preserves v0.17.8 Scheduled Task Guardian, terminal-state handling, Approval Autopilot, Output Vault, project intelligence, privacy boundaries, provider coverage, and task notifications, then adds the requested first-party AI Command Center and QOL hardening.
+
+          ## AI Command Center
+          - First-party project workspace for live and saved AI chats; no OneTab dependency.
+          - Search, project assignment, live/attention/completed views, backups/imports, and safe restore/open-missing flows.
+          - Native ChatGPT rename plus local emoji/color/style decoration.
+          - Duplicate-tab prevention and stale-focus recovery.
+
+          ## One-click AI tab actions
+          - **Gather / Keep live** saves and organizes without closing.
+          - **Smart collapse** closes only verified-finished unpinned chats while preserving working, attention, uncertain, and pinned tabs.
+          - **Stash + close** verifies persistence before closing all supported unpinned AI chat tabs.
+          - Right-click the pinned extension icon to choose the one-click behavior.
+          - Background worker owns destructive closing and post-close Command Center navigation.
+
+          ## Adaptive closed-chat heartbeat
+          - No hidden provider tabs, no invisible duplicate sessions, no provider auto-reload, and no permanent polling interval/watchdog.
+          - Watches provider-persisted progress only where the provider safely supports authenticated background HTML.
+          - Conditional ETag/Last-Modified reads and the existing request governor minimize network cost.
+          - At most two sequential probes per worker wake, each bounded to 12 seconds.
+          - Quiet cadence backs off roughly 90s → 2m → 5m → 10m → 15m; fresh observed progress can temporarily use ~60s.
+          - No-progress watches become dormant after 90 minutes; every watch has an absolute six-hour ceiling checked before another request.
+          - Manual-close continuity survives MV3 worker suspension through tiny transition-deduplicated session candidates.
+          - Newly watched unsaved closed chats are automatically parked in **Live AI Sessions**; deliberate vault removal cancels orphan watches.
+
+          ## QOL / no-dead-button pass
+          - Unavailable controls are explicitly disabled with explanatory state instead of silently doing nothing.
+          - Dialog Cancel/X actions cannot accidentally submit saves.
+          - Same JSON backup can be imported repeatedly.
+          - Popup, Command Center, Accounts, Home, and provider routes reuse existing tabs where possible.
+          - Repaired **Stall & runway alerts** persistence, including rapid-toggle last-choice-wins ordering.
+          - Remote heartbeat buttons surface failures and disappear/repair themselves when the underlying watch ends.
+
+          ## v0.17.8 safety preserved
+          - Scheduled tasks remain ChatGPT cloud jobs; Constellation observes browser/provider-visible metadata without claiming hidden execution authority.
+          - No scheduled-task prompt/instruction/result/content/body text is persisted by the guardian.
+          - Existing user ChatGPT tabs are never hijacked; Scheduled opens only through explicit foreground user action.
+          - No new Chrome permission family was added beyond the verified v0.17.8 permission set.
+
+          ## Provenance
+          - Verified v0.17.8 source ZIP SHA-256: `151db18997e3fe5ba84faec7d0ad34e65eca1e5e701c2a92d4c2485bc3f5c1d8`.
+          - Verified v0.17.8 unpacked ZIP SHA-256: `e14c5d712eb494af9aeff49a54f59bf0139d47b9594c65246bd1a4f93a48ea8f`.
+          - Clean donor commit: `2086ddf2f075aea3923c42a0c12b328324e854f8`.
+          - Production OAuth remains intentionally unprovisioned in the v0.17.x lineage, so the published install artifact is the verified development/unpacked build rather than a fake production-OAuth package.
+          MD
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('CHANGELOG.md')
+          entry='''## 0.17.9\n\n- Forward-port the AI Command Center, verified Gather/Smart Collapse/Stash actions, native ChatGPT rename/styling, adaptive closed-chat heartbeat, durable notifications, and no-dead-button QOL onto the verified v0.17.8 Scheduled Task Command Center baseline.\n- Preserve v0.17.8 Scheduled Task Guardian, project intelligence, privacy/safety invariants, provider coverage, and scale behavior.\n\n'''
+          if p.exists():
+            text=p.read_text()
+            if '## 0.17.9' not in text:
+              if text.startswith('# '):
+                first=text.find('\n')+1
+                text=text[:first]+'\n'+entry+text[first:]
+              else: text=entry+text
+              p.write_text(text)
+          PY
+
+          # Prove v0.17.8 scheduled-task wiring survived the union.
+          grep -q 'scheduled-task-observer.js' extension/manifest.json
+          grep -q 'scheduled-task-page-probe.js' extension/manifest.json
+          grep -q 'scheduled-task-guardian.test.mjs' package.json
+          grep -q 'scheduled-task-observer.js' tools/build.mjs
+          grep -q 'chat-vault.html' tools/ui-contract.mjs
+          grep -q 'popup-organizer.js' tools/ui-contract.mjs
+          grep -q 'src/ui-qol.js' tools/ui-contract.mjs
+          git diff --check
+
+      - name: Remove transport before verification and commit candidate tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .pc-v0178
+          rm -f .github/workflows/v0179-materialize-integrate.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'Project Constellation v0.17.9 Integrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'Project Constellation v0.17.9: AI Command Center + closed-chat heartbeat'
+          echo "RELEASE_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Full v0.17.8 plus v0.17.9 verification
+        run: npm run verify
+
+      - name: 500-project / 10,000-chat scale gate
+        run: npm run test:scale
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements-dev.txt
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+
+      - name: Deterministic real Chromium Command Center acceptance
+        shell: bash
+        run: xvfb-run -a .venv/bin/python -u tools/live_browser_acceptance_v2.py
+
+      - name: Confirm exact candidate is clean and push verified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain --untracked-files=no)"
+          test "$(node -p "require('./package.json').version")" = '0.17.9'
+          test "$(node -p "require('./extension/manifest.json').version")" = '0.17.9'
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git push origin HEAD:release/v0.17.9-command-center-heartbeat
+
+      - name: Build and package verified development release
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build:dev
+          npm run package:dev
+          d="releases/v0.17.9"
+          cp "$d/SHA256SUMS.txt" "$d/SHA256SUMS-v0.17.9.txt"
+          cp "$d/RELEASE-RECEIPT.json" "$d/RELEASE-RECEIPT-v0.17.9.json"
+          python3 - <<'PY'
+          import json,hashlib,subprocess
+          from pathlib import Path
+          d=Path('releases/v0.17.9')
+          checkpoint={
+            'schema':'project-constellation-final-checkpoint/1',
+            'version':'0.17.9',
+            'codename':'AI Command Center + Closed-Chat Heartbeat',
+            'baselineVersion':'0.17.8',
+            'baselineSourceSha256':'151db18997e3fe5ba84faec7d0ad34e65eca1e5e701c2a92d4c2485bc3f5c1d8',
+            'baselineUnpackedSha256':'e14c5d712eb494af9aeff49a54f59bf0139d47b9594c65246bd1a4f93a48ea8f',
+            'donorCommit':'2086ddf2f075aea3923c42a0c12b328324e854f8',
+            'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+            'buildMode':'development',
+            'oauthProvisioned':{'google':False,'github':False},
+            'verification':{
+              'npmVerify':'pass',
+              'projectScale':'pass: 500 projects / 10000 chats',
+              'chromiumCommandCenterAcceptance':'pass: real Chromium + unpacked MV3 extension + deterministic ChatGPT-origin fixture',
+              'signedInProviderSession':'not claimed; requires user Chrome profile acceptance'
+            },
+            'safety':[
+              'v0.17.8 Scheduled Task Guardian and task privacy boundaries preserved',
+              'no hidden provider tabs',
+              'no provider auto reload',
+              'no recurring heartbeat polling interval',
+              'verified vault persistence before destructive tab close',
+              'pinned tabs preserved by collapse/stash policies'
+            ]
+          }
+          (d/'FINAL-CHECKPOINT-v0.17.9.json').write_text(json.dumps(checkpoint,indent=2)+'\n')
+          PY
+          (cd "$d" && zip -X -q Project-Constellation-v0.17.9-FULL-RELEASE-BUNDLE.zip \
+            Project-Constellation-v0.17.9-unpacked.zip \
+            Project-Constellation-v0.17.9-source.zip \
+            SHA256SUMS-v0.17.9.txt \
+            RELEASE-RECEIPT-v0.17.9.json \
+            FINAL-CHECKPOINT-v0.17.9.json)
+          sha256sum "$d/Project-Constellation-v0.17.9-FULL-RELEASE-BUNDLE.zip" >> "$d/SHA256SUMS-v0.17.9.txt"
+          cat "$d/SHA256SUMS-v0.17.9.txt"
+
+      - name: Publish GitHub v0.17.9 release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          d="releases/v0.17.9"
+          git tag -a v0.17.9 "$RELEASE_COMMIT" -m 'Project Constellation v0.17.9'
+          git push origin v0.17.9
+          gh release create v0.17.9 \
+            --target "$RELEASE_COMMIT" \
+            --title 'Project Constellation v0.17.9 — AI Command Center + Closed-Chat Heartbeat' \
+            --notes-file docs/v0.17.9-release-notes.md \
+            "$d/Project-Constellation-v0.17.9-unpacked.zip" \
+            "$d/Project-Constellation-v0.17.9-source.zip" \
+            "$d/Project-Constellation-v0.17.9-FULL-RELEASE-BUNDLE.zip" \
+            "$d/SHA256SUMS-v0.17.9.txt" \
+            "$d/RELEASE-RECEIPT-v0.17.9.json" \
+            "$d/FINAL-CHECKPOINT-v0.17.9.json"
+
+      - name: Upload exact release bundle for Drive handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: Project-Constellation-v0.17.9-full-release
+          path: releases/v0.17.9/
+          if-no-files-found: error
+          retention-days: 30
