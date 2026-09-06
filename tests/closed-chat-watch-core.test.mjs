@@ -57,6 +57,17 @@ quiet = core.reduceProbe(quiet,{fingerprint:'turns:1:x',signal:'turns',turnCount
 assert.equal(quiet.phase,'dormant');
 assert.equal(quiet.active,false);
 
+let hardCap = core.normalizeWatch({
+  key:'chatgpt:long',url:'https://chatgpt.com/c/long',providerId:'chatgpt',phase:'heartbeat',active:true,
+  closedAt:start,createdAt:start,updatedAt:start + 5 * 60 * 60 * 1000,
+  fingerprint:fp2.fingerprint,signal:'turns',turnCount:fp2.turnCount,assistantCount:fp2.assistantCount,
+  seenProgress:true,lastProgressAt:start + 5 * 60 * 60 * 1000,unchangedChecks:1
+});
+hardCap = core.reduceProbe(hardCap,{...fp2},start + core.ABSOLUTE_MAX_MS + 1);
+assert.equal(hardCap.phase,'dormant','six-hour ceiling must apply even after real remote progress was previously observed');
+assert.equal(hardCap.active,false);
+assert.match(hardCap.detail,/six-hour hard ceiling/i);
+
 const pruned = core.pruneState({watches:{a:watch,b:errorWatch,c:quiet}},start + 17 * 60_000);
 assert.equal(Object.keys(pruned.watches).length,3);
 
