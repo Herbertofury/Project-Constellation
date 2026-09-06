@@ -13,6 +13,7 @@
     modeRoot:'pc-command-center-mode-root',
     modePrefix:'pc-command-center-mode:'
   });
+  const MENU_RECONCILE_ALARM = 'pc-command-center-menu-reconcile-once';
   const RECONCILE_DELAYS = Object.freeze([250,2200,6500]);
   const ERROR_NOTIFICATION_ID = 'pc-command-center-quick-action-error';
   let menuTimers = [];
@@ -248,6 +249,7 @@
 
   function scheduleStartupReconcile() {
     for (const delay of RECONCILE_DELAYS) scheduleMenuReconcile(delay);
+    chrome.alarms?.create?.(MENU_RECONCILE_ALARM,{when:Date.now() + 8000}).catch?.(() => {});
   }
 
   async function openCommandCenter() {
@@ -263,6 +265,9 @@
 
   chrome.runtime.onInstalled.addListener(scheduleStartupReconcile);
   chrome.runtime.onStartup.addListener(scheduleStartupReconcile);
+  chrome.alarms?.onAlarm?.addListener((alarm) => {
+    if (alarm?.name === MENU_RECONCILE_ALARM) ensureActionMenus().catch(() => {});
+  });
   scheduleStartupReconcile();
 
   chrome.storage.onChanged.addListener((changes,area) => {
@@ -290,7 +295,10 @@
       return true;
     }
     if (message?.type === 'PC_COMMAND_CENTER_RUN_QUICK_ACTION') {
-      runQuickAction(message.mode || '').then((result) => sendResponse({...result,message:resultMessage(result)})).catch((error) => sendResponse({ok:false,error:clean(error?.message || error,180)}));
+      runQuickAction(message.mode || '').then(async (result) => {
+        if (result?.ok && message.openCommandCenter) await openCommandCenter().catch(() => {});
+        sendResponse({...result,message:resultMessage(result)});
+      }).catch((error) => sendResponse({ok:false,error:clean(error?.message || error,180)}));
       return true;
     }
     return false;
