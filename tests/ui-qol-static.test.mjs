@@ -7,18 +7,24 @@ const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (rel) => fs.readFileSync(path.join(root,rel),'utf8');
 
 const popupHtml = read('extension/popup.html');
+const popupQolCss = read('extension/popup-qol.css');
 const commandHtml = read('extension/chat-vault.html');
 const qol = read('extension/src/ui-qol.js');
 const watchUi = read('extension/src/closed-chat-watch-ui.js');
 const build = read('tools/build.mjs');
 const uiContract = read('tools/ui-contract.mjs');
 
+assert.match(popupHtml,/popup-qol\.css/,'popup must load visible disabled-state QOL styling');
 assert.match(popupHtml,/src\/ui-qol\.js/,'popup must load shared QOL hardening');
 assert.match(commandHtml,/src\/ui-qol\.js/,'Command Center must load shared QOL hardening');
+assert.match(build,/popup-qol\.css/,'release build must ship popup QOL styling');
 assert.match(build,/ui-qol\.js/,'release build must ship shared QOL hardening');
 assert.match(uiContract,/chat-vault\.html/,'UI contract must audit Command Center buttons too');
 assert.match(uiContract,/popup-organizer\.js/,'popup dynamic controls need an owner in the UI contract');
 assert.match(uiContract,/src\/ui-qol\.js/,'UI contract must include QOL-owned controls');
+assert.match(popupQolCss,/button:disabled/,'unavailable popup buttons must look unavailable instead of dead');
+assert.match(popupQolCss,/input:disabled/,'unavailable popup inputs must look unavailable instead of dead');
+assert.match(popupQolCss,/cursor:not-allowed/,'disabled controls need an explicit unavailable cursor');
 
 for (const dialogId of ['projectDialog','importDialog','styleDialog']) {
   assert.match(commandHtml,new RegExp(`type="button" data-dialog-close="${dialogId}"`),`${dialogId} needs an explicit non-submit close action`);
