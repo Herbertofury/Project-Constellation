@@ -1,0 +1,41 @@
+name: Live browser diagnostic commit
+
+on:
+  push:
+    branches:
+      - feature/chat-vault-pulse-rename-decorations
+    paths:
+      - '.integration/live-browser-diagnostic-commit-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements-dev.txt
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+      - name: Run and commit diagnostic
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a .venv/bin/python -u tools/live_browser_acceptance.py > /tmp/live-browser.log 2>&1
+          code=$?
+          set -e
+          mkdir -p diagnostics
+          cp /tmp/live-browser.log diagnostics/pr21-live-browser.log
+          printf 'exit_code=%s\n' "$code" > diagnostics/pr21-live-browser-result.txt
+          git config user.name 'Project Constellation Diagnostics'
+          git config user.email 'actions@users.noreply.github.com'
+          git add diagnostics/pr21-live-browser.log diagnostics/pr21-live-browser-result.txt
+          git commit -m 'Capture live browser diagnostic'
+          git push origin HEAD:feature/chat-vault-pulse-rename-decorations
