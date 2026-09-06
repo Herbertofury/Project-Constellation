@@ -32,15 +32,15 @@ jobs:
           echo '7f7a493f436ecff32634bf2f9786cac9fc8b142de249bf05707c38f8cdf8009f  .pc-v016/recovered/part-00a' | sha256sum -c -
           echo 'c3fae1845a44b859f28128a614878ebf4780b86c15afed4f6b5188e017266dc8  .pc-v016/recovered/part-00b' | sha256sum -c -
           echo '02c838ab846e95f09398a49cf7d372ce4ecc75361ca67e6909539cc977bd0288  .pc-v016/recovered/part-00c' | sha256sum -c -
-          echo '39c5f06630572749850ff3ba8f3f5555a03344835784771001d68211044028e8  .pc-v016/recovered/part-01a' | sha256sum -c -
-          echo 'c0c0b1b5bf063938c9d8e314af87be940a2b9980f4964349f9a2d16bf7526d6f  .pc-v016/recovered/part-01b' | sha256sum -c -
-          echo '2a22aa545810f03cc4bda6d842c6f83900829930672424196dfa471a79351e74  .pc-v016/recovered/part-01c' | sha256sum -c -
-          echo 'd39385636742dd0317d8d54638bd9fd40a3f57d249afdaaa31ae0065e781d206  .pc-v016/recovered/part-02a' | sha256sum -c -
-          echo '90eaf208f9f66f2eb804c5a51cc1fa28e3bc33451975244d478629233ff623da  .pc-v016/recovered/part-02b' | sha256sum -c -
-          echo '14b33ae6ac553e8641b2676dfebf148defab21d5c9b12c91417f276c5f40b83b  .pc-v016/recovered/part-02c' | sha256sum -c -
-          echo '4362832a6c0ce903f168b8774ec571ae43c59d23a630367964da4ba178734325  .pc-v016/recovered/part-03a' | sha256sum -c -
-          echo 'fca1df8e2221a321fb91bc28975c267d97fd6f93c6d3097397fc4c77bbe2884b  .pc-v016/recovered/part-03b' | sha256sum -c -
-          echo '8267b76455b5404208236c3fef92d3ba5043809611e8d61203a51b630d98673f  .pc-v016/recovered/part-03c' | sha256sum -c -
+          echo 'be92bce0950489535f6701d8db8bf87fa52602d77b5d1397673518ec182dfe34  .pc-v016/recovered/part-01a' | sha256sum -c -
+          echo '2f22ab8beeedddf35889f22a152cac62e8a21e9fb0758c6f2f151460c5f57331  .pc-v016/recovered/part-01b' | sha256sum -c -
+          echo 'b02e748f567b05b31ae0e2a695f13129bf2f999e601cda5064cb430ddeb297a5  .pc-v016/recovered/part-01c' | sha256sum -c -
+          echo '32a4a3438c577a4530b5c5ad6f78e90f06277a801cf9b147a78232c9ba186a77  .pc-v016/recovered/part-02a' | sha256sum -c -
+          echo '712b7d72cf2a176b458c9c48e67e89909ac4e74780e9a58d56fcbb645ce89e72  .pc-v016/recovered/part-02b' | sha256sum -c -
+          echo 'f73e7c17ff245191b6f6852726e43b145e9f9bc13486f005083dd489e50bc41c  .pc-v016/recovered/part-02c' | sha256sum -c -
+          echo 'ff20da1e7aff0fbe464ac7ac78852b3eef6a91cfce05cffbb5678113340a0670  .pc-v016/recovered/part-03a' | sha256sum -c -
+          echo 'cec9e2ad99cef5bc14f64f8b2455267ea762f53afc5dc6b710860a9d82228823  .pc-v016/recovered/part-03b' | sha256sum -c -
+          echo '8894a4ee24a2703e934851e31d64cb558f25aa12d81a1a2df31daa04b13166cc  .pc-v016/recovered/part-03c' | sha256sum -c -
           echo '76b8f3b484fab2eba2bc7100a14ec542dd1f7f999cb090aca4f24e25d4de588c  .pc-v016/recovered/part-04' | sha256sum -c -
           cat \
             .pc-v016/recovered/part-00a .pc-v016/recovered/part-00b .pc-v016/recovered/part-00c \
