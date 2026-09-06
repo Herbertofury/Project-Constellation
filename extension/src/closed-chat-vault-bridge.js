@@ -3,6 +3,7 @@
 
   const vaultCore = globalThis.ProjectConstellationChatVaultCore;
   const watchCore = globalThis.ProjectConstellationClosedChatWatchCore;
+  const watchRuntime = globalThis.ProjectConstellationClosedChatWatchRuntime;
   if (!vaultCore || !watchCore) return;
 
   let syncChain = Promise.resolve();
@@ -28,6 +29,13 @@
     });
   }
 
+  function vaultKeys(rawVault) {
+    const vault = vaultCore.normalizeVault(rawVault);
+    const keys = new Set();
+    for (const stack of vault.stacks) for (const item of stack.items) if (item?.key) keys.add(item.key);
+    return keys;
+  }
+
   async function ensureWatchesVisible(rawState, onlyKeys = null) {
     const state = watchCore.pruneState(rawState || {});
     const rows = Object.values(state.watches || {}).filter((watch) => !onlyKeys || onlyKeys.has(watch.key));
@@ -35,8 +43,7 @@
 
     const stored = await chrome.storage.local.get(vaultCore.VAULT_KEY).catch(() => ({}));
     let vault = vaultCore.normalizeVault(stored?.[vaultCore.VAULT_KEY]);
-    const existing = new Set();
-    for (const stack of vault.stacks) for (const item of stack.items) if (item?.key) existing.add(item.key);
+    const existing = vaultKeys(vault);
     const items = rows.map(itemFromWatch).filter((item) => item && !existing.has(item.key));
     if (!items.length) return {ok:true,added:0};
 
@@ -58,12 +65,21 @@
   }
 
   chrome.storage.onChanged.addListener((changes,area) => {
-    if (area !== 'local' || !changes?.[watchCore.WATCH_KEY]) return;
-    const previous = watchCore.pruneState(changes[watchCore.WATCH_KEY].oldValue || {});
-    const current = watchCore.pruneState(changes[watchCore.WATCH_KEY].newValue || {});
-    const before = new Set(Object.keys(previous.watches || {}));
-    const added = new Set(Object.keys(current.watches || {}).filter((key) => !before.has(key)));
-    if (added.size) enqueue(current,added);
+    if (area !== 'local') return;
+
+    if (changes?.[watchCore.WATCH_KEY]) {
+      const previous = watchCore.pruneState(changes[watchCore.WATCH_KEY].oldValue || {});
+      const current = watchCore.pruneState(changes[watchCore.WATCH_KEY].newValue || {});
+      const before = new Set(Object.keys(previous.watches || {}));
+      const added = new Set(Object.keys(current.watches || {}).filter((key) => !before.has(key)));
+      if (added.size) enqueue(current,added);
+    }
+
+    if (changes?.[vaultCore.VAULT_KEY] && watchRuntime?.cancelWatch) {
+      const before = vaultKeys(changes[vaultCore.VAULT_KEY].oldValue || {});
+      const after = vaultKeys(changes[vaultCore.VAULT_KEY].newValue || {});
+      for (const key of before) if (!after.has(key)) watchRuntime.cancelWatch(key).catch(() => {});
+    }
   });
 
   chrome.storage.local.get(watchCore.WATCH_KEY).then((stored) => {
@@ -71,6 +87,7 @@
   }).catch(() => {});
 
   globalThis.ProjectConstellationClosedChatVaultBridge = Object.freeze({
-    ensureWatchesVisible
+    ensureWatchesVisible,
+    vaultKeys
   });
 })();
