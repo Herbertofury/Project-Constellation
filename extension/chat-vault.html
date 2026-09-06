@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Chat Vault - Project Constellation</title>
+  <title>AI Command Center - Project Constellation</title>
   <link rel="stylesheet" href="chat-vault.css">
 </head>
 <body>
@@ -11,49 +11,76 @@
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark">&#10022;</span>
-        <div><span class="eyebrow">PROJECT CONSTELLATION</span><h1>Chat Vault</h1></div>
+        <div><span class="eyebrow">PROJECT CONSTELLATION</span><h1>AI Command Center</h1></div>
         <span class="local-pill">local-first</span>
       </div>
       <div class="top-actions">
-        <button id="saveOpenChats" class="secondary" type="button">Save open chats</button>
-        <button id="stashOpenChats" class="primary" type="button">Stash + close</button>
-        <button id="oneTabHandoff" class="secondary accent" type="button">OneTab handoff</button>
-        <button id="importTabs" class="quiet" type="button">Import</button>
+        <button id="gatherOpenChats" class="primary" type="button">Gather all AI chats</button>
+        <button id="refreshLive" class="secondary" type="button">Refresh live state</button>
+        <button id="newProject" class="secondary accent" type="button">+ Project</button>
+        <button id="importChats" class="quiet" type="button">Import</button>
         <button id="exportVault" class="quiet" type="button">Export backup</button>
       </div>
     </header>
 
     <div class="workspace">
       <aside class="sidebar">
-        <div class="search-wrap"><span>&#8981;</span><input id="vaultSearch" type="search" placeholder="Search every saved chat" autocomplete="off"></div>
-        <button id="newStack" class="new-stack" type="button"><span>+</span> New stack</button>
-        <div class="side-section-title"><span>STACKS</span><strong id="totalSavedCount">0 saved</strong></div>
-        <nav id="stackList" class="stack-list" aria-label="Saved chat stacks"></nav>
-        <div class="sidebar-note">
-          <strong>OneTab mode, but chat-aware.</strong>
-          <p>Stash saves first, verifies the write, then closes only the chat tabs that were safely captured. Pinned chat tabs are saved but left open.</p>
+        <div class="search-wrap"><span>&#8981;</span><input id="vaultSearch" type="search" placeholder="Search chats, projects, providers" autocomplete="off"></div>
+
+        <div class="side-section-title"><span>LIVE OPERATIONS</span><strong id="monitorMode">sentinel</strong></div>
+        <nav id="liveFilters" class="live-filters" aria-label="Live chat filters">
+          <button id="liveAll" type="button" data-view="all" class="active"><span class="view-icon all"></span><span>All chats</span><strong id="allCount">0</strong></button>
+          <button id="liveActive" type="button" data-view="active"><span class="view-icon active"></span><span>Working now</span><strong id="activeCount">0</strong></button>
+          <button id="liveAttention" type="button" data-view="attention"><span class="view-icon attention"></span><span>Needs attention</span><strong id="attentionCount">0</strong></button>
+          <button id="liveDone" type="button" data-view="done"><span class="view-icon done"></span><span>Completed</span><strong id="doneCount">0</strong></button>
+          <button id="liveSaved" type="button" data-view="saved"><span class="view-icon saved"></span><span>Saved / offline</span><strong id="savedCount">0</strong></button>
+        </nav>
+
+        <div class="side-section-title"><span>PROJECTS</span><strong id="totalSavedCount">0 chats</strong></div>
+        <button id="newProjectSide" class="new-stack" type="button"><span>+</span> New project</button>
+        <nav id="projectList" class="stack-list" aria-label="AI chat projects"></nav>
+
+        <div class="sidebar-note monitor-note">
+          <strong><span class="monitor-dot"></span> Live Sentinel is event-driven</strong>
+          <p>Chats stay signed in and keep running in their real provider tabs. Constellation watches local tab state, provider activity, and progress signals without reloading or logging into another session.</p>
         </div>
       </aside>
 
       <main class="main-panel">
-        <section class="stack-hero">
-          <div>
-            <span id="stackEyebrow" class="eyebrow">CHAT STACK</span>
-            <div class="stack-title-line"><h2 id="stackTitle">No saved chats yet</h2><button id="renameStack" class="icon-button" type="button" title="Rename stack" aria-label="Rename stack">&#9998;</button></div>
-            <p id="stackMeta">Use Save open chats or Stash + close to start a recoverable list.</p>
+        <section class="command-hero">
+          <div class="hero-copy">
+            <span id="viewEyebrow" class="eyebrow">ALL AI CHATS</span>
+            <div class="stack-title-line"><h2 id="viewTitle">Mission control</h2><button id="renameProject" class="icon-button" type="button" title="Rename selected project" aria-label="Rename selected project">&#9998;</button></div>
+            <p id="viewMeta">One place to organize every AI chat and see what is working, blocked, stalled, dead, finished, or parked.</p>
           </div>
-          <div class="stack-actions">
-            <button id="restoreAll" class="secondary" type="button">Restore all</button>
-            <button id="copyOneTab" class="secondary" type="button">Copy OneTab list</button>
-            <button id="deleteStack" class="danger-quiet" type="button">Delete stack</button>
+          <div class="hero-actions">
+            <button id="openMissing" class="secondary" type="button">Open missing chats</button>
+            <button id="organizeTabs" class="secondary" type="button">Organize live tabs</button>
+            <button id="deleteProject" class="danger-quiet" type="button">Delete project</button>
+          </div>
+        </section>
+
+        <section class="metric-strip" aria-label="Live AI summary">
+          <button type="button" class="metric-card" data-view="all"><span>OPEN NOW</span><strong id="metricOpen">0</strong><small id="metricOpenDetail">provider tabs</small></button>
+          <button type="button" class="metric-card running" data-view="active"><span>WORKING</span><strong id="metricRunning">0</strong><small>generating / tools</small></button>
+          <button type="button" class="metric-card attention" data-view="attention"><span>ATTENTION</span><strong id="metricAttention">0</strong><small>blocked / stalled / dead</small></button>
+          <button type="button" class="metric-card done" data-view="done"><span>COMPLETED</span><strong id="metricDone">0</strong><small>latest turn finished</small></button>
+          <button type="button" class="metric-card saved" data-view="saved"><span>PARKED</span><strong id="metricSaved">0</strong><small>saved, tab closed</small></button>
+        </section>
+
+        <section class="command-toolbar">
+          <div id="activeViewLabel">Showing every organized and live AI chat</div>
+          <div class="toolbar-actions">
+            <label class="compact-toggle"><input id="attentionFirst" type="checkbox" checked> attention first</label>
+            <span id="lastLiveUpdate">Not checked yet</span>
           </div>
         </section>
 
         <section id="emptyState" class="empty-state">
           <div class="empty-orbit"><span>&#10022;</span></div>
-          <h3>Your chats can leave the tab bar without disappearing.</h3>
-          <p>Capture open AI conversations into named stacks, close them to release memory, restore them as a native Chrome group, and keep per-chat emoji/color styling with the chat.</p>
-          <button id="emptyStash" class="primary" type="button">Stash my open chats</button>
+          <h3>Turn the tab pile into an AI operations room.</h3>
+          <p>Gather every open supported AI chat into a project with one click. The real tabs stay alive so work can continue, while Constellation shows progress, blockers, stalls, dead runs, completions, and saved chats here.</p>
+          <button id="emptyGather" class="primary" type="button">Gather my open AI chats</button>
         </section>
 
         <section id="searchSummary" class="search-summary" hidden></section>
@@ -63,25 +90,25 @@
 
     <footer class="statusbar">
       <span id="vaultStatus">Ready.</span>
-      <span>Stored in this browser profile. Nothing is uploaded by Chat Vault.</span>
+      <span>Monitoring is local and session-preserving. No provider login is duplicated and no chat is auto-reloaded.</span>
     </footer>
   </div>
 
-  <dialog id="stackDialog" class="pc-dialog">
-    <form method="dialog" id="stackForm">
-      <div class="dialog-head"><div><span class="eyebrow">CHAT STACK</span><h3 id="stackDialogTitle">New stack</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
-      <label>Stack name<input id="stackNameInput" maxlength="120" autocomplete="off" placeholder="Example: Performance debugging"></label>
-      <label>Accent<input id="stackColorInput" type="color" value="#8b5cf6"></label>
-      <div class="dialog-actions"><button value="cancel" class="quiet">Cancel</button><button id="saveStackDialog" value="default" class="primary">Save stack</button></div>
+  <dialog id="projectDialog" class="pc-dialog">
+    <form method="dialog" id="projectForm">
+      <div class="dialog-head"><div><span class="eyebrow">AI PROJECT</span><h3 id="projectDialogTitle">New project</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <label>Project name<input id="projectNameInput" maxlength="120" autocomplete="off" placeholder="Example: Spellbrook Mod"></label>
+      <label>Accent<input id="projectColorInput" type="color" value="#8b5cf6"></label>
+      <div class="dialog-actions"><button value="cancel" class="quiet">Cancel</button><button id="saveProjectDialog" value="default" class="primary">Save project</button></div>
     </form>
   </dialog>
 
   <dialog id="importDialog" class="pc-dialog wide-dialog">
     <form method="dialog" id="importForm">
-      <div class="dialog-head"><div><span class="eyebrow">IMPORT</span><h3>Bring chats into the Vault</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
-      <p class="dialog-copy">Paste OneTab export lines in <code>URL | Title</code> format, plain chat URLs, or import a Project Constellation JSON backup.</p>
-      <textarea id="oneTabImportText" rows="10" placeholder="https://chatgpt.com/c/... | Chat title"></textarea>
-      <div class="dialog-actions spread"><label class="file-button">Choose JSON backup<input id="jsonImportFile" type="file" accept="application/json,.json"></label><span id="importCountHint"></span><button value="cancel" class="quiet">Cancel</button><button id="runTextImport" value="default" class="primary">Import text</button></div>
+      <div class="dialog-head"><div><span class="eyebrow">IMPORT</span><h3>Bring chats into the Command Center</h3></div><button value="cancel" class="icon-button" aria-label="Close">&#215;</button></div>
+      <p class="dialog-copy">Paste supported AI chat URLs, optionally as <code>URL | Title</code>, or import a Project Constellation JSON backup.</p>
+      <textarea id="urlImportText" rows="10" placeholder="https://chatgpt.com/c/... | Chat title"></textarea>
+      <div class="dialog-actions spread"><label class="file-button">Choose JSON backup<input id="jsonImportFile" type="file" accept="application/json,.json"></label><span id="importCountHint"></span><button value="cancel" class="quiet">Cancel</button><button id="runTextImport" value="default" class="primary">Import chats</button></div>
     </form>
   </dialog>
 
