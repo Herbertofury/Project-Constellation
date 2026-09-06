@@ -377,6 +377,20 @@
   async function probeOne(rawWatch) {
     const watch = watchCore.normalizeWatch(rawWatch);
     if (!watch.active) return watch;
+    const now = Date.now();
+    if (now - watch.closedAt >= watchCore.ABSOLUTE_MAX_MS) {
+      const next = watchCore.reduceProbe(watch,{
+        fingerprint:watch.fingerprint,
+        signal:watch.signal,
+        turnCount:watch.turnCount,
+        assistantCount:watch.assistantCount,
+        textLength:watch.textLength,
+        etag:watch.etag,
+        lastModified:watch.lastModified
+      },now);
+      await mutateState((draft) => { draft.watches[watch.key] = next; });
+      return next;
+    }
     const probe = await fetchProbe(watch);
     if (probe.deferUntil) {
       const deferred = watchCore.normalizeWatch({...watch,updatedAt:Date.now(),nextCheckAt:Math.max(Number(probe.deferUntil || 0),Date.now() + 30000),detail:probe.detail || watch.detail});
