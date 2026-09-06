@@ -121,9 +121,10 @@
     const tabs = (await chrome.tabs.query({})).filter((tab) => core.isSupportedChatUrl(tab.url || ''));
     if (!tabs.length) { setToast('No open supported AI chat tabs found.','error'); return null; }
     const stamp = Date.now(); const items = tabs.map((tab) => core.tabToItem(tab,stamp)).filter(Boolean);
-    const stored = await chrome.storage.local.get(core.VAULT_KEY);
+    const stored = await chrome.storage.local.get([core.VAULT_KEY,core.COMMAND_CENTER_PREFS_KEY]);
     let vault = core.normalizeVault(stored?.[core.VAULT_KEY]);
-    let target = vault.stacks.find((stack) => stack.id === vault.selectedStackId) || null;
+    const currentPrefs = stored?.[core.COMMAND_CENTER_PREFS_KEY] || {};
+    let target = currentPrefs?.view === 'project' ? vault.stacks.find((stack) => stack.id === vault.selectedStackId) || null : null;
     if (!target) {
       const ensured = core.ensureStack(vault,core.LIVE_PROJECT_NAME,{select:true,color:'#8b5cf6'});
       vault = ensured.vault; target = ensured.stack;
