@@ -13,14 +13,25 @@ live-state-policy.test.mjs: PASS
 navigation-safety: ok
 interruption-safety.test.mjs: PASS
 tab-group-convergence.test.mjs: PASS
-file:///home/runner/work/Project-Constellation/Project-Constellation/tests/chat-vault-core.test.mjs:18
-const items = core.parseOneTabText([
-                   ^
+chat-vault-core: ok
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
 
-TypeError: core.parseOneTabText is not a function
-    at file:///home/runner/work/Project-Constellation/Project-Constellation/tests/chat-vault-core.test.mjs:18:20
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(manifest.permissions.includes('clipboardWrite'))
+
+    at file:///home/runner/work/Project-Constellation/Project-Constellation/tests/chat-vault-static.test.mjs:19:8
     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
 
 Node.js v22.23.2
