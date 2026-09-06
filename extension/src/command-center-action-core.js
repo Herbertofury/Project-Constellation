@@ -17,14 +17,14 @@
     'smart-collapse':Object.freeze({
       id:'smart-collapse',
       shortLabel:'Smart collapse',
-      buttonLabel:'Smart collapse AI chats',
+      buttonLabel:'Smart collapse',
       menuLabel:'Smart collapse (close finished, keep working/pinned)',
       description:'Save everything, close only clearly finished unpinned chats, and keep working, attention, uncertain, and pinned chats alive.'
     }),
     'stash-close':Object.freeze({
       id:'stash-close',
       shortLabel:'OneTab-style',
-      buttonLabel:'Stash + close AI chats',
+      buttonLabel:'Stash + close',
       menuLabel:'OneTab-style stash (save, close unpinned)',
       description:'Save and verify every AI chat, then close all unpinned AI tabs even if a turn is still running.'
     })
