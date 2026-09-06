@@ -7,10 +7,24 @@
 
   const grid = document.getElementById('chatGrid');
   const monitorMode = document.getElementById('monitorMode');
+  const vaultStatus = document.getElementById('vaultStatus');
   if (!grid) return;
 
   let watchState = {version:watchCore.VERSION,updatedAt:0,watches:{}};
   let frame = 0;
+  let statusTimer = 0;
+
+  function reportStatus(message,kind = '') {
+    if (!vaultStatus) return;
+    vaultStatus.textContent = String(message || '').replace(/\s+/g,' ').trim().slice(0,260);
+    vaultStatus.className = kind;
+    if (statusTimer) clearTimeout(statusTimer);
+    if (kind && kind !== 'busy') statusTimer = setTimeout(() => {
+      if (!vaultStatus.isConnected) return;
+      vaultStatus.className = '';
+      vaultStatus.textContent = 'Ready.';
+    },4400);
+  }
 
   function ageLabel(stamp) {
     const value = Number(stamp || 0);
@@ -31,11 +45,9 @@
   function applyMonitorMode() {
     if (!monitorMode) return;
     const active = activeRemoteCount();
-    if (active > 0) {
-      const base = String(monitorMode.textContent || 'sentinel').replace(/\s*\+\s*remote(?:\s*\d+)?$/i,'').trim() || 'sentinel';
-      const label = `${base} + remote ${active}`;
-      if (monitorMode.textContent !== label) monitorMode.textContent = label;
-    }
+    const base = String(monitorMode.textContent || 'sentinel').replace(/\s*\+\s*remote(?:\s*\d+)?$/i,'').trim() || 'sentinel';
+    const label = active > 0 ? `${base} + remote ${active}` : base;
+    if (monitorMode.textContent !== label) monitorMode.textContent = label;
   }
 
   async function checkNow(button,key) {
@@ -43,20 +55,42 @@
     const old = button.textContent;
     button.disabled = true;
     button.textContent = 'Checking…';
+    reportStatus('Running one closed-chat heartbeat check…','busy');
     try {
-      await chrome.runtime.sendMessage({type:'PC_CLOSED_CHAT_WATCH_NOW',key});
+      const result = await chrome.runtime.sendMessage({type:'PC_CLOSED_CHAT_WATCH_NOW',key});
+      if (!result?.ok) throw new Error(result?.error || 'Remote heartbeat is unavailable.');
       await loadState();
-    } catch (_) {}
-    button.disabled = false;
-    button.textContent = old;
-    scheduleApply();
+      const watch = watchState.watches?.[key];
+      reportStatus(watch?.active ? 'Heartbeat checked. Remote watch remains active.' : 'Heartbeat checked. This remote watch no longer needs background checks.','success');
+    } catch (error) {
+      reportStatus(error?.message || 'Remote heartbeat check failed.','error');
+    } finally {
+      button.disabled = false;
+      button.textContent = old;
+      scheduleApply();
+    }
+  }
+
+  function resetRemoteCard(card) {
+    if (card.dataset.pcRemoteWatch !== '1') return;
+    delete card.dataset.pcRemoteWatch;
+    card.dataset.state = 'offline';
+    const pill = card.querySelector('.state-pill');
+    if (pill) { pill.className = 'state-pill offline'; pill.textContent = 'Saved'; }
+    const age = card.querySelector('.live-age');
+    if (age) age.textContent = 'tab closed';
+    const detail = card.querySelector('.chat-detail');
+    const headline = detail?.querySelector('strong');
+    if (headline) headline.textContent = 'Saved in Project Constellation. Open the chat to resume live monitoring.';
+    detail?.querySelector('.activity')?.remove();
+    card.querySelector('[data-pc-heartbeat-now]')?.remove();
   }
 
   function applyCard(card) {
     const url = card.querySelector('.chat-url')?.textContent || '';
     const key = vaultCore.chatKey(url);
     const watch = key ? watchState.watches?.[key] : null;
-    if (!watch) return;
+    if (!watch) { resetRemoteCard(card); return; }
     const age = card.querySelector('.live-age');
     const remotelyOwned = card.dataset.pcRemoteWatch === '1';
     if (!remotelyOwned && String(age?.textContent || '').trim().toLowerCase() !== 'tab closed') return;
@@ -82,7 +116,12 @@
     }
 
     const actions = card.querySelector('.chat-actions-row');
-    if (actions && watch.active && !actions.querySelector('[data-pc-heartbeat-now]')) {
+    const existing = actions?.querySelector('[data-pc-heartbeat-now]') || null;
+    if (!watch.active) {
+      existing?.remove();
+      return;
+    }
+    if (actions && !existing) {
       const button = document.createElement('button');
       button.type = 'button';
       button.dataset.pcHeartbeatNow = '1';
@@ -91,7 +130,7 @@
       button.addEventListener('click',(event) => {
         event.preventDefault();
         event.stopPropagation();
-        checkNow(button,key).catch(() => {});
+        checkNow(button,key).catch((error) => reportStatus(error?.message || 'Remote heartbeat check failed.','error'));
       });
       actions.insertBefore(button,actions.children[1] || null);
     }
