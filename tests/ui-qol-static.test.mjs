@@ -29,7 +29,9 @@ assert.match(commandHtml,/id="saveStyle" type="submit"/,'style save stays an exp
 assert.match(commandHtml,/id="clearStyle" type="button"/,'clear style must not accidentally submit the form');
 
 for (const token of [
-  "attentionNotificationsEnabled:Boolean(attention.checked)",
+  'const desired = Boolean(attention.checked)',
+  'attentionNotificationsEnabled:desired',
+  'attention.checked = desired',
   "bindExtensionPageButton('openConstellation', 'chat-vault.html'",
   'Open a supported AI chat to use tab tags.',
   'Reset metrics for the current supported AI chat.',
@@ -40,7 +42,8 @@ for (const token of [
   "data-dialog-close"
 ]) assert.ok(qol.includes(token),`shared QOL hardening missing ${token}`);
 
-assert.match(qol,/setTimeout\(async \(\) => \{[\s\S]*attentionNotificationsEnabled:Boolean\(attention\.checked\)/,'attention toggle repair must commit after popup legacy save handler');
+assert.match(qol,/const desired = Boolean\(attention\.checked\);[\s\S]*setTimeout\(async \(\) => \{[\s\S]*attentionNotificationsEnabled:desired/,'attention toggle repair must capture the user choice before popup legacy rerender and commit it afterward');
+assert.match(qol,/observe\(chatPulse, \{ childList:true, subtree:true \}\)/,'popup organizer hardening should observe only the Pulse surface, not the entire document');
 assert.match(qol,/event\.stopImmediatePropagation\(\)/,'QOL routing must suppress conflicting legacy click handlers when it takes ownership');
 assert.match(qol,/chrome\.tabs\.query\(\{\}\)/,'open/focus actions should deduplicate existing tabs before creating another');
 assert.doesNotMatch(qol,/setInterval\s*\(/,'QOL hardening must remain event/mutation driven');
