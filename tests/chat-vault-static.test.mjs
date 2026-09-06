@@ -36,6 +36,8 @@ const pulse = read('extension/popup-organizer.js');
 for (const token of ['PC_CHAT_ORGANIZER_RENAME','PC_CHAT_ORGANIZER_OPEN_EDITOR','Command Center','Gather AI chats','PC_TAB_BEACON_REFRESH']) {
   assert.ok(pulse.includes(token), `Pulse integration missing ${token}`);
 }
+assert.match(pulse, /currentPrefs\?\.view === 'project'/, 'Pulse gather may use a selected project only when the user explicitly left Command Center in project view');
+assert.match(pulse, /core\.LIVE_PROJECT_NAME/, 'Pulse gather needs a safe Live AI Sessions fallback');
 assert.doesNotMatch(pulse, /OneTab/i, 'Pulse must not hand chats to OneTab');
 assert.doesNotMatch(pulse, /tabs\.remove\s*\(/, 'Gather must never close live AI tabs');
 
