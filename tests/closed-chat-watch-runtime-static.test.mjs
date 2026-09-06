@@ -51,6 +51,12 @@ assert.match(urlBranch,/liveStateByTab\.delete\(id\)/,'navigation must discard v
 assert.match(urlBranch,/preflightByTab\.delete\(id\)/,'navigation must discard stale stash preflight state');
 assert.match(urlBranch,/clearCandidate\(id\)/,'navigation to a different chat must clear the old session candidate');
 
+const probeOne = bodyBetween('async function probeOne','async function runDueWatches');
+const capAt = probeOne.indexOf('now - watch.closedAt >= watchCore.ABSOLUTE_MAX_MS');
+const networkAt = probeOne.indexOf('await fetchProbe(watch)');
+assert.ok(capAt >= 0 && networkAt >= 0 && capAt < networkAt, 'six-hour hard ceiling must stop the watch before another provider network request');
+assert.match(probeOne,/watchCore\.reduceProbe\(watch/,'pre-network hard-cap exit must use canonical policy reduction');
+
 assert.doesNotMatch(source,/CANDIDATE_PREFIX[\s\S]{0,600}chrome\.storage\.local/,'manual-close candidates must not be persisted to local storage');
 assert.doesNotMatch(source,/setInterval\s*\(/,'heartbeat runtime must not spin continuously');
 assert.doesNotMatch(source,/periodInMinutes|periodInSeconds/,'heartbeat runtime must not install a recurring alarm');
