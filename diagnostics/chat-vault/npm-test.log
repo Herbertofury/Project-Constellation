@@ -1,0 +1,26 @@
+
+> project-constellation-extension@0.15.0 test
+> node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/chat-vault-core.test.mjs && node tests/chat-vault-static.test.mjs
+
+core.test.mjs: PASS
+brain-core.test.mjs: PASS
+provider-core.test.mjs: PASS
+integrity-core.test.mjs: PASS
+knowledge-core.test.mjs: PASS
+project-memory-core.test.mjs: PASS
+health-core.test.mjs: PASS
+live-state-policy.test.mjs: PASS
+navigation-safety: ok
+interruption-safety.test.mjs: PASS
+tab-group-convergence.test.mjs: PASS
+file:///home/runner/work/Project-Constellation/Project-Constellation/tests/chat-vault-core.test.mjs:18
+const items = core.parseOneTabText([
+                   ^
+
+TypeError: core.parseOneTabText is not a function
+    at file:///home/runner/work/Project-Constellation/Project-Constellation/tests/chat-vault-core.test.mjs:18:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.2
