@@ -21,6 +21,7 @@ assert.ok(manifest.permissions.includes('notifications'));
 assert.ok(manifest.permissions.includes('scripting'));
 assert.ok(manifest.permissions.includes('tabGroups'));
 assert.ok(manifest.permissions.includes('contextMenus'));
+assert.ok(manifest.permissions.includes('alarms'));
 assert.equal(manifest.permissions.includes('clipboardWrite'), false, 'obsolete OneTab clipboard permission must be removed');
 
 const backgroundEntry = read('extension/background-entry.js');
@@ -43,9 +44,10 @@ assert.match(popup, /src\/chat-vault-core\.js/);
 assert.match(popup, /popup-organizer\.js/);
 
 const pulse = read('extension/popup-organizer.js');
-for (const token of ['PC_CHAT_ORGANIZER_RENAME','PC_CHAT_ORGANIZER_OPEN_EDITOR','Command Center','PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_TAB_BEACON_REFRESH','Right-click the pinned Project Constellation extension icon']) {
+for (const token of ['PC_CHAT_ORGANIZER_RENAME','PC_CHAT_ORGANIZER_OPEN_EDITOR','Command Center','PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','openCommandCenter:true','Right-click the pinned Project Constellation extension icon']) {
   assert.ok(pulse.includes(token), `Pulse integration missing ${token}`);
 }
+assert.doesNotMatch(pulse, /runQuickActionAndOpen/, 'popup must not own post-close navigation because stash may close its host tab');
 assert.doesNotMatch(pulse, /OneTab/i, 'Pulse must not hand chats to OneTab');
 assert.doesNotMatch(pulse, /tabs\.remove\s*\(/, 'Pulse must delegate verified tab closing to the background quick-action service');
 
@@ -86,16 +88,18 @@ for (const token of ['gather','smart-collapse','stash-close','QUICK_ACTION_KEY',
 assert.match(actionCore, /tab\?\.pinned/, 'OneTab-style stash policy must preserve pinned tabs');
 
 const actions = read('extension/src/command-center-actions.js');
-for (const token of ['PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_SET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','contexts:[\'action\']','type:\'radio\'','Stash + close AI chats now','saveAndVerifyTabs','chrome.tabs.remove','chrome.runtime.getURL(\'chat-vault.html\')']) {
+for (const token of ['PC_COMMAND_CENTER_GET_QUICK_ACTION','PC_COMMAND_CENTER_SET_QUICK_ACTION','PC_COMMAND_CENTER_RUN_QUICK_ACTION','PC_GET_LIVE_SENTINEL_STATE','contexts:[\'action\']','type:\'radio\'','Stash + close AI chats now','saveAndVerifyTabs','chrome.tabs.remove','chrome.runtime.getURL(\'chat-vault.html\')','MENU_RECONCILE_ALARM','chrome.alarms?.create?.','chrome.alarms?.onAlarm?.addListener','message.openCommandCenter','closeFailed','notifyContextFailure']) {
   assert.ok(actions.includes(token), `quick action runtime missing ${token}`);
 }
 assert.match(actions, /prefs\?\.view === 'project'/, 'quick action may use a selected project only when Command Center is explicitly in project view');
 assert.match(actions, /vaultCore\.LIVE_PROJECT_NAME/, 'quick action needs a safe Live AI Sessions fallback');
 assert.doesNotMatch(actions, /contextMenus\.removeAll/, 'right-click menu integration must not destroy existing page-level Constellation menus');
+assert.doesNotMatch(actions, /periodInMinutes|periodInSeconds/, 'menu recovery must be one-shot, not a recurring watchdog');
 assert.doesNotMatch(actions, /chrome\.tabs\.reload\s*\(/, 'quick actions must never auto-reload provider chats');
 assert.doesNotMatch(actions, /\bfetch\s*\(/, 'quick actions must not add provider fetches');
 assert.doesNotMatch(actions, /XMLHttpRequest/, 'quick actions must not add provider XHR');
 assert.ok(actions.indexOf('if (!saved.verified)') >= 0 && actions.indexOf('if (!saved.verified)') < actions.indexOf('closeTabIds(closeIds)'), 'verified persistence must happen before any AI tab close');
+assert.ok(actions.indexOf('message.openCommandCenter') > actions.indexOf('runQuickAction(message.mode'), 'background must complete the destructive action before opening Command Center');
 
 const vaultCore = read('extension/src/chat-vault-core.js');
 for (const token of ['COMMAND_CENTER_PREFS_KEY','LIVE_PROJECT_NAME','livePresentation','tool-stalled','request-stalled','mergeItems','ensureStack','stateCounts']) {
