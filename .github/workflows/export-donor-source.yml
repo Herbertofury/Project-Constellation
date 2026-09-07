@@ -1,0 +1,31 @@
+name: Export donor source
+
+on:
+  push:
+    branches:
+      - stage/donor-2086-export
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create donor source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=zip --output=Project-Constellation-donor-2086ddf2.zip HEAD
+          sha256sum Project-Constellation-donor-2086ddf2.zip > donor-SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: project-constellation-donor-2086ddf2
+          path: |
+            Project-Constellation-donor-2086ddf2.zip
+            donor-SHA256SUMS.txt
+          if-no-files-found: error
