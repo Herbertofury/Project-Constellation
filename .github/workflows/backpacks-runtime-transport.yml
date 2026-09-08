@@ -13,6 +13,9 @@ jobs:
   build-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      MCROOT: ${{ runner.temp }}/minecraft
+      OUT: ${{ github.workspace }}/transport
     steps:
       - uses: actions/checkout@v4
 
@@ -21,28 +24,43 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Assemble vanilla 1.20.1 + Forge 47.4.23 runtime
+      - name: Prepare runtime directories
         shell: bash
         run: |
           set -euxo pipefail
-          MCROOT="$RUNNER_TEMP/minecraft"
-          OUT="$GITHUB_WORKSPACE/transport"
           mkdir -p "$MCROOT" "$OUT/core/minecraft/assets" "$OUT/core/game"
           printf '{"profiles":{},"settings":{},"version":3}\n' > "$MCROOT/launcher_profiles.json"
 
+      - name: Install vanilla Minecraft 1.20.1
+        shell: bash
+        run: |
+          set -euxo pipefail
           python3 -m pip install --disable-pip-version-check minecraft-launcher-lib
           python3 - <<'PY'
           import os
           import minecraft_launcher_lib
-          root = os.path.join(os.environ['RUNNER_TEMP'], 'minecraft')
-          minecraft_launcher_lib.install.install_minecraft_version('1.20.1', root)
+          minecraft_launcher_lib.install.install_minecraft_version('1.20.1', os.environ['MCROOT'])
           PY
 
+      - name: Download Forge 47.4.23 installer
+        shell: bash
+        run: |
+          set -euxo pipefail
           curl -fL --retry 3 --retry-delay 2 \
             -o "$RUNNER_TEMP/forge-installer.jar" \
             https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.4.23/forge-1.20.1-47.4.23-installer.jar
+          test -s "$RUNNER_TEMP/forge-installer.jar"
+
+      - name: Install Forge 47.4.23 client
+        shell: bash
+        run: |
+          set -euxo pipefail
           java -jar "$RUNNER_TEMP/forge-installer.jar" --installClient "$MCROOT"
 
+      - name: Package runtime core
+        shell: bash
+        run: |
+          set -euxo pipefail
           cp -a "$MCROOT/libraries" "$OUT/core/minecraft/"
           cp -a "$MCROOT/versions" "$OUT/core/minecraft/"
           cp -a "$MCROOT/launcher_profiles.json" "$OUT/core/minecraft/"
@@ -56,8 +74,8 @@ jobs:
           python3 - <<'PY'
           import json, os
           import minecraft_launcher_lib
-          root = os.path.join(os.environ['RUNNER_TEMP'], 'minecraft')
-          out = os.path.join(os.environ['GITHUB_WORKSPACE'], 'transport', 'core')
+          root = os.environ['MCROOT']
+          out = os.path.join(os.environ['OUT'], 'core')
           installed = minecraft_launcher_lib.utils.get_installed_versions(root)
           forge = [v['id'] for v in installed if '47.4.23' in v['id'] and 'forge' in v['id'].lower()]
           if not forge:
@@ -92,6 +110,12 @@ jobs:
           print('LAUNCH_COMMAND', templated)
           PY
 
+          tar -C "$OUT" -czf "$GITHUB_WORKSPACE/backpacks-runtime-core.tar.gz" core
+
+      - name: Pack asset object shards
+        shell: bash
+        run: |
+          set -euxo pipefail
           for g in 0-3 4-7 8-b c-f; do
             case "$g" in
               0-3) dirs="0 1 2 3" ;;
@@ -101,10 +125,9 @@ jobs:
             esac
             present=""
             for d in $dirs; do [ -d "$MCROOT/assets/objects/$d" ] && present="$present $d"; done
+            test -n "$present"
             tar -C "$MCROOT/assets/objects" -czf "$OUT/assets-$g.tar.gz" $present
           done
-
-          tar -C "$OUT" -czf "$GITHUB_WORKSPACE/backpacks-runtime-core.tar.gz" core
           sha256sum "$GITHUB_WORKSPACE/backpacks-runtime-core.tar.gz" "$OUT"/assets-*.tar.gz > "$GITHUB_WORKSPACE/backpacks-runtime-sha256.txt"
           du -sh "$MCROOT" "$OUT/core" "$OUT"/assets-*.tar.gz "$GITHUB_WORKSPACE/backpacks-runtime-core.tar.gz"
 
