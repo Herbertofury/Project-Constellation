@@ -20,6 +20,7 @@ assert((contentEntry.js || []).includes('src/tab-supervisor-core.js'));
 
 assert.match(supervisorBg, /chrome\.tabs\.query\(\{\}\)/, 'background supervisor enumerates every open tab');
 assert.match(supervisorBg, /PC_TAB_SUPERVISOR_TICK/, 'background supervisor wakes each ChatGPT content supervisor');
+assert.match(supervisorBg, /const wakeResults = await Promise\.allSettled\(tabs\.map/, 'all open ChatGPT tabs are awakened concurrently rather than serially');
 assert.match(supervisorBg, /response\?\.supervisor !== PORT_NAME/, 'a delivered message is not treated as supervision unless the tab returns the supervisor identity');
 assert.match(supervisorBg, /response\?\.snapshot\?\.chatId/, 'a heartbeat is only trusted when it carries fresh chat state');
 assert.match(supervisorBg, /handleSnapshot\(\{ sender:\{ tab \} \}, response\.snapshot\)/, 'service-worker heartbeat consumes the fresh snapshot without depending on a long-lived port');
