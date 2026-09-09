@@ -54,13 +54,13 @@ assert.match(supervisor, /findSendButton\(\)/, 'continuation recovery can send a
 assert.match(supervisor, /PC_BRAIN_INGEST_BATCH/, 'visible work is checkpointed before recovery decisions');
 
 for (const marker of [
-  "'background-entry.js'",
-  "'chat-vault-core.js'",
-  "'command-center-actions.js'",
-  "'tab-supervisor-core.js'",
-  "'tab-supervisor-background.js'",
-  "'approval-supervisor-background.js'",
-  "'tab-supervisor.js'"
+  'background-entry.js',
+  'chat-vault-core.js',
+  'command-center-actions.js',
+  'tab-supervisor-core.js',
+  'tab-supervisor-background.js',
+  'approval-supervisor-background.js',
+  'tab-supervisor.js'
 ]) assert.ok(build.includes(marker), `build must package ${marker}`);
 
 console.log('reliability-supervisor-contract.test.mjs: PASS');
