@@ -124,14 +124,26 @@ with sync_playwright() as p:
       }
       await chrome.storage.local.set({ [key]:state });
       const tabs = (await chrome.tabs.query({})).filter(t => String(t.url || '').startsWith('https://chatgpt.com/c/pc-smoke-'));
-      const wakes = await Promise.allSettled(tabs.map(t => chrome.tabs.sendMessage(t.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() })));
-      return { tabs:tabs.map(t => ({id:t.id,url:t.url,active:t.active})), wakes:wakes.map(x => x.status) };
+      const wakes = await Promise.all(tabs.map(async (tab) => {
+        try {
+          const response = await chrome.tabs.sendMessage(tab.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() });
+          return { tabId:tab.id, active:tab.active, ...(response || {}) };
+        } catch (error) {
+          return { tabId:tab.id, active:tab.active, ok:false, error:String(error?.message || error) };
+        }
+      }));
+      await chrome.alarms.create('project-constellation-tab-supervisor', { when:Date.now() + 120 });
+      return { tabs:tabs.map(t => ({id:t.id,url:t.url,active:t.active})), wakes };
     }''')
     assert len(prep['tabs']) == 2, prep
     assert any(not tab['active'] for tab in prep['tabs']), prep
-    assert all(status == 'fulfilled' for status in prep['wakes']), prep
+    assert len(prep['wakes']) == 2, prep
+    for wake in prep['wakes']:
+        assert wake.get('ok') is True, wake
+        assert wake.get('supervisor') == 'pc-tab-supervisor-v1', wake
+        assert str(wake.get('snapshot', {}).get('chatId', '')).startswith('chatgpt:pc-smoke-'), wake
 
-    deadline = time.time() + 15
+    deadline = time.time() + 20
     sent = ['', '']
     while time.time() < deadline:
         sent = [page.evaluate("localStorage.getItem('pc-reliability-sent') || ''") for page in pages]
@@ -142,7 +154,7 @@ with sync_playwright() as p:
     state = admin.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
     print(json.dumps({'runtime': runtime_proof, 'project': project, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
 
-    assert all(sent), f'both open chats must auto-continue after rescue even when Send hydrates late: {sent}'
+    assert all(sent), f'both open chats must auto-continue through the service-worker supervisor even when Send hydrates late: {sent}'
     assert all('Resume from that exact next action immediately' in value for value in sent), sent
     assert all(requests[url] >= 2 for url in urls), f'both tabs must have been reloaded: {requests}'
     for chat_id in ['chatgpt:pc-smoke-a','chatgpt:pc-smoke-b']:
