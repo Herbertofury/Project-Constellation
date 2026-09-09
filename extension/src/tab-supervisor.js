@@ -164,7 +164,7 @@
     host.textContent = level === 'handoff' ? `Project Constellation: this chat is at the handoff boundary (${snapshot.turnCount} turns). Secure a continuation now.` : `Project Constellation: chat runway is narrowing (${snapshot.turnCount} turns). Branch soon.`;
   }
 
-  async function evaluate(force = false) {
+  async function evaluate(force = false, { postSnapshot = true } = {}) {
     if (!document.documentElement) return;
     await scanProjects();
     const snapshot = collectSnapshot();
@@ -175,9 +175,10 @@
       lastSnapshotSignature = snapshot.signature;
       lastSnapshotSentAt = Date.now();
       await checkpoint(snapshot, turnNodes());
-      post({ type:'snapshot', snapshot:{ ...snapshot, capacity } });
+      if (postSnapshot) post({ type:'snapshot', snapshot:{ ...snapshot, capacity } });
     }
     if (snapshot.status === 'blocked-approval') post({ type:'approval-scan', chatId:snapshot.chatId, at:Date.now() });
+    return { ...snapshot, capacity };
   }
 
   async function setComposerText(composer, text) {
@@ -261,7 +262,11 @@
   }
 
   chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[BRAIN_SETTINGS_KEY]) brainSettings = changes[BRAIN_SETTINGS_KEY].newValue || {}; });
-  chrome.runtime.onMessage.addListener((message) => { if (message?.type === 'PC_TAB_SUPERVISOR_TICK') void evaluate(true); });
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type !== 'PC_TAB_SUPERVISOR_TICK') return undefined;
+    void evaluate(true, { postSnapshot:false }).then((snapshot) => sendResponse({ ok:true, supervisor:'pc-tab-supervisor-v1', snapshot:snapshot || null })).catch((error) => sendResponse({ ok:false, supervisor:'pc-tab-supervisor-v1', error:String(error?.message || error || 'tick-failed') }));
+    return true;
+  });
   document.addEventListener('visibilitychange', () => void evaluate(true));
   window.addEventListener('popstate', () => setTimeout(() => void evaluate(true), 100));
   window.addEventListener('hashchange', () => setTimeout(() => void evaluate(true), 100));
