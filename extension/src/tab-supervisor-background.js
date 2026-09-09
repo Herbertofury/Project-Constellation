@@ -211,10 +211,10 @@ function projectTerms(project) {
   return [...new Set(`${project.name || ''} ${project.providerProjectId || ''}`.toLowerCase().split(/[^a-z0-9_-]+/).filter((x) => x.length > 1))].slice(0, 80);
 }
 async function upsertProviderProject(project = {}) {
-  if (!project?.id || !project?.name) return;
+  if (!project?.id || !project?.name) return { ok:false, error:'invalid-project' };
   const db = await openDb();
   try {
-    if (!db.objectStoreNames.contains('projects')) return;
+    if (!db.objectStoreNames.contains('projects')) return { ok:false, error:'brain-schema-not-ready' };
     await new Promise((resolve, reject) => {
       const stores = db.objectStoreNames.contains('searchDocs') ? ['projects', 'searchDocs'] : ['projects'];
       const tx = db.transaction(stores, 'readwrite');
@@ -229,6 +229,9 @@ async function upsertProviderProject(project = {}) {
       tx.oncomplete = resolve;
       tx.onerror = () => reject(tx.error);
     });
+    return { ok:true };
+  } catch (error) {
+    return { ok:false, error:String(error?.message || error || 'project-upsert-failed').slice(0,240) };
   } finally { db.close(); }
 }
 
@@ -310,7 +313,9 @@ chrome.runtime.onConnect.addListener((port) => {
     if (message?.type === 'hello') void maybeSendResume(port, message.chatId || core.chatIdFromUrl(message.url || port.sender?.tab?.url || ''));
     else if (message?.type === 'snapshot') void handleSnapshot(port, message.snapshot || {});
     else if (message?.type === 'resume-result') void handleResumeResult(message);
-    else if (message?.type === 'project-upsert') void upsertProviderProject(message.project || {});
+    else if (message?.type === 'project-upsert') void upsertProviderProject(message.project || {}).then((result) => {
+      try { port.postMessage({ type:'project-upsert-result', projectId:String(message.project?.id || ''), signature:String(message.signature || ''), ok:result?.ok === true, error:String(result?.error || '') }); } catch (_) {}
+    });
   });
   port.onDisconnect.addListener(() => { if (ports.get(tabId) === port) ports.delete(tabId); });
   try { port.postMessage({ type: 'tick', now: Date.now() }); } catch (_) {}
