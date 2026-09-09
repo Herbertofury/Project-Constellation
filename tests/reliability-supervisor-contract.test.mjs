@@ -19,22 +19,27 @@ for (const marker of [
   "import './src/approval-supervisor-background.js'"
 ]) assert.ok(entry.includes(marker), `background entry must preserve ${marker}`);
 
-const mainContent = (manifest.content_scripts || []).find((row) => (row.js || []).includes('src/tab-supervisor.js'));
-assert(mainContent, 'tab supervisor must be shipped with ChatGPT content runtime');
-assert((mainContent.js || []).includes('src/tab-supervisor-core.js'));
+const mainContent = (manifest.content_scripts || []).find((row) => (row.js || []).includes('src/content.js'));
+assert(mainContent, 'normal ChatGPT content runtime must remain packaged');
+assert((mainContent.js || []).includes('src/provider-core.js'));
 const organizerContent = (manifest.content_scripts || []).find((row) => (row.js || []).includes('src/chat-vault-core.js'));
 assert(organizerContent, 'Command Center Chat Vault organizer must remain packaged');
 assert((organizerContent.js || []).includes('src/chat-organizer.js'));
 
 assert.match(supervisorBg, /chrome\.tabs\.query\(\{\}\)/, 'background supervisor enumerates every open tab');
-assert.match(supervisorBg, /PC_TAB_SUPERVISOR_TICK/, 'background supervisor wakes each ChatGPT content supervisor');
-assert.match(supervisorBg, /chrome\.scripting\.executeScript/, 'existing open tabs can be bootstrapped after extension update');
+assert.match(supervisorBg, /PC_TAB_SUPERVISOR_TICK/, 'background supervisor probes each ChatGPT tab');
+assert.match(supervisorBg, /projectConstellationTabSupervisorVersion/, 'background requires an explicit supervisor heartbeat response');
+assert.match(supervisorBg, /chrome\.scripting\.executeScript/, 'missing supervisors can be injected into existing tabs');
+assert.match(supervisorBg, /tab-supervisor-core\.js/, 'bootstrap injects the supervisor core even when the manifest does not declare it');
+assert.match(supervisorBg, /tab-supervisor\.js/, 'bootstrap injects the per-tab agent even when the manifest does not declare it');
+assert.match(supervisorBg, /chrome\.tabs\.onUpdated/, 'new or navigated ChatGPT tabs are bootstrapped without waiting for focus');
 assert.match(supervisorBg, /chrome\.tabs\.reload\(tabId/, 'stale/dead chat rescue performs the requested reload');
 assert.match(supervisorBg, /enabled:cfg\.refreshRecovery\?\.enabled === true/, 'automatic reload honors the existing Refresh Recovery switch');
 assert.match(supervisorBg, /periodInMinutes:1/, 'all-tab watchdog receives a service-worker heartbeat even when page timers are throttled');
 assert.match(supervisorBg, /observerAge < 90_000/, 'background owns stale-state recovery when a hidden/frozen content agent stops reporting');
 assert.doesNotMatch(supervisorBg, /query\(\{\s*active\s*:\s*true/, 'reliability must never collapse to active-tab-only behavior');
 
+assert.match(supervisor, /projectConstellationTabSupervisorVersion:1/, 'per-tab agent proves its own presence to the service worker');
 assert.match(supervisor, /document\.hidden \? 1000 : 180/, 'hidden tabs remain evaluated instead of being skipped');
 assert.doesNotMatch(supervisor, /if \(document\.hidden\) return/, 'hidden tabs must not disable the reliability path');
 assert.match(supervisor, /type:'approval-scan'/, 'tab supervisor requests immediate permission recovery without owning approval clicks');
