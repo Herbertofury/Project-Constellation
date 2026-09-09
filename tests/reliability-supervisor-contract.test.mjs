@@ -48,6 +48,8 @@ assert.match(supervisor, /project-upsert-result/, 'project discovery consumes pe
 assert.match(supervisor, /message\.ok === true[^\n]*seenProjects\.set/, 'a project is only marked seen after a successful persistence ACK');
 assert.match(supervisorBg, /brain-schema-not-ready/, 'background reports a retryable project schema failure instead of silently dropping it');
 assert.match(supervisorBg, /type:'project-upsert-result'/, 'background ACKs project persistence success or failure to the originating tab');
+assert.match(supervisorBg, /projectConstellationDriveDirtyAt/, 'persisted project discovery marks the canonical Drive snapshot dirty');
+assert.match(supervisorBg, /project-constellation-drive-sync/, 'persisted project discovery schedules the normal Drive sync lane');
 assert.match(supervisor, /resumeAfterReload/, 'reloaded chats receive a continuation recovery path');
 assert.match(supervisor, /findSendButton\(\)/, 'continuation recovery can send after hydration');
 assert.match(supervisor, /let inserted = false/, 'continuation text is inserted at most once while waiting for send hydration');
