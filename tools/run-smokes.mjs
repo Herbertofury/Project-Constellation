@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const smokeRoot = path.join(repoRoot, 'tests', 'smoke');
 const logRoot = path.join(repoRoot, 'logs', 'smoke');
+const perSmokeTimeoutMs = Math.max(30_000, Number(process.env.PROJECT_CONSTELLATION_SMOKE_TIMEOUT_MS || 120_000));
 fs.mkdirSync(logRoot, { recursive: true });
 const scripts = fs.readdirSync(smokeRoot).filter((file) => file.endsWith('_smoke.py')).sort();
 const screenshotVars = [
@@ -22,13 +23,19 @@ for (const script of scripts) {
   const env = { ...process.env, PYTHONUTF8:'1', PROJECT_CONSTELLATION_ROOT:path.join(repoRoot, 'extension'), PROJECT_CONSTELLATION_BUILD:path.join(repoRoot, 'build', 'unpacked') };
   for (const name of screenshotVars) env[name] = path.join(logRoot, `${base}-${name.toLowerCase().replace('project_constellation_','').replace('_screenshot','')}.png`);
   const args = process.platform === 'win32' && /(^|[\\/])py(?:\.exe)?$/i.test(python) ? ['-3', path.join(smokeRoot, script)] : [path.join(smokeRoot, script)];
-  const result = spawnSync(python, args, { cwd:repoRoot, env, encoding:'utf8', stdio:'pipe' });
-  fs.writeFileSync(path.join(logRoot, `${base}.log`), `${result.stdout || ''}${result.stderr || ''}`);
+  console.log(`${script}: RUN`);
+  const startedAt = Date.now();
+  const result = spawnSync(python, args, { cwd:repoRoot, env, encoding:'utf8', stdio:'pipe', timeout:perSmokeTimeoutMs, killSignal:'SIGKILL', maxBuffer:8 * 1024 * 1024 });
+  const elapsedMs = Date.now() - startedAt;
+  const timedOut = Boolean(result.error && result.error.code === 'ETIMEDOUT');
+  fs.writeFileSync(path.join(logRoot, `${base}.log`), `${result.stdout || ''}${result.stderr || ''}${timedOut ? `\nTIMEOUT after ${elapsedMs}ms\n` : ''}`);
+  if (timedOut) throw new Error(`${script} exceeded ${perSmokeTimeoutMs}ms smoke timeout`);
+  if (result.error) throw result.error;
   if (result.status !== 0) {
     if (result.stdout) process.stdout.write(result.stdout);
     if (result.stderr) process.stderr.write(result.stderr);
     throw new Error(`${script} failed with exit code ${result.status}`);
   }
-  console.log(`${script}: PASS`);
+  console.log(`${script}: PASS (${elapsedMs}ms)`);
 }
 console.log(`run-smokes.mjs: PASS (${scripts.length} workflows)`);

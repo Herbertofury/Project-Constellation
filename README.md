@@ -1,8 +1,8 @@
 # Project Constellation
 
-Project Constellation is a privacy-conscious Chrome extension that turns AI chats into an organized, searchable, recoverable workspace. It passively captures mounted conversation state, tracks generated artifacts and project continuity, detects stalled or blocked work, and creates verified recovery checkpoints without adding network traffic from the content script.
+Project Constellation is a privacy-conscious Chrome extension that turns AI chats into an organized, searchable, recoverable workspace. It captures mounted conversation state, tracks generated artifacts and project continuity, detects stalled or blocked work, and creates recovery checkpoints while keeping browser-session provider access in the browser.
 
-The v0.15 line builds on the standalone v0.14 foundation with Project Atlas + Compounding Brain. This repository is the canonical source; it no longer depends on ProjectDump.
+The v0.16 line adds a browser-wide Reliability Supervisor to the Project Atlas + Compounding Brain foundation. This repository is the canonical source; it no longer depends on ProjectDump.
 
 ## What it does
 
@@ -11,6 +11,11 @@ The v0.15 line builds on the standalone v0.14 foundation with Project Atlas + Co
 - Preserves a local IndexedDB “brain,” immutable assistant-output revisions, full-text index, continuity cards, integrity baselines, and recovery events.
 - Offers zero-tab cataloguing plus an explicit visible-window Full Capture workflow.
 - Shows a live Execution Pulse with the specific observable agent/tool step, response and status progress, categorized request lifecycle, proof confidence, recent activity ledger, stalls, approvals, provider limits, stale tabs, safe handoff guidance, and an always-available **Branch & continue** action.
+- Supervises **every already-open ChatGPT tab independently**, including hidden/background tabs, instead of relying on whichever tab is currently focused. A service-worker heartbeat can wake or hot-bootstrap the lightweight per-tab reliability agent after extension startup/update.
+- Adds bounded **stale/dead chat rescue** when Refresh Recovery is enabled: explicit delivery/connection/response/send failures, corroborated dead/stalled states, and unfinished two-hour stale turns can be checkpointed, reloaded, and continued with a continuity-safe prompt. Completed idle chats are excluded.
+- Continues rescued chats without blind repetition: the recovery prompt preserves the objective, decisions, project/repository/file/Drive/GitHub identities, paths, hashes, run/job IDs, verified tests, blockers, no-repeat history, and exact unfinished next action, and requires verification of a possibly-partial final side effect before repeating it.
+- Fans **Approval Autopilot** across all open ChatGPT tabs concurrently. The browser-wide supervisor delegates permission execution to the existing tested in-page recovery handler, preserving configured `Always allow` / allow-once behavior without a second competing click implementation.
+- Treats ChatGPT `/g/g-p-*` routes and visible project-sidebar entries as first-class provider project identities so newly encountered projects can be mirrored into the Constellation project catalog.
 - Uses deeper ChatGPT-specific live-state proof when available: the page-world probe reduces the current transcript branch to sanitized status metadata (`finished_successfully`, `end_turn`, model/task/widget state) while the extension keeps exact current-turn DOM evidence as a fallback. Conversation text and ChatGPT authentication material never cross that probe boundary.
 - Adds **Tab Beacons** for open AI chats: configurable Active/Needs Attention/Completed emoji in tab titles, dynamic status favicons, optional native Chrome Project + state groups, toolbar live counts, persistent custom emoji/short tags, and right-click tag presets.
 - Adds a **Context Lens** to Chat Pulse and the collapsed Execution Pulse navigator: beneath each open-chat title it can show the latest locally captured task, canonical Constellation project, current observable tool step, provider/model/state, and tab-group context. Generic browser titles stay useful without any extra provider request.
@@ -59,9 +64,14 @@ npm run package
 
 No OAuth client secret belongs in this repository or extension package.
 
-## Safety and privacy
+## Reliability and safety
 
-- The ordinary isolated content runtime performs no provider `fetch` or XHR requests. ChatGPT alone has a narrowly scoped MAIN-world probe that may make a same-origin transcript request using the existing browser session; only sanitized state metadata crosses into the extension, never transcript text or authentication material.
+- **Refresh Recovery is opt-in.** When enabled, it may reload only an already-open ChatGPT conversation that is unfinished and meets a bounded failure/dead/stale recovery rule. It does not create, focus, or navigate to a missing ChatGPT conversation.
+- Recovery uses per-chat cooldowns and attempt caps. Approval/auth/rate-limit states are handled or surfaced before reload recovery instead of being blindly refreshed.
+- Automatic continuation never overwrites a non-empty composer. If a draft is present, Constellation preserves it and surfaces the conflict rather than replacing the user's text.
+- Before a recovery reload, visible chat state is checkpointed locally. The resume prompt treats the final attempted tool/write action as potentially partially completed and requires verification before repeating it.
+- Approval Autopilot acts only when explicitly enabled and acknowledged. Browser-wide scans delegate to the same in-page permission handler used by ordinary recovery rather than duplicating click ownership.
+- The ordinary isolated content runtime performs no direct provider API fetch/XHR requests. ChatGPT alone has a narrowly scoped MAIN-world probe that may make a same-origin transcript request using the existing browser session; only sanitized state metadata crosses into the extension, never transcript text or authentication material.
 - Output comparison is local and change-gated. Remote media never auto-loads in the vault; previews load only after an explicit click. Inline `data:` media can be embedded in the durable file record within a bounded size limit.
 - Google uses `chrome.identity` with the narrow `drive.file` scope.
 - GitHub uses device authorization, honors polling backoff, rotates refresh tokens, and retries one authenticated request after refresh.
@@ -110,6 +120,6 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 
 ## Verification status
 
-The repository runs six deterministic core suites, twenty-four browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and an actual extension service-worker load. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
+The repository runs deterministic unit/contract suites, browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and a real extension service-worker load in extension-capable Chromium. The v0.16 reliability lane additionally includes a two-tab browser smoke that requires both a foreground and a background stale ChatGPT tab to reload and send the continuation prompt. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).

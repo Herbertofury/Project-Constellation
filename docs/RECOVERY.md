@@ -12,6 +12,18 @@
 
 Drive restore validates metadata size, downloads bytes, checks SHA-256 when present, decompresses/validates schema, merges newer records store by store, applies only a journal compatible with the recovered full snapshot, rebuilds search, and writes a restore receipt.
 
+## Automatic ChatGPT reliability rescue
+
+When **Refresh Recovery** is enabled, v0.16 supervises every already-open ChatGPT conversation independently, including hidden/background tabs. The service worker periodically wakes each tab so browser visibility throttling does not turn foreground-tab monitoring into the only reliable path.
+
+A chat is eligible for automatic rescue only when it is still unfinished and one of the bounded recovery conditions is met: an explicit message-delivery/connection/response/send failure, a corroborated dead/stalled state that has exceeded the dead-recovery threshold, or an unfinished user/running turn with no meaningful progress for two hours. Completed idle chats are not auto-continued.
+
+Before a recovery reload, Constellation checkpoints the currently visible chat state. The affected existing tab is then reloaded and, after the native ChatGPT composer hydrates, receives a continuation prompt that preserves the exact project objective, decisions, repository/file/Drive/GitHub identities, paths, hashes, run/job IDs, tests already passed, blockers, no-repeat history, and exact unfinished next action. The prompt explicitly treats the final attempted write/tool action as potentially partially completed and requires verification before repeating it.
+
+Recovery is loop-bounded by per-chat cooldown and attempt caps. Auth-required, rate-limited, unavailable, and approval-blocked states are not blindly reloaded. A non-empty composer is never overwritten; when a draft is present, automatic continuation stops and leaves the user's text intact.
+
+Approval Autopilot remains a separate permission-recovery lane. When enabled and acknowledged, the service worker scans all open ChatGPT tabs concurrently but delegates actual permission execution to the established in-page recovery handler, preserving the configured persistent **Always allow** or allow-once behavior without competing click owners.
+
 ## Safe handoff
 
 Execution Pulse’s Secure Handoff creates a local checkpoint and copies bounded Markdown containing the latest project/chat continuity. When Drive is available, it attempts a verified sync and reports whether remote verification succeeded; local checkpoint success is not misreported as Drive success.
