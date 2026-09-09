@@ -58,7 +58,7 @@ with sync_playwright() as p:
     pages[1].bring_to_front()
     pages[0].bring_to_front()  # page B is now a real background tab.
 
-    time.sleep(2.0)
+    time.sleep(0.5)
     prep = admin.evaluate('''async () => {
       await chrome.storage.local.set({
         projectConstellationBrainSettings: {
@@ -67,7 +67,18 @@ with sync_playwright() as p:
           liveHealth: { capacityWarningTurns:120, capacityHandoffTurns:180, capacityWarningChars:160000, capacityHandoffChars:280000 }
         }
       });
-      await new Promise(r => setTimeout(r, 80));
+      const tabs = (await chrome.tabs.query({})).filter(t => String(t.url || '').startsWith('https://chatgpt.com/c/pc-smoke-'));
+      const deadline = Date.now() + 6000;
+      let ready = [];
+      while (Date.now() < deadline) {
+        ready = await Promise.all(tabs.map(async t => {
+          try { return await chrome.tabs.sendMessage(t.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() }); }
+          catch (_) { return null; }
+        }));
+        if (ready.length === tabs.length && ready.every(x => Number(x?.projectConstellationTabSupervisorVersion || 0) === 1)) break;
+        await new Promise(r => setTimeout(r, 120));
+      }
+      await new Promise(r => setTimeout(r, 250));
       const key = 'projectConstellationReliabilitySupervisorState';
       const state = (await chrome.storage.local.get(key))[key] || { version:1, chats:{} };
       const now = Date.now();
@@ -89,13 +100,16 @@ with sync_playwright() as p:
         };
       }
       await chrome.storage.local.set({ [key]:state });
-      const tabs = (await chrome.tabs.query({})).filter(t => String(t.url || '').startsWith('https://chatgpt.com/c/pc-smoke-'));
-      const wakes = await Promise.allSettled(tabs.map(t => chrome.tabs.sendMessage(t.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() })));
-      return { tabs:tabs.map(t => ({id:t.id,url:t.url,active:t.active})), wakes:wakes.map(x => x.status) };
+      const wakes = await Promise.all(tabs.map(async t => {
+        try { return await chrome.tabs.sendMessage(t.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() }); }
+        catch (_) { return null; }
+      }));
+      return { tabs:tabs.map(t => ({id:t.id,url:t.url,active:t.active})), ready, wakes };
     }''')
     assert len(prep['tabs']) == 2, prep
     assert any(not tab['active'] for tab in prep['tabs']), prep
-    assert all(status == 'fulfilled' for status in prep['wakes']), prep
+    assert all(int((reply or {}).get('projectConstellationTabSupervisorVersion', 0)) == 1 for reply in prep['ready']), prep
+    assert all(int((reply or {}).get('projectConstellationTabSupervisorVersion', 0)) == 1 for reply in prep['wakes']), prep
 
     deadline = time.time() + 15
     sent = ['', '']
