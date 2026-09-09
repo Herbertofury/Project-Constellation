@@ -25,6 +25,8 @@ assert.match(supervisorBg, /chrome\.tabs\.reload\(tabId/, 'stale/dead chat rescu
 assert.match(supervisorBg, /enabled: cfg\.refreshRecovery\?\.enabled === true/, 'automatic reload honors the existing recovery enable switch');
 assert.match(supervisorBg, /periodInMinutes: 1/, 'all-tab watchdog receives a service-worker heartbeat even when page timers are throttled');
 assert.match(supervisorBg, /observerAge < 90_000/, 'background owns stale-state recovery when a hidden/frozen content agent stops reporting');
+assert.match(supervisorBg, /const responsiveTabIds = new Set\(\)/, 'background tracks which tabs answered the current wake');
+assert.match(supervisorBg, /if \(responsiveTabIds\.has\(tab\.id\)\) continue/, 'freshly responsive tabs are excluded from stale-storage fallback recovery');
 assert.doesNotMatch(supervisorBg, /query\(\{\s*active\s*:\s*true/, 'supervisor must never collapse to active-tab-only behavior');
 
 assert.match(supervisor, /document\.hidden \? 1000 : 180/, 'hidden tabs are still evaluated instead of being skipped');
