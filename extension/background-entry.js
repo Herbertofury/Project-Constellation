@@ -6,3 +6,5 @@ import './src/notification-repair.js';
 import './src/closed-chat-watch.js';
 import './src/closed-chat-vault-bridge.js';
 import './src/command-center-actions.js';
+import './src/tab-supervisor-background.js';
+import './src/approval-supervisor-background.js';
