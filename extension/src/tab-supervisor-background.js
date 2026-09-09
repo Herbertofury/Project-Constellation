@@ -20,7 +20,6 @@ async function settings() {
   settingsCache = (await chrome.storage.local.get(SETTINGS_KEY))?.[SETTINGS_KEY] || {};
   return settingsCache;
 }
-
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes[SETTINGS_KEY]) settingsCache = changes[SETTINGS_KEY].newValue || {};
 });
@@ -208,11 +207,9 @@ function openDb() {
     request.onerror = () => reject(request.error);
   });
 }
-
 function projectTerms(project) {
   return [...new Set(`${project.name || ''} ${project.providerProjectId || ''}`.toLowerCase().split(/[^a-z0-9_-]+/).filter((x) => x.length > 1))].slice(0, 80);
 }
-
 async function upsertProviderProject(project = {}) {
   if (!project?.id || !project?.name) return;
   const db = await openDb();
@@ -235,13 +232,69 @@ async function upsertProviderProject(project = {}) {
   } finally { db.close(); }
 }
 
-function tickPorts() {
-  const now = Date.now();
-  for (const [tabId, port] of [...ports]) {
-    try { port.postMessage({ type: 'tick', now }); } catch (_) { ports.delete(tabId); }
-  }
+async function openChatGptTabs() {
+  return (await chrome.tabs.query({})).filter((tab) => tab?.id && isChatGptUrl(tab.url || ''));
 }
+async function bootstrapTab(tab) {
+  if (!tab?.id || !isChatGptUrl(tab.url || '')) return false;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['src/provider-core.js', 'src/tab-supervisor-core.js', 'src/tab-supervisor.js'] });
+    return true;
+  } catch (_) { return false; }
+}
+
+async function superviseOpenTabs() {
+  const tabs = await openChatGptTabs();
+  const cfg = await settings();
+  const now = Date.now();
+  for (const tab of tabs) {
+    let woke = false;
+    try { await chrome.tabs.sendMessage(tab.id, { type: 'PC_TAB_SUPERVISOR_TICK', at: now }); woke = true; } catch (_) {}
+    if (!woke && !tab.discarded) await bootstrapTab(tab);
+  }
+
+  await mutateState(async (state) => {
+    for (const tab of tabs) {
+      const chatId = core.chatIdFromUrl(tab.url || '');
+      if (!chatId) continue;
+      const row = state.chats[chatId];
+      if (!row || row.pending) continue;
+      const observerAge = row.lastObservedAt ? now - Number(row.lastObservedAt) : Number.POSITIVE_INFINITY;
+      if (observerAge < 90_000) continue;
+      const decision = core.shouldRecover({
+        enabled: cfg.refreshRecovery?.enabled === true,
+        chatId,
+        now,
+        status: row.status,
+        failureKind: row.failureKind,
+        failureDetectedAt: row.failureDetectedAt,
+        lastProgressAt: row.lastProgressAt,
+        lastRecoveryAt: row.lastRecoveryAt,
+        recoveryCount: row.recoveryCount,
+        wasRunning: row.wasRunning,
+        unresolvedUser: row.unresolvedUser,
+        config: recoveryConfig(cfg)
+      });
+      if (!decision.recover) continue;
+      const snapshot = { chatId, url: tab.url || row.url || '', title: tab.title || row.title || 'ChatGPT', projectName: row.projectName || '' };
+      await beginRecovery({ sender: { tab } }, snapshot, row, decision, state);
+    }
+    state.lastTickAt = now;
+    return writeState(state);
+  });
+
+  for (const port of ports.values()) {
+    try { port.postMessage({ type: 'tick', now }); } catch (_) {}
+  }
+  return { tabs: tabs.length };
+}
+
 async function ensureAlarm() { await chrome.alarms.create(ALARM, { periodInMinutes: 1 }); }
+async function bootstrapOpenTabs() {
+  const tabs = await openChatGptTabs();
+  await Promise.allSettled(tabs.filter((tab) => !tab.discarded).map((tab) => bootstrapTab(tab)));
+  await superviseOpenTabs();
+}
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== PORT_NAME || !port.sender?.tab?.id || !isChatGptUrl(port.sender.tab.url || '')) return;
@@ -257,7 +310,8 @@ chrome.runtime.onConnect.addListener((port) => {
   try { port.postMessage({ type: 'tick', now: Date.now() }); } catch (_) {}
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => { if (alarm.name === ALARM) tickPorts(); });
-chrome.runtime.onInstalled.addListener(() => { void ensureAlarm(); });
-chrome.runtime.onStartup.addListener(() => { void ensureAlarm(); });
+chrome.alarms.onAlarm.addListener((alarm) => { if (alarm.name === ALARM) void superviseOpenTabs(); });
+chrome.runtime.onInstalled.addListener(() => { void ensureAlarm(); void bootstrapOpenTabs(); });
+chrome.runtime.onStartup.addListener(() => { void ensureAlarm(); void bootstrapOpenTabs(); });
 void ensureAlarm();
+void superviseOpenTabs();
