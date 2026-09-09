@@ -7,6 +7,7 @@ const SETTINGS_KEY = 'projectConstellationBrainSettings';
 const STATE_KEY = 'projectConstellationReliabilitySupervisorState';
 const DB_NAME = 'project-constellation-brain';
 const ports = new Map();
+const bootstrapTimers = new Map();
 let settingsCache = null;
 let stateQueue = Promise.resolve();
 
@@ -204,7 +205,10 @@ async function superviseOpenTabs() {
   const tabs = await openChatGptTabs(); const cfg = await settings(); const now = Date.now();
   for (const tab of tabs) {
     let woke = false;
-    try { await chrome.tabs.sendMessage(tab.id,{ type:'PC_TAB_SUPERVISOR_TICK', at:now }); woke = true; } catch (_) {}
+    try {
+      const reply = await chrome.tabs.sendMessage(tab.id,{ type:'PC_TAB_SUPERVISOR_TICK', at:now });
+      woke = Number(reply?.projectConstellationTabSupervisorVersion || 0) === 1;
+    } catch (_) {}
     if (!woke) await bootstrapTab(tab);
   }
   await mutateState(async (state) => {
@@ -228,6 +232,25 @@ async function superviseOpenTabs() {
   }
   return { tabs:tabs.length };
 }
+
+function scheduleTabBootstrap(tabId, delay = 250) {
+  if (!Number.isInteger(Number(tabId))) return;
+  const id = Number(tabId);
+  clearTimeout(bootstrapTimers.get(id));
+  bootstrapTimers.set(id, setTimeout(async () => {
+    bootstrapTimers.delete(id);
+    let tab;
+    try { tab = await chrome.tabs.get(id); } catch (_) { return; }
+    if (!tab || tab.discarded || !isChatGptUrl(tab.url || '')) return;
+    let ready = false;
+    try {
+      const reply = await chrome.tabs.sendMessage(id,{ type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() });
+      ready = Number(reply?.projectConstellationTabSupervisorVersion || 0) === 1;
+    } catch (_) {}
+    if (!ready) await bootstrapTab(tab);
+  }, Math.max(50, Number(delay) || 250)));
+}
+
 async function ensureAlarm() { await chrome.alarms.create(ALARM,{ periodInMinutes:1 }); }
 async function bootstrapOpenTabs() {
   const tabs = await openChatGptTabs(); await Promise.allSettled(tabs.map(bootstrapTab)); await superviseOpenTabs();
@@ -245,6 +268,20 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener(() => { if (ports.get(tabId) === port) ports.delete(tabId); });
   try { port.postMessage({ type:'tick', now:Date.now() }); } catch (_) {}
 });
+
+chrome.tabs.onCreated.addListener((tab) => {
+  if (tab?.id && isChatGptUrl(tab.url || '')) scheduleTabBootstrap(tab.id, 450);
+});
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  const url = changeInfo?.url || tab?.url || '';
+  if (isChatGptUrl(url) && (changeInfo?.url || changeInfo?.status === 'complete')) scheduleTabBootstrap(tabId, changeInfo?.status === 'complete' ? 120 : 350);
+});
+chrome.tabs.onRemoved.addListener((tabId) => {
+  clearTimeout(bootstrapTimers.get(tabId));
+  bootstrapTimers.delete(tabId);
+  ports.delete(tabId);
+});
+
 chrome.alarms.onAlarm.addListener((alarm) => { if (alarm.name === ALARM) void superviseOpenTabs(); });
 chrome.runtime.onInstalled.addListener(() => { void ensureAlarm(); void bootstrapOpenTabs(); });
 chrome.runtime.onStartup.addListener(() => { void ensureAlarm(); void bootstrapOpenTabs(); });
