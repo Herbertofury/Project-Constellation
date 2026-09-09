@@ -17,18 +17,21 @@ with sync_playwright() as p:
     page.goto(extension_url, wait_until='domcontentloaded')
     proof = page.evaluate('''async () => {
       const manifest = chrome.runtime.getManifest();
-      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_SETTINGS_GET' });
+      const response = await Promise.race([
+        chrome.runtime.sendMessage({ type:'PC_PROVIDER_LIST' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('runtime probe timeout')), 5000))
+      ]);
       return {
         id: chrome.runtime.id,
         version: manifest.version,
         name: manifest.name,
         runtimeOk: Boolean(response?.ok),
-        hasSettings: Boolean(response?.settings)
+        providerCount: Array.isArray(response?.providers) ? response.providers.length : 0
       };
     }''')
     print(json.dumps({'extension': proof, 'root': str(root)}, sort_keys=True))
     assert proof['id'] == extension_id, proof
     assert proof['version'] == '0.16.0', proof
     assert proof['runtimeOk'], f'Project Constellation runtime message round-trip failed: {proof}'
-    assert proof['hasSettings'], f'Project Constellation settings handler did not answer: {proof}'
+    assert proof['providerCount'] > 0, f'Project Constellation provider handler did not answer: {proof}'
     context.close()
