@@ -229,6 +229,13 @@ async function upsertProviderProject(project = {}) {
       tx.oncomplete = resolve;
       tx.onerror = () => reject(tx.error);
     });
+    const dirtyAt = Date.now();
+    await chrome.storage.local.set({ projectConstellationDriveDirtyAt: dirtyAt });
+    const cfg = await settings();
+    if (cfg.drive?.autoSync) {
+      const debounce = Math.max(3000, Number(cfg.drive?.debounceMs || 15000));
+      await chrome.alarms.create('project-constellation-drive-sync', { when: dirtyAt + debounce });
+    }
     return { ok:true };
   } catch (error) {
     return { ok:false, error:String(error?.message || error || 'project-upsert-failed').slice(0,240) };
