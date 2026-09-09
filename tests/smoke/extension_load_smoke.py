@@ -1,7 +1,9 @@
 from playwright.sync_api import sync_playwright
-import pathlib, json, os, tempfile, time
+import pathlib, json, os, tempfile
 
 root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_BUILD', '/mnt/data/project-constellation/dist/project-constellation')).resolve()
+extension_id = 'geljambmkfjkhodgkpjhnmfojkpcamig'
+
 with sync_playwright() as p:
     context = p.chromium.launch_persistent_context(
         tempfile.mkdtemp(prefix='project-constellation-smoke-'),
@@ -11,14 +13,22 @@ with sync_playwright() as p:
         executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None),
     )
     page = context.new_page()
-    page.wait_for_timeout(500)
-    deadline = time.time() + 10
-    workers = []
-    while time.time() < deadline:
-        workers = [worker.url for worker in context.service_workers]
-        if workers:
-            break
-        page.wait_for_timeout(100)
-    print(json.dumps({'serviceWorkers': workers, 'root': str(root)}))
-    assert workers, 'Project Constellation service worker did not load in extension-capable Chromium headless mode'
+    extension_url = f'chrome-extension://{extension_id}/popup.html'
+    page.goto(extension_url, wait_until='domcontentloaded')
+    proof = page.evaluate('''async () => {
+      const manifest = chrome.runtime.getManifest();
+      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_SETTINGS_GET' });
+      return {
+        id: chrome.runtime.id,
+        version: manifest.version,
+        name: manifest.name,
+        runtimeOk: Boolean(response?.ok),
+        hasSettings: Boolean(response?.settings)
+      };
+    }''')
+    print(json.dumps({'extension': proof, 'root': str(root)}, sort_keys=True))
+    assert proof['id'] == extension_id, proof
+    assert proof['version'] == '0.16.0', proof
+    assert proof['runtimeOk'], f'Project Constellation runtime message round-trip failed: {proof}'
+    assert proof['hasSettings'], f'Project Constellation settings handler did not answer: {proof}'
     context.close()
