@@ -5,8 +5,10 @@ root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_BUILD', '/mnt/data/pro
 extension_id = 'geljambmkfjkhodgkpjhnmfojkpcamig'
 urls = ['https://chatgpt.com/c/pc-smoke-a', 'https://chatgpt.com/c/pc-smoke-b']
 requests = {url: 0 for url in urls}
+project_id = 'chatgpt:project:g-p-smoke-project'
 
 html = '''<!doctype html><html><head><title>Reliability smoke</title></head><body>
+<nav><a href="https://chatgpt.com/g/g-p-smoke-project/project">Smoke Project</a></nav>
 <main>
   <div data-testid="conversation-turn-0" data-message-author-role="user" data-message-id="user-1">Continue the unfinished reliability smoke task.</div>
   <div id="prompt-textarea" contenteditable="true" role="textbox" data-lexical-editor="true"></div>
@@ -63,6 +65,33 @@ with sync_playwright() as p:
     pages[1].bring_to_front()
     pages[0].bring_to_front()  # page B is now a real background tab.
 
+    # Prove sidebar project discovery is actually persisted, not merely emitted.
+    project = None
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        project = admin.evaluate('''async (id) => {
+          const db = await new Promise((resolve, reject) => {
+            const request = indexedDB.open('project-constellation-brain');
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+          try {
+            if (!db.objectStoreNames.contains('projects')) return null;
+            return await new Promise((resolve, reject) => {
+              const request = db.transaction('projects', 'readonly').objectStore('projects').get(id);
+              request.onsuccess = () => resolve(request.result || null);
+              request.onerror = () => reject(request.error);
+            });
+          } finally { db.close(); }
+        }''', project_id)
+        if project:
+            break
+        time.sleep(0.2)
+    assert project is not None, 'visible ChatGPT project must be persisted into the canonical Constellation project store'
+    assert project.get('name') == 'Smoke Project', project
+    assert project.get('sourceType') == 'provider', project
+    assert project.get('providerId') == 'chatgpt', project
+
     time.sleep(2.0)  # allow declarative content scripts to establish initial signatures
     prep = admin.evaluate('''async () => {
       await chrome.storage.local.set({
@@ -111,7 +140,7 @@ with sync_playwright() as p:
         time.sleep(0.25)
 
     state = admin.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
-    print(json.dumps({'runtime': runtime_proof, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
+    print(json.dumps({'runtime': runtime_proof, 'project': project, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
 
     assert all(sent), f'both open chats must auto-continue after rescue even when Send hydrates late: {sent}'
     assert all('Resume from that exact next action immediately' in value for value in sent), sent
