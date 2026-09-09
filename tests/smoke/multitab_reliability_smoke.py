@@ -1,4 +1,4 @@
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Error as PlaywrightError
 import pathlib, os, tempfile, time, json
 
 root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_BUILD', '/mnt/data/project-constellation/build/unpacked')).resolve()
@@ -159,10 +159,19 @@ with sync_playwright() as p:
         assert str(wake.get('snapshot', {}).get('chatId', '')).startswith('chatgpt:pc-smoke-'), wake
         assert wake.get('snapshot', {}).get('signature'), wake
 
+    # Recovery intentionally reloads both pages. Poll through transient destroyed execution
+    # contexts instead of treating the expected navigation itself as a test failure.
     deadline = time.time() + 20
     sent = ['', '']
     while time.time() < deadline:
-        sent = [page.evaluate("localStorage.getItem('pc-reliability-sent') || ''") for page in pages]
+        observed = []
+        for page in pages:
+            try:
+                page.wait_for_load_state('domcontentloaded', timeout=750)
+                observed.append(page.evaluate("localStorage.getItem('pc-reliability-sent') || ''"))
+            except PlaywrightError:
+                observed.append('')
+        sent = observed
         if all(sent):
             break
         time.sleep(0.25)
