@@ -54,7 +54,7 @@ jobs:
             "private": true,
             "type": "module",
             "scripts": {
-              "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/ui-qol-static.test.mjs",
+              "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/ui-qol-static.test.mjs && node tests/tab-supervisor-core.test.mjs && node tests/reliability-supervisor-contract.test.mjs",
               "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
               "build": "node tools/build.mjs --mode=production",
               "build:dev": "node tools/build.mjs --mode=development",
@@ -74,7 +74,7 @@ jobs:
             "name": "Project Constellation",
             "version": "0.16.0",
             "minimum_chrome_version": "116",
-            "description": "Performance-first AI workspace with AI Command Center, Living Project Rooms + Safe Router, live Chat Pulse, adaptive closed-chat heartbeat, durable notifications, Capacity Guard, project continuity intelligence, Approval Autopilot, and verified remote checkpoints.",
+            "description": "AI Command Center with Living Project Rooms, browser-wide ChatGPT reliability supervision, stale/dead chat rescue, concurrent Approval Autopilot, Chat Vault, Capacity Guard, project continuity, and verified remote checkpoints.",
             "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",
             "permissions": ["storage","sidePanel","tabs","alarms","identity","unlimitedStorage","idle","offscreen","webRequest","scripting","notifications","tabGroups","contextMenus"],
             "optional_permissions": ["downloads","history"],
@@ -86,7 +86,7 @@ jobs:
             "side_panel": {"default_path":"sidepanel.html"},
             "content_scripts": [
               {"matches":["https://chatgpt.com/*","https://chat.openai.com/*"],"js":["src/chatgpt-page-probe.js"],"run_at":"document_start","world":"MAIN"},
-              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*","https://claude.ai/*","https://gemini.google.com/*","https://grok.com/*","https://chat.deepseek.com/*","https://perplexity.ai/*","https://www.perplexity.ai/*","https://copilot.microsoft.com/*","https://chat.mistral.ai/*","https://poe.com/*","https://meta.ai/*","https://www.meta.ai/*","https://chat.qwen.ai/*","https://kimi.com/*","https://www.kimi.com/*","https://character.ai/*","https://www.character.ai/*","https://huggingface.co/chat/*","https://you.com/*","https://www.you.com/*","https://pi.ai/*","https://www.pi.ai/*","https://duck.ai/*"],"js":["src/core.js","src/brain-core.js","src/provider-core.js","src/health-core.js","src/live-sentinel.js","src/tab-beacon.js","src/content.js","src/pulse-ux.js"],"css":["src/styles.css"],"run_at":"document_start"},
+              {"matches":["https://chatgpt.com/*","https://chat.openai.com/*","https://claude.ai/*","https://gemini.google.com/*","https://grok.com/*","https://chat.deepseek.com/*","https://perplexity.ai/*","https://www.perplexity.ai/*","https://copilot.microsoft.com/*","https://chat.mistral.ai/*","https://poe.com/*","https://meta.ai/*","https://www.meta.ai/*","https://chat.qwen.ai/*","https://kimi.com/*","https://www.kimi.com/*","https://character.ai/*","https://www.character.ai/*","https://huggingface.co/chat/*","https://you.com/*","https://www.you.com/*","https://pi.ai/*","https://www.pi.ai/*","https://duck.ai/*"],"js":["src/core.js","src/brain-core.js","src/provider-core.js","src/health-core.js","src/live-sentinel.js","src/tab-beacon.js","src/content.js","src/pulse-ux.js","src/tab-supervisor-core.js","src/tab-supervisor.js"],"css":["src/styles.css"],"run_at":"document_start"},
               {"matches":["https://chatgpt.com/*","https://chat.openai.com/*"],"js":["src/chat-vault-core.js","src/chat-organizer.js"],"css":["src/chat-organizer.css"],"run_at":"document_idle"}
             ]
           }
@@ -107,33 +107,38 @@ jobs:
 
           mkdir -p docs
           cat > docs/v0.16.0-release-notes.md <<'MD'
-          # Project Constellation v0.16.0 — Living Project Rooms + Safe Router
+          # Project Constellation v0.16.0 — Living Project Rooms + AI Command Center + Reliability Supervisor
 
-          Project Constellation v0.16.0 combines the Living Project Rooms + Safe Router architecture with the first-party AI Command Center, adaptive closed-chat continuity, durable notifications, safe tab actions, and a broad no-dead-button QOL hardening pass.
+          Project Constellation v0.16.0 is a functional reliability and workflow release. It combines Living Project Rooms + Safe Router with the first-party AI Command Center, Chat Vault/organizer QoL, adaptive closed-chat continuity, durable notifications, and a browser-wide Reliability Supervisor that manages every already-open ChatGPT tab rather than only the foreground tab.
 
           ## Highlights
           - **Living Project Rooms + Safe Router** — project-aware routing and continuity with scale coverage through 500 projects / 10,000 chats.
           - **AI Command Center** — projects, search, live/saved views, Gather, Open Missing, import/export backup, native ChatGPT rename, and local emoji/color/text styling.
-          - **Safe one-click AI-tab actions** — Keep Live/Gather, Smart Collapse, and verified Stash + Close. Destructive closes occur only after vault save + read-back verification.
-          - **Adaptive closed-chat heartbeat** — bounded observation of provider-persisted progress for supported providers without hidden provider tabs, invisible duplicate sessions, automatic reload loops, permanent intervals, or recurring watchdog alarms.
-          - **MV3 manual-close continuity** — compact session candidates preserve meaningful active/attention state across worker suspension; newly watched unsaved closed chats are parked in Live AI Sessions so they cannot become invisible.
-          - **No-dead-button QOL** — explicit dialog Cancel/X ownership, duplicate-tab prevention, stale Focus fallback, repeat backup import, visible disabled states/tooltips, empty/no-destination guards, busy/refresh feedback, and heartbeat error cleanup.
-          - **Stall & runway alerts repaired** — direct capture-phase persistence, unrelated-setting preservation, and last-interaction-wins rapid toggle handling.
+          - **Chat Vault + no-dead-button QoL** — closed-chat vault bridging, organizer workflows, explicit dialog ownership, duplicate-tab prevention, stale Focus fallback, visible disabled states, and truthful busy/refresh feedback.
+          - **Browser-wide Reliability Supervisor** — every already-open ChatGPT tab is supervised independently, including hidden/background tabs. A service-worker heartbeat probes every tab, requires a real Supervisor v1 heartbeat, and hot-injects the agent when missing.
+          - **Two-hour stale rescue + interruption rescue** — when Refresh Recovery is enabled, explicit delivery/connection/response/send failures, corroborated dead/stalled states, and unresolved running/user turns with no meaningful progress for two hours can be checkpointed, reloaded in the same tab, and continued automatically.
+          - **Continuity-safe resume** — the continuation prompt preserves objective, decisions, project/repository/file/Drive/GitHub identities, paths, hashes, run/job IDs, verified tests, blockers, no-repeat history, and the exact unfinished next action; it treats the final attempted side effect as possibly partial and requires verification before repeating it.
+          - **Concurrent Approval Autopilot** — Drive/GitHub/connector permission scans fan out across all open ChatGPT tabs concurrently while actual clicks remain owned by the established tested in-page recovery handler.
+          - **Earlier capacity warnings** — authoritative `capacity-watch`, `capacity-handoff`, and `capacity-reached` Sentinel states, including tool/structured-message pressure, are promoted before simple turn/character fallback thresholds.
+          - **Better project tracking** — ChatGPT `/g/g-p-*` routes and visible project-sidebar entries are mirrored as first-class project identities from every supervised tab.
+          - **Adaptive closed-chat heartbeat** — bounded observation of provider-persisted progress for supported providers without hidden duplicate provider sessions, permanent intervals, or unbounded watchdog loops.
           - **Durable notifications** — completion and attention transitions survive MV3 service-worker suspension and focus the relevant chat when clicked.
 
-          ## Safety and performance
-          - No hidden/background provider tabs are created for continuity monitoring.
-          - No automatic provider-tab reload loop or permanent polling interval is added.
-          - Remote heartbeat is bounded, adaptive, and stops on repeated auth/provider errors or hard ceilings.
-          - Smart Collapse keeps unproven/uncertain, working, attention, and pinned chats open.
-          - Stash/close verifies persisted vault state before removing tabs.
+          ## Recovery safety
+          - Automatic ChatGPT reload-and-continue requires the existing Refresh Recovery switch.
+          - Only an already-open unfinished conversation can be automatically reloaded; Constellation never creates or focuses a missing chat for passive recovery.
+          - Completed idle chats are excluded.
+          - Auth-required, unavailable, rate-limited, and approval-blocked states are not blindly refreshed.
+          - Per-chat cooldown and attempt caps prevent recovery loops.
+          - A non-empty composer is never overwritten.
+          - Stash/close still verifies persisted vault state before removing tabs.
 
           ## Release verification
-          Publication is fail-closed on the complete Node regression suite, validation/UI/message contracts, development build, browser smoke suite, 500-project/10,000-chat scale regression, and deterministic **real Chromium + real unpacked extension** acceptance.
+          Publication is fail-closed on the combined project-router, Command Center/QoL, reliability, validation/UI/message contract, development build, browser-smoke, 500-project/10,000-chat scale, and installed-Chromium acceptance gates.
 
-          The Chromium acceptance fulfills a ChatGPT-origin fixture inside Chromium so provider CDN/login/network availability cannot create false release failures while Chrome still applies the real `https://chatgpt.com/*` manifest host match and automatic content scripts. It exercises the actual MV3 worker, content-script messaging, scripting permission, Live Chat Pulse runtime, storage, alert persistence, Popup routing, and Command Center dialogs.
+          Reliability-specific browser proof loads the packaged extension by its stable ID, round-trips a real runtime message, opens two ChatGPT-origin tabs, leaves one in the background, proves Supervisor v1 is alive in both, forces both into stale unfinished state, and requires both tabs to reload and actually submit the continuation prompt.
 
-          This is real installed-extension browser acceptance, but it is **not a claim that a user's signed-in local Chrome profile or authenticated provider account was exercised in CI**.
+          Installed Chromium acceptance remains real unpacked-extension browser acceptance; it is not a claim that a user's signed-in local Chrome profile or authenticated provider account was exercised in CI.
           MD
 
           git add -A
@@ -152,6 +157,13 @@ jobs:
           test -f extension/src/closed-chat-watch.js
           test -f extension/src/closed-chat-vault-bridge.js
           test -f extension/src/ui-qol.js
+          test -f extension/src/tab-supervisor-core.js
+          test -f extension/src/tab-supervisor-background.js
+          test -f extension/src/approval-supervisor-background.js
+          test -f extension/src/tab-supervisor.js
+          test -f tests/tab-supervisor-core.test.mjs
+          test -f tests/reliability-supervisor-contract.test.mjs
+          test -f tests/smoke/multitab_reliability_smoke.py
           test -f tools/live_browser_acceptance.py
           grep -q 'LIVE_BROWSER_ACCEPTANCE_OK' tools/live_browser_acceptance.py
 
@@ -255,19 +267,25 @@ jobs:
           unzip -p artifacts/Project-Constellation-v0.16.0-extension.zip manifest.json > /tmp/release-manifest.json
           test "$(node -e "const j=require('/tmp/release-manifest.json');process.stdout.write(j.version)")" = '0.16.0'
           test "$(node -e "const j=require('/tmp/release-manifest.json');process.stdout.write(j.background.service_worker)")" = 'background-entry.js'
+          unzip -Z1 artifacts/Project-Constellation-v0.16.0-extension.zip | grep -qx 'src/tab-supervisor-core.js'
+          unzip -Z1 artifacts/Project-Constellation-v0.16.0-extension.zip | grep -qx 'src/tab-supervisor-background.js'
+          unzip -Z1 artifacts/Project-Constellation-v0.16.0-extension.zip | grep -qx 'src/approval-supervisor-background.js'
+          unzip -Z1 artifacts/Project-Constellation-v0.16.0-extension.zip | grep -qx 'src/tab-supervisor.js'
 
           git archive --format=zip --output=artifacts/Project-Constellation-v0.16.0-source.zip "$MERGED_SHA"
           cp docs/v0.16.0-release-notes.md artifacts/RELEASE-NOTES.md
           (cd artifacts && sha256sum Project-Constellation-v0.16.0-extension.zip Project-Constellation-v0.16.0-source.zip > SHA256SUMS.txt)
           cat > artifacts/RELEASE-RECEIPT.txt <<EOF
-          Project Constellation v0.16.0 — Living Project Rooms + Safe Router
+          Project Constellation v0.16.0 — Living Project Rooms + AI Command Center + Reliability Supervisor
           PR: https://github.com/${GITHUB_REPOSITORY}/pull/21
+          Reliability integration PR: https://github.com/${GITHUB_REPOSITORY}/pull/26
           Exact accepted feature commit: ${FINAL_SHA}
           Exact accepted Git tree: ${FINAL_TREE}
           Merged release commit: ${MERGED_SHA}
           Final publish workflow run: ${GITHUB_RUN_ID}
           npm run verify: PASS on exact accepted tree
           project scale gate: PASS on exact accepted tree
+          browser-wide reliability smoke: PASS on exact accepted tree
           Chromium acceptance: PASS on exact accepted tree — real Playwright Chromium + real unpacked extension + ChatGPT-origin fixture inside Chromium
           Chromium scope: installed-extension runtime acceptance; not a signed-in user's local Chrome/provider session
           Temporary diagnostic/recovery workflows in merged release tree: none
@@ -308,7 +326,7 @@ jobs:
               artifacts/RELEASE-RECEIPT.txt \
               --repo "$GITHUB_REPOSITORY" \
               --target "$MERGED_SHA" \
-              --title 'Project Constellation v0.16.0 — Living Project Rooms + Safe Router' \
+              --title 'Project Constellation v0.16.0 — Living Project Rooms + AI Command Center + Reliability Supervisor' \
               --notes-file artifacts/RELEASE-NOTES.md
           fi
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,tagName,targetCommitish,isDraft,isPrerelease > artifacts/GITHUB-RELEASE.json
@@ -333,6 +351,7 @@ jobs:
             echo "- merged release commit: \`$MERGED_SHA\`"
             echo '- npm run verify: PASS'
             echo '- scale gate: PASS'
+            echo '- browser-wide reliability smoke: PASS'
             echo '- installed Chromium acceptance: PASS'
             echo "- tag: \`$TAG\`"
           } >> "$GITHUB_STEP_SUMMARY"
