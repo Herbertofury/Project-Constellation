@@ -182,18 +182,21 @@
     if (resumeBusy || !command?.prompt) return;
     resumeBusy = true;
     let status = 'failed';
+    let inserted = false;
     try {
       const deadline = Date.now() + 90000;
       while (Date.now() < deadline) {
         if (command.chatId && currentChatId() && command.chatId !== currentChatId()) break;
         const composer = findComposer();
         if (!composer) { await new Promise((resolve) => setTimeout(resolve, 1000)); continue; }
-        if (!await setComposerText(composer, command.prompt)) { status = 'composer-busy'; break; }
-        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (!inserted) {
+          if (!await setComposerText(composer, command.prompt)) { status = 'composer-busy'; break; }
+          inserted = true;
+          status = 'prefilled';
+        }
         const send = findSendButton();
-        if (send && !send.disabled && send.getAttribute('aria-disabled') !== 'true') { send.click(); status = 'sent'; }
-        else status = 'prefilled';
-        break;
+        if (send && !send.disabled && send.getAttribute('aria-disabled') !== 'true') { send.click(); status = 'sent'; break; }
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     } catch (_) { status = 'failed'; }
     post({ type:'resume-result', chatId:command.chatId || currentChatId(), recoveryId:command.recoveryId || '', status, at:Date.now() });
