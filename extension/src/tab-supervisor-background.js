@@ -267,13 +267,16 @@ async function superviseOpenTabs() {
   const cfg = await settings();
   const now = Date.now();
   const responsiveTabIds = new Set();
-  for (const tab of tabs) {
+  const wakeResults = await Promise.allSettled(tabs.map(async (tab) => {
     let woke = await wakeSupervisor(tab, now);
     if (!woke && !tab.discarded) {
       const injected = await bootstrapTab(tab);
       if (injected) woke = await wakeSupervisor(tab, now);
     }
-    if (woke) responsiveTabIds.add(tab.id);
+    return { tabId:tab.id, woke };
+  }));
+  for (const result of wakeResults) {
+    if (result.status === 'fulfilled' && result.value?.woke) responsiveTabIds.add(result.value.tabId);
   }
 
   await mutateState(async (state) => {
