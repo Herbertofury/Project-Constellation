@@ -46,10 +46,21 @@ with sync_playwright() as p:
     admin = context.new_page()
     admin.goto(f'chrome-extension://{extension_id}/popup.html', wait_until='domcontentloaded')
     runtime_proof = admin.evaluate('''async () => {
-      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_SETTINGS_GET' });
-      return { id:chrome.runtime.id, version:chrome.runtime.getManifest().version, ok:Boolean(response?.ok) };
+      const response = await Promise.race([
+        chrome.runtime.sendMessage({ type:'PC_PROVIDER_LIST' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('runtime probe timeout')), 5000))
+      ]);
+      return {
+        id:chrome.runtime.id,
+        version:chrome.runtime.getManifest().version,
+        ok:Boolean(response?.ok),
+        providerCount:Array.isArray(response?.providers) ? response.providers.length : 0
+      };
     }''')
-    assert runtime_proof == {'id': extension_id, 'version': '0.16.0', 'ok': True}, runtime_proof
+    assert runtime_proof['id'] == extension_id, runtime_proof
+    assert runtime_proof['version'] == '0.16.0', runtime_proof
+    assert runtime_proof['ok'] is True, runtime_proof
+    assert runtime_proof['providerCount'] > 0, runtime_proof
 
     def route_chat(route):
         url = route.request.url.split('?', 1)[0].rstrip('/')
