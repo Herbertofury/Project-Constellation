@@ -102,14 +102,27 @@ with sync_playwright() as p:
         }
       });
       await new Promise(r => setTimeout(r, 80));
+      const tabs = (await chrome.tabs.query({})).filter(t => String(t.url || '').startsWith('https://chatgpt.com/c/pc-smoke-'));
+      const wakes = await Promise.all(tabs.map(async (tab) => {
+        try {
+          const response = await chrome.tabs.sendMessage(tab.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() });
+          return { tabId:tab.id, active:tab.active, ...(response || {}) };
+        } catch (error) {
+          return { tabId:tab.id, active:tab.active, ok:false, error:String(error?.message || error) };
+        }
+      }));
+
       const key = 'projectConstellationReliabilitySupervisorState';
       const state = (await chrome.storage.local.get(key))[key] || { version:1, chats:{} };
       const now = Date.now();
-      for (const id of ['chatgpt:pc-smoke-a','chatgpt:pc-smoke-b']) {
+      for (const wake of wakes) {
+        const id = String(wake?.snapshot?.chatId || '');
+        if (!id) continue;
         const row = state.chats[id] || { chatId:id };
         state.chats[id] = {
           ...row,
           chatId:id,
+          signature:String(wake.snapshot.signature || row.signature || ''),
           lastProgressAt:now - (2 * 60 * 60 * 1000 + 5000),
           lastObservedAt:now,
           wasRunning:true,
@@ -123,15 +136,6 @@ with sync_playwright() as p:
         };
       }
       await chrome.storage.local.set({ [key]:state });
-      const tabs = (await chrome.tabs.query({})).filter(t => String(t.url || '').startsWith('https://chatgpt.com/c/pc-smoke-'));
-      const wakes = await Promise.all(tabs.map(async (tab) => {
-        try {
-          const response = await chrome.tabs.sendMessage(tab.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() });
-          return { tabId:tab.id, active:tab.active, ...(response || {}) };
-        } catch (error) {
-          return { tabId:tab.id, active:tab.active, ok:false, error:String(error?.message || error) };
-        }
-      }));
       await chrome.alarms.create('project-constellation-tab-supervisor', { when:Date.now() + 120 });
       return { tabs:tabs.map(t => ({id:t.id,url:t.url,active:t.active})), wakes };
     }''')
@@ -142,6 +146,7 @@ with sync_playwright() as p:
         assert wake.get('ok') is True, wake
         assert wake.get('supervisor') == 'pc-tab-supervisor-v1', wake
         assert str(wake.get('snapshot', {}).get('chatId', '')).startswith('chatgpt:pc-smoke-'), wake
+        assert wake.get('snapshot', {}).get('signature'), wake
 
     deadline = time.time() + 20
     sent = ['', '']
