@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 import pathlib, os, tempfile, time, json
 
 root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_BUILD', '/mnt/data/project-constellation/build/unpacked')).resolve()
+extension_id = 'geljambmkfjkhodgkpjhnmfojkpcamig'
 urls = ['https://chatgpt.com/c/pc-smoke-a', 'https://chatgpt.com/c/pc-smoke-b']
 requests = {url: 0 for url in urls}
 
@@ -33,6 +34,14 @@ with sync_playwright() as p:
         executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None),
     )
 
+    admin = context.new_page()
+    admin.goto(f'chrome-extension://{extension_id}/popup.html', wait_until='domcontentloaded')
+    runtime_proof = admin.evaluate('''async () => {
+      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_SETTINGS_GET' });
+      return { id:chrome.runtime.id, version:chrome.runtime.getManifest().version, ok:Boolean(response?.ok) };
+    }''')
+    assert runtime_proof == {'id': extension_id, 'version': '0.16.0', 'ok': True}, runtime_proof
+
     def route_chat(route):
         url = route.request.url.split('?', 1)[0].rstrip('/')
         if url in requests:
@@ -47,18 +56,8 @@ with sync_playwright() as p:
     pages[1].bring_to_front()
     pages[0].bring_to_front()  # page B is now a real background tab.
 
-    deadline = time.time() + 10
-    worker = None
-    while time.time() < deadline:
-        workers = context.service_workers
-        if workers:
-            worker = workers[0]
-            break
-        time.sleep(0.1)
-    assert worker is not None, 'Project Constellation service worker did not start'
-
     time.sleep(2.0)  # allow declarative content scripts to establish initial signatures
-    prep = worker.evaluate('''async () => {
+    prep = admin.evaluate('''async () => {
       await chrome.storage.local.set({
         projectConstellationBrainSettings: {
           refreshRecovery: { enabled:true, cooldownMs:60000, maxRefreshesPerChat:2 },
@@ -94,6 +93,7 @@ with sync_playwright() as p:
     }''')
     assert len(prep['tabs']) == 2, prep
     assert any(not tab['active'] for tab in prep['tabs']), prep
+    assert all(status == 'fulfilled' for status in prep['wakes']), prep
 
     deadline = time.time() + 15
     sent = ['', '']
@@ -103,8 +103,8 @@ with sync_playwright() as p:
             break
         time.sleep(0.25)
 
-    state = worker.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
-    print(json.dumps({'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
+    state = admin.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
+    print(json.dumps({'runtime': runtime_proof, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
 
     assert all(sent), f'both open chats must auto-continue after rescue: {sent}'
     assert all('Resume from that exact next action immediately' in value for value in sent), sent
