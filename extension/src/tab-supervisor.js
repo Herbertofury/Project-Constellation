@@ -231,7 +231,11 @@
   }
 
   chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[BRAIN_SETTINGS_KEY]) brainSettings = changes[BRAIN_SETTINGS_KEY].newValue || {}; });
-  chrome.runtime.onMessage.addListener((message) => { if (message?.type === 'PC_TAB_SUPERVISOR_TICK') void evaluate(true); });
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type !== 'PC_TAB_SUPERVISOR_TICK') return;
+    sendResponse({ projectConstellationTabSupervisorVersion:1, chatId:currentChatId(), hidden:document.hidden });
+    void evaluate(true);
+  });
   document.addEventListener('visibilitychange', () => void evaluate(true));
   window.addEventListener('popstate', () => setTimeout(() => void evaluate(true), 100));
   window.addEventListener('hashchange', () => setTimeout(() => void evaluate(true), 100));
