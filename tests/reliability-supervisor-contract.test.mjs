@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const manifest = JSON.parse(fs.readFileSync(new URL('../extension/manifest.json', import.meta.url), 'utf8'));
 const worker = fs.readFileSync(new URL('../extension/service-worker.js', import.meta.url), 'utf8');
+const background = fs.readFileSync(new URL('../extension/background.js', import.meta.url), 'utf8');
 const supervisorBg = fs.readFileSync(new URL('../extension/src/tab-supervisor-background.js', import.meta.url), 'utf8');
 const approvalBg = fs.readFileSync(new URL('../extension/src/approval-supervisor-background.js', import.meta.url), 'utf8');
 const supervisor = fs.readFileSync(new URL('../extension/src/tab-supervisor.js', import.meta.url), 'utf8');
@@ -13,6 +14,12 @@ assert.equal(manifest.background?.service_worker, 'service-worker.js', 'composed
 assert.match(worker, /import '\.\/background\.js'/);
 assert.match(worker, /import '\.\/src\/tab-supervisor-background\.js'/);
 assert.match(worker, /import '\.\/src\/approval-supervisor-background\.js'/);
+for (const coreModule of ['brain-core','provider-core','integrity-core','knowledge-core','project-memory-core','health-core']) {
+  assert.ok(background.includes(`import './src/${coreModule}.js'`), `background must import ${coreModule}`);
+  assert.ok(build.includes(`'${coreModule}.js'`), `build must package background dependency ${coreModule}.js`);
+}
+assert.match(build, /function verifyModuleGraph\(/, 'build must validate the packaged service-worker import graph');
+assert.match(build, /Build missing imported module:/, 'missing worker modules must fail the build before browser runtime');
 const contentEntry = (manifest.content_scripts || []).find((row) => (row.js || []).includes('src/tab-supervisor.js'));
 assert(contentEntry, 'tab supervisor must be shipped as a content script');
 assert((contentEntry.matches || []).includes('https://chatgpt.com/*'));
@@ -64,7 +71,7 @@ assert.match(supervisor, /let inserted = false/, 'continuation text is inserted 
 assert.match(supervisor, /await new Promise\(\(resolve\) => setTimeout\(resolve, 500\)\)/, 'rescue waits for a late send control instead of abandoning a prefilled continuation');
 assert.match(supervisor, /PC_BRAIN_INGEST_BATCH/, 'visible work is checkpointed before supervisor recovery decisions');
 
-for (const marker of ["'service-worker.js'", "'tab-supervisor-core.js'", "'tab-supervisor-background.js'", "'approval-supervisor-background.js'", "'tab-supervisor.js'"]) {
+for (const marker of ["'service-worker.js'", "'project-memory-core.js'", "'tab-supervisor-core.js'", "'tab-supervisor-background.js'", "'approval-supervisor-background.js'", "'tab-supervisor.js'"]) {
   assert.ok(build.includes(marker), `build must package ${marker}`);
 }
 
