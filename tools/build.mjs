@@ -39,7 +39,33 @@ fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 const backgroundPath = path.join(unpacked, 'background.js');
 const background = fs.readFileSync(backgroundPath, 'utf8').replaceAll('PROJECT_CONSTELLATION_GITHUB_CLIENT_ID', validGithubClient ? githubClientId : '');
 fs.writeFileSync(backgroundPath, background);
-const buildInfo = { schema:'project-constellation-build', version:manifest.version, mode:requestedMode, oauth:{ google:validGoogleClient, github:validGithubClient }, extensionIdStable:Boolean(manifest.key), builtAt:new Date().toISOString() };
+
+function verifyModuleGraph(entryRelativePath) {
+  const queue = [entryRelativePath];
+  const visited = new Set();
+  const importPattern = /\bimport\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g;
+  while (queue.length) {
+    const relativePath = queue.shift();
+    if (visited.has(relativePath)) continue;
+    visited.add(relativePath);
+    const absolutePath = path.join(unpacked, relativePath);
+    if (!fs.existsSync(absolutePath)) throw new Error(`Build missing imported module: ${relativePath}`);
+    const source = fs.readFileSync(absolutePath, 'utf8');
+    for (const match of source.matchAll(importPattern)) {
+      const specifier = match[1];
+      if (!specifier.startsWith('.')) continue;
+      const importedAbsolute = path.resolve(path.dirname(absolutePath), specifier);
+      if (!importedAbsolute.startsWith(`${unpacked}${path.sep}`)) throw new Error(`Build import escapes package root: ${relativePath} -> ${specifier}`);
+      const importedRelative = path.relative(unpacked, importedAbsolute);
+      if (!fs.existsSync(importedAbsolute)) throw new Error(`Build missing imported module: ${relativePath} -> ${importedRelative}`);
+      queue.push(importedRelative);
+    }
+  }
+  return [...visited].sort();
+}
+
+const serviceWorkerModules = verifyModuleGraph(manifest.background?.service_worker || 'service-worker.js');
+const buildInfo = { schema:'project-constellation-build', version:manifest.version, mode:requestedMode, oauth:{ google:validGoogleClient, github:validGithubClient }, extensionIdStable:Boolean(manifest.key), serviceWorkerModules, builtAt:new Date().toISOString() };
 fs.mkdirSync(buildRoot, { recursive: true });
 fs.writeFileSync(path.join(buildRoot, 'build-info.json'), JSON.stringify(buildInfo, null, 2) + '\n');
 console.log(`${unpacked}\n${JSON.stringify(buildInfo)}`);
