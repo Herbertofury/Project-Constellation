@@ -247,14 +247,20 @@ async function superviseOpenTabs() {
   const tabs = await openChatGptTabs();
   const cfg = await settings();
   const now = Date.now();
+  const responsiveTabIds = new Set();
   for (const tab of tabs) {
     let woke = false;
-    try { await chrome.tabs.sendMessage(tab.id, { type: 'PC_TAB_SUPERVISOR_TICK', at: now }); woke = true; } catch (_) {}
+    try {
+      await chrome.tabs.sendMessage(tab.id, { type: 'PC_TAB_SUPERVISOR_TICK', at: now });
+      woke = true;
+      responsiveTabIds.add(tab.id);
+    } catch (_) {}
     if (!woke && !tab.discarded) await bootstrapTab(tab);
   }
 
   await mutateState(async (state) => {
     for (const tab of tabs) {
+      if (responsiveTabIds.has(tab.id)) continue;
       const chatId = core.chatIdFromUrl(tab.url || '');
       if (!chatId) continue;
       const row = state.chats[chatId];
