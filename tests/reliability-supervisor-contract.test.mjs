@@ -20,6 +20,10 @@ assert((contentEntry.js || []).includes('src/tab-supervisor-core.js'));
 
 assert.match(supervisorBg, /chrome\.tabs\.query\(\{\}\)/, 'background supervisor enumerates every open tab');
 assert.match(supervisorBg, /PC_TAB_SUPERVISOR_TICK/, 'background supervisor wakes each ChatGPT content supervisor');
+assert.match(supervisorBg, /response\?\.supervisor !== PORT_NAME/, 'a delivered message is not treated as supervision unless the tab returns the supervisor identity');
+assert.match(supervisorBg, /response\?\.snapshot\?\.chatId/, 'a heartbeat is only trusted when it carries fresh chat state');
+assert.match(supervisorBg, /handleSnapshot\(\{ sender:\{ tab \} \}, response\.snapshot\)/, 'service-worker heartbeat consumes the fresh snapshot without depending on a long-lived port');
+assert.match(supervisorBg, /if \(injected\) woke = await wakeSupervisor\(tab, now\)/, 'missing/stale supervisors are reinjected once and must pass the same ACK contract');
 assert.match(supervisorBg, /chrome\.scripting\.executeScript/, 'existing open tabs can be bootstrapped after extension update');
 assert.match(supervisorBg, /chrome\.tabs\.reload\(tabId/, 'stale/dead chat rescue performs the requested reload');
 assert.match(supervisorBg, /enabled: cfg\.refreshRecovery\?\.enabled === true/, 'automatic reload honors the existing recovery enable switch');
@@ -31,6 +35,9 @@ assert.doesNotMatch(supervisorBg, /query\(\{\s*active\s*:\s*true/, 'supervisor m
 
 assert.match(supervisor, /document\.hidden \? 1000 : 180/, 'hidden tabs are still evaluated instead of being skipped');
 assert.doesNotMatch(supervisor, /if \(document\.hidden\) return/, 'hidden tabs must not disable supervision');
+assert.match(supervisor, /postSnapshot:false/, 'background heartbeat receives its snapshot directly instead of requiring the tab port');
+assert.match(supervisor, /supervisor:'pc-tab-supervisor-v1'/, 'heartbeat response identifies the actual supervisor implementation');
+assert.match(supervisor, /snapshot:snapshot \|\| null/, 'heartbeat response carries current tab state');
 assert.match(supervisor, /type:'approval-scan'/, 'tab supervisor requests immediate approval recovery without clicking permission controls itself');
 assert.doesNotMatch(supervisor, /\.button\.click\(\)|candidate\.button\.click\(\)/, 'tab supervisor must not duplicate the established approval click owner');
 assert.match(content, /PC_APPROVAL_RECOVERY_SCAN/, 'existing tested content recovery handler remains the approval execution owner');
