@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.16.0 — Browser-wide Reliability Supervisor
+
+### Added
+
+- Adds a service-worker Reliability Supervisor that enumerates every already-open ChatGPT tab instead of depending on the foreground tab, with a bounded one-minute wake heartbeat and hot-bootstrap support after extension startup/update.
+- Adds a lightweight per-tab supervisor that continues observing failure, capacity, project, approval, and continuation state while `document.hidden` is true.
+- Adds opt-in bounded reload-and-continue recovery for explicit delivery/connection/response/send failures, corroborated dead/stalled states, and unfinished turns with no meaningful progress for two hours.
+- Adds a continuity-safe automatic resume prompt that preserves exact objectives, decisions, project/repository/file/Drive/GitHub identities, paths, hashes, run/job IDs, verified tests, blockers, no-repeat history, and the exact unfinished next action while requiring verification of a possibly-partial final side effect before repeating it.
+- Adds browser-wide concurrent Approval Autopilot fan-out across all open ChatGPT tabs while retaining the existing tested in-page permission handler as the single click owner.
+- Adds ChatGPT `/g/g-p-*` project-route and visible project-sidebar discovery so newly encountered provider projects are mirrored into the Constellation catalog from any open ChatGPT tab.
+- Adds a real two-tab Chromium reliability smoke that keeps one ChatGPT tab in the background and requires both stale unfinished tabs to reload and actually submit the continuation prompt.
+
+### Safety / resilience
+
+- Automatic recovery still requires the existing Refresh Recovery switch. Completed idle chats, auth-required/rate-limited/unavailable states, and approval-blocked chats are excluded from blind reload recovery.
+- Recovery is bounded by per-chat cooldown and attempt caps, reloads only the affected already-open conversation, never creates/focuses a missing chat, and never overwrites a non-empty composer.
+- Visible chat state is checkpointed before reload, and provider failures remain explicit states rather than being collapsed into generic activity.
+- Supersedes the v0.14.8–v0.15 “No Surprise Navigation” prohibition only for this user-enabled, bounded recovery of an already-open unfinished ChatGPT tab; ordinary passive monitoring still does not create, focus, or arbitrarily navigate provider pages.
+
+### Verification / documentation
+
+- Adds unit/contract coverage for stale-running rescue, unanswered-user rescue, completed-idle exclusion, approval exclusion, cooldowns, failure classification, capacity boundaries, all-tab enumeration, background wakeups, project discovery, single-owner approval execution, packaging, and continuation invariants.
+- Changes extension browser smoke execution to Chromium's extension-capable new headless mode and makes service-worker load a hard assertion instead of silently accepting zero loaded workers.
+- Updates README, Recovery docs, release notes, and tracked wiki mirrors to describe the v0.16 recovery contract and safety boundaries.
+
 ## 0.15.0 — Project Atlas + Compounding Brain
 
 - Adds a deterministic, source-backed Project Brain compiler over Knowledge Vault/project continuity with bounded working context, provenance, confidence, active work, and memory coverage.
