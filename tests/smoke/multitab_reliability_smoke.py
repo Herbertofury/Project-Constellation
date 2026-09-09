@@ -10,18 +10,25 @@ html = '''<!doctype html><html><head><title>Reliability smoke</title></head><bod
 <main>
   <div data-testid="conversation-turn-0" data-message-author-role="user" data-message-id="user-1">Continue the unfinished reliability smoke task.</div>
   <div id="prompt-textarea" contenteditable="true" role="textbox" data-lexical-editor="true"></div>
-  <button data-testid="send-button" aria-label="Send">Send</button>
+  <div id="send-slot"></div>
 </main>
 <script>
-  document.querySelector('[data-testid="send-button"]').addEventListener('click', () => {
-    const composer = document.querySelector('#prompt-textarea');
-    const text = (composer.innerText || composer.textContent || '').trim();
-    if (text) {
-      localStorage.setItem('pc-reliability-sent', text);
-      localStorage.setItem('pc-reliability-sent-at', String(Date.now()));
-      document.body.dataset.sent = '1';
-    }
-  });
+  setTimeout(() => {
+    const button = document.createElement('button');
+    button.dataset.testid = 'send-button';
+    button.setAttribute('aria-label', 'Send');
+    button.textContent = 'Send';
+    button.addEventListener('click', () => {
+      const composer = document.querySelector('#prompt-textarea');
+      const text = (composer.innerText || composer.textContent || '').trim();
+      if (text) {
+        localStorage.setItem('pc-reliability-sent', text);
+        localStorage.setItem('pc-reliability-sent-at', String(Date.now()));
+        document.body.dataset.sent = '1';
+      }
+    });
+    document.querySelector('#send-slot').appendChild(button);
+  }, 1200);
 </script>
 </body></html>'''
 
@@ -106,7 +113,7 @@ with sync_playwright() as p:
     state = admin.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
     print(json.dumps({'runtime': runtime_proof, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
 
-    assert all(sent), f'both open chats must auto-continue after rescue: {sent}'
+    assert all(sent), f'both open chats must auto-continue after rescue even when Send hydrates late: {sent}'
     assert all('Resume from that exact next action immediately' in value for value in sent), sent
     assert all(requests[url] >= 2 for url in urls), f'both tabs must have been reloaded: {requests}'
     for chat_id in ['chatgpt:pc-smoke-a','chatgpt:pc-smoke-b']:
