@@ -4,6 +4,8 @@
 
 Home provides cross-provider search, projects/groups, smart collections, pinned/favorite chats, artifact lineage, activity, attention queues, and configurable workbench panels. Knowledge Vault derives bounded local records for decisions, recommendations, links, code, commands, versions, packages, media, and follow-ups.
 
+ChatGPT `/g/g-p-*` routes and visible project-sidebar entries are treated as first-class provider projects. The v0.16 per-tab supervisor mirrors newly encountered ChatGPT project identity into the local catalog instead of requiring the currently focused tab to be the one that discovers it.
+
 ## Capture modes
 
 - **Passive mounted capture:** observes only DOM nodes already rendered by the provider.
@@ -17,7 +19,15 @@ Coverage labels are explicit: metadata-only, server-rendered content, partial DO
 
 The page HUD correlates mounted DOM progress, passive provider network evidence, current visible agent/tool step summaries, stored turn state, capacity thresholds, and integrity findings. Its expanded default view shows **Observed now**, observable-confidence sources, and a seven-row local activity ledger covering response changes, tool steps, page status, recovery, handoff, and sanitized request start/response/completion events. It detects running, quiet, stalled, dead, approval-blocked, rate-limited, auth-required, unavailable, stale-page, degraded-render, and capacity-handoff conditions.
 
-The HUD never sends provider requests and never claims access to hidden model reasoning. Site-background/history/session traffic stays visible as auxiliary activity but cannot be used as proof that an agent is working. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
+The HUD never claims access to hidden model reasoning. Site-background/history/session traffic stays visible as auxiliary activity but cannot be used as proof that an agent is working. Healthy status can be hidden; corner, density, thresholds, and watchdog behavior are configurable.
+
+### Browser-wide Reliability Supervisor
+
+v0.16 adds a dedicated reliability path that does not stop when a ChatGPT page becomes `document.hidden`. Every already-open ChatGPT tab maintains lightweight state, project, failure, capacity, and continuation observations, while the extension service worker enumerates all open ChatGPT tabs on a bounded heartbeat and wakes or hot-bootstraps their supervisor after extension startup/update.
+
+When **Refresh Recovery** is enabled, explicit delivery/connection/response/send failures, corroborated dead/stalled states, and unfinished turns with no meaningful progress for two hours can enter bounded recovery. Constellation checkpoints visible state, reloads only the affected already-open conversation, waits for the native composer, and sends a continuity prompt that preserves project/repository/file/Drive/GitHub identities, hashes/run IDs, verified work, blockers, no-repeat history, and the exact next action. The final attempted side effect is treated as possibly partial and must be verified before repetition.
+
+Completed idle chats are excluded. Auth/rate-limit/approval-blocked states are not blindly reloaded. Recovery has a per-chat cooldown and attempt cap, never creates or focuses a missing conversation, and never overwrites a non-empty composer.
 
 ### Chat Pulse Context Lens
 
@@ -37,8 +47,9 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 
 ## Recovery and durability
 
-- Two-phase browser-refresh recovery for delivery failures (never a blind Retry click).
-- Approval Recovery for ChatGPT connected-app prompts with explicit risk acknowledgement, immediate current-card detection, provider-specific conversation-wide permission selection, bounded retry, and post-click clearance confirmation.
+- Browser-wide per-tab supervision for every already-open ChatGPT chat, including background tabs.
+- Opt-in bounded reload-and-continue recovery for explicit provider interruptions, corroborated dead/stalled states, and unfinished two-hour stale turns.
+- Approval Recovery for ChatGPT connected-app prompts with explicit risk acknowledgement, provider-specific conversation-wide permission selection, bounded retry, and post-click clearance confirmation. The service worker fans the established handler out concurrently to all open ChatGPT tabs rather than serializing everything through the active tab.
 - Safe handoff Markdown/checkpoints plus one-click branch-and-continue before or after a long conversation reaches proactive thresholds.
 - Immutable per-turn revision capture, bounded rendered-tail snapshots, and Output Vault compare/export/branch recovery for provider-side output loss.
 - Google Drive full snapshot plus incremental journal, SHA-256 descriptions, metadata verification, byte-size verification, and round-trip reads.
@@ -46,7 +57,7 @@ Needs Attention settings use accessible ON/OFF switches. Every change is autosav
 
 ## Performance engine
 
-Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs disconnect broad capture observation and use slow health/status pulses; a separate narrowly filtered approval observer remains available so an opted-in permission card cannot silently strand work.
+Long-task pressure measurement automatically disables only decorative `aria-hidden` provider motion/blur while pressure is high. Mutation capture is idle-scheduled, nested-root deduplicated, pressure-aware, and bounded. Repeated semantic upserts are coalesced before runtime messaging, tool evidence scans are cached and dirtied by relevant DOM changes, and HUD DOM writes are change-gated. Hidden tabs may disconnect the broad expensive capture observer, but the dedicated v0.16 reliability supervisor remains lightweight and wakeable so background work is still monitored for failure, project identity, capacity, approval, and recovery conditions.
 
 ## Visual identity and accessibility
 
