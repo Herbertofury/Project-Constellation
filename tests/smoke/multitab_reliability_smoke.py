@@ -6,6 +6,7 @@ extension_id = 'geljambmkfjkhodgkpjhnmfojkpcamig'
 urls = ['https://chatgpt.com/c/pc-smoke-a', 'https://chatgpt.com/c/pc-smoke-b']
 requests = {url: 0 for url in urls}
 project_id = 'chatgpt:project:g-p-smoke-project'
+chat_ids = ['chatgpt:pc-smoke-a', 'chatgpt:pc-smoke-b']
 
 html = '''<!doctype html><html><head><title>Reliability smoke</title></head><body>
 <nav><a href="https://chatgpt.com/g/g-p-smoke-project/project">Smoke Project</a></nav>
@@ -176,13 +177,25 @@ with sync_playwright() as p:
             break
         time.sleep(0.25)
 
-    state = admin.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
-    print(json.dumps({'runtime': runtime_proof, 'project': project, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
-
     assert all(sent), f'both open chats must auto-continue through the service-worker supervisor even when Send hydrates late: {sent}'
     assert all('Resume from that exact next action immediately' in value for value in sent), sent
     assert all(requests[url] >= 2 for url in urls), f'both tabs must have been reloaded: {requests}'
-    for chat_id in ['chatgpt:pc-smoke-a','chatgpt:pc-smoke-b']:
+
+    # The page click happens before the content supervisor posts resume-result. Wait for the
+    # background state queue to commit both ACKs; do not mistake that asynchronous commit for
+    # a failed rescue after both sends were already observed.
+    state = None
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        state = admin.evaluate('''async () => (await chrome.storage.local.get('projectConstellationReliabilitySupervisorState')).projectConstellationReliabilitySupervisorState''')
+        rows = [state.get('chats', {}).get(chat_id, {}) for chat_id in chat_ids]
+        if all(row.get('lastResumeStatus') == 'sent' and row.get('pending') is None for row in rows):
+            break
+        time.sleep(0.1)
+
+    print(json.dumps({'runtime': runtime_proof, 'project': project, 'prep': prep, 'requests': requests, 'sent': sent, 'state': state}, sort_keys=True))
+    assert state is not None, 'reliability supervisor state must exist after recovery'
+    for chat_id in chat_ids:
         row = state['chats'][chat_id]
         assert row.get('lastResumeStatus') == 'sent', row
         assert row.get('pending') is None, row
