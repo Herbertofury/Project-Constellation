@@ -42,8 +42,16 @@ assert.doesNotMatch(approvalBg, /query\(\{\s*active\s*:\s*true/, 'approval recov
 
 assert.match(supervisor, /scanProjects\(/, 'project discovery runs inside each ChatGPT tab');
 assert.match(supervisor, /projectFromUrl\(location\.href\)/, 'ChatGPT project routes are first-class project identity');
+assert.match(supervisor, /PC_BRAIN_COUNTS/, 'project discovery first proves the canonical brain schema is initialized');
+assert.match(supervisor, /const pendingProjects = new Map\(\)/, 'project discoveries stay pending until persistence is acknowledged');
+assert.match(supervisor, /project-upsert-result/, 'project discovery consumes persistence acknowledgements');
+assert.match(supervisor, /message\.ok === true[^\n]*seenProjects\.set/, 'a project is only marked seen after a successful persistence ACK');
+assert.match(supervisorBg, /brain-schema-not-ready/, 'background reports a retryable project schema failure instead of silently dropping it');
+assert.match(supervisorBg, /type:'project-upsert-result'/, 'background ACKs project persistence success or failure to the originating tab');
 assert.match(supervisor, /resumeAfterReload/, 'reloaded chats receive a continuation recovery path');
 assert.match(supervisor, /findSendButton\(\)/, 'continuation recovery can send after hydration');
+assert.match(supervisor, /let inserted = false/, 'continuation text is inserted at most once while waiting for send hydration');
+assert.match(supervisor, /await new Promise\(\(resolve\) => setTimeout\(resolve, 500\)\)/, 'rescue waits for a late send control instead of abandoning a prefilled continuation');
 assert.match(supervisor, /PC_BRAIN_INGEST_BATCH/, 'visible work is checkpointed before supervisor recovery decisions');
 
 for (const marker of ["'service-worker.js'", "'tab-supervisor-core.js'", "'tab-supervisor-background.js'", "'approval-supervisor-background.js'", "'tab-supervisor.js'"]) {
