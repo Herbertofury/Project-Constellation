@@ -27,6 +27,7 @@ html = '''<!doctype html><html><head><title>Reliability smoke</title></head><bod
 with sync_playwright() as p:
     context = p.chromium.launch_persistent_context(
         tempfile.mkdtemp(prefix='project-constellation-multitab-'),
+        channel='chromium',
         headless=True,
         args=[f'--disable-extensions-except={root}', f'--load-extension={root}', '--no-sandbox'],
         executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None),
@@ -87,7 +88,7 @@ with sync_playwright() as p:
         };
       }
       await chrome.storage.local.set({ [key]:state });
-      const tabs = (await chrome.tabs.query({})).filter(t => /^https:\/\/chatgpt\.com\/c\/pc-smoke-/.test(t.url || ''));
+      const tabs = (await chrome.tabs.query({})).filter(t => String(t.url || '').startsWith('https://chatgpt.com/c/pc-smoke-'));
       const wakes = await Promise.allSettled(tabs.map(t => chrome.tabs.sendMessage(t.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() })));
       return { tabs:tabs.map(t => ({id:t.id,url:t.url,active:t.active})), wakes:wakes.map(x => x.status) };
     }''')
