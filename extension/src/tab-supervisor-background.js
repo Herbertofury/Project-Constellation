@@ -253,19 +253,27 @@ async function bootstrapTab(tab) {
   } catch (_) { return false; }
 }
 
+async function wakeSupervisor(tab, now) {
+  try {
+    const response = await chrome.tabs.sendMessage(tab.id, { type: 'PC_TAB_SUPERVISOR_TICK', at: now });
+    if (response?.ok !== true || response?.supervisor !== PORT_NAME || !response?.snapshot?.chatId) return false;
+    await handleSnapshot({ sender:{ tab } }, response.snapshot);
+    return true;
+  } catch (_) { return false; }
+}
+
 async function superviseOpenTabs() {
   const tabs = await openChatGptTabs();
   const cfg = await settings();
   const now = Date.now();
   const responsiveTabIds = new Set();
   for (const tab of tabs) {
-    let woke = false;
-    try {
-      await chrome.tabs.sendMessage(tab.id, { type: 'PC_TAB_SUPERVISOR_TICK', at: now });
-      woke = true;
-      responsiveTabIds.add(tab.id);
-    } catch (_) {}
-    if (!woke && !tab.discarded) await bootstrapTab(tab);
+    let woke = await wakeSupervisor(tab, now);
+    if (!woke && !tab.discarded) {
+      const injected = await bootstrapTab(tab);
+      if (injected) woke = await wakeSupervisor(tab, now);
+    }
+    if (woke) responsiveTabIds.add(tab.id);
   }
 
   await mutateState(async (state) => {
@@ -299,10 +307,7 @@ async function superviseOpenTabs() {
     return writeState(state);
   });
 
-  for (const port of ports.values()) {
-    try { port.postMessage({ type: 'tick', now }); } catch (_) {}
-  }
-  return { tabs: tabs.length };
+  return { tabs: tabs.length, responsive:responsiveTabIds.size };
 }
 
 async function ensureAlarm() { await chrome.alarms.create(ALARM, { periodInMinutes: 1 }); }
