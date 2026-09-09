@@ -10,7 +10,9 @@
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const sentTurns = new Map();
   const seenProjects = new Map();
+  const pendingProjects = new Map();
   let brainSettings = {};
+  let brainReady = false;
   let port = null;
   let reconnectTimer = 0;
   let evaluateTimer = 0;
@@ -70,15 +72,32 @@
     const name = core.cleanProjectName(anchor?.innerText || anchor?.textContent || '');
     return { ...parsed, name: name || `ChatGPT Project ${parsed.providerProjectId.slice(-8)}` };
   }
-  function scanProjects() {
+
+  async function ensureBrainReady() {
+    if (brainReady) return true;
+    try {
+      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_COUNTS' });
+      brainReady = response?.ok === true && Boolean(response?.counts);
+    } catch (_) { brainReady = false; }
+    return brainReady;
+  }
+
+  async function scanProjects() {
+    const candidates = new Map();
+    const current = currentProject();
+    if (current?.id && current?.name) candidates.set(current.id, { ...current, url:location.href });
     for (const anchor of document.querySelectorAll('a[href*="/g/g-p-"]')) {
       const parsed = core.projectFromUrl(anchor.href);
       const name = parsed ? core.cleanProjectName(anchor.innerText || anchor.textContent || anchor.getAttribute('aria-label') || '') : '';
       if (!parsed || !name) continue;
-      const signature = `${name}|${anchor.href}`;
-      if (seenProjects.get(parsed.id) === signature) continue;
-      seenProjects.set(parsed.id, signature);
-      post({ type:'project-upsert', project:{ ...parsed, name, url:anchor.href, providerId:'chatgpt', sourceType:'provider', updatedAt:Date.now() } });
+      candidates.set(parsed.id, { ...parsed, name, url:anchor.href });
+    }
+    if (!candidates.size || !await ensureBrainReady()) return;
+    for (const project of candidates.values()) {
+      const signature = `${project.name}|${project.url}`;
+      if (seenProjects.get(project.id) === signature || pendingProjects.get(project.id) === signature) continue;
+      pendingProjects.set(project.id, signature);
+      post({ type:'project-upsert', signature, project:{ ...project, providerId:'chatgpt', sourceType:'provider', updatedAt:Date.now() } });
     }
   }
 
@@ -147,7 +166,7 @@
 
   async function evaluate(force = false) {
     if (!document.documentElement) return;
-    scanProjects();
+    await scanProjects();
     const snapshot = collectSnapshot();
     if (!snapshot.chatId) return;
     const capacity = core.capacityLevel(snapshot, brainSettings?.liveHealth || {});
@@ -210,9 +229,16 @@
       port.onMessage.addListener((message) => {
         if (message?.type === 'tick') void evaluate(true);
         else if (message?.type === 'resume') void resumeAfterReload(message);
+        else if (message?.type === 'project-upsert-result') {
+          const projectId = String(message.projectId || '');
+          const signature = String(message.signature || '');
+          if (projectId && pendingProjects.get(projectId) === signature) pendingProjects.delete(projectId);
+          if (message.ok === true && projectId && signature) seenProjects.set(projectId, signature);
+        }
       });
       port.onDisconnect.addListener(() => {
         port = null;
+        pendingProjects.clear();
         clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(connect, 1200 + Math.round(Math.random() * 1000));
       });
@@ -220,6 +246,7 @@
       void evaluate(true);
     } catch (_) {
       port = null;
+      pendingProjects.clear();
       reconnectTimer = setTimeout(connect, 2000);
     }
   }
