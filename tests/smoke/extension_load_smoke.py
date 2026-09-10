@@ -31,7 +31,7 @@ with sync_playwright() as p:
     }''')
     print(json.dumps({'extension': proof, 'root': str(root)}, sort_keys=True))
     assert proof['id'] == extension_id, proof
-    assert proof['version'] == '0.16.0', proof
+    assert proof['version'] == '0.16.1', proof
     assert proof['runtimeOk'], f'Project Constellation runtime message round-trip failed: {proof}'
     assert proof['providerCount'] > 0, f'Project Constellation provider handler did not answer: {proof}'
     context.close()

@@ -59,7 +59,7 @@ with sync_playwright() as p:
       };
     }''')
     assert runtime_proof['id'] == extension_id, runtime_proof
-    assert runtime_proof['version'] == '0.16.0', runtime_proof
+    assert runtime_proof['version'] == '0.16.1', runtime_proof
     assert runtime_proof['ok'] is True, runtime_proof
     assert runtime_proof['providerCount'] > 0, runtime_proof
 
