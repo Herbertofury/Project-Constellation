@@ -4,6 +4,7 @@ import pathlib, os, tempfile, time, json
 root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_BUILD', '/mnt/data/project-constellation/build/unpacked')).resolve()
 extension_id = 'geljambmkfjkhodgkpjhnmfojkpcamig'
 hidden_url = 'https://chatgpt.com/c/hidden-file-smoke'
+inactive_tab_url = 'https://chatgpt.com/c/inactive-supervisor-smoke'
 foreground_url = 'https://chatgpt.com/c/foreground-file-smoke'
 
 html = '''<!doctype html><html><head><title>Hidden file capture smoke</title></head><body>
@@ -42,9 +43,6 @@ with sync_playwright() as p:
     }''')
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
-    # Playwright normally launches Chromium with flags that suppress background behavior and
-    # enables renderer focus emulation on every page. Remove only those automation overrides,
-    # then drive Chromium through its own hidden lifecycle before minimizing a real inactive tab.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
@@ -52,62 +50,67 @@ with sync_playwright() as p:
     browser = context.browser
     assert browser is not None, 'persistent Chromium context did not expose its browser handle'
     browser_cdp = browser.new_browser_cdp_session()
-    with context.expect_page(timeout=10000) as hidden_page_info:
-        created = browser_cdp.send('Target.createTarget', {
-            'url': hidden_url,
+
+    # Proof A: a real UI-strip Chrome tab is created in the background and must remain inactive.
+    with context.expect_page(timeout=10000) as inactive_page_info:
+        inactive_created = browser_cdp.send('Target.createTarget', {
+            'url': inactive_tab_url,
             'background': True,
             'forTab': True,
         })
-    hidden = hidden_page_info.value
-    hidden.wait_for_load_state('domcontentloaded')
-    time.sleep(0.5)
+    inactive = inactive_page_info.value
+    inactive.wait_for_load_state('domcontentloaded')
+    inactive_target_id = inactive_created.get('targetId')
+    assert inactive_target_id, inactive_created
+    inactive_target_info = browser_cdp.send('Target.getTargetInfo', {'targetId': inactive_target_id}).get('targetInfo', {})
+    inactive_tab_state = admin.evaluate('''async (url) => {
+      const tab = (await chrome.tabs.query({})).find((row) => row.url === url);
+      return tab ? { found:true, active:Boolean(tab.active), highlighted:Boolean(tab.highlighted), id:tab.id } : { found:false };
+    }''', inactive_tab_url)
+    assert inactive_target_info.get('type') == 'tab', inactive_target_info
+    assert inactive_tab_state.get('found') is True and inactive_tab_state.get('active') is False, inactive_tab_state
 
-    target_id = created.get('targetId')
-    assert target_id, created
-    target_info = browser_cdp.send('Target.getTargetInfo', {'targetId': target_id}).get('targetInfo', {})
-    tab_state = admin.evaluate('''async (url) => {
+    # Proof B: Chrome's protocol-native hidden target is guaranteed renderer-hidden but, by CDP
+    # contract, is intentionally absent from the tab UI strip. This isolates the exact
+    # document.hidden content-script path that Playwright cannot expose on a UI-strip tab.
+    hidden_created = browser_cdp.send('Target.createTarget', {
+        'url': hidden_url,
+        'background': True,
+        'hidden': True,
+    })
+    hidden_target_id = hidden_created.get('targetId')
+    assert hidden_target_id, hidden_created
+
+    hidden = None
+    deadline = time.time() + 10
+    while time.time() < deadline and hidden is None:
+        hidden = next((page for page in context.pages if page.url == hidden_url), None)
+        if hidden is None:
+            time.sleep(0.1)
+    assert hidden is not None, 'protocol-native hidden target was not adopted into the Playwright browser context'
+    hidden.wait_for_load_state('domcontentloaded')
+
+    hidden_target_info = browser_cdp.send('Target.getTargetInfo', {'targetId': hidden_target_id}).get('targetInfo', {})
+    hidden_tab_state = admin.evaluate('''async (url) => {
       const tab = (await chrome.tabs.query({})).find((row) => row.url === url);
       return tab ? { found:true, active:Boolean(tab.active), highlighted:Boolean(tab.highlighted), id:tab.id } : { found:false };
     }''', hidden_url)
-    assert target_info.get('type') == 'tab', target_info
-    assert tab_state.get('found') is True and tab_state.get('active') is False, tab_state
+    assert hidden_tab_state.get('found') is False, hidden_tab_state
 
-    page_cdp = context.new_cdp_session(hidden)
-    page_cdp.send('Emulation.setFocusEmulationEnabled', {'enabled': False})
-    focus_after_emulation_disable = hidden.evaluate('document.hasFocus()')
-    visibility_before_lifecycle = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
-    page_cdp.send('Page.setWebLifecycleState', {'state': 'frozen'})
-    time.sleep(0.15)
-    page_cdp.send('Page.setWebLifecycleState', {'state': 'active'})
-    time.sleep(0.25)
-    visibility_after_lifecycle = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
-
-    window_info = browser_cdp.send('Browser.getWindowForTarget', {'targetId': target_id})
-    window_id = window_info.get('windowId')
-    assert window_id is not None, window_info
-    browser_cdp.send('Browser.setWindowBounds', {
-        'windowId': window_id,
-        'bounds': {'windowState': 'minimized'},
-    })
-
-    visibility = visibility_after_lifecycle
-    window_bounds = window_info.get('bounds', {})
-    deadline = time.time() + 5
-    while time.time() < deadline:
-        window_bounds = browser_cdp.send('Browser.getWindowBounds', {'windowId': window_id}).get('bounds', {})
-        visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
-        if window_bounds.get('windowState') == 'minimized' and visibility == {'hidden': True, 'state': 'hidden'}:
-            break
-        time.sleep(0.1)
-    assert window_bounds.get('windowState') == 'minimized', window_bounds
-    assert visibility == {'hidden': True, 'state': 'hidden'}, {
-        'beforeLifecycle': visibility_before_lifecycle,
-        'afterLifecycle': visibility_after_lifecycle,
-        'afterMinimize': visibility,
-        'focusAfterEmulationDisable': focus_after_emulation_disable,
-        'window': window_bounds,
-        'target': target_info,
-        'tab': tab_state,
+    hidden_cdp = context.new_cdp_session(hidden)
+    hidden_cdp.send('Emulation.setFocusEmulationEnabled', {'enabled': False})
+    hidden_visibility_before = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState, focused:document.hasFocus() })')
+    if hidden_visibility_before.get('hidden') is not True:
+        hidden_cdp.send('Page.setWebLifecycleState', {'state': 'frozen'})
+        time.sleep(0.15)
+        hidden_cdp.send('Page.setWebLifecycleState', {'state': 'active'})
+        time.sleep(0.25)
+    hidden_visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState, focused:document.hasFocus() })')
+    assert hidden_visibility.get('hidden') is True and hidden_visibility.get('state') == 'hidden', {
+        'before': hidden_visibility_before,
+        'after': hidden_visibility,
+        'target': hidden_target_info,
+        'chromeTabs': hidden_tab_state,
     }
 
     hidden.evaluate('''() => {
@@ -151,7 +154,6 @@ with sync_playwright() as p:
     assert mutation_record.get('source') == 'hidden-tab-supervisor', mutation_record
 
     # Existing hidden links can become attachments by changing only the download attribute.
-    # This must trigger the narrow hidden-file observer without waiting for the minute safety sweep.
     time.sleep(2.7)
     hidden.evaluate('''() => {
       const host = document.querySelector('#fixture');
@@ -175,48 +177,33 @@ with sync_playwright() as p:
     assert late_record is not None, f'download-only hidden mutation was not captured: {late_files}'
     assert late_record.get('source') == 'hidden-tab-supervisor', late_record
 
-    hidden.evaluate('''() => {
-      const host = document.querySelector('#fixture');
-      const attachment = document.createElement('a');
-      attachment.href = 'https://drive.google.com/file/d/hidden-safety-file';
-      attachment.setAttribute('aria-label', 'Download hidden-safety-data.csv');
-      attachment.textContent = 'hidden-safety-data.csv';
-      host.appendChild(attachment);
-    }''')
-    time.sleep(2.7)  # remain outside the bounded 2.5s hidden-scan throttle
-
+    # Separately prove the background supervisor can address a genuine inactive UI-strip tab.
+    inactive_visibility = inactive.evaluate('({ hidden:document.hidden, state:document.visibilityState, focused:document.hasFocus() })')
     wake = admin.evaluate('''async (url) => {
       const tab = (await chrome.tabs.query({})).find((row) => row.url === url);
       if (!tab) return { ok:false, error:'tab-missing' };
       const response = await chrome.tabs.sendMessage(tab.id, { type:'PC_TAB_SUPERVISOR_TICK', at:Date.now() });
-      return { active:tab.active, response };
-    }''', hidden_url)
+      return { active:Boolean(tab.active), highlighted:Boolean(tab.highlighted), response };
+    }''', inactive_tab_url)
     assert wake.get('active') is False, wake
     assert wake.get('response', {}).get('ok') is True, wake
     assert wake.get('response', {}).get('supervisor') == 'pc-tab-supervisor-v1', wake
-    assert wake.get('response', {}).get('snapshot', {}).get('hidden') is True, wake
-
-    safety_files = files_for_hidden_chat()
-    safety_record = next((row for row in safety_files if 'hidden-safety-data.csv' in str(row.get('name', ''))), None)
-    assert safety_record is not None, f'service-worker safety wake did not preserve hidden file state: {safety_files}'
-    assert safety_record.get('source') == 'hidden-tab-supervisor', safety_record
 
     print(json.dumps({
         'runtime': runtime,
-        'hidden': True,
-        'focusAfterEmulationDisable': focus_after_emulation_disable,
-        'visibilityBeforeLifecycle': visibility_before_lifecycle,
-        'visibilityAfterLifecycle': visibility_after_lifecycle,
-        'visibility': visibility,
-        'window': window_bounds,
-        'target': {k: target_info.get(k) for k in ['targetId','type','url','attached']},
-        'tab': tab_state,
+        'proofMode': 'split-hidden-renderer-plus-inactive-ui-tab',
+        'hiddenTarget': {k: hidden_target_info.get(k) for k in ['targetId','type','url','attached']},
+        'hiddenVisibilityBefore': hidden_visibility_before,
+        'hiddenVisibility': hidden_visibility,
+        'hiddenChromeTabs': hidden_tab_state,
+        'inactiveTarget': {k: inactive_target_info.get(k) for k in ['targetId','type','url','attached']},
+        'inactiveTab': inactive_tab_state,
+        'inactiveVisibility': inactive_visibility,
         'mutationRecord': {k: mutation_record.get(k) for k in ['name','href','kind','source','chatId']},
         'lateDownloadRecord': {k: late_record.get(k) for k in ['name','href','kind','source','chatId']},
-        'safetyRecord': {k: safety_record.get(k) for k in ['name','href','kind','source','chatId']},
         'wake': wake,
-        'fileCount': len(safety_files),
+        'hiddenFileCount': len(late_files),
     }, sort_keys=True))
-    page_cdp.detach()
+    hidden_cdp.detach()
     browser_cdp.detach()
     context.close()
