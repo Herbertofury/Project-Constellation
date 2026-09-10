@@ -43,8 +43,9 @@ with sync_playwright() as p:
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
     # Playwright normally launches Chromium with flags that deliberately suppress background
-    # throttling/occlusion behavior. This smoke filters only those defaults so a real inactive,
-    # minimized Chrome tab follows normal browser background visibility semantics.
+    # throttling/occlusion behavior and also enables renderer focus emulation on every page.
+    # This smoke removes only those automation overrides so a real inactive, minimized Chrome tab
+    # follows native Page Visibility semantics instead of Playwright's always-focused renderer state.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
@@ -72,6 +73,10 @@ with sync_playwright() as p:
     assert target_info.get('type') == 'tab', target_info
     assert tab_state.get('found') is True and tab_state.get('active') is False, tab_state
 
+    page_cdp = context.new_cdp_session(hidden)
+    page_cdp.send('Emulation.setFocusEmulationEnabled', {'enabled': False})
+    focus_after_emulation_disable = hidden.evaluate('document.hasFocus()')
+
     window_info = browser_cdp.send('Browser.getWindowForTarget', {'targetId': target_id})
     window_id = window_info.get('windowId')
     assert window_id is not None, window_info
@@ -94,6 +99,7 @@ with sync_playwright() as p:
     assert visibility == {'hidden': True, 'state': 'hidden'}, {
         'before': visibility_before,
         'after': visibility,
+        'focusAfterEmulationDisable': focus_after_emulation_disable,
         'window': window_bounds,
         'target': target_info,
         'tab': tab_state,
@@ -193,6 +199,7 @@ with sync_playwright() as p:
     print(json.dumps({
         'runtime': runtime,
         'hidden': True,
+        'focusAfterEmulationDisable': focus_after_emulation_disable,
         'visibilityBefore': visibility_before,
         'visibility': visibility,
         'window': window_bounds,
@@ -204,5 +211,6 @@ with sync_playwright() as p:
         'wake': wake,
         'fileCount': len(safety_files),
     }, sort_keys=True))
+    page_cdp.detach()
     browser_cdp.detach()
     context.close()
