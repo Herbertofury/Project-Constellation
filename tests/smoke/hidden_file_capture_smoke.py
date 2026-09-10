@@ -38,9 +38,9 @@ with sync_playwright() as p:
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
     # Playwright keeps normal pages renderer-visible under automation even when their Chrome tab
-    # is inactive. Create an actual inactive browser tab, then drive Chromium's own lifecycle API
-    # through frozen -> active. Page.setWebLifecycleState('frozen') invokes WebContents::WasHidden();
-    # the following 'active' transition resumes script execution without synthesizing JS visibility.
+    # is inactive. Create a real inactive Chrome tab, then minimize the browser window containing
+    # it through Chromium's Browser domain. Page Visibility defines a tab in a minimized browser
+    # window as hidden, so this exercises the native browser state rather than spoofing JS values.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
@@ -68,15 +68,29 @@ with sync_playwright() as p:
     assert target_info.get('type') == 'tab', target_info
     assert tab_state.get('found') is True and tab_state.get('active') is False, tab_state
 
-    page_cdp = context.new_cdp_session(hidden)
+    window_info = browser_cdp.send('Browser.getWindowForTarget', {'targetId': target_id})
+    window_id = window_info.get('windowId')
+    assert window_id is not None, window_info
     visibility_before = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
-    page_cdp.send('Page.setWebLifecycleState', {'state': 'frozen'})
-    page_cdp.send('Page.setWebLifecycleState', {'state': 'active'})
-    time.sleep(0.25)
-    visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
+    browser_cdp.send('Browser.setWindowBounds', {
+        'windowId': window_id,
+        'bounds': {'windowState': 'minimized'},
+    })
+
+    visibility = visibility_before
+    window_bounds = window_info.get('bounds', {})
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        window_bounds = browser_cdp.send('Browser.getWindowBounds', {'windowId': window_id}).get('bounds', {})
+        visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
+        if window_bounds.get('windowState') == 'minimized' and visibility == {'hidden': True, 'state': 'hidden'}:
+            break
+        time.sleep(0.1)
+    assert window_bounds.get('windowState') == 'minimized', window_bounds
     assert visibility == {'hidden': True, 'state': 'hidden'}, {
         'before': visibility_before,
         'after': visibility,
+        'window': window_bounds,
         'target': target_info,
         'tab': tab_state,
     }
@@ -177,6 +191,7 @@ with sync_playwright() as p:
         'hidden': True,
         'visibilityBefore': visibility_before,
         'visibility': visibility,
+        'window': window_bounds,
         'target': {k: target_info.get(k) for k in ['targetId','type','url','attached']},
         'tab': tab_state,
         'mutationRecord': {k: mutation_record.get(k) for k in ['name','href','kind','source','chatId']},
@@ -185,6 +200,5 @@ with sync_playwright() as p:
         'wake': wake,
         'fileCount': len(safety_files),
     }, sort_keys=True))
-    page_cdp.detach()
     browser_cdp.detach()
     context.close()
