@@ -22,10 +22,14 @@ for (const script of scripts) {
   const base = path.basename(script, '.py');
   const env = { ...process.env, PYTHONUTF8:'1', PROJECT_CONSTELLATION_ROOT:path.join(repoRoot, 'extension'), PROJECT_CONSTELLATION_BUILD:path.join(repoRoot, 'build', 'unpacked') };
   for (const name of screenshotVars) env[name] = path.join(logRoot, `${base}-${name.toLowerCase().replace('project_constellation_','').replace('_screenshot','')}.png`);
-  const args = process.platform === 'win32' && /(^|[\\/])py(?:\.exe)?$/i.test(python) ? ['-3', path.join(smokeRoot, script)] : [path.join(smokeRoot, script)];
-  console.log(`${script}: RUN`);
+  const pythonArgs = process.platform === 'win32' && /(^|[\\/])py(?:\.exe)?$/i.test(python) ? ['-3', path.join(smokeRoot, script)] : [path.join(smokeRoot, script)];
+  const requiresRealBackgroundTab = script === 'hidden_file_capture_smoke.py' && process.platform === 'linux';
+  if (requiresRealBackgroundTab) env.PROJECT_CONSTELLATION_HEADFUL = '1';
+  const command = requiresRealBackgroundTab ? 'xvfb-run' : python;
+  const args = requiresRealBackgroundTab ? ['-a', python, ...pythonArgs] : pythonArgs;
+  console.log(`${script}: RUN${requiresRealBackgroundTab ? ' (headed Chromium under Xvfb)' : ''}`);
   const startedAt = Date.now();
-  const result = spawnSync(python, args, { cwd:repoRoot, env, encoding:'utf8', stdio:'pipe', timeout:perSmokeTimeoutMs, killSignal:'SIGKILL', maxBuffer:8 * 1024 * 1024 });
+  const result = spawnSync(command, args, { cwd:repoRoot, env, encoding:'utf8', stdio:'pipe', timeout:perSmokeTimeoutMs, killSignal:'SIGKILL', maxBuffer:8 * 1024 * 1024 });
   const elapsedMs = Date.now() - startedAt;
   const timedOut = Boolean(result.error && result.error.code === 'ETIMEDOUT');
   fs.writeFileSync(path.join(logRoot, `${base}.log`), `${result.stdout || ''}${result.stderr || ''}${timedOut ? `\nTIMEOUT after ${elapsedMs}ms\n` : ''}`);

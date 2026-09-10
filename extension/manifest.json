@@ -121,7 +121,8 @@
         "src/content.js",
         "src/pulse-ux.js",
         "src/tab-supervisor-core.js",
-        "src/tab-supervisor.js"
+        "src/tab-supervisor.js",
+        "src/hidden-download-capture.js"
       ],
       "css": [
         "src/styles.css"

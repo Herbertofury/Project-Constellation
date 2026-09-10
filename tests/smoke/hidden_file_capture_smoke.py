@@ -14,11 +14,13 @@ html = '''<!doctype html><html><head><title>Hidden file capture smoke</title></h
 </main>
 </body></html>'''
 
+headless = os.environ.get('PROJECT_CONSTELLATION_HEADFUL') != '1'
+
 with sync_playwright() as p:
     context = p.chromium.launch_persistent_context(
         tempfile.mkdtemp(prefix='project-constellation-hidden-file-'),
         channel='chromium',
-        headless=True,
+        headless=headless,
         args=[f'--disable-extensions-except={root}', f'--load-extension={root}', '--no-sandbox'],
         executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None),
     )
@@ -83,6 +85,31 @@ with sync_playwright() as p:
     assert mutation_record is not None, f'hidden mutation attachment was not captured: {mutation_files}'
     assert mutation_record.get('source') == 'hidden-tab-supervisor', mutation_record
 
+    # Existing hidden links can become attachments by changing only the download attribute.
+    # This must trigger the narrow hidden-file observer without waiting for the minute safety sweep.
+    time.sleep(2.7)
+    hidden.evaluate('''() => {
+      const host = document.querySelector('#fixture');
+      const attachment = document.createElement('a');
+      attachment.id = 'late-download-only';
+      attachment.href = 'https://chatgpt.com/backend-api/content/opaque-123';
+      attachment.textContent = 'Open generated content';
+      host.appendChild(attachment);
+    }''')
+    time.sleep(1.2)
+    hidden.evaluate("document.querySelector('#late-download-only').setAttribute('download', 'late-hidden-data.csv')")
+
+    late_files = []
+    deadline = time.time() + 6
+    while time.time() < deadline:
+        late_files = files_for_hidden_chat()
+        if any('late-hidden-data.csv' in str(row.get('name', '')) for row in late_files):
+            break
+        time.sleep(0.25)
+    late_record = next((row for row in late_files if 'late-hidden-data.csv' in str(row.get('name', ''))), None)
+    assert late_record is not None, f'download-only hidden mutation was not captured: {late_files}'
+    assert late_record.get('source') == 'hidden-tab-supervisor', late_record
+
     hidden.evaluate('''() => {
       const host = document.querySelector('#fixture');
       const attachment = document.createElement('a');
@@ -113,6 +140,7 @@ with sync_playwright() as p:
         'runtime': runtime,
         'hidden': True,
         'mutationRecord': {k: mutation_record.get(k) for k in ['name','href','kind','source','chatId']},
+        'lateDownloadRecord': {k: late_record.get(k) for k in ['name','href','kind','source','chatId']},
         'safetyRecord': {k: safety_record.get(k) for k in ['name','href','kind','source','chatId']},
         'wake': wake,
         'fileCount': len(safety_files),
