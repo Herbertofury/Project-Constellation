@@ -70,9 +70,28 @@ with sync_playwright() as p:
     assert inactive_target_info.get('type') == 'tab', inactive_target_info
     assert inactive_tab_state.get('found') is True and inactive_tab_state.get('active') is False, inactive_tab_state
 
-    # Proof B: Chrome's protocol-native hidden target is guaranteed renderer-hidden but, by CDP
-    # contract, is intentionally absent from the tab UI strip. This isolates the exact
-    # document.hidden content-script path that Playwright cannot expose on a UI-strip tab.
+    # Proof B: Chrome's protocol-native hidden target is guaranteed renderer-hidden but is not
+    # adopted as a Playwright Page. Attach directly through the Target domain and use the legacy
+    # non-flat session transport so every command/event remains scoped to that hidden renderer.
+    hidden_messages = {}
+    hidden_events = []
+    hidden_session_id = None
+    hidden_command_state = {'next': 0}
+
+    def on_target_message(event):
+        if hidden_session_id is None or event.get('sessionId') != hidden_session_id:
+            return
+        try:
+            payload = json.loads(event.get('message') or '{}')
+        except json.JSONDecodeError:
+            return
+        if isinstance(payload, dict) and 'id' in payload:
+            hidden_messages[payload['id']] = payload
+        elif isinstance(payload, dict):
+            hidden_events.append(payload)
+
+    browser_cdp.on('Target.receivedMessageFromTarget', on_target_message)
+
     hidden_created = browser_cdp.send('Target.createTarget', {
         'url': hidden_url,
         'background': True,
@@ -81,14 +100,45 @@ with sync_playwright() as p:
     hidden_target_id = hidden_created.get('targetId')
     assert hidden_target_id, hidden_created
 
-    hidden = None
-    deadline = time.time() + 10
-    while time.time() < deadline and hidden is None:
-        hidden = next((page for page in context.pages if page.url == hidden_url), None)
-        if hidden is None:
-            time.sleep(0.1)
-    assert hidden is not None, 'protocol-native hidden target was not adopted into the Playwright browser context'
-    hidden.wait_for_load_state('domcontentloaded')
+    attached = browser_cdp.send('Target.attachToTarget', {
+        'targetId': hidden_target_id,
+        'flatten': False,
+    })
+    hidden_session_id = attached.get('sessionId')
+    assert hidden_session_id, attached
+
+    def hidden_send(method, params=None, timeout=5.0):
+        hidden_command_state['next'] += 1
+        current = hidden_command_state['next']
+        packet = {'id': current, 'method': method}
+        if params:
+            packet['params'] = params
+        browser_cdp.send('Target.sendMessageToTarget', {
+            'sessionId': hidden_session_id,
+            'message': json.dumps(packet, separators=(',', ':')),
+        })
+        deadline = time.time() + timeout
+        while current not in hidden_messages and time.time() < deadline:
+            admin.wait_for_timeout(20)
+        response = hidden_messages.pop(current, None)
+        if response is None:
+            raise AssertionError(f'raw hidden CDP command timed out: {method}')
+        if response.get('error'):
+            raise AssertionError(f'raw hidden CDP command failed: {method}: {response["error"]}')
+        return response.get('result', {})
+
+    def hidden_eval(expression, timeout=5.0):
+        result = hidden_send('Runtime.evaluate', {
+            'expression': expression,
+            'returnByValue': True,
+            'awaitPromise': True,
+        }, timeout=timeout)
+        if result.get('exceptionDetails'):
+            raise AssertionError(f'raw hidden Runtime.evaluate failed: {result["exceptionDetails"]}')
+        return result.get('result', {}).get('value')
+
+    hidden_send('Runtime.enable')
+    hidden_send('Page.enable')
 
     hidden_target_info = browser_cdp.send('Target.getTargetInfo', {'targetId': hidden_target_id}).get('targetInfo', {})
     hidden_tab_state = admin.evaluate('''async (url) => {
@@ -97,23 +147,46 @@ with sync_playwright() as p:
     }''', hidden_url)
     assert hidden_tab_state.get('found') is False, hidden_tab_state
 
-    hidden_cdp = context.new_cdp_session(hidden)
-    hidden_cdp.send('Emulation.setFocusEmulationEnabled', {'enabled': False})
-    hidden_visibility_before = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState, focused:document.hasFocus() })')
-    if hidden_visibility_before.get('hidden') is not True:
-        hidden_cdp.send('Page.setWebLifecycleState', {'state': 'frozen'})
-        time.sleep(0.15)
-        hidden_cdp.send('Page.setWebLifecycleState', {'state': 'active'})
-        time.sleep(0.25)
-    hidden_visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState, focused:document.hasFocus() })')
+    ready = None
+    deadline = time.time() + 8
+    while time.time() < deadline:
+        try:
+            ready = hidden_eval("({ready:document.readyState, href:location.href, fixture:Boolean(document.querySelector('#fixture'))})")
+            if ready and ready.get('ready') in ('interactive', 'complete'):
+                break
+        except AssertionError:
+            pass
+        admin.wait_for_timeout(50)
+    assert ready and ready.get('ready') in ('interactive', 'complete'), ready
+
+    # BrowserContext routing normally supplies the deterministic fixture even for this hidden
+    # target. If Playwright's route ownership excludes non-adopted targets, keep the URL/origin and
+    # replace only the document body through CDP; manifest content scripts still match chatgpt.com.
+    if not ready.get('fixture'):
+        frame_tree = hidden_send('Page.getFrameTree')
+        frame_id = frame_tree.get('frameTree', {}).get('frame', {}).get('id')
+        assert frame_id, frame_tree
+        hidden_send('Page.setDocumentContent', {'frameId': frame_id, 'html': html})
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            ready = hidden_eval("({ready:document.readyState, href:location.href, fixture:Boolean(document.querySelector('#fixture'))})")
+            if ready and ready.get('fixture'):
+                break
+            admin.wait_for_timeout(50)
+    assert ready and ready.get('fixture') is True, ready
+    hidden_href = hidden_eval("history.replaceState({}, '', '/c/hidden-file-smoke'); location.href")
+    assert hidden_href == hidden_url, hidden_href
+
+    hidden_send('Emulation.setFocusEmulationEnabled', {'enabled': False})
+    hidden_visibility = hidden_eval("({hidden:document.hidden,state:document.visibilityState,focused:document.hasFocus(),href:location.href})")
     assert hidden_visibility.get('hidden') is True and hidden_visibility.get('state') == 'hidden', {
-        'before': hidden_visibility_before,
-        'after': hidden_visibility,
+        'visibility': hidden_visibility,
         'target': hidden_target_info,
         'chromeTabs': hidden_tab_state,
+        'ready': ready,
     }
 
-    hidden.evaluate('''() => {
+    hidden_eval("""(() => {
       const host = document.querySelector('#fixture');
       const attachment = document.createElement('a');
       attachment.href = 'sandbox:/mnt/data/hidden-mutation-report.pdf';
@@ -122,7 +195,8 @@ with sync_playwright() as p:
       attachment.setAttribute('aria-label', 'Download hidden-mutation-report.pdf');
       attachment.textContent = 'hidden-mutation-report.pdf';
       host.appendChild(attachment);
-    }''')
+      return true;
+    })()""")
 
     def files_for_hidden_chat():
         return admin.evaluate('''async () => {
@@ -150,21 +224,32 @@ with sync_playwright() as p:
             break
         time.sleep(0.25)
     mutation_record = next((row for row in mutation_files if row.get('name') == 'hidden-mutation-report.pdf'), None)
-    assert mutation_record is not None, f'hidden mutation attachment was not captured: {mutation_files}'
+    execution_contexts = [
+        {
+            'id': event.get('params', {}).get('context', {}).get('id'),
+            'origin': event.get('params', {}).get('context', {}).get('origin'),
+            'name': event.get('params', {}).get('context', {}).get('name'),
+            'type': event.get('params', {}).get('context', {}).get('auxData', {}).get('type'),
+        }
+        for event in hidden_events
+        if event.get('method') == 'Runtime.executionContextCreated'
+    ]
+    assert mutation_record is not None, f'hidden mutation attachment was not captured: files={mutation_files} contexts={execution_contexts}'
     assert mutation_record.get('source') == 'hidden-tab-supervisor', mutation_record
 
     # Existing hidden links can become attachments by changing only the download attribute.
     time.sleep(2.7)
-    hidden.evaluate('''() => {
+    hidden_eval("""(() => {
       const host = document.querySelector('#fixture');
       const attachment = document.createElement('a');
       attachment.id = 'late-download-only';
       attachment.href = 'https://chatgpt.com/backend-api/content/opaque-123';
       attachment.textContent = 'Open generated content';
       host.appendChild(attachment);
-    }''')
+      return true;
+    })()""")
     time.sleep(1.2)
-    hidden.evaluate("document.querySelector('#late-download-only').setAttribute('download', 'late-hidden-data.csv')")
+    hidden_eval("document.querySelector('#late-download-only').setAttribute('download', 'late-hidden-data.csv'); true")
 
     late_files = []
     deadline = time.time() + 6
@@ -191,10 +276,11 @@ with sync_playwright() as p:
 
     print(json.dumps({
         'runtime': runtime,
-        'proofMode': 'split-hidden-renderer-plus-inactive-ui-tab',
+        'proofMode': 'raw-cdp-hidden-renderer-plus-inactive-ui-tab',
         'hiddenTarget': {k: hidden_target_info.get(k) for k in ['targetId','type','url','attached']},
-        'hiddenVisibilityBefore': hidden_visibility_before,
         'hiddenVisibility': hidden_visibility,
+        'hiddenReady': ready,
+        'hiddenExecutionContexts': execution_contexts,
         'hiddenChromeTabs': hidden_tab_state,
         'inactiveTarget': {k: inactive_target_info.get(k) for k in ['targetId','type','url','attached']},
         'inactiveTab': inactive_tab_state,
@@ -203,7 +289,8 @@ with sync_playwright() as p:
         'lateDownloadRecord': {k: late_record.get(k) for k in ['name','href','kind','source','chatId']},
         'wake': wake,
         'hiddenFileCount': len(late_files),
+        'hiddenProtocolEventCount': len(hidden_events),
     }, sort_keys=True))
-    hidden_cdp.detach()
+    browser_cdp.send('Target.detachFromTarget', {'sessionId': hidden_session_id})
     browser_cdp.detach()
     context.close()
