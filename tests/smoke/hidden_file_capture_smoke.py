@@ -37,13 +37,37 @@ with sync_playwright() as p:
     }''')
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
-    hidden = context.new_page()
-    hidden.goto(hidden_url, wait_until='domcontentloaded')
+    # Playwright's normal context.new_page() abstraction intentionally treats pages as active/focused.
+    # Create the ChatGPT fixture through Chromium's browser-level Target domain instead so the
+    # browser itself owns a genuine background tab and the Page Visibility API can prove it.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
+
+    browser = context.browser
+    assert browser is not None, 'persistent Chromium context did not expose its browser handle'
+    browser_cdp = browser.new_browser_cdp_session()
+    with context.expect_page(timeout=10000) as hidden_page_info:
+        created = browser_cdp.send('Target.createTarget', {
+            'url': hidden_url,
+            'background': True,
+            'forTab': True,
+        })
+    hidden = hidden_page_info.value
+    hidden.wait_for_load_state('domcontentloaded')
     time.sleep(1.0)
-    assert hidden.evaluate('document.hidden') is True, 'fixture tab must be genuinely background/hidden'
+
+    target_id = created.get('targetId')
+    assert target_id, created
+    target_info = browser_cdp.send('Target.getTargetInfo', {'targetId': target_id}).get('targetInfo', {})
+    visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
+    tab_state = admin.evaluate('''async (url) => {
+      const tab = (await chrome.tabs.query({})).find((row) => row.url === url);
+      return tab ? { found:true, active:Boolean(tab.active), highlighted:Boolean(tab.highlighted), id:tab.id } : { found:false };
+    }''', hidden_url)
+    assert target_info.get('type') == 'tab', target_info
+    assert tab_state.get('found') is True and tab_state.get('active') is False, tab_state
+    assert visibility == {'hidden': True, 'state': 'hidden'}, visibility
 
     hidden.evaluate('''() => {
       const host = document.querySelector('#fixture');
@@ -139,10 +163,14 @@ with sync_playwright() as p:
     print(json.dumps({
         'runtime': runtime,
         'hidden': True,
+        'visibility': visibility,
+        'target': {k: target_info.get(k) for k in ['targetId','type','url','attached']},
+        'tab': tab_state,
         'mutationRecord': {k: mutation_record.get(k) for k in ['name','href','kind','source','chatId']},
         'lateDownloadRecord': {k: late_record.get(k) for k in ['name','href','kind','source','chatId']},
         'safetyRecord': {k: safety_record.get(k) for k in ['name','href','kind','source','chatId']},
         'wake': wake,
         'fileCount': len(safety_files),
     }, sort_keys=True))
+    browser_cdp.detach()
     context.close()
