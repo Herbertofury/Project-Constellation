@@ -42,10 +42,9 @@ with sync_playwright() as p:
     }''')
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
-    # Playwright normally launches Chromium with flags that deliberately suppress background
-    # throttling/occlusion behavior and also enables renderer focus emulation on every page.
-    # This smoke removes only those automation overrides so a real inactive, minimized Chrome tab
-    # follows native Page Visibility semantics instead of Playwright's always-focused renderer state.
+    # Playwright normally launches Chromium with flags that suppress background behavior and
+    # enables renderer focus emulation on every page. Remove only those automation overrides,
+    # then drive Chromium through its own hidden lifecycle before minimizing a real inactive tab.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
@@ -76,17 +75,22 @@ with sync_playwright() as p:
     page_cdp = context.new_cdp_session(hidden)
     page_cdp.send('Emulation.setFocusEmulationEnabled', {'enabled': False})
     focus_after_emulation_disable = hidden.evaluate('document.hasFocus()')
+    visibility_before_lifecycle = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
+    page_cdp.send('Page.setWebLifecycleState', {'state': 'frozen'})
+    time.sleep(0.15)
+    page_cdp.send('Page.setWebLifecycleState', {'state': 'active'})
+    time.sleep(0.25)
+    visibility_after_lifecycle = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
 
     window_info = browser_cdp.send('Browser.getWindowForTarget', {'targetId': target_id})
     window_id = window_info.get('windowId')
     assert window_id is not None, window_info
-    visibility_before = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
     browser_cdp.send('Browser.setWindowBounds', {
         'windowId': window_id,
         'bounds': {'windowState': 'minimized'},
     })
 
-    visibility = visibility_before
+    visibility = visibility_after_lifecycle
     window_bounds = window_info.get('bounds', {})
     deadline = time.time() + 5
     while time.time() < deadline:
@@ -97,8 +101,9 @@ with sync_playwright() as p:
         time.sleep(0.1)
     assert window_bounds.get('windowState') == 'minimized', window_bounds
     assert visibility == {'hidden': True, 'state': 'hidden'}, {
-        'before': visibility_before,
-        'after': visibility,
+        'beforeLifecycle': visibility_before_lifecycle,
+        'afterLifecycle': visibility_after_lifecycle,
+        'afterMinimize': visibility,
         'focusAfterEmulationDisable': focus_after_emulation_disable,
         'window': window_bounds,
         'target': target_info,
@@ -200,7 +205,8 @@ with sync_playwright() as p:
         'runtime': runtime,
         'hidden': True,
         'focusAfterEmulationDisable': focus_after_emulation_disable,
-        'visibilityBefore': visibility_before,
+        'visibilityBeforeLifecycle': visibility_before_lifecycle,
+        'visibilityAfterLifecycle': visibility_after_lifecycle,
         'visibility': visibility,
         'window': window_bounds,
         'target': {k: target_info.get(k) for k in ['targetId','type','url','attached']},
