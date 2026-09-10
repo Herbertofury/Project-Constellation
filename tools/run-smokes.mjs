@@ -26,8 +26,10 @@ for (const script of scripts) {
   const requiresRealBackgroundTab = script === 'hidden_file_capture_smoke.py' && process.platform === 'linux';
   if (requiresRealBackgroundTab) env.PROJECT_CONSTELLATION_HEADFUL = '1';
   const command = requiresRealBackgroundTab ? 'xvfb-run' : python;
-  const args = requiresRealBackgroundTab ? ['-a', python, ...pythonArgs] : pythonArgs;
-  console.log(`${script}: RUN${requiresRealBackgroundTab ? ' (headed Chromium under Xvfb)' : ''}`);
+  const args = requiresRealBackgroundTab
+    ? ['-a', 'sh', '-c', 'command -v openbox >/dev/null 2>&1 || { echo "openbox is required for hidden-tab smoke" >&2; exit 127; }; openbox >/tmp/project-constellation-openbox.log 2>&1 & sleep 0.5; exec "$@"', 'sh', python, ...pythonArgs]
+    : pythonArgs;
+  console.log(`${script}: RUN${requiresRealBackgroundTab ? ' (headed Chromium under Xvfb + Openbox)' : ''}`);
   const startedAt = Date.now();
   const result = spawnSync(command, args, { cwd:repoRoot, env, encoding:'utf8', stdio:'pipe', timeout:perSmokeTimeoutMs, killSignal:'SIGKILL', maxBuffer:8 * 1024 * 1024 });
   const elapsedMs = Date.now() - startedAt;
