@@ -21,6 +21,11 @@ with sync_playwright() as p:
         tempfile.mkdtemp(prefix='project-constellation-hidden-file-'),
         channel='chromium',
         headless=headless,
+        ignore_default_args=[
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+        ],
         args=[f'--disable-extensions-except={root}', f'--load-extension={root}', '--no-sandbox'],
         executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None),
     )
@@ -37,10 +42,9 @@ with sync_playwright() as p:
     }''')
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
-    # Playwright keeps normal pages renderer-visible under automation even when their Chrome tab
-    # is inactive. Create a real inactive Chrome tab, then minimize the browser window containing
-    # it through Chromium's Browser domain. Page Visibility defines a tab in a minimized browser
-    # window as hidden, so this exercises the native browser state rather than spoofing JS values.
+    # Playwright normally launches Chromium with flags that deliberately suppress background
+    # throttling/occlusion behavior. This smoke filters only those defaults so a real inactive,
+    # minimized Chrome tab follows normal browser background visibility semantics.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
