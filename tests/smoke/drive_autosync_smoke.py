@@ -56,7 +56,7 @@ with sync_playwright() as p:
       return { guardStatus, version:chrome.runtime.getManifest().version, oauthProvisioned:Boolean(chrome.runtime.getManifest().oauth2?.client_id) };
     }''')
     print('drive-autosync: disconnected state seeded', flush=True)
-    assert setup['version'] == '0.16.1', setup
+    assert setup['version'] == '0.16.2', setup
     assert setup['oauthProvisioned'], setup
     assert setup['guardStatus'].get('active') and setup['guardStatus'].get('createPatched') and setup['guardStatus'].get('listenerPatched'), setup
 

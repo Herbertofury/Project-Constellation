@@ -5,12 +5,22 @@
 
   const core = globalThis.ProjectConstellationTabSupervisorCore;
   const providers = globalThis.ProjectConstellationProviders;
-  if (!core || !providers || !/^(chatgpt\.com|chat\.openai\.com)$/i.test(location.hostname)) return;
+  const brain = globalThis.ProjectConstellationBrainCore;
+  if (!core || !providers || !brain || !/^(chatgpt\.com|chat\.openai\.com)$/i.test(location.hostname)) return;
 
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const sentTurns = new Map();
   const seenProjects = new Map();
   const pendingProjects = new Map();
+  const seenHiddenFileHashes = new Map();
+  const FILE_NODE_SELECTOR = 'a[href], [data-testid*=\"file\"], [data-testid*=\"attachment\"], [aria-label*=\"file\" i], [aria-label*=\"download\" i]';
+  const FILE_HINT_RE = /(file|attachment|download|sandbox:|\.pdf\b|\.docx\b|\.xlsx\b|\.pptx\b|\.zip\b|\.md\b|\.csv\b|\.json\b|\.png\b|\.jpe?g\b|\.webp\b|drive\.google\.com|docs\.google\.com|github\.com|dropbox\.com|1drv\.ms)/i;
+  const HIDDEN_FILE_MIN_SCAN_MS = 2500;
+  const HIDDEN_FILE_SAFETY_SCAN_MS = 60000;
+  const HIDDEN_FILE_MAX_NODES = 500;
+  const HIDDEN_FILE_BATCH_LIMIT = 120;
+  let hiddenFileDirty = true;
+  let lastHiddenFileScanAt = 0;
   let brainSettings = {};
   let brainReady = false;
   let port = null;
@@ -62,6 +72,76 @@
       if (/(drive|github|connector|connected app|plugin|tool|permission|access|authorize)/.test(context)) return true;
     }
     return false;
+  }
+
+
+  function hiddenFileHint(node) {
+    if (!(node instanceof Element)) return '';
+    const href = node.href || node.querySelector?.('a[href]')?.href || '';
+    return `${href} ${node.getAttribute?.('download') || ''} ${node.getAttribute?.('data-testid') || ''} ${node.getAttribute?.('aria-label') || ''} ${node.textContent || ''}`.slice(0, 5000);
+  }
+
+  function subtreeHasFileSignal(node) {
+    if (!(node instanceof Element)) return false;
+    const candidates = [];
+    if (node.matches?.(FILE_NODE_SELECTOR)) candidates.push(node);
+    for (const child of [...(node.querySelectorAll?.(FILE_NODE_SELECTOR) || [])].slice(0, 24)) candidates.push(child);
+    return candidates.some((candidate) => FILE_HINT_RE.test(hiddenFileHint(candidate)));
+  }
+
+  function likelyHiddenFileName(node, href) {
+    const text = brain.normalizeText(node.getAttribute?.('download') || node.getAttribute?.('aria-label') || node.textContent || '', 260);
+    if (text && /\.[a-z0-9]{1,10}(\b|$)/i.test(text)) return text;
+    try { const part = new URL(href, location.href).pathname.split('/').filter(Boolean).pop(); return decodeURIComponent(part || text || 'file'); }
+    catch (_) { return text || 'file'; }
+  }
+
+  async function scanHiddenFiles(force = false) {
+    if (!document.hidden || brainSettings.captureEnabled === false) return { ok:true, skipped:document.hidden ? 'capture-disabled' : 'foreground' };
+    const now = Date.now();
+    const safetyDue = now - lastHiddenFileScanAt >= HIDDEN_FILE_SAFETY_SCAN_MS;
+    if (!force && !hiddenFileDirty && !safetyDue) return { ok:true, skipped:'clean' };
+    if (lastHiddenFileScanAt && now - lastHiddenFileScanAt < HIDDEN_FILE_MIN_SCAN_MS) return { ok:true, skipped:'throttled' };
+    const chatId = currentChatId();
+    if (!chatId) return { ok:true, skipped:'no-chat' };
+
+    const payload = [];
+    const staged = [];
+    const candidates = [...document.querySelectorAll(FILE_NODE_SELECTOR)].slice(-HIDDEN_FILE_MAX_NODES);
+    for (const node of candidates) {
+      const href = node.href || node.querySelector?.('a[href]')?.href || '';
+      const hint = hiddenFileHint(node);
+      if (!FILE_HINT_RE.test(hint)) continue;
+      const name = likelyHiddenFileName(node, href);
+      const external = providers.classifyExternalUrl(href);
+      const id = brain.fileKey(chatId, href, name);
+      const signature = hash(`${name}|${href}|${hint.slice(0, 700)}`);
+      if (seenHiddenFileHashes.get(id) === signature) continue;
+      staged.push([id, signature]);
+      payload.push({ type:'FILE_UPSERT', data:{
+        id, providerId:'chatgpt', chatId, name, href,
+        kind:external.kind !== 'external' ? external.kind : /attachment/i.test(hint) ? 'attachment' : /download/i.test(hint) ? 'download-link' : 'file-link',
+        externalProvider:external.provider, externalUrl:external.external ? href : '', source:'hidden-tab-supervisor', updatedAt:now
+      }});
+      if (payload.length >= HIDDEN_FILE_BATCH_LIMIT) break;
+    }
+
+    lastHiddenFileScanAt = now;
+    if (!payload.length) { hiddenFileDirty = false; return { ok:true, captured:0 }; }
+    try {
+      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_INGEST_BATCH', payload });
+      if (response?.ok === true && response?.ignored !== true) {
+        for (const [id, signature] of staged) seenHiddenFileHashes.set(id, signature);
+        while (seenHiddenFileHashes.size > 2000) seenHiddenFileHashes.delete(seenHiddenFileHashes.keys().next().value);
+        hiddenFileDirty = false;
+        return { ok:true, captured:payload.length };
+      }
+      hiddenFileDirty = true;
+      return { ok:false, captured:0, retryable:true };
+    } catch (_) {
+      hiddenFileDirty = true;
+      return { ok:false, captured:0, retryable:true };
+    }
   }
 
   function currentProject() {
@@ -167,6 +247,7 @@
   async function evaluate(force = false, { postSnapshot = true } = {}) {
     if (!document.documentElement) return;
     await scanProjects();
+    await scanHiddenFiles(force);
     const snapshot = collectSnapshot();
     if (!snapshot.chatId) return;
     const capacity = core.capacityLevel(snapshot, brainSettings?.liveHealth || {});
@@ -254,20 +335,37 @@
 
   function startObserver() {
     observer?.disconnect();
-    observer = new MutationObserver(() => {
+    observer = new MutationObserver((mutations) => {
+      const healthRelevant = mutations.some((mutation) => mutation.type === 'childList' || ['aria-busy','data-is-streaming','data-state','disabled','aria-disabled'].includes(String(mutation.attributeName || '')));
+      let fileRelevant = false;
+      if (document.hidden) {
+        for (const mutation of mutations) {
+          if ((mutation.type === 'attributes' && subtreeHasFileSignal(mutation.target)) || [...mutation.addedNodes].some(subtreeHasFileSignal)) {
+            hiddenFileDirty = true;
+            fileRelevant = true;
+            break;
+          }
+        }
+      }
+      if (!healthRelevant && !fileRelevant) return;
       clearTimeout(evaluateTimer);
       evaluateTimer = setTimeout(() => void evaluate(false), document.hidden ? 1000 : 180);
     });
-    observer.observe(document.documentElement, { subtree:true, childList:true, attributes:true, attributeFilter:['aria-busy','data-is-streaming','data-state','disabled','aria-disabled'] });
+    observer.observe(document.documentElement, { subtree:true, childList:true, attributes:true, attributeFilter:['href','data-testid','aria-label','aria-busy','data-is-streaming','data-state','disabled','aria-disabled'] });
   }
 
-  chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[BRAIN_SETTINGS_KEY]) brainSettings = changes[BRAIN_SETTINGS_KEY].newValue || {}; });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes[BRAIN_SETTINGS_KEY]) return;
+    const previousCapture = brainSettings.captureEnabled;
+    brainSettings = changes[BRAIN_SETTINGS_KEY].newValue || {};
+    if (previousCapture === false && brainSettings.captureEnabled !== false) { hiddenFileDirty = true; void evaluate(true); }
+  });
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message?.type !== 'PC_TAB_SUPERVISOR_TICK') return undefined;
     void evaluate(true, { postSnapshot:false }).then((snapshot) => sendResponse({ ok:true, supervisor:'pc-tab-supervisor-v1', snapshot:snapshot || null })).catch((error) => sendResponse({ ok:false, supervisor:'pc-tab-supervisor-v1', error:String(error?.message || error || 'tick-failed') }));
     return true;
   });
-  document.addEventListener('visibilitychange', () => void evaluate(true));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenFileDirty = true; void evaluate(true); });
   window.addEventListener('popstate', () => setTimeout(() => void evaluate(true), 100));
   window.addEventListener('hashchange', () => setTimeout(() => void evaluate(true), 100));
 
