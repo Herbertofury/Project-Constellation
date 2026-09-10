@@ -37,9 +37,10 @@ with sync_playwright() as p:
     }''')
     assert runtime == {'ok': True, 'version': '0.16.2'}, runtime
 
-    # Playwright's normal context.new_page() abstraction intentionally treats pages as active/focused.
-    # Create the ChatGPT fixture through Chromium's browser-level Target domain instead so the
-    # browser itself owns a genuine background tab and the Page Visibility API can prove it.
+    # Playwright keeps normal pages renderer-visible under automation even when their Chrome tab
+    # is inactive. Create an actual inactive browser tab, then drive Chromium's own lifecycle API
+    # through frozen -> active. Page.setWebLifecycleState('frozen') invokes WebContents::WasHidden();
+    # the following 'active' transition resumes script execution without synthesizing JS visibility.
     foreground = context.new_page()
     foreground.goto(foreground_url, wait_until='domcontentloaded')
     foreground.bring_to_front()
@@ -55,19 +56,30 @@ with sync_playwright() as p:
         })
     hidden = hidden_page_info.value
     hidden.wait_for_load_state('domcontentloaded')
-    time.sleep(1.0)
+    time.sleep(0.5)
 
     target_id = created.get('targetId')
     assert target_id, created
     target_info = browser_cdp.send('Target.getTargetInfo', {'targetId': target_id}).get('targetInfo', {})
-    visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
     tab_state = admin.evaluate('''async (url) => {
       const tab = (await chrome.tabs.query({})).find((row) => row.url === url);
       return tab ? { found:true, active:Boolean(tab.active), highlighted:Boolean(tab.highlighted), id:tab.id } : { found:false };
     }''', hidden_url)
     assert target_info.get('type') == 'tab', target_info
     assert tab_state.get('found') is True and tab_state.get('active') is False, tab_state
-    assert visibility == {'hidden': True, 'state': 'hidden'}, visibility
+
+    page_cdp = context.new_cdp_session(hidden)
+    visibility_before = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
+    page_cdp.send('Page.setWebLifecycleState', {'state': 'frozen'})
+    page_cdp.send('Page.setWebLifecycleState', {'state': 'active'})
+    time.sleep(0.25)
+    visibility = hidden.evaluate('({ hidden:document.hidden, state:document.visibilityState })')
+    assert visibility == {'hidden': True, 'state': 'hidden'}, {
+        'before': visibility_before,
+        'after': visibility,
+        'target': target_info,
+        'tab': tab_state,
+    }
 
     hidden.evaluate('''() => {
       const host = document.querySelector('#fixture');
@@ -163,6 +175,7 @@ with sync_playwright() as p:
     print(json.dumps({
         'runtime': runtime,
         'hidden': True,
+        'visibilityBefore': visibility_before,
         'visibility': visibility,
         'target': {k: target_info.get(k) for k in ['targetId','type','url','attached']},
         'tab': tab_state,
@@ -172,5 +185,6 @@ with sync_playwright() as p:
         'wake': wake,
         'fileCount': len(safety_files),
     }, sort_keys=True))
+    page_cdp.detach()
     browser_cdp.detach()
     context.close()
