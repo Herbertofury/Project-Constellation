@@ -23,12 +23,12 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $parts = Get-ChildItem 'releases/constellation-commander/v0.2.0/ci-source-final/part*' | Sort-Object Name
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.2.0/ci-source-exact/part*' | Sort-Object Name
           if ($parts.Count -ne 3) { throw "Expected 3 source parts, found $($parts.Count)" }
           $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
           [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
           $actual = (Get-FileHash -Algorithm SHA256 'commander-source.zip').Hash.ToLowerInvariant()
-          $expected = '821c35d7a3fc94b8622e7c27e79666c90e244aee628c848e2bd7c1f2174d7fdd'
+          $expected = '0ac8db900ad34c449c6e85bff2ae16db64b992832db5a4799128cbc549c27b27'
           if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
 
@@ -39,18 +39,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.425'
-
-      - name: Normalize Windows device-agent readiness test timing
-        shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.2.0
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $test = 'tests/device-agent-smoke.mjs'
-          $text = Get-Content $test -Raw
-          $old = "await new Promise(resolve => setTimeout(resolve, 180));"
-          if (-not $text.Contains($old)) { throw 'Expected readiness timing marker was not found.' }
-          $text = $text.Replace($old, "await new Promise(resolve => setTimeout(resolve, 1800));")
-          Set-Content -LiteralPath $test -Value $text -NoNewline -Encoding utf8
 
       - name: Run Commander protocol and real-agent tests
         shell: pwsh
