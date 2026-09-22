@@ -1,3 +1,4 @@
+# CI observability sync: default-branch workflow installed.
 name: Constellation Commander v0.6 Integrated Electron Windows Build
 
 on:
