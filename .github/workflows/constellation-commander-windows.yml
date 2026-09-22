@@ -1,0 +1,96 @@
+name: Constellation Commander Windows Build
+
+on:
+  push:
+    branches:
+      - feature/constellation-commander-v0.2.0
+    paths:
+      - 'releases/constellation-commander/v0.2.0/ci-source/**'
+      - '.github/workflows/constellation-commander-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-companion:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reassemble verified source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.2.0/ci-source/part*' | Sort-Object Name
+          if ($parts.Count -ne 7) { throw "Expected 7 source parts, found $($parts.Count)" }
+          $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
+          [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
+          $actual = (Get-FileHash -Algorithm SHA256 'commander-source.zip').Hash.ToLowerInvariant()
+          $expected = 'be648aa83f802519d8c706ba02b7bb546c58ff3bf46986eefbd3dddc8a3f19b0'
+          if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
+          Expand-Archive 'commander-source.zip' 'commander-source' -Force
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.425'
+
+      - name: Run Commander protocol and real-agent tests
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.2.0
+        run: |
+          npm run check
+          npm test
+
+      - name: Build self-contained Windows companion
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.2.0
+        run: |
+          ./scripts/build-windows-companion.ps1
+
+      - name: Fresh extraction and install smoke
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.2.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = Resolve-Path 'dist/Constellation-Commander-Windows-x64-v0.2.0.zip'
+          $sum = (Get-Content 'dist/Constellation-Commander-Windows-x64-v0.2.0-SHA256.txt' -Raw).Trim().Split()[0].ToLowerInvariant()
+          $actual = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          if ($sum -ne $actual) { throw "Windows artifact checksum mismatch: $actual vs $sum" }
+
+          $fresh = Join-Path $env:RUNNER_TEMP 'commander-fresh'
+          Remove-Item $fresh -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive $zip $fresh -Force
+          $node = Join-Path $fresh 'runtime/node.exe'
+          $exe = Join-Path $fresh 'ConstellationCommander.exe'
+          $install = Join-Path $fresh 'INSTALL-COMPANION.cmd'
+          foreach ($required in @($node,$exe,$install,(Join-Path $fresh 'agent/src/remote-device.mjs'))) {
+            if (-not (Test-Path $required)) { throw "Missing required bundle file: $required" }
+          }
+          $nodeVersion = (& $node --version).Trim()
+          if ($nodeVersion -ne 'v22.20.0') { throw "Unexpected bundled Node version: $nodeVersion" }
+
+          & cmd.exe /d /c $install
+          Start-Sleep -Seconds 4
+          $installedExe = Join-Path $env:LOCALAPPDATA 'ConstellationCommander/ConstellationCommander.exe'
+          if (-not (Test-Path $installedExe)) { throw "Installer did not create $installedExe" }
+          $proc = Get-Process -Name 'ConstellationCommander' -ErrorAction SilentlyContinue
+          if (-not $proc) { throw 'Installed Constellation Commander did not remain running.' }
+          $proc | Stop-Process -Force
+          Write-Host "Windows companion fresh-install smoke PASS"
+          Write-Host "artifact_sha256=$actual"
+          Write-Host "bundled_node=$nodeVersion"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Constellation-Commander-Windows-x64-v0.2.0
+          path: |
+            commander-source/constellation-commander-v0.2.0/dist/Constellation-Commander-Windows-x64-v0.2.0.zip
+            commander-source/constellation-commander-v0.2.0/dist/Constellation-Commander-Windows-x64-v0.2.0-SHA256.txt
+          if-no-files-found: error
+          retention-days: 30
