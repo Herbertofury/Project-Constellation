@@ -1,0 +1,190 @@
+name: External ChatGPT Task Watchdog
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/chatgpt-task-watchdog.yml"
+      - "watchdog/heartbeat.json"
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: external-chatgpt-task-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Inspect internal watchdog heartbeat
+        id: heartbeat
+        shell: bash
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("watchdog/heartbeat.json")
+          now = dt.datetime.now(dt.timezone.utc)
+          stale = True
+          age_hours = None
+          last_ok = ""
+          reason = "heartbeat file missing"
+          threshold = 18.0
+
+          try:
+              data = json.loads(path.read_text(encoding="utf-8"))
+              threshold = float(data.get("stale_after_hours", threshold))
+              last_ok = str(data["last_ok_utc"])
+              parsed = dt.datetime.fromisoformat(last_ok.replace("Z", "+00:00"))
+              if parsed.tzinfo is None:
+                  parsed = parsed.replace(tzinfo=dt.timezone.utc)
+              age_hours = (now - parsed.astimezone(dt.timezone.utc)).total_seconds() / 3600.0
+              stale = age_hours > threshold
+              reason = (
+                  f"heartbeat age {age_hours:.2f}h exceeds {threshold:.2f}h threshold"
+                  if stale
+                  else f"heartbeat healthy at {age_hours:.2f}h old (threshold {threshold:.2f}h)"
+              )
+          except Exception as exc:
+              reason = f"heartbeat unreadable: {type(exc).__name__}: {exc}"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"stale={'true' if stale else 'false'}\n")
+              output.write(f"reason={reason}\n")
+              output.write(f"last_ok_utc={last_ok}\n")
+              output.write(f"age_hours={'' if age_hours is None else f'{age_hours:.2f}'}\n")
+
+          print(reason)
+          PY
+
+      - name: Persist external watchdog keepalive
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          today="${now%%T*}"
+          current_day=""
+
+          if [[ -f watchdog/external-alive.json ]]; then
+            current_day="$(python - <<'PY'
+          import json
+          from pathlib import Path
+
+          try:
+              value = json.loads(Path("watchdog/external-alive.json").read_text(encoding="utf-8"))
+              print(str(value.get("last_external_check_utc", "")).split("T", 1)[0])
+          except Exception:
+              print("")
+          PY
+          )"
+          fi
+
+          if [[ "$current_day" == "$today" ]]; then
+            echo "Daily repository keepalive is already current."
+            exit 0
+          fi
+
+          python - "$now" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          now = sys.argv[1]
+          path = Path("watchdog/external-alive.json")
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(
+              json.dumps(
+                  {
+                      "schema_version": 1,
+                      "last_external_check_utc": now,
+                      "purpose": "Repository activity keepalive and proof the GitHub-hosted external watchdog is running.",
+                  },
+                  indent=2,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add watchdog/external-alive.json
+          git commit -m "chore: external watchdog keepalive"
+
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Raise stale-heartbeat alert
+        if: steps.heartbeat.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALERT_TITLE: External watchdog detected stale ChatGPT task heartbeat
+          REASON: ${{ steps.heartbeat.outputs.reason }}
+          LAST_OK: ${{ steps.heartbeat.outputs.last_ok_utc }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list               --state open               --limit 100               --json number,title               --jq '.[] | select(.title == env.ALERT_TITLE) | .number'               | head -n 1
+          )"
+
+          if [[ -n "$existing" ]]; then
+            echo "Watchdog alert issue #$existing is already open."
+            exit 0
+          fi
+
+          body="$(cat <<EOF
+          The independent GitHub-hosted watchdog can no longer verify a fresh heartbeat from the ChatGPT **Scheduled Task Watchdog**.
+
+          **Reason:** $REASON
+          **Last successful internal heartbeat:** ${LAST_OK:-unknown}
+
+          Check ChatGPT scheduled tasks. The internal watchdog is supposed to audit and repair recurring/indefinite tasks every 6 hours and then refresh `watchdog/heartbeat.json`.
+
+          This issue was created automatically by GitHub Actions and requires no paid external API or server.
+          EOF
+          )"
+
+          gh issue create             --title "$ALERT_TITLE"             --body "$body"             --assignee "Herbertofury"
+
+          echo "::error::$REASON"
+          exit 1
+
+      - name: Close recovered stale-heartbeat alert
+        if: steps.heartbeat.outputs.stale == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALERT_TITLE: External watchdog detected stale ChatGPT task heartbeat
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list               --state open               --limit 100               --json number,title               --jq '.[] | select(.title == env.ALERT_TITLE) | .number'               | head -n 1
+          )"
+
+          if [[ -n "$existing" ]]; then
+            gh issue close "$existing" --comment "Internal watchdog heartbeat recovered at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+          else
+            echo "No stale-heartbeat alert is open."
+          fi
