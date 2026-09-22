@@ -40,6 +40,18 @@ jobs:
         with:
           dotnet-version: '8.0.425'
 
+      - name: Normalize Windows device-agent readiness test timing
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.2.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $test = 'tests/device-agent-smoke.mjs'
+          $text = Get-Content $test -Raw
+          $old = "await new Promise(resolve => setTimeout(resolve, 180));"
+          if (-not $text.Contains($old)) { throw 'Expected readiness timing marker was not found.' }
+          $text = $text.Replace($old, "await new Promise(resolve => setTimeout(resolve, 1800));")
+          Set-Content -LiteralPath $test -Value $text -NoNewline -Encoding utf8
+
       - name: Run Commander protocol and real-agent tests
         shell: pwsh
         working-directory: commander-source/constellation-commander-v0.2.0
