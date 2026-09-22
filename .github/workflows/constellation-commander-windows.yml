@@ -1,11 +1,11 @@
-name: Constellation Commander v0.5 Control Handoff Windows Build
+name: Constellation Commander v0.6 Integrated Electron Windows Build
 
 on:
   push:
     branches:
-      - feature/constellation-commander-v0.5.0
+      - feature/constellation-commander-v0.6.0
     paths:
-      - 'releases/constellation-commander/v0.5.0/ci-source-exact/**'
+      - 'releases/constellation-commander/v0.6.0/ci-source-release/**'
       - '.github/workflows/constellation-commander-windows.yml'
   workflow_dispatch:
 
@@ -13,153 +13,116 @@ permissions:
   contents: read
 
 jobs:
-  build-windows-companion:
+  build-windows-electron:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
 
-      - name: Reassemble exact verified v0.5 source
+      - name: Reassemble exact verified v0.6 source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $parts = Get-ChildItem 'releases/constellation-commander/v0.5.0/ci-source-release/part*' | Sort-Object Name
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.6.0/ci-source-release/part*' | Sort-Object Name
           if ($parts.Count -ne 4) { throw "Expected 4 source parts, found $($parts.Count)" }
           $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
           [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
           $actual = (Get-FileHash -Algorithm SHA256 'commander-source.zip').Hash.ToLowerInvariant()
-          $expected = 'c28d6899e2f112bcb072d566e510d87783a9a23f8d16734fcf57e86ea03278d4'
+          $expected = '78a83fa73ad1498db5338552f8f3c13c4485972c4629227dc67aa5d113a0040b'
           if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.20.0'
+          node-version: '24.21.0'
+          cache: 'npm'
+          cache-dependency-path: commander-source/constellation-commander-v0.6.0/package.json
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.425'
-
-      - name: Run v0.5 browser handoff, bridge, device, and native computer-use suite
+      - name: Install exact Electron dependencies
         shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.5.0
+        working-directory: commander-source/constellation-commander-v0.6.0
+        run: |
+          npm install --no-audit --no-fund
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.devDependencies.electron -ne '44.4.3') { throw "Unexpected Electron version $($pkg.devDependencies.electron)" }
+          if ($pkg.devDependencies.'electron-builder' -ne '26.16.1') { throw "Unexpected electron-builder version $($pkg.devDependencies.'electron-builder')" }
+          $electronVersion = (& .\node_modules\.bin\electron.cmd --version).Trim()
+          if ($electronVersion -ne 'v44.4.3') { throw "Installed Electron runtime mismatch: $electronVersion" }
+          Write-Host "electron_runtime=$electronVersion"
+
+      - name: Run full regression and Windows native computer-use suite
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.6.0
         run: |
           npm run check
           npm test
 
-      - name: Build self-contained Windows companion
+      - name: Prove integrated Electron ChatGPT tool round trip before packaging
         shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.5.0
+        working-directory: commander-source/constellation-commander-v0.6.0
         run: |
-          ./scripts/build-windows-companion.ps1
+          ./scripts/electron-smoke.ps1
 
-      - name: Fresh extraction, native control self-test, install, and handoff health smoke
+      - name: Build one-click NSIS installer and portable ZIP
         shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.5.0
+        working-directory: commander-source/constellation-commander-v0.6.0
+        run: |
+          npm run build:win
+          Get-ChildItem dist-electron | Format-Table Name,Length
+
+      - name: Validate packaged artifacts
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.6.0
         run: |
           $ErrorActionPreference = 'Stop'
-          $zip = Resolve-Path 'dist/Constellation-Commander-Windows-x64-v0.5.0.zip'
-          $sum = (Get-Content 'dist/Constellation-Commander-Windows-x64-v0.5.0-SHA256.txt' -Raw).Trim().Split()[0].ToLowerInvariant()
-          $actual = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
-          if ($sum -ne $actual) { throw "Windows artifact checksum mismatch: $actual vs $sum" }
+          $installer = Get-ChildItem dist-electron -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Sort-Object Length -Descending | Select-Object -First 1
+          $portable = Get-ChildItem dist-electron -Filter '*.zip' | Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $installer) { throw 'NSIS installer was not produced.' }
+          if (-not $portable) { throw 'Portable ZIP was not produced.' }
+          $installerHash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+          $portableHash = (Get-FileHash -Algorithm SHA256 $portable.FullName).Hash.ToLowerInvariant()
+          "installer_sha256=$installerHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt
+          "portable_sha256=$portableHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "installer_file=$($installer.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "portable_file=$($portable.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
 
-          $fresh = Join-Path $env:RUNNER_TEMP 'commander-v050-fresh'
-          Remove-Item $fresh -Recurse -Force -ErrorAction SilentlyContinue
-          Expand-Archive $zip $fresh -Force
+      - name: Silent-install and prove installed integrated Electron tool loop
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.6.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem dist-electron -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Sort-Object Length -Descending | Select-Object -First 1
+          & $installer.FullName /S
+          if ($LASTEXITCODE -ne 0) { throw "NSIS install failed with exit code $LASTEXITCODE" }
 
-          $required = @(
-            (Join-Path $fresh 'ConstellationCommander.exe'),
-            (Join-Path $fresh 'runtime/node.exe'),
-            (Join-Path $fresh 'agent/bin/constellation-commander-bridge.mjs'),
-            (Join-Path $fresh 'agent/bin/constellation-commander-control-test.mjs'),
-            (Join-Path $fresh 'agent/src/browser-bridge.mjs'),
-            (Join-Path $fresh 'agent/src/computer-use.mjs'),
-            (Join-Path $fresh 'agent/native/windows-computer-use.ps1'),
-            (Join-Path $fresh 'browser-companion/manifest.json'),
-            (Join-Path $fresh 'browser-companion/background.js'),
-            (Join-Path $fresh 'browser-companion/content.js'),
-            (Join-Path $fresh 'browser-companion/page-hook.js'),
-            (Join-Path $fresh 'INSTALL-COMPANION.cmd')
-          )
-          foreach ($path in $required) {
-            if (-not (Test-Path $path)) { throw "Missing required bundle file: $path" }
+          $installed = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Programs') -Filter 'Constellation Commander.exe' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $installed) { throw 'Installed Constellation Commander executable was not found.' }
+
+          $output = Join-Path $env:RUNNER_TEMP 'constellation-electron-installed-smoke.json'
+          Remove-Item $output -Force -ErrorAction SilentlyContinue
+          $env:CONSTELLATION_ELECTRON_SMOKE = '1'
+          $env:CONSTELLATION_ELECTRON_SMOKE_OUTPUT = $output
+          $proc = Start-Process -FilePath $installed.FullName -PassThru
+          $deadline = (Get-Date).AddSeconds(40)
+          while (-not (Test-Path $output) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
+          if (-not (Test-Path $output)) {
+            try { Stop-Process -Id $proc.Id -Force } catch {}
+            throw 'Installed Electron tool-loop smoke timed out.'
           }
-
-          $node = Join-Path $fresh 'runtime/node.exe'
-          $nodeVersion = (& $node --version).Trim()
-          if ($nodeVersion -ne 'v22.20.0') { throw "Unexpected bundled Node version: $nodeVersion" }
-
-          $manifest = Get-Content (Join-Path $fresh 'browser-companion/manifest.json') -Raw | ConvertFrom-Json
-          if ($manifest.version -ne '0.5.0') { throw "Unexpected browser companion version: $($manifest.version)" }
-          if ($manifest.manifest_version -ne 3) { throw "Browser companion is not Manifest V3." }
-          $mainScript = @($manifest.content_scripts | Where-Object { $_.world -eq 'MAIN' })
-          if ($mainScript.Count -ne 1 -or $mainScript[0].run_at -ne 'document_start' -or @($mainScript[0].js) -notcontains 'page-hook.js') {
-            throw 'Browser companion does not package the MAIN-world document_start request hook.'
+          $data = Get-Content $output -Raw | ConvertFrom-Json
+          if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false) {
+            throw "Installed Electron tool-loop smoke failed: $(Get-Content $output -Raw)"
           }
-
-          $controlTest = & $node (Join-Path $fresh 'agent/bin/constellation-commander-control-test.mjs')
-          if ($LASTEXITCODE -ne 0) { throw "Fresh-bundle Full Control Test failed: $controlTest" }
-          $controlJson = $controlTest | ConvertFrom-Json
-          if ($controlJson.ok -ne $true -or $controlJson.clipboardRoundTrip -ne $true -or $controlJson.cursorReturned -ne $true -or $controlJson.screenshotBytes -lt 1000) {
-            throw "Fresh-bundle Full Control Test did not prove native control: $controlTest"
-          }
-
-          $env:CONSTELLATION_COMMANDER_CI = '1'
-          & cmd.exe /d /c (Join-Path $fresh 'INSTALL-COMPANION.cmd')
-          if ($LASTEXITCODE -ne 0) { throw "INSTALL-COMPANION.cmd failed with exit code $LASTEXITCODE" }
-
-          $installedRoot = Join-Path $env:LOCALAPPDATA 'ConstellationCommander'
-          $installedExe = Join-Path $installedRoot 'ConstellationCommander.exe'
-          $deadline = (Get-Date).AddSeconds(25)
-          do {
-            Start-Sleep -Milliseconds 250
-            $proc = Get-Process -Name 'ConstellationCommander' -ErrorAction SilentlyContinue | Select-Object -First 1
-          } until ($proc -or (Get-Date) -gt $deadline)
-          if (-not $proc) { throw 'Installed Constellation Commander did not remain running.' }
-          if (-not (Test-Path $installedExe)) { throw "Installer did not create $installedExe" }
-          foreach ($path in @(
-            (Join-Path $installedRoot 'agent/bin/constellation-commander-control-test.mjs'),
-            (Join-Path $installedRoot 'agent/native/windows-computer-use.ps1'),
-            (Join-Path $installedRoot 'browser-companion/page-hook.js'),
-            (Join-Path $installedRoot 'browser-companion/content.js')
-          )) {
-            if (-not (Test-Path $path)) { throw "Installed bundle missing $path" }
-          }
-
-          $health = $null
-          $deadline = (Get-Date).AddSeconds(25)
-          do {
-            try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:47721/health' -TimeoutSec 2 } catch { $health = $null }
-            if (-not $health) { Start-Sleep -Milliseconds 300 }
-          } until ($health -or (Get-Date) -gt $deadline)
-          if (-not $health) { throw 'Installed Commander never exposed the loopback health endpoint.' }
-          if ($health.product -ne 'Constellation Commander') { throw "Unexpected bridge product: $($health.product)" }
-          if ($health.version -ne '0.5.0') { throw "Unexpected bridge version: $($health.version)" }
-          if ($health.mode -ne 'normal-chat-loopback') { throw "Unexpected bridge mode: $($health.mode)" }
-          if ($health.computerUseSupported -ne $true) { throw 'Installed bridge does not report Windows computer-use support.' }
-          if ($health.guiAutomationEnabled -ne $true) { throw 'Installed bridge does not report GUI automation enabled.' }
-          if ($health.emergencyLock -ne $false) { throw 'Installed bridge unexpectedly started with Emergency Lock active.' }
-          if ($health.quotaEnforced -ne $false) { throw 'Commander unexpectedly reports quota enforcement.' }
-
-          $installedControl = & (Join-Path $installedRoot 'runtime/node.exe') (Join-Path $installedRoot 'agent/bin/constellation-commander-control-test.mjs')
-          if ($LASTEXITCODE -ne 0) { throw "Installed Full Control Test failed: $installedControl" }
-          $installedControlJson = $installedControl | ConvertFrom-Json
-          if ($installedControlJson.ok -ne $true) { throw "Installed Full Control Test returned failure: $installedControl" }
-
-          & taskkill.exe /PID $proc.Id /T /F | Out-Host
-          Write-Host 'Windows v0.5 control-handoff + full-control one-click install smoke PASS'
-          Write-Host "artifact_sha256=$actual"
-          Write-Host "bundled_node=$nodeVersion"
-          Write-Host "bridge_version=$($health.version)"
-          Write-Host "computer_use=$($health.computerUseSupported)"
-          Write-Host "gui_automation=$($health.guiAutomationEnabled)"
-          Write-Host "native_control_test=$($installedControlJson.ok)"
+          try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+          Write-Host 'Windows v0.6 integrated Electron ChatGPT + direct Commander IPC smoke PASS'
+          Write-Host "installed_exe=$($installed.FullName)"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Constellation-Commander-Windows-x64-v0.5.0
+          name: Constellation-Commander-v0.6.0-Windows
           path: |
-            commander-source/constellation-commander-v0.5.0/dist/Constellation-Commander-Windows-x64-v0.5.0.zip
-            commander-source/constellation-commander-v0.5.0/dist/Constellation-Commander-Windows-x64-v0.5.0-SHA256.txt
+            commander-source/constellation-commander-v0.6.0/dist-electron/*.exe
+            commander-source/constellation-commander-v0.6.0/dist-electron/*.zip
+            commander-source/constellation-commander-v0.6.0/dist-electron/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
