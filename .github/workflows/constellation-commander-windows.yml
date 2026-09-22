@@ -7,6 +7,12 @@ on:
     paths:
       - 'releases/constellation-commander/v0.6.0/ci-source-release/**'
       - '.github/workflows/constellation-commander-windows.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'releases/constellation-commander/v0.6.0/ci-source-release/**'
+      - '.github/workflows/constellation-commander-windows.yml'
   workflow_dispatch:
 
 permissions:
