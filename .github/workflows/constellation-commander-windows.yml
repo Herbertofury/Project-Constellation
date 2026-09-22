@@ -1,11 +1,11 @@
-name: Constellation Commander v0.3 Windows Build
+name: Constellation Commander v0.4 Full Computer Use Windows Build
 
 on:
   push:
     branches:
-      - feature/constellation-commander-v0.3.0
+      - feature/constellation-commander-v0.4.0
     paths:
-      - 'releases/constellation-commander/v0.3.0/ci-source-final/**'
+      - 'releases/constellation-commander/v0.4.0/ci-source-exact/**'
       - '.github/workflows/constellation-commander-windows.yml'
   workflow_dispatch:
 
@@ -15,20 +15,20 @@ permissions:
 jobs:
   build-windows-companion:
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
-      - name: Reassemble exact verified v0.3 source
+      - name: Reassemble exact verified v0.4 source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $parts = Get-ChildItem 'releases/constellation-commander/v0.3.0/ci-source-release/part*' | Sort-Object Name
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.4.0/ci-source-exact/part*' | Sort-Object Name
           if ($parts.Count -ne 3) { throw "Expected 3 source parts, found $($parts.Count)" }
           $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
           [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
           $actual = (Get-FileHash -Algorithm SHA256 'commander-source.zip').Hash.ToLowerInvariant()
-          $expected = '9fe8264cd6a09b41bd11cba4c99f0806fa1aa2245b05f1f99acef70bd2fe53cb'
+          $expected = '348e7e297a4098c1e7eb2f1939d362acbddb145f86defc282609e50c761c4e1a'
           if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
 
@@ -40,30 +40,30 @@ jobs:
         with:
           dotnet-version: '8.0.425'
 
-      - name: Run full Commander v0.3 protocol/browser/device suite
+      - name: Run full v0.4 protocol, browser, device, and native computer-use suite
         shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.3.0
+        working-directory: commander-source/constellation-commander-v0.4.0
         run: |
           npm run check
           npm test
 
       - name: Build self-contained Windows companion
         shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.3.0
+        working-directory: commander-source/constellation-commander-v0.4.0
         run: |
           ./scripts/build-windows-companion.ps1
 
-      - name: Fresh extraction, one-click install, bridge health, and bundle smoke
+      - name: Fresh extraction, one-click install, full-computer-use health and bundle smoke
         shell: pwsh
-        working-directory: commander-source/constellation-commander-v0.3.0
+        working-directory: commander-source/constellation-commander-v0.4.0
         run: |
           $ErrorActionPreference = 'Stop'
-          $zip = Resolve-Path 'dist/Constellation-Commander-Windows-x64-v0.3.0.zip'
-          $sum = (Get-Content 'dist/Constellation-Commander-Windows-x64-v0.3.0-SHA256.txt' -Raw).Trim().Split()[0].ToLowerInvariant()
+          $zip = Resolve-Path 'dist/Constellation-Commander-Windows-x64-v0.4.0.zip'
+          $sum = (Get-Content 'dist/Constellation-Commander-Windows-x64-v0.4.0-SHA256.txt' -Raw).Trim().Split()[0].ToLowerInvariant()
           $actual = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
           if ($sum -ne $actual) { throw "Windows artifact checksum mismatch: $actual vs $sum" }
 
-          $fresh = Join-Path $env:RUNNER_TEMP 'commander-v030-fresh'
+          $fresh = Join-Path $env:RUNNER_TEMP 'commander-v040-fresh'
           Remove-Item $fresh -Recurse -Force -ErrorAction SilentlyContinue
           Expand-Archive $zip $fresh -Force
 
@@ -72,6 +72,8 @@ jobs:
             (Join-Path $fresh 'runtime/node.exe'),
             (Join-Path $fresh 'agent/bin/constellation-commander-bridge.mjs'),
             (Join-Path $fresh 'agent/src/browser-bridge.mjs'),
+            (Join-Path $fresh 'agent/src/computer-use.mjs'),
+            (Join-Path $fresh 'agent/native/windows-computer-use.ps1'),
             (Join-Path $fresh 'browser-companion/manifest.json'),
             (Join-Path $fresh 'browser-companion/background.js'),
             (Join-Path $fresh 'browser-companion/content.js'),
@@ -86,7 +88,7 @@ jobs:
           if ($nodeVersion -ne 'v22.20.0') { throw "Unexpected bundled Node version: $nodeVersion" }
 
           $manifest = Get-Content (Join-Path $fresh 'browser-companion/manifest.json') -Raw | ConvertFrom-Json
-          if ($manifest.version -ne '0.3.0') { throw "Unexpected browser companion version: $($manifest.version)" }
+          if ($manifest.version -ne '0.4.0') { throw "Unexpected browser companion version: $($manifest.version)" }
           if ($manifest.manifest_version -ne 3) { throw "Browser companion is not Manifest V3." }
 
           $env:CONSTELLATION_COMMANDER_CI = '1'
@@ -102,6 +104,7 @@ jobs:
           } until ($proc -or (Get-Date) -gt $deadline)
           if (-not $proc) { throw 'Installed Constellation Commander did not remain running.' }
           if (-not (Test-Path $installedExe)) { throw "Installer did not create $installedExe" }
+          if (-not (Test-Path (Join-Path $installedRoot 'agent/native/windows-computer-use.ps1'))) { throw 'Installer did not preserve native computer-use helper.' }
           if (-not (Test-Path (Join-Path $installedRoot 'browser-companion/manifest.json'))) { throw 'Installer did not preserve the browser companion.' }
 
           $health = $null
@@ -112,22 +115,26 @@ jobs:
           } until ($health -or (Get-Date) -gt $deadline)
           if (-not $health) { throw 'Installed Commander never exposed the loopback health endpoint.' }
           if ($health.product -ne 'Constellation Commander') { throw "Unexpected bridge product: $($health.product)" }
-          if ($health.version -ne '0.3.0') { throw "Unexpected bridge version: $($health.version)" }
+          if ($health.version -ne '0.4.0') { throw "Unexpected bridge version: $($health.version)" }
           if ($health.mode -ne 'normal-chat-loopback') { throw "Unexpected bridge mode: $($health.mode)" }
+          if ($health.computerUseSupported -ne $true) { throw 'Installed bridge does not report Windows computer-use support.' }
+          if ($health.guiAutomationEnabled -ne $true) { throw 'Installed bridge does not report GUI automation enabled.' }
+          if ($health.emergencyLock -ne $false) { throw 'Installed bridge unexpectedly started with Emergency Lock active.' }
           if ($health.quotaEnforced -ne $false) { throw 'Commander unexpectedly reports quota enforcement.' }
 
           & taskkill.exe /PID $proc.Id /T /F | Out-Host
-          Write-Host 'Windows v0.3 one-click install + loopback bridge smoke PASS'
+          Write-Host 'Windows v0.4 full computer-use one-click install smoke PASS'
           Write-Host "artifact_sha256=$actual"
           Write-Host "bundled_node=$nodeVersion"
           Write-Host "bridge_version=$($health.version)"
-          Write-Host "bridge_mode=$($health.mode)"
+          Write-Host "computer_use=$($health.computerUseSupported)"
+          Write-Host "gui_automation=$($health.guiAutomationEnabled)"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Constellation-Commander-Windows-x64-v0.3.0
+          name: Constellation-Commander-Windows-x64-v0.4.0
           path: |
-            commander-source/constellation-commander-v0.3.0/dist/Constellation-Commander-Windows-x64-v0.3.0.zip
-            commander-source/constellation-commander-v0.3.0/dist/Constellation-Commander-Windows-x64-v0.3.0-SHA256.txt
+            commander-source/constellation-commander-v0.4.0/dist/Constellation-Commander-Windows-x64-v0.4.0.zip
+            commander-source/constellation-commander-v0.4.0/dist/Constellation-Commander-Windows-x64-v0.4.0-SHA256.txt
           if-no-files-found: error
           retention-days: 30
