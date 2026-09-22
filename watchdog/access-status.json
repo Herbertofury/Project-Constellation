@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "source": "ChatGPT Scheduled Task Watchdog",
-  "last_probe_utc": "2026-09-22T17:54:09Z",
-  "stale_after_hours": 18,
+  "last_probe_utc": "2026-09-22T17:55:05Z",
+  "stale_after_hours": 4,
   "github": {
     "connector_ok": true,
     "app_permission": "Allow all actions",
@@ -16,5 +16,5 @@
     "repair_succeeded": false
   },
   "user_action_required": false,
-  "note": "Non-secret connector health only. OAuth/provider consent is never stored here and cannot be minted by GitHub Actions."
+  "note": "Non-secret connector health only. Internal ChatGPT watchdog may repair app-permission drift when supported; OAuth/provider consent still requires the account owner."
 }
