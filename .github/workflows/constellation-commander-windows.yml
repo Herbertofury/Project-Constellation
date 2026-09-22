@@ -23,12 +23,12 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $parts = Get-ChildItem 'releases/constellation-commander/v0.2.0/ci-source/part*' | Sort-Object Name
-          if ($parts.Count -ne 7) { throw "Expected 7 source parts, found $($parts.Count)" }
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.2.0/ci-source-final/part*' | Sort-Object Name
+          if ($parts.Count -ne 3) { throw "Expected 3 source parts, found $($parts.Count)" }
           $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
           [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
           $actual = (Get-FileHash -Algorithm SHA256 'commander-source.zip').Hash.ToLowerInvariant()
-          $expected = 'be648aa83f802519d8c706ba02b7bb546c58ff3bf46986eefbd3dddc8a3f19b0'
+          $expected = '821c35d7a3fc94b8622e7c27e79666c90e244aee628c848e2bd7c1f2174d7fdd'
           if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
 
