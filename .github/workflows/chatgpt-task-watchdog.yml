@@ -2,7 +2,7 @@ name: External ChatGPT Task Watchdog
 
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 */3 * * *"
   workflow_dispatch:
   push:
     branches:
@@ -10,6 +10,7 @@ on:
     paths:
       - ".github/workflows/chatgpt-task-watchdog.yml"
       - "watchdog/heartbeat.json"
+      - "watchdog/access-status.json"
 
 permissions:
   contents: write
@@ -46,7 +47,7 @@ jobs:
           age_hours = None
           last_ok = ""
           reason = "heartbeat file missing"
-          threshold = 18.0
+          threshold = 4.0
 
           try:
               data = json.loads(path.read_text(encoding="utf-8"))
@@ -69,6 +70,63 @@ jobs:
               output.write(f"stale={'true' if stale else 'false'}\n")
               output.write(f"reason={reason}\n")
               output.write(f"last_ok_utc={last_ok}\n")
+              output.write(f"age_hours={'' if age_hours is None else f'{age_hours:.2f}'}\n")
+
+          print(reason)
+          PY
+
+      - name: Inspect ChatGPT connector access state
+        id: access
+        shell: bash
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("watchdog/access-status.json")
+          now = dt.datetime.now(dt.timezone.utc)
+          unhealthy = True
+          age_hours = None
+          last_probe = ""
+          reason = "access-status file missing"
+          threshold = 4.0
+
+          try:
+              data = json.loads(path.read_text(encoding="utf-8"))
+              threshold = float(data.get("stale_after_hours", threshold))
+              last_probe = str(data["last_probe_utc"])
+              parsed = dt.datetime.fromisoformat(last_probe.replace("Z", "+00:00"))
+              if parsed.tzinfo is None:
+                  parsed = parsed.replace(tzinfo=dt.timezone.utc)
+              age_hours = (now - parsed.astimezone(dt.timezone.utc)).total_seconds() / 3600.0
+
+              github = data.get("github", {})
+              drive = data.get("google_drive", {})
+              github_ok = github.get("connector_ok") is True
+              drive_ok = drive.get("connector_ok") is True
+              user_action = data.get("user_action_required") is True
+              stale = age_hours > threshold
+              unhealthy = stale or (not github_ok) or (not drive_ok) or user_action
+
+              parts = []
+              if stale:
+                  parts.append(f"access probe stale at {age_hours:.2f}h (threshold {threshold:.2f}h)")
+              if not github_ok:
+                  parts.append("GitHub connector reported unhealthy")
+              if not drive_ok:
+                  parts.append("Google Drive connector reported unhealthy")
+              if user_action:
+                  parts.append("ChatGPT reported user authorization action required")
+              reason = "; ".join(parts) if parts else f"connector access healthy at {age_hours:.2f}h old"
+          except Exception as exc:
+              reason = f"access-status unreadable: {type(exc).__name__}: {exc}"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"unhealthy={'true' if unhealthy else 'false'}\n")
+              output.write(f"reason={reason}\n")
+              output.write(f"last_probe_utc={last_probe}\n")
               output.write(f"age_hours={'' if age_hours is None else f'{age_hours:.2f}'}\n")
 
           print(reason)
@@ -128,63 +186,96 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add watchdog/external-alive.json
-          git commit -m "chore: external watchdog keepalive"
 
-          git pull --rebase origin main
-          git push origin HEAD:main
-
-      - name: Raise stale-heartbeat alert
-        if: steps.heartbeat.outputs.stale == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ALERT_TITLE: External watchdog detected stale ChatGPT task heartbeat
-          REASON: ${{ steps.heartbeat.outputs.reason }}
-          LAST_OK: ${{ steps.heartbeat.outputs.last_ok_utc }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          existing="$(
-            gh issue list               --state open               --limit 100               --json number,title               --jq '.[] | select(.title == env.ALERT_TITLE) | .number'               | head -n 1
-          )"
-
-          if [[ -n "$existing" ]]; then
-            echo "Watchdog alert issue #$existing is already open."
+          if git diff --cached --quiet; then
+            echo "No keepalive change required."
             exit 0
           fi
 
-          body="$(cat <<EOF
-          The independent GitHub-hosted watchdog can no longer verify a fresh heartbeat from the ChatGPT **Scheduled Task Watchdog**.
+          git commit -m "chore: external watchdog keepalive"
+          git pull --rebase origin main
+          git push origin HEAD:main
 
-          **Reason:** $REASON
-          **Last successful internal heartbeat:** ${LAST_OK:-unknown}
-
-          Check ChatGPT scheduled tasks. The internal watchdog is supposed to audit and repair recurring/indefinite tasks every 6 hours and then refresh `watchdog/heartbeat.json`.
-
-          This issue was created automatically by GitHub Actions and requires no paid external API or server.
-          EOF
-          )"
-
-          gh issue create             --title "$ALERT_TITLE"             --body "$body"             --assignee "Herbertofury"
-
-          echo "::error::$REASON"
-          exit 1
-
-      - name: Close recovered stale-heartbeat alert
-        if: steps.heartbeat.outputs.stale == 'false'
+      - name: Reconcile watchdog alert issues
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          ALERT_TITLE: External watchdog detected stale ChatGPT task heartbeat
+          HEARTBEAT_STALE: ${{ steps.heartbeat.outputs.stale }}
+          HEARTBEAT_REASON: ${{ steps.heartbeat.outputs.reason }}
+          HEARTBEAT_LAST_OK: ${{ steps.heartbeat.outputs.last_ok_utc }}
+          ACCESS_UNHEALTHY: ${{ steps.access.outputs.unhealthy }}
+          ACCESS_REASON: ${{ steps.access.outputs.reason }}
+          ACCESS_LAST_PROBE: ${{ steps.access.outputs.last_probe_utc }}
         shell: bash
         run: |
           set -euo pipefail
 
-          existing="$(
-            gh issue list               --state open               --limit 100               --json number,title               --jq '.[] | select(.title == env.ALERT_TITLE) | .number'               | head -n 1
+          reconcile_issue() {
+            local title="$1"
+            local unhealthy="$2"
+            local body="$3"
+            local recovered="$4"
+
+            local existing
+            existing="$(
+              gh issue list \
+                --state open \
+                --limit 100 \
+                --json number,title \
+                --jq ".[] | select(.title == \"$title\") | .number" \
+                | head -n 1
+            )"
+
+            if [[ "$unhealthy" == "true" ]]; then
+              if [[ -n "$existing" ]]; then
+                echo "Alert issue #$existing already open: $title"
+              else
+                gh issue create --title "$title" --body "$body" --assignee "Herbertofury"
+              fi
+            elif [[ -n "$existing" ]]; then
+              gh issue close "$existing" --comment "$recovered"
+            fi
+          }
+
+          heartbeat_body="$(cat <<EOF
+          The independent GitHub-hosted watchdog can no longer verify a fresh heartbeat from the ChatGPT **Scheduled Task Watchdog**.
+
+          **Reason:** $HEARTBEAT_REASON
+          **Last successful internal heartbeat:** ${HEARTBEAT_LAST_OK:-unknown}
+
+          The ChatGPT watchdog is intended to run hourly, repair scheduled-task health, probe GitHub/Google Drive access, and refresh watchdog state. Check ChatGPT scheduled tasks and connector authorization if this persists.
+
+          This monitor contains no ChatGPT credentials and cannot bypass OAuth/provider consent.
+          EOF
           )"
 
-          if [[ -n "$existing" ]]; then
-            gh issue close "$existing" --comment "Internal watchdog heartbeat recovered at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
-          else
-            echo "No stale-heartbeat alert is open."
-          fi
+          access_body="$(cat <<EOF
+          The independent GitHub-hosted watchdog detected unhealthy or stale ChatGPT connector access state.
+
+          **Reason:** $ACCESS_REASON
+          **Last ChatGPT connector probe:** ${ACCESS_LAST_PROBE:-unknown}
+
+          The internal ChatGPT watchdog is configured to repair app-permission drift automatically when the platform exposes that control. If an OAuth/provider connection was revoked or expired, the account owner must reconnect it in ChatGPT.
+
+          No OAuth tokens or provider credentials are stored in this repository.
+          EOF
+          )"
+
+          reconcile_issue \
+            "External watchdog detected stale ChatGPT task heartbeat" \
+            "$HEARTBEAT_STALE" \
+            "$heartbeat_body" \
+            "Internal watchdog heartbeat recovered at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+
+          reconcile_issue \
+            "External watchdog detected ChatGPT connector access problem" \
+            "$ACCESS_UNHEALTHY" \
+            "$access_body" \
+            "ChatGPT GitHub/Google Drive connector health recovered at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+
+      - name: Fail run when ChatGPT watchdog or connector state is unhealthy
+        if: steps.heartbeat.outputs.stale == 'true' || steps.access.outputs.unhealthy == 'true'
+        shell: bash
+        run: |
+          echo "::error::External watchdog detected unhealthy ChatGPT task/connector state."
+          exit 1
