@@ -43,3 +43,15 @@ GitHub cannot directly force an arbitrary ChatGPT conversation to resume without
 ## Security
 
 Never commit passwords, tokens, cookies, OAuth secrets, private session data, or full private task contents that do not belong in the repository.
+
+## Interactive-attention poison rule
+
+A scheduled worker must never invoke an action that is known to require interactive approval and then expect to recover from the returned error. ChatGPT can suspend the run before the action returns, producing **This task needs your attention / Follow-up** and preventing downstream recovery logic from executing.
+
+Therefore:
+
+- prevent the gated call **before invocation**;
+- while Gmail/Outlook are not app-specific **Allow all actions**, unattended workers must not call them at all;
+- the scheduled-task result is the delivery channel until mail full access is actually confirmed;
+- `is_enabled=true` is not proof of health: if `last_run_time` stops advancing for at least two expected intervals while future runs remain scheduled, treat the instance as poisoned/stalled;
+- recover a poisoned worker by preserving its complete prompt/schedule/scope, creating a clean replacement with interactive deadlocks removed, and tombstoning the old instance as `REPLACED — ...` so watchdogs never resurrect it.
