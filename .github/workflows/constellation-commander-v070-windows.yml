@@ -86,9 +86,9 @@ jobs:
           foreach ($file in $actualFiles) {
             $rel = [IO.Path]::GetRelativePath($root, $file.FullName).Replace('\','/')
             if (-not $expected.ContainsKey($rel)) { throw "Unexpected v0.7 source file: $rel" }
-            if ($file.Length -ne $expected[$rel].size) { throw "Size mismatch for $rel: $($file.Length)" }
+            if ($file.Length -ne $expected[$rel].size) { throw "Size mismatch for ${rel}: $($file.Length)" }
             $hash = (Get-FileHash -Algorithm SHA256 $file.FullName).Hash.ToLowerInvariant()
-            if ($hash -ne $expected[$rel].hash) { throw "SHA mismatch for $rel: $hash" }
+            if ($hash -ne $expected[$rel].hash) { throw "SHA mismatch for ${rel}: $hash" }
           }
           Write-Host "v070_files=$($expected.Count)"
           Write-Host "v070_canonical_source_sha256=10d4f32660673347703b994134df2413110a2d560e4084083ec9afc66e702d16"
