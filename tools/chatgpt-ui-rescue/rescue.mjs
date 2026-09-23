@@ -7,6 +7,7 @@ const STATE_PATH = process.env.CHATGPT_STORAGE_STATE || "";
 const REPORT_PATH = process.env.CHATGPT_RESCUE_REPORT || "chatgpt-ui-rescue-report.json";
 const FIXTURE_MODE = process.env.CHATGPT_RESCUE_FIXTURE === "1";
 const HEADLESS = FIXTURE_MODE ? true : process.env.CHATGPT_HEADLESS !== "false";
+const BROWSER_CHANNEL = process.env.CHATGPT_BROWSER_CHANNEL || "";
 const TARGETS = (process.env.CHATGPT_TARGET_TASKS || "")
   .split(",")
   .map((x) => x.trim())
@@ -302,7 +303,9 @@ if (!FIXTURE_MODE && (!STATE_PATH || !fs.existsSync(STATE_PATH))) {
   process.exit(2);
 }
 
-const browser = await chromium.launch({ headless: HEADLESS });
+const launchOptions = { headless: HEADLESS };
+if (BROWSER_CHANNEL) launchOptions.channel = BROWSER_CHANNEL;
+const browser = await chromium.launch(launchOptions);
 
 try {
   const context = FIXTURE_MODE
@@ -389,6 +392,11 @@ try {
 
   report.remaining_blocked_cards = remainingEligible.map((item) => item.title);
   report.status = remainingEligible.length === 0 ? "success" : "partial-blockers-remain";
+
+  if (!FIXTURE_MODE && STATE_PATH) {
+    await context.storageState({ path: STATE_PATH });
+  }
+
   saveReport();
 
   console.log(JSON.stringify(report, null, 2));
