@@ -59,7 +59,7 @@ jobs:
           # Apply the exact locally-proven v0.6 -> v0.7 product upgrade in one shot.
           $v070Patch = (Resolve-Path 'releases/constellation-commander/v0.7.0/commander-v060-to-v070.patch').Path
           $patchHash = (Get-FileHash -Algorithm SHA256 $v070Patch).Hash.ToLowerInvariant()
-          if ($patchHash -ne '317ad46ca5ea7bce768438466f52cab1cee499a59dab79363251bc6d4374bf1c') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
+          if ($patchHash -ne 'd9596a08736cdd17a971c3bb01bd2b48a743e89bc90a77759f1eb809638e550a') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
           Push-Location 'commander-base/constellation-commander-v0.6.0'
           try {
             git -c core.autocrlf=false -c core.eol=lf apply --check $v070Patch
@@ -97,7 +97,7 @@ jobs:
           $manifestText = [IO.File]::ReadAllText($manifestPath).Replace("`r`n", "`n").Replace("`r", "`n")
           $manifestBytes = [Text.UTF8Encoding]::new($false).GetBytes($manifestText)
           $manifestHash = ([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($manifestBytes))).ToLowerInvariant()
-          if ($manifestHash -ne 'bba523fce82cb291be01b1f7a15d21a36f48b336266ef967aa41a2ed8cc06a66') { throw "v0.7 canonical tree manifest SHA mismatch: $manifestHash" }
+          if ($manifestHash -ne '69eb892f6fc75d248d4606c0802e13e14834ebdd737908c1b0665fa5ae7ee819') { throw "v0.7 canonical tree manifest SHA mismatch: $manifestHash" }
           $expected = @{}
           foreach ($line in Get-Content $manifestPath) {
             if ($line -notmatch '^([0-9a-f]{64})\s+(\d+)\s+(.+)$') { throw "Malformed tree-manifest line: $line" }
@@ -113,7 +113,7 @@ jobs:
             if ($hash -ne $expected[$rel].hash) { throw "SHA mismatch for ${rel}: $hash" }
           }
           Write-Host "v070_files=$($expected.Count)"
-          Write-Host "v070_canonical_source_sha256=83b59f41b4d7b146217b7e820e58ac3eebcb4b0a07ea5335674d31d96e6b6e25"
+          Write-Host "v070_canonical_source_sha256=36824f0d38c01d3f5e89e3cc0819cfe1829a92dc6ffa2516a860a65a2612f59b"
 
       - uses: actions/setup-node@v4
         with:
@@ -178,7 +178,7 @@ jobs:
           "portable_sha256=$portableHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "installer_file=$($installer.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "portable_file=$($portable.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
-          "source_sha256=83b59f41b4d7b146217b7e820e58ac3eebcb4b0a07ea5335674d31d96e6b6e25" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "source_sha256=36824f0d38c01d3f5e89e3cc0819cfe1829a92dc6ffa2516a860a65a2612f59b" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "tree_manifest_sha256=a0152bb836884a54cc58d9c111fc35d61150ed40bc7006b3f43f4e2263e3c937" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           Write-Host "asar=$($asar.FullName)"
           Write-Host "native_unpacked=$($native.FullName)"
