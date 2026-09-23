@@ -14,7 +14,19 @@ const cdpPort = 9333;
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "chatgpt-cdp-test-"));
 const reportPath = path.join(tempDir, "report.json");
 
-const html = `<!doctype html>
+let resolved = false;
+
+function fixtureHtml() {
+  if (resolved) {
+    return `<!doctype html><html><body>
+      <article class="card">
+        <h2>Minecraft Mod Catalogue Updater</h2>
+        <div id="healthy">Task active</div>
+      </article>
+    </body></html>`;
+  }
+
+  return `<!doctype html>
 <html><body>
 <article class="card">
 <h2>Minecraft Mod Catalogue Updater</h2>
@@ -34,20 +46,30 @@ document.getElementById("allow").addEventListener("click", () => {
   document.getElementById("resume").hidden = false;
   document.getElementById("allow").hidden = true;
 });
-document.getElementById("resume").addEventListener("click", () => {
+document.getElementById("resume").addEventListener("click", async () => {
+  await fetch("/resolved", { method: "POST" });
   document.getElementById("attention").remove();
   dialog.hidden = true;
   document.body.dataset.resumed = "true";
 });
 </script>
 </body></html>`;
+}
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/schedules" || req.url === "/schedules/") {
-    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-    res.end(html);
+  if (req.url === "/resolved" && req.method === "POST") {
+    resolved = true;
+    res.writeHead(204);
+    res.end();
     return;
   }
+
+  if (req.url === "/schedules" || req.url === "/schedules/") {
+    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+    res.end(fixtureHtml());
+    return;
+  }
+
   res.writeHead(404);
   res.end("not found");
 });
@@ -93,10 +115,17 @@ function runRescue() {
     });
     let stdout = "";
     let stderr = "";
+    const killTimer = setTimeout(() => {
+      try { child.kill("SIGTERM"); } catch {}
+    }, 30000);
     child.stdout.on("data", (d) => { stdout += d.toString(); });
     child.stderr.on("data", (d) => { stderr += d.toString(); });
-    child.on("error", reject);
+    child.on("error", (err) => {
+      clearTimeout(killTimer);
+      reject(err);
+    });
     child.on("exit", (code) => {
+      clearTimeout(killTimer);
       if (code === 0) resolve({ stdout, stderr });
       else reject(new Error(`rescue exited ${code}\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`));
     });
