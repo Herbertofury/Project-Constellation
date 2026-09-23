@@ -5,6 +5,7 @@ import path from "node:path";
 const BASE_URL = process.env.CHATGPT_BASE_URL || "https://chatgpt.com";
 const STATE_PATH = process.env.CHATGPT_STORAGE_STATE || "";
 const REPORT_PATH = process.env.CHATGPT_RESCUE_REPORT || "chatgpt-ui-rescue-report.json";
+const FIXTURE_MODE = process.env.CHATGPT_RESCUE_FIXTURE === "1";
 const TARGETS = (process.env.CHATGPT_TARGET_TASKS || "")
   .split(",")
   .map((x) => x.trim())
@@ -289,7 +290,7 @@ async function repairCard(page, title, card) {
   return entry;
 }
 
-if (!STATE_PATH || !fs.existsSync(STATE_PATH)) {
+if (!FIXTURE_MODE && (!STATE_PATH || !fs.existsSync(STATE_PATH))) {
   report.status = "auth-bootstrap-required";
   addError("bootstrap", new Error("CHATGPT_STORAGE_STATE is missing."));
   saveReport();
@@ -299,14 +300,51 @@ if (!STATE_PATH || !fs.existsSync(STATE_PATH)) {
 const browser = await chromium.launch({ headless: true });
 
 try {
-  const context = await browser.newContext({ storageState: STATE_PATH });
+  const context = FIXTURE_MODE
+    ? await browser.newContext()
+    : await browser.newContext({ storageState: STATE_PATH });
   const page = await context.newPage();
   page.setDefaultTimeout(5000);
 
-  await page.goto(BASE_URL + "/schedules", { waitUntil: "domcontentloaded", timeout: 45000 });
-  await settle(page, 1200);
+  if (FIXTURE_MODE) {
+    await page.setContent(`
+      <!doctype html>
+      <html>
+        <body>
+          <article class="card">
+            <h2>Minecraft Mod Catalogue Updater</h2>
+            <div id="attention">This task needs your attention</div>
+            <button id="review">Review</button>
+          </article>
+          <div id="dialog" role="dialog" aria-label="Task follow-up" hidden>
+            <button id="full">Allow all actions</button>
+            <button id="allow">Allow</button>
+            <button id="resume" hidden>Resume</button>
+          </div>
+          <script>
+            const dialog = document.getElementById("dialog");
+            document.getElementById("review").addEventListener("click", () => { dialog.hidden = false; });
+            document.getElementById("full").addEventListener("click", () => { document.body.dataset.permission = "full"; });
+            document.getElementById("allow").addEventListener("click", () => {
+              document.getElementById("resume").hidden = false;
+              document.getElementById("allow").hidden = true;
+            });
+            document.getElementById("resume").addEventListener("click", () => {
+              document.getElementById("attention").remove();
+              dialog.hidden = true;
+              document.body.dataset.resumed = "true";
+            });
+          </script>
+        </body>
+      </html>
+    `);
+    await settle(page, 200);
+  } else {
+    await page.goto(BASE_URL + "/schedules", { waitUntil: "domcontentloaded", timeout: 45000 });
+    await settle(page, 1200);
+  }
 
-  if (await signedOut(page)) {
+  if (!FIXTURE_MODE && await signedOut(page)) {
     throw new Error("AUTH_REQUIRED: stored ChatGPT browser state expired or is invalid.");
   }
 
@@ -330,8 +368,12 @@ try {
         report.unchanged_cards.push(result);
       }
 
-      await page.goto(BASE_URL + "/schedules", { waitUntil: "domcontentloaded", timeout: 45000 });
-      await settle(page, 900);
+      if (!FIXTURE_MODE) {
+        await page.goto(BASE_URL + "/schedules", { waitUntil: "domcontentloaded", timeout: 45000 });
+        await settle(page, 900);
+      } else {
+        await settle(page, 150);
+      }
     }
 
     if (!resolvedThisCycle) break;
