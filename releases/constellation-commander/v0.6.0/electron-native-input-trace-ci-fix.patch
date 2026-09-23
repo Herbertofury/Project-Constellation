@@ -74,8 +74,8 @@
 +      smokeTrace('ipc-call-result', { ok: result?.ok !== false, tool: String(result?.tool || '') });
 +      return result;
 +    } catch (error) {
-+      smokeTrace('ipc-call-error', { error: String(error?.messae || error) });
-+      return { ok: false, error: String(error?.messae || error) };
++      smokeTrace('ipc-call-error', { error: String(error?.message || error) });
++      return { ok: false, error: String(error?.message || error) };
 +    }
    });
  
@@ -86,18 +86,18 @@
    ipcMain.handle('cc:diagnostic', async (_event, payload = {}) => {
 +    smokeTrace(`renderer:${String(payload.event || 'diagnostic')}`, payload.detail || {});
      if (TEST_MODE && TEST_OUTPUT) {
-      if (payload.event === 'tool-result-sent') {
-        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
+       if (payload.event === 'tool-result-sent') {
+         fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
 --- a/electron/chat-preload.cjs
 +++ b/electron/chat-preload.cjs
 @@ -23,6 +23,7 @@
  
    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-   const diagnostic = (event, detail = {}) => ipcRenderer.invoke('cc:diagnostic', { event, detail }).catch() => null);
+   const diagnostic = (event, detail = {}) => ipcRenderer.invoke('cc:diagnostic', { event, detail }).catch(() => null);
 +  void diagnostic('preload-loaded', { url: location.href, readyState: document.readyState });
  
    function toast(message, kind = 'info', sticky = false) {
-    const id = 'constellation-commander-electron-toast';
+     const id = 'constellation-commander-electron-toast';
 @@ -197,7 +198,7 @@
    window.addEventListener('message', event => {
      if (event.source !== window || event.data?.source !== PAGE_SOURCE) return;
