@@ -52,11 +52,11 @@ def call_native(client, image_path, prompt, seed, dst):
             result = client.predict(
                 handle_file(str(image_path)),
                 prompt,
+                6,
                 NEG,
                 5.0,
                 3.0,
                 1.0,
-                6,
                 seed,
                 False,
                 api_name="/generate_video",
