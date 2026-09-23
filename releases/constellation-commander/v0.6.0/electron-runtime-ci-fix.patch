@@ -1,0 +1,36 @@
+--- a/electron/main.cjs
++++ b/electron/main.cjs
+@@ -118,7 +118,7 @@
+   try {
+     const { createBrowserBridge } = await importEsm('src/browser-bridge.mjs');
+     fallbackBridge = await createBrowserBridge();
+-    await fallbackBridge.listen();
++    await fallbackBridge.start();
+   } catch (error) {
+     console.warn('[Commander] fallback browser bridge unavailable:', error?.message || error);
+   }
+@@ -318,4 +318,4 @@
+ });
+ 
+ app.on('window-all-closed', () => app.quit());
+-app.on('before-quit', async () => { try { await fallbackBridge?.close?.(); } catch {} });
++app.on('before-quit', async () => { try { await fallbackBridge?.stop?.(); } catch {} });
+--- a/electron/chat-preload.cjs
++++ b/electron/chat-preload.cjs
+@@ -363,8 +363,14 @@
+   }
+ 
+   const observer = new MutationObserver(scanAssistantCalls);
+-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+-  scanAssistantCalls();
++  function startAssistantObserver() {
++    const root = document.documentElement;
++    if (!root) return false;
++    observer.observe(root, { childList: true, subtree: true, characterData: true });
++    scanAssistantCalls();
++    return true;
++  }
++  if (!startAssistantObserver()) window.addEventListener('DOMContentLoaded', startAssistantObserver, { once: true });
+ 
+   // Integrated status badge. This is informational only; ChatGPT itself never gets
+   // direct IPC or Node access.
