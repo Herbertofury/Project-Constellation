@@ -1,5 +1,5 @@
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "name": "ChatGPT Scheduled Task Recovery Controller",
   "mode": "redundant_self_healing",
   "authoritative_watchdog_automation_id": "6ab2b3f2d4b8819194abbe2f2be57bca",
@@ -56,9 +56,9 @@
     "gmail_app_permission": "Use my default — suppress unattended calls",
     "outlook_email_app_permission": "Use my default — suppress unattended calls",
     "global_app_permission": "Allow low-risk actions",
-    "plugin_permission_write_endpoint": "HTTP 404 before invocation as last observed"
+    "plugin_permission_write_endpoint": "HTTP 404 before invocation as last observed; external GitHub runner cannot override ChatGPT permission policy."
   },
-  "external_recovery_limit": "GitHub can detect stale ChatGPT heartbeat and preserve recovery state, but cannot directly inject messages into arbitrary ChatGPT conversations without a supported ChatGPT automation/webhook API.",
+  "external_recovery_limit": "GitHub Actions cannot directly grant ChatGPT app permissions or mutate ChatGPT scheduler objects. Supported recovery bridge is GitHub PR activity -> ChatGPT Work event-triggered task -> native automation repair.",
   "secrets_policy": "Never store credentials, OAuth tokens, cookies, passwords, or private session secrets.",
   "latest_incident": {
     "type": "interactive_attention_poison",
@@ -67,5 +67,15 @@
     "replacement_state": "clean replacement scheduled hourly",
     "root_cause": "a gated connector call can suspend a scheduled run before prompt-level recovery logic executes",
     "mitigation": "remove gated calls from unattended path entirely and detect stale last_run_time"
+  },
+  "external_rescue": {
+    "workflow": ".github/workflows/external-chatgpt-scheduler-rescue.yml",
+    "evaluator": "watchdog/external_scheduler_rescue.py",
+    "cadence_minutes": 10,
+    "stale_threshold_minutes": 90,
+    "recovery_branch": "watchdog/external-recovery-pulse",
+    "recovery_pr_title": "[Watchdog] External ChatGPT scheduler recovery pulse",
+    "work_bridge_spec": "watchdog/work-webhook-recovery-task.md",
+    "purpose": "Independent GitHub-hosted scheduler that generates PR activity when ChatGPT heartbeat is stale, so a GitHub PR event-triggered Work task can wake the native automation repair plane."
   }
 }
