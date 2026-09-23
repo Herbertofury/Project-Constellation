@@ -52,7 +52,7 @@ jobs:
 
           $v060Repair = 'releases/constellation-commander/v0.6.0/electron-v060-final-consolidated.patch'
           $v060Blob = ((git hash-object $v060Repair) | Select-Object -Last 1).Trim()
-          if ($v060Blob -ne '1ffffd7d42c236df7762bdfbf73581ff9dee475f') { throw "v0.6 repair blob mismatch: $v060Blob" }
+          if ($v060Blob -ne '1ffffd7d9ebe230323db8f36061412a746cd37d2') { throw "v0.6 repair blob mismatch: $v060Blob" }
           git apply --check --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
           git apply --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
 
