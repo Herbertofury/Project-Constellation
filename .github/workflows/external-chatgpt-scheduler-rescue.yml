@@ -1,0 +1,227 @@
+name: External ChatGPT Scheduler Rescue
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "watchdog/external_scheduler_rescue.py"
+      - ".github/workflows/external-chatgpt-scheduler-rescue.yml"
+      - "watchdog/recovery-controller.json"
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: external-chatgpt-scheduler-rescue
+  cancel-in-progress: false
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHATGPT_STALE_MINUTES: "90"
+      RECOVERY_BRANCH: "watchdog/external-recovery-pulse"
+      RECOVERY_PR_TITLE: "[Watchdog] External ChatGPT scheduler recovery pulse"
+      RECOVERY_ISSUE_TITLE: "[Watchdog] ChatGPT scheduler requires recovery"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Evaluate ChatGPT scheduler heartbeat
+        id: health
+        run: python watchdog/external_scheduler_rescue.py
+
+      - name: Retry the latest failed external watchdog run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const workflow = "chatgpt-watchdog-external.yml";
+            let runs;
+            try {
+              runs = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: workflow,
+                per_page: 10
+              });
+            } catch (e) {
+              core.warning(`Could not inspect ${workflow}: ${e.message}`);
+              return;
+            }
+            const failed = runs.data.workflow_runs.find(r =>
+              ["failure","cancelled","timed_out","action_required","stale"].includes(r.conclusion)
+            );
+            if (!failed) {
+              core.info("No failed external-watchdog run needs retry.");
+              return;
+            }
+            try {
+              await github.rest.actions.reRunWorkflowFailedJobs({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: failed.id
+              });
+              core.info(`Requested retry for failed watchdog run ${failed.id}.`);
+            } catch (e) {
+              core.warning(`Could not retry run ${failed.id}: ${e.message}`);
+            }
+
+      - name: Create or refresh recovery incident and PR pulse
+        if: steps.health.outputs.recovery_required == 'true'
+        uses: actions/github-script@v7
+        env:
+          RECOVERY_REASON: ${{ steps.health.outputs.reason }}
+          LAST_OK: ${{ steps.health.outputs.last_ok_utc }}
+          RECOVERY_BRANCH: ${{ env.RECOVERY_BRANCH }}
+          RECOVERY_PR_TITLE: ${{ env.RECOVERY_PR_TITLE }}
+          RECOVERY_ISSUE_TITLE: ${{ env.RECOVERY_ISSUE_TITLE }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const reason = process.env.RECOVERY_REASON || "unknown";
+            const lastOk = process.env.LAST_OK || "unknown";
+            const branch = process.env.RECOVERY_BRANCH;
+            const prTitle = process.env.RECOVERY_PR_TITLE;
+            const issueTitle = process.env.RECOVERY_ISSUE_TITLE;
+            const pulsePath = "watchdog/resume-pulse.json";
+            const now = new Date().toISOString();
+
+            const repoInfo = await github.rest.repos.get({owner, repo});
+            const base = repoInfo.data.default_branch;
+            const baseRef = await github.rest.git.getRef({owner, repo, ref: `heads/${base}`});
+            const baseSha = baseRef.data.object.sha;
+
+            try {
+              await github.rest.git.getRef({owner, repo, ref: `heads/${branch}`});
+            } catch (e) {
+              if (e.status !== 404) throw e;
+              await github.rest.git.createRef({
+                owner, repo,
+                ref: `refs/heads/${branch}`,
+                sha: baseSha
+              });
+            }
+
+            let existingFile;
+            try {
+              existingFile = await github.rest.repos.getContent({owner, repo, path: pulsePath, ref: branch});
+            } catch (e) {
+              if (e.status !== 404) throw e;
+            }
+
+            const payload = {
+              schema_version: 1,
+              emitted_at_utc: now,
+              reason,
+              last_chatgpt_heartbeat_utc: lastOk,
+              requested_action: "Resume/recover the stalled ChatGPT scheduled-task system from durable recovery state.",
+              recovery_controller: "watchdog/recovery-controller.json",
+              recovery_protocol: "watchdog/recovery-protocol.md",
+              external_source: "GitHub Actions",
+              note: "This PR activity is an external wake/recovery pulse. It cannot itself override ChatGPT workspace/app approval policy."
+            };
+            const content = Buffer.from(JSON.stringify(payload, null, 2) + "\n").toString("base64");
+
+            await github.rest.repos.createOrUpdateFileContents({
+              owner, repo, path: pulsePath,
+              message: `watchdog: emit external scheduler recovery pulse ${now}`,
+              content,
+              branch,
+              ...(existingFile && existingFile.data && existingFile.data.sha ? {sha: existingFile.data.sha} : {})
+            });
+
+            const prs = await github.rest.pulls.list({owner, repo, state: "open", head: `${owner}:${branch}`, base});
+            let pr = prs.data[0];
+            if (!pr) {
+              const created = await github.rest.pulls.create({
+                owner, repo, head: branch, base,
+                title: prTitle,
+                body: [
+                  "External recovery pulse for the ChatGPT scheduled-task system.",
+                  "",
+                  `Reason: ${reason}`,
+                  `Last known ChatGPT heartbeat: ${lastOk}`,
+                  "",
+                  "This PR is intentionally updated by an independent GitHub Actions scheduler when ChatGPT's own scheduler appears stale.",
+                  "It provides a GitHub PR activity signal compatible with ChatGPT Work GitHub event triggers, if such a task is configured.",
+                  "It does not store ChatGPT credentials and does not attempt to bypass workspace/app approval policy."
+                ].join("\n")
+              });
+              pr = created.data;
+            }
+
+            const issues = await github.rest.issues.listForRepo({owner, repo, state:"open", per_page:100});
+            let issue = issues.data.find(i => !i.pull_request && i.title === issueTitle);
+            const body = [
+              "Independent GitHub Actions recovery supervisor detected a stale/broken ChatGPT scheduler heartbeat.",
+              "",
+              `Reason: ${reason}`,
+              `Last known ChatGPT heartbeat: ${lastOk}`,
+              `Recovery PR: #${pr.number}`,
+              "",
+              "The external supervisor will keep emitting PR activity while recovery is required and will close this incident after the committed heartbeat becomes healthy.",
+              "",
+              "No passwords, cookies, OAuth tokens, or ChatGPT session credentials are stored here."
+            ].join("\n");
+            if (!issue) {
+              issue = (await github.rest.issues.create({owner, repo, title:issueTitle, body})).data;
+            } else {
+              await github.rest.issues.createComment({owner, repo, issue_number:issue.number, body});
+            }
+
+            core.notice(`Recovery pulse active: PR #${pr.number}, issue #${issue.number}`);
+
+      - name: Close recovery incident and pulse PR when healthy
+        if: steps.health.outputs.recovery_required != 'true'
+        uses: actions/github-script@v7
+        env:
+          RECOVERY_BRANCH: ${{ env.RECOVERY_BRANCH }}
+          RECOVERY_PR_TITLE: ${{ env.RECOVERY_PR_TITLE }}
+          RECOVERY_ISSUE_TITLE: ${{ env.RECOVERY_ISSUE_TITLE }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const branch = process.env.RECOVERY_BRANCH;
+            const issueTitle = process.env.RECOVERY_ISSUE_TITLE;
+
+            const prs = await github.rest.pulls.list({owner, repo, state:"open", head:`${owner}:${branch}`, per_page:20});
+            for (const pr of prs.data) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number:pr.number,
+                body:"Committed ChatGPT heartbeat is healthy again. Closing the external recovery pulse."
+              });
+              await github.rest.pulls.update({owner, repo, pull_number:pr.number, state:"closed"});
+            }
+
+            const issues = await github.rest.issues.listForRepo({owner, repo, state:"open", per_page:100});
+            for (const issue of issues.data.filter(i => !i.pull_request && i.title === issueTitle)) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number:issue.number,
+                body:"Committed ChatGPT heartbeat is healthy again. Closing the external recovery incident."
+              });
+              await github.rest.issues.update({owner, repo, issue_number:issue.number, state:"closed", state_reason:"completed"});
+            }
+
+      - name: Write recovery summary
+        if: always()
+        run: |
+          {
+            echo "## External ChatGPT Scheduler Rescue"
+            echo
+            echo "- Scheduler state: ${{ steps.health.outputs.scheduler_state }}"
+            echo "- Recovery required: ${{ steps.health.outputs.recovery_required }}"
+            echo "- Reason: ${{ steps.health.outputs.reason }}"
+            echo "- Last known heartbeat: ${{ steps.health.outputs.last_ok_utc }}"
+            echo
+            echo "This workflow uses GitHub's own GITHUB_TOKEN and does not depend on the ChatGPT GitHub connector."
+          } >> "$GITHUB_STEP_SUMMARY"
