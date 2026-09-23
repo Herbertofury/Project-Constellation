@@ -5,13 +5,13 @@ on:
     branches:
       - feature/constellation-commander-v0.6.0
     paths:
-      - 'releases/constellation-commander/v0.6.0/ci-source-release/**'
+      - 'releases/constellation-commander/v0.6.0/ci-source-repaired/**'
       - '.github/workflows/constellation-commander-windows.yml'
   pull_request:
     branches:
       - main
     paths:
-      - 'releases/constellation-commander/v0.6.0/ci-source-release/**'
+      - 'releases/constellation-commander/v0.6.0/ci-source-repaired/**'
       - '.github/workflows/constellation-commander-windows.yml'
   workflow_dispatch:
 
@@ -29,35 +29,14 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $parts = Get-ChildItem 'releases/constellation-commander/v0.6.0/ci-source-release/part*' | Sort-Object Name
-          if ($parts.Count -ne 4) { throw "Expected 4 source parts, found $($parts.Count)" }
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.6.0/ci-source-repaired/part*' | Sort-Object Name
+          if ($parts.Count -ne 4) { throw "Expected 4 repaired source parts, found $($parts.Count)" }
           $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
           [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
           $actual = (Get-FileHash -Algorithm SHA256 'commander-source.zip').Hash.ToLowerInvariant()
-          $expected = '78a83fa73ad1498db5338552f8f3c13c4485972c4629227dc67aa5d113a0040b'
-          if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
+          $expected = 'd624e0618aff64baf0193973f06d9616a58d14d74cc41fddc98f2a8baa841c42'
+          if ($actual -ne $expected) { throw "Repaired source SHA mismatch: $actual" }
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
-          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
-          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
-          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-runtime-ci-fix.patch
-          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-runtime-ci-fix.patch
-          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-main-trigger-ci-fix.patch
-          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-main-trigger-ci-fix.patch
-          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-native-input-trace-ci-fix.patch
-          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-native-input-trace-ci-fix.patch
-          $expectedFiles = @{
-            'commander-source/constellation-commander-v0.6.0/electron/main.cjs' = 'f8c6b1678fc93a6353d974e2324561bccec1027850b0a09db872bf99d30465b0'
-            'commander-source/constellation-commander-v0.6.0/electron/chat-preload.cjs' = '6429dfbcc96f658db5813d1cd25bbf25537fb3a8182481982810e69a4b8eb56c'
-            'commander-source/constellation-commander-v0.6.0/electron/fixture-chat.html' = '5ebb73bee441adbaa3499399f5821d4394ef6a6927851f398bd4e846f6749a38'
-            'commander-source/constellation-commander-v0.6.0/scripts/electron-smoke.ps1' = '7b3912cf3a68edff636ffe3f268213711d733e792e18f8a50c7050f3f893750e'
-            'commander-source/constellation-commander-v0.6.0/tests/electron-static.test.mjs' = 'ceebf600decda2e279a69e8a4d28cd78dded68e2957a7b0701ee04a027b82f56'
-          }
-          foreach ($entry in $expectedFiles.GetEnumerator()) {
-            $text = [IO.File]::ReadAllText($entry.Key).Replace("`r`n", "`n").Replace("`r", "`n")
-            $bytes = [Text.UTF8Encoding]::new($false).GetBytes($text)
-            $fileHash = ([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))).ToLowerInvariant()
-            if ($fileHash -ne $entry.Value) { throw "Patched source normalized hash mismatch for $($entry.Key): $fileHash" }
-          }
 
       - uses: actions/setup-node@v4
         with:
