@@ -69,6 +69,16 @@ jobs:
           node --check local-agent.mjs
           node --check rescue.mjs
 
+      - name: Install Chromium for Windows CDP test
+        working-directory: tools/chatgpt-ui-rescue
+        shell: pwsh
+        run: npx playwright install chromium
+
+      - name: Test real Chrome CDP attachment on Windows
+        working-directory: tools/chatgpt-ui-rescue
+        shell: pwsh
+        run: npm run test:cdp
+
       - name: Parse Windows rescue scripts
         shell: pwsh
         run: |
