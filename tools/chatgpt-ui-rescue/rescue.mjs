@@ -45,15 +45,20 @@ async function isVisible(locator, timeout = 1000) {
 
 async function clickNamed(scope, names) {
   for (const name of names) {
-    const rx = name instanceof RegExp ? name : new RegExp("^" + name.replace(/[.*+?^$()|[\]{}\\]/g, "\\$&") + "$", "i");
     for (const role of ["button", "link", "menuitem", "option", "tab"]) {
-      const locator = scope.getByRole(role, { name: rx });
+      const locator = name instanceof RegExp
+        ? scope.getByRole(role, { name })
+        : scope.getByRole(role, { name, exact: true });
       if (await isVisible(locator, 700)) {
         await locator.first().click();
         return true;
       }
     }
-    const text = scope.getByText(rx, { exact: false });
+
+    const text = name instanceof RegExp
+      ? scope.getByText(name, { exact: false })
+      : scope.getByText(name, { exact: true });
+
     if (await isVisible(text, 700)) {
       await text.first().click();
       return true;
