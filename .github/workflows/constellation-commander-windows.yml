@@ -46,8 +46,10 @@ jobs:
             'commander-source/constellation-commander-v0.6.0/scripts/electron-smoke.ps1' = '8ccdd30afcebe78ce9fbf6a1e4bf9efa55c4b2cf3c5553406d6828355636258f'
           }
           foreach ($entry in $expectedFiles.GetEnumerator()) {
-            $fileHash = (Get-FileHash -Algorithm SHA256 $entry.Key).Hash.ToLowerInvariant()
-            if ($fileHash -ne $entry.Value) { throw "Patched source hash mismatch for $($entry.Key): $fileHash" }
+            $text = [IO.File]::ReadAllText($entry.Key).Replace("`r`n", "`n").Replace("`r", "`n")
+            $bytes = [Text.UTF8Encoding]::new($false).GetBytes($text)
+            $fileHash = ([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))).ToLowerInvariant()
+            if ($fileHash -ne $entry.Value) { throw "Patched source normalized hash mismatch for $($entry.Key): $fileHash" }
           }
 
       - uses: actions/setup-node@v4
