@@ -78,7 +78,12 @@ async function settle(page, ms = 650) {
   await page.waitForTimeout(ms);
 }
 
+function isTombstone(title) {
+  return /^(REPLACED|RETIRED|LEGACY)\s*[—-]/i.test(String(title || "").trim());
+}
+
 function targetAllowed(title) {
+  if (isTombstone(title)) return false;
   if (!TARGETS.length) return true;
   return TARGETS.some((target) => title.toLowerCase().includes(target.toLowerCase()));
 }
@@ -191,7 +196,11 @@ async function scanBlockedCards(page) {
     /follow-up/i,
     /permission required/i,
     /action required/i,
-    /approval required/i
+    /approval required/i,
+    /task paused/i,
+    /is paused/i,
+    /paused/i,
+    /disabled/i
   ];
 
   const cards = [];
@@ -225,7 +234,7 @@ async function scanBlockedCards(page) {
 
 async function openCard(card) {
   const preferred = [
-    /^(Follow-up|Review|Open|View details|Continue|Resume|Retry)$/i
+    /^(Follow-up|Review|Open|View details|Continue|Resume|Retry|Enable|Turn on)$/i
   ];
 
   for (const rx of preferred) {
@@ -262,7 +271,7 @@ async function repairCard(page, title, card) {
 
     entry.actions += await resumeInsideTask(page);
 
-    const attention = page.getByText(/this task needs your attention|needs attention|permission required|approval required/i, { exact: false });
+    const attention = page.getByText(/this task needs your attention|needs attention|permission required|approval required|task paused|is paused|disabled/i, { exact: false });
     entry.resolved = !(await isVisible(attention, 800));
 
     if (!entry.resolved) {
