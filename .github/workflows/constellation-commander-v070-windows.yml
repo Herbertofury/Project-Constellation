@@ -32,9 +32,19 @@ jobs:
           $ErrorActionPreference = 'Stop'
 
           # Start from the exact v0.6 source bundle that already passed installed Windows acceptance.
-          $baseParts = Get-ChildItem 'releases/constellation-commander/v0.6.0/ci-source-release/part*' | Sort-Object Name
-          if ($baseParts.Count -ne 4) { throw "Expected 4 v0.6 source parts, found $($baseParts.Count)" }
-          $base64 = ($baseParts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
+          $baseProofBranch = 'ci/commander-v060-windows-proof-v7'
+          $baseProofCommit = 'c4d9444e82410a733129f113ea3ffa75c20a9e11'
+          git fetch --no-tags --depth=1 origin "refs/heads/$baseProofBranch"
+          $fetchedBase = ((git rev-parse FETCH_HEAD) | Select-Object -Last 1).ToString().Trim()
+          if ($fetchedBase -ne $baseProofCommit) { throw "v0.6 proof branch moved: $fetchedBase" }
+          $base64 = ''
+          foreach ($i in 0..3) {
+            $partName = "part0$i"
+            $spec = "FETCH_HEAD:releases/constellation-commander/v0.6.0/ci-source-release/$partName"
+            $part = ((git show $spec) | Out-String).Trim()
+            if (-not $part) { throw "Missing v0.6 source chunk $partName at pinned proof commit" }
+            $base64 += $part
+          }
           [IO.File]::WriteAllBytes('commander-v060-source.zip', [Convert]::FromBase64String($base64))
           $baseHash = (Get-FileHash -Algorithm SHA256 'commander-v060-source.zip').Hash.ToLowerInvariant()
           if ($baseHash -ne '78a83fa73ad1498db5338552f8f3c13c4485972c4629227dc67aa5d113a0040b') { throw "v0.6 base SHA mismatch: $baseHash" }
