@@ -79,6 +79,22 @@ jobs:
         shell: pwsh
         run: npm run test:cdp
 
+      - name: Install, register, verify, and remove local Windows rescue agent
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $testDir = Join-Path $env:RUNNER_TEMP "ChatGPTRescueAgent"
+          $taskName = "Project Constellation - ChatGPT Scheduled Rescue CI"
+          & "./tools/chatgpt-ui-rescue/install-local-agent.ps1" -InstallDir $testDir -TaskName $taskName -SkipStart
+          $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+          if (-not $task) { throw "Installer did not register the Scheduled Task." }
+          $config = Join-Path $testDir "agent-config.json"
+          if (-not (Test-Path $config)) { throw "Installer did not create agent-config.json." }
+          & "./tools/chatgpt-ui-rescue/uninstall-local-agent.ps1" -InstallDir $testDir -TaskName $taskName -RemoveChromeProfile
+          if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+            throw "Uninstaller left the test Scheduled Task registered."
+          }
+
       - name: Parse Windows rescue scripts
         shell: pwsh
         run: |
