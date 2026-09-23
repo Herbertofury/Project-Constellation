@@ -1,0 +1,197 @@
+--- a/electron/main.cjs
++++ b/electron/main.cjs
+@@ -22,6 +22,10 @@
+ 
+ function randomToken(bytes = 24) { return crypto.randomBytes(bytes).toString('base64url'); }
+ function nowIso() { return new Date().toISOString(); }
++function smokeTrace(event, detail = {}) {
++  if (!TEST_MODE || !TEST_OUTPUT) return;
++  try { fs.appendFileSync(`${TEST_OUTPUT}.trace.log`, `${JSON.stringify({ at: nowIso(), event, detail })}\n`); } catch {}
++}
+ function appRoot() { return path.resolve(__dirname, '..'); }
+ function importEsm(relativePath) { return import(pathToFileURL(path.join(appRoot(), relativePath)).href); }
+ 
+@@ -242,27 +246,35 @@
+ 
+   const target = TEST_MODE ? `file://${path.join(__dirname, 'fixture-chat.html').replaceAll('\\', '/')}` : CHAT_URL;
+   wc.once('did-finish-load', () => {
++    smokeTrace('did-finish-load', { url: wc.getURL() });
+     injectPageHook();
+     if (!win.isVisible()) win.show();
+     if (TEST_MODE) {
+       setTimeout(() => {
+         void wc.executeJavaScript(`(() => {
+-          const button = document.getElementById('composer-submit-button') || document.querySelector('[data-testid="send-button"]');
+-          if (!button) return { ok: false, reason: 'fixture-send-button-missing', url: location.href };
+-          button.click();
+-          return { ok: true, url: location.href };
++          const composer = document.getElementById('prompt-textarea') || document.querySelector('[contenteditable="true"][role="textbox"]');
++          if (!composer) return { ok: false, reason: 'fixture-composer-missing', url: location.href, readyState: document.readyState };
++          composer.focus();
++          const rect = composer.getBoundingClientRect();
++          return { ok: true, url: location.href, readyState: document.readyState, active: document.activeElement === composer, width: rect.width, height: rect.height, text: composer.innerText || composer.textContent || '' };
+         })()`, true).then(result => {
+-          if (!result?.ok && TEST_OUTPUT) {
+-            fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'smoke-start-failed', detail: result || null, at: nowIso() }, null, 2));
++          smokeTrace('fixture-focus-result', result || null);
++          if (!result?.ok) {
++            if (TEST_OUTPUT) fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'smoke-start-failed', detail: result || null, at: nowIso() }, null, 2));
+             setTimeout(() => app.quit(), 250);
++            return;
+           }
++          wc.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' });
++          wc.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
++          smokeTrace('native-enter-sent', { url: wc.getURL() });
+         }).catch(error => {
++          smokeTrace('fixture-focus-error', { error: String(error?.stack || error) });
+           if (TEST_OUTPUT) {
+             fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'smoke-start-failed', detail: { error: String(error?.stack || error) }, at: nowIso() }, null, 2));
+             setTimeout(() => app.quit(), 250);
+           }
+         });
+-      }, 500);
++      }, 700);
+     }
+   });
+   void wc.loadURL(target);
+@@ -272,6 +284,7 @@
+ function installIpc() {
+   ipcMain.handle('cc:bootstrap', async (event, payload = {}) => {
+     if (event.sender !== chatView?.webContents) throw new Error('Untrusted Commander bootstrap caller.');
++    smokeTrace('ipc-bootstrap', { chatId: String(payload.chatId || ''), url: String(payload.url || '') });
+     const item = getOrCreateSession(payload.chatId, payload.url);
+     return {
+       ok: true,
+@@ -287,8 +300,15 @@
+ 
+   ipcMain.handle('cc:call', async (event, payload = {}) => {
+     if (event.sender !== chatView?.webContents) throw new Error('Untrusted Commander tool caller.');
+-    try { return await executeChatCall(payload.chatId, payload.call); }
+-    catch (error) { return { ok: false, error: String(error?.message || error) }; }
++    smokeTrace('ipc-call', { chatId: String(payload.chatId || ''), tool: String(payload.call?.tool || payload.call?.name || '') });
++    try {
++      const result = await executeChatCall(payload.chatId, payload.call);
++      smokeTrace('ipc-call-result', { ok: result?.ok !== false, tool: String(result?.tool || '') });
++      return result;
++    } catch (error) {
++      smokeTrace('ipc-call-error', { error: String(error?.messae || error) });
++      return { ok: false, error: String(error?.messae || error) };
++    }
+   });
+ 
+   ipcMain.handle('cc:status', async event => {
+@@ -297,6 +317,7 @@
+   });
+ 
+   ipcMain.handle('cc:diagnostic', async (_event, payload = {}) => {
++    smokeTrace(`renderer:${String(payload.event || 'diagnostic')}`, payload.detail || {});
+     if (TEST_MODE && TEST_OUTPUT) {
+      if (payload.event === 'tool-result-sent') {
+        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
+--- a/electron/chat-preload.cjs
++++ b/electron/chat-preload.cjs
+@@ -23,6 +23,7 @@
+ 
+   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+   const diagnostic = (event, detail = {}) => ipcRenderer.invoke('cc:diagnostic', { event, detail }).catch() => null);
++  void diagnostic('preload-loaded', { url: location.href, readyState: document.readyState });
+ 
+   function toast(message, kind = 'info', sticky = false) {
+    const id = 'constellation-commander-electron-toast';
+@@ -197,7 +198,7 @@
+   window.addEventListener('message', event => {
+     if (event.source !== window || event.data?.source !== PAGE_SOURCE) return;
+     const data = event.data;
+-    if (data.type === 'CC_PAGE_HOOK_READY_V2') { pageHookReady = true; return; }
++    if (data.type === 'CC_PAGE_HOOK_READY_V2') { pageHookReady = true; void diagnostic('page-hook-ready', { url: location.href }); return; }
+     if (data.type === 'CC_PAGE_CONTEXT_INJECTED_V2') {
+       const waiter = pageWaiters.get(data.id); if (waiter) { clearTimeout(waiter.timer); pageWaiters.delete(data.id); waiter.resolve({ ok: true }); }
+       void diagnostic('context-injected', { chatId: chatId() }); return;
+@@ -243,6 +244,7 @@
+   async function armAndSend(original) {
+     if (arming) return;
+     arming = true;
++    void diagnostic('arm-start', { chatId: chatId(), text: String(original || '').slice(0, 80) });
+     try {
+       const s = await ensureSession();
+       const context = contextText(s);
+@@ -252,6 +254,7 @@
+         const hook = armPageHook(original.trim(), context);
+         await triggerSend(node);
+         const proof = await hook.promise;
++        void diagnostic('arm-hook-proof', { ok: Boolean(proof?.ok), reason: proof?.reason || '', timeout: Boolean(proof?.timeout) });
+         if (!proof.ok) throw new Error(`Integrated request hook missed the ChatGPT send: ${proof.reason || 'timeout'}`);
+       } else {
+         const augmented = `${original.trim()}\n\n${context}`;
+@@ -270,6 +273,7 @@
+     if (plumbingSend || arming) return;
+     const node = composer(); if (!node) return;
+     const text = getComposerText(node); if (!isLocalIntent(text)) return;
++    void diagnostic('intercept-send', { type: event.type, chatId: chatId(), text: String(text || '').slice(0, 80) });
+     event.preventDefault(); event.stopImmediatePropagation(); void armAndSend(text);
+   }
+ 
+@@ -355,8 +359,10 @@
+       node.style.display = 'none';
+       node.style.visibility = '';
+       node.dataset.constellationCommanderHidden = 'tool-call';
+-      if (parsed.call) void handleCall(parsed.call);
+-      else toast('Commander received malformed local-call JSON and suppressed it.', 'error', true);
++      if (parsed.call) {
++        void diagnostic('assistant-call-detected', { tool: String(parsed.call.tool || parsed.call.name || ''), id: String(parsed.call.id || '') });
++        void handleCall(parsed.call);
++      } else toast('Commander received malformed local-call JSON and suppressed it.', 'error', true);
+     }
+     scrubInternalContext();
+   }
+@@ -374,6 +380,7 @@
+   // Integrated status badge. This is informational only; ChatGPT itself never gets
+   // direct IPC or Node access.
+   window.addEventListener('DOMContentLoaded', async () => {
++    void diagnostic('dom-content-loaded', { url: location.href, readyState: document.readyState });
+     try {
+       const status = await ipcRenderer.invoke('cc:status');
+       if (status?.ok) toast(`Commander ${status.version} integrated — no browser extension required.`);
+--- a/scripts/electron-smoke.ps1
++++ b/scripts/electron-smoke.ps1
+@@ -3,7 +3,8 @@
+ $Output = Join-Path $env:TEMP 'constellation-electron-smoke.json'
+ $Stdout = Join-Path $env:TEMP 'constellation-electron-smoke.stdout.log'
+ $Stderr = Join-Path $env:TEMP 'constellation-electron-smoke.stderr.log'
+-Remove-Item $Output,$Stdout,$Stderr -Force -ErrorAction SilentlyContinue
++$Trace = "$Output.trace.log"
++Remove-Item $Output,$Stdout,$Stderr,$Trace -Force -ErrorAction SilentlyContinue
+ $env:CONSTELLATION_ELECTRON_SMOKE = '1'
+ $env:CONSTELLATION_ELECTRON_SMOKE_OUTPUT = $Output
+ $env:ELECTRON_ENABLE_LOGGING = '1'
+@@ -16,13 +17,15 @@
+   try { Stop-Process -Id $proc.Id -Force } catch {}
+   $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
+   $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
+-  throw "Electron integrated-chat smoke timed out.`nSTDOUT:`n$out`nSTDERR:`n$err"
++  $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }
++  throw "Electron integrated-chat smoke timed out.`nTRACE:`n$trace`nSTDOUT:`n$out`nSTDERR:`n$err"
+ }
+ $data = Get-Content $Output -Raw | ConvertFrom-Json
+ if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false) {
+   $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
+   $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
+-  throw "Electron integrated-chat smoke failed: $(Get-Content $Output -Raw)`nSTDOUT:`n$out`nSTDERR:`n$err"
++  $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }
++  throw "Electron integrated-chat smoke failed: $(Get-Content $Output -Raw)`nTRACE:`n$trace`nSTDOUT:`n$out`nSTDERR:`n$err"
+ }
+ try { Wait-Process -Id $proc.Id -Timeout 8 -ErrorAction SilentlyContinue } catch {}
+ try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+--- a/tests/electron-static.test.mjs
++++ b/tests/electron-static.test.mjs
+@@ -12,7 +12,9 @@
+ assert.match(main, /sandbox:\s*true/);
+ assert.match(main, /cc:bootstrap/);
+ assert.match(main, /cc:call/);
+-assert.match(main, /fixture-send-button-missing/);
++assert.match(main, /fixture-composer-missing/);
++assert.match(main, /sendInputEvent\(\{ type: 'keyDown', keyCode: 'Enter' \}\)/);
++assert.match(main, /smokeTrace/);
+ assert.ok(main.indexOf("wc.once('did-finish-load'") < main.indexOf('void wc.loadURL(target)'), 'Electron smoke trigger must be armed before file navigation starts');
+ assert.doesNotMatch(preload, /const TEST_FIXTURE/);
+ assert.match(preload, /electron-integrated-workspace/);
