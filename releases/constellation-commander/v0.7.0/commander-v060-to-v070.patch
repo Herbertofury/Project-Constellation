@@ -807,7 +807,7 @@ index b0688a4..ef44c49 100644
    });
  
 diff --git a/electron/main.cjs b/electron/main.cjs
-index f0ef8bd..53c14ed 100644
+index f0ef8bd..53f444c 100644
 --- a/electron/main.cjs
 +++ b/electron/main.cjs
 @@ -1,15 +1,18 @@
@@ -996,7 +996,7 @@ index f0ef8bd..53c14ed 100644
  }
  
  function createChatWindow() {
-@@ -198,9 +291,40 @@ function createChatWindow() {
+@@ -198,9 +291,42 @@ function createChatWindow() {
      webPreferences: {
        nodeIntegration: false,
        contextIsolation: true,
@@ -1009,15 +1009,17 @@ index f0ef8bd..53c14ed 100644
 +    smokeTrace('shell-did-finish-load', { url: win.webContents.getURL() });
 +    if (!TEST_MODE) return;
 +    void win.webContents.executeJavaScript(`(async () => {
-+      const required = ['local-mode','root-list','emergency','activity','health','observe-desktop','window-list'];
++      const required = ['local-mode','root-list','emergency','activity','health','observe-desktop','window-list','direct-tool','direct-args','direct-run','direct-result'];
 +      const missing = required.filter(id => !document.getElementById(id));
 +      const api = window.commanderShell;
-+      if (!api || typeof api.snapshot !== 'function' || typeof api.runHealth !== 'function' || typeof api.observeDesktop !== 'function') {
++      if (!api || typeof api.snapshot !== 'function' || typeof api.runHealth !== 'function' || typeof api.observeDesktop !== 'function' || typeof api.listTools !== 'function' || typeof api.runTool !== 'function') {
 +        return { ok:false, reason:'shell-bridge-missing', missing, hasApi:Boolean(api) };
 +      }
 +      const snapshot = await api.snapshot();
++      const tools = await api.listTools();
++      const directPing = await api.runTool('ping', {});
 +      const health = await api.runHealth();
-+      return { ok: missing.length === 0 && snapshot?.ok === true && snapshot?.singleInstanceOwner === true && health?.ok === true, missing, version:snapshot?.version, toolCount:snapshot?.toolCount, localToolMode:snapshot?.config?.localToolMode, singleInstanceOwner:snapshot?.singleInstanceOwner === true, health };
++      return { ok: missing.length === 0 && snapshot?.ok === true && snapshot?.singleInstanceOwner === true && health?.ok === true && tools?.ok === true && tools?.tools?.length === snapshot?.toolCount && directPing?.ok === true && directPing?.result?.pong === true, missing, version:snapshot?.version, toolCount:snapshot?.toolCount, listedToolCount:tools?.tools?.length || 0, directPing:directPing?.result || null, localToolMode:snapshot?.config?.localToolMode, singleInstanceOwner:snapshot?.singleInstanceOwner === true, health };
 +    })()`, true).then(result => {
 +      shellSmokeState = { status: result?.ok ? 'passed' : 'failed', detail: result || null };
 +      smokeTrace('shell-runtime-proof', shellSmokeState);
@@ -1038,7 +1040,7 @@ index f0ef8bd..53c14ed 100644
  
    // The BrowserWindow is only the native container. ChatGPT lives in a dedicated
    // WebContentsView so its session and preload are fully owned by Commander.
-@@ -221,9 +345,10 @@ function createChatWindow() {
+@@ -221,9 +347,10 @@ function createChatWindow() {
  
    const wc = chatView.webContents;
    wc.setUserAgent(chromeUserAgent());
@@ -1051,7 +1053,7 @@ index f0ef8bd..53c14ed 100644
    wc.setWindowOpenHandler(details => {
      if (!trustedNavigation(details.url)) {
        void shell.openExternal(details.url);
-@@ -248,6 +373,7 @@ function createChatWindow() {
+@@ -248,6 +375,7 @@ function createChatWindow() {
    wc.once('did-finish-load', () => {
      smokeTrace('did-finish-load', { url: wc.getURL() });
      injectPageHook();
@@ -1059,7 +1061,7 @@ index f0ef8bd..53c14ed 100644
      if (!win.isVisible()) win.show();
      if (TEST_MODE) {
        setTimeout(() => {
-@@ -294,7 +420,7 @@ function installIpc() {
+@@ -294,7 +422,7 @@ function installIpc() {
        nonce: item.nonce,
        expiresAt: new Date(item.expiresAt).toISOString(),
        tools: toolManifest(),
@@ -1068,7 +1070,7 @@ index f0ef8bd..53c14ed 100644
      };
    });
  
-@@ -313,14 +439,21 @@ function installIpc() {
+@@ -313,14 +441,21 @@ function installIpc() {
  
    ipcMain.handle('cc:status', async event => {
      if (event.sender !== chatView?.webContents) throw new Error('Untrusted status caller.');
@@ -1092,7 +1094,7 @@ index f0ef8bd..53c14ed 100644
          setTimeout(() => app.quit(), 250);
        } else if (['arm-failed', 'tool-failed', 'smoke-start-failed'].includes(payload.event)) {
          fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
-@@ -331,6 +464,109 @@ function installIpc() {
+@@ -331,6 +466,132 @@ function installIpc() {
    });
  }
  
@@ -1144,6 +1146,29 @@ index f0ef8bd..53c14ed 100644
 +    const next = roots.length ? roots : [os.homedir()];
 +    await persistConfigChange('allowedRoots', next);
 +    return { ok: true, allowedRoots: next };
++  });
++  ipcMain.handle('cc-shell:list-tools', async event => {
++    requireTrusted(event);
++    return { ok: true, tools: toolManifest() };
++  });
++  ipcMain.handle('cc-shell:run-tool', async (event, payload = {}) => {
++    requireTrusted(event);
++    const name = String(payload.name || '').trim();
++    const definition = toolManifest().find(tool => tool.name === name);
++    if (!definition) throw new Error(`Commander tool is not available: ${name || '(empty)'}`);
++    const args = payload.args && typeof payload.args === 'object' && !Array.isArray(payload.args) ? payload.args : {};
++    const result = await executeShellTool(name, args);
++    const attachments = Array.isArray(result?._attachments) ? result._attachments : [];
++    const image = attachments.find(item => item?.base64 && item?.mimeType?.startsWith('image/'));
++    const safe = result && typeof result === 'object' ? { ...result } : result;
++    if (safe && typeof safe === 'object') delete safe._attachments;
++    return {
++      ok: true,
++      tool: name,
++      result: safe,
++      attachmentCount: attachments.length,
++      imageDataUrl: image ? `data:${image.mimeType};base64,${image.base64}` : ''
++    };
 +  });
 +  ipcMain.handle('cc-shell:run-health', async event => {
 +    requireTrusted(event);
@@ -1202,7 +1227,7 @@ index f0ef8bd..53c14ed 100644
  async function configureSession() {
    const ses = session.fromPartition(CHAT_PARTITION, { cache: true });
    ses.setPermissionRequestHandler((webContents, permission, callback) => {
-@@ -345,13 +581,25 @@ async function configureSession() {
+@@ -345,13 +606,25 @@ async function configureSession() {
  app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
  app.setAppUserModelId('com.constellation.commander');
  
@@ -1231,10 +1256,10 @@ index f0ef8bd..53c14ed 100644
    void startFallbackBridge();
 diff --git a/constellation-commander-v0.7.0/electron/shell-preload.cjs b/electron/shell-preload.cjs
 new file mode 100644
-index 0000000..3bc0f9a
+index 0000000..d82feb9
 --- /dev/null
 +++ b/electron/shell-preload.cjs
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,33 @@
 +'use strict';
 +
 +const { contextBridge, ipcRenderer } = require('electron');
@@ -1251,6 +1276,8 @@ index 0000000..3bc0f9a
 +  addRoot: () => invoke('cc-shell:add-root'),
 +  removeRoot: root => invoke('cc-shell:remove-root', { root }),
 +  runHealth: () => invoke('cc-shell:run-health'),
++  listTools: () => invoke('cc-shell:list-tools'),
++  runTool: (name, args = {}) => invoke('cc-shell:run-tool', { name, args }),
 +  observeDesktop: () => invoke('cc-shell:observe-desktop'),
 +  listWindows: () => invoke('cc-shell:list-windows'),
 +  focusWindow: target => invoke('cc-shell:focus-window', target),
@@ -1268,10 +1295,10 @@ index 0000000..3bc0f9a
 +});
 diff --git a/constellation-commander-v0.7.0/electron/shell.css b/electron/shell.css
 new file mode 100644
-index 0000000..fdaa858
+index 0000000..e1d4f30
 --- /dev/null
 +++ b/electron/shell.css
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,90 @@
 +:root {
 +  color-scheme: dark;
 +  --top: 48px;
@@ -1354,12 +1381,20 @@ index 0000000..fdaa858
 +.window-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; color: #dce5f0; }
 +.window-meta { font-size: 9px; color: var(--muted); white-space: nowrap; }
 +.error-text { color: #ff9aa4; }
++
++.tool-note { margin: -2px 0 8px; line-height: 1.35; }
++.tool-filter, textarea { width: 100%; box-sizing: border-box; border: 1px solid #334055; background: #0c1119; color: var(--text); border-radius: 8px; }
++.tool-filter { padding: 8px; margin-bottom: 7px; }
++textarea { min-height: 88px; resize: vertical; padding: 8px; margin-bottom: 7px; font: 10px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
++.tool-help { min-height: 28px; margin: -2px 0 8px; line-height: 1.35; }
++.direct-status { margin-top: 7px; }
++.direct-result { max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #080b10; border: 1px solid #273140; border-radius: 8px; padding: 8px; margin: 7px 0 0; color: #cbd7e6; font: 10px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
 diff --git a/constellation-commander-v0.7.0/electron/shell.html b/electron/shell.html
 new file mode 100644
-index 0000000..a316ecd
+index 0000000..311f5e7
 --- /dev/null
 +++ b/electron/shell.html
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,119 @@
 +<!doctype html>
 +<html lang="en">
 +<head>
@@ -1438,6 +1473,23 @@ index 0000000..a316ecd
 +    </section>
 +
 +    <section>
++      <div class="section-title row-between"><span>Direct tools</span><span id="direct-tool-count" class="badge">Loading…</span></div>
++      <div class="small muted tool-note">Run Commander tools directly when you want deterministic local control or when the ChatGPT bridge needs debugging.</div>
++      <input id="tool-filter" class="tool-filter" type="search" placeholder="Filter tools…" autocomplete="off">
++      <select id="direct-tool" aria-label="Commander tool"></select>
++      <div id="direct-tool-help" class="small muted tool-help"></div>
++      <label class="field-label" for="direct-args">JSON arguments</label>
++      <textarea id="direct-args" spellcheck="false" aria-label="Tool JSON arguments">{}</textarea>
++      <div class="button-grid">
++        <button id="direct-run">Run tool</button>
++        <button id="direct-reset" class="ghost">Reset args</button>
++      </div>
++      <div id="direct-status" class="small muted direct-status">Ready.</div>
++      <img id="direct-preview" class="desktop-preview hidden" alt="Direct tool image result">
++      <pre id="direct-result" class="direct-result">No direct tool result yet.</pre>
++    </section>
++
++    <section>
 +      <div class="section-title row-between"><span>Diagnostics</span><span id="health-badge" class="badge">Not run</span></div>
 +      <button id="health" class="wide">Run real control test</button>
 +      <div id="health-detail" class="small muted">Tests the live local runtime, not a mock.</div>
@@ -1464,10 +1516,10 @@ index 0000000..a316ecd
 +</html>
 diff --git a/constellation-commander-v0.7.0/electron/shell.js b/electron/shell.js
 new file mode 100644
-index 0000000..84fa327
+index 0000000..ebf6cac
 --- /dev/null
 +++ b/electron/shell.js
-@@ -0,0 +1,188 @@
+@@ -0,0 +1,298 @@
 +'use strict';
 +
 +(() => {
@@ -1478,6 +1530,9 @@ index 0000000..84fa327
 +  const activity = [];
 +  let snapshot = null;
 +  let active = null;
++  let directTools = [];
++  let directFiltered = [];
++  let directRunning = false;
 +
 +  function dot(id, state) {
 +    const el = $(id);
@@ -1548,6 +1603,104 @@ index 0000000..84fa327
 +      $('desktop-badge').className = 'badge bad';
 +      $('window-list').innerHTML = `<div class="small error-text">${escapeHtml(error?.message || error)}</div>`;
 +    } finally { button.disabled = false; }
++  }
++
++  function valueForSchema(schema = {}) {
++    if (Object.prototype.hasOwnProperty.call(schema, 'default')) return schema.default;
++    if (Array.isArray(schema.enum) && schema.enum.length) return schema.enum[0];
++    if (Array.isArray(schema.examples) && schema.examples.length) return schema.examples[0];
++    if (schema.type === 'array') return [];
++    if (schema.type === 'object') return {};
++    if (schema.type === 'boolean') return false;
++    if (schema.type === 'integer' || schema.type === 'number') return 0;
++    return '';
++  }
++
++  function argsTemplate(tool) {
++    const schema = tool?.inputSchema || {};
++    const props = schema.properties || {};
++    const required = new Set(Array.isArray(schema.required) ? schema.required : []);
++    const output = {};
++    for (const [key, def] of Object.entries(props)) {
++      if (required.has(key)) output[key] = valueForSchema(def || {});
++    }
++    return output;
++  }
++
++  function currentDirectTool() {
++    return directTools.find(tool => tool.name === $('direct-tool').value) || null;
++  }
++
++  function updateDirectToolHelp({ resetArgs = false } = {}) {
++    const tool = currentDirectTool();
++    $('direct-tool-help').textContent = tool?.description || 'Choose a Commander tool.';
++    if (tool && resetArgs) $('direct-args').value = JSON.stringify(argsTemplate(tool), null, 2);
++  }
++
++  function renderDirectTools(filter = '') {
++    const q = String(filter || '').trim().toLowerCase();
++    const before = $('direct-tool').value;
++    directFiltered = directTools.filter(tool => !q || tool.name.toLowerCase().includes(q) || String(tool.description || '').toLowerCase().includes(q));
++    $('direct-tool').innerHTML = directFiltered.map(tool => `<option value="${escapeHtml(tool.name)}">${escapeHtml(tool.name)}</option>`).join('');
++    if (before && directFiltered.some(tool => tool.name === before)) $('direct-tool').value = before;
++    $('direct-tool-count').textContent = `${directFiltered.length}/${directTools.length}`;
++    $('direct-tool-count').className = `badge ${directTools.length ? 'good' : 'bad'}`;
++    updateDirectToolHelp({ resetArgs: !before });
++  }
++
++  async function loadDirectTools() {
++    try {
++      const response = await api.listTools();
++      directTools = Array.isArray(response?.tools) ? response.tools : [];
++      renderDirectTools($('tool-filter').value);
++    } catch (error) {
++      $('direct-tool-count').textContent = 'FAIL';
++      $('direct-tool-count').className = 'badge bad';
++      $('direct-tool-help').textContent = String(error?.message || error);
++    }
++  }
++
++  function serializeDirectResult(value) {
++    try { return JSON.stringify(value, null, 2); }
++    catch { return String(value); }
++  }
++
++  async function runDirectTool() {
++    if (directRunning) return;
++    const tool = currentDirectTool();
++    if (!tool) return;
++    let args;
++    try {
++      args = JSON.parse($('direct-args').value || '{}');
++      if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Arguments must be a JSON object.');
++    } catch (error) {
++      $('direct-status').textContent = `Invalid JSON: ${error?.message || error}`;
++      $('direct-status').className = 'small error-text direct-status';
++      return;
++    }
++    directRunning = true;
++    $('direct-run').disabled = true;
++    $('direct-status').textContent = `Running ${tool.name}…`;
++    $('direct-status').className = 'small muted direct-status';
++    $('direct-preview').classList.add('hidden');
++    try {
++      const response = await api.runTool(tool.name, args);
++      $('direct-result').textContent = serializeDirectResult(response?.result ?? response);
++      if (response?.imageDataUrl) {
++        $('direct-preview').src = response.imageDataUrl;
++        $('direct-preview').classList.remove('hidden');
++      }
++      $('direct-status').textContent = `${tool.name} completed${response?.attachmentCount ? ` · ${response.attachmentCount} attachment(s)` : ''}.`;
++      $('direct-status').className = 'small direct-status success-text';
++    } catch (error) {
++      $('direct-result').textContent = String(error?.stack || error?.message || error);
++      $('direct-status').textContent = `${tool.name} failed.`;
++      $('direct-status').className = 'small error-text direct-status';
++    } finally {
++      directRunning = false;
++      $('direct-run').disabled = false;
++      await refresh();
++    }
 +  }
 +
 +  function renderActivity() {
@@ -1633,6 +1786,14 @@ index 0000000..84fa327
 +    finally { button.disabled = false; }
 +  });
 +
++  $('tool-filter').addEventListener('input', event => renderDirectTools(event.target.value));
++  $('direct-tool').addEventListener('change', () => updateDirectToolHelp({ resetArgs: true }));
++  $('direct-reset').addEventListener('click', () => updateDirectToolHelp({ resetArgs: true }));
++  $('direct-run').addEventListener('click', runDirectTool);
++  $('direct-args').addEventListener('keydown', event => {
++    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); void runDirectTool(); }
++  });
++
 +  $('health').addEventListener('click', async () => {
 +    const button = $('health');
 +    button.disabled = true;
@@ -1653,6 +1814,7 @@ index 0000000..84fa327
 +  });
 +
 +  api.onEvent(pushEvent);
++  void loadDirectTools();
 +  void refresh();
 +  setInterval(refresh, 10000);
 +})();
@@ -2078,10 +2240,10 @@ index bb27b09..ba229ef 100644
    const shotCallPromise = mcp({ jsonrpc: '2.0', id: 40, method: 'tools/call', params: { name: 'computer_screenshot', arguments: { target: 'all' } } });
 diff --git a/constellation-commander-v0.7.0/tests/shell-static.test.mjs b/tests/shell-static.test.mjs
 new file mode 100644
-index 0000000..3533290
+index 0000000..d1359bc
 --- /dev/null
 +++ b/tests/shell-static.test.mjs
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,51 @@
 +import fs from 'node:fs';
 +import assert from 'node:assert/strict';
 +
@@ -2097,8 +2259,15 @@ index 0000000..3533290
 +assert.match(html, /id="emergency"/);
 +assert.match(html, /id="activity"/);
 +assert.match(html, /id="health"/);
++assert.match(html, /id="direct-tool"/);
++assert.match(html, /id="direct-args"/);
++assert.match(html, /id="direct-run"/);
++assert.match(html, /id="direct-result"/);
 +assert.match(css, /--side:\s*380px/);
 +assert.match(js, /runHealth/);
++assert.match(js, /loadDirectTools/);
++assert.match(js, /runDirectTool/);
++assert.match(js, /api\.runTool/);
 +assert.match(js, /armNext/);
 +assert.match(js, /setFullAccess/);
 +assert.match(js, /setEmergencyLock/);
@@ -2116,8 +2285,13 @@ index 0000000..3533290
 +assert.match(js, /observeDesktop/);
 +assert.match(js, /focusWindow/);
 +assert.match(preload, /cc-shell:observe-desktop/);
++assert.match(preload, /cc-shell:list-tools/);
++assert.match(preload, /cc-shell:run-tool/);
 +assert.match(preload, /cc-shell:focus-window/);
 +assert.match(main, /cc-shell:observe-desktop/);
++assert.match(main, /cc-shell:list-tools/);
++assert.match(main, /cc-shell:run-tool/);
++assert.match(main, /toolManifest\(\)\.find/);
 +assert.match(main, /cc-shell:focus-window/);
 +assert.match(main, /shell-runtime-proof/);
 +console.log('Constellation Commander desktop shell static contract: PASS');
