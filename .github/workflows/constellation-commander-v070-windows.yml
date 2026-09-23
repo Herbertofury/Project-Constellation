@@ -77,6 +77,13 @@ jobs:
           Remove-Item (Join-Path $root 'scripts/build-windows-companion.ps1') -Force -ErrorAction SilentlyContinue
           Remove-Item (Join-Path $root 'tests/desktop-static.test.mjs') -Force -ErrorAction SilentlyContinue
 
+          # The canonical source archive is LF/UTF-8. Git-for-Windows can rewrite patched text hunks to CRLF.
+          # Normalize the entire 57-file source tree back to UTF-8 without BOM + LF before exact byte verification.
+          Get-ChildItem $root -File -Recurse | ForEach-Object {
+            $text = [IO.File]::ReadAllText($_.FullName).Replace("`r`n", "`n").Replace("`r", "`n")
+            [IO.File]::WriteAllText($_.FullName, $text, [Text.UTF8Encoding]::new($false))
+          }
+
 
           # Git-for-Windows may CRLF-convert rename-only text files. Restore the canonical
           # UTF-8/LF representation, then require the exact target size/SHA for every file.
