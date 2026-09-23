@@ -4,16 +4,16 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "tools/chatgpt-ui-rescue/**"
-      - ".github/workflows/chatgpt-ui-scheduler-rescue.yml"
     inputs:
       target_tasks:
         description: "Optional comma-separated Scheduled task titles to repair"
         required: false
         default: ""
+  push:
+    branches: [main]
+    paths:
+      - "tools/chatgpt-ui-rescue/**"
+      - ".github/workflows/chatgpt-ui-scheduler-rescue.yml"
 
 permissions:
   contents: read
@@ -35,6 +35,19 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npm run check
+
+      - name: Install Chromium for fixture test
+        working-directory: tools/chatgpt-ui-rescue
+        run: npx playwright install --with-deps chromium
+
+      - name: Test complete needs-attention approval and resume flow
+        working-directory: tools/chatgpt-ui-rescue
+        env:
+          CHATGPT_RESCUE_FIXTURE: "1"
+          CHATGPT_RESCUE_REPORT: fixture-report.json
+        run: |
+          npm run rescue
+          node -e 'const r=require("./fixture-report.json"); if(r.status!=="success" || r.repaired_cards.length<1 || r.remaining_blocked_cards.length) process.exit(1); console.log(r);'
 
   rescue:
     if: github.event_name != 'push'
