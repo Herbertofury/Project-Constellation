@@ -41,11 +41,14 @@ jobs:
           git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
           git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-runtime-ci-fix.patch
           git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-runtime-ci-fix.patch
+          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-main-trigger-ci-fix.patch
+          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-main-trigger-ci-fix.patch
           $expectedFiles = @{
-            'commander-source/constellation-commander-v0.6.0/electron/main.cjs' = '28b26809c83163116808bbaa7b1075f754d00a38743ed28b98f271f7bf610397'
-            'commander-source/constellation-commander-v0.6.0/electron/chat-preload.cjs' = 'c2de0c0516e59c83d3f8dfbfb1c12b440d2862ac4897947516a1436f66729401'
+            'commander-source/constellation-commander-v0.6.0/electron/main.cjs' = '4b3bd7ab61ef01041d5e9e2a790ccf3ef0fa84416fb823d5f3b259d5dd7c88b1'
+            'commander-source/constellation-commander-v0.6.0/electron/chat-preload.cjs' = '879996a33c4f04aa6f54201b74c3038add28aba5a0990d682bdf7e2a635ff801'
             'commander-source/constellation-commander-v0.6.0/electron/fixture-chat.html' = '5ebb73bee441adbaa3499399f5821d4394ef6a6927851f398bd4e846f6749a38'
             'commander-source/constellation-commander-v0.6.0/scripts/electron-smoke.ps1' = '8ccdd30afcebe78ce9fbf6a1e4bf9efa55c4b2cf3c5553406d6828355636258f'
+            'commander-source/constellation-commander-v0.6.0/tests/electron-static.test.mjs' = '06eb78b3184176f73fd8fab8fd3c96d7babe6221d8975da5062c018431f3ca20'
           }
           foreach ($entry in $expectedFiles.GetEnumerator()) {
             $text = [IO.File]::ReadAllText($entry.Key).Replace("`r`n", "`n").Replace("`r", "`n")
