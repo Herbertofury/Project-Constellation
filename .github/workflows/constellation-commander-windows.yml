@@ -37,6 +37,18 @@ jobs:
           $expected = '78a83fa73ad1498db5338552f8f3c13c4485972c4629227dc67aa5d113a0040b'
           if ($actual -ne $expected) { throw "Source SHA mismatch: $actual" }
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
+          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
+          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
+          $expectedFiles = @{
+            'commander-source/constellation-commander-v0.6.0/electron/main.cjs' = 'b6d4940a16d60267bef1fdd773ca887421448cb52ac6cc3649b1e221bf3474fd'
+            'commander-source/constellation-commander-v0.6.0/electron/chat-preload.cjs' = 'a40fcc56e769530b624df64a225f76eca4d971194aec2ebe56bcae0e2cdbc86a'
+            'commander-source/constellation-commander-v0.6.0/electron/fixture-chat.html' = '5ebb73bee441adbaa3499399f5821d4394ef6a6927851f398bd4e846f6749a38'
+            'commander-source/constellation-commander-v0.6.0/scripts/electron-smoke.ps1' = '8ccdd30afcebe78ce9fbf6a1e4bf9efa55c4b2cf3c5553406d6828355636258f'
+          }
+          foreach ($entry in $expectedFiles.GetEnumerator()) {
+            $fileHash = (Get-FileHash -Algorithm SHA256 $entry.Key).Hash.ToLowerInvariant()
+            if ($fileHash -ne $entry.Value) { throw "Patched source hash mismatch for $($entry.Key): $fileHash" }
+          }
 
       - uses: actions/setup-node@v4
         with:
