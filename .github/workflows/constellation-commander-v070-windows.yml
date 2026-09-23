@@ -53,8 +53,8 @@ jobs:
           $v060Repair = 'releases/constellation-commander/v0.6.0/electron-v060-final-consolidated.patch'
           $v060Blob = ((git hash-object $v060Repair) | Select-Object -Last 1).Trim()
           if ($v060Blob -ne '1ffffd7d9ebe230323db8f36061412a746cd37d2') { throw "v0.6 repair blob mismatch: $v060Blob" }
-          git apply --check --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
-          git apply --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
+          git -c core.autocrlf=false -c core.eol=lf apply --check --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
+          git -c core.autocrlf=false -c core.eol=lf apply --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
 
           # Reassemble one compressed, consolidated v0.6 -> v0.7 product patch.
           $patchParts = Get-ChildItem 'releases/constellation-commander/v0.7.0/ci-patch/part*' | Sort-Object Name
@@ -75,8 +75,8 @@ jobs:
 
           $patchHash = (Get-FileHash -Algorithm SHA256 'commander-v070.patch').Hash.ToLowerInvariant()
           if ($patchHash -ne '642f2a8d93e8d10ed33fd817e3a701d58cbf3c2a1e77ab3761b363970326f8a3') { throw "v0.7 patch SHA mismatch: $patchHash" }
-          git apply -p2 --check --directory=commander-base/constellation-commander-v0.6.0 commander-v070.patch
-          git apply -p2 --directory=commander-base/constellation-commander-v0.6.0 commander-v070.patch
+          git -c core.autocrlf=false -c core.eol=lf apply -p2 --check --directory=commander-base/constellation-commander-v0.6.0 commander-v070.patch
+          git -c core.autocrlf=false -c core.eol=lf apply -p2 --directory=commander-base/constellation-commander-v0.6.0 commander-v070.patch
 
           New-Item -ItemType Directory -Path commander-source -Force | Out-Null
           Move-Item 'commander-base/constellation-commander-v0.6.0' 'commander-source/constellation-commander-v0.7.0'
