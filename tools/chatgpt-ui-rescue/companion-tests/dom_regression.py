@@ -48,7 +48,7 @@ async def main():
    s=await inspect(page);assert s['running'] and not s['completed']
    assert await page.evaluate('window.clicks')=={'open':1,'resume':1}
    await page.screenshot(path=str(ROOT/'companion-evidence'/'chromium-recovered-fixture.png'))
-  script="""window.clicks={open:0,resume:0};document.querySelector('.follow').onclick=()=>{clicks.open++;setTimeout(()=>{let d=document.createElement('div');d.setAttribute('role','dialog');d.innerHTML='<h2>Minecraft Mod Catalogue Updater</h2><p>Task run interrupted. Resume this run.</p><button id="resume">Resume</button>';document.body.append(d);document.querySelector('#resume').onclick=()=>{clicks.resume++;d.remove();document.querySelector('.attention').textContent='Running';document.querySelector('.follow').remove();}},350)};"""
+  script="""window.clicks={open:0,resume:0};document.querySelector('.follow').onclick=()=>{clicks.follow++;setTimeout(()=>{let d=document.createElement('div');d.setAttribute('role','dialog');d.innerHTML='<h2>Minecraft Mod Catalogue Updater</h2><p>Task run interrupted. Resume this run.</p><button id="resume">Resume</button>';document.body.append(d);document.querySelector('#resume').onclick=()=>{clicks.resume++;d.remove();document.querySelector('.attention').textContent='Running';document.querySelector('.follow').remove();}},350)};"""
   await case('Delayed Follow-up -> Resume -> positive Running evidence',card(),delayed,script)
   async def approval_case(page):
    s=await inspect(page);assert s['approval'];assert s['action'] is None
@@ -88,6 +88,9 @@ async def main():
   async def vanished(page):
    s=await inspect(page);assert not s['completed'] and not s['running']
   await case('Disappeared attention marker alone is not success',card().replace('This task needs your attention.',''),vanished)
+  async def negative_status(page):
+   s=await inspect(page);assert not s['running'] and not s['completed']
+  await case('Negative running/completion wording is never positive proof',card().replace('This task needs your attention.','This run is not running and has not completed.'),negative_status)
   async def complete(page):assert (await inspect(page))['completed']
   await case('Explicit Completed UI is recognized, separate from delivery',card().replace('This task needs your attention.','Completed').replace('<button class="follow">Follow-up</button>',''),complete)
   async def continuation(page):
