@@ -26,85 +26,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Reconstruct and verify exact v0.7 source tree
+      - name: Verify and unpack exact canonical v0.7 source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-
-          # Start from the exact v0.6 source bundle that already passed installed Windows acceptance.
-          $baseProofBranch = 'ci/commander-v060-windows-proof-v7'
-          $baseProofCommit = 'c4d9444e82410a733129f113ea3ffa75c20a9e11'
-          git fetch --no-tags --depth=1 origin "refs/heads/$baseProofBranch"
-          $fetchedBase = ((git rev-parse FETCH_HEAD) | Select-Object -Last 1).ToString().Trim()
-          if ($fetchedBase -ne $baseProofCommit) { throw "v0.6 proof branch moved: $fetchedBase" }
-          $base64 = ''
-          foreach ($i in 0..3) {
-            $partName = "part0$i"
-            $spec = "FETCH_HEAD:releases/constellation-commander/v0.6.0/ci-source-release/$partName"
-            $part = ((git show $spec) | Out-String).Trim()
-            if (-not $part) { throw "Missing v0.6 source chunk $partName at pinned proof commit" }
-            $base64 += $part
-          }
-          [IO.File]::WriteAllBytes('commander-v060-source.zip', [Convert]::FromBase64String($base64))
-          $baseHash = (Get-FileHash -Algorithm SHA256 'commander-v060-source.zip').Hash.ToLowerInvariant()
-          if ($baseHash -ne '78a83fa73ad1498db5338552f8f3c13c4485972c4629227dc67aa5d113a0040b') { throw "v0.6 base SHA mismatch: $baseHash" }
-          Expand-Archive 'commander-v060-source.zip' 'commander-base' -Force
-
-          $v060Repair = 'releases/constellation-commander/v0.6.0/electron-v060-final-consolidated.patch'
-          $v060Blob = ((git hash-object $v060Repair) | Select-Object -Last 1).Trim()
-          if ($v060Blob -ne '1ffffd7d9ebe230323db8f36061412a746cd37d2') { throw "v0.6 repair blob mismatch: $v060Blob" }
-          git -c core.autocrlf=false -c core.eol=lf apply --check --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
-          git -c core.autocrlf=false -c core.eol=lf apply --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
-
-          # Apply the exact locally-proven v0.6 -> v0.7 product upgrade in one shot.
-          $v070Patch = (Resolve-Path 'releases/constellation-commander/v0.7.0/commander-v060-to-v070.patch').Path
-          $patchHash = (Get-FileHash -Algorithm SHA256 $v070Patch).Hash.ToLowerInvariant()
-          if ($patchHash -ne '2b29a9abde070bdf6e61a4363ca56e9c1e03a8a57d047d861ae5dd03e8838dce') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
-          Push-Location 'commander-base/constellation-commander-v0.6.0'
-          try {
-            git -c core.autocrlf=false -c core.eol=lf apply --check $v070Patch
-            git -c core.autocrlf=false -c core.eol=lf apply $v070Patch
-          } finally {
-            Pop-Location
-          }
-
-          New-Item -ItemType Directory -Path commander-source -Force | Out-Null
-          Move-Item 'commander-base/constellation-commander-v0.6.0' 'commander-source/constellation-commander-v0.7.0'
+          $source = 'releases/constellation-commander/v0.7.0/Constellation-Commander-v0.7.0-source.zip'
+          if (-not (Test-Path $source)) { throw "Missing canonical v0.7 source archive: $source" }
+          $sourceHash = (Get-FileHash -Algorithm SHA256 $source).Hash.ToLowerInvariant()
+          if ($sourceHash -ne '43266bac1a43732bb41a52c819cd9f2d10e3ab60d0cd70dcb61d34989eed0dd0') { throw "v0.7 source SHA mismatch: $sourceHash" }
+          Expand-Archive $source 'commander-source' -Force
           $root = (Resolve-Path 'commander-source/constellation-commander-v0.7.0').Path
 
-          # Git-for-Windows preserves exactly two standalone legacy files from the no-index delete hunks.
-          # Remove only those known v0.6 leftovers; the canonical 57-file manifest below remains authoritative.
-          Remove-Item (Join-Path $root 'scripts/build-windows-companion.ps1') -Force -ErrorAction SilentlyContinue
-          Remove-Item (Join-Path $root 'tests/desktop-static.test.mjs') -Force -ErrorAction SilentlyContinue
-
-          # The canonical source archive is LF/UTF-8. Git-for-Windows can rewrite patched text hunks to CRLF.
-          # Normalize the entire 57-file source tree back to UTF-8 without BOM + LF before exact byte verification.
-          Get-ChildItem $root -File -Recurse | ForEach-Object {
-            $text = [IO.File]::ReadAllText($_.FullName).Replace("`r`n", "`n").Replace("`r", "`n")
-            [IO.File]::WriteAllText($_.FullName, $text, [Text.UTF8Encoding]::new($false))
-          }
-
-
-          # Git-for-Windows may CRLF-convert rename-only text files. Restore the canonical
-          # UTF-8/LF representation, then require the exact target size/SHA for every file.
-          $textExtensions = @('.ps1','.cmd','.mjs','.cjs','.js','.json','.md','.html','.css')
-          $textNames = @('LICENSE','Dockerfile','.dockerignore')
-          foreach ($file in Get-ChildItem $root -File -Recurse) {
-            if (($textExtensions -contains $file.Extension.ToLowerInvariant()) -or ($textNames -contains $file.Name)) {
-              $text = [IO.File]::ReadAllText($file.FullName)
-              $normalized = $text.Replace("`r`n", "`n").Replace("`r", "`n")
-              if ($normalized -ne $text) {
-                [IO.File]::WriteAllText($file.FullName, $normalized, [Text.UTF8Encoding]::new($false))
-              }
-            }
-          }
-
-          # Prove every final source path, size, and SHA-256. Extra or missing files fail the build.
           $manifestPath = 'releases/constellation-commander/v0.7.0/TREE-SHA256.txt'
           $manifestText = [IO.File]::ReadAllText($manifestPath).Replace("`r`n", "`n").Replace("`r", "`n")
           $manifestBytes = [Text.UTF8Encoding]::new($false).GetBytes($manifestText)
           $manifestHash = ([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($manifestBytes))).ToLowerInvariant()
-          if ($manifestHash -ne '89ccb6612f1ad47d65c6ee1523c7b0668b1a75d14b84c88e434addd56753413c') { throw "v0.7 canonical tree manifest SHA mismatch: $manifestHash" }
+          if ($manifestHash -ne '89ccb6612f1ad47d65c6ee1523c7b0668b1a75d14b84c88e434addd56753413c') { throw "v0.7 tree manifest SHA mismatch: $manifestHash" }
+
           $expected = @{}
           foreach ($line in Get-Content $manifestPath) {
             if ($line -notmatch '^([0-9a-f]{64})\s+(\d+)\s+(.+)$') { throw "Malformed tree-manifest line: $line" }
@@ -119,8 +57,8 @@ jobs:
             $hash = (Get-FileHash -Algorithm SHA256 $file.FullName).Hash.ToLowerInvariant()
             if ($hash -ne $expected[$rel].hash) { throw "SHA mismatch for ${rel}: $hash" }
           }
+          Write-Host "source_sha256=$sourceHash"
           Write-Host "v070_files=$($expected.Count)"
-          Write-Host "v070_canonical_source_sha256=43266bac1a43732bb41a52c819cd9f2d10e3ab60d0cd70dcb61d34989eed0dd0"
 
       - uses: actions/setup-node@v4
         with:
