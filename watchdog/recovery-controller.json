@@ -72,7 +72,7 @@
     "workflow": ".github/workflows/external-chatgpt-scheduler-rescue.yml",
     "evaluator": "watchdog/external_scheduler_rescue.py",
     "cadence_minutes": 10,
-    "stale_threshold_minutes": 90,
+    "stale_threshold_minutes": 75,
     "recovery_branch": "watchdog/external-recovery-pulse",
     "recovery_pr_title": "[Watchdog] External ChatGPT scheduler recovery pulse",
     "work_bridge_spec": "watchdog/work-webhook-recovery-task.md",
