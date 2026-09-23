@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      CHATGPT_STALE_MINUTES: "90"
+      CHATGPT_STALE_MINUTES: "75"
       RECOVERY_BRANCH: "watchdog/external-recovery-pulse"
       RECOVERY_PR_TITLE: "[Watchdog] External ChatGPT scheduler recovery pulse"
       RECOVERY_ISSUE_TITLE: "[Watchdog] ChatGPT scheduler requires recovery"
