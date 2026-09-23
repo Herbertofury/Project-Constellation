@@ -6,6 +6,7 @@ const BASE_URL = process.env.CHATGPT_BASE_URL || "https://chatgpt.com";
 const STATE_PATH = process.env.CHATGPT_STORAGE_STATE || "";
 const REPORT_PATH = process.env.CHATGPT_RESCUE_REPORT || "chatgpt-ui-rescue-report.json";
 const FIXTURE_MODE = process.env.CHATGPT_RESCUE_FIXTURE === "1";
+const HEADLESS = FIXTURE_MODE ? true : process.env.CHATGPT_HEADLESS !== "false";
 const TARGETS = (process.env.CHATGPT_TARGET_TASKS || "")
   .split(",")
   .map((x) => x.trim())
@@ -301,7 +302,7 @@ if (!FIXTURE_MODE && (!STATE_PATH || !fs.existsSync(STATE_PATH))) {
   process.exit(2);
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: HEADLESS });
 
 try {
   const context = FIXTURE_MODE
