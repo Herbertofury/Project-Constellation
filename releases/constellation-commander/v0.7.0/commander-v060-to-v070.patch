@@ -263,7 +263,7 @@ index d778315..9ee959a 100644
 -  post(READY_TYPE, { version: '0.6.0' });
 +  post(READY_TYPE, { version: '0.7.0' });
  })();
-diff --git a/desktop/ConstellationCommander.Desktop.csproj b/commander-v060-audit/constellation-commander-v0.6.0/desktop/ConstellationCommander.Desktop.csproj
+diff --git a/desktop/ConstellationCommander.Desktop.csproj b/desktop/ConstellationCommander.Desktop.csproj
 deleted file mode 100644
 index d22c6fe..0000000
 --- a/desktop/ConstellationCommander.Desktop.csproj
@@ -286,7 +286,7 @@ index d22c6fe..0000000
 -    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 -  </PropertyGroup>
 -</Project>
-diff --git a/desktop/INSTALL-COMPANION.cmd b/commander-v060-audit/constellation-commander-v0.6.0/desktop/INSTALL-COMPANION.cmd
+diff --git a/desktop/INSTALL-COMPANION.cmd b/desktop/INSTALL-COMPANION.cmd
 deleted file mode 100644
 index a387799..0000000
 --- a/desktop/INSTALL-COMPANION.cmd
@@ -314,7 +314,7 @@ index a387799..0000000
 -echo The app is starting the local bridge and will open Chrome's one-time extension trust screen.
 -echo After that one browser confirmation, normal ChatGPT chats reconnect automatically.
 -endlocal
-diff --git a/desktop/MainForm.cs b/commander-v060-audit/constellation-commander-v0.6.0/desktop/MainForm.cs
+diff --git a/desktop/MainForm.cs b/desktop/MainForm.cs
 deleted file mode 100644
 index 04ab94f..0000000
 --- a/desktop/MainForm.cs
@@ -666,7 +666,7 @@ index 04ab94f..0000000
 -    private void ExitApplication() { _closing = true; _healthTimer.Stop(); _restartTimer.Stop(); StopProcess(ref _remoteAgent); StopProcess(ref _bridge); _tray.Visible = false; Application.Exit(); }
 -    protected override void Dispose(bool disposing) { if (disposing) { _healthTimer.Dispose(); _restartTimer.Dispose(); _tray.Dispose(); _http.Dispose(); _bridge?.Dispose(); _remoteAgent?.Dispose(); } base.Dispose(disposing); }
 -}
-diff --git a/desktop/Program.cs b/commander-v060-audit/constellation-commander-v0.6.0/desktop/Program.cs
+diff --git a/desktop/Program.cs b/desktop/Program.cs
 deleted file mode 100644
 index ce761a4..0000000
 --- a/desktop/Program.cs
@@ -690,7 +690,7 @@ index ce761a4..0000000
 -        Application.Run(new MainForm(autoStart, firstRun));
 -    }
 -}
-diff --git a/desktop/README.md b/commander-v060-audit/constellation-commander-v0.6.0/desktop/README.md
+diff --git a/desktop/README.md b/desktop/README.md
 deleted file mode 100644
 index 360464e..0000000
 --- a/desktop/README.md
@@ -731,7 +731,7 @@ index 360464e..0000000
 -- **Advanced — hosted directory-plugin transport** — optional stable HTTPS relay/device connection; not required for normal browser chats.
 -
 -No OpenAI API key is required by Normal Chat mode and the app does not hand local work to ChatGPT Work.
-diff --git a/desktop/app.manifest b/commander-v060-audit/constellation-commander-v0.6.0/desktop/app.manifest
+diff --git a/desktop/app.manifest b/desktop/app.manifest
 deleted file mode 100644
 index 21bdb42..0000000
 --- a/desktop/app.manifest
@@ -1264,7 +1264,7 @@ index f0ef8bd..14d818c 100644
    createApplicationMenu();
    createChatWindow();
    void startFallbackBridge();
-diff --git a/constellation-commander-v0.7.0/electron/shell-preload.cjs b/electron/shell-preload.cjs
+diff --git a/electron/shell-preload.cjs b/electron/shell-preload.cjs
 new file mode 100644
 index 0000000..e6e3f62
 --- /dev/null
@@ -1304,7 +1304,7 @@ index 0000000..e6e3f62
 +    return () => ipcRenderer.removeListener('cc-shell:event', listener);
 +  }
 +});
-diff --git a/constellation-commander-v0.7.0/electron/shell.css b/electron/shell.css
+diff --git a/electron/shell.css b/electron/shell.css
 new file mode 100644
 index 0000000..8dd0020
 --- /dev/null
@@ -1404,7 +1404,7 @@ index 0000000..8dd0020
 +body.sidebar-collapsed .sidebar { transform: translateX(-100%); pointer-events: none; }
 +.sidebar { transition: transform .16s ease; }
 +body.sidebar-collapsed .brand { min-width: 0; }
-diff --git a/constellation-commander-v0.7.0/electron/shell.html b/electron/shell.html
+diff --git a/electron/shell.html b/electron/shell.html
 new file mode 100644
 index 0000000..38285c5
 --- /dev/null
@@ -1530,7 +1530,7 @@ index 0000000..38285c5
 +  <script src="./shell.js"></script>
 +</body>
 +</html>
-diff --git a/constellation-commander-v0.7.0/electron/shell.js b/electron/shell.js
+diff --git a/electron/shell.js b/electron/shell.js
 new file mode 100644
 index 0000000..eca98b1
 --- /dev/null
@@ -2127,7 +2127,7 @@ index d9bd38d..c9d5adb 100644
    await computerUse('clipboard_write', { text: sentinel });
    const clipboard = await computerUse('clipboard_read', {});
    assert.equal(clipboard.text, sentinel);
-diff --git a/tests/desktop-static.test.mjs b/commander-v060-audit/constellation-commander-v0.6.0/tests/desktop-static.test.mjs
+diff --git a/tests/desktop-static.test.mjs b/tests/desktop-static.test.mjs
 deleted file mode 100644
 index 591c7d7..0000000
 --- a/tests/desktop-static.test.mjs
@@ -2262,7 +2262,7 @@ index bb27b09..ba229ef 100644
    });
    await new Promise(resolve => setTimeout(resolve, 25));
    const shotCallPromise = mcp({ jsonrpc: '2.0', id: 40, method: 'tools/call', params: { name: 'computer_screenshot', arguments: { target: 'all' } } });
-diff --git a/constellation-commander-v0.7.0/tests/shell-static.test.mjs b/tests/shell-static.test.mjs
+diff --git a/tests/shell-static.test.mjs b/tests/shell-static.test.mjs
 new file mode 100644
 index 0000000..7cf17a9
 --- /dev/null
