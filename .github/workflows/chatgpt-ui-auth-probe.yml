@@ -1,0 +1,27 @@
+name: ChatGPT UI Rescue Auth Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/chatgpt-ui-auth-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check encrypted ChatGPT browser state secret
+        shell: bash
+        env:
+          CHATGPT_STORAGE_STATE_B64: ${{ secrets.CHATGPT_STORAGE_STATE_B64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CHATGPT_STORAGE_STATE_B64" ]; then
+            echo "::error::CHATGPT_STORAGE_STATE_B64 is not configured."
+            exit 2
+          fi
+          echo "CHATGPT_STORAGE_STATE_B64 is configured."
