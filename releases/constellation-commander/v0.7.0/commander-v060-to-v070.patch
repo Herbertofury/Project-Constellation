@@ -1,0 +1,2123 @@
+diff --git a/INSTALL-ME.cmd b/INSTALL-ME.cmd
+index af741b5..22700ce 100644
+--- a/INSTALL-ME.cmd
++++ b/INSTALL-ME.cmd
+@@ -1,10 +1,10 @@
+ @echo off
+ setlocal
+ cd /d "%~dp0"
+-echo Constellation Commander v0.6 is an integrated Electron app.
++echo Constellation Commander v0.7 is an integrated Electron app.
+ echo.
+-echo This source bundle is for development. For normal installation, run the signed/packaged
+- echo Constellation Commander Setup EXE from the release bundle.
++echo This source bundle is for development. For normal installation, run the packaged
++echo Constellation Commander Setup EXE from the release bundle.
+ echo.
+ if exist "dist-electron\*.exe" (
+   for %%F in ("dist-electron\*.exe") do (
+diff --git a/README.md b/README.md
+index 0e0eabb..d14dcb5 100644
+--- a/README.md
++++ b/README.md
+@@ -1,33 +1,57 @@
+-# Constellation Commander v0.6.0
++# Constellation Commander v0.7.0
+ 
+-Constellation Commander is now an **integrated Electron ChatGPT workspace** with full local Windows computer use. The primary path no longer requires Chrome, an unpacked extension, Work mode, or an OpenAI API key.
++Constellation Commander is a **local Windows work-agent companion built around your normal ChatGPT session**. It is no longer a hidden webview interceptor: v0.7 adds a visible desktop control plane around ChatGPT and keeps the local runtime observable, permissioned, recoverable, and useful even when the AI bridge needs attention.
+ 
+-## Primary experience
++## What you actually get
+ 
+-1. Install and open **Constellation Commander**.
+-2. Sign in to ChatGPT inside the app once. The Electron session uses a persistent private profile (`persist:constellation-chatgpt`) so the login survives restarts.
+-3. Use ChatGPT normally inside the Commander window.
+-4. When you ask for local-PC work, Commander injects its short-lived tool manifest into the actual outgoing ChatGPT request, suppresses internal tool-call wrappers, executes local tools directly over Electron IPC, returns screenshots as real image attachments, and continues the same conversation.
++Open Commander and sign in to ChatGPT once. The app keeps that browser session in a dedicated persistent profile, then exposes a real local work runtime to the chat without an OpenAI API key or separately billed API path.
+ 
+-Full Windows controls include screenshots, multi-monitor/window discovery, mouse, keyboard, drag/scroll, hotkeys, clipboard, UI Automation, files, terminal/processes, application launch/focus and Emergency Lock.
++The visible Commander sidebar gives you:
+ 
+-The old Chrome/Edge browser companion remains in the source tree only as an optional fallback. It is not required for the integrated Electron workflow.
++- **Local tool mode:** Auto, Always, Off, or one-shot “Arm next message”.
++- **Permission controls:** GUI/computer control, terminal/shell, Full PC or explicit workspace folders.
++- **Emergency Lock:** immediately blocks local GUI automation until released.
++- **Live status:** ChatGPT load state, Commander bridge readiness, available tool count, active tool, recent calls and failures.
++- **Quick control:** observe the real desktop, see a fresh screenshot, list visible windows, and focus a window directly from Commander.
++- **Real diagnostics:** a live ping plus Windows display/window enumeration—not a mock green light.
++- **Recovery controls:** Home, Reload, ChatGPT DevTools, and direct access to Commander’s data directory.
+ 
+-## Security model
++## Local capabilities
+ 
+-- ChatGPT runs in a dedicated `WebContentsView` with `nodeIntegration=false`, `contextIsolation=true`, and Chromium sandboxing enabled.
+-- ChatGPT gets no Node or Electron APIs.
+-- The preload is the only renderer component allowed to reach Commander IPC.
+-- IPC calls are accepted only from the owned ChatGPT `WebContents`.
+-- Local tool calls still enforce Commander file/command policy and Emergency Lock.
+-- ChatGPT credentials/cookies remain in Electron's persistent browser session; Commander does not export them.
+-- No OpenAI API key or separately billed Responses/API path is used.
++The integrated runtime supports files/folders, exact block edits, recursive search, terminal sessions/processes, application launch/focus, screenshots, multi-monitor/window discovery, mouse, keyboard, hotkeys, drag/scroll, clipboard, Windows UI Automation, recent-call history and usage diagnostics.
++
++Screenshots returned by local tools are attached back into the same ChatGPT conversation. Local calls are executed directly through Electron IPC; ChatGPT itself never receives Node or Electron privileges.
++
++## Reliability model
++
++Commander has two user-controlled ways to avoid “AI guessed wrong about whether this was local”:
++
++- **Always** forces every outgoing prompt through Commander context.
++- **Arm next message once** forces exactly the next message through Commander without changing your normal default.
++
++The Windows acceptance gate must prove both halves of the product before a release is accepted:
++
++1. the **visible shell** loads, its narrow IPC bridge works, its snapshot reports the real tool catalog, and its live health test passes;
++2. the **ChatGPT integration** completes a real fixture prompt -> Commander tool call -> hidden tool result round trip.
++
++The same proof is repeated after the one-click installer silently installs the packaged app.
++
++## Packaging and runtime
++
++- Electron **44.4.3**
++- electron-builder **26.16.1**
++- ASAR enabled for the application code
++- only `native/**/*` is unpacked so the Windows computer-use PowerShell helper remains directly executable
++- ChatGPT renderer: `nodeIntegration=false`, `contextIsolation=true`, Chromium sandbox enabled
++- Commander shell renderer: same isolation/sandbox policy with a narrow `contextBridge` API
+ 
+ ## Development
+ 
+-- Electron: 44.4.3
+-- electron-builder: 26.16.1
+-- `npm run check`
+-- `npm test`
+-- Windows integrated smoke: `powershell -ExecutionPolicy Bypass -File scripts/electron-smoke.ps1`
+-- Windows package: `npm run build:win`
++```text
++npm run check
++npm test
++powershell -ExecutionPolicy Bypass -File scripts/electron-smoke.ps1
++npm run build:win
++```
++
++The optional browser companion and relay remain available for non-Electron/fallback workflows, but the integrated Electron path is the primary Windows product.
+diff --git a/RELEASE-MANIFEST.json b/RELEASE-MANIFEST.json
+index 7b72aa0..2b5f438 100644
+--- a/RELEASE-MANIFEST.json
++++ b/RELEASE-MANIFEST.json
+@@ -1,8 +1,8 @@
+ {
+   "project": "Constellation Commander",
+-  "version": "0.6.0",
++  "version": "0.7.0",
+   "parent_project": "Project Constellation",
+-  "default_architecture": "integrated Electron app -> persistent ChatGPT WebContentsView -> direct Commander IPC -> local executor",
++  "default_architecture": "visible Commander desktop shell -> persistent ChatGPT WebContentsView -> narrow direct Commander IPC -> local executor",
+   "fallback_architecture": "normal browser -> optional browser companion -> loopback bridge -> local executor",
+   "optional_architecture": "registered hosted MCP/plugin -> OAuth 2.1 relay -> outbound device companion -> local executor",
+   "runtime": {
+@@ -12,7 +12,11 @@
+     "openai_api_key_required": false,
+     "chrome_extension_required": false,
+     "work_mode_required": false,
+-    "commander_quota_enforced": false
++    "commander_quota_enforced": false,
++    "asar": true,
++    "asar_unpack": [
++      "native/**/*"
++    ]
+   },
+   "verification": {
+     "node_syntax": "PASS",
+@@ -27,14 +31,18 @@
+     "electron_integrated_chat_round_trip": "PENDING_WINDOWS_CI",
+     "windows_native_computer_use": "PENDING_WINDOWS_CI",
+     "electron_nsis_install": "PENDING_WINDOWS_CI",
+-    "installed_electron_round_trip": "PENDING_WINDOWS_CI"
++    "installed_electron_round_trip": "PENDING_WINDOWS_CI",
++    "visible_shell_static_contract": "PASS",
++    "visible_shell_runtime_health": "PENDING_WINDOWS_CI",
++    "quick_control_desktop_observe": "PENDING_WINDOWS_CI"
+   },
+   "remaining_release_gates": [
+-    "Install exact Electron 44.4.3 and electron-builder 26.16.1 dependencies on Windows CI",
++    "Run full Windows native computer-use regression suite",
++    "Prove visible Commander shell DOM + narrow IPC snapshot + real health test inside Electron",
+     "Run integrated Electron ChatGPT fixture -> request hook -> direct IPC tool -> hidden result E2E",
+-    "Run Windows native computer-use smoke",
+-    "Build NSIS and ZIP artifacts",
+-    "Install NSIS artifact and rerun integrated Electron E2E from installed executable"
++    "Build ASAR-backed NSIS and ZIP artifacts with native helper unpacked",
++    "Validate packaged ASAR/native helper layout and artifact hashes",
++    "Silently install NSIS artifact and rerun visible-shell + integrated Electron E2E from installed executable"
+   ],
+   "not_primary_paths": [
+     "Chrome/Edge extension",
+diff --git a/SECURITY.md b/SECURITY.md
+index 5da4f8b..aa084a8 100644
+--- a/SECURITY.md
++++ b/SECURITY.md
+@@ -1,37 +1,37 @@
+-# Constellation Commander v0.6 security model
++# Constellation Commander Security Model
+ 
+-Constellation Commander can control the Windows desktop and access local files/processes with the privileges of the Windows account running it. Install it only on a computer you own or are explicitly authorized to control.
++## Renderer separation
+ 
+-## Integrated Electron boundary
++Constellation Commander deliberately separates the local shell and ChatGPT renderer.
+ 
+-The primary v0.6 path is local and self-contained:
++- Both use `nodeIntegration=false`, `contextIsolation=true`, and Chromium sandboxing.
++- The ChatGPT `WebContentsView` receives only the dedicated Commander chat preload.
++- The local shell receives only `shell-preload.cjs`, which exposes a narrow `window.commanderShell` API rather than raw `ipcRenderer`.
++- Main-process IPC validates the exact owning renderer before accepting a request.
+ 
+-`Constellation Commander Electron -> persistent ChatGPT WebContentsView -> preload/request hook -> direct Commander IPC -> local executor`
++## Local permissions
+ 
+-Chrome/Edge and the unpacked browser extension are **not required** for the primary workflow. The old browser companion remains fallback-only.
++The user-visible sidebar is authoritative for local capability state:
+ 
+-ChatGPT runs in a dedicated Electron `WebContentsView` with `nodeIntegration=false`, `contextIsolation=true`, and Chromium sandboxing enabled. The ChatGPT renderer is not given Node or Electron APIs. Only the preload can invoke the narrowly scoped Commander IPC handlers, and the main process rejects IPC that does not originate from the owned ChatGPT `WebContents`.
++- **GUI / computer control** gates Windows mouse/keyboard/screenshot/UI Automation tools.
++- **Shell / terminal** gates command/process execution.
++- **Filesystem access** is either explicit roots or intentionally selected Full PC (`allowedRoots=["*"]`).
++- **Emergency Lock** is persisted and blocks GUI automation at the tool-policy layer, not only in the UI.
+ 
+-## ChatGPT authentication
++## ChatGPT session
+ 
+-The app uses Electron's persistent `persist:constellation-chatgpt` session. Cookies/session data stay in Electron's browser profile and survive app restarts. Commander does not copy or export ChatGPT credentials. No OpenAI API key is required.
++ChatGPT runs in a dedicated persistent Electron partition (`persist:constellation-chatgpt`). Credentials and cookies stay in Chromium’s session store and are not exported by Commander.
+ 
+-## Computer-use controls
++Commander does not require an OpenAI API key and does not route the primary experience through separately billed OpenAI API endpoints.
+ 
+-GUI automation is enabled because Commander is explicitly intended for full computer use. The native Windows helper supports screenshots, mouse/keyboard input, window control, clipboard, multi-monitor coordinates and Windows UI Automation.
++## Navigation and permissions
+ 
+-Emergency Lock remains authoritative. When active, the executor refuses GUI automation tools even if ChatGPT asks for them.
++Untrusted navigations are opened externally instead of being silently loaded into the privileged application surface. The dedicated ChatGPT session permits only the small browser permission set required by trusted login/chat origins.
+ 
+-Commander does not bypass Windows secure desktop, UAC, higher-integrity process isolation or other OS security boundaries.
++## Packaging
+ 
+-## Filesystem/process scope
++Application JavaScript is packaged in ASAR. Only `native/**/*` is unpacked because the Windows computer-use helper must be executed as a real file. Release acceptance verifies the unpacked development runtime and the silently installed packaged runtime.
+ 
+-The Windows build defaults to the filesystem visible to the current Windows account. Shell/process execution still honors Commander configuration and blocked-command policy. Reversible trash operations are preferred over permanent deletion.
++## Reporting
+ 
+-## Fallback transports
+-
+-The loopback browser companion and optional hosted relay remain available for recovery/interop, but neither is required for the integrated Electron experience.
+-
+-## Secrets, telemetry and quotas
+-
+-Do not place relay tokens, OAuth tokens or local session nonces in Git/support messages. Telemetry remains disabled by default. Commander diagnostic counters do not enforce a Commander-side usage quota; ChatGPT/OpenAI platform limits remain separate.
++Do not place passwords, session cookies, bearer tokens, private keys, or other secrets in bug reports or diagnostics. Tool-call logs intentionally retain compact operation metadata rather than full secret-bearing argument payloads.
+diff --git a/browser-companion/background.js b/browser-companion/background.js
+index ed654c5..bbd9693 100644
+--- a/browser-companion/background.js
++++ b/browser-companion/background.js
+@@ -1,5 +1,5 @@
+ const BASE = 'http://127.0.0.1:47721';
+-const VERSION = '0.6.0';
++const VERSION = '0.7.0';
+ 
+ async function bridge(path, { method = 'GET', body = null, token = '' } = {}) {
+   const controller = new AbortController();
+diff --git a/browser-companion/content.js b/browser-companion/content.js
+index 70c9f5c..43df3d8 100644
+--- a/browser-companion/content.js
++++ b/browser-companion/content.js
+@@ -1,5 +1,5 @@
+ (() => {
+-  const VERSION = '0.6.0';
++  const VERSION = '0.7.0';
+   const CONTEXT_OPEN = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const CALL_RE = /\[PC_BUDDY_CALL\](\{[\s\S]*?\})\[\/PC_BUDDY_CALL\]/;
+diff --git a/browser-companion/manifest.json b/browser-companion/manifest.json
+index 139ddf3..7074ba4 100644
+--- a/browser-companion/manifest.json
++++ b/browser-companion/manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "manifest_version": 3,
+   "name": "Constellation Commander Browser Companion",
+-  "version": "0.6.0",
++  "version": "0.7.0",
+   "minimum_chrome_version": "102",
+   "description": "Bridges normal ChatGPT browser chats to the local Constellation Commander companion without Work mode or API keys.",
+   "permissions": [
+diff --git a/browser-companion/page-hook.js b/browser-companion/page-hook.js
+index d778315..9ee959a 100644
+--- a/browser-companion/page-hook.js
++++ b/browser-companion/page-hook.js
+@@ -163,5 +163,5 @@
+     };
+   }
+ 
+-  post(READY_TYPE, { version: '0.6.0' });
++  post(READY_TYPE, { version: '0.7.0' });
+ })();
+diff --git a/desktop/ConstellationCommander.Desktop.csproj b/commander-v060-audit/constellation-commander-v0.6.0/desktop/ConstellationCommander.Desktop.csproj
+deleted file mode 100644
+index d22c6fe..0000000
+--- a/desktop/ConstellationCommander.Desktop.csproj
++++ /dev/null
+@@ -1,17 +0,0 @@
+-<Project Sdk="Microsoft.NET.Sdk">
+-  <PropertyGroup>
+-    <OutputType>WinExe</OutputType>
+-    <TargetFramework>net8.0-windows</TargetFramework>
+-    <UseWindowsForms>true</UseWindowsForms>
+-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+-    <ImplicitUsings>enable</ImplicitUsings>
+-    <Nullable>enable</Nullable>
+-    <AssemblyName>ConstellationCommander</AssemblyName>
+-    <RootNamespace>ConstellationCommander.Desktop</RootNamespace>
+-    <Version>0.6.0</Version>
+-    <ApplicationManifest>app.manifest</ApplicationManifest>
+-    <PublishSingleFile>true</PublishSingleFile>
+-    <SelfContained>true</SelfContained>
+-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+-  </PropertyGroup>
+-</Project>
+diff --git a/desktop/INSTALL-COMPANION.cmd b/commander-v060-audit/constellation-commander-v0.6.0/desktop/INSTALL-COMPANION.cmd
+deleted file mode 100644
+index a387799..0000000
+--- a/desktop/INSTALL-COMPANION.cmd
++++ /dev/null
+@@ -1,22 +0,0 @@
+-@echo off
+-setlocal EnableExtensions
+-set "SRC=%~dp0"
+-set "DEST=%LOCALAPPDATA%\ConstellationCommander"
+-echo Installing Constellation Commander 0.6.0...
+-if not exist "%DEST%" mkdir "%DEST%"
+-xcopy "%SRC%*" "%DEST%\" /E /I /Y >nul
+-if errorlevel 1 (
+-  echo Installation failed while copying files.
+-  pause
+-  exit /b 1
+-)
+-if "%CONSTELLATION_COMMANDER_CI%"=="1" (
+-  start "" "%DEST%\ConstellationCommander.exe" --autostart
+-) else (
+-  start "" "%DEST%\ConstellationCommander.exe" --first-run
+-)
+-echo.
+-echo Installed to %DEST%
+-echo The app is starting the local bridge and will open Chrome's one-time extension trust screen.
+-echo After that one browser confirmation, normal ChatGPT chats reconnect automatically.
+-endlocal
+diff --git a/desktop/MainForm.cs b/commander-v060-audit/constellation-commander-v0.6.0/desktop/MainForm.cs
+deleted file mode 100644
+index 04ab94f..0000000
+--- a/desktop/MainForm.cs
++++ /dev/null
+@@ -1,346 +0,0 @@
+-using System.Diagnostics;
+-using System.Net.Http.Json;
+-using System.Text.Json;
+-using Microsoft.Win32;
+-
+-namespace ConstellationCommander.Desktop;
+-
+-public sealed class MainForm : Form
+-{
+-    private const string AppName = "Constellation Commander";
+-    private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+-    private const string RunValueName = "ConstellationCommander";
+-    private const string BridgeUrl = "http://127.0.0.1:47721";
+-
+-    private readonly Label _bridgeStatus = new() { Text = "Starting…", AutoSize = true, Padding = new Padding(0, 8, 0, 0) };
+-    private readonly Label _browserStatus = new() { Text = "Waiting for browser companion", AutoSize = true, Padding = new Padding(0, 8, 0, 0) };
+-    private readonly Button _browserSetup = new() { Text = "Connect Browser", AutoSize = true };
+-    private readonly Button _test = new() { Text = "Connection Test", AutoSize = true };
+-    private readonly Button _controlTest = new() { Text = "Full Control Test", AutoSize = true };
+-    private readonly Button _dataFolder = new() { Text = "Data Folder", AutoSize = true };
+-    private readonly CheckBox _startWithWindows = new() { Text = "Start with Windows", AutoSize = true };
+-    private readonly CheckBox _emergencyLock = new() { Text = "Emergency Lock", AutoSize = true, ForeColor = Color.DarkRed };
+-    private readonly CheckBox _remoteEnabled = new() { Text = "Enable hosted plugin relay", AutoSize = true };
+-    private readonly TextBox _relayUrl = new() { Dock = DockStyle.Fill, PlaceholderText = "Advanced: stable hosted relay URL" };
+-    private readonly Button _remoteConnect = new() { Text = "Connect Remote", AutoSize = true };
+-    private readonly Button _resetPairing = new() { Text = "Reset Remote Pairing", AutoSize = true };
+-    private readonly TextBox _log = new() { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Both, WordWrap = false };
+-    private readonly NotifyIcon _tray = new() { Text = AppName, Visible = true, Icon = SystemIcons.Application };
+-    private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(3) };
+-    private readonly System.Windows.Forms.Timer _healthTimer = new() { Interval = 2500 };
+-    private readonly System.Windows.Forms.Timer _restartTimer = new() { Interval = 1000 };
+-
+-    private Process? _bridge;
+-    private Process? _remoteAgent;
+-    private int _bridgeRestartAttempt;
+-    private bool _closing;
+-    private bool _suppressStartupEvent;
+-    private readonly bool _firstRun;
+-    private readonly string _settingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ConstellationCommander");
+-    private string SettingsPath => Path.Combine(_settingsDir, "desktop.json");
+-    private string AgentDataDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".constellation-commander");
+-    private string EmergencyLockPath => Path.Combine(AgentDataDir, "EMERGENCY-LOCK");
+-
+-    private sealed record DesktopSettings(string RelayUrl = "", bool StartWithWindows = true, bool RemoteEnabled = false);
+-
+-    public MainForm(bool autoStart = false, bool firstRun = false)
+-    {
+-        _firstRun = firstRun;
+-        Text = $"{AppName} 0.6.0";
+-        Width = 900;
+-        Height = 640;
+-        MinimumSize = new Size(720, 500);
+-        StartPosition = FormStartPosition.CenterScreen;
+-
+-        var root = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 1, RowCount = 7 };
+-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+-
+-        root.Controls.Add(new Label {
+-            AutoSize = true,
+-            MaximumSize = new Size(840, 0),
+-            Font = new Font(Font, FontStyle.Bold),
+-            Text = "Normal Chat mode — full local computer use from ordinary ChatGPT chats: screen, mouse, keyboard, windows, clipboard, UI Automation, files, terminal and processes — without Work mode or an OpenAI API key."
+-        }, 0, 0);
+-
+-        var status = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = true };
+-        status.Controls.AddRange([new Label { Text = "Local bridge:", AutoSize = true, Padding = new Padding(0, 8, 0, 0) }, _bridgeStatus,
+-            new Label { Text = "     Browser:", AutoSize = true, Padding = new Padding(0, 8, 0, 0) }, _browserStatus]);
+-        root.Controls.Add(status, 0, 1);
+-
+-        var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = true };
+-        buttons.Controls.AddRange([_browserSetup, _test, _controlTest, _dataFolder, _startWithWindows, _emergencyLock]);
+-        root.Controls.Add(buttons, 0, 2);
+-
+-        root.Controls.Add(new Label {
+-            AutoSize = true,
+-            MaximumSize = new Size(840, 0),
+-            Text = "First-time browser setup requires Chrome's own Load unpacked confirmation. After that, Commander reconnects automatically across chats and Windows restarts."
+-        }, 0, 3);
+-
+-        var advanced = new GroupBox { Text = "Advanced — hosted directory-plugin transport", Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(10) };
+-        var advGrid = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, RowCount = 2, AutoSize = true };
+-        advGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+-        advGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+-        advGrid.Controls.Add(_remoteEnabled, 0, 0);
+-        advGrid.SetColumnSpan(_remoteEnabled, 2);
+-        advGrid.Controls.Add(new Label { Text = "Relay URL", AutoSize = true, Padding = new Padding(0, 7, 12, 0) }, 0, 1);
+-        advGrid.Controls.Add(_relayUrl, 1, 1);
+-        var advButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true };
+-        advButtons.Controls.AddRange([_remoteConnect, _resetPairing]);
+-        advanced.Controls.Add(advButtons);
+-        advanced.Controls.Add(advGrid);
+-        root.Controls.Add(advanced, 0, 4);
+-
+-        root.Controls.Add(new Label { Text = "Diagnostics", AutoSize = true, Padding = new Padding(0, 8, 0, 4) }, 0, 5);
+-        root.Controls.Add(_log, 0, 6);
+-        Controls.Add(root);
+-
+-        _browserSetup.Click += (_, _) => OpenBrowserSetup();
+-        _test.Click += async (_, _) => await RefreshHealthAsync(showDialog: true);
+-        _controlTest.Click += async (_, _) => await RunControlSelfTestAsync();
+-        _dataFolder.Click += (_, _) => OpenFolder(AgentDataDir);
+-        _startWithWindows.CheckedChanged += (_, _) => { if (!_suppressStartupEvent) SetStartWithWindows(_startWithWindows.Checked); };
+-        _emergencyLock.CheckedChanged += (_, _) => { if (!_suppressStartupEvent) SetEmergencyLock(_emergencyLock.Checked); };
+-        _remoteEnabled.CheckedChanged += (_, _) => SaveSettings();
+-        _remoteConnect.Click += async (_, _) => await StartRemoteAsync(resetPairing: false);
+-        _resetPairing.Click += async (_, _) => await StartRemoteAsync(resetPairing: true);
+-
+-        var menu = new ContextMenuStrip();
+-        menu.Items.Add("Open", null, (_, _) => RestoreFromTray());
+-        menu.Items.Add("Connect Browser", null, (_, _) => OpenBrowserSetup());
+-        menu.Items.Add("Test Connection", null, async (_, _) => await RefreshHealthAsync(showDialog: true));
+-        menu.Items.Add("Full Control Test", null, async (_, _) => await RunControlSelfTestAsync());
+-        menu.Items.Add(new ToolStripSeparator());
+-        menu.Items.Add("Exit", null, (_, _) => ExitApplication());
+-        _tray.ContextMenuStrip = menu;
+-        _tray.DoubleClick += (_, _) => RestoreFromTray();
+-
+-        Resize += (_, _) => {
+-            if (WindowState == FormWindowState.Minimized) { Hide(); _tray.ShowBalloonTip(900, AppName, "Commander is still available to normal ChatGPT chats.", ToolTipIcon.Info); }
+-        };
+-        FormClosing += (_, e) => {
+-            if (!_closing && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); }
+-        };
+-
+-        _healthTimer.Tick += async (_, _) => await RefreshHealthAsync(showDialog: false);
+-        _restartTimer.Tick += async (_, _) => {
+-            _restartTimer.Stop();
+-            if (!_closing) await EnsureBridgeAsync();
+-        };
+-
+-        Directory.CreateDirectory(_settingsDir);
+-        LoadSettings();
+-        Shown += async (_, _) => {
+-            if (_firstRun) {
+-                _startWithWindows.Checked = true;
+-                SetStartWithWindows(true);
+-            }
+-            await EnsureBridgeAsync();
+-            _healthTimer.Start();
+-            if ((autoStart || _remoteEnabled.Checked) && !string.IsNullOrWhiteSpace(_relayUrl.Text)) await StartRemoteAsync(resetPairing: false);
+-            if (_firstRun) OpenBrowserSetup();
+-        };
+-    }
+-
+-    private string AppDir => AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+-    private string ResolveNode() {
+-        var bundled = Path.Combine(AppDir, "runtime", "node.exe");
+-        if (File.Exists(bundled)) return bundled;
+-        foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)) {
+-            var candidate = Path.Combine(dir.Trim('"'), "node.exe"); if (File.Exists(candidate)) return candidate;
+-        }
+-        throw new FileNotFoundException("Bundled runtime\\node.exe was not found and Node.js was not found on PATH.");
+-    }
+-    private string ResolveAgent(string name) {
+-        var candidate = Path.Combine(AppDir, "agent", "bin", name);
+-        if (!File.Exists(candidate)) throw new FileNotFoundException($"Commander agent component not found: {candidate}");
+-        return candidate;
+-    }
+-
+-    private async Task<bool> BridgeHealthyAsync() {
+-        try {
+-            var health = await _http.GetFromJsonAsync<JsonElement>($"{BridgeUrl}/health");
+-            return health.TryGetProperty("product", out var product) && string.Equals(product.GetString(), AppName, StringComparison.OrdinalIgnoreCase);
+-        } catch { return false; }
+-    }
+-
+-    private async Task EnsureBridgeAsync() {
+-        if (await BridgeHealthyAsync()) { _bridgeStatus.Text = "Ready"; _bridgeRestartAttempt = 0; return; }
+-        if (_bridge is { HasExited: false }) return;
+-        try {
+-            var psi = new ProcessStartInfo(ResolveNode()) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = AppDir };
+-            psi.ArgumentList.Add(ResolveAgent("constellation-commander-bridge.mjs"));
+-            _bridge = new Process { StartInfo = psi, EnableRaisingEvents = true };
+-            _bridge.OutputDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) AppendLog(e.Data); };
+-            _bridge.ErrorDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) AppendLog(e.Data); };
+-            _bridge.Exited += (_, _) => BeginInvoke(new Action(() => {
+-                if (_closing) return;
+-                _bridgeStatus.Text = "Restarting…";
+-                _bridgeRestartAttempt++;
+-                _restartTimer.Interval = Math.Min(10000, 500 * (1 << Math.Min(_bridgeRestartAttempt, 4)));
+-                _restartTimer.Start();
+-            }));
+-            if (!_bridge.Start()) throw new InvalidOperationException("Could not start local bridge.");
+-            _bridge.BeginOutputReadLine(); _bridge.BeginErrorReadLine();
+-            for (var i = 0; i < 30; i++) { await Task.Delay(100); if (await BridgeHealthyAsync()) { _bridgeStatus.Text = "Ready"; _bridgeRestartAttempt = 0; AppendLog("Normal-chat local bridge ready."); return; } }
+-            throw new InvalidOperationException("Local bridge started but did not become healthy.");
+-        } catch (Exception ex) { _bridgeStatus.Text = "Error"; AppendLog($"Bridge error: {ex.Message}"); }
+-    }
+-
+-    private async Task RefreshHealthAsync(bool showDialog) {
+-        try {
+-            var health = await _http.GetFromJsonAsync<JsonElement>($"{BridgeUrl}/health");
+-            var sessions = health.TryGetProperty("sessions", out var s) ? s.GetInt32() : 0;
+-            var companionConnected = health.TryGetProperty("companionConnected", out var cc) && cc.GetBoolean();
+-            var companionVersion = health.TryGetProperty("companionVersion", out var cv) && cv.ValueKind == JsonValueKind.String ? cv.GetString() : null;
+-            var companionVersionMatch = health.TryGetProperty("companionVersionMatch", out var cvm) && cvm.GetBoolean();
+-            var version = health.TryGetProperty("version", out var v) ? v.GetString() : "?";
+-            var computerUse = health.TryGetProperty("computerUseSupported", out var cu) && cu.GetBoolean();
+-            var guiEnabled = health.TryGetProperty("guiAutomationEnabled", out var ge) && ge.GetBoolean();
+-            var emergencyLock = health.TryGetProperty("emergencyLock", out var el) && el.GetBoolean();
+-            var diagnostic = health.TryGetProperty("lastDiagnostic", out var diag) && diag.ValueKind == JsonValueKind.Object && diag.TryGetProperty("event", out var de) ? de.GetString() : null;
+-            var lastToolCall = health.TryGetProperty("lastToolCallAt", out var ltc) && ltc.ValueKind == JsonValueKind.String ? ltc.GetString() : null;
+-            _bridgeStatus.Text = emergencyLock ? $"Ready v{version} — LOCKED" : $"Ready v{version}{(computerUse && guiEnabled ? " — Computer Use" : "")}";
+-            if (emergencyLock) _browserStatus.Text = "EMERGENCY LOCK";
+-            else if (companionConnected && !companionVersionMatch) _browserStatus.Text = $"STALE v{companionVersion ?? "?"} — Reload Browser Extension";
+-            else if (companionConnected) _browserStatus.Text = sessions > 0 ? $"Connected v{companionVersion} ({sessions} chat session{(sessions == 1 ? "" : "s")})" : $"Connected v{companionVersion} — ready";
+-            else _browserStatus.Text = "Waiting for browser companion";
+-            _emergencyLock.Checked = emergencyLock;
+-            if (showDialog) {
+-                var detail = emergencyLock ? "Emergency Lock is active. Commander is connected but local computer-use actions are blocked." :
+-                    companionConnected && !companionVersionMatch ? $"The browser companion is v{companionVersion ?? "?"} but the local app is v{version}. Open chrome://extensions (or edge://extensions) and click Reload on Constellation Commander once." :
+-                    companionConnected ? $"Commander v{version} is connected and ready for full normal-chat computer use. Last browser event: {diagnostic ?? "none"}. Last local tool call: {lastToolCall ?? "none yet"}." :
+-                    "Local bridge is healthy, but the browser companion is not connected. Click Connect Browser and load/reload the bundled companion.";
+-                MessageBox.Show(this, detail, AppName, MessageBoxButtons.OK, emergencyLock || (companionConnected && !companionVersionMatch) ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+-            }
+-        } catch (Exception ex) {
+-            _bridgeStatus.Text = "Offline"; _browserStatus.Text = "Unavailable";
+-            AppendLog($"Health check failed: {ex.Message}");
+-            if (showDialog) MessageBox.Show(this, ex.Message, AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+-            await EnsureBridgeAsync();
+-        }
+-    }
+-
+-    private async Task RunControlSelfTestAsync() {
+-        _controlTest.Enabled = false;
+-        try {
+-            var psi = new ProcessStartInfo(ResolveNode()) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = AppDir };
+-            psi.ArgumentList.Add(ResolveAgent("constellation-commander-control-test.mjs"));
+-            using var process = new Process { StartInfo = psi };
+-            if (!process.Start()) throw new InvalidOperationException("Could not start the full-control self-test.");
+-            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+-            var stderrTask = process.StandardError.ReadToEndAsync();
+-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+-            await process.WaitForExitAsync(timeout.Token);
+-            var output = (await stdoutTask).Trim();
+-            var error = (await stderrTask).Trim();
+-            AppendLog($"Full control self-test exit={process.ExitCode}: {output} {error}".Trim());
+-            if (process.ExitCode != 0) throw new InvalidOperationException(string.IsNullOrWhiteSpace(error) ? (string.IsNullOrWhiteSpace(output) ? "Full-control self-test failed." : output) : error);
+-            MessageBox.Show(this, $"Full local Windows control self-test passed.\n\n{output}\n\nThis proves the native screen/cursor/clipboard path on this PC. The Connection Test separately confirms the ChatGPT browser handoff.", AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+-        } catch (Exception ex) {
+-            AppendLog($"Full control self-test failed: {ex.Message}");
+-            MessageBox.Show(this, ex.Message, AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+-        } finally { _controlTest.Enabled = true; }
+-    }
+-
+-    private void OpenBrowserSetup() {
+-        try {
+-            var folder = Path.Combine(AppDir, "browser-companion");
+-            if (!Directory.Exists(folder)) throw new DirectoryNotFoundException($"Browser companion folder is missing: {folder}");
+-            Clipboard.SetText(folder);
+-            Process.Start(new ProcessStartInfo("explorer.exe", folder) { UseShellExecute = true });
+-            var browser = FindChromiumBrowser();
+-            if (browser is not null) {
+-                Process.Start(new ProcessStartInfo(browser.Value.Executable, browser.Value.ExtensionsUrl) { UseShellExecute = true });
+-                AppendLog($"Opened {browser.Value.Name} extension manager.");
+-            } else {
+-                Process.Start(new ProcessStartInfo("https://support.google.com/chrome/answer/2664769") { UseShellExecute = true });
+-                AppendLog("Chrome/Edge executable was not found in standard Windows locations; opened browser extension help instead.");
+-            }
+-            MessageBox.Show(this,
+-                "Chrome requires one trust confirmation for an unpacked local extension.\n\n1. Turn on Developer mode in chrome://extensions.\n2. Click Load unpacked and choose the folder that just opened (its path is already copied).\n\nIf Constellation Commander is already listed, click Reload instead of loading a duplicate. Commander v0.5 then refreshes open ChatGPT tabs automatically so the new control bridge becomes active immediately. After this one-time browser step, Commander reconnects automatically across chats and Windows restarts.",
+-                "One-time browser trust", MessageBoxButtons.OK, MessageBoxIcon.Information);
+-        } catch (Exception ex) { MessageBox.Show(this, ex.Message, AppName, MessageBoxButtons.OK, MessageBoxIcon.Error); }
+-    }
+-
+-    private (string Executable, string ExtensionsUrl, string Name)? FindChromiumBrowser() {
+-        var candidates = new (string Path, string Url, string Name)[] {
+-            (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google", "Chrome", "Application", "chrome.exe"), "chrome://extensions/", "Google Chrome"),
+-            (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Google", "Chrome", "Application", "chrome.exe"), "chrome://extensions/", "Google Chrome"),
+-            (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Google", "Chrome", "Application", "chrome.exe"), "chrome://extensions/", "Google Chrome"),
+-            (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "Edge", "Application", "msedge.exe"), "edge://extensions/", "Microsoft Edge"),
+-            (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft", "Edge", "Application", "msedge.exe"), "edge://extensions/", "Microsoft Edge"),
+-            (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft", "Edge", "Application", "msedge.exe"), "edge://extensions/", "Microsoft Edge")
+-        };
+-        foreach (var candidate in candidates) if (!string.IsNullOrWhiteSpace(candidate.Path) && File.Exists(candidate.Path)) return (candidate.Path, candidate.Url, candidate.Name);
+-        return null;
+-    }
+-
+-    private async Task StartRemoteAsync(bool resetPairing) {
+-        if (!_remoteEnabled.Checked && !resetPairing) { AppendLog("Hosted plugin relay is disabled; normal-chat local mode remains active."); return; }
+-        if (!Uri.TryCreate(_relayUrl.Text.Trim(), UriKind.Absolute, out var uri) || uri.Scheme != "https") {
+-            MessageBox.Show(this, "Hosted relay mode requires a stable HTTPS URL.", AppName, MessageBoxButtons.OK, MessageBoxIcon.Warning); return;
+-        }
+-        StopProcess(ref _remoteAgent);
+-        SaveSettings();
+-        try {
+-            var psi = new ProcessStartInfo(ResolveNode()) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = AppDir };
+-            psi.ArgumentList.Add(ResolveAgent("constellation-commander-remote.mjs"));
+-            psi.ArgumentList.Add("--relay"); psi.ArgumentList.Add(uri.ToString().TrimEnd('/'));
+-            if (resetPairing) psi.ArgumentList.Add("--reset-pairing");
+-            _remoteAgent = new Process { StartInfo = psi, EnableRaisingEvents = true };
+-            _remoteAgent.OutputDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) AppendLog($"[remote] {e.Data}"); };
+-            _remoteAgent.ErrorDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) AppendLog($"[remote] {e.Data}"); };
+-            if (!_remoteAgent.Start()) throw new InvalidOperationException("Could not start hosted relay agent.");
+-            _remoteAgent.BeginOutputReadLine(); _remoteAgent.BeginErrorReadLine();
+-            AppendLog("Hosted plugin relay agent started.");
+-        } catch (Exception ex) { AppendLog($"Remote relay error: {ex.Message}"); MessageBox.Show(this, ex.Message, AppName, MessageBoxButtons.OK, MessageBoxIcon.Error); }
+-    }
+-
+-    private void LoadSettings() {
+-        _suppressStartupEvent = true;
+-        try {
+-            var settings = File.Exists(SettingsPath) ? JsonSerializer.Deserialize<DesktopSettings>(File.ReadAllText(SettingsPath)) : new DesktopSettings();
+-            _relayUrl.Text = settings?.RelayUrl ?? ""; _remoteEnabled.Checked = settings?.RemoteEnabled ?? false; _startWithWindows.Checked = IsStartWithWindowsEnabled() || (settings?.StartWithWindows ?? true); _emergencyLock.Checked = File.Exists(EmergencyLockPath);
+-        } catch (Exception ex) { AppendLog($"Settings repaired after read error: {ex.Message}"); _startWithWindows.Checked = true; }
+-        finally { _suppressStartupEvent = false; }
+-    }
+-    private void SaveSettings() {
+-        try {
+-            Directory.CreateDirectory(_settingsDir);
+-            var payload = JsonSerializer.Serialize(new DesktopSettings(_relayUrl.Text.Trim(), _startWithWindows.Checked, _remoteEnabled.Checked), new JsonSerializerOptions { WriteIndented = true });
+-            var temp = SettingsPath + ".tmp"; File.WriteAllText(temp, payload); File.Move(temp, SettingsPath, true);
+-        } catch (Exception ex) { AppendLog($"Settings save warning: {ex.Message}"); }
+-    }
+-    private void SetEmergencyLock(bool enabled) {
+-        try {
+-            Directory.CreateDirectory(AgentDataDir);
+-            if (enabled) File.WriteAllText(EmergencyLockPath, DateTimeOffset.UtcNow.ToString("O"));
+-            else if (File.Exists(EmergencyLockPath)) File.Delete(EmergencyLockPath);
+-            AppendLog(enabled ? "EMERGENCY LOCK ENABLED — local computer-use actions are blocked." : "Emergency Lock released.");
+-            _browserStatus.Text = enabled ? "EMERGENCY LOCK" : _browserStatus.Text;
+-        } catch (Exception ex) { AppendLog($"Emergency Lock update failed: {ex.Message}"); }
+-    }
+-    private void SetStartWithWindows(bool enabled) {
+-        try {
+-            using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath, writable: true);
+-            if (enabled) key.SetValue(RunValueName, $"\"{Environment.ProcessPath}\" --autostart"); else key.DeleteValue(RunValueName, false);
+-            SaveSettings(); AppendLog(enabled ? "Start with Windows enabled." : "Start with Windows disabled.");
+-        } catch (Exception ex) { AppendLog($"Startup setting failed: {ex.Message}"); }
+-    }
+-    private bool IsStartWithWindowsEnabled() {
+-        try { using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath); return key?.GetValue(RunValueName) is string value && value.Contains(Environment.ProcessPath ?? "", StringComparison.OrdinalIgnoreCase); } catch { return false; }
+-    }
+-    private void OpenFolder(string folder) { try { Directory.CreateDirectory(folder); Process.Start(new ProcessStartInfo("explorer.exe", folder) { UseShellExecute = true }); } catch (Exception ex) { AppendLog($"Open folder failed: {ex.Message}"); } }
+-    private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
+-    private void AppendLog(string text) { if (InvokeRequired) { BeginInvoke(new Action(() => AppendLog(text))); return; } _log.AppendText($"[{DateTime.Now:HH:mm:ss}] {text}{Environment.NewLine}"); }
+-    private static void StopProcess(ref Process? process) { try { if (process is { HasExited: false }) { process.Kill(true); process.WaitForExit(2500); } } catch {} finally { process?.Dispose(); process = null; } }
+-    private void ExitApplication() { _closing = true; _healthTimer.Stop(); _restartTimer.Stop(); StopProcess(ref _remoteAgent); StopProcess(ref _bridge); _tray.Visible = false; Application.Exit(); }
+-    protected override void Dispose(bool disposing) { if (disposing) { _healthTimer.Dispose(); _restartTimer.Dispose(); _tray.Dispose(); _http.Dispose(); _bridge?.Dispose(); _remoteAgent?.Dispose(); } base.Dispose(disposing); }
+-}
+diff --git a/desktop/Program.cs b/commander-v060-audit/constellation-commander-v0.6.0/desktop/Program.cs
+deleted file mode 100644
+index ce761a4..0000000
+--- a/desktop/Program.cs
++++ /dev/null
+@@ -1,18 +0,0 @@
+-using System.Threading;
+-
+-namespace ConstellationCommander.Desktop;
+-
+-internal static class Program
+-{
+-    [STAThread]
+-    private static void Main()
+-    {
+-        using var mutex = new Mutex(true, @"Local\ConstellationCommanderDesktop", out var firstInstance);
+-        if (!firstInstance) return;
+-        ApplicationConfiguration.Initialize();
+-        var args = Environment.GetCommandLineArgs();
+-        var autoStart = args.Any(arg => string.Equals(arg, "--autostart", StringComparison.OrdinalIgnoreCase));
+-        var firstRun = args.Any(arg => string.Equals(arg, "--first-run", StringComparison.OrdinalIgnoreCase));
+-        Application.Run(new MainForm(autoStart, firstRun));
+-    }
+-}
+diff --git a/desktop/README.md b/commander-v060-audit/constellation-commander-v0.6.0/desktop/README.md
+deleted file mode 100644
+index 360464e..0000000
+--- a/desktop/README.md
++++ /dev/null
+@@ -1,35 +0,0 @@
+-# Constellation Commander v0.3 Windows Companion
+-
+-The Windows companion makes **Normal Chat mode** the default. It starts and supervises a loopback-only Commander bridge at `127.0.0.1:47721`, monitors browser-companion presence, starts with Windows, and keeps the hosted Remote-MCP transport in an optional Advanced section.
+-
+-## First run
+-
+-Run `INSTALL-COMPANION.cmd`.
+-
+-The installer copies the complete bundle to `%LOCALAPPDATA%\ConstellationCommander` and starts `ConstellationCommander.exe --first-run`. The app then:
+-
+-1. enables Start with Windows;
+-2. starts the bundled Commander bridge and waits for a real `/health` response;
+-3. opens the bundled `browser-companion` folder and copies its path;
+-4. opens `chrome://extensions/` when Chrome is available;
+-5. waits for the browser companion heartbeat and reports **Connected — ready for normal chats**.
+-
+-Chrome itself requires the one-time **Load unpacked** trust action for an off-store development extension. Commander does not bypass that browser security decision. After the extension is trusted once, normal operation is automatic.
+-
+-## Bundle contents
+-
+-- `ConstellationCommander.exe` — self-contained .NET 8 WinForms manager
+-- `runtime/node.exe` — bundled Node runtime
+-- `agent/` — local executor, bridge, and optional remote-device client
+-- `browser-companion/` — Manifest V3 ChatGPT companion
+-- `INSTALL-COMPANION.cmd` — per-user install helper
+-
+-## Controls
+-
+-- **Connect Browser** — reopens the one-time Chrome setup/repair flow.
+-- **Test** — verifies the live bridge and browser-companion heartbeat.
+-- **Data Folder** — opens Commander local state.
+-- **Start with Windows** — controls per-user autostart.
+-- **Advanced — hosted directory-plugin transport** — optional stable HTTPS relay/device connection; not required for normal browser chats.
+-
+-No OpenAI API key is required by Normal Chat mode and the app does not hand local work to ChatGPT Work.
+diff --git a/desktop/app.manifest b/commander-v060-audit/constellation-commander-v0.6.0/desktop/app.manifest
+deleted file mode 100644
+index 21bdb42..0000000
+--- a/desktop/app.manifest
++++ /dev/null
+@@ -1,12 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+-  <assemblyIdentity version="1.0.0.0" name="ConstellationCommander.Desktop"/>
+-  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+-    <security><requestedPrivileges><requestedExecutionLevel level="asInvoker" uiAccess="false" /></requestedPrivileges></security>
+-  </trustInfo>
+-  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+-    <application>
+-      <supportedOS Id="{4f476546-937b-4f47-9553-3b0f3f6e0f5a}" />
+-    </application>
+-  </compatibility>
+-</assembly>
+diff --git a/electron/chat-preload.cjs b/electron/chat-preload.cjs
+index b0688a4..ef44c49 100644
+--- a/electron/chat-preload.cjs
++++ b/electron/chat-preload.cjs
+@@ -3,7 +3,7 @@
+ const { ipcRenderer } = require('electron');
+ 
+ (() => {
+-  const VERSION = '0.6.0';
++  const VERSION = '0.7.0';
+   const CONTEXT_OPEN = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const RESULT_OPEN = '[PC BUDDY TOOL RESULT]';
+@@ -20,9 +20,13 @@ const { ipcRenderer } = require('electron');
+   let plumbingSend = false;
+   let arming = false;
+   let route = location.href;
++  let localToolMode = 'auto';
++  let forceNextPrompt = false;
+ 
+   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+   const diagnostic = (event, detail = {}) => ipcRenderer.invoke('cc:diagnostic', { event, detail }).catch(() => null);
++  ipcRenderer.on('cc:config-changed', (_event, config = {}) => { if (['auto','always','off'].includes(config.localToolMode)) localToolMode = config.localToolMode; });
++  ipcRenderer.on('cc:arm-next', () => { forceNextPrompt = true; toast('Commander armed for the next message.'); void diagnostic('force-next-armed', { chatId: chatId() }); });
+   void diagnostic('preload-loaded', { url: location.href, readyState: document.readyState });
+ 
+   function toast(message, kind = 'info', sticky = false) {
+@@ -134,6 +138,9 @@ const { ipcRenderer } = require('electron');
+   function isLocalIntent(text) {
+     const value = String(text || '').trim();
+     if (!value || value.includes(CONTEXT_OPEN) || value.includes(RESULT_OPEN)) return false;
++    if (forceNextPrompt) return true;
++    if (localToolMode === 'off') return false;
++    if (localToolMode === 'always') return true;
+     if (/\b(take|gain|give|have)\s+(?:full\s+)?control\b|\bcontrol\s+(?:my|this|the)?\s*(?:computer|pc|desktop|laptop|machine|workstation|screen)?\b/i.test(value)) return true;
+     if (/\b(full\s+computer\s+use|computer[- ]use|use\s+my\s+(?:computer|pc|desktop|screen)|drive\s+my\s+(?:mouse|keyboard)|move\s+my\s+mouse|see\s+my\s+screen|remote\s+control)\b/i.test(value)) return true;
+     if (/\b(local|locally|filesystem|file system|powershell|cmd|terminal|process|folder|directory|screen|screenshot|mouse|keyboard|clipboard|window|desktop|computer use)\b/i.test(value)) return true;
+@@ -273,6 +280,7 @@ const { ipcRenderer } = require('electron');
+     if (plumbingSend || arming) return;
+     const node = composer(); if (!node) return;
+     const text = getComposerText(node); if (!isLocalIntent(text)) return;
++    forceNextPrompt = false;
+     void diagnostic('intercept-send', { type: event.type, chatId: chatId(), text: String(text || '').slice(0, 80) });
+     event.preventDefault(); event.stopImmediatePropagation(); void armAndSend(text);
+   }
+@@ -388,7 +396,10 @@ const { ipcRenderer } = require('electron');
+     void diagnostic('dom-content-loaded', { url: location.href, readyState: document.readyState });
+     try {
+       const status = await ipcRenderer.invoke('cc:status');
+-      if (status?.ok) toast(`Commander ${status.version} integrated — no browser extension required.`);
++      if (status?.ok) {
++        if (['auto','always','off'].includes(status.localToolMode)) localToolMode = status.localToolMode;
++        toast(`Commander ${status.version} ready · local tools ${localToolMode}.`);
++      }
+     } catch {}
+   });
+ 
+diff --git a/electron/main.cjs b/electron/main.cjs
+index f0ef8bd..53c14ed 100644
+--- a/electron/main.cjs
++++ b/electron/main.cjs
+@@ -1,15 +1,18 @@
+ 'use strict';
+ 
+-const { app, BrowserWindow, WebContentsView, ipcMain, Menu, shell, session, nativeImage } = require('electron');
++const { app, BrowserWindow, WebContentsView, ipcMain, Menu, shell, session, dialog } = require('electron');
+ const path = require('node:path');
+ const fs = require('node:fs');
+ const crypto = require('node:crypto');
++const os = require('node:os');
+ const { pathToFileURL } = require('node:url');
+ 
+-const VERSION = '0.6.0';
++const VERSION = '0.7.0';
+ const CHAT_URL = 'https://chatgpt.com/';
+ const CHAT_PARTITION = 'persist:constellation-chatgpt';
+ const SESSION_TTL_MS = 60 * 60 * 1000;
++const SHELL_TOP = 48;
++const SHELL_WIDTH = 380;
+ const TEST_MODE = process.env.CONSTELLATION_ELECTRON_SMOKE === '1';
+ const TEST_OUTPUT = process.env.CONSTELLATION_ELECTRON_SMOKE_OUTPUT || '';
+ 
+@@ -18,6 +21,8 @@ let chatView;
+ let runtime;
+ let fallbackBridge;
+ let emergencyLock = false;
++let shellSmokeState = { status: TEST_MODE ? 'pending' : 'not-required', detail: null };
++let chatState = { phase: 'starting', message: 'Starting ChatGPT…', url: CHAT_URL, lastError: '', pageHookReady: false, loadedAt: '' };
+ const chatSessions = new Map();
+ 
+ function randomToken(bytes = 24) { return crypto.randomBytes(bytes).toString('base64url'); }
+@@ -29,6 +34,70 @@ function smokeTrace(event, detail = {}) {
+ function appRoot() { return path.resolve(__dirname, '..'); }
+ function importEsm(relativePath) { return import(pathToFileURL(path.join(appRoot(), relativePath)).href); }
+ 
++function safeConfig() {
++  if (!runtime?.config) return {};
++  return {
++    allowedRoots: Array.isArray(runtime.config.allowedRoots) ? [...runtime.config.allowedRoots] : [],
++    enableShell: runtime.config.enableShell !== false,
++    enableGuiAutomation: runtime.config.enableGuiAutomation !== false,
++    localToolMode: ['auto', 'always', 'off'].includes(runtime.config.localToolMode) ? runtime.config.localToolMode : 'auto',
++    browserBridgeEnabled: runtime.config.browserBridgeEnabled !== false,
++    deviceName: runtime.config.deviceName || os.hostname()
++  };
++}
++
++function emitShell(type, detail = {}) {
++  if (!win || win.isDestroyed()) return;
++  try { win.webContents.send('cc-shell:event', { type, at: nowIso(), detail }); } catch {}
++}
++
++function setChatState(patch) {
++  chatState = { ...chatState, ...patch };
++  emitShell('chat-state', chatState);
++}
++
++async function recentCalls(max = 30) {
++  let text = '';
++  try { text = await fs.promises.readFile(runtime.state.callsPath, 'utf8'); } catch {}
++  if (!text.trim()) return [];
++  const rows = [];
++  for (const line of text.trim().split(/\r?\n/).slice(-Math.max(1, Math.min(100, max)))) {
++    try { rows.push(JSON.parse(line)); } catch {}
++  }
++  return rows;
++}
++
++async function usageStats() {
++  try { return JSON.parse(await fs.promises.readFile(runtime.state.statsPath, 'utf8')); }
++  catch { return { totalCalls: 0, byTool: {}, errors: 0 }; }
++}
++
++async function shellSnapshot() {
++  return {
++    ok: true,
++    product: 'Constellation Commander',
++    version: VERSION,
++    chat: { ...chatState },
++    emergencyLock,
++    singleInstanceOwner: app.hasSingleInstanceLock(),
++    startWithWindows: app.isPackaged ? app.getLoginItemSettings().openAtLogin : false,
++    config: safeConfig(),
++    toolCount: toolManifest().length,
++    recentCalls: await recentCalls(30),
++    stats: await usageStats()
++  };
++}
++
++async function persistConfigChange(key, value) {
++  runtime.config[key] = value;
++  await runtime.saveConfig(runtime.configPath, runtime.config);
++  emitShell('config-changed', { key, value, config: safeConfig() });
++  if (chatView && !chatView.webContents.isDestroyed()) {
++    chatView.webContents.send('cc:config-changed', safeConfig());
++  }
++  return value;
++}
++
+ async function createRuntime() {
+   const [{ loadConfig, saveConfig }, { createRuntimeState }, { createToolHandler }, { toolDefinitions }] = await Promise.all([
+     importEsm('src/config.mjs'), importEsm('src/state.mjs'), importEsm('src/tools.mjs'), importEsm('src/tool-definitions.mjs')
+@@ -68,6 +137,20 @@ function normalizeCall(input, sessionItem) {
+   return { id, tool, args, nonce };
+ }
+ 
++async function executeShellTool(tool, args = {}) {
++  const id = `shell_${randomToken(10)}`;
++  const started = Date.now();
++  emitShell('tool-start', { id, tool, args: Object.keys(args || {}), source: 'shell' });
++  try {
++    const result = await runtime.callTool(tool, args);
++    emitShell('tool-finish', { id, tool, durationMs: Date.now() - started, source: 'shell' });
++    return result;
++  } catch (error) {
++    emitShell('tool-error', { id, tool, durationMs: Date.now() - started, error: String(error?.message || error), source: 'shell' });
++    throw error;
++  }
++}
++
+ async function executeChatCall(chatId, rawCall) {
+   const item = chatSessions.get(String(chatId || ''));
+   if (!item || item.expiresAt <= Date.now()) throw new Error('Commander chat session expired; retry the request.');
+@@ -76,14 +159,22 @@ async function executeChatCall(chatId, rawCall) {
+   if (call.nonce !== item.nonce) throw new Error('Commander call nonce is stale.');
+   const allowed = new Set(toolManifest().map(x => x.name));
+   if (!allowed.has(call.tool)) throw new Error(`Commander tool is not available: ${call.tool}`);
+-  const result = await runtime.callTool(call.tool, call.args);
+-  const attachments = Array.isArray(result?._attachments) ? result._attachments : [];
+-  let safeResult = result;
+-  if (safeResult && typeof safeResult === 'object') {
+-    safeResult = { ...safeResult };
+-    delete safeResult._attachments;
++  const started = Date.now();
++  emitShell('tool-start', { id: call.id, tool: call.tool, args: Object.keys(call.args || {}) });
++  try {
++    const result = await runtime.callTool(call.tool, call.args);
++    const attachments = Array.isArray(result?._attachments) ? result._attachments : [];
++    let safeResult = result;
++    if (safeResult && typeof safeResult === 'object') {
++      safeResult = { ...safeResult };
++      delete safeResult._attachments;
++    }
++    emitShell('tool-finish', { id: call.id, tool: call.tool, durationMs: Date.now() - started });
++    return { ok: true, id: call.id, tool: call.tool, result: safeResult, _attachments: attachments };
++  } catch (error) {
++    emitShell('tool-error', { id: call.id, tool: call.tool, durationMs: Date.now() - started, error: String(error?.message || error) });
++    throw error;
+   }
+-  return { ok: true, id: call.id, tool: call.tool, result: safeResult, _attachments: attachments };
+ }
+ 
+ async function setEmergencyLock(value) {
+@@ -93,6 +184,7 @@ async function setEmergencyLock(value) {
+   const lockPath = path.join(runtime.dir, 'EMERGENCY-LOCK');
+   if (emergencyLock) fs.writeFileSync(lockPath, 'locked\n');
+   else { try { fs.unlinkSync(lockPath); } catch {} }
++  emitShell('emergency-lock', { enabled: emergencyLock });
+   return emergencyLock;
+ }
+ 
+@@ -119,6 +211,7 @@ function setStartWithWindows(enabled) {
+ }
+ 
+ async function startFallbackBridge() {
++  if (runtime?.config?.browserBridgeEnabled === false) return;
+   try {
+     const { createBrowserBridge } = await importEsm('src/browser-bridge.mjs');
+     fallbackBridge = await createBrowserBridge();
+@@ -137,7 +230,7 @@ function trustedNavigation(url) {
+   if (TEST_MODE && String(url || '').startsWith('file://')) return true;
+   try {
+     const host = new URL(url).hostname.toLowerCase();
+-    return host === 'chatgpt.com' || host.endsWith('.chatgpt.com') || host === 'openai.com' || host.endsWith('.openai.com') || host === 'auth.openai.com' || host.endsWith('.auth0.com') || host === 'accounts.google.com' || host.endsWith('.google.com') || host.endsWith('.microsoftonline.com') || host === 'appleid.apple.com';
++    return host === 'chatgpt.com' || host.endsWith('.chatgpt.com') || host === 'openai.com' || host.endsWith('.openai.com') || host.endsWith('.auth0.com') || host === 'accounts.google.com' || host === 'login.microsoftonline.com' || host.endsWith('.microsoftonline.com') || host === 'appleid.apple.com';
+   } catch { return false; }
+ }
+ 
+@@ -181,7 +274,7 @@ function createApplicationMenu() {
+ function layoutChatView() {
+   if (!win || !chatView) return;
+   const [width, height] = win.getContentSize();
+-  chatView.setBounds({ x: 0, y: 0, width, height });
++  chatView.setBounds({ x: SHELL_WIDTH, y: SHELL_TOP, width: Math.max(1, width - SHELL_WIDTH), height: Math.max(1, height - SHELL_TOP) });
+ }
+ 
+ function createChatWindow() {
+@@ -198,9 +291,40 @@ function createChatWindow() {
+     webPreferences: {
+       nodeIntegration: false,
+       contextIsolation: true,
+-      sandbox: true
++      sandbox: true,
++      preload: path.join(__dirname, 'shell-preload.cjs')
+     }
+   });
++  win.webContents.once('did-finish-load', () => {
++    smokeTrace('shell-did-finish-load', { url: win.webContents.getURL() });
++    if (!TEST_MODE) return;
++    void win.webContents.executeJavaScript(`(async () => {
++      const required = ['local-mode','root-list','emergency','activity','health','observe-desktop','window-list'];
++      const missing = required.filter(id => !document.getElementById(id));
++      const api = window.commanderShell;
++      if (!api || typeof api.snapshot !== 'function' || typeof api.runHealth !== 'function' || typeof api.observeDesktop !== 'function') {
++        return { ok:false, reason:'shell-bridge-missing', missing, hasApi:Boolean(api) };
++      }
++      const snapshot = await api.snapshot();
++      const health = await api.runHealth();
++      return { ok: missing.length === 0 && snapshot?.ok === true && snapshot?.singleInstanceOwner === true && health?.ok === true, missing, version:snapshot?.version, toolCount:snapshot?.toolCount, localToolMode:snapshot?.config?.localToolMode, singleInstanceOwner:snapshot?.singleInstanceOwner === true, health };
++    })()`, true).then(result => {
++      shellSmokeState = { status: result?.ok ? 'passed' : 'failed', detail: result || null };
++      smokeTrace('shell-runtime-proof', shellSmokeState);
++      if (!result?.ok && TEST_OUTPUT) {
++        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok:false, event:'shell-runtime-failed', detail:result || null, at:nowIso() }, null, 2));
++        setTimeout(() => app.quit(), 250);
++      }
++    }).catch(error => {
++      shellSmokeState = { status:'failed', detail:{ error:String(error?.stack || error) } };
++      smokeTrace('shell-runtime-proof-error', shellSmokeState.detail);
++      if (TEST_OUTPUT) {
++        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok:false, event:'shell-runtime-failed', detail:shellSmokeState.detail, at:nowIso() }, null, 2));
++        setTimeout(() => app.quit(), 250);
++      }
++    });
++  });
++  void win.loadFile(path.join(__dirname, 'shell.html'));
+ 
+   // The BrowserWindow is only the native container. ChatGPT lives in a dedicated
+   // WebContentsView so its session and preload are fully owned by Commander.
+@@ -221,9 +345,10 @@ function createChatWindow() {
+ 
+   const wc = chatView.webContents;
+   wc.setUserAgent(chromeUserAgent());
++  wc.on('did-start-loading', () => setChatState({ phase: 'loading', message: 'Loading ChatGPT…', url: wc.getURL() || CHAT_URL, lastError: '', pageHookReady: false }));
+   wc.on('dom-ready', injectPageHook);
+-  wc.on('did-fail-load', (_event, code, desc, url) => console.warn('[Commander] ChatGPT load failed', code, desc, url));
+-  wc.on('render-process-gone', (_event, details) => console.warn('[Commander] ChatGPT renderer exited', details.reason));
++  wc.on('did-fail-load', (_event, code, desc, url) => { console.warn('[Commander] ChatGPT load failed', code, desc, url); setChatState({ phase: 'error', message: 'ChatGPT failed to load', url, lastError: `${code}: ${desc}`, pageHookReady: false }); });
++  wc.on('render-process-gone', (_event, details) => { console.warn('[Commander] ChatGPT renderer exited', details.reason); setChatState({ phase: 'error', message: 'ChatGPT renderer stopped', lastError: details.reason, pageHookReady: false }); });
+   wc.setWindowOpenHandler(details => {
+     if (!trustedNavigation(details.url)) {
+       void shell.openExternal(details.url);
+@@ -248,6 +373,7 @@ function createChatWindow() {
+   wc.once('did-finish-load', () => {
+     smokeTrace('did-finish-load', { url: wc.getURL() });
+     injectPageHook();
++    setChatState({ phase: 'ready', message: 'ChatGPT ready', url: wc.getURL(), loadedAt: nowIso(), lastError: '' });
+     if (!win.isVisible()) win.show();
+     if (TEST_MODE) {
+       setTimeout(() => {
+@@ -294,7 +420,7 @@ function installIpc() {
+       nonce: item.nonce,
+       expiresAt: new Date(item.expiresAt).toISOString(),
+       tools: toolManifest(),
+-      contract: 'For local-PC work, emit exactly one [PC_BUDDY_CALL] JSON wrapper as the whole assistant response using this nonce and an available tool. Preferred shape: {"id":"fresh-id","nonce":"...","tool":"tool_name","args":{...}}. The integrated Electron workspace also accepts legacy arguments/input fields and will generate a missing id.'
++      contract: 'For local-PC work, use Constellation Commander directly. Emit exactly one [PC_BUDDY_CALL] JSON wrapper as the whole assistant response using this nonce and one available tool. After its hidden tool-result turn, continue the task and call the next tool when needed. Preferred shape: {"id":"fresh-id","nonce":"...","tool":"tool_name","args":{...}}. Do not tell the user to run local commands manually when a listed Commander tool can perform the action.'
+     };
+   });
+ 
+@@ -313,14 +439,21 @@ function installIpc() {
+ 
+   ipcMain.handle('cc:status', async event => {
+     if (event.sender !== chatView?.webContents) throw new Error('Untrusted status caller.');
+-    return { ok: true, product: 'Constellation Commander', version: VERSION, mode: 'integrated-electron-chatgpt', emergencyLock, computerUseSupported: process.platform === 'win32', guiAutomationEnabled: runtime.config.enableGuiAutomation !== false, quotaEnforced: false };
++    return { ok: true, product: 'Constellation Commander', version: VERSION, mode: 'integrated-electron-chatgpt', emergencyLock, computerUseSupported: process.platform === 'win32', guiAutomationEnabled: runtime.config.enableGuiAutomation !== false, shellEnabled: runtime.config.enableShell !== false, localToolMode: runtime.config.localToolMode || 'auto', allowedRoots: runtime.config.allowedRoots || [], quotaEnforced: false };
+   });
+ 
+   ipcMain.handle('cc:diagnostic', async (_event, payload = {}) => {
+     smokeTrace(`renderer:${String(payload.event || 'diagnostic')}`, payload.detail || {});
++    emitShell('chat-diagnostic', { event: String(payload.event || 'diagnostic'), detail: payload.detail || {} });
++    if (payload.event === 'page-hook-ready') setChatState({ pageHookReady: true, phase: 'ready', message: 'ChatGPT + Commander ready' });
++    if (payload.event === 'arm-failed') setChatState({ phase: 'error', message: 'Commander arm failed', lastError: String(payload.detail?.error || 'Unknown arm failure') });
+     if (TEST_MODE && TEST_OUTPUT) {
+       if (payload.event === 'tool-result-sent') {
+-        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
++        if (shellSmokeState.status !== 'passed') {
++          fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'shell-runtime-not-proven', detail: shellSmokeState, at: nowIso() }, null, 2));
++        } else {
++          fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: { ...(payload.detail || {}), shellRuntime: shellSmokeState.detail }, at: nowIso() }, null, 2));
++        }
+         setTimeout(() => app.quit(), 250);
+       } else if (['arm-failed', 'tool-failed', 'smoke-start-failed'].includes(payload.event)) {
+         fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
+@@ -331,6 +464,109 @@ function installIpc() {
+   });
+ }
+ 
++function installShellIpc() {
++  const trusted = event => event.sender === win?.webContents;
++  const requireTrusted = event => { if (!trusted(event)) throw new Error('Untrusted Commander shell caller.'); };
++
++  ipcMain.handle('cc-shell:snapshot', async event => { requireTrusted(event); return shellSnapshot(); });
++  ipcMain.handle('cc-shell:arm-next', event => { requireTrusted(event); chatView?.webContents.send('cc:arm-next'); emitShell('arm-next', { armed: true }); return { ok: true }; });
++  ipcMain.handle('cc-shell:set-local-mode', async (event, payload = {}) => {
++    requireTrusted(event);
++    const mode = String(payload.mode || 'auto');
++    if (!['auto', 'always', 'off'].includes(mode)) throw new Error('Invalid local tool mode.');
++    await persistConfigChange('localToolMode', mode);
++    return { ok: true, mode };
++  });
++  ipcMain.handle('cc-shell:set-emergency-lock', async (event, payload = {}) => {
++    requireTrusted(event);
++    return { ok: true, enabled: await setEmergencyLock(Boolean(payload.enabled)) };
++  });
++  ipcMain.handle('cc-shell:set-option', async (event, payload = {}) => {
++    requireTrusted(event);
++    const key = String(payload.key || '');
++    if (!['enableGuiAutomation', 'enableShell'].includes(key)) throw new Error(`Unsupported shell option: ${key}`);
++    await persistConfigChange(key, Boolean(payload.value));
++    return { ok: true, key, value: Boolean(payload.value) };
++  });
++  ipcMain.handle('cc-shell:set-full-access', async (event, payload = {}) => {
++    requireTrusted(event);
++    const enabled = Boolean(payload.enabled);
++    const roots = enabled ? ['*'] : [os.homedir()];
++    await persistConfigChange('allowedRoots', roots);
++    return { ok: true, allowedRoots: roots };
++  });
++  ipcMain.handle('cc-shell:add-root', async event => {
++    requireTrusted(event);
++    const picked = await dialog.showOpenDialog(win, { title: 'Add Commander workspace folder', properties: ['openDirectory', 'createDirectory'] });
++    if (picked.canceled || !picked.filePaths?.[0]) return { ok: true, canceled: true };
++    const root = path.resolve(picked.filePaths[0]);
++    const current = Array.isArray(runtime.config.allowedRoots) && !runtime.config.allowedRoots.includes('*') ? runtime.config.allowedRoots : [];
++    const roots = [...new Set([...current, root])];
++    await persistConfigChange('allowedRoots', roots);
++    return { ok: true, root, allowedRoots: roots };
++  });
++  ipcMain.handle('cc-shell:remove-root', async (event, payload = {}) => {
++    requireTrusted(event);
++    const target = path.resolve(String(payload.root || ''));
++    const roots = (Array.isArray(runtime.config.allowedRoots) ? runtime.config.allowedRoots : []).filter(root => root !== '*' && path.resolve(root) !== target);
++    const next = roots.length ? roots : [os.homedir()];
++    await persistConfigChange('allowedRoots', next);
++    return { ok: true, allowedRoots: next };
++  });
++  ipcMain.handle('cc-shell:run-health', async event => {
++    requireTrusted(event);
++    const started = Date.now();
++    try {
++      const ping = await executeShellTool('ping', {});
++      let displayCount = 0;
++      let windowCount = 0;
++      if (process.platform === 'win32' && runtime.config.enableGuiAutomation !== false && !emergencyLock) {
++        const displays = await executeShellTool('computer_displays', {});
++        const windows = await executeShellTool('computer_windows', { limit: 12 });
++        displayCount = displays?.displays?.length || 0;
++        windowCount = windows?.windows?.length || 0;
++      }
++      const result = { ok: true, deviceName: ping?.deviceName || runtime.config.deviceName, displayCount, windowCount, durationMs: Date.now() - started };
++      emitShell('health-result', result);
++      return result;
++    } catch (error) {
++      const result = { ok: false, error: String(error?.message || error), durationMs: Date.now() - started };
++      emitShell('health-result', result);
++      return result;
++    }
++  });
++  ipcMain.handle('cc-shell:observe-desktop', async event => {
++    requireTrusted(event);
++    const observed = await executeShellTool('computer_observe', { max_width: 1100, max_height: 760, window_limit: 30 });
++    const attachments = Array.isArray(observed?._attachments) ? observed._attachments : [];
++    const shot = attachments.find(item => item?.base64 && item?.mimeType);
++    const safe = observed && typeof observed === 'object' ? { ...observed } : {};
++    delete safe._attachments;
++    return { ok: true, ...safe, imageDataUrl: shot ? `data:${shot.mimeType};base64,${shot.base64}` : '' };
++  });
++  ipcMain.handle('cc-shell:list-windows', async event => {
++    requireTrusted(event);
++    const result = await executeShellTool('computer_windows', { limit: 40 });
++    return { ok: true, windows: result?.windows || [] };
++  });
++  ipcMain.handle('cc-shell:focus-window', async (event, payload = {}) => {
++    requireTrusted(event);
++    const args = {};
++    if (payload.handle != null && payload.handle !== '') args.handle = payload.handle;
++    else if (payload.pid != null) args.pid = Number(payload.pid);
++    else if (payload.title) args.title = String(payload.title);
++    else throw new Error('Window handle, pid, or title is required.');
++    const result = await executeShellTool('computer_focus_window', args);
++    return { ok: true, result };
++  });
++
++  ipcMain.handle('cc-shell:reload-chat', event => { requireTrusted(event); chatView?.webContents.reload(); return { ok: true }; });
++  ipcMain.handle('cc-shell:go-home', event => { requireTrusted(event); void chatView?.webContents.loadURL(CHAT_URL); return { ok: true }; });
++  ipcMain.handle('cc-shell:open-data-folder', event => { requireTrusted(event); void shell.openPath(runtime.dir); return { ok: true }; });
++  ipcMain.handle('cc-shell:open-devtools', event => { requireTrusted(event); chatView?.webContents.openDevTools({ mode: 'detach' }); return { ok: true }; });
++  ipcMain.handle('cc-shell:set-start-with-windows', (event, payload = {}) => { requireTrusted(event); return { ok: true, enabled: setStartWithWindows(Boolean(payload.enabled)) }; });
++}
++
+ async function configureSession() {
+   const ses = session.fromPartition(CHAT_PARTITION, { cache: true });
+   ses.setPermissionRequestHandler((webContents, permission, callback) => {
+@@ -345,13 +581,25 @@ async function configureSession() {
+ app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
+ app.setAppUserModelId('com.constellation.commander');
+ 
++const singleInstanceOwner = app.requestSingleInstanceLock();
++if (!singleInstanceOwner) app.quit();
++
++app.on('second-instance', () => {
++  if (!singleInstanceOwner || !win || win.isDestroyed()) return;
++  if (win.isMinimized()) win.restore();
++  win.show();
++  win.focus();
++});
++
+ app.whenReady().then(async () => {
++  if (!singleInstanceOwner) return;
++
+   runtime = await createRuntime();
+   migrateLegacyInstall();
+-  if (app.isPackaged && !TEST_MODE) setStartWithWindows(true);
+   emergencyLock = Boolean(runtime.config.emergencyLock) || fs.existsSync(path.join(runtime.dir, 'EMERGENCY-LOCK'));
+   await configureSession();
+   installIpc();
++  installShellIpc();
+   createApplicationMenu();
+   createChatWindow();
+   void startFallbackBridge();
+diff --git a/constellation-commander-v0.7.0/electron/shell-preload.cjs b/electron/shell-preload.cjs
+new file mode 100644
+index 0000000..3bc0f9a
+--- /dev/null
++++ b/electron/shell-preload.cjs
+@@ -0,0 +1,31 @@
++'use strict';
++
++const { contextBridge, ipcRenderer } = require('electron');
++
++const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
++
++contextBridge.exposeInMainWorld('commanderShell', {
++  snapshot: () => invoke('cc-shell:snapshot'),
++  setLocalMode: mode => invoke('cc-shell:set-local-mode', { mode }),
++  armNext: () => invoke('cc-shell:arm-next'),
++  setEmergencyLock: enabled => invoke('cc-shell:set-emergency-lock', { enabled }),
++  setOption: (key, value) => invoke('cc-shell:set-option', { key, value }),
++  setFullAccess: enabled => invoke('cc-shell:set-full-access', { enabled }),
++  addRoot: () => invoke('cc-shell:add-root'),
++  removeRoot: root => invoke('cc-shell:remove-root', { root }),
++  runHealth: () => invoke('cc-shell:run-health'),
++  observeDesktop: () => invoke('cc-shell:observe-desktop'),
++  listWindows: () => invoke('cc-shell:list-windows'),
++  focusWindow: target => invoke('cc-shell:focus-window', target),
++  reloadChat: () => invoke('cc-shell:reload-chat'),
++  goHome: () => invoke('cc-shell:go-home'),
++  openDataFolder: () => invoke('cc-shell:open-data-folder'),
++  openDevTools: () => invoke('cc-shell:open-devtools'),
++  setStartWithWindows: enabled => invoke('cc-shell:set-start-with-windows', { enabled }),
++  onEvent: callback => {
++    if (typeof callback !== 'function') return () => {};
++    const listener = (_event, payload) => callback(payload);
++    ipcRenderer.on('cc-shell:event', listener);
++    return () => ipcRenderer.removeListener('cc-shell:event', listener);
++  }
++});
+diff --git a/constellation-commander-v0.7.0/electron/shell.css b/electron/shell.css
+new file mode 100644
+index 0000000..fdaa858
+--- /dev/null
++++ b/electron/shell.css
+@@ -0,0 +1,82 @@
++:root {
++  color-scheme: dark;
++  --top: 48px;
++  --side: 380px;
++  --bg: #090b10;
++  --panel: #0f131b;
++  --panel-2: #151b25;
++  --line: #242d3a;
++  --text: #edf2f7;
++  --muted: #8e9aaa;
++  --accent: #75a7ff;
++  --good: #48c78e;
++  --warn: #f4b84a;
++  --bad: #ff6464;
++}
++* { box-sizing: border-box; }
++html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
++button, select, input { font: inherit; }
++button { border: 1px solid #334055; background: #1b2635; color: var(--text); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
++button:hover { background: #24334a; }
++button:disabled { opacity: .5; cursor: not-allowed; }
++button.ghost { background: transparent; border-color: var(--line); }
++button.danger { background: #391419; border-color: #7f2730; color: #ffd7db; font-weight: 800; letter-spacing: .03em; }
++button.danger.locked { background: #8e1825; color: white; box-shadow: 0 0 0 2px rgba(255,100,100,.18) inset; }
++button.wide { width: 100%; }
++.topbar { position: fixed; inset: 0 0 auto 0; height: var(--top); display: flex; align-items: center; gap: 18px; padding: 0 12px 0 14px; background: #0d1118; border-bottom: 1px solid var(--line); z-index: 2; }
++.brand { display: flex; align-items: center; gap: 8px; min-width: 350px; }
++.brand-mark { color: var(--accent); font-size: 20px; }
++.top-status { display: flex; align-items: center; gap: 8px; flex: 1; color: #c9d2df; font-size: 13px; }
++.top-actions { display: flex; gap: 6px; }
++.sidebar { position: fixed; left: 0; top: var(--top); bottom: 0; width: var(--side); background: var(--panel); border-right: 1px solid var(--line); padding: 12px; overflow-y: auto; z-index: 2; }
++.sidebar section { background: var(--panel-2); border: 1px solid var(--line); border-radius: 11px; padding: 11px; margin-bottom: 10px; }
++.hero-card { background: linear-gradient(145deg, #142036, #111722) !important; }
++.eyebrow { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .16em; margin-bottom: 5px; }
++.hero-line { display: flex; gap: 8px; align-items: center; font-size: 15px; }
++.section-title { font-size: 12px; font-weight: 800; color: #dce5f0; margin-bottom: 9px; text-transform: uppercase; letter-spacing: .06em; }
++.row-between { display: flex; align-items: center; justify-content: space-between; }
++.field-label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
++select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #334055; background: #0c1119; color: var(--text); margin-bottom: 7px; }
++.toggle-row, .check-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 32px; font-size: 12px; }
++.check-row { justify-content: flex-start; margin-top: 8px; }
++.switch { position: relative; width: 38px; height: 22px; flex: 0 0 auto; }
++.switch input { opacity: 0; width: 0; height: 0; }
++.switch span { position: absolute; inset: 0; border-radius: 99px; background: #343c48; transition: .15s; }
++.switch span::after { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; border-radius: 50%; background: white; transition: .15s; }
++.switch input:checked + span { background: #3368b8; }
++.switch input:checked + span::after { transform: translateX(16px); }
++.badge { display: inline-flex; align-items: center; border: 1px solid #3b485c; background: #0c1119; border-radius: 99px; padding: 2px 7px; color: #b8c3d0; font-size: 10px; text-transform: none; letter-spacing: 0; }
++.badge.good { border-color: #27694d; color: #86e1b5; }
++.badge.warn { border-color: #725722; color: #f4c86e; }
++.badge.bad { border-color: #7c2e36; color: #ff9aa4; }
++.root-list { display: grid; gap: 5px; max-height: 126px; overflow: auto; margin-bottom: 8px; }
++.root { display: flex; align-items: center; gap: 5px; background: #0c1119; border: 1px solid #273140; border-radius: 7px; padding: 6px 7px; }
++.root code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd7e6; font-size: 10px; }
++.root button { padding: 2px 6px; border: 0; background: transparent; color: #aab6c5; }
++.button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
++.small { font-size: 11px; }
++.muted { color: var(--muted); }
++.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #6c7582; box-shadow: 0 0 0 3px rgba(255,255,255,.03); }
++.dot-good { background: var(--good); }
++.dot-warn { background: var(--warn); }
++.dot-bad { background: var(--bad); }
++.activity-section { min-height: 180px; }
++.active-call { border: 1px solid #315e99; background: #0f223d; border-radius: 7px; padding: 7px; margin-bottom: 7px; font-size: 11px; }
++.hidden { display: none; }
++.activity { display: grid; gap: 5px; }
++.activity-item { border-left: 2px solid #3a4658; padding: 4px 6px; background: #0c1119; font-size: 10px; }
++.activity-item.ok { border-left-color: var(--good); }
++.activity-item.fail { border-left-color: var(--bad); }
++.activity-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #dce4ee; }
++.activity-meta { color: var(--muted); margin-top: 2px; }
++footer { display: grid; gap: 6px; padding-bottom: 10px; }
++.chat-underlay { position: fixed; left: var(--side); top: var(--top); right: 0; bottom: 0; display: grid; place-items: center; background: #0b0d11; color: var(--muted); }
++.underlay-card { border: 1px dashed #2b3340; border-radius: 10px; padding: 14px 18px; font-size: 12px; }
++
++.desktop-preview { width: 100%; max-height: 205px; object-fit: contain; background: #07090d; border: 1px solid #273140; border-radius: 8px; margin-top: 8px; }
++.window-list { display: grid; gap: 5px; max-height: 210px; overflow: auto; margin-top: 8px; }
++.window-row { width: 100%; min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px; text-align: left; background: #0c1119; border-color: #273140; padding: 6px 7px; }
++.window-row:hover { border-color: #45638b; background: #121b28; }
++.window-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; color: #dce5f0; }
++.window-meta { font-size: 9px; color: var(--muted); white-space: nowrap; }
++.error-text { color: #ff9aa4; }
+diff --git a/constellation-commander-v0.7.0/electron/shell.html b/electron/shell.html
+new file mode 100644
+index 0000000..a316ecd
+--- /dev/null
++++ b/electron/shell.html
+@@ -0,0 +1,102 @@
++<!doctype html>
++<html lang="en">
++<head>
++  <meta charset="utf-8">
++  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self';">
++  <meta name="viewport" content="width=device-width, initial-scale=1">
++  <title>Constellation Commander</title>
++  <link rel="stylesheet" href="./shell.css">
++</head>
++<body>
++  <header class="topbar">
++    <div class="brand">
++      <span class="brand-mark">✦</span>
++      <strong>Constellation Commander</strong>
++      <span id="version" class="muted">v0.7.0</span>
++    </div>
++    <div class="top-status">
++      <span id="chat-dot" class="dot dot-warn"></span>
++      <span id="chat-state">Starting ChatGPT…</span>
++    </div>
++    <div class="top-actions">
++      <button id="home" class="ghost">Home</button>
++      <button id="reload" class="ghost">Reload</button>
++    </div>
++  </header>
++
++  <aside class="sidebar">
++    <section class="hero-card">
++      <div class="eyebrow">LOCAL AGENT</div>
++      <div class="hero-line"><span id="agent-dot" class="dot dot-warn"></span><strong id="agent-state">Connecting</strong></div>
++      <div id="agent-detail" class="small muted">Waiting for the Commander bridge.</div>
++    </section>
++
++    <section>
++      <div class="section-title">Local tools</div>
++      <label class="field-label" for="local-mode">When Commander should arm</label>
++      <select id="local-mode">
++        <option value="auto">Auto — local tasks only</option>
++        <option value="always">Always — every message</option>
++        <option value="off">Off — normal ChatGPT only</option>
++      </select>
++      <button id="arm-next" class="wide ghost">Arm next message once</button>
++      <div class="toggle-row">
++        <span>GUI / computer control</span>
++        <label class="switch"><input id="gui-toggle" type="checkbox"><span></span></label>
++      </div>
++      <div class="toggle-row">
++        <span>Shell / terminal</span>
++        <label class="switch"><input id="shell-toggle" type="checkbox"><span></span></label>
++      </div>
++    </section>
++
++    <section>
++      <div class="section-title row-between"><span>Filesystem access</span><span id="access-badge" class="badge">—</span></div>
++      <div id="root-list" class="root-list"></div>
++      <div class="button-grid">
++        <button id="add-root">Add folder</button>
++        <button id="full-access" class="ghost">Full PC</button>
++      </div>
++    </section>
++
++    <section>
++      <div class="section-title">Safety & startup</div>
++      <button id="emergency" class="danger wide">EMERGENCY LOCK</button>
++      <label class="check-row"><input id="startup-toggle" type="checkbox"><span>Start with Windows</span></label>
++    </section>
++
++    <section>
++      <div class="section-title row-between"><span>Quick control</span><span id="desktop-badge" class="badge">Live</span></div>
++      <div class="button-grid">
++        <button id="observe-desktop">Observe desktop</button>
++        <button id="refresh-windows" class="ghost">Windows</button>
++      </div>
++      <img id="desktop-preview" class="desktop-preview hidden" alt="Live desktop preview">
++      <div id="window-list" class="window-list"><div class="small muted">Observe the desktop or refresh windows to inspect the live machine.</div></div>
++    </section>
++
++    <section>
++      <div class="section-title row-between"><span>Diagnostics</span><span id="health-badge" class="badge">Not run</span></div>
++      <button id="health" class="wide">Run real control test</button>
++      <div id="health-detail" class="small muted">Tests the live local runtime, not a mock.</div>
++    </section>
++
++    <section class="activity-section">
++      <div class="section-title row-between"><span>Live activity</span><span id="call-count" class="muted small">0 calls</span></div>
++      <div id="active-call" class="active-call hidden"></div>
++      <div id="activity" class="activity"></div>
++    </section>
++
++    <footer>
++      <button id="data-folder" class="ghost wide">Open Commander data folder</button>
++      <button id="devtools" class="ghost wide">Open ChatGPT DevTools</button>
++    </footer>
++  </aside>
++
++  <main class="chat-underlay">
++    <div class="underlay-card">ChatGPT loads here.</div>
++  </main>
++
++  <script src="./shell.js"></script>
++</body>
++</html>
+diff --git a/constellation-commander-v0.7.0/electron/shell.js b/electron/shell.js
+new file mode 100644
+index 0000000..84fa327
+--- /dev/null
++++ b/electron/shell.js
+@@ -0,0 +1,188 @@
++'use strict';
++
++(() => {
++  const api = window.commanderShell;
++  if (!api) return;
++
++  const $ = id => document.getElementById(id);
++  const activity = [];
++  let snapshot = null;
++  let active = null;
++
++  function dot(id, state) {
++    const el = $(id);
++    el.className = `dot ${state === 'good' ? 'dot-good' : state === 'bad' ? 'dot-bad' : 'dot-warn'}`;
++  }
++
++  function escapeHtml(value) {
++    return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
++  }
++
++  function formatTime(value) {
++    try { return new Date(value).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' }); } catch { return ''; }
++  }
++
++  function renderRoots(config) {
++    const roots = Array.isArray(config.allowedRoots) ? config.allowedRoots : [];
++    const full = roots.includes('*');
++    $('access-badge').textContent = full ? 'Full PC' : `${roots.length} root${roots.length === 1 ? '' : 's'}`;
++    $('access-badge').className = `badge ${full ? 'warn' : 'good'}`;
++    $('full-access').textContent = full ? 'Restrict' : 'Full PC';
++    $('root-list').innerHTML = full
++      ? '<div class="small muted">All local drives and folders are available to Commander.</div>'
++      : roots.map(root => `<div class="root"><code title="${escapeHtml(root)}">${escapeHtml(root)}</code><button data-root="${escapeHtml(root)}" title="Remove">×</button></div>`).join('');
++    for (const button of $('root-list').querySelectorAll('button[data-root]')) {
++      button.addEventListener('click', async () => { await api.removeRoot(button.dataset.root); await refresh(); });
++    }
++  }
++
++  function renderWindows(windows = []) {
++    const list = $('window-list');
++    const rows = windows.filter(item => item && item.title).slice(0, 14);
++    list.innerHTML = rows.length ? rows.map(item => `
++      <button class="window-row" data-handle="${escapeHtml(item.handle ?? '')}" data-pid="${escapeHtml(item.pid ?? '')}" title="Focus ${escapeHtml(item.title)}">
++        <span class="window-title">${escapeHtml(item.title)}</span>
++        <span class="window-meta">${escapeHtml(item.process || item.processName || item.pid || '')}${item.foreground ? ' · active' : ''}</span>
++      </button>`).join('') : '<div class="small muted">No visible windows reported.</div>';
++    for (const button of list.querySelectorAll('.window-row')) {
++      button.addEventListener('click', async () => {
++        await api.focusWindow({ handle: button.dataset.handle || undefined, pid: button.dataset.pid ? Number(button.dataset.pid) : undefined });
++        await loadWindows();
++      });
++    }
++  }
++
++  async function loadWindows() {
++    const result = await api.listWindows();
++    renderWindows(result?.windows || []);
++  }
++
++  async function observeDesktop() {
++    const button = $('observe-desktop');
++    button.disabled = true;
++    $('desktop-badge').textContent = 'Observing…';
++    $('desktop-badge').className = 'badge warn';
++    try {
++      const result = await api.observeDesktop();
++      if (!result?.ok) throw new Error(result?.error || 'Desktop observation failed.');
++      if (result.imageDataUrl) {
++        const img = $('desktop-preview');
++        img.src = result.imageDataUrl;
++        img.classList.remove('hidden');
++      }
++      renderWindows(result.windows || []);
++      $('desktop-badge').textContent = `${(result.windows || []).length} windows`;
++      $('desktop-badge').className = 'badge good';
++    } catch (error) {
++      $('desktop-badge').textContent = 'FAIL';
++      $('desktop-badge').className = 'badge bad';
++      $('window-list').innerHTML = `<div class="small error-text">${escapeHtml(error?.message || error)}</div>`;
++    } finally { button.disabled = false; }
++  }
++
++  function renderActivity() {
++    $('call-count').textContent = `${snapshot?.stats?.totalCalls || 0} calls`;
++    $('active-call').classList.toggle('hidden', !active);
++    if (active) $('active-call').innerHTML = `<strong>Running ${escapeHtml(active.tool)}</strong><div class="muted">${escapeHtml(active.id || '')}</div>`;
++    $('activity').innerHTML = activity.slice(0, 12).map(item => `
++      <div class="activity-item ${item.ok === false ? 'fail' : item.ok === true ? 'ok' : ''}">
++        <div class="activity-title"><strong>${escapeHtml(item.tool || item.type || 'event')}</strong><span>${formatTime(item.at)}</span></div>
++        <div class="activity-meta">${escapeHtml(item.message || (item.durationMs != null ? `${item.durationMs} ms` : ''))}</div>
++      </div>`).join('') || '<div class="small muted">No local tool activity yet.</div>';
++  }
++
++  function render(next) {
++    snapshot = next;
++    const chat = next.chat || {};
++    const config = next.config || {};
++    $('version').textContent = `v${next.version || '0.7.0'}`;
++    $('chat-state').textContent = chat.message || chat.phase || 'Unknown';
++    dot('chat-dot', chat.phase === 'ready' ? 'good' : chat.phase === 'error' ? 'bad' : 'warn');
++
++    const ready = chat.phase === 'ready' && chat.pageHookReady !== false;
++    $('agent-state').textContent = next.emergencyLock ? 'Emergency Lock active' : ready ? 'Ready for local work' : 'Commander bridge starting';
++    $('agent-detail').textContent = next.emergencyLock
++      ? 'GUI actions are blocked until you release the lock.'
++      : ready ? `Mode: ${config.localToolMode || 'auto'} · ${next.toolCount || 0} local tools available` : (chat.lastError || 'Waiting for ChatGPT and the local bridge.');
++    dot('agent-dot', next.emergencyLock ? 'bad' : ready ? 'good' : chat.phase === 'error' ? 'bad' : 'warn');
++
++    $('local-mode').value = config.localToolMode || 'auto';
++    $('gui-toggle').checked = config.enableGuiAutomation !== false;
++    $('shell-toggle').checked = config.enableShell !== false;
++    $('startup-toggle').checked = Boolean(next.startWithWindows);
++    $('emergency').classList.toggle('locked', Boolean(next.emergencyLock));
++    $('emergency').textContent = next.emergencyLock ? 'RELEASE EMERGENCY LOCK' : 'EMERGENCY LOCK';
++    renderRoots(config);
++
++    activity.length = 0;
++    for (const row of (next.recentCalls || []).slice().reverse()) {
++      activity.push({ at: row.ts, tool: row.tool, ok: row.ok, durationMs: row.durationMs, message: row.error || '' });
++    }
++    renderActivity();
++  }
++
++  async function refresh() {
++    try { render(await api.snapshot()); }
++    catch (error) {
++      $('agent-state').textContent = 'Commander shell offline';
++      $('agent-detail').textContent = String(error?.message || error);
++      dot('agent-dot', 'bad');
++    }
++  }
++
++  function pushEvent(evt) {
++    if (!evt) return;
++    const detail = evt.detail || {};
++    if (evt.type === 'tool-start') active = detail;
++    if (evt.type === 'tool-finish' || evt.type === 'tool-error') {
++      active = null;
++      activity.unshift({ at: evt.at, tool: detail.tool, ok: evt.type === 'tool-finish', durationMs: detail.durationMs, message: detail.error || '' });
++      activity.splice(20);
++    }
++    if (evt.type === 'chat-state' || evt.type === 'config-changed' || evt.type === 'emergency-lock') void refresh();
++    renderActivity();
++  }
++
++  $('local-mode').addEventListener('change', async event => { await api.setLocalMode(event.target.value); await refresh(); });
++  $('arm-next').addEventListener('click', async () => { const r = await api.armNext(); if (r?.ok) { $('agent-detail').textContent = 'Next ChatGPT message will be forced through Commander.'; } });
++  $('gui-toggle').addEventListener('change', async event => { await api.setOption('enableGuiAutomation', event.target.checked); await refresh(); });
++  $('shell-toggle').addEventListener('change', async event => { await api.setOption('enableShell', event.target.checked); await refresh(); });
++  $('startup-toggle').addEventListener('change', async event => { await api.setStartWithWindows(event.target.checked); await refresh(); });
++  $('add-root').addEventListener('click', async () => { await api.addRoot(); await refresh(); });
++  $('full-access').addEventListener('click', async () => { await api.setFullAccess(!(snapshot?.config?.allowedRoots || []).includes('*')); await refresh(); });
++  $('emergency').addEventListener('click', async () => { await api.setEmergencyLock(!snapshot?.emergencyLock); await refresh(); });
++  $('reload').addEventListener('click', () => api.reloadChat());
++  $('home').addEventListener('click', () => api.goHome());
++  $('data-folder').addEventListener('click', () => api.openDataFolder());
++  $('devtools').addEventListener('click', () => api.openDevTools());
++  $('observe-desktop').addEventListener('click', observeDesktop);
++  $('refresh-windows').addEventListener('click', async () => {
++    const button = $('refresh-windows');
++    button.disabled = true;
++    try { await loadWindows(); } catch (error) { $('window-list').innerHTML = `<div class="small error-text">${escapeHtml(error?.message || error)}</div>`; }
++    finally { button.disabled = false; }
++  });
++
++  $('health').addEventListener('click', async () => {
++    const button = $('health');
++    button.disabled = true;
++    $('health-badge').textContent = 'Running…';
++    $('health-badge').className = 'badge warn';
++    try {
++      const result = await api.runHealth();
++      $('health-badge').textContent = result.ok ? 'PASS' : 'FAIL';
++      $('health-badge').className = `badge ${result.ok ? 'good' : 'bad'}`;
++      $('health-detail').textContent = result.ok
++        ? `${result.deviceName || 'Local PC'} · ${result.displayCount ?? 0} display(s) · ${result.windowCount ?? 0} windows · ${result.durationMs} ms`
++        : result.error || 'Diagnostic failed.';
++    } catch (error) {
++      $('health-badge').textContent = 'FAIL';
++      $('health-badge').className = 'badge bad';
++      $('health-detail').textContent = String(error?.message || error);
++    } finally { button.disabled = false; }
++  });
++
++  api.onEvent(pushEvent);
++  void refresh();
++  setInterval(refresh, 10000);
++})();
+diff --git a/package.json b/package.json
+index 6602c44..2287235 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "constellation-commander",
+-  "version": "0.6.0",
+-  "description": "Integrated Electron ChatGPT workspace with full local computer use and no vendor tool-call quota.",
++  "version": "0.7.0",
++  "description": "Desktop ChatGPT workspace with visible local-agent controls, scoped filesystem access, live activity, and Windows computer use.",
+   "type": "module",
+   "private": true,
+   "main": "electron/main.cjs",
+@@ -17,8 +17,8 @@
+     "start:device": "node ./bin/constellation-commander-remote.mjs",
+     "start:relay": "node ./relay/relay-server.mjs",
+     "start:bridge": "node ./bin/constellation-commander-bridge.mjs",
+-    "check": "node --check ./src/server.mjs && node --check ./src/tools.mjs && node --check ./src/config.mjs && node --check ./src/remote-device.mjs && node --check ./src/browser-bridge.mjs && node --check ./src/computer-use.mjs && node --check ./relay/relay-server.mjs && node --check ./browser-companion/background.js && node --check ./browser-companion/page-hook.js && node --check ./browser-companion/content.js && node --check ./electron/main.cjs && node --check ./electron/chat-preload.cjs && node --check ./tests/electron-static.test.mjs && node --check ./tests/smoke.mjs && node --check ./tests/relay-smoke.mjs && node --check ./tests/device-agent-smoke.mjs && node --check ./tests/plugin-package.test.mjs && node --check ./tests/browser-bridge-smoke.mjs && node --check ./tests/browser-companion-static.test.mjs && node --check ./tests/browser-page-hook-smoke.mjs && node --check ./tests/browser-background-smoke.mjs && node --check ./tests/browser-companion-e2e.mjs && node --check ./tests/computer-use-windows-smoke.mjs",
+-    "test": "node ./tests/electron-static.test.mjs && node ./tests/smoke.mjs && node ./tests/relay-smoke.mjs && node ./tests/device-agent-smoke.mjs && node ./tests/plugin-package.test.mjs && node ./tests/browser-bridge-smoke.mjs && node ./tests/browser-companion-static.test.mjs && node ./tests/browser-page-hook-smoke.mjs && node ./tests/browser-background-smoke.mjs && node ./tests/browser-companion-e2e.mjs && node ./tests/computer-use-windows-smoke.mjs",
++    "check": "node --check ./electron/shell-preload.cjs && node --check ./electron/shell.js && node --check ./src/server.mjs && node --check ./src/tools.mjs && node --check ./src/config.mjs && node --check ./src/remote-device.mjs && node --check ./src/browser-bridge.mjs && node --check ./src/computer-use.mjs && node --check ./relay/relay-server.mjs && node --check ./browser-companion/background.js && node --check ./browser-companion/page-hook.js && node --check ./browser-companion/content.js && node --check ./electron/main.cjs && node --check ./electron/chat-preload.cjs && node --check ./tests/electron-static.test.mjs && node --check ./tests/smoke.mjs && node --check ./tests/relay-smoke.mjs && node --check ./tests/device-agent-smoke.mjs && node --check ./tests/plugin-package.test.mjs && node --check ./tests/browser-bridge-smoke.mjs && node --check ./tests/browser-companion-static.test.mjs && node --check ./tests/browser-page-hook-smoke.mjs && node --check ./tests/browser-background-smoke.mjs && node --check ./tests/browser-companion-e2e.mjs && node --check ./tests/computer-use-windows-smoke.mjs",
++    "test": "node ./tests/shell-static.test.mjs && node ./tests/electron-static.test.mjs && node ./tests/smoke.mjs && node ./tests/relay-smoke.mjs && node ./tests/device-agent-smoke.mjs && node ./tests/plugin-package.test.mjs && node ./tests/browser-bridge-smoke.mjs && node ./tests/browser-companion-static.test.mjs && node ./tests/browser-page-hook-smoke.mjs && node ./tests/browser-background-smoke.mjs && node ./tests/browser-companion-e2e.mjs && node ./tests/computer-use-windows-smoke.mjs",
+     "test:electron": "electron .",
+     "build:win": "electron-builder --win nsis zip --x64"
+   },
+@@ -48,7 +48,7 @@
+       "SECURITY.md",
+       "README.md"
+     ],
+-    "asar": false,
++    "asar": true,
+     "win": {
+       "target": [
+         {
+@@ -74,6 +74,9 @@
+       "createStartMenuShortcut": true,
+       "shortcutName": "Constellation Commander",
+       "runAfterFinish": true
+-    }
++    },
++    "asarUnpack": [
++      "native/**/*"
++    ]
+   }
+ }
+diff --git a/plugin/plugin.json b/plugin/plugin.json
+index d424edc..c27c2c4 100644
+--- a/plugin/plugin.json
++++ b/plugin/plugin.json
+@@ -1,7 +1,7 @@
+ {
+   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+   "name": "constellation-commander",
+-  "version": "0.6.0",
++  "version": "0.7.0",
+   "description": "Use an authorized computer through the integrated Constellation Commander Electron ChatGPT workspace; browser-extension and hosted MCP transports are optional fallbacks.",
+   "author": {
+     "name": "Herbertofury",
+@@ -26,8 +26,8 @@
+     "com.openai": {
+       "interface": {
+         "displayName": "Constellation Commander",
+-        "shortDescription": "Integrated ChatGPT desktop workspace with full local computer use.",
+-        "longDescription": "Use ChatGPT inside the Constellation Commander Electron desktop app with direct local computer-use integration: screenshots, mouse, keyboard, windows, clipboard, UI Automation, files, terminal and processes. The primary Electron path needs no Chrome extension, ChatGPT Work handoff, OpenAI API key, or Commander-side tool-call quota. Browser-extension and hosted MCP transports remain optional fallbacks.",
++        "shortDescription": "ChatGPT desktop workspace with visible local-agent controls and full Windows computer use.",
++        "longDescription": "Use ChatGPT inside the Constellation Commander desktop app with a visible local-agent control plane: connection health, local-tool mode, workspace access roots, Emergency Lock, live activity, diagnostics, screenshots, mouse, keyboard, windows, clipboard, UI Automation, files, terminal and processes. The primary Electron path needs no Chrome extension, ChatGPT Work handoff, OpenAI API key, or Commander-side tool-call quota.",
+         "developerName": "Herbertofury / Project Constellation",
+         "category": "Productivity",
+         "capabilities": [
+@@ -35,8 +35,8 @@
+           "Write"
+         ],
+         "websiteURL": "https://github.com/Herbertofury/Project-Constellation",
+-        "privacyPolicyURL": "https://github.com/Herbertofury/Project-Constellation/blob/feature/constellation-commander-v0.6.0/docs/CONSTELLATION-COMMANDER-PRIVACY.md",
+-        "termsOfServiceURL": "https://github.com/Herbertofury/Project-Constellation/blob/feature/constellation-commander-v0.6.0/docs/CONSTELLATION-COMMANDER-TERMS.md",
++        "privacyPolicyURL": "https://github.com/Herbertofury/Project-Constellation/blob/feature/constellation-commander-v0.7.0/docs/CONSTELLATION-COMMANDER-PRIVACY.md",
++        "termsOfServiceURL": "https://github.com/Herbertofury/Project-Constellation/blob/feature/constellation-commander-v0.7.0/docs/CONSTELLATION-COMMANDER-TERMS.md",
+         "defaultPrompt": "Use Constellation Commander to help me work with my computer."
+       }
+     }
+diff --git a/relay/README.md b/relay/README.md
+index d8b5c80..1361d37 100644
+--- a/relay/README.md
++++ b/relay/README.md
+@@ -36,4 +36,4 @@ No OpenAI API key is used by the relay or device agent. The relay has diagnostic
+ - `POST /device/poll`
+ - `POST /device/result`
+ 
+-A temporary tunnel is useful only for development. Public plugin submission requires a stable public HTTPS endpoint, so v0.3 intentionally does not treat a quick tunnel as the finished product.
++A temporary tunnel is useful only for development. Public plugin submission requires a stable public HTTPS endpoint, so Commander intentionally does not treat a quick tunnel as the finished product.
+diff --git a/relay/relay-server.mjs b/relay/relay-server.mjs
+index fd9fdbc..4596ee6 100644
+--- a/relay/relay-server.mjs
++++ b/relay/relay-server.mjs
+@@ -159,7 +159,7 @@ function transformToolDefinitions() {
+     };
+     return {
+       ...def,
+-      description: def.description.replace(/v0\.1/g, 'v0.3') + ' The relay forwards this call to the authorized device agent.',
++      description: def.description + ' The relay forwards this call to the authorized device agent.',
+       inputSchema: schema
+     };
+   });
+diff --git a/scripts/build-windows-companion.ps1 b/scripts/build-windows.ps1
+similarity index 100%
+rename from scripts/build-windows-companion.ps1
+rename to scripts/build-windows.ps1
+diff --git a/scripts/electron-smoke.ps1 b/scripts/electron-smoke.ps1
+index 1d29d65..a795b5f 100644
+--- a/scripts/electron-smoke.ps1
++++ b/scripts/electron-smoke.ps1
+@@ -21,7 +21,7 @@ if (-not (Test-Path $Output)) {
+   throw "Electron integrated-chat smoke timed out.`nTRACE:`n$trace`nSTDOUT:`n$out`nSTDERR:`n$err"
+ }
+ $data = Get-Content $Output -Raw | ConvertFrom-Json
+-if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false) {
++if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false -or $data.detail.shellRuntime.ok -ne $true -or $data.detail.shellRuntime.version -ne '0.7.0' -or $data.detail.shellRuntime.toolCount -lt 45 -or $data.detail.shellRuntime.singleInstanceOwner -ne $true -or $data.detail.shellRuntime.health.ok -ne $true) {
+   $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
+   $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
+   $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }
+diff --git a/src/config.mjs b/src/config.mjs
+index b003db2..7c67e61 100644
+--- a/src/config.mjs
++++ b/src/config.mjs
+@@ -5,7 +5,7 @@ import fs from 'node:fs';
+ import fsp from 'node:fs/promises';
+ 
+ export const APP_NAME = 'Constellation Commander';
+-export const VERSION = '0.6.0';
++export const VERSION = '0.7.0';
+ 
+ export function stateDir() {
+   return process.env.CONSTELLATION_COMMANDER_HOME || path.join(os.homedir(), '.constellation-commander');
+@@ -48,15 +48,16 @@ export async function loadConfig() {
+     endpointToken: randomSecret(24),
+     bearerToken: randomSecret(32),
+     deviceName: os.hostname(),
+-    allowedRoots: (fullAccess || process.platform === 'win32') ? ['*'] : [os.homedir()],
++    allowedRoots: fullAccess ? ['*'] : [os.homedir()],
+     blockedCommands: [],
+     enableShell: true,
+     enableGuiAutomation: true,
++    localToolMode: 'auto',
+     emergencyLock: false,
+     telemetryEnabled: false,
+     defaultShell: process.platform === 'win32' ? 'powershell' : 'bash',
+     searchIgnore: ['.git', 'node_modules', '.cache', '$RECYCLE.BIN', 'System Volume Information'],
+-    browserBridgeEnabled: true,
++    browserBridgeEnabled: false,
+     browserBridgeHost: '127.0.0.1',
+     browserBridgePort: 47721,
+     remoteRelayUrl: '',
+diff --git a/src/tool-definitions.mjs b/src/tool-definitions.mjs
+index c28dce7..6a65f95 100644
+--- a/src/tool-definitions.mjs
++++ b/src/tool-definitions.mjs
+@@ -10,7 +10,7 @@ const tool = (name, description, inputSchema, annotations = {}) => ({
+ 
+ export function toolDefinitions() {
+   return [
+-    tool('list_devices', 'List devices available through this self-hosted commander. v0.1 exposes the machine running this server as the local device.', obj(), { readOnlyHint: true, idempotentHint: true }),
++    tool('list_devices', 'List devices available through this self-hosted commander. Reports the machine running this Commander instance as the local device.', obj(), { readOnlyHint: true, idempotentHint: true }),
+     tool('who_am_i', 'Describe the local self-hosted commander identity and quota policy. No external account is required.', obj(), { readOnlyHint: true, idempotentHint: true }),
+     tool('ping', 'Verify that Constellation Commander is online and identify the connected machine.', obj(), { readOnlyHint: true, idempotentHint: true }),
+     tool('get_system_info', 'Return operating system, Node runtime, hostname, home directory, and commander version.', obj(), { readOnlyHint: true, idempotentHint: true }),
+@@ -20,7 +20,7 @@ export function toolDefinitions() {
+     tool('read_multiple_files', 'Read multiple files in one call.', obj({ paths: { type:'array', items:{type:'string'} } }, ['paths']), { readOnlyHint: true, idempotentHint: true }),
+     tool('write_file', 'Create, overwrite, or append a text/base64 file.', obj({ path: str('Target path'), content: str('File content'), mode: {type:'string',enum:['rewrite','append']}, encoding:{type:'string',enum:['utf8','base64']} }, ['path','content'])),
+     tool('edit_block', 'Replace an exact text block in a file. Fails when the expected block is absent or replacement count is unexpected.', obj({ path:str('File path'), old_string:str('Exact existing text'), new_string:str('Replacement text'), expected_replacements:num('Expected number of replacements') }, ['path','old_string','new_string'])),
+-    tool('write_pdf', 'Create a new text PDF without external dependencies. Existing-PDF modification is intentionally not claimed in v0.1.', obj({ path:str('Output PDF path'), content:str('Text or lightweight Markdown content') }, ['path','content'])),
++    tool('write_pdf', 'Create a new text PDF without external dependencies. Creates a new text PDF; existing-PDF editing is not exposed by this tool.', obj({ path:str('Output PDF path'), content:str('Text or lightweight Markdown content') }, ['path','content'])),
+     tool('create_directory', 'Create a directory recursively.', obj({ path:str('Directory path') }, ['path'])),
+     tool('list_directory', 'List files and directories recursively to a requested depth.', obj({ path:str('Directory path'), depth:num('Depth, default 1') }, ['path']), { readOnlyHint:true, idempotentHint:true }),
+     tool('get_file_info', 'Return stat information for a file or directory.', obj({ path:str('Path') }, ['path']), { readOnlyHint:true, idempotentHint:true }),
+diff --git a/src/tools.mjs b/src/tools.mjs
+index f986f43..379f466 100644
+--- a/src/tools.mjs
++++ b/src/tools.mjs
+@@ -200,7 +200,7 @@ export function createToolHandler({ config, configPath, state, onShutdown }) {
+         case 'get_system_info': result = { app:APP_NAME, version:VERSION, hostname:os.hostname(), platform:process.platform, release:os.release(), arch:process.arch, node:process.version, home:os.homedir(), cwd:process.cwd(), deviceName:config.deviceName }; break;
+         case 'get_config': result = redactConfig(config); break;
+         case 'set_config_value': {
+-          const allowed = new Set(['allowedRoots','blockedCommands','enableShell','enableGuiAutomation','telemetryEnabled','defaultShell','deviceName','searchIgnore']);
++          const allowed = new Set(['allowedRoots','blockedCommands','enableShell','enableGuiAutomation','localToolMode','telemetryEnabled','defaultShell','deviceName','searchIgnore']);
+           if (!allowed.has(args.key)) throw new Error(`Unsupported configuration key: ${args.key}`);
+           config[args.key] = args.value;
+           await saveConfig(configPath, config);
+diff --git a/submission/OPENAI-PLUGIN-SUBMISSION.md b/submission/OPENAI-PLUGIN-SUBMISSION.md
+index ff23357..48ec2a4 100644
+--- a/submission/OPENAI-PLUGIN-SUBMISSION.md
++++ b/submission/OPENAI-PLUGIN-SUBMISSION.md
+@@ -1,4 +1,4 @@
+-# Constellation Commander v0.6.0 — OpenAI plugin submission packet
++# Constellation Commander v0.7.0 — OpenAI plugin submission packet
+ 
+ ## Product shape
+ 
+diff --git a/submission/submission.template.json b/submission/submission.template.json
+index 8285030..0a4e1ef 100644
+--- a/submission/submission.template.json
++++ b/submission/submission.template.json
+@@ -1,6 +1,6 @@
+ {
+   "display_name": "Constellation Commander",
+-  "version": "0.6.0",
++  "version": "0.7.0",
+   "mcp_endpoint": "https://REPLACE-WITH-STABLE-HOST/mcp",
+   "authentication": "oauth_2_1_pkce_s256",
+   "plugin_side_quota_enforced": false,
+diff --git a/tests/browser-background-smoke.mjs b/tests/browser-background-smoke.mjs
+index 88c64a0..11ddaa1 100644
+--- a/tests/browser-background-smoke.mjs
++++ b/tests/browser-background-smoke.mjs
+@@ -69,10 +69,10 @@ try {
+   await new Promise(resolve => setTimeout(resolve, 80));
+   const health = await message({ type: 'CC_HEALTH' });
+   assert.equal(health.ok, true);
+-  assert.equal(health.version, '0.6.0');
++  assert.equal(health.version, '0.7.0');
+   assert.equal(health.quotaEnforced, false);
+   assert.equal(health.companionConnected, true);
+-  assert.equal(health.companionVersion, '0.6.0');
++  assert.equal(health.companionVersion, '0.7.0');
+   assert.equal(health.companionVersionMatch, true);
+ 
+   const diagnostic = await message({ type: 'CC_DIAGNOSTIC', event: 'context-injected', detail: { smoke: true } });
+diff --git a/tests/browser-bridge-smoke.mjs b/tests/browser-bridge-smoke.mjs
+index f4ff807..4e5cdae 100644
+--- a/tests/browser-bridge-smoke.mjs
++++ b/tests/browser-bridge-smoke.mjs
+@@ -34,13 +34,13 @@ try {
+   assert.equal(staleHealth.body.companionVersionMatch, false);
+ 
+   const hello = await json(`${base}/v1/companion/hello`, {
+-    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify({ version: '0.6.0', extensionId: 'khfbmdpkpnaghpfnacidbjfaaikfmanh' })
++    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify({ version: '0.7.0', extensionId: 'khfbmdpkpnaghpfnacidbjfaaikfmanh' })
+   });
+   assert.equal(hello.status, 200);
+   assert.equal(hello.body.ok, true);
+   const healthAfterHello = await json(`${base}/health`);
+   assert.equal(healthAfterHello.body.companionConnected, true);
+-  assert.equal(healthAfterHello.body.companionVersion, '0.6.0');
++  assert.equal(healthAfterHello.body.companionVersion, '0.7.0');
+   assert.equal(healthAfterHello.body.companionVersionMatch, true);
+   assert.equal(healthAfterHello.body.companionExtensionId, 'khfbmdpkpnaghpfnacidbjfaaikfmanh');
+ 
+diff --git a/tests/browser-companion-e2e.mjs b/tests/browser-companion-e2e.mjs
+index 1a8af02..04f937b 100644
+--- a/tests/browser-companion-e2e.mjs
++++ b/tests/browser-companion-e2e.mjs
+@@ -128,7 +128,7 @@ try {
+   await call('Runtime.enable');
+   await call('Runtime.addBinding', { name: '__ccBridgeBinding' });
+ 
+-  const hello = await bridgeFetch('/v1/companion/hello', { method: 'POST', body: { version: '0.6.0', extensionId: 'khfbmdpkpnaghpfnacidbjfaaikfmanh' } });
++  const hello = await bridgeFetch('/v1/companion/hello', { method: 'POST', body: { version: '0.7.0', extensionId: 'khfbmdpkpnaghpfnacidbjfaaikfmanh' } });
+   assert.equal(hello.ok, true, JSON.stringify(hello));
+ 
+   const pageHtml = `
+diff --git a/tests/browser-companion-static.test.mjs b/tests/browser-companion-static.test.mjs
+index 760a5d4..4fe0495 100644
+--- a/tests/browser-companion-static.test.mjs
++++ b/tests/browser-companion-static.test.mjs
+@@ -7,7 +7,7 @@ const pageHook = await fsp.readFile(new URL('../browser-companion/page-hook.js',
+ const content = await fsp.readFile(new URL('../browser-companion/content.js', import.meta.url), 'utf8');
+ 
+ assert.equal(manifest.manifest_version, 3);
+-assert.equal(manifest.version, '0.6.0');
++assert.equal(manifest.version, '0.7.0');
+ assert.ok(typeof manifest.key === 'string' && manifest.key.length > 300);
+ assert.match(await fsp.readFile(new URL('../src/browser-bridge.mjs', import.meta.url), 'utf8'), /khfbmdpkpnaghpfnacidbjfaaikfmanh/);
+ assert.equal(manifest.content_scripts.length, 2);
+diff --git a/tests/computer-use-windows-smoke.mjs b/tests/computer-use-windows-smoke.mjs
+index d9bd38d..c9d5adb 100644
+--- a/tests/computer-use-windows-smoke.mjs
++++ b/tests/computer-use-windows-smoke.mjs
+@@ -28,7 +28,7 @@ try {
+   assert.ok(Array.isArray(windows.windows));
+ 
+   const originalClipboard = await computerUse('clipboard_read', {});
+-  const sentinel = `Constellation Commander v0.4 clipboard ${Date.now()}`;
++  const sentinel = `Constellation Commander v0.7 clipboard ${Date.now()}`;
+   await computerUse('clipboard_write', { text: sentinel });
+   const clipboard = await computerUse('clipboard_read', {});
+   assert.equal(clipboard.text, sentinel);
+diff --git a/tests/desktop-static.test.mjs b/commander-v060-audit/constellation-commander-v0.6.0/tests/desktop-static.test.mjs
+deleted file mode 100644
+index 591c7d7..0000000
+--- a/tests/desktop-static.test.mjs
++++ /dev/null
+@@ -1,41 +0,0 @@
+-import assert from 'node:assert/strict';
+-import fsp from 'node:fs/promises';
+-
+-const form = await fsp.readFile(new URL('../desktop/MainForm.cs', import.meta.url), 'utf8');
+-const program = await fsp.readFile(new URL('../desktop/Program.cs', import.meta.url), 'utf8');
+-const build = await fsp.readFile(new URL('../scripts/build-windows-companion.ps1', import.meta.url), 'utf8');
+-const installer = await fsp.readFile(new URL('../desktop/INSTALL-COMPANION.cmd', import.meta.url), 'utf8');
+-
+-for (const control of ['Connect Browser', 'Connection Test', 'Full Control Test', 'Data Folder', 'Start with Windows', 'Enable hosted plugin relay', 'Connect Remote', 'Reset Remote Pairing']) {
+-  assert.match(form, new RegExp(control.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+-}
+-assert.match(form, /127\.0\.0\.1:47721/);
+-assert.match(form, /constellation-commander-bridge\.mjs/);
+-assert.match(form, /constellation-commander-remote\.mjs/);
+-assert.match(form, /EnsureBridgeAsync/);
+-assert.match(form, /BridgeHealthyAsync/);
+-assert.match(form, /companionConnected/);
+-assert.match(form, /companionVersionMatch/);
+-assert.match(form, /STALE v/);
+-assert.match(form, /RunControlSelfTestAsync/);
+-assert.match(form, /constellation-commander-control-test\.mjs/);
+-assert.match(form, /chrome:\/\/extensions\//);
+-assert.match(form, /edge:\/\/extensions\//);
+-assert.match(form, /FindChromiumBrowser/);
+-assert.match(form, /Google.*Chrome/);
+-assert.match(form, /Microsoft.*Edge/);
+-assert.match(form, /Load unpacked/);
+-assert.match(form, /SetStartWithWindows\(true\)/);
+-assert.match(program, /--autostart/);
+-assert.match(program, /--first-run/);
+-assert.match(program, /Local\\ConstellationCommanderDesktop/);
+-assert.match(program, /new MainForm\(autoStart, firstRun\)/);
+-assert.match(build, /dotnet publish/);
+-assert.match(build, /node-v\$NodeVersion-win-x64\.zip/);
+-assert.match(build, /browser-companion/);
+-assert.match(installer, /CONSTELLATION_COMMANDER_CI/);
+-assert.match(installer, /--autostart/);
+-assert.match(installer, /--first-run/);
+-assert.doesNotMatch(form, /api\.openai\.com/i);
+-assert.doesNotMatch(form, /api\.openai\.com|responses\/v1|work\/run/i);
+-console.log('desktop-static.test.mjs: PASS');
+diff --git a/tests/device-agent-smoke.mjs b/tests/device-agent-smoke.mjs
+index ff98693..e6b7d3a 100644
+--- a/tests/device-agent-smoke.mjs
++++ b/tests/device-agent-smoke.mjs
+@@ -30,7 +30,7 @@ const output = [];
+ try {
+   const pair = await requestJson(`${base}/device/pair/start`, {
+     method: 'POST', headers: { 'content-type': 'application/json' },
+-    body: JSON.stringify({ device_name: 'Actual Agent Smoke', platform: process.platform, arch: process.arch, version: '0.6.0' })
++    body: JSON.stringify({ device_name: 'Actual Agent Smoke', platform: process.platform, arch: process.arch, version: '0.7.0' })
+   });
+   const approve = await fetch(`${base}/device/verify`, {
+     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+diff --git a/tests/electron-static.test.mjs b/tests/electron-static.test.mjs
+index 5a1180d..c4f675e 100644
+--- a/tests/electron-static.test.mjs
++++ b/tests/electron-static.test.mjs
+@@ -3,9 +3,13 @@ import assert from 'node:assert/strict';
+ const main = fs.readFileSync(new URL('../electron/main.cjs', import.meta.url), 'utf8');
+ const preload = fs.readFileSync(new URL('../electron/chat-preload.cjs', import.meta.url), 'utf8');
+ const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+-assert.equal(pkg.version, '0.6.0');
++assert.equal(pkg.version, '0.7.0');
+ assert.equal(pkg.devDependencies.electron, '44.4.3');
++assert.equal(pkg.build.asar, true);
++assert.deepEqual(pkg.build.asarUnpack, ['native/**/*']);
+ assert.match(main, /persist:constellation-chatgpt/);
++assert.match(main, /SHELL_WIDTH = 380/);
++assert.match(main, /localToolMode/);
+ assert.match(main, /new WebContentsView/);
+ assert.match(main, /nodeIntegration:\s*false/);
+ assert.match(main, /contextIsolation:\s*true/);
+@@ -15,6 +19,11 @@ assert.match(main, /cc:call/);
+ assert.match(main, /fixture-composer-missing/);
+ assert.match(main, /sendInputEvent\(\{ type: 'keyDown', keyCode: 'Enter' \}\)/);
+ assert.match(main, /smokeTrace/);
++assert.match(main, /shell-runtime-proof/);
++assert.match(main, /cc-shell:observe-desktop/);
++assert.match(main, /requestSingleInstanceLock\(\)/);
++assert.match(main, /second-instance/);
++assert.match(main, /hasSingleInstanceLock\(\)/);
+ assert.ok(main.indexOf("wc.once('did-finish-load'") < main.indexOf('void wc.loadURL(target)'), 'Electron smoke trigger must be armed before file navigation starts');
+ assert.doesNotMatch(preload, /const TEST_FIXTURE/);
+ assert.match(preload, /constellationCommanderCallClaimed/);
+diff --git a/tests/plugin-package.test.mjs b/tests/plugin-package.test.mjs
+index e8de158..97a8e0e 100644
+--- a/tests/plugin-package.test.mjs
++++ b/tests/plugin-package.test.mjs
+@@ -9,7 +9,7 @@ const pluginRoot = path.join(root, 'plugin');
+ const manifest = JSON.parse(await fsp.readFile(path.join(pluginRoot, 'plugin.json'), 'utf8'));
+ assert.equal(manifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
+ assert.equal(manifest.name, 'constellation-commander');
+-assert.equal(manifest.version, '0.6.0');
++assert.equal(manifest.version, '0.7.0');
+ assert.equal(manifest.skills, undefined, 'Portable Agent Plugins auto-discover skills/; the 1.0 schema forbids an extra top-level skills property.');
+ assert.equal(manifest.mcpServers, undefined, 'Normal-chat package must not declare portable MCP servers (Desktop-only import route).');
+ assert.equal(manifest.extensions?.com?.openai?.apps, undefined, 'App mapping is added only after a production app ID exists.');
+diff --git a/tests/relay-smoke.mjs b/tests/relay-smoke.mjs
+index bb27b09..ba229ef 100644
+--- a/tests/relay-smoke.mjs
++++ b/tests/relay-smoke.mjs
+@@ -36,7 +36,7 @@ try {
+   const pairStart = await json(`${base}/device/pair/start`, {
+     method: 'POST',
+     headers: { 'content-type': 'application/json' },
+-    body: JSON.stringify({ device_name: 'Smoke PC', platform: 'win32', arch: 'x64', version: '0.6.0' })
++    body: JSON.stringify({ device_name: 'Smoke PC', platform: 'win32', arch: 'x64', version: '0.7.0' })
+   });
+   assert.match(pairStart.body.user_code, /^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+ 
+@@ -131,7 +131,7 @@ try {
+   const pollPromise = json(`${base}/device/poll`, {
+     method: 'POST',
+     headers: { authorization: `Bearer ${pairToken.body.device_token}`, 'content-type': 'application/json' },
+-    body: JSON.stringify({ device_name: 'Smoke PC', platform: 'win32', arch: 'x64', version: '0.6.0' })
++    body: JSON.stringify({ device_name: 'Smoke PC', platform: 'win32', arch: 'x64', version: '0.7.0' })
+   });
+   await new Promise(resolve => setTimeout(resolve, 25));
+   const callPromise = mcp({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'ping', arguments: {} } });
+@@ -150,7 +150,7 @@ try {
+   const shotPollPromise = json(`${base}/device/poll`, {
+     method: 'POST',
+     headers: { authorization: `Bearer ${pairToken.body.device_token}`, 'content-type': 'application/json' },
+-    body: JSON.stringify({ device_name: 'Smoke PC', platform: 'win32', arch: 'x64', version: '0.6.0' })
++    body: JSON.stringify({ device_name: 'Smoke PC', platform: 'win32', arch: 'x64', version: '0.7.0' })
+   });
+   await new Promise(resolve => setTimeout(resolve, 25));
+   const shotCallPromise = mcp({ jsonrpc: '2.0', id: 40, method: 'tools/call', params: { name: 'computer_screenshot', arguments: { target: 'all' } } });
+diff --git a/constellation-commander-v0.7.0/tests/shell-static.test.mjs b/tests/shell-static.test.mjs
+new file mode 100644
+index 0000000..3533290
+--- /dev/null
++++ b/tests/shell-static.test.mjs
+@@ -0,0 +1,39 @@
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++
++const html = fs.readFileSync(new URL('../electron/shell.html', import.meta.url), 'utf8');
++const css = fs.readFileSync(new URL('../electron/shell.css', import.meta.url), 'utf8');
++const js = fs.readFileSync(new URL('../electron/shell.js', import.meta.url), 'utf8');
++const preload = fs.readFileSync(new URL('../electron/shell-preload.cjs', import.meta.url), 'utf8');
++const main = fs.readFileSync(new URL('../electron/main.cjs', import.meta.url), 'utf8');
++
++assert.match(html, /Constellation Commander/);
++assert.match(html, /id="local-mode"/);
++assert.match(html, /id="root-list"/);
++assert.match(html, /id="emergency"/);
++assert.match(html, /id="activity"/);
++assert.match(html, /id="health"/);
++assert.match(css, /--side:\s*380px/);
++assert.match(js, /runHealth/);
++assert.match(js, /armNext/);
++assert.match(js, /setFullAccess/);
++assert.match(js, /setEmergencyLock/);
++assert.match(preload, /contextBridge\.exposeInMainWorld\('commanderShell'/);
++assert.doesNotMatch(preload, /ipcRenderer:\s*ipcRenderer/);
++assert.match(main, /cc-shell:snapshot/);
++assert.match(main, /cc-shell:add-root/);
++assert.match(main, /cc-shell:arm-next/);
++assert.match(main, /cc-shell:run-health/);
++assert.match(main, /emitShell\('tool-start'/);
++assert.match(main, /emitShell\('tool-finish'/);
++assert.match(main, /loadFile\(path\.join\(__dirname, 'shell\.html'\)\)/);
++assert.match(html, /id="observe-desktop"/);
++assert.match(html, /id="window-list"/);
++assert.match(js, /observeDesktop/);
++assert.match(js, /focusWindow/);
++assert.match(preload, /cc-shell:observe-desktop/);
++assert.match(preload, /cc-shell:focus-window/);
++assert.match(main, /cc-shell:observe-desktop/);
++assert.match(main, /cc-shell:focus-window/);
++assert.match(main, /shell-runtime-proof/);
++console.log('Constellation Commander desktop shell static contract: PASS');
