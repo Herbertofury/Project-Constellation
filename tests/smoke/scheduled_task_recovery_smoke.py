@@ -68,18 +68,21 @@ with sync_playwright() as p:
           <div>This task needs your attention</div>
           <button>Follow-up</button>
         </section>
-        <div role="dialog" id="permission" hidden>
-          <h2>Allow ChatGPT to use GitHub?</h2>
-          <button id="allow">Allow</button>
-          <button id="arrow" aria-haspopup="menu" aria-label="Allow options">⌄</button>
-          <button>Deny</button>
+        <div role="dialog" id="taskDetail" hidden>
+          <h2>Minecraft Mod Catalogue Updater</h2>
+          <div role="dialog" id="permission">
+            <h3>Allow ChatGPT to use GitHub?</h3>
+            <button id="allow">Allow</button>
+            <button id="arrow" aria-haspopup="menu" aria-label="Allow options">⌄</button>
+            <button>Deny</button>
+          </div>
+          <button id="resume" hidden>Resume</button>
         </div>
-        <button id="resume" hidden>Resume</button>
       `;
 
       document.getElementById('followup').onclick=()=>{
         window.__clicks.push('followup');
-        document.getElementById('permission').hidden=false;
+        document.getElementById('taskDetail').hidden=false;
       };
       document.getElementById('arrow').onclick=()=>{
         window.__clicks.push('arrow');
@@ -104,7 +107,7 @@ with sync_playwright() as p:
         window.__clicks.push('resume');
         document.getElementById('attention').textContent='Task active';
         document.getElementById('followup').remove();
-        document.getElementById('resume').remove();
+        document.getElementById('taskDetail').remove();
       };
     }''')
 
