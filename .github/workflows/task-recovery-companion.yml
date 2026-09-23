@@ -63,6 +63,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing browser-test dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt playwright==1.57.0
+          python -m playwright install --with-deps chromium
       - name: Existing project verification
         run: |
           npm ci
