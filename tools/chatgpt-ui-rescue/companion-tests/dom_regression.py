@@ -48,7 +48,7 @@ async def main():
    s=await inspect(page);assert s['running'] and not s['completed']
    assert await page.evaluate('window.clicks')=={'open':1,'resume':1}
    await page.screenshot(path=str(ROOT/'companion-evidence'/'chromium-recovered-fixture.png'))
-  script="""window.clicks={open:0,resume:0};document.querySelector('.follow').onclick=()=>{clicks.follow++;setTimeout(()=>{let d=document.createElement('div');d.setAttribute('role','dialog');d.innerHTML='<h2>Minecraft Mod Catalogue Updater</h2><p>Task run interrupted. Resume this run.</p><button id="resume">Resume</button>';document.body.append(d);document.querySelector('#resume').onclick=()=>{clicks.resume++;d.remove();document.querySelector('.attention').textContent='Running';document.querySelector('.follow').remove();}},350)};"""
+  script="""window.clicks={open:0,resume:0};document.querySelector('.follow').onclick=()=>{clicks.open++;setTimeout(()=>{let d=document.createElement('div');d.setAttribute('role','dialog');d.innerHTML='<h2>Minecraft Mod Catalogue Updater</h2><p>Task run interrupted. Resume this run.</p><button id="resume">Resume</button>';document.body.append(d);document.querySelector('#resume').onclick=()=>{clicks.resume++;d.remove();document.querySelector('.attention').textContent='Running';document.querySelector('.follow').remove();}},350)};"""
   await case('Delayed Follow-up -> Resume -> positive Running evidence',card(),delayed,script)
   async def approval_case(page):
    s=await inspect(page);assert s['approval'];assert s['action'] is None
