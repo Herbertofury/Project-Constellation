@@ -39,9 +39,11 @@ jobs:
           Expand-Archive 'commander-source.zip' 'commander-source' -Force
           git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
           git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-smoke-ci-fix.patch
+          git apply --check --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-runtime-ci-fix.patch
+          git apply --directory=commander-source/constellation-commander-v0.6.0 releases/constellation-commander/v0.6.0/electron-runtime-ci-fix.patch
           $expectedFiles = @{
-            'commander-source/constellation-commander-v0.6.0/electron/main.cjs' = 'b6d4940a16d60267bef1fdd773ca887421448cb52ac6cc3649b1e221bf3474fd'
-            'commander-source/constellation-commander-v0.6.0/electron/chat-preload.cjs' = 'a40fcc56e769530b624df64a225f76eca4d971194aec2ebe56bcae0e2cdbc86a'
+            'commander-source/constellation-commander-v0.6.0/electron/main.cjs' = '28b26809c83163116808bbaa7b1075f754d00a38743ed28b98f271f7bf610397'
+            'commander-source/constellation-commander-v0.6.0/electron/chat-preload.cjs' = 'c2de0c0516e59c83d3f8dfbfb1c12b440d2862ac4897947516a1436f66729401'
             'commander-source/constellation-commander-v0.6.0/electron/fixture-chat.html' = '5ebb73bee441adbaa3499399f5821d4394ef6a6927851f398bd4e846f6749a38'
             'commander-source/constellation-commander-v0.6.0/scripts/electron-smoke.ps1' = '8ccdd30afcebe78ce9fbf6a1e4bf9efa55c4b2cf3c5553406d6828355636258f'
           }
