@@ -1,20 +1,45 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source": "ChatGPT Scheduled Task Watchdog",
-  "last_probe_utc": "2026-09-22T17:55:05Z",
+  "last_probe_utc": "2026-09-23T03:53:35Z",
   "stale_after_hours": 4,
   "github": {
     "connector_ok": true,
     "app_permission": "Allow all actions",
-    "repair_attempted": false,
-    "repair_succeeded": false
+    "required_for_core_watchdog_repair": false,
+    "unexpected_permission_prompt_policy": "defer GitHub lane for this run; never ask user or stop native repair"
   },
   "google_drive": {
     "connector_ok": true,
     "app_permission": "Allow all actions",
-    "repair_attempted": false,
-    "repair_succeeded": false
+    "required_for_core_watchdog_repair": false,
+    "private_recovery_registry_ok": true
+  },
+  "gmail": {
+    "app_permission": "Use my default",
+    "delivery_policy": "post-work and non-blocking"
+  },
+  "outlook_email": {
+    "app_permission": "Use my default",
+    "delivery_policy": "post-work and non-blocking"
+  },
+  "global_app_permission": "Allow low-risk actions",
+  "plugin_permission_writer": {
+    "last_observed_result": "HTTP 404 before invocation",
+    "required_for_task_success": false
+  },
+  "automation_health": {
+    "primary_watchdog_enabled": true,
+    "secondary_failsafe_enabled": true,
+    "live_recurring_tasks": 8,
+    "paused_tasks": 0,
+    "completed_tasks": 0
+  },
+  "external_recovery": {
+    "github_monitor_workflow": "chatgpt-watchdog-external.yml",
+    "first_proven_run_id": 35816022769,
+    "open_stale_incident_at_repair_start": 37
   },
   "user_action_required": false,
-  "note": "Non-secret connector health only. Internal ChatGPT watchdog may repair app-permission drift when supported; OAuth/provider consent still requires the account owner."
+  "note": "Non-secret recovery health only. Core scheduler repair is intentionally independent of GitHub, Drive, mail, and Plugin Management."
 }
