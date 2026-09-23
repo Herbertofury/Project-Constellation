@@ -20,7 +20,7 @@ permissions:
 
 concurrency:
   group: chatgpt-scheduled-task-ui-rescue
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   syntax:
