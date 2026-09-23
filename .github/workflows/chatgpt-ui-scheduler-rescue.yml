@@ -60,14 +60,20 @@ jobs:
       - name: Require encrypted ChatGPT browser state
         shell: bash
         env:
+          CHATGPT_STORAGE_STATE_GZ_B64: ${{ secrets.CHATGPT_STORAGE_STATE_GZ_B64 }}
           CHATGPT_STORAGE_STATE_B64: ${{ secrets.CHATGPT_STORAGE_STATE_B64 }}
         run: |
           set -euo pipefail
-          if [ -z "$CHATGPT_STORAGE_STATE_B64" ]; then
-            echo "::error::Missing GitHub Actions secret CHATGPT_STORAGE_STATE_B64. Run tools/chatgpt-ui-rescue/bootstrap-auth.ps1 once."
+          if [ -n "$CHATGPT_STORAGE_STATE_GZ_B64" ]; then
+            printf '%s' "$CHATGPT_STORAGE_STATE_GZ_B64" | base64 --decode > "$RUNNER_TEMP/chatgpt-storage-state.json.gz"
+            gzip -dc "$RUNNER_TEMP/chatgpt-storage-state.json.gz" > "$RUNNER_TEMP/chatgpt-storage-state.json"
+            rm -f "$RUNNER_TEMP/chatgpt-storage-state.json.gz"
+          elif [ -n "$CHATGPT_STORAGE_STATE_B64" ]; then
+            printf '%s' "$CHATGPT_STORAGE_STATE_B64" | base64 --decode > "$RUNNER_TEMP/chatgpt-storage-state.json"
+          else
+            echo "::error::Missing ChatGPT browser-state secret. Connect the remote-PC bridge and run tools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1."
             exit 2
           fi
-          printf '%s' "$CHATGPT_STORAGE_STATE_B64" | base64 --decode > "$RUNNER_TEMP/chatgpt-storage-state.json"
           chmod 600 "$RUNNER_TEMP/chatgpt-storage-state.json"
 
       - name: Install browser rescue runtime
