@@ -1,0 +1,75 @@
+--- a/electron/main.cjs
++++ b/electron/main.cjs
+@@ -241,8 +241,31 @@
+   });
+ 
+   const target = TEST_MODE ? `file://${path.join(__dirname, 'fixture-chat.html').replaceAll('\\', '/')}` : CHAT_URL;
++  wc.once('did-finish-load', () => {
++    injectPageHook();
++    if (!win.isVisible()) win.show();
++    if (TEST_MODE) {
++      setTimeout(() => {
++        void wc.executeJavaScript(`(() => {
++          const button = document.getElementById('composer-submit-button') || document.querySelector('[data-testid="send-button"]');
++          if (!button) return { ok: false, reason: 'fixture-send-button-missing', url: location.href };
++          button.click();
++          return { ok: true, url: location.href };
++        })()`, true).then(result => {
++          if (!result?.ok && TEST_OUTPUT) {
++            fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'smoke-start-failed', detail: result || null, at: nowIso() }, null, 2));
++            setTimeout(() => app.quit(), 250);
++          }
++        }).catch(error => {
++          if (TEST_OUTPUT) {
++            fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'smoke-start-failed', detail: { error: String(error?.stack || error) }, at: nowIso() }, null, 2));
++            setTimeout(() => app.quit(), 250);
++          }
++        });
++      }, 500);
++    }
++  });
+   void wc.loadURL(target);
+-  wc.once('did-finish-load', () => { injectPageHook(); if (!win.isVisible()) win.show(); });
+   win.once('ready-to-show', () => { if (!win.isVisible()) win.show(); });
+ }
+ 
+--- a/electron/chat-preload.cjs
++++ b/electron/chat-preload.cjs
+@@ -20,7 +20,6 @@
+   let plumbingSend = false;
+   let arming = false;
+   let route = location.href;
+-  const TEST_FIXTURE = /fixture-chat\.html(?:[?#]|$)/i.test(location.href);
+ 
+   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+   const diagnostic = (event, detail = {}) => ipcRenderer.invoke('cc:diagnostic', { event, detail }).catch(() => null);
+@@ -379,17 +378,6 @@
+       const status = await ipcRenderer.invoke('cc:status');
+       if (status?.ok) toast(`Commander ${status.version} integrated — no browser extension required.`);
+     } catch {}
+-    if (TEST_FIXTURE) {
+-      setTimeout(() => {
+-        const node = composer();
+-        const button = node && sendButton(node);
+-        if (!node || !button) {
+-          void diagnostic('smoke-start-failed', { composer: Boolean(node), sendButton: Boolean(button), url: location.href });
+-          return;
+-        }
+-        button.click();
+-      }, 450);
+-    }
+   });
+ 
+   setInterval(() => {
+--- a/tests/electron-static.test.mjs
++++ b/tests/electron-static.test.mjs
+@@ -12,6 +12,9 @@
+ assert.match(main, /sandbox:\s*true/);
+ assert.match(main, /cc:bootstrap/);
+ assert.match(main, /cc:call/);
++assert.match(main, /fixture-send-button-missing/);
++assert.ok(main.indexOf("wc.once('did-finish-load'") < main.indexOf('void wc.loadURL(target)'), 'Electron smoke trigger must be armed before file navigation starts');
++assert.doesNotMatch(preload, /const TEST_FIXTURE/);
+ assert.match(preload, /electron-integrated-workspace/);
+ assert.match(preload, /Integrated request hook missed/);
+ assert.match(preload, /parsed\.arguments/);
