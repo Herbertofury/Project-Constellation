@@ -57,10 +57,12 @@ jobs:
       - name: Open or refresh stale-heartbeat issue
         if: steps.heartbeat.outputs.state != 'healthy'
         uses: actions/github-script@v7
+        env:
+          WATCHDOG_DETAIL: ${{ steps.heartbeat.outputs.detail }}
         with:
           script: |
             const title = "[Watchdog] ChatGPT scheduled-task heartbeat stale";
-            const detail = ${JSON.stringify(steps.heartbeat.outputs.detail)};
+            const detail = process.env.WATCHDOG_DETAIL || "No detail returned.";
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
