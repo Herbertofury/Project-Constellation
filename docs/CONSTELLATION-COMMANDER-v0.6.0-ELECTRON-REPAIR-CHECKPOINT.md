@@ -45,7 +45,7 @@ The final run passed every gate:
 - Installer: Constellation-Commander-0.6.0-x64.exe
   - SHA-256: dd48931a70c68a600f1e54099f69d02b149b84e6239cf6ce7b384fdc12d3e30d
 - Portable: Constellation-Commander-0.6.0-x64.zip
-  - SHA-256: a1800585d70ef9c79972693ed1277edd94b126112d2fc53e7fbf27ff08fed25
+  - SHA-256: a1800585d70ef9c79972693ed1277edd94dca9b1cd302d1bd99ced1e8aa8be2f
 
 ## Google Drive durability
 
