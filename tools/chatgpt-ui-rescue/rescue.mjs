@@ -450,3 +450,7 @@ try {
     await browser.close();
   }
 }
+
+if (attachedOverCdp) {
+  process.exit(process.exitCode ?? 0);
+}
