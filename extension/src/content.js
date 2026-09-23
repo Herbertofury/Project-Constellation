@@ -809,8 +809,15 @@
     return controls.find((node) => pattern.test(elementLabel(node, 180))) || null;
   }
 
-  function scheduledGlobalResumeControl() {
-    return scheduledControl(document, SCHEDULED_TASK_RESUME_PATTERN);
+  function scheduledDialogResumeControl() {
+    const scopes = [...document.querySelectorAll('[role="dialog"],[role="alertdialog"],[data-state="open"],[data-testid*="dialog" i],[class*="modal" i],[class*="drawer" i]')]
+      .filter(isUsableControl)
+      .reverse();
+    for (const scope of scopes) {
+      const control = scheduledControl(scope, SCHEDULED_TASK_RESUME_PATTERN);
+      if (control) return control;
+    }
+    return null;
   }
 
   async function runScheduledTaskRecoveryScan(options = {}) {
@@ -840,16 +847,6 @@
         }
       }
 
-      const resume = scheduledGlobalResumeControl();
-      if (resume) {
-        const label = elementLabel(resume, 160);
-        resume.click();
-        repaired.push({ kind:'resume', label });
-        approvalAutopilotLastAt = Date.now();
-        await wait(260);
-        continue;
-      }
-
       const blocked = scheduledBlockedTasks();
       if (!blocked.length) {
         return {
@@ -867,6 +864,16 @@
       if (direct) {
         direct.click();
         repaired.push({ kind:'task-resume', title:task.title, label:elementLabel(direct, 160) });
+        approvalAutopilotLastAt = Date.now();
+        await wait(260);
+        continue;
+      }
+
+      const dialogResume = scheduledDialogResumeControl();
+      if (dialogResume) {
+        const label = elementLabel(dialogResume, 160);
+        dialogResume.click();
+        repaired.push({ kind:'dialog-resume', title:task.title, label });
         approvalAutopilotLastAt = Date.now();
         await wait(260);
         continue;
