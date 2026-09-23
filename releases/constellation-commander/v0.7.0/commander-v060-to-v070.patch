@@ -807,7 +807,7 @@ index b0688a4..ef44c49 100644
    });
  
 diff --git a/electron/main.cjs b/electron/main.cjs
-index f0ef8bd..53f444c 100644
+index f0ef8bd..14d818c 100644
 --- a/electron/main.cjs
 +++ b/electron/main.cjs
 @@ -1,15 +1,18 @@
@@ -831,16 +831,17 @@ index f0ef8bd..53f444c 100644
  const TEST_MODE = process.env.CONSTELLATION_ELECTRON_SMOKE === '1';
  const TEST_OUTPUT = process.env.CONSTELLATION_ELECTRON_SMOKE_OUTPUT || '';
  
-@@ -18,6 +21,8 @@ let chatView;
+@@ -18,6 +21,9 @@ let chatView;
  let runtime;
  let fallbackBridge;
  let emergencyLock = false;
++let shellCollapsed = false;
 +let shellSmokeState = { status: TEST_MODE ? 'pending' : 'not-required', detail: null };
 +let chatState = { phase: 'starting', message: 'Starting ChatGPT…', url: CHAT_URL, lastError: '', pageHookReady: false, loadedAt: '' };
  const chatSessions = new Map();
  
  function randomToken(bytes = 24) { return crypto.randomBytes(bytes).toString('base64url'); }
-@@ -29,6 +34,70 @@ function smokeTrace(event, detail = {}) {
+@@ -29,6 +35,71 @@ function smokeTrace(event, detail = {}) {
  function appRoot() { return path.resolve(__dirname, '..'); }
  function importEsm(relativePath) { return import(pathToFileURL(path.join(appRoot(), relativePath)).href); }
  
@@ -889,6 +890,7 @@ index f0ef8bd..53f444c 100644
 +    version: VERSION,
 +    chat: { ...chatState },
 +    emergencyLock,
++    shellCollapsed,
 +    singleInstanceOwner: app.hasSingleInstanceLock(),
 +    startWithWindows: app.isPackaged ? app.getLoginItemSettings().openAtLogin : false,
 +    config: safeConfig(),
@@ -911,7 +913,7 @@ index f0ef8bd..53f444c 100644
  async function createRuntime() {
    const [{ loadConfig, saveConfig }, { createRuntimeState }, { createToolHandler }, { toolDefinitions }] = await Promise.all([
      importEsm('src/config.mjs'), importEsm('src/state.mjs'), importEsm('src/tools.mjs'), importEsm('src/tool-definitions.mjs')
-@@ -68,6 +137,20 @@ function normalizeCall(input, sessionItem) {
+@@ -68,6 +139,20 @@ function normalizeCall(input, sessionItem) {
    return { id, tool, args, nonce };
  }
  
@@ -932,7 +934,7 @@ index f0ef8bd..53f444c 100644
  async function executeChatCall(chatId, rawCall) {
    const item = chatSessions.get(String(chatId || ''));
    if (!item || item.expiresAt <= Date.now()) throw new Error('Commander chat session expired; retry the request.');
-@@ -76,14 +159,22 @@ async function executeChatCall(chatId, rawCall) {
+@@ -76,14 +161,22 @@ async function executeChatCall(chatId, rawCall) {
    if (call.nonce !== item.nonce) throw new Error('Commander call nonce is stale.');
    const allowed = new Set(toolManifest().map(x => x.name));
    if (!allowed.has(call.tool)) throw new Error(`Commander tool is not available: ${call.tool}`);
@@ -962,7 +964,7 @@ index f0ef8bd..53f444c 100644
  }
  
  async function setEmergencyLock(value) {
-@@ -93,6 +184,7 @@ async function setEmergencyLock(value) {
+@@ -93,6 +186,7 @@ async function setEmergencyLock(value) {
    const lockPath = path.join(runtime.dir, 'EMERGENCY-LOCK');
    if (emergencyLock) fs.writeFileSync(lockPath, 'locked\n');
    else { try { fs.unlinkSync(lockPath); } catch {} }
@@ -970,7 +972,7 @@ index f0ef8bd..53f444c 100644
    return emergencyLock;
  }
  
-@@ -119,6 +211,7 @@ function setStartWithWindows(enabled) {
+@@ -119,6 +213,7 @@ function setStartWithWindows(enabled) {
  }
  
  async function startFallbackBridge() {
@@ -978,7 +980,7 @@ index f0ef8bd..53f444c 100644
    try {
      const { createBrowserBridge } = await importEsm('src/browser-bridge.mjs');
      fallbackBridge = await createBrowserBridge();
-@@ -137,7 +230,7 @@ function trustedNavigation(url) {
+@@ -137,7 +232,7 @@ function trustedNavigation(url) {
    if (TEST_MODE && String(url || '').startsWith('file://')) return true;
    try {
      const host = new URL(url).hostname.toLowerCase();
@@ -987,16 +989,17 @@ index f0ef8bd..53f444c 100644
    } catch { return false; }
  }
  
-@@ -181,7 +274,7 @@ function createApplicationMenu() {
+@@ -181,7 +276,8 @@ function createApplicationMenu() {
  function layoutChatView() {
    if (!win || !chatView) return;
    const [width, height] = win.getContentSize();
 -  chatView.setBounds({ x: 0, y: 0, width, height });
-+  chatView.setBounds({ x: SHELL_WIDTH, y: SHELL_TOP, width: Math.max(1, width - SHELL_WIDTH), height: Math.max(1, height - SHELL_TOP) });
++  const left = shellCollapsed ? 0 : SHELL_WIDTH;
++  chatView.setBounds({ x: left, y: SHELL_TOP, width: Math.max(1, width - left), height: Math.max(1, height - SHELL_TOP) });
  }
  
  function createChatWindow() {
-@@ -198,9 +291,42 @@ function createChatWindow() {
+@@ -198,9 +294,42 @@ function createChatWindow() {
      webPreferences: {
        nodeIntegration: false,
        contextIsolation: true,
@@ -1040,7 +1043,7 @@ index f0ef8bd..53f444c 100644
  
    // The BrowserWindow is only the native container. ChatGPT lives in a dedicated
    // WebContentsView so its session and preload are fully owned by Commander.
-@@ -221,9 +347,10 @@ function createChatWindow() {
+@@ -221,9 +350,10 @@ function createChatWindow() {
  
    const wc = chatView.webContents;
    wc.setUserAgent(chromeUserAgent());
@@ -1053,7 +1056,7 @@ index f0ef8bd..53f444c 100644
    wc.setWindowOpenHandler(details => {
      if (!trustedNavigation(details.url)) {
        void shell.openExternal(details.url);
-@@ -248,6 +375,7 @@ function createChatWindow() {
+@@ -248,6 +378,7 @@ function createChatWindow() {
    wc.once('did-finish-load', () => {
      smokeTrace('did-finish-load', { url: wc.getURL() });
      injectPageHook();
@@ -1061,7 +1064,7 @@ index f0ef8bd..53f444c 100644
      if (!win.isVisible()) win.show();
      if (TEST_MODE) {
        setTimeout(() => {
-@@ -294,7 +422,7 @@ function installIpc() {
+@@ -294,7 +425,7 @@ function installIpc() {
        nonce: item.nonce,
        expiresAt: new Date(item.expiresAt).toISOString(),
        tools: toolManifest(),
@@ -1070,7 +1073,7 @@ index f0ef8bd..53f444c 100644
      };
    });
  
-@@ -313,14 +441,21 @@ function installIpc() {
+@@ -313,14 +444,21 @@ function installIpc() {
  
    ipcMain.handle('cc:status', async event => {
      if (event.sender !== chatView?.webContents) throw new Error('Untrusted status caller.');
@@ -1094,7 +1097,7 @@ index f0ef8bd..53f444c 100644
          setTimeout(() => app.quit(), 250);
        } else if (['arm-failed', 'tool-failed', 'smoke-start-failed'].includes(payload.event)) {
          fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
-@@ -331,6 +466,132 @@ function installIpc() {
+@@ -331,6 +469,139 @@ function installIpc() {
    });
  }
  
@@ -1103,6 +1106,13 @@ index f0ef8bd..53f444c 100644
 +  const requireTrusted = event => { if (!trusted(event)) throw new Error('Untrusted Commander shell caller.'); };
 +
 +  ipcMain.handle('cc-shell:snapshot', async event => { requireTrusted(event); return shellSnapshot(); });
++  ipcMain.handle('cc-shell:set-sidebar-collapsed', (event, payload = {}) => {
++    requireTrusted(event);
++    shellCollapsed = Boolean(payload.collapsed);
++    layoutChatView();
++    emitShell('sidebar-collapsed', { collapsed: shellCollapsed });
++    return { ok: true, collapsed: shellCollapsed };
++  });
 +  ipcMain.handle('cc-shell:arm-next', event => { requireTrusted(event); chatView?.webContents.send('cc:arm-next'); emitShell('arm-next', { armed: true }); return { ok: true }; });
 +  ipcMain.handle('cc-shell:set-local-mode', async (event, payload = {}) => {
 +    requireTrusted(event);
@@ -1227,7 +1237,7 @@ index f0ef8bd..53f444c 100644
  async function configureSession() {
    const ses = session.fromPartition(CHAT_PARTITION, { cache: true });
    ses.setPermissionRequestHandler((webContents, permission, callback) => {
-@@ -345,13 +606,25 @@ async function configureSession() {
+@@ -345,13 +616,25 @@ async function configureSession() {
  app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
  app.setAppUserModelId('com.constellation.commander');
  
@@ -1256,10 +1266,10 @@ index f0ef8bd..53f444c 100644
    void startFallbackBridge();
 diff --git a/constellation-commander-v0.7.0/electron/shell-preload.cjs b/electron/shell-preload.cjs
 new file mode 100644
-index 0000000..d82feb9
+index 0000000..e6e3f62
 --- /dev/null
 +++ b/electron/shell-preload.cjs
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,34 @@
 +'use strict';
 +
 +const { contextBridge, ipcRenderer } = require('electron');
@@ -1268,6 +1278,7 @@ index 0000000..d82feb9
 +
 +contextBridge.exposeInMainWorld('commanderShell', {
 +  snapshot: () => invoke('cc-shell:snapshot'),
++  setSidebarCollapsed: collapsed => invoke('cc-shell:set-sidebar-collapsed', { collapsed }),
 +  setLocalMode: mode => invoke('cc-shell:set-local-mode', { mode }),
 +  armNext: () => invoke('cc-shell:arm-next'),
 +  setEmergencyLock: enabled => invoke('cc-shell:set-emergency-lock', { enabled }),
@@ -1295,10 +1306,10 @@ index 0000000..d82feb9
 +});
 diff --git a/constellation-commander-v0.7.0/electron/shell.css b/electron/shell.css
 new file mode 100644
-index 0000000..e1d4f30
+index 0000000..8dd0020
 --- /dev/null
 +++ b/electron/shell.css
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,94 @@
 +:root {
 +  color-scheme: dark;
 +  --top: 48px;
@@ -1389,12 +1400,16 @@ index 0000000..e1d4f30
 +.tool-help { min-height: 28px; margin: -2px 0 8px; line-height: 1.35; }
 +.direct-status { margin-top: 7px; }
 +.direct-result { max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #080b10; border: 1px solid #273140; border-radius: 8px; padding: 8px; margin: 7px 0 0; color: #cbd7e6; font: 10px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
++
++body.sidebar-collapsed .sidebar { transform: translateX(-100%); pointer-events: none; }
++.sidebar { transition: transform .16s ease; }
++body.sidebar-collapsed .brand { min-width: 0; }
 diff --git a/constellation-commander-v0.7.0/electron/shell.html b/electron/shell.html
 new file mode 100644
-index 0000000..311f5e7
+index 0000000..38285c5
 --- /dev/null
 +++ b/electron/shell.html
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,120 @@
 +<!doctype html>
 +<html lang="en">
 +<head>
@@ -1416,6 +1431,7 @@ index 0000000..311f5e7
 +      <span id="chat-state">Starting ChatGPT…</span>
 +    </div>
 +    <div class="top-actions">
++      <button id="controls" class="ghost" title="Show or hide Commander controls">Hide controls</button>
 +      <button id="home" class="ghost">Home</button>
 +      <button id="reload" class="ghost">Reload</button>
 +    </div>
@@ -1516,10 +1532,10 @@ index 0000000..311f5e7
 +</html>
 diff --git a/constellation-commander-v0.7.0/electron/shell.js b/electron/shell.js
 new file mode 100644
-index 0000000..ebf6cac
+index 0000000..eca98b1
 --- /dev/null
 +++ b/electron/shell.js
-@@ -0,0 +1,298 @@
+@@ -0,0 +1,306 @@
 +'use strict';
 +
 +(() => {
@@ -1719,6 +1735,8 @@ index 0000000..ebf6cac
 +    const chat = next.chat || {};
 +    const config = next.config || {};
 +    $('version').textContent = `v${next.version || '0.7.0'}`;
++    document.body.classList.toggle('sidebar-collapsed', Boolean(next.shellCollapsed));
++    $('controls').textContent = next.shellCollapsed ? 'Show controls' : 'Hide controls';
 +    $('chat-state').textContent = chat.message || chat.phase || 'Unknown';
 +    dot('chat-dot', chat.phase === 'ready' ? 'good' : chat.phase === 'error' ? 'bad' : 'warn');
 +
@@ -1762,7 +1780,7 @@ index 0000000..ebf6cac
 +      activity.unshift({ at: evt.at, tool: detail.tool, ok: evt.type === 'tool-finish', durationMs: detail.durationMs, message: detail.error || '' });
 +      activity.splice(20);
 +    }
-+    if (evt.type === 'chat-state' || evt.type === 'config-changed' || evt.type === 'emergency-lock') void refresh();
++    if (evt.type === 'chat-state' || evt.type === 'config-changed' || evt.type === 'emergency-lock' || evt.type === 'sidebar-collapsed') void refresh();
 +    renderActivity();
 +  }
 +
@@ -1774,6 +1792,12 @@ index 0000000..ebf6cac
 +  $('add-root').addEventListener('click', async () => { await api.addRoot(); await refresh(); });
 +  $('full-access').addEventListener('click', async () => { await api.setFullAccess(!(snapshot?.config?.allowedRoots || []).includes('*')); await refresh(); });
 +  $('emergency').addEventListener('click', async () => { await api.setEmergencyLock(!snapshot?.emergencyLock); await refresh(); });
++  $('controls').addEventListener('click', async () => {
++    const collapsed = !Boolean(snapshot?.shellCollapsed);
++    localStorage.setItem('commander.sidebarCollapsed', collapsed ? '1' : '0');
++    await api.setSidebarCollapsed(collapsed);
++    await refresh();
++  });
 +  $('reload').addEventListener('click', () => api.reloadChat());
 +  $('home').addEventListener('click', () => api.goHome());
 +  $('data-folder').addEventListener('click', () => api.openDataFolder());
@@ -1814,8 +1838,8 @@ index 0000000..ebf6cac
 +  });
 +
 +  api.onEvent(pushEvent);
++  void api.setSidebarCollapsed(localStorage.getItem('commander.sidebarCollapsed') === '1').then(refresh).catch(() => refresh());
 +  void loadDirectTools();
-+  void refresh();
 +  setInterval(refresh, 10000);
 +})();
 diff --git a/package.json b/package.json
@@ -2240,10 +2264,10 @@ index bb27b09..ba229ef 100644
    const shotCallPromise = mcp({ jsonrpc: '2.0', id: 40, method: 'tools/call', params: { name: 'computer_screenshot', arguments: { target: 'all' } } });
 diff --git a/constellation-commander-v0.7.0/tests/shell-static.test.mjs b/tests/shell-static.test.mjs
 new file mode 100644
-index 0000000..d1359bc
+index 0000000..7cf17a9
 --- /dev/null
 +++ b/tests/shell-static.test.mjs
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,56 @@
 +import fs from 'node:fs';
 +import assert from 'node:assert/strict';
 +
@@ -2259,12 +2283,14 @@ index 0000000..d1359bc
 +assert.match(html, /id="emergency"/);
 +assert.match(html, /id="activity"/);
 +assert.match(html, /id="health"/);
++assert.match(html, /id="controls"/);
 +assert.match(html, /id="direct-tool"/);
 +assert.match(html, /id="direct-args"/);
 +assert.match(html, /id="direct-run"/);
 +assert.match(html, /id="direct-result"/);
 +assert.match(css, /--side:\s*380px/);
 +assert.match(js, /runHealth/);
++assert.match(js, /setSidebarCollapsed/);
 +assert.match(js, /loadDirectTools/);
 +assert.match(js, /runDirectTool/);
 +assert.match(js, /api\.runTool/);
@@ -2285,10 +2311,13 @@ index 0000000..d1359bc
 +assert.match(js, /observeDesktop/);
 +assert.match(js, /focusWindow/);
 +assert.match(preload, /cc-shell:observe-desktop/);
++assert.match(preload, /cc-shell:set-sidebar-collapsed/);
 +assert.match(preload, /cc-shell:list-tools/);
 +assert.match(preload, /cc-shell:run-tool/);
 +assert.match(preload, /cc-shell:focus-window/);
 +assert.match(main, /cc-shell:observe-desktop/);
++assert.match(main, /cc-shell:set-sidebar-collapsed/);
++assert.match(main, /shellCollapsed \? 0 : SHELL_WIDTH/);
 +assert.match(main, /cc-shell:list-tools/);
 +assert.match(main, /cc-shell:run-tool/);
 +assert.match(main, /toolManifest\(\)\.find/);
