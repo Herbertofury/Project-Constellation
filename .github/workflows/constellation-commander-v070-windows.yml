@@ -82,6 +82,20 @@ jobs:
           Move-Item 'commander-base/constellation-commander-v0.6.0' 'commander-source/constellation-commander-v0.7.0'
           $root = (Resolve-Path 'commander-source/constellation-commander-v0.7.0').Path
 
+          # Git-for-Windows may CRLF-convert rename-only text files. Restore the canonical
+          # UTF-8/LF representation, then require the exact target size/SHA for every file.
+          $textExtensions = @('.ps1','.cmd','.mjs','.cjs','.js','.json','.md','.html','.css')
+          $textNames = @('LICENSE','Dockerfile','.dockerignore')
+          foreach ($file in Get-ChildItem $root -File -Recurse) {
+            if (($textExtensions -contains $file.Extension.ToLowerInvariant()) -or ($textNames -contains $file.Name)) {
+              $text = [IO.File]::ReadAllText($file.FullName)
+              $normalized = $text.Replace("`r`n", "`n").Replace("`r", "`n")
+              if ($normalized -ne $text) {
+                [IO.File]::WriteAllText($file.FullName, $normalized, [Text.UTF8Encoding]::new($false))
+              }
+            }
+          }
+
           # Prove every final source path, size, and SHA-256. Extra or missing files fail the build.
           $manifestPath = 'releases/constellation-commander/v0.7.0/TREE-SHA256.txt'
           $manifestHash = (Get-FileHash -Algorithm SHA256 $manifestPath).Hash.ToLowerInvariant()
