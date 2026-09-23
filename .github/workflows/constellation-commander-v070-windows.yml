@@ -1,0 +1,155 @@
+name: Constellation Commander v0.7 Product Windows Acceptance
+
+on:
+  push:
+    branches:
+      - ci/commander-v070-windows-proof
+    paths:
+      - 'releases/constellation-commander/v0.7.0/Constellation-Commander-v0.7.0-source.zip'
+      - '.github/workflows/constellation-commander-v070-windows.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'releases/constellation-commander/v0.7.0/**'
+      - '.github/workflows/constellation-commander-v070-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-product:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify and unpack exact v0.7 source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = 'releases/constellation-commander/v0.7.0/Constellation-Commander-v0.7.0-source.zip'
+          if (-not (Test-Path $source)) { throw "Missing canonical v0.7 source archive: $source" }
+          $actual = (Get-FileHash -Algorithm SHA256 $source).Hash.ToLowerInvariant()
+          $expected = 'abd98fb6d298b76d94192e38733e90526bba53f985d37efcf60b701e12de6bd5'
+          if ($actual -ne $expected) { throw "v0.7 source SHA mismatch: $actual" }
+          Expand-Archive $source 'commander-source' -Force
+          if (-not (Test-Path 'commander-source/constellation-commander-v0.7.0/package.json')) { throw 'v0.7 source root is missing.' }
+          Write-Host "source_sha256=$actual"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+
+      - name: Install exact production dependencies
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.7.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          npm install --no-audit --no-fund
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '0.7.0') { throw "Unexpected Commander version $($pkg.version)" }
+          if ($pkg.devDependencies.electron -ne '44.4.3') { throw "Unexpected Electron package version $($pkg.devDependencies.electron)" }
+          if ($pkg.devDependencies.'electron-builder' -ne '26.16.1') { throw "Unexpected electron-builder version $($pkg.devDependencies.'electron-builder')" }
+          if ($pkg.build.asar -ne $true) { throw 'ASAR packaging must be enabled.' }
+          if (@($pkg.build.asarUnpack) -notcontains 'native/**/*') { throw 'native/**/* must be unpacked from ASAR.' }
+          $electronVersion = ((& .\node_modules\.bin\electron.cmd --version 2>&1 | Select-Object -Last 1).ToString()).Trim()
+          if ($electronVersion -ne 'v44.4.3') { throw "Installed Electron runtime mismatch: $electronVersion" }
+          Write-Host "electron_runtime=$electronVersion"
+
+      - name: Run full regression and Windows native computer-use suite
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.7.0
+        run: |
+          npm run check
+          npm test
+
+      - name: Prove visible shell plus integrated ChatGPT tool loop
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.7.0
+        run: |
+          ./scripts/electron-smoke.ps1
+
+      - name: Build ASAR-backed NSIS installer and portable ZIP
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.7.0
+        run: |
+          npm run build:win
+          Get-ChildItem dist-electron | Format-Table Name,Length
+
+      - name: Validate package layout and artifact hashes
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.7.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem dist-electron -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Sort-Object Length -Descending | Select-Object -First 1
+          $portable = Get-ChildItem dist-electron -Filter '*.zip' | Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $installer) { throw 'NSIS installer was not produced.' }
+          if (-not $portable) { throw 'Portable ZIP was not produced.' }
+
+          Remove-Item portable-check -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive $portable.FullName portable-check -Force
+          $asar = Get-ChildItem portable-check -Filter 'app.asar' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          $native = Get-ChildItem portable-check -Filter 'windows-computer-use.ps1' -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match 'app\.asar\.unpacked' } | Select-Object -First 1
+          if (-not $asar) { throw 'Packaged portable app.asar was not found.' }
+          if (-not $native) { throw 'Unpacked Windows native helper was not found beside app.asar.' }
+
+          $installerHash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+          $portableHash = (Get-FileHash -Algorithm SHA256 $portable.FullName).Hash.ToLowerInvariant()
+          "installer_sha256=$installerHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt
+          "portable_sha256=$portableHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "installer_file=$($installer.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "portable_file=$($portable.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "source_sha256=abd98fb6d298b76d94192e38733e90526bba53f985d37efcf60b701e12de6bd5" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          Write-Host "asar=$($asar.FullName)"
+          Write-Host "native_unpacked=$($native.FullName)"
+
+      - name: Silent-install and prove installed shell plus ChatGPT IPC loop
+        shell: pwsh
+        working-directory: commander-source/constellation-commander-v0.7.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem dist-electron -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Sort-Object Length -Descending | Select-Object -First 1
+          $installProc = Start-Process -FilePath $installer.FullName -ArgumentList '/S' -PassThru -Wait
+          if ($installProc.ExitCode -ne 0) { throw "NSIS install failed with exit code $($installProc.ExitCode)" }
+
+          $installed = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Programs') -Filter 'Constellation Commander.exe' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $installed) { throw 'Installed Constellation Commander executable was not found.' }
+
+          $output = Join-Path $env:RUNNER_TEMP 'constellation-electron-installed-smoke.json'
+          $stdout = Join-Path $env:RUNNER_TEMP 'constellation-electron-installed.stdout.log'
+          $stderr = Join-Path $env:RUNNER_TEMP 'constellation-electron-installed.stderr.log'
+          $trace = "$output.trace.log"
+          Remove-Item $output,$stdout,$stderr,$trace -Force -ErrorAction SilentlyContinue
+          $env:CONSTELLATION_ELECTRON_SMOKE = '1'
+          $env:CONSTELLATION_ELECTRON_SMOKE_OUTPUT = $output
+          $env:ELECTRON_ENABLE_LOGGING = '1'
+          $proc = Start-Process -FilePath $installed.FullName -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+          $deadline = (Get-Date).AddSeconds(55)
+          while (-not (Test-Path $output) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 200 }
+          if (-not (Test-Path $output)) {
+            try { Stop-Process -Id $proc.Id -Force } catch {}
+            $t = if (Test-Path $trace) { Get-Content $trace -Raw } else { '' }
+            $o = if (Test-Path $stdout) { Get-Content $stdout -Raw } else { '' }
+            $e = if (Test-Path $stderr) { Get-Content $stderr -Raw } else { '' }
+            throw "Installed v0.7 product smoke timed out.`nTRACE:`n$t`nSTDOUT:`n$o`nSTDERR:`n$e"
+          }
+          $data = Get-Content $output -Raw | ConvertFrom-Json
+          if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false -or $data.detail.shellRuntime.ok -ne $true -or $data.detail.shellRuntime.version -ne '0.7.0' -or $data.detail.shellRuntime.toolCount -lt 45 -or $data.detail.shellRuntime.health.ok -ne $true) {
+            $t = if (Test-Path $trace) { Get-Content $trace -Raw } else { '' }
+            throw "Installed v0.7 product smoke failed: $(Get-Content $output -Raw)`nTRACE:`n$t"
+          }
+          try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+          Write-Host 'Constellation Commander v0.7 installed visible shell + integrated ChatGPT IPC: PASS'
+          Write-Host "installed_exe=$($installed.FullName)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Constellation-Commander-v0.7.0-Windows
+          path: |
+            commander-source/constellation-commander-v0.7.0/dist-electron/*.exe
+            commander-source/constellation-commander-v0.7.0/dist-electron/*.zip
+            commander-source/constellation-commander-v0.7.0/dist-electron/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
