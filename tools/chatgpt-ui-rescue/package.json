@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check rescue.mjs && node --check capture-auth.mjs && node --check capture-existing-chrome.mjs",
+    "check": "node --check rescue.mjs && node --check capture-auth.mjs && node --check capture-existing-chrome.mjs && node --check cdp-integration-test.mjs",
     "auth:capture": "node capture-auth.mjs",
     "rescue": "node rescue.mjs",
-    "auth:capture-existing": "node capture-existing-chrome.mjs"
+    "auth:capture-existing": "node capture-existing-chrome.mjs",
+    "test:cdp": "node cdp-integration-test.mjs"
   },
   "dependencies": {
     "playwright": "1.63.0"
