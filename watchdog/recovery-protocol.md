@@ -55,3 +55,20 @@ Therefore:
 - the scheduled-task result is the delivery channel until mail full access is actually confirmed;
 - `is_enabled=true` is not proof of health: if `last_run_time` stops advancing for at least two expected intervals while future runs remain scheduled, treat the instance as poisoned/stalled;
 - recover a poisoned worker by preserving its complete prompt/schedule/scope, creating a clean replacement with interactive deadlocks removed, and tombstoning the old instance as `REPLACED — ...` so watchdogs never resurrect it.
+
+
+## Clean replacement recovery
+
+When a recurring task remains enabled but its `last_run_time` does not advance for at least two expected intervals, or the UI shows **This task needs your attention / Follow-up**, treat the task instance itself as poisoned rather than continuing to patch the same object forever.
+
+Recovery steps:
+
+1. Preserve the complete prompt, intended title, schedule, timing mode, project IDs, Drive IDs, repository IDs, acceptance criteria, and permanent-recurring intent.
+2. Remove only interactive deadlocks: permission-first calls, mail calls without app-specific Allow all actions, or instructions that ask/wait for user follow-up.
+3. Create a clean replacement recurring task with the preserved scope and intended cadence.
+4. Rename the old instance to `REPLACED — <title> — stalled legacy` and disable it.
+5. Never let a watchdog re-enable a replacement tombstone.
+6. Verify future health using advancing `last_run_time`, not merely `is_enabled=true`.
+7. Record the replacement lineage in the private Drive recovery registry.
+
+This is the preferred recovery path for a poisoned task object because platform-level attention state may outlive prompt edits on the original instance.
