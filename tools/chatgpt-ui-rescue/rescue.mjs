@@ -152,8 +152,8 @@ async function resumeInsideTask(page) {
     }
 
     const labels = [
-      /^(Follow-up|Review|Review access|Review permission|Grant access)$/i,
-      /^(Resume|Retry|Continue|Run now|Try again|Enable|Turn on)$/i
+      /^(Resume|Retry|Continue|Run now|Try again|Enable|Turn on)$/i,
+      /^(Follow-up|Review access|Review permission|Grant access)$/i
     ];
 
     for (const rx of labels) {
