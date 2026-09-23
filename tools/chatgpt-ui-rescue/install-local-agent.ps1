@@ -1,6 +1,7 @@
 param(
   [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "ProjectConstellation\ChatGPTRescueAgent"),
-  [string]$TaskName = "Project Constellation - ChatGPT Scheduled Rescue"
+  [string]$TaskName = "Project Constellation - ChatGPT Scheduled Rescue",
+  [switch]$SkipStart
 )
 
 $ErrorActionPreference = "Stop"
@@ -127,14 +128,17 @@ Register-ScheduledTask `
   -Description "Repairs blocked ChatGPT Scheduled tasks using the local persistent Chrome session; externally heartbeated by GitHub." `
   -Force | Out-Null
 
-Write-Host "Starting local rescue agent now..."
-Start-Process powershell.exe -ArgumentList @(
-  "-NoProfile",
-  "-ExecutionPolicy", "Bypass",
-  "-File", "`"$Runner`""
-) -WindowStyle Hidden
-
-Start-Sleep -Seconds 3
+if (-not $SkipStart) {
+  Write-Host "Starting local rescue agent now..."
+  Start-Process powershell.exe -ArgumentList @(
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-File", "`"$Runner`""
+  ) -WindowStyle Hidden
+  Start-Sleep -Seconds 3
+} else {
+  Write-Host "SkipStart requested; agent was installed and registered but not launched."
+}
 $Task = Get-ScheduledTask -TaskName $TaskName
 $Info = Get-ScheduledTaskInfo -TaskName $TaskName
 Write-Host ""
