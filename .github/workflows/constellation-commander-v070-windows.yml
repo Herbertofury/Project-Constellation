@@ -124,7 +124,7 @@ jobs:
           "installer_file=$($installer.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "portable_file=$($portable.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "source_sha256=43266bac1a43732bb41a52c819cd9f2d10e3ab60d0cd70dcb61d34989eed0dd0" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
-          "tree_manifest_sha256=a0152bb836884a54cc58d9c111fc35d61150ed40bc7006b3f43f4e2263e3c937" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "tree_manifest_sha256=89ccb6612f1ad47d65c6ee1523c7b0668b1a75d14b84c88e434addd56753413c" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           Write-Host "asar=$($asar.FullName)"
           Write-Host "native_unpacked=$($native.FullName)"
 
