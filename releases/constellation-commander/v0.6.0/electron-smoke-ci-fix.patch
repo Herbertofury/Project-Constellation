@@ -1,0 +1,118 @@
+diff --git a/electron/main.cjs b/electron/main.cjs
+index 74d48fc..497c730 100644
+--- a/electron/main.cjs
++++ b/electron/main.cjs
+@@ -274,9 +274,14 @@ function installIpc() {
+   });
+ 
+   ipcMain.handle('cc:diagnostic', async (_event, payload = {}) => {
+-    if (TEST_MODE && payload.event === 'tool-result-sent' && TEST_OUTPUT) {
+-      fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
+-      setTimeout(() => app.quit(), 250);
++    if (TEST_MODE && TEST_OUTPUT) {
++      if (payload.event === 'tool-result-sent') {
++        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: true, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
++        setTimeout(() => app.quit(), 250);
++      } else if (['arm-failed', 'tool-failed', 'smoke-start-failed'].includes(payload.event)) {
++        fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: payload.event, detail: payload.detail || null, at: nowIso() }, null, 2));
++        setTimeout(() => app.quit(), 250);
++      }
+     }
+     return { ok: true };
+   });
+diff --git a/electron/chat-preload.cjs b/electron/chat-preload.cjs
+index 2c66ce7..3c3c684 100644
+--- a/electron/chat-preload.cjs
++++ b/electron/chat-preload.cjs
+@@ -20,6 +20,7 @@ const { ipcRenderer } = require('electron');
+   let plumbingSend = false;
+   let arming = false;
+   let route = location.href;
++  const TEST_FIXTURE = /fixture-chat\.html(?:[?#]|$)/i.test(location.href);
+ 
+   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+   const diagnostic = (event, detail = {}) => ipcRenderer.invoke('cc:diagnostic', { event, detail }).catch(() => null);
+@@ -328,9 +329,11 @@ const { ipcRenderer } = require('electron');
+       });
+       setTimeout(scrubInternalContext, 180); setTimeout(scrubInternalContext, 900);
+     } catch (error) {
+-      const payload = `${RESULT_OPEN}\n${JSON.stringify({ id: call.id, tool: call.tool, ok: false, error: String(error?.message || error) })}\n${RESULT_CLOSE}`;
++      const message = String(error?.message || error);
++      const payload = `${RESULT_OPEN}\n${JSON.stringify({ id: call.id, tool: call.tool, ok: false, error: message })}\n${RESULT_CLOSE}`;
+       try { await sendText(payload, { internal: true }); } catch {}
+-      toast(`Commander tool failed: ${String(error?.message || error)}`, 'error', true);
++      toast(`Commander tool failed: ${message}`, 'error', true);
++      void diagnostic('tool-failed', { error: message, tool: call?.tool || '', chatId: chatId() });
+     }
+   }
+ 
+@@ -370,6 +373,17 @@ const { ipcRenderer } = require('electron');
+       const status = await ipcRenderer.invoke('cc:status');
+       if (status?.ok) toast(`Commander ${status.version} integrated — no browser extension required.`);
+     } catch {}
++    if (TEST_FIXTURE) {
++      setTimeout(() => {
++        const node = composer();
++        const button = node && sendButton(node);
++        if (!node || !button) {
++          void diagnostic('smoke-start-failed', { composer: Boolean(node), sendButton: Boolean(button), url: location.href });
++          return;
++        }
++        button.click();
++      }, 450);
++    }
+   });
+ 
+   setInterval(() => {
+diff --git a/electron/fixture-chat.html b/electron/fixture-chat.html
+index 5b2ec44..59840b5 100644
+--- a/electron/fixture-chat.html
++++ b/electron/fixture-chat.html
+@@ -30,7 +30,6 @@
+     void fetch('https://chatgpt.test/backend-api/conversation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:value}]})});
+     clear();
+   });
+-  setTimeout(() => document.getElementById('composer-submit-button').click(), 300);
+ })();
+ </script>
+ </body></html>
+diff --git a/scripts/electron-smoke.ps1 b/scripts/electron-smoke.ps1
+index b9b4785..b91a478 100644
+--- a/scripts/electron-smoke.ps1
++++ b/scripts/electron-smoke.ps1
+@@ -1,18 +1,29 @@
+ $ErrorActionPreference = 'Stop'
+ $Root = Split-Path -Parent $PSScriptRoot
+ $Output = Join-Path $env:TEMP 'constellation-electron-smoke.json'
+-Remove-Item $Output -Force -ErrorAction SilentlyContinue
++$Stdout = Join-Path $env:TEMP 'constellation-electron-smoke.stdout.log'
++$Stderr = Join-Path $env:TEMP 'constellation-electron-smoke.stderr.log'
++Remove-Item $Output,$Stdout,$Stderr -Force -ErrorAction SilentlyContinue
+ $env:CONSTELLATION_ELECTRON_SMOKE = '1'
+ $env:CONSTELLATION_ELECTRON_SMOKE_OUTPUT = $Output
+-$proc = Start-Process -FilePath (Join-Path $Root 'node_modules\.bin\electron.cmd') -ArgumentList '.' -WorkingDirectory $Root -PassThru
+-$deadline = (Get-Date).AddSeconds(35)
+-while (-not (Test-Path $Output) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
++$env:ELECTRON_ENABLE_LOGGING = '1'
++$Electron = Join-Path $Root 'node_modules\electron\dist\electron.exe'
++if (-not (Test-Path $Electron)) { throw "Electron runtime not found at $Electron" }
++$proc = Start-Process -FilePath $Electron -ArgumentList '.' -WorkingDirectory $Root -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr -PassThru
++$deadline = (Get-Date).AddSeconds(45)
++while (-not (Test-Path $Output) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 200 }
+ if (-not (Test-Path $Output)) {
+   try { Stop-Process -Id $proc.Id -Force } catch {}
+-  throw 'Electron integrated-chat smoke timed out.'
++  $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
++  $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
++  throw "Electron integrated-chat smoke timed out.`nSTDOUT:`n$out`nSTDERR:`n$err"
+ }
+ $data = Get-Content $Output -Raw | ConvertFrom-Json
+-if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false) { throw "Electron integrated-chat smoke failed: $(Get-Content $Output -Raw)" }
++if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false) {
++  $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
++  $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
++  throw "Electron integrated-chat smoke failed: $(Get-Content $Output -Raw)`nSTDOUT:`n$out`nSTDERR:`n$err"
++}
+ try { Wait-Process -Id $proc.Id -Timeout 8 -ErrorAction SilentlyContinue } catch {}
+ try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+ Write-Host 'Constellation Commander integrated Electron ChatGPT smoke: PASS'
