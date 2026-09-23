@@ -44,13 +44,17 @@ async function isVisible(locator, timeout = 1000) {
   }
 }
 
+async function visibleNow(locator) {
+  return locator.first().isVisible().catch(() => false);
+}
+
 async function clickNamed(scope, names) {
   for (const name of names) {
     for (const role of ["button", "link", "menuitem", "option", "tab"]) {
       const locator = name instanceof RegExp
         ? scope.getByRole(role, { name })
         : scope.getByRole(role, { name, exact: true });
-      if (await isVisible(locator, 700)) {
+      if (await visibleNow(locator)) {
         await locator.first().click();
         return true;
       }
@@ -60,7 +64,7 @@ async function clickNamed(scope, names) {
       ? scope.getByText(name, { exact: false })
       : scope.getByText(name, { exact: true });
 
-    if (await isVisible(text, 700)) {
+    if (await visibleNow(text)) {
       await text.first().click();
       return true;
     }
@@ -103,7 +107,7 @@ async function choosePersistentPermission(page) {
   for (const rx of persistControls) {
     for (const role of ["radio", "checkbox", "option", "menuitem", "button"]) {
       const locator = page.getByRole(role, { name: rx });
-      if (!(await isVisible(locator, 450))) continue;
+      if (!(await visibleNow(locator))) continue;
       try {
         if (role === "checkbox" || role === "radio") {
           const checked = await locator.first().isChecked().catch(() => false);
@@ -125,7 +129,7 @@ async function choosePersistentPermission(page) {
 
   for (const rx of approve) {
     const button = page.getByRole("button", { name: rx });
-    if (await isVisible(button, 600)) {
+    if (await visibleNow(button)) {
       await button.first().click();
       changed = true;
       await settle(page, 700);
@@ -154,7 +158,7 @@ async function resumeInsideTask(page) {
 
     for (const rx of labels) {
       const button = page.getByRole("button", { name: rx });
-      if (await isVisible(button, 600)) {
+      if (await visibleNow(button)) {
         await button.first().click();
         actions++;
         progressed = true;
@@ -163,7 +167,7 @@ async function resumeInsideTask(page) {
       }
 
       const link = page.getByRole("link", { name: rx });
-      if (await isVisible(link, 600)) {
+      if (await visibleNow(link)) {
         await link.first().click();
         actions++;
         progressed = true;
@@ -241,7 +245,7 @@ async function openCard(card) {
   for (const rx of preferred) {
     for (const role of ["button", "link"]) {
       const locator = card.getByRole(role, { name: rx });
-      if (await isVisible(locator, 500)) {
+      if (await visibleNow(locator)) {
         await locator.first().click();
         return true;
       }
@@ -249,7 +253,7 @@ async function openCard(card) {
   }
 
   const link = card.locator("a[href]").first();
-  if (await isVisible(link, 500)) {
+  if (await visibleNow(link)) {
     await link.click();
     return true;
   }
