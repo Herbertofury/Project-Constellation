@@ -1,1 +1,2 @@
 Run the real Constellation Commander v0.7 Windows product acceptance against the exact single-patch source reconstruction.
+retry after Windows legacy-leftover normalization
