@@ -81,6 +81,7 @@
       const title = cardTitle(scope);
       if (!title || C.tombstone(title) || headings(scope).filter(usefulHeading).length > 1) continue;
       const value = text(scope);
+      const statusLines = (scope.innerText || '').split('\n').map(C.normal).filter(line => line && line !== title);
       const attention = /needs (your )?attention|action required|follow[ -]up/i.test(value);
       const paused = /\bpaused\b|\bdisabled\b/i.test(value);
       const button = controls(scope).find(el => /^follow[ -]up$/i.test(label(el)));
@@ -91,8 +92,8 @@
       const key = C.key(binding);
       if (seen.has(key)) continue; seen.add(key);
       result.push({...binding, attention, paused,
-        running: /\brunning\b|in progress/i.test(value),
-        completed: /\bcompleted\b|finished successfully/i.test(value) && !attention,
+        running: statusLines.some(line => /^(?:(?:task|run) (?:is )?)?(?:running|in progress)[.!]?$/i.test(line)),
+        completed: statusLines.some(line => /^(?:(?:task|run) (?:is )?)?(?:completed|finished successfully)[.!]?$/i.test(line)) && !attention,
         fingerprint: C.hash(key + stableStatus(scope)), openAction: button ? token(button, 'open-followup', binding) : null});
     }
     return result;
