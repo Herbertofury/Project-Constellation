@@ -68,46 +68,49 @@ with sync_playwright() as p:
           <div>This task needs your attention</div>
           <button>Follow-up</button>
         </section>
-        <div role="dialog" id="taskDetail" hidden>
-          <h2>Minecraft Mod Catalogue Updater</h2>
-          <div role="dialog" id="permission">
-            <h3>Allow ChatGPT to use GitHub?</h3>
-            <button id="allow">Allow</button>
-            <button id="arrow" aria-haspopup="menu" aria-label="Allow options">⌄</button>
-            <button>Deny</button>
-          </div>
-          <button id="resume" hidden>Resume</button>
-        </div>
+        <div id="taskDetailHost"></div>
       `;
 
       document.getElementById('followup').onclick=()=>{
         window.__clicks.push('followup');
-        document.getElementById('taskDetail').hidden=false;
-      };
-      document.getElementById('arrow').onclick=()=>{
-        window.__clicks.push('arrow');
-        let menu=document.getElementById('permissionMenu');
-        if(menu) return;
-        menu=document.createElement('div');
-        menu.id='permissionMenu';
-        menu.setAttribute('role','menu');
-        menu.innerHTML='<button id="always" role="menuitem">Always allow for this conversation</button>';
-        document.body.appendChild(menu);
-        document.getElementById('always').onclick=()=>{
-          window.__clicks.push('always');
-          menu.remove();
+        const host=document.getElementById('taskDetailHost');
+        host.innerHTML=`
+          <div role="dialog" id="taskDetail">
+            <h2>Minecraft Mod Catalogue Updater</h2>
+            <div role="dialog" id="permission">
+              <h3>Allow ChatGPT to use GitHub?</h3>
+              <button id="allow">Allow</button>
+              <button id="arrow" aria-haspopup="menu" aria-label="Allow options">⌄</button>
+              <button>Deny</button>
+            </div>
+            <button id="resume" hidden>Resume</button>
+          </div>`;
+
+        document.getElementById('arrow').onclick=()=>{
+          window.__clicks.push('arrow');
+          let menu=document.getElementById('permissionMenu');
+          if(menu) return;
+          menu=document.createElement('div');
+          menu.id='permissionMenu';
+          menu.setAttribute('role','menu');
+          menu.innerHTML='<button id="always" role="menuitem">Always allow for this conversation</button>';
+          document.body.appendChild(menu);
+          document.getElementById('always').onclick=()=>{
+            window.__clicks.push('always');
+            menu.remove();
+          };
         };
-      };
-      document.getElementById('allow').onclick=()=>{
-        window.__clicks.push('allow');
-        document.getElementById('permission').remove();
-        document.getElementById('resume').hidden=false;
-      };
-      document.getElementById('resume').onclick=()=>{
-        window.__clicks.push('resume');
-        document.getElementById('attention').textContent='Task active';
-        document.getElementById('followup').remove();
-        document.getElementById('taskDetail').remove();
+        document.getElementById('allow').onclick=()=>{
+          window.__clicks.push('allow');
+          document.getElementById('permission').remove();
+          document.getElementById('resume').hidden=false;
+        };
+        document.getElementById('resume').onclick=()=>{
+          window.__clicks.push('resume');
+          document.getElementById('attention').textContent='Task active';
+          document.getElementById('followup').remove();
+          document.getElementById('taskDetail').remove();
+        };
       };
     }''')
 
