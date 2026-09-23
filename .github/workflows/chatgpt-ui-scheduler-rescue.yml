@@ -49,6 +49,27 @@ jobs:
           npm run rescue
           node -e 'const r=require("./fixture-report.json"); if(r.status!=="success" || r.repaired_cards.length<1 || r.remaining_blocked_cards.length) process.exit(1); console.log(r);'
 
+  windows-syntax:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse Windows bootstrap scripts
+        shell: pwsh
+        run: |
+          $files = @(
+            "tools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1",
+            "tools/chatgpt-ui-rescue/bootstrap-auth.ps1"
+          )
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_.Message }
+              exit 1
+            }
+          }
+
   rescue:
     if: github.event_name != 'push'
     needs: syntax
@@ -88,7 +109,8 @@ jobs:
           CHATGPT_STORAGE_STATE: ${{ runner.temp }}/chatgpt-storage-state.json
           CHATGPT_TARGET_TASKS: ${{ inputs.target_tasks }}
           CHATGPT_RESCUE_REPORT: chatgpt-ui-rescue-report.json
-        run: npm run rescue
+          CHATGPT_HEADLESS: "false"
+        run: xvfb-run -a npm run rescue
 
       - name: Summarize rescue result
         if: always()
