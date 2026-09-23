@@ -64,9 +64,11 @@ with sync_playwright() as p:
     options=messages[0]['msg']['options']
     assert messages[0]['msg']['type']=='PC_APPROVAL_RECOVERY_SCAN'
     assert options['scheduledTaskRepair'] is True
-    assert options['alwaysAllow'] is True
-    assert options['fallbackAllowOnce'] is True
-    assert options['recoverPaused'] is True
+    assert options['alwaysAllow'] is False
+    assert options['fallbackAllowOnce'] is False
+    assert options['recoverPaused'] is False
+    # Scheduled-task repair is forced by its own dedicated mode while preserving the user's
+    # ordinary approval-autopilot preferences for normal chat tabs.
     assert alarms and alarms[0]['name']=='project-constellation-approval-supervisor'
     assert not errors, errors
 
