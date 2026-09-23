@@ -17,15 +17,31 @@ async def main():
     worker = ctx.service_workers[0] if ctx.service_workers else await ctx.wait_for_event('serviceworker', timeout=15000)
     extension_id = worker.url.split('/')[2]
     popup = await ctx.new_page(); await popup.goto(f'chrome-extension://{extension_id}/popup.html')
-    for page in list(ctx.pages):
-     if page.url.startswith('https://chatgpt.com'): await page.reload()
+    # An extension-created tab can precede route registration. Establish the
+    # intended fixture response before exercising the unmodified controller.
+    state = await popup.evaluate("chrome.runtime.sendMessage({type:'PCX_RECOVERY_STATE'})")
+    deadline = asyncio.get_running_loop().time() + 10
+    pages = []
+    while asyncio.get_running_loop().time() < deadline:
+     pages = [page for page in ctx.pages if page.url.startswith('https://chatgpt.com')]
+     if pages: break
+     await asyncio.sleep(.1)
+    assert pages, 'Controller did not create its task page'
+    page = pages[0]
+    await page.goto('https://chatgpt.com/schedules?pcx-native-fixture=1', wait_until='domcontentloaded')
+    await page.get_by_role('heading', name='Minecraft Mod Catalogue Updater', exact=True).wait_for()
     await popup.evaluate("chrome.runtime.sendMessage({type:'PCX_RECOVERY_CHECK'})")
     deadline = asyncio.get_running_loop().time() + 25
     while asyncio.get_running_loop().time() < deadline:
      state = await popup.evaluate("chrome.runtime.sendMessage({type:'PCX_RECOVERY_STATE'})")
      if any(i.get('status') == 'RUNNING_OBSERVED' for i in state['incidents'].values()): break
      await asyncio.sleep(.25)
-    else: raise AssertionError('No positive Running evidence: ' + json.dumps(state))
+    else:
+     diagnostics = {'state':state,'pages':[]}
+     for page in ctx.pages:
+      diagnostics['pages'].append({'url':page.url,'text':(await page.locator('body').inner_text())[:5000]})
+     (OUT / 'native-extension-failure.json').write_text(json.dumps(diagnostics,indent=2))
+     raise AssertionError('No positive Running evidence: ' + json.dumps(diagnostics))
     intents = [x for x in state['history'] if x['event'] == 'ACTION_INTENT']
     assert sum(x['kind'] == 'open-followup' for x in intents) == 1, intents
     assert sum(x['kind'] == 'resume' for x in intents) == 1, intents
