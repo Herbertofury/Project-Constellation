@@ -34,9 +34,9 @@ async function scanApprovalTab(tab, cfg, forceSchedules = false) {
     return await chrome.tabs.sendMessage(tab.id, {
       type:'PC_APPROVAL_RECOVERY_SCAN',
       options:{
-        alwaysAllow:scheduledTaskRepair || cfg.approvalAutopilot?.alwaysAllow !== false,
-        fallbackAllowOnce:scheduledTaskRepair || cfg.approvalAutopilot?.fallbackAllowOnce !== false,
-        recoverPaused:scheduledTaskRepair || cfg.approvalAutopilot?.autoRecoverPaused !== false,
+        alwaysAllow:cfg.approvalAutopilot?.alwaysAllow !== false,
+        fallbackAllowOnce:cfg.approvalAutopilot?.fallbackAllowOnce !== false,
+        recoverPaused:cfg.approvalAutopilot?.autoRecoverPaused !== false,
         scheduledTaskRepair
       }
     });
