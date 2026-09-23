@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "name": "ChatGPT Scheduled Task Recovery Controller",
   "mode": "redundant_self_healing",
   "authoritative_watchdog_automation_id": "6ab2b3f2d4b8819194abbe2f2be57bca",
@@ -29,15 +29,21 @@
     "stale schedules and cadence drift",
     "publication/checkpoint failures",
     "recoverable Project Constellation continuation state",
-    "durable recovery queues for broken or stalled chats"
+    "durable recovery queues for broken or stalled chats",
+    "interactive-attention poisoned task instances",
+    "enabled tasks whose last_run_time stops advancing across expected cadences",
+    "automatic clean replacement of poisoned recurring tasks while tombstoning legacy instances"
   ],
   "critical_invariants": [
     "native scheduler repair has zero external connector dependency",
+    "is_enabled=true is never treated as sufficient proof of execution health",
     "real task work is never blocked on Plugin Management",
     "workers never ask the user for connector permission during unattended scheduled runs",
+    "known gated actions are skipped before invocation rather than attempted and recovered afterward",
+    "Gmail and Outlook are never invoked by unattended workers unless app-specific Allow all actions is actually confirmed",
     "GitHub and Google Drive task work begins immediately when their connectors are usable",
     "unexpected GitHub permission prompts never stop watchdog repair",
-    "email is post-work and non-blocking",
+    "poisoned Follow-up/needs-attention task instances are replaced cleanly and tombstoned",
     "temporary failures never self-disable a recurring task",
     "primary watchdog and secondary failsafe remain independent",
     "preserve full original task scope when repairing prompts",
@@ -47,11 +53,19 @@
   "known_platform_state": {
     "github_app_permission": "Allow all actions",
     "google_drive_app_permission": "Allow all actions",
-    "gmail_app_permission": "Use my default",
-    "outlook_email_app_permission": "Use my default",
+    "gmail_app_permission": "Use my default — suppress unattended calls",
+    "outlook_email_app_permission": "Use my default — suppress unattended calls",
     "global_app_permission": "Allow low-risk actions",
     "plugin_permission_write_endpoint": "HTTP 404 before invocation as last observed"
   },
   "external_recovery_limit": "GitHub can detect stale ChatGPT heartbeat and preserve recovery state, but cannot directly inject messages into arbitrary ChatGPT conversations without a supported ChatGPT automation/webhook API.",
-  "secrets_policy": "Never store credentials, OAuth tokens, cookies, passwords, or private session secrets."
+  "secrets_policy": "Never store credentials, OAuth tokens, cookies, passwords, or private session secrets.",
+  "latest_incident": {
+    "type": "interactive_attention_poison",
+    "affected_task": "Minecraft Mod Catalogue Updater",
+    "legacy_instance_state": "disabled tombstone",
+    "replacement_state": "clean replacement scheduled hourly",
+    "root_cause": "a gated connector call can suspend a scheduled run before prompt-level recovery logic executes",
+    "mitigation": "remove gated calls from unattended path entirely and detect stale last_run_time"
+  }
 }
