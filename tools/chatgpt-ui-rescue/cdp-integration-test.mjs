@@ -5,7 +5,9 @@ import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
+const here = path.dirname(fileURLToPath(import.meta.url));
 const host = "127.0.0.1";
 const webPort = 8765;
 const cdpPort = 9333;
@@ -79,7 +81,7 @@ async function waitForCdp() {
 function runRescue() {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["rescue.mjs"], {
-      cwd: path.dirname(new URL(import.meta.url).pathname),
+      cwd: here,
       env: {
         ...process.env,
         CHATGPT_CDP_URL: `http://${host}:${cdpPort}`,
