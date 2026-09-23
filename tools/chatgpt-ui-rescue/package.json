@@ -1,0 +1,14 @@
+{
+  "name": "chatgpt-ui-scheduler-rescue",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check rescue.mjs && node --check capture-auth.mjs",
+    "auth:capture": "node capture-auth.mjs",
+    "rescue": "node rescue.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}
