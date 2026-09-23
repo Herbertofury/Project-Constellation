@@ -82,6 +82,12 @@ async function signedOut(page) {
   return (await isVisible(login, 500)) && (await isVisible(signup, 500));
 }
 
+async function verificationBlocked(page) {
+  if (/challenges\.cloudflare\.com|cdn-cgi\/challenge|challenge-platform/i.test(page.url())) return true;
+  const body = await page.locator("body").innerText().catch(() => "");
+  return /verify you are human|performing security verification|checking your browser|security verification|just a moment/i.test(body);
+}
+
 async function settle(page, ms = 650) {
   await page.waitForTimeout(ms);
 }
@@ -371,8 +377,12 @@ try {
     await settle(page, 1200);
   }
 
+  if (!FIXTURE_MODE && await verificationBlocked(page)) {
+    throw new Error("BROWSER_VERIFICATION_REQUIRED: ChatGPT verification is blocking the Scheduled page in this browser.");
+  }
+
   if (!FIXTURE_MODE && await signedOut(page)) {
-    throw new Error("AUTH_REQUIRED: stored ChatGPT browser state expired or is invalid.");
+    throw new Error("AUTH_REQUIRED: ChatGPT sign-in is required in this browser.");
   }
 
   report.authenticated = true;
@@ -422,12 +432,19 @@ try {
   process.exitCode = remainingEligible.length === 0 ? 0 : 3;
 } catch (err) {
   addError("main", err);
-  report.status = /AUTH_REQUIRED/.test(String(err && err.message ? err.message : err))
-    ? "auth-refresh-required"
-    : "error";
+  const message = String(err && err.message ? err.message : err);
+  report.status = /BROWSER_VERIFICATION_REQUIRED/.test(message)
+    ? "browser-verification-required"
+    : /AUTH_REQUIRED/.test(message)
+      ? "auth-refresh-required"
+      : "error";
   saveReport();
   console.error(String(err && err.stack ? err.stack : err));
-  process.exitCode = report.status === "auth-refresh-required" ? 2 : 1;
+  process.exitCode = report.status === "auth-refresh-required"
+    ? 2
+    : report.status === "browser-verification-required"
+      ? 3
+      : 1;
 } finally {
   if (!attachedOverCdp) {
     await browser.close();
