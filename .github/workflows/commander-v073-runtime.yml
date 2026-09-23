@@ -1,0 +1,29 @@
+name: Commander 0.7.3 native runtime
+on:
+  push:
+    branches: [fix/commander-v073-live-bridge]
+    paths: [.github/workflows/commander-v073-runtime.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Fetch official Electron 44.4.4 Linux runtime and verify digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir runtime
+          cd runtime
+          base=https://github.com/electron/electron/releases/download/v44.4.4
+          curl --fail --location --retry 2 "$base/SHASUMS256.txt" -o SHASUMS256.txt
+          curl --fail --location --retry 2 "$base/electron-v44.4.4-linux-x64.zip" -o electron-v44.4.4-linux-x64.zip
+          grep ' electron-v44.4.4-linux-x64.zip$' SHASUMS256.txt | sha256sum -c -
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Commander-native-electron-44.4.4
+          path: runtime/*
+          retention-days: 7
+          if-no-files-found: error
