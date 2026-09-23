@@ -72,6 +72,12 @@ jobs:
           Move-Item 'commander-base/constellation-commander-v0.6.0' 'commander-source/constellation-commander-v0.7.0'
           $root = (Resolve-Path 'commander-source/constellation-commander-v0.7.0').Path
 
+          # Git-for-Windows can preserve rename/deletion sources while applying a no-index patch.
+          # v0.7 intentionally removes the old WinForms companion lane and its legacy test/build entrypoints.
+          Remove-Item (Join-Path $root 'desktop') -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item (Join-Path $root 'scripts/build-windows-companion.ps1') -Force -ErrorAction SilentlyContinue
+          Remove-Item (Join-Path $root 'tests/desktop-static.test.mjs') -Force -ErrorAction SilentlyContinue
+
           # Git-for-Windows may CRLF-convert rename-only text files. Restore the canonical
           # UTF-8/LF representation, then require the exact target size/SHA for every file.
           $textExtensions = @('.ps1','.cmd','.mjs','.cjs','.js','.json','.md','.html','.css')
