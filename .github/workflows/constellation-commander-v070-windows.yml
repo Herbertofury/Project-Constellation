@@ -98,8 +98,10 @@ jobs:
 
           # Prove every final source path, size, and SHA-256. Extra or missing files fail the build.
           $manifestPath = 'releases/constellation-commander/v0.7.0/TREE-SHA256.txt'
-          $manifestHash = (Get-FileHash -Algorithm SHA256 $manifestPath).Hash.ToLowerInvariant()
-          if ($manifestHash -ne 'a0152bb836884a54cc58d9c111fc35d61150ed40bc7006b3f43f4e2263e3c937') { throw "v0.7 tree manifest SHA mismatch: $manifestHash" }
+          $manifestText = [IO.File]::ReadAllText($manifestPath).Replace("`r`n", "`n").Replace("`r", "`n")
+          $manifestBytes = [Text.UTF8Encoding]::new($false).GetBytes($manifestText)
+          $manifestHash = ([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($manifestBytes))).ToLowerInvariant()
+          if ($manifestHash -ne 'a0152bb836884a54cc58d9c111fc35d61150ed40bc7006b3f43f4e2263e3c937') { throw "v0.7 canonical tree manifest SHA mismatch: $manifestHash" }
           $expected = @{}
           foreach ($line in Get-Content $manifestPath) {
             if ($line -notmatch '^([0-9a-f]{64})\s+(\d+)\s+(.+)$') { throw "Malformed tree-manifest line: $line" }
