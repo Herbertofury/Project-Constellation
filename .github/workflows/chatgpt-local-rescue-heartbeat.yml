@@ -1,0 +1,44 @@
+name: ChatGPT Local Rescue Heartbeat
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: chatgpt-local-rescue-heartbeat
+  cancel-in-progress: true
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Refresh external rescue heartbeat
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          generation="$(date -u +%s)"
+          stamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          body="$(cat <<EOF
+          Machine-readable external heartbeat for the Project Constellation local ChatGPT Scheduled rescue agent.
+
+          desired_action: RUN_LOCAL_RESCUE
+          generation: $generation
+          heartbeat_utc: $stamp
+          status: ACTIVE
+
+          No credentials, cookies, browser state, or secrets belong in this issue.
+          EOF
+          )"
+
+          gh issue reopen 40 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || true
+          gh issue edit 40 --repo "$GITHUB_REPOSITORY" --body "$body"
+          echo "heartbeat_generation=$generation"
+          echo "heartbeat_utc=$stamp"
