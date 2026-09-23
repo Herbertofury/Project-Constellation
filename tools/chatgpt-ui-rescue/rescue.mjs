@@ -8,6 +8,7 @@ const REPORT_PATH = process.env.CHATGPT_RESCUE_REPORT || "chatgpt-ui-rescue-repo
 const FIXTURE_MODE = process.env.CHATGPT_RESCUE_FIXTURE === "1";
 const HEADLESS = FIXTURE_MODE ? true : process.env.CHATGPT_HEADLESS !== "false";
 const BROWSER_CHANNEL = process.env.CHATGPT_BROWSER_CHANNEL || "";
+const CDP_URL = process.env.CHATGPT_CDP_URL || "";
 const TARGETS = (process.env.CHATGPT_TARGET_TASKS || "")
   .split(",")
   .map((x) => x.trim())
@@ -296,7 +297,7 @@ async function repairCard(page, title, card) {
   return entry;
 }
 
-if (!FIXTURE_MODE && (!STATE_PATH || !fs.existsSync(STATE_PATH))) {
+if (!FIXTURE_MODE && !CDP_URL && (!STATE_PATH || !fs.existsSync(STATE_PATH))) {
   report.status = "auth-bootstrap-required";
   addError("bootstrap", new Error("CHATGPT_STORAGE_STATE is missing."));
   saveReport();
@@ -305,13 +306,31 @@ if (!FIXTURE_MODE && (!STATE_PATH || !fs.existsSync(STATE_PATH))) {
 
 const launchOptions = { headless: HEADLESS };
 if (BROWSER_CHANNEL) launchOptions.channel = BROWSER_CHANNEL;
-const browser = await chromium.launch(launchOptions);
+
+const browser = CDP_URL
+  ? await chromium.connectOverCDP(CDP_URL)
+  : await chromium.launch(launchOptions);
+
+const attachedOverCdp = Boolean(CDP_URL);
 
 try {
-  const context = FIXTURE_MODE
-    ? await browser.newContext()
-    : await browser.newContext({ storageState: STATE_PATH });
-  const page = await context.newPage();
+  let context;
+  let page;
+
+  if (attachedOverCdp) {
+    context = browser.contexts()[0];
+    if (!context) throw new Error("CDP_CONTEXT_MISSING: no browser context was exposed by local Chrome.");
+    const pages = context.pages();
+    page = pages.find((candidate) => /chatgpt\.com\/schedules/i.test(candidate.url()))
+      || pages[0]
+      || await context.newPage();
+  } else {
+    context = FIXTURE_MODE
+      ? await browser.newContext()
+      : await browser.newContext({ storageState: STATE_PATH });
+    page = await context.newPage();
+  }
+
   page.setDefaultTimeout(5000);
 
   if (FIXTURE_MODE) {
@@ -393,7 +412,7 @@ try {
   report.remaining_blocked_cards = remainingEligible.map((item) => item.title);
   report.status = remainingEligible.length === 0 ? "success" : "partial-blockers-remain";
 
-  if (!FIXTURE_MODE && STATE_PATH) {
+  if (!FIXTURE_MODE && !attachedOverCdp && STATE_PATH) {
     await context.storageState({ path: STATE_PATH });
   }
 
@@ -410,5 +429,7 @@ try {
   console.error(String(err && err.stack ? err.stack : err));
   process.exitCode = report.status === "auth-refresh-required" ? 2 : 1;
 } finally {
-  await browser.close();
+  if (!attachedOverCdp) {
+    await browser.close();
+  }
 }
