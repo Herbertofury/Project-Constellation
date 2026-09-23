@@ -1,32 +1,48 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "ChatGPT Scheduled Task Recovery Controller",
-  "mode": "self_healing",
+  "mode": "redundant_self_healing",
   "authoritative_watchdog_automation_id": "6ab2b3f2d4b8819194abbe2f2be57bca",
+  "secondary_failsafe": "Scheduled Task Failsafe",
   "heartbeat_path": "watchdog/heartbeat.json",
   "access_status_path": "watchdog/access-status.json",
+  "recovery_protocol_path": "watchdog/recovery-protocol.md",
   "external_monitor_workflow": ".github/workflows/chatgpt-watchdog-external.yml",
+  "private_recovery_registry_drive_id": "1vINA7wMsDBkKvyz6L-CYdUDXh0ALf8mQ0tEErpRFLLA",
   "stale_after_hours": 4,
+  "repair_order": [
+    "native ChatGPT automation audit and repair",
+    "stalled worker/project continuation recovery",
+    "private Drive recovery registry refresh when available",
+    "public GitHub recovery incident/status/heartbeat when available",
+    "optional permission repair last"
+  ],
   "repair_scope": [
     "all current and future recurring ChatGPT scheduled tasks",
+    "primary watchdog self-repair",
+    "secondary failsafe recovery of primary watchdog",
     "unexpected disabled or paused recurring tasks",
     "damaged or truncated automation prompts",
-    "permission deadlocks",
+    "permission deadlocks and false permission prompts",
     "connector/tool transient failures",
     "missing or changed tool actions",
     "stale schedules and cadence drift",
     "publication/checkpoint failures",
-    "recoverable Project Constellation continuation state"
+    "recoverable Project Constellation continuation state",
+    "durable recovery queues for broken or stalled chats"
   ],
   "critical_invariants": [
+    "native scheduler repair has zero external connector dependency",
     "real task work is never blocked on Plugin Management",
     "workers never ask the user for connector permission during unattended scheduled runs",
     "GitHub and Google Drive task work begins immediately when their connectors are usable",
+    "unexpected GitHub permission prompts never stop watchdog repair",
     "email is post-work and non-blocking",
     "temporary failures never self-disable a recurring task",
-    "watchdog never self-disables",
+    "primary watchdog and secondary failsafe remain independent",
     "preserve full original task scope when repairing prompts",
-    "persist last-known-good recovery state outside the chat"
+    "persist last-known-good recovery state outside the chat",
+    "change strategy after repeated unchanged failure instead of looping"
   ],
   "known_platform_state": {
     "github_app_permission": "Allow all actions",
