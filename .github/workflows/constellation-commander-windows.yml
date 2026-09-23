@@ -112,8 +112,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $installer = Get-ChildItem dist-electron -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Sort-Object Length -Descending | Select-Object -First 1
-          & $installer.FullName /S
-          if ($LASTEXITCODE -ne 0) { throw "NSIS install failed with exit code $LASTEXITCODE" }
+          $installProc = Start-Process -FilePath $installer.FullName -ArgumentList '/S' -PassThru -Wait
+          if ($installProc.ExitCode -ne 0) { throw "NSIS install failed with exit code $($installProc.ExitCode)" }
 
           $installed = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Programs') -Filter 'Constellation Commander.exe' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $installed) { throw 'Installed Constellation Commander executable was not found.' }
