@@ -14,7 +14,7 @@ if (!userDataDir || !fs.existsSync(userDataDir)) {
 }
 
 const options = {
-  headless: false,
+  headless: process.env.CHATGPT_CAPTURE_HEADLESS !== "false",
   args: ["--profile-directory=" + profile]
 };
 
