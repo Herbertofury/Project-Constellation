@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "tools/chatgpt-ui-rescue/**"
+      - ".github/workflows/chatgpt-ui-scheduler-rescue.yml"
     inputs:
       target_tasks:
         description: "Optional comma-separated Scheduled task titles to repair"
@@ -18,7 +23,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate rescue worker JavaScript
+        working-directory: tools/chatgpt-ui-rescue
+        run: |
+          npm install --no-audit --no-fund
+          npm run check
+
   rescue:
+    if: github.event_name != 'push'
+    needs: syntax
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
