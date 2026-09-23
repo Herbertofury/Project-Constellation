@@ -1,0 +1,42 @@
+name: APD native 10s video
+on:
+  push:
+    branches: [apd-video-run]
+    paths:
+      - '.github/workflows/apd-native-video.yml'
+      - 'apd-video/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode source frame
+        shell: bash
+        run: |
+          base64 -d apd-video/source.b64 > apd-video/source.jpg
+          file apd-video/source.jpg
+      - name: Install client and ffmpeg
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install --upgrade pip
+          python -m pip install "gradio_client>=1.13,<2"
+      - name: Generate two native 5s Wan2.2 clips
+        shell: bash
+        run: python apd-video/generate.py
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apd-10s-native-i2v
+          path: |
+            apd-video/output/apd-10s-native-i2v.mp4
+            apd-video/output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 7
