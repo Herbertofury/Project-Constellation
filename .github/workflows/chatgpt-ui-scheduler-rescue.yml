@@ -1,0 +1,78 @@
+name: ChatGPT Scheduled Task UI Rescue
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      target_tasks:
+        description: "Optional comma-separated Scheduled task titles to repair"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chatgpt-scheduled-task-ui-rescue
+  cancel-in-progress: false
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require encrypted ChatGPT browser state
+        shell: bash
+        env:
+          CHATGPT_STORAGE_STATE_B64: ${{ secrets.CHATGPT_STORAGE_STATE_B64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CHATGPT_STORAGE_STATE_B64" ]; then
+            echo "::error::Missing GitHub Actions secret CHATGPT_STORAGE_STATE_B64. Run tools/chatgpt-ui-rescue/bootstrap-auth.ps1 once."
+            exit 2
+          fi
+          printf '%s' "$CHATGPT_STORAGE_STATE_B64" | base64 --decode > "$RUNNER_TEMP/chatgpt-storage-state.json"
+          chmod 600 "$RUNNER_TEMP/chatgpt-storage-state.json"
+
+      - name: Install browser rescue runtime
+        working-directory: tools/chatgpt-ui-rescue
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Repair blocked Scheduled task cards
+        working-directory: tools/chatgpt-ui-rescue
+        env:
+          CHATGPT_STORAGE_STATE: ${{ runner.temp }}/chatgpt-storage-state.json
+          CHATGPT_TARGET_TASKS: ${{ inputs.target_tasks }}
+          CHATGPT_RESCUE_REPORT: chatgpt-ui-rescue-report.json
+        run: npm run rescue
+
+      - name: Summarize rescue result
+        if: always()
+        working-directory: tools/chatgpt-ui-rescue
+        shell: bash
+        run: |
+          if [ -f chatgpt-ui-rescue-report.json ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("chatgpt-ui-rescue-report.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+          print("status:", data.get("status"))
+          print("blocked_cards_found:", data.get("blocked_cards_found"))
+          print("repaired_cards:", [x.get("title") for x in data.get("repaired_cards", [])])
+          print("remaining_blocked_cards:", data.get("remaining_blocked_cards", []))
+          print("errors:", [x.get("stage") + ": " + x.get("message", "")[:160] for x in data.get("errors", [])])
+          PY
+          else
+            echo "No rescue report was produced."
+          fi
+
+      - name: Remove local browser state
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/chatgpt-storage-state.json"
