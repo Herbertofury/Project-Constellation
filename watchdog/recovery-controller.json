@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "name": "ChatGPT Scheduled Task Recovery Controller",
+  "mode": "self_healing",
+  "authoritative_watchdog_automation_id": "6ab2b3f2d4b8819194abbe2f2be57bca",
+  "heartbeat_path": "watchdog/heartbeat.json",
+  "access_status_path": "watchdog/access-status.json",
+  "external_monitor_workflow": ".github/workflows/chatgpt-watchdog-external.yml",
+  "stale_after_hours": 4,
+  "repair_scope": [
+    "all current and future recurring ChatGPT scheduled tasks",
+    "unexpected disabled or paused recurring tasks",
+    "damaged or truncated automation prompts",
+    "permission deadlocks",
+    "connector/tool transient failures",
+    "missing or changed tool actions",
+    "stale schedules and cadence drift",
+    "publication/checkpoint failures",
+    "recoverable Project Constellation continuation state"
+  ],
+  "critical_invariants": [
+    "real task work is never blocked on Plugin Management",
+    "workers never ask the user for connector permission during unattended scheduled runs",
+    "GitHub and Google Drive task work begins immediately when their connectors are usable",
+    "email is post-work and non-blocking",
+    "temporary failures never self-disable a recurring task",
+    "watchdog never self-disables",
+    "preserve full original task scope when repairing prompts",
+    "persist last-known-good recovery state outside the chat"
+  ],
+  "known_platform_state": {
+    "github_app_permission": "Allow all actions",
+    "google_drive_app_permission": "Allow all actions",
+    "gmail_app_permission": "Use my default",
+    "outlook_email_app_permission": "Use my default",
+    "global_app_permission": "Allow low-risk actions",
+    "plugin_permission_write_endpoint": "HTTP 404 before invocation as last observed"
+  },
+  "external_recovery_limit": "GitHub can detect stale ChatGPT heartbeat and preserve recovery state, but cannot directly inject messages into arbitrary ChatGPT conversations without a supported ChatGPT automation/webhook API.",
+  "secrets_policy": "Never store credentials, OAuth tokens, cookies, passwords, or private session secrets."
+}
