@@ -5,7 +5,8 @@ on:
     branches:
       - ci/commander-v070-windows-proof
     paths:
-      - 'releases/constellation-commander/v0.7.0/ci-source/**'
+      - 'releases/constellation-commander/v0.7.0/ci-patch/**'
+      - 'releases/constellation-commander/v0.7.0/TREE-SHA256.txt'
       - '.github/workflows/constellation-commander-v070-windows.yml'
   pull_request:
     branches:
@@ -25,21 +26,72 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify and unpack exact v0.7 source
+      - name: Reconstruct and verify exact v0.7 source tree
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $parts = Get-ChildItem 'releases/constellation-commander/v0.7.0/ci-source/part*' | Sort-Object Name
-          if ($parts.Count -ne 21) { throw "Expected 21 canonical v0.7 source chunks, found $($parts.Count)" }
-          $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
-          [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
-          $source = 'commander-source.zip'
-          $actual = (Get-FileHash -Algorithm SHA256 $source).Hash.ToLowerInvariant()
-          $expected = '83b59f41b4d7b146217b7e820e58ac3eebcb4b0a07ea5335674d31d96e6b6e25'
-          if ($actual -ne $expected) { throw "v0.7 source SHA mismatch: $actual" }
-          Expand-Archive $source 'commander-source' -Force
-          if (-not (Test-Path 'commander-source/constellation-commander-v0.7.0/package.json')) { throw 'v0.7 source root is missing.' }
-          Write-Host "source_sha256=$actual"
+
+          # Start from the exact v0.6 source bundle that already passed installed Windows acceptance.
+          $baseParts = Get-ChildItem 'releases/constellation-commander/v0.6.0/ci-source-release/part*' | Sort-Object Name
+          if ($baseParts.Count -ne 4) { throw "Expected 4 v0.6 source parts, found $($baseParts.Count)" }
+          $base64 = ($baseParts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
+          [IO.File]::WriteAllBytes('commander-v060-source.zip', [Convert]::FromBase64String($base64))
+          $baseHash = (Get-FileHash -Algorithm SHA256 'commander-v060-source.zip').Hash.ToLowerInvariant()
+          if ($baseHash -ne '78a83fa73ad1498db5338552f8f3c13c4485972c4629227dc67aa5d113a0040b') { throw "v0.6 base SHA mismatch: $baseHash" }
+          Expand-Archive 'commander-v060-source.zip' 'commander-base' -Force
+
+          $v060Repair = 'releases/constellation-commander/v0.6.0/electron-v060-final-consolidated.patch'
+          $v060Blob = ((git hash-object $v060Repair) | Select-Object -Last 1).Trim()
+          if ($v060Blob -ne '1ffffd7d42c236df7762bdfbf73581ff9dee475f') { throw "v0.6 repair blob mismatch: $v060Blob" }
+          git apply --check --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
+          git apply --directory=commander-base/constellation-commander-v0.6.0 $v060Repair
+
+          # Reassemble one compressed, consolidated v0.6 -> v0.7 product patch.
+          $patchParts = Get-ChildItem 'releases/constellation-commander/v0.7.0/ci-patch/part*' | Sort-Object Name
+          if ($patchParts.Count -ne 6) { throw "Expected 6 v0.7 patch chunks, found $($patchParts.Count)" }
+          $patch64 = ($patchParts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
+          [IO.File]::WriteAllBytes('commander-v070.patch.gz', [Convert]::FromBase64String($patch64))
+          $patchGzHash = (Get-FileHash -Algorithm SHA256 'commander-v070.patch.gz').Hash.ToLowerInvariant()
+          if ($patchGzHash -ne '6a75bf62a78ffd8472e54e240cca08bc729453c4af107285fa847b28cca0253f') { throw "v0.7 compressed patch SHA mismatch: $patchGzHash" }
+
+          $input = [IO.File]::OpenRead('commander-v070.patch.gz')
+          try {
+            $gzip = [IO.Compression.GzipStream]::new($input, [IO.Compression.CompressionMode]::Decompress)
+            try {
+              $output = [IO.File]::Create('commander-v070.patch')
+              try { $gzip.CopyTo($output) } finally { $output.Dispose() }
+            } finally { $gzip.Dispose() }
+          } finally { $input.Dispose() }
+
+          $patchHash = (Get-FileHash -Algorithm SHA256 'commander-v070.patch').Hash.ToLowerInvariant()
+          if ($patchHash -ne '642f2a8d93e8d10ed33fd817e3a701d58cbf3c2a1e77ab3761b363970326f8a3') { throw "v0.7 patch SHA mismatch: $patchHash" }
+          git apply -p2 --check --directory=commander-base/constellation-commander-v0.6.0 commander-v070.patch
+          git apply -p2 --directory=commander-base/constellation-commander-v0.6.0 commander-v070.patch
+
+          New-Item -ItemType Directory -Path commander-source -Force | Out-Null
+          Move-Item 'commander-base/constellation-commander-v0.6.0' 'commander-source/constellation-commander-v0.7.0'
+          $root = (Resolve-Path 'commander-source/constellation-commander-v0.7.0').Path
+
+          # Prove every final source path, size, and SHA-256. Extra or missing files fail the build.
+          $manifestPath = 'releases/constellation-commander/v0.7.0/TREE-SHA256.txt'
+          $manifestHash = (Get-FileHash -Algorithm SHA256 $manifestPath).Hash.ToLowerInvariant()
+          if ($manifestHash -ne '16067fbd1f7d61b2715abe49992f4c09ddd345241173e719fde27abb95b818d8') { throw "v0.7 tree manifest SHA mismatch: $manifestHash" }
+          $expected = @{}
+          foreach ($line in Get-Content $manifestPath) {
+            if ($line -notmatch '^([0-9a-f]{64})\s+(\d+)\s+(.+)$') { throw "Malformed tree-manifest line: $line" }
+            $expected[$Matches[3]] = @{ hash = $Matches[1]; size = [int64]$Matches[2] }
+          }
+          $actualFiles = Get-ChildItem $root -File -Recurse
+          if ($actualFiles.Count -ne $expected.Count) { throw "v0.7 file-count mismatch: actual=$($actualFiles.Count) expected=$($expected.Count)" }
+          foreach ($file in $actualFiles) {
+            $rel = [IO.Path]::GetRelativePath($root, $file.FullName).Replace('\','/')
+            if (-not $expected.ContainsKey($rel)) { throw "Unexpected v0.7 source file: $rel" }
+            if ($file.Length -ne $expected[$rel].size) { throw "Size mismatch for $rel: $($file.Length)" }
+            $hash = (Get-FileHash -Algorithm SHA256 $file.FullName).Hash.ToLowerInvariant()
+            if ($hash -ne $expected[$rel].hash) { throw "SHA mismatch for $rel: $hash" }
+          }
+          Write-Host "v070_files=$($expected.Count)"
+          Write-Host "v070_canonical_source_sha256=10d4f32660673347703b994134df2413110a2d560e4084083ec9afc66e702d16"
 
       - uses: actions/setup-node@v4
         with:
@@ -104,7 +156,8 @@ jobs:
           "portable_sha256=$portableHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "installer_file=$($installer.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "portable_file=$($portable.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
-          "source_sha256=83b59f41b4d7b146217b7e820e58ac3eebcb4b0a07ea5335674d31d96e6b6e25" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "source_sha256=10d4f32660673347703b994134df2413110a2d560e4084083ec9afc66e702d16" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "tree_manifest_sha256=16067fbd1f7d61b2715abe49992f4c09ddd345241173e719fde27abb95b818d8" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           Write-Host "asar=$($asar.FullName)"
           Write-Host "native_unpacked=$($native.FullName)"
 
