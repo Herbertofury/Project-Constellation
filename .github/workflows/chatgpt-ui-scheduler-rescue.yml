@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: chatgpt-scheduled-task-ui-rescue
+  group: chatgpt-scheduled-task-ui-rescue-v2
   cancel-in-progress: true
 
 jobs:
