@@ -20,7 +20,16 @@ jobs:
           base=https://github.com/electron/electron/releases/download/v44.4.4
           curl --fail --location --retry 2 "$base/SHASUMS256.txt" -o SHASUMS256.txt
           curl --fail --location --retry 2 "$base/electron-v44.4.4-linux-x64.zip" -o electron-v44.4.4-linux-x64.zip
-          grep ' electron-v44.4.4-linux-x64.zip$' SHASUMS256.txt | sha256sum -c -
+          python3 - <<'PY'
+          import hashlib,pathlib
+          name='electron-v44.4.4-linux-x64.zip'
+          rows=[line.split() for line in pathlib.Path('SHASUMS256.txt').read_text().splitlines()]
+          matches=[row[0] for row in rows if len(row)==2 and row[1].lstrip('*')==name]
+          assert len(matches)==1, 'Expected one official checksum for '+name
+          actual=hashlib.file_digest(open(name,'rb'),'sha256').hexdigest()
+          assert actual==matches[0], (actual,matches[0])
+          print(name+': verified '+actual)
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: Commander-native-electron-44.4.4
