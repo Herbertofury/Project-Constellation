@@ -1,9 +1,15 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source": "ChatGPT Scheduled Task Watchdog",
-  "last_ok_utc": "2026-09-22T17:55:05Z",
+  "last_ok_utc": "2026-09-23T03:53:35Z",
   "expected_interval_hours": 1,
   "stale_after_hours": 4,
-  "scope": "all current recurring and indefinite ChatGPT scheduled tasks plus GitHub/Google Drive connector preflight",
-  "note": "Updated only after a successful live task audit, connector probes, and recheck. Contains no task contents or secrets."
+  "core_repair_lane": "native ChatGPT automation controls; zero external connector dependency",
+  "secondary_failsafe": "enabled and hourly, staggered after primary",
+  "live_recurring_tasks": 8,
+  "paused_tasks": 0,
+  "completed_tasks": 0,
+  "external_monitor": ".github/workflows/chatgpt-watchdog-external.yml",
+  "private_recovery_registry_drive_id": "1vINA7wMsDBkKvyz6L-CYdUDXh0ALf8mQ0tEErpRFLLA",
+  "note": "Heartbeat reflects a successful live scheduler audit/repair. External connector failures do not invalidate native task repair. Contains no task prompts or secrets."
 }
