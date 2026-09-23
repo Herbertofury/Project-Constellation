@@ -59,7 +59,7 @@ jobs:
           # Apply the exact locally-proven v0.6 -> v0.7 product upgrade in one shot.
           $v070Patch = (Resolve-Path 'releases/constellation-commander/v0.7.0/commander-v060-to-v070.patch').Path
           $patchHash = (Get-FileHash -Algorithm SHA256 $v070Patch).Hash.ToLowerInvariant()
-          if ($patchHash -ne '42f7b159007dcedd81f56affb337c823487a3d58d47cd0c1244e407e3d01ed40') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
+          if ($patchHash -ne '838bf137973e240543fc9429f1fc35ff74b900046f1d1e757481938d85ddde18') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
           Push-Location 'commander-base/constellation-commander-v0.6.0'
           try {
             git -c core.autocrlf=false -c core.eol=lf apply --check $v070Patch
@@ -72,11 +72,6 @@ jobs:
           Move-Item 'commander-base/constellation-commander-v0.6.0' 'commander-source/constellation-commander-v0.7.0'
           $root = (Resolve-Path 'commander-source/constellation-commander-v0.7.0').Path
 
-          # Git-for-Windows can preserve rename/deletion sources while applying a no-index patch.
-          # v0.7 intentionally removes the old WinForms companion lane and its legacy test/build entrypoints.
-          Remove-Item (Join-Path $root 'desktop') -Recurse -Force -ErrorAction SilentlyContinue
-          Remove-Item (Join-Path $root 'scripts/build-windows-companion.ps1') -Force -ErrorAction SilentlyContinue
-          Remove-Item (Join-Path $root 'tests/desktop-static.test.mjs') -Force -ErrorAction SilentlyContinue
 
           # Git-for-Windows may CRLF-convert rename-only text files. Restore the canonical
           # UTF-8/LF representation, then require the exact target size/SHA for every file.
