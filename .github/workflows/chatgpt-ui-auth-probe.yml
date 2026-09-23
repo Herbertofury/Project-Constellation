@@ -17,11 +17,15 @@ jobs:
       - name: Check encrypted ChatGPT browser state secret
         shell: bash
         env:
+          CHATGPT_STORAGE_STATE_GZ_B64: ${{ secrets.CHATGPT_STORAGE_STATE_GZ_B64 }}
           CHATGPT_STORAGE_STATE_B64: ${{ secrets.CHATGPT_STORAGE_STATE_B64 }}
         run: |
           set -euo pipefail
-          if [ -z "$CHATGPT_STORAGE_STATE_B64" ]; then
-            echo "::error::CHATGPT_STORAGE_STATE_B64 is not configured."
+          if [ -n "$CHATGPT_STORAGE_STATE_GZ_B64" ]; then
+            echo "Compressed ChatGPT browser-state secret is configured."
+          elif [ -n "$CHATGPT_STORAGE_STATE_B64" ]; then
+            echo "Legacy ChatGPT browser-state secret is configured."
+          else
+            echo "::error::No ChatGPT browser-state secret is configured."
             exit 2
           fi
-          echo "CHATGPT_STORAGE_STATE_B64 is configured."
