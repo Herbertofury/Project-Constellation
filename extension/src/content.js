@@ -749,8 +749,174 @@
     return { action: 'none', strategy: 'persistent-option-unavailable' };
   }
 
+  function scheduledTaskPage() {
+    return /^\/schedules(?:\/|$)/i.test(location.pathname || '');
+  }
+
+  const SCHEDULED_TASK_BLOCKER_PATTERN = /(?:this task needs your attention|needs attention|follow[- ]?up|permission required|approval required|action required|task paused|\bpaused\b|\bdisabled\b)/i;
+  const SCHEDULED_TASK_TOMBSTONE_PATTERN = /^(?:REPLACED|RETIRED|LEGACY)\s*[—-]/i;
+  const SCHEDULED_TASK_OPEN_PATTERN = /^(?:follow[- ]?up|review|review access|review permission|grant access|open|view details|details)$/i;
+  const SCHEDULED_TASK_RESUME_PATTERN = /^(?:resume|retry|continue|run now|try again|enable|turn on)$/i;
+
+  function scheduledTaskTitle(card) {
+    if (!(card instanceof Element)) return '';
+    const headings = [...card.querySelectorAll('h1,h2,h3,h4,[role="heading"],[data-testid*="title" i]')];
+    for (const heading of headings) {
+      const label = elementLabel(heading, 300);
+      if (label && !SCHEDULED_TASK_BLOCKER_PATTERN.test(label)) return label;
+    }
+    const lines = elementLabel(card, 1200).split(/\n+/).map((line) => brain.normalizeText(line, 260)).filter(Boolean);
+    return lines.find((line) => !SCHEDULED_TASK_BLOCKER_PATTERN.test(line) && !/^(?:follow[- ]?up|review|resume|retry|continue|run now|enable|turn on)$/i.test(line)) || '';
+  }
+
+  function scheduledTaskCardForMarker(marker) {
+    let node = marker instanceof Element ? marker : marker?.parentElement;
+    let fallback = null;
+    for (let depth = 0; node && node !== document.body && depth < 10; depth += 1, node = node.parentElement) {
+      const controls = [...node.querySelectorAll?.('button,[role="button"],a[href]') || []].filter(isUsableControl);
+      if (!controls.length) continue;
+      const text = elementLabel(node, 5000);
+      if (!SCHEDULED_TASK_BLOCKER_PATTERN.test(text)) continue;
+      if (!fallback) fallback = node;
+      const structural = node.matches?.('article,li,section,[role="article"],[data-testid*="task" i],[data-testid*="schedule" i],[class*="card" i]');
+      if (structural) return node;
+    }
+    return fallback;
+  }
+
+  function scheduledBlockedTasks() {
+    const root = document.querySelector('main') || document.body || document.documentElement;
+    const candidates = [...root.querySelectorAll('[role="alert"],[role="status"],h1,h2,h3,h4,p,span,div,button,[role="button"]')].slice(-1800);
+    const out = [];
+    const seen = new Set();
+    for (const marker of candidates) {
+      if (!isUsableControl(marker)) continue;
+      const label = elementLabel(marker, 420);
+      if (!label || label.length > 360 || !SCHEDULED_TASK_BLOCKER_PATTERN.test(label)) continue;
+      const card = scheduledTaskCardForMarker(marker);
+      if (!card || seen.has(card)) continue;
+      const title = scheduledTaskTitle(card);
+      if (SCHEDULED_TASK_TOMBSTONE_PATTERN.test(title)) continue;
+      seen.add(card);
+      out.push({ card, title, marker, label });
+    }
+    return out;
+  }
+
+  function scheduledControl(scope, pattern) {
+    if (!(scope instanceof Element || scope === document)) return null;
+    const controls = [...scope.querySelectorAll('button,[role="button"],a[href]')].filter(isUsableControl);
+    return controls.find((node) => pattern.test(elementLabel(node, 180))) || null;
+  }
+
+  function scheduledGlobalResumeControl() {
+    return scheduledControl(document, SCHEDULED_TASK_RESUME_PATTERN);
+  }
+
+  async function runScheduledTaskRecoveryScan(options = {}) {
+    const allowed = options.scheduledTaskRepair === true || scheduledTaskPage();
+    if (!allowed) return { ok:true, action:'none', scheduled:false, reason:'Not on the Scheduled tasks surface.' };
+
+    const repaired = [];
+    const attempted = new Set();
+
+    for (let pass = 0; pass < 8; pass += 1) {
+      const surface = approvalSurface();
+      if (surface) {
+        const connector = connectorNameFromApproval(surface);
+        const result = await clickApprovalPersistentOption(surface, {
+          ...options,
+          alwaysAllow:true,
+          fallbackAllowOnce:true
+        });
+        if (result.action === 'failed') {
+          return { ok:false, action:'failed', scheduled:true, connector, strategy:result.strategy, repaired, reason:result.reason || 'Scheduled-task approval remained blocked.' };
+        }
+        if (result.action === 'always-allow' || result.action === 'allow-once') {
+          repaired.push({ kind:'approval', connector, action:result.action, strategy:result.strategy });
+          approvalAutopilotLastAt = Date.now();
+          await wait(220);
+          continue;
+        }
+      }
+
+      const resume = scheduledGlobalResumeControl();
+      if (resume) {
+        const label = elementLabel(resume, 160);
+        resume.click();
+        repaired.push({ kind:'resume', label });
+        approvalAutopilotLastAt = Date.now();
+        await wait(260);
+        continue;
+      }
+
+      const blocked = scheduledBlockedTasks();
+      if (!blocked.length) {
+        return {
+          ok:true,
+          action:repaired.length ? 'scheduled-task-recovered' : 'none',
+          scheduled:true,
+          repaired,
+          reason:repaired.length ? 'Blocked Scheduled task controls were cleared.' : 'No blocked Scheduled task card was found.'
+        };
+      }
+
+      const task = blocked[0];
+      const signature = `${task.title}|${task.label}`;
+      const direct = scheduledControl(task.card, SCHEDULED_TASK_RESUME_PATTERN);
+      if (direct) {
+        direct.click();
+        repaired.push({ kind:'task-resume', title:task.title, label:elementLabel(direct, 160) });
+        approvalAutopilotLastAt = Date.now();
+        await wait(260);
+        continue;
+      }
+
+      const open = scheduledControl(task.card, SCHEDULED_TASK_OPEN_PATTERN);
+      if (open && !attempted.has(signature)) {
+        attempted.add(signature);
+        open.click();
+        repaired.push({ kind:'open-blocker', title:task.title, label:elementLabel(open, 160) });
+        await wait(320);
+        continue;
+      }
+
+      if (!attempted.has(signature)) {
+        attempted.add(signature);
+        const link = task.card.querySelector('a[href]');
+        if (link && isUsableControl(link)) {
+          link.click();
+          repaired.push({ kind:'open-task', title:task.title, label:elementLabel(link, 160) });
+          await wait(320);
+          continue;
+        }
+      }
+
+      return {
+        ok:false,
+        action:'failed',
+        scheduled:true,
+        repaired,
+        remaining:blocked.map((row) => row.title || row.label).slice(0, 12),
+        reason:`Scheduled task remains blocked: ${task.title || task.label || 'unknown task'}`
+      };
+    }
+
+    const remaining = scheduledBlockedTasks();
+    return {
+      ok:remaining.length === 0,
+      action:remaining.length === 0 && repaired.length ? 'scheduled-task-recovered' : 'failed',
+      scheduled:true,
+      repaired,
+      remaining:remaining.map((row) => row.title || row.label).slice(0, 12),
+      reason:remaining.length ? 'Scheduled-task recovery reached its bounded retry limit.' : 'Scheduled-task recovery completed.'
+    };
+  }
+
   function findResumeControl() {
-    const patterns = [/^continue generating$/i,/^resume(?: response| generation)?$/i,/^continue response$/i,/^continue$/i];
+    const patterns = scheduledTaskPage()
+      ? [/^continue generating$/i,/^resume(?: response| generation)?$/i,/^continue response$/i,/^continue$/i,SCHEDULED_TASK_RESUME_PATTERN]
+      : [/^continue generating$/i,/^resume(?: response| generation)?$/i,/^continue response$/i,/^continue$/i];
     return [...document.querySelectorAll('button,[role="button"]')].filter(isUsableControl).find((node) => patterns.some((pattern) => pattern.test(elementLabel(node, 160)))) || null;
   }
 
@@ -850,6 +1016,10 @@
     if (approvalAutopilotBusy) return { ok: true, action: 'busy', reason: 'Approval recovery is already running.' };
     approvalAutopilotBusy = true;
     try {
+      if (options.scheduledTaskRepair === true || scheduledTaskPage()) {
+        const scheduled = await runScheduledTaskRecoveryScan(options);
+        if (scheduled?.action !== 'none' || scheduled?.ok === false) return scheduled;
+      }
       const failure = providerFailureSurface();
       if (failure?.active) {
         return {
