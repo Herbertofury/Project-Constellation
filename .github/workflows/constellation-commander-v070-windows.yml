@@ -59,7 +59,7 @@ jobs:
           # Apply the exact locally-proven v0.6 -> v0.7 product upgrade in one shot.
           $v070Patch = (Resolve-Path 'releases/constellation-commander/v0.7.0/commander-v060-to-v070.patch').Path
           $patchHash = (Get-FileHash -Algorithm SHA256 $v070Patch).Hash.ToLowerInvariant()
-          if ($patchHash -ne '838bf137973e240543fc9429f1fc35ff74b900046f1d1e757481938d85ddde18') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
+          if ($patchHash -ne '2b29a9abde070bdf6e61a4363ca56e9c1e03a8a57d047d861ae5dd03e8838dce') { throw "v0.7 upgrade patch SHA mismatch: $patchHash" }
           Push-Location 'commander-base/constellation-commander-v0.6.0'
           try {
             git -c core.autocrlf=false -c core.eol=lf apply --check $v070Patch
