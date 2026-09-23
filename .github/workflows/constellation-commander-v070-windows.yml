@@ -5,7 +5,7 @@ on:
     branches:
       - ci/commander-v070-windows-proof
     paths:
-      - 'releases/constellation-commander/v0.7.0/Constellation-Commander-v0.7.0-source.zip'
+      - 'releases/constellation-commander/v0.7.0/ci-source/**'
       - '.github/workflows/constellation-commander-v070-windows.yml'
   pull_request:
     branches:
@@ -29,10 +29,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $source = 'releases/constellation-commander/v0.7.0/Constellation-Commander-v0.7.0-source.zip'
-          if (-not (Test-Path $source)) { throw "Missing canonical v0.7 source archive: $source" }
+          $parts = Get-ChildItem 'releases/constellation-commander/v0.7.0/ci-source/part*' | Sort-Object Name
+          if ($parts.Count -ne 21) { throw "Expected 21 canonical v0.7 source chunks, found $($parts.Count)" }
+          $b64 = ($parts | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join ''
+          [IO.File]::WriteAllBytes('commander-source.zip', [Convert]::FromBase64String($b64))
+          $source = 'commander-source.zip'
           $actual = (Get-FileHash -Algorithm SHA256 $source).Hash.ToLowerInvariant()
-          $expected = 'abd98fb6d298b76d94192e38733e90526bba53f985d37efcf60b701e12de6bd5'
+          $expected = '83b59f41b4d7b146217b7e820e58ac3eebcb4b0a07ea5335674d31d96e6b6e25'
           if ($actual -ne $expected) { throw "v0.7 source SHA mismatch: $actual" }
           Expand-Archive $source 'commander-source' -Force
           if (-not (Test-Path 'commander-source/constellation-commander-v0.7.0/package.json')) { throw 'v0.7 source root is missing.' }
@@ -101,7 +104,7 @@ jobs:
           "portable_sha256=$portableHash" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "installer_file=$($installer.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           "portable_file=$($portable.Name)" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
-          "source_sha256=abd98fb6d298b76d94192e38733e90526bba53f985d37efcf60b701e12de6bd5" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
+          "source_sha256=83b59f41b4d7b146217b7e820e58ac3eebcb4b0a07ea5335674d31d96e6b6e25" | Tee-Object -FilePath dist-electron\SHA256SUMS.txt -Append
           Write-Host "asar=$($asar.FullName)"
           Write-Host "native_unpacked=$($native.FullName)"
 
