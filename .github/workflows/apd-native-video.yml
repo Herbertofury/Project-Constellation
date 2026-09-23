@@ -13,22 +13,24 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - name: Decode source frame
         shell: bash
         run: |
-          base64 -d apd-video/source.b64 > apd-video/source.jpg
+          cat apd-video/source.b64.00 apd-video/source.b64.01 apd-video/source.b64.02 apd-video/source.b64.03 | base64 -d > apd-video/source.jpg
+          test -s apd-video/source.jpg
           file apd-video/source.jpg
+          sha256sum apd-video/source.jpg
       - name: Install client and ffmpeg
         shell: bash
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
           python -m pip install --upgrade pip
-          python -m pip install "gradio_client>=1.13,<2"
-      - name: Generate two native 5s Wan2.2 clips
+          python -m pip install gradio_client
+      - name: Generate two native Wan2.2 clips
         shell: bash
         run: python apd-video/generate.py
       - name: Upload video artifact
@@ -38,5 +40,7 @@ jobs:
           path: |
             apd-video/output/apd-10s-native-i2v.mp4
             apd-video/output/ffprobe.json
+            apd-video/output/clip1.mp4
+            apd-video/output/clip2.mp4
           if-no-files-found: error
           retention-days: 7
