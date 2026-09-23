@@ -1,0 +1,1 @@
+wait for NSIS installer process before installed-app smoke
