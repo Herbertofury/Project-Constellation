@@ -1,9 +1,9 @@
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
 new file mode 100644
-index 0000000000000000000000000000000000000000..ca77c785978b9d2722e4b387164728e04338069c
+index 0000000000000000000000000000000000000000..b2b86e0c4c2e47c7d78d5151bd6be4809249f0c0
 --- /dev/null
 +++ b/.github/workflows/ci.yml
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,86 @@
 +name: Project Constellation Verify
 +
 +on:
@@ -74,6 +74,10 @@ index 0000000000000000000000000000000000000000..ca77c785978b9d2722e4b387164728e0
 +        shell: bash
 +        run: |
 +          set -euo pipefail
++          CHROME_PATH="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
++          export CHROME_PATH
++          test -x "$CHROME_PATH"
++          echo "desktop_chromium=$CHROME_PATH"
 +          cd "$PC_SOURCE_ROOT/desktop"
 +          npm install --no-audit --no-fund
 +          npm run check
@@ -382,10 +386,10 @@ index 0000000000000000000000000000000000000000..605510a2697b1563700902a12ae0bb3b
 +          if-no-files-found: error
 +          retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index aa4b1e342be87548d448db2772448e8552446fb2..3c128096501855b8478d9cb89cab43fec12610dc 100644
+index aa4b1e342be87548d448db2772448e8552446fb2..c6b8e062d832d1833e5a38aa307d0067e2d70f66 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -1,3 +1,28 @@
+@@ -1,3 +1,29 @@
 +# Changelog
 +
 +## 0.20.0 — Reliability Foundation
@@ -401,6 +405,7 @@ index aa4b1e342be87548d448db2772448e8552446fb2..3c128096501855b8478d9cb89cab43fe
 +- Made the integrated Electron acceptance gate wait for shell-runtime proof before closing on the first tool result, removing a Windows-only timing race from release validation.
 +- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
 +- Made source archives reproducible from raw committed Git blobs so release ZIP contents cannot drift through export-time line-ending conversion.
++- Made Linux desktop Chromium acceptance use the Playwright-managed browser installed by CI and made unified extension ZIP packaging sorted/file-only so verified extension bytes reproduce deterministically.
 +- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
 +
 +## 0.19.1 - Recovery Efficiency Hotfix
@@ -2315,10 +2320,10 @@ index 0000000000000000000000000000000000000000..477d7030a308719ba587d29f77ce7139
 +- Full root regression/validation/build/smoke and retained desktop reliability suites are release gates for this hotfix.
 diff --git a/docs/v0.20.0-release-notes.md b/docs/v0.20.0-release-notes.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..2e5ef0fd066f2b2358a1137d9e685a912f2f6fa6
+index 0000000000000000000000000000000000000000..0e446baffcc14a4684d2a4c322ec04e78614eadc
 --- /dev/null
 +++ b/docs/v0.20.0-release-notes.md
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,54 @@
 +# Project Constellation 0.20.0 — Reliability Foundation
 +
 +Project Constellation 0.20.0 turns the unified 0.19 product into a more event-driven, self-diagnosing, self-recovering desktop + browser platform while preserving the broad provider/permission model and the stable Constellation browser-extension identity.
@@ -2371,6 +2376,8 @@ index 0000000000000000000000000000000000000000..2e5ef0fd066f2b2358a1137d9e685a91
 +## Compatibility
 +
 +User-configured Google Drive and GitHub connections remain supported. Distribution builds do not embed private OAuth client secrets. A production package may be created without embedded client IDs for environments where the user supplies/configures connections separately; the build receipt records whether OAuth IDs were actually embedded.
++
++- Made Linux desktop Chromium acceptance use the Playwright-managed browser installed by CI and made unified extension ZIP packaging sorted/file-only so verified extension bytes reproduce deterministically.
 diff --git a/extension/background.js b/extension/background.js
 index 73fe8dc857dbd6408f9e18dd3d3bbb93a42b7a25..cb3be2c3a69b1d67af1fb977ccac40eca1d4b194 100644
 --- a/extension/background.js
@@ -4821,10 +4828,10 @@ index eac0fb510f0de4303ca7d59e16980c532ff5d031..0690c3e4fe9de4b2cfe45c4edbd98024
          result = page.evaluate("""() => {const turns=window.__brain.filter(row=>row.type==='TURN_UPSERT');return {roles:turns.map(row=>row.data.role),chatIds:[...new Set(turns.map(row=>row.data.chatId))],turns:turns.length};}""")
 diff --git a/tests/source-archive-static.test.mjs b/tests/source-archive-static.test.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b0693844d547324759f2c10daf695d91bbf3724b
+index 0000000000000000000000000000000000000000..4b2c6d77c4e7806bbffbb90f944520e3a52ec5cc
 --- /dev/null
 +++ b/tests/source-archive-static.test.mjs
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,17 @@
 +import assert from 'node:assert/strict';
 +import fs from 'node:fs';
 +
@@ -4834,7 +4841,12 @@ index 0000000000000000000000000000000000000000..b0693844d547324759f2c10daf695d91
 +assert.match(sourceArchive,/git', \['cat-file', 'blob'/);
 +assert.match(sourceArchive,/Unsupported git file mode/);
 +assert.match(sourceArchive,/zip', \['-X', '-q', target, '-@'/);
++assert.match(sourceArchive,/export function writeDirectoryFilesZip/);
++assert.match(sourceArchive,/tar\.exe', \['-a', '-c', '-f', target, '-T', '-'/);
 +assert.match(packager,/writeExactGitSourceZip/);
++assert.match(packager,/writeDirectoryFilesZip/);
++assert.doesNotMatch(packager,/Compress-Archive/);
++assert.doesNotMatch(packager,/\['-X','-q','-r'/);
 +assert.doesNotMatch(packager,/git',\['archive'/);
 +console.log('source archive static: PASS');
 diff --git a/tests/state-event-bus-core.test.mjs b/tests/state-event-bus-core.test.mjs
@@ -4914,17 +4926,17 @@ index 2f227084438aa92d4541a07f1d6bcefb27524002..ba9c30d01c1585fee6e758376f6af08c
  const backgroundPath = path.join(unpacked, 'background.js');
 diff --git a/tools/package-unified-release.mjs b/tools/package-unified-release.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6a15659f2076298b200b452fe3e45015042f8453
+index 0000000000000000000000000000000000000000..b1ec6a60036ddb942434254d88f96db30756b65e
 --- /dev/null
 +++ b/tools/package-unified-release.mjs
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,44 @@
 +import crypto from 'node:crypto';
 +import fs from 'node:fs';
 +import path from 'node:path';
 +import process from 'node:process';
 +import {spawnSync} from 'node:child_process';
 +import {fileURLToPath} from 'node:url';
-+import {writeExactGitSourceZip} from './source-archive.mjs';
++import {writeDirectoryFilesZip,writeExactGitSourceZip} from './source-archive.mjs';
 +
 +const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 +const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
@@ -4938,9 +4950,7 @@ index 0000000000000000000000000000000000000000..6a15659f2076298b200b452fe3e45015
 +const dirty=git(['status','--porcelain','--untracked-files=no']);
 +if(dirty)throw new Error('Unified release packaging requires a clean committed source tree.');
 +const releaseDir=path.join(root,'releases',`v${version}`);fs.rmSync(releaseDir,{recursive:true,force:true});fs.mkdirSync(releaseDir,{recursive:true});
-+const run=(cmd,args,cwd=root)=>{const r=spawnSync(cmd,args,{cwd,encoding:'utf8',stdio:'pipe'});if(r.status!==0)throw new Error(`${cmd}: ${r.stderr||r.stdout}`);};
-+const zipDir=(source,target)=>{fs.rmSync(target,{force:true});if(process.platform==='win32'){const q=v=>String(v).replaceAll("'","''");run('powershell.exe',['-NoProfile','-Command',`Compress-Archive -Path '${q(path.join(source,'*'))}' -DestinationPath '${q(target)}' -CompressionLevel Optimal -Force`]);}else run('zip',['-X','-q','-r',target,'.'],source);};
-+const extensionZip=path.join(releaseDir,`Project-Constellation-v${version}-Extension.zip`);zipDir(path.join(root,'build','unpacked'),extensionZip);
++const extensionZip=path.join(releaseDir,`Project-Constellation-v${version}-Extension.zip`);writeDirectoryFilesZip({source:path.join(root,'build','unpacked'),target:extensionZip});
 +const sourceZip=path.join(releaseDir,`Project-Constellation-v${version}-source.zip`);writeExactGitSourceZip({repoRoot:root,commit,target:sourceZip});
 +const desktopDir=path.join(root,'desktop','dist-electron');
 +const desktopZip=fs.existsSync(desktopDir)?fs.readdirSync(desktopDir).map(name=>path.join(desktopDir,name)).find(file=>/\.zip$/i.test(file)&&/0\.20\.0|Project-Constellation/i.test(path.basename(file))):null;
@@ -4966,10 +4976,10 @@ index 0000000000000000000000000000000000000000..6a15659f2076298b200b452fe3e45015
 +console.log(JSON.stringify(receipt,null,2));
 diff --git a/tools/source-archive.mjs b/tools/source-archive.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..4e7053639b4e46d49b0589e6ad9ba1797dc4b622
+index 0000000000000000000000000000000000000000..66b3a356d674c8449eafa2a74b7202b7d18ffbec
 --- /dev/null
 +++ b/tools/source-archive.mjs
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,103 @@
 +import crypto from 'node:crypto';
 +import fs from 'node:fs';
 +import os from 'node:os';
@@ -5011,13 +5021,34 @@ index 0000000000000000000000000000000000000000..4e7053639b4e46d49b0589e6ad9ba179
 +  fs.mkdirSync(path.dirname(target), {recursive: true});
 +  fs.rmSync(target, {force: true});
 +  if (process.platform === 'win32') {
-+    const quote = value => String(value).replaceAll("'", "''");
-+    const command = `Compress-Archive -Path '${quote(path.join(stage, '*'))}' -DestinationPath '${quote(target)}' -CompressionLevel Optimal -Force`;
-+    run(stage, 'powershell.exe', ['-NoProfile', '-Command', command], {encoding: 'utf8'});
++    const input = `${paths.join('\n')}\n`;
++    run(stage, 'tar.exe', ['-a', '-c', '-f', target, '-T', '-'], {encoding: 'utf8', input});
 +    return;
 +  }
 +  const input = `${paths.join('\n')}\n`;
 +  run(stage, 'zip', ['-X', '-q', target, '-@'], {encoding: 'utf8', input});
++}
++
++
++function collectFiles(root, relative = '') {
++  const dir = path.join(root, ...relative.split('/').filter(Boolean));
++  const rows = [];
++  for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
++    const rel = relative ? `${relative}/${entry.name}` : entry.name;
++    if (entry.isDirectory()) rows.push(...collectFiles(root, rel));
++    else if (entry.isFile()) rows.push(rel);
++    else throw new Error(`Unsupported archive entry: ${rel}`);
++  }
++  return rows.sort((a, b) => a.localeCompare(b));
++}
++
++export function writeDirectoryFilesZip({source, target}) {
++  const stage = path.resolve(source);
++  const out = path.resolve(target);
++  const paths = collectFiles(stage);
++  if (!paths.length) throw new Error(`Archive source contains no files: ${stage}`);
++  zipExact(stage, out, paths);
++  return {target: out, files: paths.length, sha256: sha256(out)};
 +}
 +
 +export function writeExactGitSourceZip({repoRoot, commit = 'HEAD', target}) {
