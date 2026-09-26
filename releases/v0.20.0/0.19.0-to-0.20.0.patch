@@ -1,6 +1,6 @@
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
 new file mode 100644
-index 0000000..4a4e40c
+index 0000000..5b822f2
 --- /dev/null
 +++ b/.github/workflows/ci.yml
 @@ -0,0 +1,42 @@
@@ -20,12 +20,12 @@ index 0000000..4a4e40c
 +    runs-on: ubuntu-latest
 +    timeout-minutes: 30
 +    steps:
-+      - uses: actions/checkout@v4
-+      - uses: actions/setup-node@v4
++      - uses: actions/checkout@v7
++      - uses: actions/setup-node@v7
 +        with:
 +          node-version: 24
 +          cache: npm
-+      - uses: actions/setup-python@v5
++      - uses: actions/setup-python@v7
 +        with:
 +          python-version: '3.12'
 +          cache: pip
@@ -40,7 +40,7 @@ index 0000000..4a4e40c
 +          npm install --no-audit --no-fund
 +          npm run check
 +          npm test
-+      - uses: actions/upload-artifact@v4
++      - uses: actions/upload-artifact@v7
 +        if: failure()
 +        with:
 +          name: linux-smoke-evidence
@@ -48,7 +48,7 @@ index 0000000..4a4e40c
 +          if-no-files-found: ignore
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
 new file mode 100644
-index 0000000..56b4f0c
+index 0000000..897e417
 --- /dev/null
 +++ b/.github/workflows/release.yml
 @@ -0,0 +1,86 @@
@@ -75,10 +75,10 @@ index 0000000..56b4f0c
 +    runs-on: ubuntu-latest
 +    timeout-minutes: 30
 +    steps:
-+      - uses: actions/checkout@v4
-+      - uses: actions/setup-node@v4
++      - uses: actions/checkout@v7
++      - uses: actions/setup-node@v7
 +        with: { node-version: 24, cache: npm }
-+      - uses: actions/setup-python@v5
++      - uses: actions/setup-python@v7
 +        with: { python-version: '3.12', cache: pip, cache-dependency-path: requirements-dev.txt }
 +      - run: npm ci
 +      - run: python -m pip install -r requirements-dev.txt
@@ -89,8 +89,8 @@ index 0000000..56b4f0c
 +    runs-on: windows-latest
 +    timeout-minutes: 65
 +    steps:
-+      - uses: actions/checkout@v4
-+      - uses: actions/setup-node@v4
++      - uses: actions/checkout@v7
++      - uses: actions/setup-node@v7
 +        with: { node-version: 24 }
 +      - name: Install and verify desktop
 +        working-directory: desktop
@@ -102,7 +102,7 @@ index 0000000..56b4f0c
 +          node tests/computer-use-windows-smoke.mjs
 +          .\scripts\electron-smoke.ps1
 +          npm run build:win
-+      - uses: actions/upload-artifact@v4
++      - uses: actions/upload-artifact@v7
 +        with:
 +          name: windows-release
 +          path: |
@@ -115,13 +115,13 @@ index 0000000..56b4f0c
 +    runs-on: ubuntu-latest
 +    timeout-minutes: 25
 +    steps:
-+      - uses: actions/checkout@v4
++      - uses: actions/checkout@v7
 +        with: { fetch-depth: 0 }
-+      - uses: actions/download-artifact@v4
++      - uses: actions/download-artifact@v8
 +        with:
 +          name: windows-release
 +          path: desktop/dist-electron
-+      - uses: actions/setup-node@v4
++      - uses: actions/setup-node@v7
 +        with: { node-version: 24 }
 +      - name: Build exact extension artifact
 +        env:
@@ -140,10 +140,10 @@ index 0000000..56b4f0c
 +          gh release create "$TAG" releases/v${VERSION}/* --verify-tag --title "Project Constellation $TAG" --notes-file "docs/v${VERSION}-release-notes.md"
 diff --git a/.github/workflows/windows-runtime.yml b/.github/workflows/windows-runtime.yml
 new file mode 100644
-index 0000000..da9da27
+index 0000000..860f3f5
 --- /dev/null
 +++ b/.github/workflows/windows-runtime.yml
-@@ -0,0 +1,179 @@
+@@ -0,0 +1,192 @@
 +name: Project Constellation Windows Runtime Gate
 +
 +on:
@@ -173,12 +173,13 @@ index 0000000..da9da27
 +    runs-on: windows-latest
 +    timeout-minutes: 65
 +    steps:
-+      - uses: actions/checkout@v4
++      - uses: actions/checkout@v7
 +
 +      - name: Reconstruct exact 0.20 source lineage
 +        shell: pwsh
 +        run: |
 +          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          $manifest = Get-Content 'releases/v0.20.0/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
 +          if ($manifest.version -ne '0.20.0') { throw "Unexpected source manifest version: $($manifest.version)" }
 +          $baseline = [string]$manifest.baseline.artifact
@@ -213,13 +214,15 @@ index 0000000..da9da27
 +          Write-Host "reconstructed_source=$root"
 +          Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
 +
-+      - uses: actions/setup-node@v4
++      - uses: actions/setup-node@v7
 +        with:
 +          node-version: 24
 +
 +      - name: Root regression and contracts
 +        shell: pwsh
 +        run: |
++          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          Set-Location $env:PC_SOURCE_ROOT
 +          npm ci --no-audit --no-fund
 +          npm test
@@ -229,6 +232,8 @@ index 0000000..da9da27
 +      - name: Install exact desktop dependencies
 +        shell: pwsh
 +        run: |
++          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
 +          npm install --no-audit --no-fund
 +          $actual = (& .\node_modules\.bin\electron.cmd --version | Select-Object -Last 1).ToString().Trim()
@@ -238,6 +243,8 @@ index 0000000..da9da27
 +      - name: Desktop full regression and native Windows computer use
 +        shell: pwsh
 +        run: |
++          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
 +          npm run check
 +          npm test
@@ -246,12 +253,16 @@ index 0000000..da9da27
 +      - name: Real Electron integrated ChatGPT/local-agent smoke
 +        shell: pwsh
 +        run: |
++          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
 +          .\scripts\electron-smoke.ps1
 +
 +      - name: Build installer and portable ZIP
 +        shell: pwsh
 +        run: |
++          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
 +          npm run build:win
 +
@@ -259,6 +270,7 @@ index 0000000..da9da27
 +        shell: pwsh
 +        run: |
 +          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          $desktop = Join-Path $env:PC_SOURCE_ROOT 'desktop'
 +          Set-Location $desktop
 +          $zip = Get-ChildItem 'dist-electron' -Filter '*.zip' | Sort-Object Length -Descending | Select-Object -First 1
@@ -310,6 +322,7 @@ index 0000000..da9da27
 +        shell: pwsh
 +        run: |
 +          $ErrorActionPreference = 'Stop'
++          $PSNativeCommandUseErrorActionPreference = $true
 +          $source = Join-Path $env:PC_SOURCE_ROOT 'desktop\dist-electron'
 +          New-Item -ItemType Directory -Force 'windows-dist' | Out-Null
 +          Copy-Item (Join-Path $source '*.zip') 'windows-dist' -Force
@@ -317,28 +330,30 @@ index 0000000..da9da27
 +          Copy-Item (Join-Path $source 'WINDOWS-RUNTIME-RECEIPT.json') 'windows-dist' -Force
 +          Get-ChildItem 'windows-dist' | Select-Object Name,Length | Format-Table
 +
-+      - uses: actions/upload-artifact@v4
++      - uses: actions/upload-artifact@v7
 +        with:
 +          name: Project-Constellation-v0.20.0-Windows
 +          path: windows-dist/*
 +          if-no-files-found: error
 +          retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index aa4b1e3..4ef3f6d 100644
+index aa4b1e3..b9329a1 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -1,3 +1,24 @@
+@@ -1,3 +1,26 @@
 +# Changelog
 +
 +## 0.20.0 — Reliability Foundation
 +
-+- Added a cross-surface state-event bus and removed fixed polling loops from key UI/route/recovery paths.
++- Added a cross-surface state-event bus and removed fixed polling loops from key UI/route/recovery paths, including the legacy one-minute stall watchdog.
 +- Added provider capability health and a reusable Incident Brain with verified recovery recipes.
 +- Migrated the Project Brain to DB v11 with shared IndexedDB connection management and migration receipts.
 +- Added modular background message routing for new services.
 +- Added the desktop Update Center with SHA-256 staging, rollback backups, and one-shot startup checks.
 +- Unified user-facing desktop branding under Project Constellation while preserving migration-sensitive Commander state/CLI identities.
 +- Updated Electron to 44.4.4 stable and added a Windows-native build/runtime gate plus a unified immutable release workflow.
++- Fixed Windows PowerShell process execution to preserve native exit codes and package the canonical ChatGPT page hook with byte-for-byte drift protection.
++- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
 +- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
 +
 +## 0.19.1 - Recovery Efficiency Hotfix
@@ -565,6 +580,117 @@ index 732f71b..5f21505 100644
 +    "User authenticated ChatGPT acceptance after delivery"
    ]
  }
+diff --git a/desktop/browser-companion/page-hook.js b/desktop/browser-companion/page-hook.js
+new file mode 100644
+index 0000000..a9de071
+--- /dev/null
++++ b/desktop/browser-companion/page-hook.js
+@@ -0,0 +1,105 @@
++/* Request-bound bridge. Never rewrites arbitrary POSTs or an older matching turn. */
++(() => {
++  'use strict';
++  const SOURCE = 'constellation-commander-page-hook';
++  const CONTEXT_OPEN='[PROJECT CONSTELLATION LOCAL CONTEXT]', CONTEXT_CLOSE='[/PROJECT CONSTELLATION LOCAL CONTEXT]';
++  const post = (type, extra = {}) => { try { window.postMessage({source:SOURCE,type,...extra},'*'); } catch {} };
++  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true}); return; }
++  window.__constellationHookInstalled = true;
++  let pending = null;
++  const normalize = value => String(value ?? '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
++  const userLike = value => value && typeof value === 'object' && String(value.role || value.author?.role || '').toLowerCase() === 'user';
++  function latestUser(payload) {
++    for (const key of ['messages','input']) {
++      const values=payload?.[key];
++      if(Array.isArray(values)) {
++        const users=values.filter(userLike);
++        if(users.length)return users[users.length-1];
++      }
++    }
++    if(userLike(payload?.message))return payload.message;
++    if(userLike(payload))return payload;
++    if(typeof payload?.input==='string')return payload;
++    return null;
++  }
++  function matchingText(root, original) {
++    const expected=normalize(original), hits=[];
++    function visit(value,parent,key,inContent=false) {
++      const content=inContent || /^(content|parts|text|input)$/.test(String(key));
++      if(typeof value==='string') { if(content && normalize(value)===expected)hits.push({parent,key,value});return; }
++      if(!value || typeof value!=='object')return;
++      for(const [k,v] of Object.entries(value))visit(v,value,k,content);
++    }
++    visit(root,null,'');
++    return hits.at(-1) || null;
++  }
++  function isConversation(input) {
++    try {
++      const raw=typeof input==='string'?input:input instanceof URL?input.href:input?.url;
++      const url=new URL(raw,location.href);
++      return url.protocol==='https:' && url.hostname==='chatgpt.com' && /^\/(?:backend-api|backend-anon)\/(?:f\/)?conversation(?:\/|$)/.test(url.pathname);
++    } catch { return false; }
++  }
++  function active() {
++    if(pending && pending.expiresAt>Date.now() && !pending.used)return pending;
++    pending=null;return null;
++  }
++  function transform(body) {
++    const item=active();
++    if(!item || typeof body!=='string' || body.length>8*1024*1024)return {body,item:null};
++    let payload;try{payload=JSON.parse(body);}catch{return {body,item:null};}
++    const newest=latestUser(payload);if(!newest)return {body,item:null};
++    let hit=matchingText(newest,item.original);
++    if(!hit && item.mode==='context')hit=matchingText(newest,`${item.original}\n\n${item.context}`);
++    if(!hit)return {body,item:null};
++    if(item.mode==='context' && !hit.value.includes(item.context))hit.parent[hit.key]=`${hit.value}\n\n${item.context}`;
++    item.used=true;pending=null;
++    if(item.mode==='context')post('CC_PAGE_CONTEXT_INJECTED_V2',{id:item.id,url:location.href});
++    post('CC_REQUEST_STARTED_V3',{id:item.id,mode:item.mode});
++    return {body:item.mode==='context'?JSON.stringify(payload):body,item};
++  }
++  function receipt(item,response,error) {
++    if(!item)return;
++    if(error || !response || response.status<200 || response.status>=300) {
++      post('CC_REQUEST_FAILED_V3',{id:item.id,status:response?.status || 0,reason:error?'Network request failed':`ChatGPT returned HTTP ${response?.status || 0}`});
++    } else post('CC_REQUEST_ACCEPTED_V3',{id:item.id,status:response.status});
++  }
++  window.addEventListener('message',event=>{
++    if(event.source!==window || event.data?.source!=='constellation-commander-content')return;
++    const data=event.data;
++    if(data.type==='CC_CANCEL_REQUEST_V3') { if(pending?.id===data.id)pending=null;return; }
++    if(!['CC_ARM_CONTEXT_V2','CC_WATCH_DELIVERY_V3'].includes(data.type))return;
++    const id=String(data.id||''), original=String(data.original||''), context=String(data.context||'');
++    if(!id || !original || (data.type==='CC_ARM_CONTEXT_V2'&&(!context.startsWith(CONTEXT_OPEN)||!context.endsWith(CONTEXT_CLOSE))))return;
++    pending={id,original,context,mode:data.type==='CC_ARM_CONTEXT_V2'?'context':'delivery',used:false,expiresAt:Date.now()+30000};
++    post('CC_PAGE_CONTEXT_ARMED_V2',{id});
++  });
++  const originalFetch=window.fetch.bind(window);
++  window.fetch=async function commanderFetch(input,init) {
++    if(!active() || !isConversation(input))return originalFetch(input,init);
++    const request=input instanceof Request?input:null;
++    if(String(init?.method || request?.method || 'GET').toUpperCase()!=='POST')return originalFetch(input,init);
++    let changed={item:null},nextInput=input,nextInit=init;
++    try {
++      if(typeof init?.body==='string') { changed=transform(init.body);if(changed.item)nextInit={...init,body:changed.body}; }
++      else if(request && init?.body==null) {
++        const body=await request.clone().text();changed=transform(body);
++        if(changed.item)nextInput=new Request(request,{body:changed.body});
++      } else if(typeof Blob!=='undefined' && init?.body instanceof Blob) {
++        changed=transform(await init.body.text());if(changed.item)nextInit={...init,body:changed.body};
++      }
++    }catch(error){post('CC_PAGE_CONTEXT_MISSED_V2',{id:pending?.id,reason:'Unsupported conversation request body'});}
++    try {const response=await originalFetch(nextInput,nextInit);receipt(changed.item,response);return response;}
++    catch(error){receipt(changed.item,null,error);throw error;}
++  };
++  if(typeof XMLHttpRequest!=='undefined') {
++    const open=XMLHttpRequest.prototype.open,send=XMLHttpRequest.prototype.send;
++    XMLHttpRequest.prototype.open=function(method,url,...rest){this.__ccMethod=String(method).toUpperCase();this.__ccUrl=url;return open.call(this,method,url,...rest);};
++    XMLHttpRequest.prototype.send=function(body){
++      const changed=this.__ccMethod==='POST'&&isConversation(this.__ccUrl)?transform(body):{body,item:null};
++      if(changed.item && this.addEventListener)this.addEventListener('loadend',()=>receipt(changed.item,this),{once:true});
++      return send.call(this,changed.body);
++    };
++  }
++  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true});
++})();
 diff --git a/desktop/electron/call-ledger.cjs b/desktop/electron/call-ledger.cjs
 index aa4b899..b1644cc 100644
 --- a/desktop/electron/call-ledger.cjs
@@ -1103,7 +1229,7 @@ index c6438e7..6406e4f 100644
        }
        card.append(actions);$('task-list').append(card);
 diff --git a/desktop/package.json b/desktop/package.json
-index 2ea154d..82251ab 100644
+index 2ea154d..46d0ffd 100644
 --- a/desktop/package.json
 +++ b/desktop/package.json
 @@ -1,11 +1,15 @@
@@ -1129,8 +1255,8 @@ index 2ea154d..82251ab 100644
      "start:bridge": "node ./bin/constellation-commander-bridge.mjs",
 -    "check": "node --check src/task-runner.mjs && node --check src/search-engine.mjs && node --check src/indexed-jsonl.mjs && node --check electron/tasks.js && node --check electron/ui-state.cjs && node --check electron/chrome.js && node --check src/process-manager.mjs && node --check src/file-operations.mjs && node --check electron/call-ledger.cjs && node --check electron/workspace.js && node --check ./electron/shell-preload.cjs && node --check ./electron/shell.js && node --check ./src/server.mjs && node --check ./src/tools.mjs && node --check ./src/config.mjs && node --check ./src/remote-device.mjs && node --check ./src/browser-bridge.mjs && node --check ./src/computer-use.mjs && node --check ./relay/relay-server.mjs && node --check ./electron/main.cjs && node --check ./electron/chat-preload.cjs && node --check ./tests/electron-static.test.mjs && node --check ./tests/smoke.mjs && node --check ./tests/relay-smoke.mjs && node --check ./tests/device-agent-smoke.mjs && node --check ./tests/plugin-package.test.mjs && node --check ./tests/browser-bridge-smoke.mjs && node --check ./tests/browser-companion-static.test.mjs && node --check ./tests/browser-page-hook-smoke.mjs && node --check ./tests/browser-background-smoke.mjs && node --check ./tests/browser-companion-e2e.mjs && node --check ./tests/computer-use-windows-smoke.mjs",
 -    "test": "node --test tests/task-search.test.mjs && node --test tests/request-delivery.test.mjs tests/reliability.test.mjs tests/main-boundary.test.mjs tests/ui-state.test.mjs tests/remote-reliability.test.mjs && node ./tests/shell-static.test.mjs && node ./tests/electron-static.test.mjs && node ./tests/smoke.mjs && node ./tests/relay-smoke.mjs && node ./tests/device-agent-smoke.mjs && node ./tests/plugin-package.test.mjs && node ./tests/browser-bridge-smoke.mjs && node ./tests/browser-companion-static.test.mjs && node ./tests/browser-page-hook-smoke.mjs && node ./tests/browser-background-smoke.mjs && node ./tests/browser-companion-e2e.mjs && node ./tests/computer-use-windows-smoke.mjs",
-+    "check": "node --check src/task-runner.mjs && node --check src/search-engine.mjs && node --check src/indexed-jsonl.mjs && node --check electron/tasks.js && node --check electron/ui-state.cjs && node --check electron/chrome.js && node --check src/process-manager.mjs && node --check src/file-operations.mjs && node --check electron/call-ledger.cjs && node --check electron/workspace.js && node --check ./electron/shell-preload.cjs && node --check ./electron/shell.js && node --check ./src/server.mjs && node --check ./src/tools.mjs && node --check ./src/config.mjs && node --check ./src/update-service.mjs && node --check ./src/remote-device.mjs && node --check ./src/browser-bridge.mjs && node --check ./src/computer-use.mjs && node --check ./relay/relay-server.mjs && node --check ./electron/main.cjs && node --check ./electron/chat-preload.cjs && node --check ./tests/electron-static.test.mjs && node --check ./tests/smoke.mjs && node --check ./tests/relay-smoke.mjs && node --check ./tests/device-agent-smoke.mjs && node --check ./tests/plugin-package.test.mjs && node --check ./tests/browser-bridge-smoke.mjs && node --check ./tests/browser-companion-static.test.mjs && node --check ./tests/browser-page-hook-smoke.mjs && node --check ./tests/browser-background-smoke.mjs && node --check ./tests/browser-companion-e2e.mjs && node --check ./tests/computer-use-windows-smoke.mjs && node --check ./tests/update-service.test.mjs",
-+    "test": "node --test tests/task-search.test.mjs && node --test tests/request-delivery.test.mjs tests/reliability.test.mjs tests/main-boundary.test.mjs tests/ui-state.test.mjs tests/remote-reliability.test.mjs && node ./tests/shell-static.test.mjs && node ./tests/electron-static.test.mjs && node ./tests/smoke.mjs && node ./tests/relay-smoke.mjs && node ./tests/device-agent-smoke.mjs && node ./tests/plugin-package.test.mjs && node ./tests/browser-bridge-smoke.mjs && node ./tests/browser-companion-static.test.mjs && node ./tests/browser-page-hook-smoke.mjs && node ./tests/browser-background-smoke.mjs && node ./tests/browser-companion-e2e.mjs && node ./tests/computer-use-windows-smoke.mjs && node ./tests/update-service.test.mjs",
++    "check": "node --check src/task-runner.mjs && node --check src/search-engine.mjs && node --check src/indexed-jsonl.mjs && node --check electron/tasks.js && node --check electron/ui-state.cjs && node --check electron/chrome.js && node --check src/process-manager.mjs && node --check src/file-operations.mjs && node --check electron/call-ledger.cjs && node --check electron/workspace.js && node --check ./electron/shell-preload.cjs && node --check ./electron/shell.js && node --check ./src/server.mjs && node --check ./src/tools.mjs && node --check ./src/config.mjs && node --check ./src/update-service.mjs && node --check ./src/remote-device.mjs && node --check ./src/browser-bridge.mjs && node --check ./src/computer-use.mjs && node --check ./relay/relay-server.mjs && node --check ./electron/main.cjs && node --check ./electron/chat-preload.cjs && node --check ./tests/electron-static.test.mjs && node --check ./tests/smoke.mjs && node --check ./tests/relay-smoke.mjs && node --check ./tests/device-agent-smoke.mjs && node --check ./tests/plugin-package.test.mjs && node --check ./tests/browser-bridge-smoke.mjs && node --check ./tests/browser-companion-static.test.mjs && node --check ./tests/browser-page-hook-smoke.mjs && node --check ./tests/browser-background-smoke.mjs && node --check ./tests/browser-companion-e2e.mjs && node --check ./tests/computer-use-windows-smoke.mjs && node --check ./tests/update-service.test.mjs && node --check ./tests/page-hook-mirror.test.mjs",
++    "test": "node --test tests/task-search.test.mjs && node --test tests/request-delivery.test.mjs tests/reliability.test.mjs tests/main-boundary.test.mjs tests/ui-state.test.mjs tests/remote-reliability.test.mjs && node ./tests/shell-static.test.mjs && node ./tests/electron-static.test.mjs && node ./tests/smoke.mjs && node ./tests/relay-smoke.mjs && node ./tests/device-agent-smoke.mjs && node ./tests/plugin-package.test.mjs && node ./tests/browser-bridge-smoke.mjs && node ./tests/browser-companion-static.test.mjs && node ./tests/browser-page-hook-smoke.mjs && node ./tests/browser-background-smoke.mjs && node ./tests/browser-companion-e2e.mjs && node ./tests/computer-use-windows-smoke.mjs && node ./tests/update-service.test.mjs && node ./tests/page-hook-mirror.test.mjs",
      "test:electron": "electron .",
 -    "build:win": "electron-builder --win nsis zip --x64"
 +    "build:win": "electron-builder --win nsis zip --x64",
@@ -1142,15 +1268,16 @@ index 2ea154d..82251ab 100644
      "electron-builder": "26.16.1"
    },
    "engines": {
-@@ -42,6 +47,7 @@
+@@ -42,6 +47,8 @@
        "src/**/*",
        "native/**/*",
        "bin/**/*",
 +      "scripts/**/*",
++      "browser-companion/**/*",
        "package.json",
        "LICENSE",
        "SECURITY.md",
-@@ -71,11 +77,12 @@
+@@ -71,11 +78,12 @@
        "allowElevation": false,
        "createDesktopShortcut": true,
        "createStartMenuShortcut": true,
@@ -1327,6 +1454,35 @@ index d1fd0e2..893d576 100644
    };
    const config = { ...defaults, ...persisted };
    if (envRoots) config.allowedRoots = envRoots;
+diff --git a/desktop/src/process-manager.mjs b/desktop/src/process-manager.mjs
+index 14b8281..9443fe9 100644
+--- a/desktop/src/process-manager.mjs
++++ b/desktop/src/process-manager.mjs
+@@ -17,6 +17,15 @@ function persist(s){
+   return s.persistQueue;
+ }
+ export function listManagedProcesses(state){return [...state.processes.values()].map(snapshot);}
++export function buildShellSpec(command,shell,platform=process.platform){
++  const raw=String(command??'');
++  if(platform!=='win32')return {exe:shell||'/bin/bash',args:['-lc',raw]};
++  if(String(shell||'').toLowerCase().includes('cmd'))return {exe:'cmd.exe',args:['/d','/s','/c',raw]};
++  const exe=shell&&/[/\\]/.test(shell)?shell:'powershell.exe';
++  const payload=Buffer.from(raw,'utf16le').toString('base64');
++  const wrapper=`$pcCommand=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('${payload}')); $global:LASTEXITCODE=0; try { Invoke-Expression $pcCommand; $pcSuccess=$?; $pcExitCode=[int]$global:LASTEXITCODE; if(-not $pcSuccess -and $pcExitCode -eq 0){$pcExitCode=1}; exit $pcExitCode } catch { [Console]::Error.WriteLine($_); exit 1 }`;
++  return {exe,args:['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-EncodedCommand',Buffer.from(wrapper,'utf16le').toString('base64')]};
++}
+ export async function startManagedProcess(args,config,state){
+   assertCommandAllowed(args.command,config);
+   const roots=Array.isArray(config.allowedRoots)?config.allowedRoots:[];
+@@ -25,7 +34,7 @@ export async function startManagedProcess(args,config,state){
+   const timeout=Number(args.timeout_ms??0);
+   if(!Number.isFinite(timeout)||timeout<0)throw new Error('timeout_ms must be a non-negative finite number');
+   const shell=args.shell||config.defaultShell;
+-  const spec=process.platform==='win32' ? (String(shell||'').toLowerCase().includes('cmd')?{exe:'cmd.exe',args:['/d','/s','/c',args.command]}:{exe:shell&&/[/\\]/.test(shell)?shell:'powershell.exe',args:['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command',args.command]}) : {exe:shell||'/bin/bash',args:['-lc',args.command]};
++  const spec=buildShellSpec(args.command,shell);
+   const id=`proc_${crypto.randomBytes(8).toString('hex')}`;const dir=path.join(state.baseDir,'processes');await fs.mkdir(dir,{recursive:true});
+   const logPath=path.join(dir,`${id}.log`);await fs.writeFile(logPath,'');
+   const child=spawn(spec.exe,spec.args,{cwd,stdio:['pipe','pipe','pipe'],windowsHide:true,detached:process.platform!=='win32'});
 diff --git a/desktop/src/tool-definitions.mjs b/desktop/src/tool-definitions.mjs
 index 13a1459..7a650c9 100644
 --- a/desktop/src/tool-definitions.mjs
@@ -1663,6 +1819,18 @@ index 667abf1..c0dd3ec 100644
    await shell.click('.rail-button[data-view="activity"]')
    await shell.locator('#task-builder summary').click()
    await shell.click('#task-example');await shell.fill('#task-title','Native workspace task');await shell.click('#task-run')
+diff --git a/desktop/tests/page-hook-mirror.test.mjs b/desktop/tests/page-hook-mirror.test.mjs
+new file mode 100644
+index 0000000..727911c
+--- /dev/null
++++ b/desktop/tests/page-hook-mirror.test.mjs
+@@ -0,0 +1,6 @@
++import assert from 'node:assert/strict';
++import fs from 'node:fs/promises';
++const packaged=await fs.readFile(new URL('../browser-companion/page-hook.js',import.meta.url));
++const canonical=await fs.readFile(new URL('../../extension/src/local-work-page-hook.js',import.meta.url));
++assert.deepEqual(packaged,canonical,'desktop packaged page hook must remain byte-identical to canonical extension hook');
++console.log('page-hook-mirror.test.mjs: PASS');
 diff --git a/desktop/tests/plugin-package.test.mjs b/desktop/tests/plugin-package.test.mjs
 index da1a559..3caf99f 100644
 --- a/desktop/tests/plugin-package.test.mjs
@@ -1689,6 +1857,27 @@ index 1fc700d..e5498c6 100644
  } finally {
    await relay.close();
    await fsp.rm(dataDir, { recursive: true, force: true });
+diff --git a/desktop/tests/reliability.test.mjs b/desktop/tests/reliability.test.mjs
+index efe7c67..082a5c6 100644
+--- a/desktop/tests/reliability.test.mjs
++++ b/desktop/tests/reliability.test.mjs
+@@ -5,7 +5,7 @@ import path from 'node:path';
+ import os from 'node:os';
+ import {createToolHandler} from '../src/tools.mjs';
+ import {createRuntimeState} from '../src/state.mjs';
+-import {recoverProcesses} from '../src/process-manager.mjs';
++import {recoverProcesses,buildShellSpec} from '../src/process-manager.mjs';
+ import {CallLedger} from '../electron/call-ledger.cjs';
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'commander-regression-'));
+ const workspace=path.join(root,'workspace');await fs.mkdir(workspace);await fs.mkdir(path.join(root,'searches'));
+@@ -14,6 +14,7 @@ const state=createRuntimeState(root),call=createToolHandler({config,configPath:p
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+ const nodeCommand=code=>process.platform==='win32'?`& '${process.execPath.replaceAll("'","''")}' -e '${code.replaceAll("'","''")}'`:`'${process.execPath}' -e '${code.replaceAll("'","'\\''")}'`;
+ async function finish(id){let result,all='';for(let i=0;i<100;i++){result=await call('read_process_output',{session_id:id});all+=result.output;if(!['starting','running'].includes(result.status))return {...result,all};await sleep(30);}throw new Error('Process did not finish');}
++await test('Windows PowerShell process wrapper preserves native exit codes safely',()=>{const raw=`& 'C:\\Program Files\\nodejs\\node.exe' -e 'process.exit(7)'`;const spec=buildShellSpec(raw,'powershell','win32');assert.equal(spec.exe,'powershell.exe');assert.ok(spec.args.includes('-EncodedCommand'));const wrapper=Buffer.from(spec.args.at(-1),'base64').toString('utf16le');assert.match(wrapper,/Invoke-Expression \$pcCommand/);assert.match(wrapper,/exit \$pcExitCode/);assert.ok(!spec.args.join(' ').includes(raw),'raw PowerShell command should not be exposed to argv parsing');});
+ await test('move onto same path never deletes source',async()=>{const p=path.join(workspace,'same.txt');await fs.writeFile(p,'safe');await call('move_file',{source:p,destination:p,overwrite:true});assert.equal(await fs.readFile(p,'utf8'),'safe');});
+ await test('overwrite move retains old destination backup',async()=>{const a=path.join(workspace,'a.txt'),b=path.join(workspace,'b.txt');await fs.writeFile(a,'new');await fs.writeFile(b,'old');const result=await call('move_file',{source:a,destination:b,overwrite:true});assert.equal(await fs.readFile(b,'utf8'),'new');assert.equal(await fs.readFile(result.backup,'utf8'),'old');});
+ await test('symlink or junction cannot escape roots',async()=>{const outside=path.join(root,'outside');await fs.mkdir(outside);await fs.writeFile(path.join(outside,'secret.txt'),'fixture');await fs.symlink(outside,path.join(workspace,'link'),process.platform==='win32'?'junction':'dir');await assert.rejects(call('read_file',{path:path.join(workspace,'link','secret.txt')}),/outside allowed/);await assert.rejects(call('write_file',{path:path.join(workspace,'link','new.txt'),content:'denied'}),/outside allowed/);});
 diff --git a/desktop/tests/shell-static.test.mjs b/desktop/tests/shell-static.test.mjs
 index e35bb64..7c9078a 100644
 --- a/desktop/tests/shell-static.test.mjs
@@ -1830,10 +2019,10 @@ index 0000000..477d703
 +- Full root regression/validation/build/smoke and retained desktop reliability suites are release gates for this hotfix.
 diff --git a/docs/v0.20.0-release-notes.md b/docs/v0.20.0-release-notes.md
 new file mode 100644
-index 0000000..5ab3926
+index 0000000..64b9a64
 --- /dev/null
 +++ b/docs/v0.20.0-release-notes.md
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,51 @@
 +# Project Constellation 0.20.0 — Reliability Foundation
 +
 +Project Constellation 0.20.0 turns the unified 0.19 product into a more event-driven, self-diagnosing, self-recovering desktop + browser platform while preserving the broad provider/permission model and the stable Constellation browser-extension identity.
@@ -1841,7 +2030,7 @@ index 0000000..5ab3926
 +## Highlights
 +
 +- **Event-driven state bus.** Home, side panel, Pulse, desktop status, provider health, catalog/capture state, and recovery surfaces can react to meaningful state transitions instead of relying on fixed refresh loops.
-+- **Polling reduction without capability loss.** Side-panel refresh, Local Work route tracking, Pulse collapsed-state refresh, Home recovery/status refresh, and desktop ChatGPT route tracking now use events with bounded one-shot fallbacks where a safety net is useful.
++- **Polling reduction without capability loss.** Side-panel refresh, Local Work route tracking, Pulse collapsed-state refresh, Home recovery/status refresh, desktop ChatGPT route tracking, and the stall watchdog now use events with bounded one-shot fallbacks where a safety net is useful. The stall watchdog schedules only the next chat deadline that could actually become stale instead of waking every minute while idle.
 +- **Provider capability health.** Provider surfaces now report explicit capabilities such as provider detection, route detection, composer/send controls, message surfaces, chat/project context, and streaming observations. Constellation scores the adapter, records degraded/broken states, and exposes them in System Health.
 +- **Incident Brain.** Recovered failures can be fingerprinted, counted, resolved only with verification evidence, and retained as reusable recovery recipes with invalidation conditions and regression protection. Provider adapter recovery is integrated into this system.
 +- **Brain DB v11.** Provider health, incident recipes, and migration receipts are first-class durable stores. IndexedDB access now goes through a shared connection manager with safe version-change handling rather than opening/closing a connection around every operation.
@@ -1849,6 +2038,9 @@ index 0000000..5ab3926
 +- **Integrated Update Center.** The desktop can check the stable GitHub release channel, verify SHA-256 before staging an update, install after the app exits, retain a previous install as rollback state, and restore it on failed replacement. It performs a single startup availability check rather than permanent update polling.
 +- **Project Constellation desktop identity.** User-facing Commander branding is consolidated under Project Constellation while the existing application ID, state directories, CLI aliases, extension ID, and migration-sensitive bridge contracts stay compatible.
 +- **Electron 44.4.4.** 0.20.0 moves from 44.4.3 to the current stable 44.4.4 line while retaining electron-builder 26.16.1.
++- **Windows process reliability.** PowerShell-backed local commands now travel through an encoded wrapper that preserves exact native exit codes and avoids command-line quote mangling; large output and restart recovery remain covered by regression tests.
++- **Packaged ChatGPT hook integrity.** The desktop carries an explicit packaged mirror of the canonical browser page hook, with a byte-for-byte regression check so source and packaged injection logic cannot silently drift.
++- **Fail-fast modern CI.** Windows PowerShell jobs now promote native command failures to CI failures, and workflows use the current Node-24 GitHub Actions line rather than deprecated Node-20 action runtimes.
 +
 +## Windows release proof
 +
@@ -1883,7 +2075,7 @@ index 0000000..5ab3926
 +
 +User-configured Google Drive and GitHub connections remain supported. Distribution builds do not embed private OAuth client secrets. A production package may be created without embedded client IDs for environments where the user supplies/configures connections separately; the build receipt records whether OAuth IDs were actually embedded.
 diff --git a/extension/background.js b/extension/background.js
-index 73fe8dc..17e5d4b 100644
+index 73fe8dc..cb3be2c 100644
 --- a/extension/background.js
 +++ b/extension/background.js
 @@ -7,6 +7,11 @@ import './src/project-router-core.js';
@@ -2331,7 +2523,55 @@ index 73fe8dc..17e5d4b 100644
  }
  
  async function knowledgeSummary(limit = 24) {
-@@ -2028,7 +2116,7 @@ async function ingest(payload) { return ingestBatch([payload]); }
+@@ -1834,6 +1922,25 @@ async function resetKnowledgeIndex() {
+   return { ok: true, state: await knowledgeBackfillState() };
+ }
+ 
++async function ensureStallWatchAlarm(options = {}) {
++  const cfg = options.settings || await settings();
++  const now = Number(options.now || Date.now());
++  const threshold = Math.max(30000, Number(cfg.stallThresholdMs || 120000));
++  const running = Array.isArray(options.running) ? options.running : await getAllByIndex('chats', 'status', 'running');
++  const dueTimes = running.map((chat) => {
++    const activity = Math.max(Number(chat.lastActivityAt || 0), Number(chat.lastTurnAt || 0));
++    return activity > 0 ? activity + threshold : 0;
++  }).filter(Boolean);
++  if (!dueTimes.length) {
++    if (typeof chrome.alarms?.clear === 'function') await chrome.alarms.clear(STALL_ALARM).catch(() => false);
++    return { scheduled:false, running:0, when:0 };
++  }
++  const when = Math.max(now + 1500, Math.min(...dueTimes));
++  const current = typeof chrome.alarms?.get === 'function' ? await chrome.alarms.get(STALL_ALARM).catch(() => null) : null;
++  if (!current?.scheduledTime || Math.abs(Number(current.scheduledTime) - when) > 1500) await chrome.alarms.create(STALL_ALARM, { when });
++  return { scheduled:true, running:running.length, when };
++}
++
+ async function watchForStalls() {
+   const cfg = await settings();
+   const now = Date.now();
+@@ -1853,7 +1960,8 @@ async function watchForStalls() {
+   // warn, notify and update attention UI, but must never start approval recovery,
+   // open/focus ChatGPT, create a popup, navigate a saved URL, or reload a tab.
+   await updateAttentionBadge();
+-  return { stalled: stale.length };
++  const next = await ensureStallWatchAlarm({ settings:cfg, now });
++  return { stalled: stale.length, next };
+ }
+ 
+ function normalizeRecoveredChatState(record = {}) {
+@@ -2018,7 +2126,10 @@ async function ingestBatch(items) {
+     scheduleIntegrityScan(5000).catch(() => {});
+   }
+   pruneEvents().catch(() => {});
+-  if (statusEvents.length) updateAttentionBadge().catch(() => {});
++  if (statusEvents.length) {
++    updateAttentionBadge().catch(() => {});
++    ensureStallWatchAlarm().catch(() => {});
++  }
+   return { ok: true, counts: { providers: providerRecords.length, projects: projects.length, chats: chats.length, turns: turns.length, turnRevisions: preserved.revisions.length, files: files.length, statuses: statusEvents.length } };
+ }
+ 
+@@ -2028,7 +2139,7 @@ async function ingest(payload) { return ingestBatch([payload]); }
  async function countStore(storeName) {
    const db = await openDb();
    try { return await requestResult(db.transaction(storeName, 'readonly').objectStore(storeName).count()); }
@@ -2340,7 +2580,7 @@ index 73fe8dc..17e5d4b 100644
  }
  
  async function localStorageHealth() {
-@@ -2050,8 +2138,7 @@ async function dashboard() {
+@@ -2050,8 +2161,7 @@ async function dashboard() {
    const [providerRecords, projects, chats, files, events, checkpoints, syncReceipts, catalogRuns, cfg, catalog, fullCapture, turnCount, searchDocCount, approvalRecovery, governor, integrityState, knowledgeState, scheduleGuardianRuntime, scheduleTaskTelemetry] = await Promise.all([
      getAll('providers'), getAll('projects'), getAll('chats'), getAll('files'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), settings(), catalogState(), fullCaptureState(), countStore('turns'), countStore(SEARCH_STORE), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(12), scheduledGuardianState(), scheduledTaskTelemetryState()
    ]);
@@ -2350,7 +2590,7 @@ index 73fe8dc..17e5d4b 100644
    const sortedEvents = events.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 600);
    const statusCounts = Object.fromEntries(brain.CHAT_STATUSES.map((status) => [status, chats.filter((chat) => chat.status === status).length]));
    return {
-@@ -2061,7 +2148,7 @@ async function dashboard() {
+@@ -2061,7 +2171,7 @@ async function dashboard() {
      catalogRuns: catalogRuns.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50), catalog: publicCatalogState(catalog), fullCapture: publicFullCaptureState(fullCapture),
      summary: { providers: providerRecords.length, projects: projects.length, chats: chats.length, turns: turnCount, files: files.length, knowledge: knowledgeState.total || 0, searchDocs: searchDocCount, statusCounts },
      localStorage,
@@ -2359,7 +2599,7 @@ index 73fe8dc..17e5d4b 100644
      projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, scheduledTaskGuardian: { ...cfg.scheduledTaskGuardian, runtime:publicScheduledGuardianState(scheduleGuardianRuntime), telemetry:publicScheduledTaskTelemetryState(scheduleTaskTelemetry) }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
      sync: { drive: { ...cfg.drive, oauthProvisioned: googleOAuthProvisioned() }, github: { ...cfg.github, configured: Boolean(cfg.github.owner && cfg.github.repo) } }
    };
-@@ -2088,7 +2175,7 @@ async function organizationProjectMetrics(projectIds = []) {
+@@ -2088,7 +2198,7 @@ async function organizationProjectMetrics(projectIds = []) {
        for(const chat of projectChats||[]){const lane=projectMemory.bucket(chat);if(lane==='active')counts.activeCount+=1;else if(lane==='attention')counts.attentionCount+=1;else if(lane==='archived')counts.archivedCount+=1;else counts.completedCount+=1;}
        return [id,{chatCount:(projectChats||[]).length,fileCount:Number(fileCount||0),...counts}];
      })); return new Map(entries);
@@ -2368,7 +2608,7 @@ index 73fe8dc..17e5d4b 100644
  }
  
  async function organizationTagCounts(limit=100) {
-@@ -2096,7 +2183,7 @@ async function organizationTagCounts(limit=100) {
+@@ -2096,7 +2206,7 @@ async function organizationTagCounts(limit=100) {
    try { return await new Promise((resolve,reject)=>{
      const tx=db.transaction('chats','readonly'); const index=tx.objectStore('chats').index('tags'); const out=[]; const request=index.openKeyCursor(null,'nextunique');
      request.onsuccess=()=>{const cursor=request.result;if(!cursor||out.length>=limit){resolve(out.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)));return;}const name=String(cursor.key||'');const countReq=index.count(indexedDbOnly(cursor.key, 'chats.tags'));countReq.onsuccess=()=>{out.push({name,count:Number(countReq.result||0)});cursor.continue();};countReq.onerror=()=>reject(countReq.error);};request.onerror=()=>reject(request.error);
@@ -2377,7 +2617,7 @@ index 73fe8dc..17e5d4b 100644
  }
  
  async function organizationSummary() {
-@@ -2425,7 +2512,7 @@ async function deleteByIndex(storeName, indexName, value) {
+@@ -2425,7 +2535,7 @@ async function deleteByIndex(storeName, indexName, value) {
        for (const row of rows) if (row?.id) store.delete(row.id);
        tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
      });
@@ -2386,7 +2626,7 @@ index 73fe8dc..17e5d4b 100644
  }
  
  async function projectIntegrityInput(projectId, { maxChats = 240, maxTurnsPerChat = 80 } = {}) {
-@@ -2440,7 +2527,7 @@ async function projectIntegrityInput(projectId, { maxChats = 240, maxTurnsPerCha
+@@ -2440,7 +2550,7 @@ async function projectIntegrityInput(projectId, { maxChats = 240, maxTurnsPerCha
      const turnIndex = turnStore.index('chatId');
      const chunks = await Promise.all(selected.map((chat) => requestResult(turnIndex.getAll(indexedDbOnly(chat.id, 'turns.chatId'), Math.max(1, maxTurnsPerChat))).catch(() => [])));
      return { chats, files, turns: chunks.flat() };
@@ -2395,7 +2635,7 @@ index 73fe8dc..17e5d4b 100644
  }
  
  function integrityFingerprint(project, input) {
-@@ -2501,6 +2588,7 @@ async function homeSummary() {
+@@ -2501,6 +2611,7 @@ async function homeSummary() {
      countStore('providers'), countStore('projects'), countStore('chats'), countStore('turns'), countStore('files'), countStore('knowledgeItems'),
      getRecent('chats', 18), getRecent('files', 18), getRecent('projects', 18), getRecent('events', 24), getRecent('chats', 500), hasHistoryPermission(), settings(), catalogState(), fullCaptureState(), organizationSummary(), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(18), scheduledGuardianState(), scheduledTaskTelemetryState()
    ]);
@@ -2403,7 +2643,7 @@ index 73fe8dc..17e5d4b 100644
    const attentionStatuses = ['blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable'];
    const liveStatuses = ['running','paused','waiting-user'];
    const attentionGroups = await Promise.all(attentionStatuses.map((status) => getByIndex('chats','status',status,10)));
-@@ -2511,7 +2599,7 @@ async function homeSummary() {
+@@ -2511,7 +2622,7 @@ async function homeSummary() {
    try {
      const tx = db.transaction('chats','readonly'); const index = tx.objectStore('chats').index('status');
      await Promise.all(brain.CHAT_STATUSES.map(async (status) => { statusCounts[status] = await requestResult(index.count(indexedDbOnly(status, 'chats.status'))); }));
@@ -2412,7 +2652,7 @@ index 73fe8dc..17e5d4b 100644
    return {
      counts: { providers: providerCount, projects: projectCount, chats: chatCount, turns: turnCount, files: fileCount, knowledge: knowledgeCount }, statusCounts,
      recentChats, recentFiles, recentProjects, recentEvents,
-@@ -2519,7 +2607,7 @@ async function homeSummary() {
+@@ -2519,7 +2630,7 @@ async function homeSummary() {
      live: liveGroups.flat().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
      topics: buildTopicHints(topicChats, recentProjects),
      catalog: publicCatalogState(catalog), fullCapture: publicFullCaptureState(fullCapture), discovery: { browserHistoryGranted: historyGranted, mode: 'zero-tab-default', hiddenTabs: false, manualFullCapture: true },
@@ -2421,7 +2661,7 @@ index 73fe8dc..17e5d4b 100644
      projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, scheduledTaskGuardian: { ...cfg.scheduledTaskGuardian, runtime:publicScheduledGuardianState(scheduleGuardianRuntime), telemetry:publicScheduledTaskTelemetryState(scheduleTaskTelemetry) }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
      sync: { drive: { ...cfg.drive, oauthProvisioned: googleOAuthProvisioned() }, github: { ...cfg.github, configured: Boolean(cfg.github.owner && cfg.github.repo) } }
    };
-@@ -2567,8 +2655,8 @@ async function groupedHomeSearch(query, limit = 40, workspaceProjectId = '') {
+@@ -2567,8 +2678,8 @@ async function groupedHomeSearch(query, limit = 40, workspaceProjectId = '') {
  }
  
  async function snapshot() {
@@ -2432,7 +2672,7 @@ index 73fe8dc..17e5d4b 100644
    ]);
    const manifest = chrome.runtime.getManifest();
    const out = brain.makeSnapshot({
-@@ -2581,7 +2669,7 @@ async function snapshot() {
+@@ -2581,7 +2692,7 @@ async function snapshot() {
        performanceEngine: 'Project Constellation Performance Engine'
      }
    });
@@ -2441,7 +2681,7 @@ index 73fe8dc..17e5d4b 100644
    out.summary.groups = groups.filter((g)=>!g.deletedAt).length; out.summary.integrityFindings = integrityFindings.filter((row)=>!row.resolved).length;
    out.summary.smartCollections = smartCollections.filter((c)=>!c.deletedAt).length;
    return out;
-@@ -2934,7 +3022,7 @@ async function restoreFromDrive({ interactive = false } = {}) {
+@@ -2934,7 +3045,7 @@ async function restoreFromDrive({ interactive = false } = {}) {
      const recovered = full.parsed;
      if (recovered?.schema !== 'project-constellation' || !Number(recovered.schemaVersion)) throw new Error('Remote file is not a valid Project Constellation snapshot.');
  
@@ -2450,7 +2690,7 @@ index 73fe8dc..17e5d4b 100644
      const counts = Object.fromEntries(storeNames.map((name) => [name, 0]));
      for (const storeName of storeNames) {
        counts[storeName] += await mergeRemoteNewer(storeName, Array.isArray(recovered[storeName]) ? recovered[storeName] : []);
-@@ -3016,11 +3104,11 @@ async function getUpdatedSince(storeName, since) {
+@@ -3016,11 +3127,11 @@ async function getUpdatedSince(storeName, since) {
      if (!store.indexNames.contains('updatedAt')) return await requestResult(store.getAll());
      const range = IDBKeyRange.lowerBound(Number(since || 0), true);
      return await requestResult(store.index('updatedAt').getAll(range));
@@ -2464,7 +2704,7 @@ index 73fe8dc..17e5d4b 100644
    const values = await Promise.all(names.map((name) => getUpdatedSince(name, since)));
    const delta = Object.fromEntries(names.map((name, index) => [name, values[index]]));
    return { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: since, exportedAt: new Date().toISOString(), ...delta };
-@@ -3039,7 +3127,7 @@ async function uploadDriveIndex({ cfg, folderId, summary, snapshotMeta, journalM
+@@ -3039,7 +3150,7 @@ async function uploadDriveIndex({ cfg, folderId, summary, snapshotMeta, journalM
  }
  
  function recordCountFromDelta(delta) {
@@ -2473,7 +2713,7 @@ index 73fe8dc..17e5d4b 100644
  }
  
  async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
-@@ -3088,7 +3176,7 @@ async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
+@@ -3088,7 +3199,7 @@ async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
  
      // Reset the cumulative journal to the new full-checkpoint boundary. Subsequent automatic
      // syncs replace it with all records changed since this full checkpoint.
@@ -2482,7 +2722,7 @@ index 73fe8dc..17e5d4b 100644
      const journalPacked = await gzipText(JSON.stringify(emptyJournal) + '\n');
      const journalSha256 = await sha256Blob(journalPacked.blob);
      const journalDescription = `Project Constellation cumulative journal; sha256=${journalSha256}; baseFullSyncAt=${now}; exportedAt=${emptyJournal.exportedAt}`;
-@@ -3723,7 +3811,7 @@ async function prepareCatalogQueue(provider, chats, { autoTriggered = false } =
+@@ -3723,7 +3834,7 @@ async function prepareCatalogQueue(provider, chats, { autoTriggered = false } =
  
  async function catalogState() { return (await chrome.storage.local.get(CATALOG_STATE_KEY))[CATALOG_STATE_KEY] || null; }
  function publicCatalogState(state) { if (!state) return null; const { queue, ...rest } = state; return { ...rest, queueLength: Array.isArray(queue) ? queue.length : 0 }; }
@@ -2491,7 +2731,7 @@ index 73fe8dc..17e5d4b 100644
  async function scheduleCatalogStep(delay = 600) { await chrome.alarms.create(CATALOG_ALARM, { when: Date.now() + delay }); }
  
  async function startCatalog(providerIds = [], options = {}) {
-@@ -3882,6 +3970,7 @@ async function saveFullCaptureState(state) {
+@@ -3882,6 +3993,7 @@ async function saveFullCaptureState(state) {
    state.updatedAt = Date.now();
    await chrome.storage.local.set({ [FULL_CAPTURE_STATE_KEY]: state });
    if (state.id) await upsert('catalogRuns', { ...state, queue: undefined, updatedAt: state.updatedAt });
@@ -2499,7 +2739,25 @@ index 73fe8dc..17e5d4b 100644
    return state;
  }
  
-@@ -4412,8 +4501,19 @@ async function resolveBranchLineage(message = {}, sender = {}) {
+@@ -4169,7 +4281,7 @@ chrome.runtime.onInstalled.addListener(async () => {
+   await ensureLiveHealthCapacityProfileMigration().catch(() => false);
+   await stopLegacyApprovalNavigation('v0.14.8 disabled legacy hidden ChatGPT navigation.').catch(() => {});
+   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
+-  await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
++  await ensureStallWatchAlarm();
+   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });
+   const cfg = await settings();
+   if (cfg.projectIntegrity.enabled && cfg.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(cfg.projectIntegrity.scanIntervalMinutes || 15)) });
+@@ -4188,7 +4300,7 @@ chrome.runtime.onInstalled.addListener(async () => {
+ chrome.runtime.onStartup.addListener(async () => {
+   await ensureLiveHealthCapacityProfileMigration().catch(() => false);
+   await stopLegacyApprovalNavigation('Background ChatGPT navigation remains disabled.').catch(() => {});
+-  await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
++  await ensureStallWatchAlarm();
+   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });
+   const integrityCfg = await settings();
+   if (integrityCfg.projectIntegrity.enabled && integrityCfg.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(integrityCfg.projectIntegrity.scanIntervalMinutes || 15)) });
+@@ -4412,8 +4524,19 @@ async function resolveBranchLineage(message = {}, sender = {}) {
    return { ok:true, sourceChatId:row.sourceChatId, childChatId, checkpointId:row.checkpointId };
  }
  
@@ -2519,7 +2777,7 @@ index 73fe8dc..17e5d4b 100644
      switch (message?.type) {
        case 'PC_BRAIN_INGEST': return ingest(message.payload);
        case 'PC_BRAIN_INGEST_BATCH': return ingestBatch(message.payload || []);
-@@ -4572,6 +4672,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+@@ -4572,6 +4695,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  });
  
  
@@ -2529,7 +2787,7 @@ index 73fe8dc..17e5d4b 100644
  const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working','uncertain-working']);
  const LIVE_HOLD_STATUSES = new Set(['provider-review']);
  const LIVE_HOLD_HEALTH_STATES = new Set(['provider-review']);
-@@ -5481,6 +5584,7 @@ async function handleLiveChatStatePush(message, sender) {
+@@ -5481,6 +5607,7 @@ async function handleLiveChatStatePush(message, sender) {
      network:{pending:Number(network.pending || 0),streamLikely:Boolean(network.streamLikely)}, lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0),Number(network.lastStartAt || 0),Number(network.lastResponseAt || 0),Number(network.lastCompleteAt || 0)), observedAt:Date.now()
    };
    await rememberLiveTabState(row);
@@ -3839,12 +4097,26 @@ index 0000000..81ae231
 +assert.equal(resolved.status,'resolved');
 +assert(core.bestMatch([resolved],{kind:'provider-capability',scope:'chatgpt',signature:'composer-missing',environment:'https://chatgpt.com/c/abc'}));
 +console.log('incident-brain-core.test.mjs: PASS');
+diff --git a/tests/navigation-safety.test.mjs b/tests/navigation-safety.test.mjs
+index 1a1340d..b56b05b 100644
+--- a/tests/navigation-safety.test.mjs
++++ b/tests/navigation-safety.test.mjs
+@@ -6,6 +6,9 @@ const sidepanel = fs.readFileSync(new URL('../extension/sidepanel.js', import.me
+ const content = fs.readFileSync(new URL('../extension/src/content.js', import.meta.url), 'utf8');
+ assert.ok(background.includes("const RECOVERY_STATUSES = Object.freeze(['blocked-approval','paused']);"));
+ assert.ok(background.includes('Stall/runway observation is deliberately side-effect free'));
++assert.ok(background.includes('async function ensureStallWatchAlarm(options = {})'), 'stall watch uses adaptive one-shot scheduling');
++assert.ok(background.includes("chrome.alarms.create(STALL_ALARM, { when })"), 'stall watch schedules only the next meaningful deadline');
++assert.ok(!background.includes("chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 })"), 'stall watch must never return to fixed one-minute polling');
+ assert.ok(!background.includes("chrome.windows.create({ url: item.url"), 'Approval Recovery must not create a ChatGPT window');
+ assert.ok(!background.includes("chrome.tabs.update(state.tabId, { url: item.url"), 'Approval Recovery must not navigate saved ChatGPT URLs');
+ assert.ok(!background.includes("chrome.tabs.create({ url:requestedUrl"), 'Pulse must not recreate a missing ChatGPT target');
 diff --git a/tests/no-fixed-polling.test.mjs b/tests/no-fixed-polling.test.mjs
 new file mode 100644
-index 0000000..f54edba
+index 0000000..34acc17
 --- /dev/null
 +++ b/tests/no-fixed-polling.test.mjs
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,17 @@
 +import assert from 'node:assert/strict';
 +import fs from 'node:fs';
 +const files=[
@@ -3854,6 +4126,9 @@ index 0000000..f54edba
 +const controller=fs.readFileSync(new URL('../extension/src/local-work-controller.js',import.meta.url),'utf8');
 +assert(!/periodInMinutes\s*:/.test(controller),'desktop bridge heartbeat must be adaptive one-shot');
 +assert(controller.includes('delayInMinutes:connected?10:3'),'desktop fallback cadence must adapt to bridge state');
++const background=fs.readFileSync(new URL('../extension/background.js',import.meta.url),'utf8');
++assert(!/chrome\.alarms\.create\(STALL_ALARM,\s*\{\s*periodInMinutes/.test(background),'stall watchdog must never use repeating polling');
++assert(background.includes('async function ensureStallWatchAlarm(options = {})'),'stall watchdog must use adaptive one-shot scheduling');
 +const sidepanel=fs.readFileSync(new URL('../extension/sidepanel.js',import.meta.url),'utf8');
 +assert(sidepanel.includes("message?.type==='PC_STATE_EVENT'"),'sidepanel must refresh from state events');
 +const pulse=fs.readFileSync(new URL('../extension/src/pulse-ux.js',import.meta.url),'utf8');
@@ -4264,7 +4539,7 @@ index 0000000..589a945
 +assert(core.isStateEvent(event));
 +console.log('state-event-bus-core.test.mjs: PASS');
 diff --git a/tests/unified-v019.test.mjs b/tests/unified-v019.test.mjs
-index 34ee00c..b03e59c 100644
+index 34ee00c..8b9dd2d 100644
 --- a/tests/unified-v019.test.mjs
 +++ b/tests/unified-v019.test.mjs
 @@ -1,7 +1,7 @@
@@ -4276,15 +4551,21 @@ index 34ee00c..b03e59c 100644
  assert.ok(manifest.host_permissions.includes('http://127.0.0.1:47721/*'));
  assert.ok(manifest.content_scripts.some(x=>x.js?.includes('src/local-work-page-hook.js')&&x.world==='MAIN'));
  assert.ok(manifest.content_scripts.some(x=>x.js?.includes('src/local-work-content.js')&&x.js?.includes('src/scheduled-task-recovery-page.js')));
-@@ -10,7 +10,7 @@ assert.match(entry,/local-work-controller\.js/); assert.match(entry,/scheduled-t
+@@ -10,8 +10,12 @@ assert.match(entry,/local-work-controller\.js/); assert.match(entry,/scheduled-t
  const bridge=fs.readFileSync('desktop/src/browser-bridge.mjs','utf8');
  assert.match(bridge,/geljambmkfjkhodgkpjhnmfojkpcamig/); assert.doesNotMatch(bridge,/khfbmdpkpnaghpfnacidbjfaaikfmanh/);
  const pkg=JSON.parse(fs.readFileSync('desktop/package.json','utf8'));
 -assert.equal(pkg.version,'0.19.0'); assert.equal(pkg.build.productName,'Project Constellation');
+-assert.ok(!fs.existsSync('desktop/browser-companion'));
 +assert.equal(pkg.version,'0.20.0'); assert.equal(pkg.build.productName,'Project Constellation');
- assert.ok(!fs.existsSync('desktop/browser-companion'));
++const companionDir='desktop/browser-companion';
++assert.ok(fs.existsSync(companionDir));
++assert.deepEqual(fs.readdirSync(companionDir).sort(),['page-hook.js']);
++assert.deepEqual(fs.readFileSync(`${companionDir}/page-hook.js`),fs.readFileSync('extension/src/local-work-page-hook.js'));
++for(const retired of ['manifest.json','background.js','service-worker.js','content.js','popup.html','popup.js']) assert.ok(!fs.existsSync(`${companionDir}/${retired}`));
  const rec=fs.readFileSync('extension/src/scheduled-task-recovery-controller.js','utf8');
  assert.match(rec,/INTENT_PERSISTED/); assert.match(rec,/SECURITY_APPROVAL_REQUIRED/); assert.doesNotMatch(rec,/approve\(\)|click.*allow/i);
+ console.log('Unified 0.19 product regression: PASS');
 diff --git a/tools/build.mjs b/tools/build.mjs
 index 2f22708..ba9c30d 100644
 --- a/tools/build.mjs

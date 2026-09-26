@@ -27,12 +27,13 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 65
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Reconstruct exact 0.20 source lineage
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           $manifest = Get-Content 'releases/v0.20.0/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
           if ($manifest.version -ne '0.20.0') { throw "Unexpected source manifest version: $($manifest.version)" }
           $baseline = [string]$manifest.baseline.artifact
@@ -67,13 +68,15 @@ jobs:
           Write-Host "reconstructed_source=$root"
           Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
       - name: Root regression and contracts
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location $env:PC_SOURCE_ROOT
           npm ci --no-audit --no-fund
           npm test
@@ -83,6 +86,8 @@ jobs:
       - name: Install exact desktop dependencies
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
           npm install --no-audit --no-fund
           $actual = (& .\node_modules\.bin\electron.cmd --version | Select-Object -Last 1).ToString().Trim()
@@ -92,6 +97,8 @@ jobs:
       - name: Desktop full regression and native Windows computer use
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
           npm run check
           npm test
@@ -100,12 +107,16 @@ jobs:
       - name: Real Electron integrated ChatGPT/local-agent smoke
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
           .\scripts\electron-smoke.ps1
 
       - name: Build installer and portable ZIP
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
           npm run build:win
 
@@ -113,6 +124,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           $desktop = Join-Path $env:PC_SOURCE_ROOT 'desktop'
           Set-Location $desktop
           $zip = Get-ChildItem 'dist-electron' -Filter '*.zip' | Sort-Object Length -Descending | Select-Object -First 1
@@ -164,6 +176,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
           $source = Join-Path $env:PC_SOURCE_ROOT 'desktop\dist-electron'
           New-Item -ItemType Directory -Force 'windows-dist' | Out-Null
           Copy-Item (Join-Path $source '*.zip') 'windows-dist' -Force
@@ -171,7 +184,7 @@ jobs:
           Copy-Item (Join-Path $source 'WINDOWS-RUNTIME-RECEIPT.json') 'windows-dist' -Force
           Get-ChildItem 'windows-dist' | Select-Object Name,Length | Format-Table
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Project-Constellation-v0.20.0-Windows
           path: windows-dist/*
