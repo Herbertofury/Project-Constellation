@@ -1781,10 +1781,67 @@ index aad0b6d..0d44c8d 100644
    await bridge.stop();
    await fsp.rm(root, { recursive: true, force: true });
 diff --git a/desktop/tests/browser-companion-e2e.mjs b/desktop/tests/browser-companion-e2e.mjs
-index e8a48ec..70b2b4c 100644
+index e8a48ec..41a5758 100644
 --- a/desktop/tests/browser-companion-e2e.mjs
 +++ b/desktop/tests/browser-companion-e2e.mjs
-@@ -128,7 +128,7 @@ try {
+@@ -4,6 +4,7 @@ import path from 'node:path';
+ import fsp from 'node:fs/promises';
+ import fs from 'node:fs';
+ import { spawn, spawnSync } from 'node:child_process';
++import net from 'node:net';
+ import { createBrowserBridge } from '../src/browser-bridge.mjs';
+ 
+ function chromeExecutable() {
+@@ -50,22 +51,37 @@ const bridgeFetch = async (endpoint, { method = 'GET', body = null, token = '' }
+ let chrome;
+ try {
+   const profile = path.join(tmp, 'profile');
++  const port = await new Promise((resolve, reject) => {
++    const server = net.createServer();
++    server.unref();
++    server.once('error', reject);
++    server.listen(0, '127.0.0.1', () => {
++      const address = server.address();
++      const selected = typeof address === 'object' && address ? address.port : 0;
++      server.close(error => error ? reject(error) : resolve(selected));
++    });
++  });
+   chrome = spawn(chromeExecutable(), [
+     '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run',
+-    `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'
++    '--disable-background-networking', '--disable-component-update', '--disable-default-apps',
++    `--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, 'about:blank'
+   ], { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
+ 
+   let log = '';
+-  const devtools = await new Promise((resolve, reject) => {
+-    const timer = setTimeout(() => reject(new Error(`Chrome DevTools timeout. ${log.slice(-3000)}`)), 15000);
+-    chrome.stderr.on('data', chunk => {
+-      log += chunk.toString();
+-      const match = log.match(/DevTools listening on (ws:\/\/[^\s]+)/);
+-      if (match) { clearTimeout(timer); resolve(match[1]); }
+-    });
+-    chrome.once('exit', code => { clearTimeout(timer); reject(new Error(`Chrome exited ${code}. ${log.slice(-3000)}`)); });
+-  });
+-  const port = Number(new URL(devtools).port);
++  chrome.stderr.on('data', chunk => { log += chunk.toString(); });
++  let exited = false;
++  let exitCode = null;
++  chrome.once('exit', code => { exited = true; exitCode = code; });
++
++  let ready = false;
++  for (let i = 0; i < 300 && !ready; i++) {
++    if (exited) throw new Error(`Chrome exited ${exitCode}. ${log.slice(-3000)}`);
++    ready = await nativeFetch(`http://127.0.0.1:${port}/json/version`)
++      .then(response => response.ok)
++      .catch(() => false);
++    if (!ready) await new Promise(resolve => setTimeout(resolve, 100));
++  }
++  if (!ready) throw new Error(`Chrome DevTools timeout. ${log.slice(-3000)}`);
+ 
+   let target;
+   for (let i = 0; i < 60 && !target; i++) {
+@@ -128,7 +144,7 @@ try {
    await call('Runtime.enable');
    await call('Runtime.addBinding', { name: '__ccBridgeBinding' });
  
@@ -1793,7 +1850,7 @@ index e8a48ec..70b2b4c 100644
    assert.equal(hello.ok, true, JSON.stringify(hello));
  
    const pageHtml = `
-@@ -218,7 +218,7 @@ try {
+@@ -218,7 +234,7 @@ try {
    assert.ok(!visible.some(text => text.includes('PC BUDDY TOOL RESULT')), 'Tool-result plumbing should be hidden');
  
    ws.close();
