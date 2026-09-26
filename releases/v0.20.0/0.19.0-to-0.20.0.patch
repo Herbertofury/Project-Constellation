@@ -1,12 +1,13 @@
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
 new file mode 100644
-index 0000000..5b822f2
+index 0000000..ca77c78
 --- /dev/null
 +++ b/.github/workflows/ci.yml
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,82 @@
 +name: Project Constellation Verify
 +
 +on:
++  workflow_call:
 +  pull_request:
 +  push:
 +    branches: [main, 'release/**']
@@ -18,25 +19,62 @@ index 0000000..5b822f2
 +jobs:
 +  browser-and-core:
 +    runs-on: ubuntu-latest
-+    timeout-minutes: 30
++    timeout-minutes: 35
 +    steps:
 +      - uses: actions/checkout@v7
 +      - uses: actions/setup-node@v7
 +        with:
 +          node-version: 24
-+          cache: npm
 +      - uses: actions/setup-python@v7
 +        with:
 +          python-version: '3.12'
-+          cache: pip
-+          cache-dependency-path: requirements-dev.txt
-+      - run: npm ci
-+      - run: python -m pip install -r requirements-dev.txt
-+      - run: python -m playwright install --with-deps chromium
-+      - run: npm run verify
-+      - name: Desktop portable-runtime tests (non-native Windows paths)
-+        working-directory: desktop
++
++      - name: Resolve exact source lineage
++        shell: bash
 +        run: |
++          set -euo pipefail
++          root="$GITHUB_WORKSPACE"
++          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
++          if [[ -f "$manifest" ]]; then
++            baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
++            baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
++            delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
++            delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
++            source_commit=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceCommit)" "$manifest")
++            [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
++            [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
++            root="$GITHUB_WORKSPACE/pc-source"
++            rm -rf "$root"
++            mkdir -p "$root"
++            unzip -q "$baseline" -d "$root"
++            git -C "$root" init -q
++            git -C "$root" config user.name 'Project Constellation CI'
++            git -C "$root" config user.email 'actions@users.noreply.github.com'
++            git -C "$root" config core.autocrlf false
++            git -C "$root" add -A
++            git -C "$root" commit -q -m 'Project Constellation verified production baseline'
++            git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
++            git -C "$root" checkout-index -a -f
++            [[ "$(node -p "require('$root/package.json').version")" == '0.20.0' ]]
++            echo "PC_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
++          fi
++          echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
++          echo "exact_source_root=$root"
++
++      - run: python -m pip install -r "$PC_SOURCE_ROOT/requirements-dev.txt"
++      - run: python -m playwright install --with-deps chromium
++      - name: Browser, core, contracts, and development build
++        shell: bash
++        run: |
++          set -euo pipefail
++          cd "$PC_SOURCE_ROOT"
++          npm ci --no-audit --no-fund
++          npm run verify
++      - name: Desktop portable-runtime tests (non-native Windows paths)
++        shell: bash
++        run: |
++          set -euo pipefail
++          cd "$PC_SOURCE_ROOT/desktop"
 +          npm install --no-audit --no-fund
 +          npm run check
 +          npm test
@@ -44,14 +82,16 @@ index 0000000..5b822f2
 +        if: failure()
 +        with:
 +          name: linux-smoke-evidence
-+          path: logs/smoke/
++          path: |
++            logs/smoke/
++            pc-source/logs/smoke/
 +          if-no-files-found: ignore
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
 new file mode 100644
-index 0000000..897e417
+index 0000000..b76694d
 --- /dev/null
 +++ b/.github/workflows/release.yml
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,90 @@
 +name: Project Constellation Unified Release
 +
 +on:
@@ -72,43 +112,10 @@ index 0000000..897e417
 +
 +jobs:
 +  verify-linux:
-+    runs-on: ubuntu-latest
-+    timeout-minutes: 30
-+    steps:
-+      - uses: actions/checkout@v7
-+      - uses: actions/setup-node@v7
-+        with: { node-version: 24, cache: npm }
-+      - uses: actions/setup-python@v7
-+        with: { python-version: '3.12', cache: pip, cache-dependency-path: requirements-dev.txt }
-+      - run: npm ci
-+      - run: python -m pip install -r requirements-dev.txt
-+      - run: python -m playwright install --with-deps chromium
-+      - run: npm run verify
++    uses: ./.github/workflows/ci.yml
 +
 +  windows-release:
-+    runs-on: windows-latest
-+    timeout-minutes: 65
-+    steps:
-+      - uses: actions/checkout@v7
-+      - uses: actions/setup-node@v7
-+        with: { node-version: 24 }
-+      - name: Install and verify desktop
-+        working-directory: desktop
-+        shell: pwsh
-+        run: |
-+          npm install --no-audit --no-fund
-+          npm run check
-+          npm test
-+          node tests/computer-use-windows-smoke.mjs
-+          .\scripts\electron-smoke.ps1
-+          npm run build:win
-+      - uses: actions/upload-artifact@v7
-+        with:
-+          name: windows-release
-+          path: |
-+            desktop/dist-electron/*.zip
-+            desktop/dist-electron/*.exe
-+          if-no-files-found: error
++    uses: ./.github/workflows/windows-runtime.yml
 +
 +  publish:
 +    needs: [verify-linux, windows-release]
@@ -117,36 +124,74 @@ index 0000000..897e417
 +    steps:
 +      - uses: actions/checkout@v7
 +        with: { fetch-depth: 0 }
-+      - uses: actions/download-artifact@v8
-+        with:
-+          name: windows-release
-+          path: desktop/dist-electron
 +      - uses: actions/setup-node@v7
 +        with: { node-version: 24 }
-+      - name: Build exact extension artifact
++
++      - name: Reconstruct exact release source
++        shell: bash
++        run: |
++          set -euo pipefail
++          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
++          test -f "$manifest"
++          baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
++          baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
++          delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
++          delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
++          [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
++          [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
++          root="$GITHUB_WORKSPACE/pc-source"
++          mkdir -p "$root"
++          unzip -q "$baseline" -d "$root"
++          git -C "$root" init -q
++          git -C "$root" config user.name 'Project Constellation Release'
++          git -C "$root" config user.email 'actions@users.noreply.github.com'
++          git -C "$root" config core.autocrlf false
++          git -C "$root" add -A
++          git -C "$root" commit -q -m 'Project Constellation verified production baseline'
++          git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
++          git -C "$root" checkout-index -a -f
++          [[ "$(node -p "require('$root/package.json').version")" == "$VERSION" ]]
++          echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
++
++      - uses: actions/download-artifact@v8
++        with:
++          name: Project-Constellation-v0.20.0-Windows
++          path: windows-dist
++
++      - name: Build exact extension and unified release set
 +        env:
 +          PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID }}
 +          PROJECT_CONSTELLATION_GITHUB_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GITHUB_CLIENT_ID }}
++        shell: bash
 +        run: |
-+          if [ -n "$PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID" ] && [ -n "$PROJECT_CONSTELLATION_GITHUB_CLIENT_ID" ]; then npm run build; else node tools/build.mjs --mode=production --allow-unprovisioned-oauth; fi
++          set -euo pipefail
++          cd "$PC_SOURCE_ROOT"
++          mkdir -p desktop/dist-electron
++          find "$GITHUB_WORKSPACE/windows-dist" -maxdepth 2 -type f -exec cp -f {} desktop/dist-electron/ \;
++          npm ci --no-audit --no-fund
++          if [[ -n "$PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID" && -n "$PROJECT_CONSTELLATION_GITHUB_CLIENT_ID" ]]; then npm run build; else node tools/build.mjs --mode=production --allow-unprovisioned-oauth; fi
 +          node tools/package-unified-release.mjs
++
 +      - name: Publish immutable GitHub Release
 +        env:
 +          GH_TOKEN: ${{ github.token }}
++        shell: bash
 +        run: |
++          set -euo pipefail
 +          TAG="${{ inputs.tag || github.ref_name }}"
 +          test "$TAG" = "v${VERSION}"
 +          if gh release view "$TAG" >/dev/null 2>&1; then echo "Release $TAG already exists; refusing to mutate immutable published bytes." >&2; exit 1; fi
-+          gh release create "$TAG" releases/v${VERSION}/* --verify-tag --title "Project Constellation $TAG" --notes-file "docs/v${VERSION}-release-notes.md"
++          gh release create "$TAG" "$PC_SOURCE_ROOT"/releases/v${VERSION}/* --verify-tag --title "Project Constellation $TAG" --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
 diff --git a/.github/workflows/windows-runtime.yml b/.github/workflows/windows-runtime.yml
 new file mode 100644
-index 0000000..860f3f5
+index 0000000..605510a
 --- /dev/null
 +++ b/.github/workflows/windows-runtime.yml
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,193 @@
 +name: Project Constellation Windows Runtime Gate
 +
 +on:
++  workflow_call:
 +  workflow_dispatch:
 +  pull_request:
 +    paths:
@@ -337,7 +382,7 @@ index 0000000..860f3f5
 +          if-no-files-found: error
 +          retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index aa4b1e3..b9329a1 100644
+index aa4b1e3..4eb8771 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
 @@ -1,3 +1,26 @@
@@ -352,7 +397,7 @@ index aa4b1e3..b9329a1 100644
 +- Added the desktop Update Center with SHA-256 staging, rollback backups, and one-shot startup checks.
 +- Unified user-facing desktop branding under Project Constellation while preserving migration-sensitive Commander state/CLI identities.
 +- Updated Electron to 44.4.4 stable and added a Windows-native build/runtime gate plus a unified immutable release workflow.
-+- Fixed Windows PowerShell process execution to preserve native exit codes and package the canonical ChatGPT page hook with byte-for-byte drift protection.
++- Fixed Windows PowerShell process execution with a short-lived verbatim script wrapper that preserves quoted native arguments and exit codes; packaged the canonical ChatGPT page hook with byte-for-byte drift protection.
 +- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
 +- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
 +
@@ -1455,34 +1500,76 @@ index d1fd0e2..893d576 100644
    const config = { ...defaults, ...persisted };
    if (envRoots) config.allowedRoots = envRoots;
 diff --git a/desktop/src/process-manager.mjs b/desktop/src/process-manager.mjs
-index 14b8281..9443fe9 100644
+index 14b8281..71b6ea3 100644
 --- a/desktop/src/process-manager.mjs
 +++ b/desktop/src/process-manager.mjs
-@@ -17,6 +17,15 @@ function persist(s){
+@@ -17,6 +17,27 @@ function persist(s){
    return s.persistQueue;
  }
  export function listManagedProcesses(state){return [...state.processes.values()].map(snapshot);}
-+export function buildShellSpec(command,shell,platform=process.platform){
++export function buildShellSpec(command,shell,platform=process.platform,scriptPath=''){
 +  const raw=String(command??'');
 +  if(platform!=='win32')return {exe:shell||'/bin/bash',args:['-lc',raw]};
 +  if(String(shell||'').toLowerCase().includes('cmd'))return {exe:'cmd.exe',args:['/d','/s','/c',raw]};
 +  const exe=shell&&/[/\\]/.test(shell)?shell:'powershell.exe';
-+  const payload=Buffer.from(raw,'utf16le').toString('base64');
-+  const wrapper=`$pcCommand=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('${payload}')); $global:LASTEXITCODE=0; try { Invoke-Expression $pcCommand; $pcSuccess=$?; $pcExitCode=[int]$global:LASTEXITCODE; if(-not $pcSuccess -and $pcExitCode -eq 0){$pcExitCode=1}; exit $pcExitCode } catch { [Console]::Error.WriteLine($_); exit 1 }`;
-+  return {exe,args:['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-EncodedCommand',Buffer.from(wrapper,'utf16le').toString('base64')]};
++  if(!scriptPath)scriptPath=path.join(os.tmpdir(),`project-constellation-${crypto.createHash('sha256').update(raw).digest('hex').slice(0,16)}.ps1`);
++  // Put the user's PowerShell source in a script file verbatim. -Command/Invoke-Expression
++  // re-parses native argument quoting on Windows and can silently corrupt quoted `node -e`
++  // payloads. A UTF-8-BOM .ps1 preserves the exact PowerShell source and still lets the
++  // child inherit stdin for interactive commands. The trailer only converts the final
++  // PowerShell/native status into the process exit code.
++  const scriptContent=`$ProgressPreference='SilentlyContinue'
++$global:LASTEXITCODE=0
++${raw}
++$pcSuccess=$?
++$pcExitCode=[int]$global:LASTEXITCODE
++if(-not $pcSuccess -and $pcExitCode -eq 0){$pcExitCode=1}
++exit $pcExitCode
++`;
++  return {exe,args:['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',scriptPath],scriptPath,scriptContent};
 +}
  export async function startManagedProcess(args,config,state){
    assertCommandAllowed(args.command,config);
    const roots=Array.isArray(config.allowedRoots)?config.allowedRoots:[];
-@@ -25,7 +34,7 @@ export async function startManagedProcess(args,config,state){
+@@ -25,21 +46,24 @@ export async function startManagedProcess(args,config,state){
    const timeout=Number(args.timeout_ms??0);
    if(!Number.isFinite(timeout)||timeout<0)throw new Error('timeout_ms must be a non-negative finite number');
    const shell=args.shell||config.defaultShell;
 -  const spec=process.platform==='win32' ? (String(shell||'').toLowerCase().includes('cmd')?{exe:'cmd.exe',args:['/d','/s','/c',args.command]}:{exe:shell&&/[/\\]/.test(shell)?shell:'powershell.exe',args:['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command',args.command]}) : {exe:shell||'/bin/bash',args:['-lc',args.command]};
-+  const spec=buildShellSpec(args.command,shell);
    const id=`proc_${crypto.randomBytes(8).toString('hex')}`;const dir=path.join(state.baseDir,'processes');await fs.mkdir(dir,{recursive:true});
++  const scriptPath=process.platform==='win32'&&!String(shell||'').toLowerCase().includes('cmd')?path.join(dir,`${id}.ps1`):'';
++  const spec=buildShellSpec(args.command,shell,process.platform,scriptPath);
    const logPath=path.join(dir,`${id}.log`);await fs.writeFile(logPath,'');
++  if(spec.scriptContent){const bom=Buffer.from([0xef,0xbb,0xbf]);await fs.writeFile(spec.scriptPath,Buffer.concat([bom,Buffer.from(spec.scriptContent,'utf8')]));}
    const child=spawn(spec.exe,spec.args,{cwd,stdio:['pipe','pipe','pipe'],windowsHide:true,detached:process.platform!=='win32'});
+   const s={id,pid:child.pid,child,command:args.command,cwd,logPath,metaPath:path.join(dir,`${id}.json`),status:'starting',startedAt:new Date().toISOString(),readCursor:0,readBytes:0,exitCode:null,writeQueue:Promise.resolve()};state.processes.set(id,s);
+   // A single write chain preserves stream delivery order and drains before completion.
+   const append=chunk=>{s.writeQueue=s.writeQueue.then(()=>fs.appendFile(logPath,chunk)).catch(e=>{s.error=`Output log: ${e.message}`;});};
+   child.stdout.on('data',append);child.stderr.on('data',append);child.stdin.on('error',e=>{s.inputError=String(e.message);});
++  const cleanupScript=()=>spec.scriptPath?fs.rm(spec.scriptPath,{force:true}).catch(()=>{}):Promise.resolve();
+   const spawned=new Promise((resolve,reject)=>{
+     child.once('spawn',()=>{s.status='running';void persist(s);resolve();});
+-    child.once('error',e=>{s.status='failed';s.error=String(e.message);s.finishedAt=new Date().toISOString();void persist(s);reject(new Error(`Could not start command: ${e.message}`));});
++    child.once('error',e=>{s.status='failed';s.error=String(e.message);s.finishedAt=new Date().toISOString();void cleanupScript();void persist(s);reject(new Error(`Could not start command: ${e.message}`));});
+   });
+   child.on('error',e=>{s.error=String(e.message);});
+   child.once('close',async(code,signal)=>{
+-    clearTimeout(s.timer);await s.writeQueue;
++    clearTimeout(s.timer);await s.writeQueue;await cleanupScript();
+     if(!terminalStates.has(s.status))s.status=code===0?'finished':'failed';
+     s.exitCode=code;s.signal=signal;s.finishedAt=new Date().toISOString();await persist(s);
+   });
+@@ -92,7 +116,9 @@ export async function stopManagedProcess(s,status='terminated'){
+ }
+ export async function recoverProcesses(state){
+   const dir=path.join(state.baseDir,'processes');await fs.mkdir(dir,{recursive:true});
+-  for(const name of await fs.readdir(dir)){
++  const names=await fs.readdir(dir);
++  await Promise.all(names.filter(name=>/^proc_[0-9a-f]+\.ps1$/.test(name)).map(name=>fs.rm(path.join(dir,name),{force:true}).catch(()=>{})));
++  for(const name of names){
+     if(!/^proc_[0-9a-f]+\.json$/.test(name))continue;
+     try{const metaPath=path.join(dir,name),s=JSON.parse(await fs.readFile(metaPath,'utf8'));const id=s.session_id;
+       state.processes.set(id,{...s,id,pid:null,status:terminalStates.has(s.status)?s.status:'interrupted',error:terminalStates.has(s.status)?s.error:'Application restarted; the previous process is not being controlled. Output was preserved.',logPath:path.join(dir,`${id}.log`),metaPath,readBytes:0,writeQueue:Promise.resolve()});
 diff --git a/desktop/src/tool-definitions.mjs b/desktop/src/tool-definitions.mjs
 index 13a1459..7a650c9 100644
 --- a/desktop/src/tool-definitions.mjs
@@ -1858,7 +1945,7 @@ index 1fc700d..e5498c6 100644
    await relay.close();
    await fsp.rm(dataDir, { recursive: true, force: true });
 diff --git a/desktop/tests/reliability.test.mjs b/desktop/tests/reliability.test.mjs
-index efe7c67..082a5c6 100644
+index efe7c67..2dfd350 100644
 --- a/desktop/tests/reliability.test.mjs
 +++ b/desktop/tests/reliability.test.mjs
 @@ -5,7 +5,7 @@ import path from 'node:path';
@@ -1874,7 +1961,7 @@ index efe7c67..082a5c6 100644
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const nodeCommand=code=>process.platform==='win32'?`& '${process.execPath.replaceAll("'","''")}' -e '${code.replaceAll("'","''")}'`:`'${process.execPath}' -e '${code.replaceAll("'","'\\''")}'`;
  async function finish(id){let result,all='';for(let i=0;i<100;i++){result=await call('read_process_output',{session_id:id});all+=result.output;if(!['starting','running'].includes(result.status))return {...result,all};await sleep(30);}throw new Error('Process did not finish');}
-+await test('Windows PowerShell process wrapper preserves native exit codes safely',()=>{const raw=`& 'C:\\Program Files\\nodejs\\node.exe' -e 'process.exit(7)'`;const spec=buildShellSpec(raw,'powershell','win32');assert.equal(spec.exe,'powershell.exe');assert.ok(spec.args.includes('-EncodedCommand'));const wrapper=Buffer.from(spec.args.at(-1),'base64').toString('utf16le');assert.match(wrapper,/Invoke-Expression \$pcCommand/);assert.match(wrapper,/exit \$pcExitCode/);assert.ok(!spec.args.join(' ').includes(raw),'raw PowerShell command should not be exposed to argv parsing');});
++await test('Windows PowerShell process wrapper preserves native exit codes and quoted payloads safely',()=>{const raw=`& 'C:\\Program Files\\nodejs\\node.exe' -e 'process.stdout.write("quoted");process.exit(7)'`;const script='C:\\Temp\\pc-command.ps1';const spec=buildShellSpec(raw,'powershell','win32',script);assert.equal(spec.exe,'powershell.exe');assert.ok(spec.args.includes('-File'));assert.ok(spec.args.includes(script));assert.doesNotMatch(spec.args.join(' '),/Invoke-Expression|-EncodedCommand/);assert.match(spec.scriptContent,/process\.stdout\.write\("quoted"\)/);assert.match(spec.scriptContent,/exit \$pcExitCode/);assert.equal(spec.scriptPath,script);});
  await test('move onto same path never deletes source',async()=>{const p=path.join(workspace,'same.txt');await fs.writeFile(p,'safe');await call('move_file',{source:p,destination:p,overwrite:true});assert.equal(await fs.readFile(p,'utf8'),'safe');});
  await test('overwrite move retains old destination backup',async()=>{const a=path.join(workspace,'a.txt'),b=path.join(workspace,'b.txt');await fs.writeFile(a,'new');await fs.writeFile(b,'old');const result=await call('move_file',{source:a,destination:b,overwrite:true});assert.equal(await fs.readFile(b,'utf8'),'new');assert.equal(await fs.readFile(result.backup,'utf8'),'old');});
  await test('symlink or junction cannot escape roots',async()=>{const outside=path.join(root,'outside');await fs.mkdir(outside);await fs.writeFile(path.join(outside,'secret.txt'),'fixture');await fs.symlink(outside,path.join(workspace,'link'),process.platform==='win32'?'junction':'dir');await assert.rejects(call('read_file',{path:path.join(workspace,'link','secret.txt')}),/outside allowed/);await assert.rejects(call('write_file',{path:path.join(workspace,'link','new.txt'),content:'denied'}),/outside allowed/);});
@@ -2019,7 +2106,7 @@ index 0000000..477d703
 +- Full root regression/validation/build/smoke and retained desktop reliability suites are release gates for this hotfix.
 diff --git a/docs/v0.20.0-release-notes.md b/docs/v0.20.0-release-notes.md
 new file mode 100644
-index 0000000..64b9a64
+index 0000000..44e087d
 --- /dev/null
 +++ b/docs/v0.20.0-release-notes.md
 @@ -0,0 +1,51 @@
@@ -2038,7 +2125,7 @@ index 0000000..64b9a64
 +- **Integrated Update Center.** The desktop can check the stable GitHub release channel, verify SHA-256 before staging an update, install after the app exits, retain a previous install as rollback state, and restore it on failed replacement. It performs a single startup availability check rather than permanent update polling.
 +- **Project Constellation desktop identity.** User-facing Commander branding is consolidated under Project Constellation while the existing application ID, state directories, CLI aliases, extension ID, and migration-sensitive bridge contracts stay compatible.
 +- **Electron 44.4.4.** 0.20.0 moves from 44.4.3 to the current stable 44.4.4 line while retaining electron-builder 26.16.1.
-+- **Windows process reliability.** PowerShell-backed local commands now travel through an encoded wrapper that preserves exact native exit codes and avoids command-line quote mangling; large output and restart recovery remain covered by regression tests.
++- **Windows process reliability.** PowerShell-backed local commands now execute from a short-lived UTF-8-BOM `.ps1` wrapper that preserves the user command source verbatim, native exit codes, quoted `node -e` payloads, large output, and restart recovery without `Invoke-Expression` re-parsing.
 +- **Packaged ChatGPT hook integrity.** The desktop carries an explicit packaged mirror of the canonical browser page hook, with a byte-for-byte regression check so source and packaged injection logic cannot silently drift.
 +- **Fail-fast modern CI.** Windows PowerShell jobs now promote native command failures to CI failures, and workflows use the current Node-24 GitHub Actions line rather than deprecated Node-20 action runtimes.
 +

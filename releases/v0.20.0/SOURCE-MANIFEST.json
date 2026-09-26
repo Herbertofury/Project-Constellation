@@ -2,17 +2,17 @@
   "schema": "project-constellation-ci-source-v1",
   "product": "Project Constellation",
   "version": "0.20.0",
-  "sourceCommit": "b4b76bae91a7c4a959b909b838d68ebb5e7dd4e4",
+  "sourceCommit": "2e552374a2cc3867acb4f5f3b4a08f74c0eaf95c",
   "baseline": {
     "artifact": "releases/v0.19.0/Project-Constellation-v0.19.0-production-source.zip",
     "sha256": "a60102b02cfa4b967e7518d5b1f88118140332647938900ba1b0f8380174c8f4"
   },
   "delta": {
     "artifact": "releases/v0.20.0/0.19.0-to-0.20.0.patch",
-    "sha256": "e4b915a426264034e5fc48e79ef2653569a4fe97a7bdccce25049515e68d469b"
+    "sha256": "8ff71c7416056830a1e496c3d3213244c12121e14858ff1942fe3c78b46425eb"
   },
   "canonicalSourceZip": {
-    "sha256": "3021e2e91bf3b95cf953991a01c59d7153e4e91ce5d650400553ffe68bfebf2a"
+    "sha256": "a6c53fb5ffe0c6ee5a8a16b2fa3f9a1d38888999769f1c425125b6d78e13938f"
   },
   "reconstruction": "Initialize the 0.19.0 production-source archive as a Git index, apply the 0.20 delta to the index, then checkout the patched index."
 }
