@@ -382,10 +382,10 @@ index 0000000000000000000000000000000000000000..605510a2697b1563700902a12ae0bb3b
 +          if-no-files-found: error
 +          retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index aa4b1e342be87548d448db2772448e8552446fb2..3bde51b65145de47daf01980fe7c66072da866aa 100644
+index aa4b1e342be87548d448db2772448e8552446fb2..0fce8c9ee238dab5b4a351e65dbe618df890fa88 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -1,3 +1,26 @@
+@@ -1,3 +1,27 @@
 +# Changelog
 +
 +## 0.20.0 — Reliability Foundation
@@ -398,6 +398,7 @@ index aa4b1e342be87548d448db2772448e8552446fb2..3bde51b65145de47daf01980fe7c6607
 +- Unified user-facing desktop branding under Project Constellation while preserving migration-sensitive Commander state/CLI identities.
 +- Updated Electron to 44.4.4 stable and added a Windows-native build/runtime gate plus a unified immutable release workflow.
 +- Fixed Windows process execution with a short-lived PowerShell wrapper plus a structured-argv fast path for explicit simple native calls, preserving embedded quotes, exit codes, partial output, and large output without weakening real PowerShell semantics; Windows PowerShell 5.1 remains a compatibility fallback. Packaged the canonical ChatGPT page hook with byte-for-byte drift protection.
++- Made the integrated Electron acceptance gate wait for shell-runtime proof before closing on the first tool result, removing a Windows-only timing race from release validation.
 +- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
 +- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
 +
@@ -883,7 +884,7 @@ index 366f174487f667212cf981e63facea646f026c5e..7565c67ae653d730c1ed026b0c150a44
    };
    form.addEventListener('submit',event=>{event.preventDefault();const value=text();turn('user',value);void fetch('https://chatgpt.com/backend-api/conversation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:value}]})}).catch(()=>{});clear();});
 diff --git a/desktop/electron/main.cjs b/desktop/electron/main.cjs
-index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3b1356b34 100644
+index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..3a4bd9194fa2c8b7dfdf3a8bef888b9c2ffe213e 100644
 --- a/desktop/electron/main.cjs
 +++ b/desktop/electron/main.cjs
 @@ -15,7 +15,7 @@ let overlayVisible = false;
@@ -903,7 +904,41 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
  let fallbackBridge;
  let remoteAgent;
  let remoteConnecting=false;
-@@ -84,7 +85,7 @@ async function usageStats() {
+@@ -37,6 +38,8 @@ let emergencyLock = false;
+ let shellCollapsed = false;
+ let workspaceVisible = false;
+ let shellSmokeState = { status: TEST_MODE ? 'pending' : 'not-required', detail: null };
++let shellSmokeResolve = null;
++const shellSmokeProof = TEST_MODE ? new Promise(resolve => { shellSmokeResolve = resolve; }) : Promise.resolve(shellSmokeState);
+ let chatState = { phase: 'starting', message: 'Starting ChatGPT…', url: CHAT_URL, lastError: '', pageHookReady: false, loadedAt: '' };
+ const chatSessions = new Map();
+ 
+@@ -46,6 +49,24 @@ function smokeTrace(event, detail = {}) {
+   if (!TEST_MODE || !TEST_OUTPUT) return;
+   try { fs.appendFileSync(`${TEST_OUTPUT}.trace.log`, `${JSON.stringify({ at: nowIso(), event, detail })}\n`); } catch {}
+ }
++function settleShellSmoke(state) {
++  shellSmokeState = state;
++  if (shellSmokeResolve) { shellSmokeResolve(state); shellSmokeResolve = null; }
++  return state;
++}
++async function awaitShellSmokeProof(timeoutMs = 15000) {
++  if (!TEST_MODE || shellSmokeState.status !== 'pending') return shellSmokeState;
++  let timer;
++  try {
++    await Promise.race([
++      shellSmokeProof,
++      new Promise(resolve => { timer = setTimeout(resolve, timeoutMs); })
++    ]);
++  } finally {
++    if (timer) clearTimeout(timer);
++  }
++  return shellSmokeState;
++}
+ function appRoot() { return path.resolve(__dirname, '..'); }
+ function importEsm(relativePath) { return import(pathToFileURL(path.join(appRoot(), relativePath)).href); }
+ 
+@@ -84,7 +105,7 @@ async function usageStats() {
  async function shellSnapshot() {
    return {
      ok: true,
@@ -912,7 +947,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
      version: VERSION,
      chat: { ...chatState },
      emergencyLock,
-@@ -101,7 +102,8 @@ async function shellSnapshot() {
+@@ -101,7 +122,8 @@ async function shellSnapshot() {
      tasks: runtime.state.tasks ? await runtime.state.tasks.list() : [],
      auditError: runtime.state.auditError || null,
      recentCalls: await recentCalls(30),
@@ -922,7 +957,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    };
  }
  
-@@ -195,7 +197,7 @@ async function executeChatCall(chatId, rawCall) {
+@@ -195,7 +217,7 @@ async function executeChatCall(chatId, rawCall) {
    const call=normalizeCall(rawCall,item);
    if(runtime.config.localToolMode==='off')throw new Error('Local tools are Off.');
    if(runtime.config.emergencyLock||emergencyLock)throw new Error('Emergency Lock is active.');
@@ -931,7 +966,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    return callLedger.execute(item,call,()=>{
      const run=chatExecution.catch(()=>{}).then(()=>executeAuthorizedChatCall(chatId,call));
      chatExecution=run;return run;
-@@ -204,13 +206,13 @@ async function executeChatCall(chatId, rawCall) {
+@@ -204,13 +226,13 @@ async function executeChatCall(chatId, rawCall) {
  
  async function executeAuthorizedChatCall(chatId, rawCall) {
    const item = chatSessions.get(String(chatId || ''));
@@ -949,7 +984,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    const started = Date.now();
    emitShell('tool-start', { id: call.id, tool: call.tool, args: Object.keys(call.args || {}) });
    try {
-@@ -321,7 +323,7 @@ function createApplicationMenu() {
+@@ -321,7 +343,7 @@ function createApplicationMenu() {
        { label: 'Emergency Lock', type: 'checkbox', checked: emergencyLock, click: item => { void setEmergencyLock(item.checked); } },
        { label: 'Start with Windows', type: 'checkbox', checked: app.isPackaged ? app.getLoginItemSettings().openAtLogin : false, click: item => { setStartWithWindows(item.checked); } },
        { type: 'separator' },
@@ -958,7 +993,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
        { label: 'Reload ChatGPT', accelerator: 'Ctrl+R', click: () => chatView?.webContents.reload() },
        { label: 'ChatGPT DevTools', accelerator: 'Ctrl+Shift+I', click: () => chatView?.webContents.openDevTools({ mode: 'detach' }) },
        { type: 'separator' },
-@@ -357,7 +359,7 @@ function createChatWindow() {
+@@ -357,7 +379,7 @@ function createChatWindow() {
      height: 960,
      minWidth: 900,
      minHeight: 650,
@@ -967,7 +1002,24 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
      backgroundColor: '#212121',
      show: false,
      autoHideMenuBar: true,
-@@ -421,6 +423,13 @@ function createChatWindow() {
+@@ -384,14 +406,14 @@ function createChatWindow() {
+       const health = await api.runHealth();
+       return { ok: missing.length === 0 && snapshot?.ok === true && snapshot?.singleInstanceOwner === true && health?.ok === true && tools?.ok === true && tools?.tools?.length === snapshot?.toolCount && directPing?.ok === true && directPing?.result?.pong === true, missing, version:snapshot?.version, toolCount:snapshot?.toolCount, listedToolCount:tools?.tools?.length || 0, directPing:directPing?.result || null, localToolMode:snapshot?.config?.localToolMode, singleInstanceOwner:snapshot?.singleInstanceOwner === true, health };
+     })()`, true).then(result => {
+-      shellSmokeState = { status: result?.ok ? 'passed' : 'failed', detail: result || null };
++      settleShellSmoke({ status: result?.ok ? 'passed' : 'failed', detail: result || null });
+       smokeTrace('shell-runtime-proof', shellSmokeState);
+       if (!result?.ok && TEST_OUTPUT) {
+         fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok:false, event:'shell-runtime-failed', detail:result || null, at:nowIso() }, null, 2));
+         setTimeout(() => app.quit(), 250);
+       }
+     }).catch(error => {
+-      shellSmokeState = { status:'failed', detail:{ error:String(error?.stack || error) } };
++      settleShellSmoke({ status:'failed', detail:{ error:String(error?.stack || error) } });
+       smokeTrace('shell-runtime-proof-error', shellSmokeState.detail);
+       if (TEST_OUTPUT) {
+         fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok:false, event:'shell-runtime-failed', detail:shellSmokeState.detail, at:nowIso() }, null, 2));
+@@ -421,6 +443,13 @@ function createChatWindow() {
  
    const wc = chatView.webContents;
    wc.setUserAgent(chromeUserAgent());
@@ -981,7 +1033,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    wc.on('did-start-loading', () => setChatState({ phase: 'loading', message: 'Loading ChatGPT…', url: wc.getURL() || CHAT_URL, lastError: '', pageHookReady: false }));
    wc.on('dom-ready', injectPageHook);
    wc.on('did-fail-load', (_event, code, desc, url, isMainFrame) => { if(code===-3||isMainFrame===false)return; console.warn('[Commander] ChatGPT load failed', code, desc, url); setChatState({ phase: 'error', message: 'ChatGPT failed to load', url, lastError: `${code}: ${desc}`, pageHookReady: false }); });
-@@ -486,7 +495,7 @@ function createChatWindow() {
+@@ -486,7 +515,7 @@ function createChatWindow() {
  
  function requireChatSender(event) {
    const wc=chatView?.webContents;
@@ -990,7 +1042,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    const url=event.senderFrame.url;
    const fixture=TEST_MODE&&sameConversation(url,pathToFileURL(path.join(__dirname,'fixture-chat.html')).href);
    if(!fixture && !/^https:\/\/chatgpt\.com(?:\/|$)/i.test(url))throw new Error('Local tools are available only on the ChatGPT origin.');
-@@ -522,13 +531,13 @@ function installIpc() {
+@@ -522,13 +551,13 @@ function installIpc() {
      const item = getOrCreateSession(payload.chatId, payload.url, payload.renew === true);
      return {
        ok: true,
@@ -1006,7 +1058,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
      };
    });
  
-@@ -547,7 +556,7 @@ function installIpc() {
+@@ -547,7 +576,7 @@ function installIpc() {
  
    ipcMain.handle('cc:status', async event => {
      requireChatSender(event);
@@ -1015,7 +1067,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    });
  
    ipcMain.handle('cc:diagnostic', async (_event, payload = {}) => {
-@@ -560,7 +569,7 @@ function installIpc() {
+@@ -560,9 +589,10 @@ function installIpc() {
      if (payload.event === 'assistant-call-detected') setChatState({phase:'executing',message:'Running '+String(payload.detail?.tool||'local tool'),lastError:''});
      if (['tool-result-sent','saved-result-delivered'].includes(payload.event)) setChatState({phase:'verified',message:'Computer action completed and result accepted by ChatGPT',lastError:''});
      if (['delivery-pending','result-save-failed'].includes(payload.event)) setChatState({phase:'delivery-pending',message:'Action completed - result needs attention in Activity',lastError:String(payload.detail?.error||'')});
@@ -1023,8 +1075,11 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
 +    if (payload.event === 'arm-failed') setChatState({ phase: 'error', message: 'Project Constellation arm failed', lastError: String(payload.detail?.error || 'Unknown arm failure') });
      if (TEST_MODE && TEST_OUTPUT && !INTERACTIVE_TEST) {
        if (payload.event === 'tool-result-sent') {
++        await awaitShellSmokeProof();
          if (shellSmokeState.status !== 'passed') {
-@@ -580,7 +589,7 @@ function installIpc() {
+           fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'shell-runtime-not-proven', detail: shellSmokeState, at: nowIso() }, null, 2));
+         } else {
+@@ -580,7 +610,7 @@ function installIpc() {
  
  function installShellIpc() {
    const trusted = event => event.sender === win?.webContents && event.senderFrame === win?.webContents.mainFrame && event.senderFrame.url === pathToFileURL(path.join(__dirname,'shell.html')).href;
@@ -1033,7 +1088,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
  
    ipcMain.handle('cc-shell:remote-connect',async(event,payload={})=>{
      requireTrusted(event);
-@@ -637,7 +646,7 @@ function installShellIpc() {
+@@ -637,7 +667,7 @@ function installShellIpc() {
    ipcMain.handle('cc-shell:reveal-download',(event,payload={})=>{requireTrusted(event);const d=downloads.get(String(payload.id));if(!d||d.state!=='completed'||!d.path)throw new Error('This download is not complete.');shell.showItemInFolder(d.path);return {ok:true};});
    ipcMain.handle('cc-shell:export-diagnostics',async event=>{
      requireTrusted(event);
@@ -1042,7 +1097,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
      if(picked.canceled||!picked.filePath)return {ok:true,canceled:true};
      const report={version:VERSION,platform:process.platform,at:nowIso(),ui:uiState.preferences(runtime.config.uiPreferences),chat:{phase:chatState.phase,pageHookReady:chatState.pageHookReady},emergencyLock,toolCount:toolManifest().length,stats:await usageStats(),verification:'Local diagnostic snapshot, not authenticated ChatGPT acceptance'};
      await fs.promises.writeFile(picked.filePath,JSON.stringify(report,null,2),{mode:0o600});
-@@ -649,6 +658,35 @@ function installShellIpc() {
+@@ -649,6 +679,35 @@ function installShellIpc() {
      chatView.webContents.send('cc:deliver-pending',pending);return {ok:true};
    });
    ipcMain.handle('cc-shell:workspace-visible',(event,payload={})=>{requireTrusted(event);selectView(payload.visible?'workspace':'chat');return {ok:true,visible:workspaceVisible};});
@@ -1078,7 +1133,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    ipcMain.handle('cc-shell:snapshot', async event => { requireTrusted(event); return shellSnapshot(); });
    ipcMain.handle('cc-shell:set-sidebar-collapsed', (event, payload = {}) => {
      requireTrusted(event);
-@@ -687,7 +725,7 @@ function installShellIpc() {
+@@ -687,7 +746,7 @@ function installShellIpc() {
    });
    ipcMain.handle('cc-shell:add-root', async event => {
      requireTrusted(event);
@@ -1087,7 +1142,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
      if (picked.canceled || !picked.filePaths?.[0]) return { ok: true, canceled: true };
      const root = path.resolve(picked.filePaths[0]);
      const current = Array.isArray(runtime.config.allowedRoots) && !runtime.config.allowedRoots.includes('*') ? runtime.config.allowedRoots : [];
-@@ -711,7 +749,7 @@ function installShellIpc() {
+@@ -711,7 +770,7 @@ function installShellIpc() {
      requireTrusted(event);
      const name = String(payload.name || '').trim();
      const definition = toolManifest().find(tool => tool.name === name);
@@ -1096,7 +1151,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
      const args = payload.args && typeof payload.args === 'object' && !Array.isArray(payload.args) ? payload.args : {};
      const result = await executeShellTool(name, args);
      const attachments = Array.isArray(result?._attachments) ? result._attachments : [];
-@@ -824,6 +862,9 @@ app.whenReady().then(async () => {
+@@ -824,6 +883,9 @@ app.whenReady().then(async () => {
    if (!singleInstanceOwner) return;
  
    runtime = await createRuntime();
@@ -1106,7 +1161,7 @@ index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3
    migrateLegacyInstall();
    emergencyLock = Boolean(runtime.config.emergencyLock) || fs.existsSync(path.join(runtime.dir, 'EMERGENCY-LOCK'));
    await configureSession();
-@@ -832,9 +873,10 @@ app.whenReady().then(async () => {
+@@ -832,9 +894,10 @@ app.whenReady().then(async () => {
    createApplicationMenu();
    createChatWindow();
    void startFallbackBridge();
@@ -2004,7 +2059,7 @@ index 253252eec74d24d2f43bb283193dc589b87c42d3..98bb94bc9fd8f7a76dd3bc0dae6c5c5e
    if (child) console.error('Agent output:\n' + output.join(''));
    throw error;
 diff --git a/desktop/tests/electron-static.test.mjs b/desktop/tests/electron-static.test.mjs
-index 17bfb5a713cb6403d206fe6e3c0d296893e18856..914dacff4a428a202b815a2ccfd32b053d41441b 100644
+index 17bfb5a713cb6403d206fe6e3c0d296893e18856..42e65067f72868236b0fa421cd4925a43b17f917 100644
 --- a/desktop/tests/electron-static.test.mjs
 +++ b/desktop/tests/electron-static.test.mjs
 @@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
@@ -2021,7 +2076,16 @@ index 17bfb5a713cb6403d206fe6e3c0d296893e18856..914dacff4a428a202b815a2ccfd32b05
  assert.match(main, /persist:constellation-chatgpt/);
  assert.match(main, /SHELL_WIDTH = 344/);
  assert.match(main, /localToolMode/);
-@@ -35,4 +35,4 @@ assert.match(preload, /node\.style\.visibility = 'hidden'/);
+@@ -20,6 +20,8 @@ assert.match(main, /fixture-composer-missing/);
+ assert.match(main, /sendInputEvent\(\{ type: 'keyDown', keyCode: 'Enter' \}\)/);
+ assert.match(main, /smokeTrace/);
+ assert.match(main, /shell-runtime-proof/);
++assert.match(main, /awaitShellSmokeProof/);
++assert.match(main, /await awaitShellSmokeProof\(\)/);
+ assert.match(main, /cc-shell:observe-desktop/);
+ assert.match(main, /requestSingleInstanceLock\(\)/);
+ assert.match(main, /second-instance/);
+@@ -35,4 +37,4 @@ assert.match(preload, /node\.style\.visibility = 'hidden'/);
  assert.match(preload, /ipcRenderer\.invoke\('cc:call'/);
  assert.match(preload, /visibleLeak/);
  assert.match(preload, /pong: response\?\.result\?\.pong === true/);
@@ -2250,10 +2314,10 @@ index 0000000000000000000000000000000000000000..477d7030a308719ba587d29f77ce7139
 +- Full root regression/validation/build/smoke and retained desktop reliability suites are release gates for this hotfix.
 diff --git a/docs/v0.20.0-release-notes.md b/docs/v0.20.0-release-notes.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..f2cbad629bb41fee3c129ce0f4a9c5b9f4ed1084
+index 0000000000000000000000000000000000000000..0fb9faa197e9b1334291ea6b8d62995f7615be99
 --- /dev/null
 +++ b/docs/v0.20.0-release-notes.md
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,52 @@
 +# Project Constellation 0.20.0 — Reliability Foundation
 +
 +Project Constellation 0.20.0 turns the unified 0.19 product into a more event-driven, self-diagnosing, self-recovering desktop + browser platform while preserving the broad provider/permission model and the stable Constellation browser-extension identity.
@@ -2271,6 +2335,7 @@ index 0000000000000000000000000000000000000000..f2cbad629bb41fee3c129ce0f4a9c5b9
 +- **Electron 44.4.4.** 0.20.0 moves from 44.4.3 to the current stable 44.4.4 line while retaining electron-builder 26.16.1.
 +- **Windows process reliability.** PowerShell-backed local commands execute from a short-lived UTF-8-BOM `.ps1` wrapper with fail-fast exit propagation. Explicit simple native calls such as `& 'program.exe' ...` now bypass PowerShell native-command re-serialization and launch with structured argv, preserving embedded quotes and large/partial output byte-for-byte; real PowerShell pipelines, functions, expansion, and explicit shell overrides stay on the normal shell path. PowerShell 7 remains preferred, with Windows PowerShell 5.1 as a compatibility fallback.
 +- **Packaged ChatGPT hook integrity.** The desktop carries an explicit packaged mirror of the canonical browser page hook, with a byte-for-byte regression check so source and packaged injection logic cannot silently drift.
++- **Deterministic Electron acceptance.** The integrated Electron runtime proof now waits for the shell-runtime health result to settle before accepting the first successful tool-result delivery, eliminating a Windows timing race without delaying normal user execution.
 +- **Fail-fast modern CI.** Windows PowerShell jobs now promote native command failures to CI failures, and workflows use the current Node-24 GitHub Actions line rather than deprecated Node-20 action runtimes.
 +
 +## Windows release proof
