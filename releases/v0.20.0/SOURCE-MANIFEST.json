@@ -1,0 +1,18 @@
+{
+  "schema": "project-constellation-ci-source-v1",
+  "product": "Project Constellation",
+  "version": "0.20.0",
+  "sourceCommit": "e96c8cc14b19475625a29d605a4e882575a58cf2",
+  "baseline": {
+    "artifact": "releases/v0.19.0/Project-Constellation-v0.19.0-production-source.zip",
+    "sha256": "a60102b02cfa4b967e7518d5b1f88118140332647938900ba1b0f8380174c8f4"
+  },
+  "delta": {
+    "artifact": "releases/v0.20.0/0.19.0-to-0.20.0.patch",
+    "sha256": "390d68ab7defe8545503631f26d3b41091284b01fcbc1b4c8dcfc41bd46d3ca5"
+  },
+  "canonicalSourceZip": {
+    "sha256": "fb69e604972c91fc274dfa2520ca71b1b586e7d7fdf9f9ac0d3d0e1d2b5750f1"
+  },
+  "reconstruction": "Initialize the 0.19.0 production-source archive as a Git index, apply the 0.20 delta to the index, then checkout the patched index."
+}
