@@ -1,0 +1,141 @@
+{
+  "schema": "project-constellation-unified-release-v1",
+  "product": "Project Constellation",
+  "version": "0.20.0",
+  "sourceCommit": "ede575b9cb15af9d85563cb2bd41626f3228d088",
+  "extensionId": "geljambmkfjkhodgkpjhnmfojkpcamig",
+  "extensionBuild": {
+    "schema": "project-constellation-build",
+    "version": "0.20.0",
+    "mode": "production",
+    "oauth": {
+      "google": false,
+      "github": false
+    },
+    "extensionIdStable": true,
+    "builtAt": "2026-09-26T02:48:03.862Z"
+  },
+  "desktop": {
+    "electron": "44.4.4",
+    "electronBuilder": "26.16.1"
+  },
+  "artifacts": [
+    {
+      "name": "Project-Constellation-v0.20.0-Extension.zip",
+      "size": 442526,
+      "sha256": "a22825827f59fee2374cbd85f502c67f8c45b24b25ebbeefc1381547d8661933"
+    },
+    {
+      "name": "Project-Constellation-v0.20.0-source.zip",
+      "size": 975808,
+      "sha256": "4a8d71f9eb5eb9aab263d6fa15c59aad250d63aa60def368f5306b48a3e3eb26"
+    },
+    {
+      "name": "Project-Constellation-v0.20.0-Windows-Portable.zip",
+      "size": 153106082,
+      "sha256": "c0081ead03e9d73dbc2b0f7e3446c5cef567beb443b0bdd87930c353e2fd82b2"
+    },
+    {
+      "name": "Project-Constellation-v0.20.0-Windows-Setup.exe",
+      "size": 120275609,
+      "sha256": "faac2a211d61fef2355ab06452009f2eaed24430d3cebae0ba263fdb7edb8146"
+    },
+    {
+      "name": "v0.20.0-release-notes.md",
+      "size": 6662,
+      "sha256": "8f0e4259e7aee731404ab1eaf8b02fb06f9666cff0d298939757a463857fc3e4"
+    },
+    {
+      "name": "WINDOWS-RUNTIME-RECEIPT.json",
+      "size": 705,
+      "sha256": "f6974b123021bb6a417849636a211d95633ffd41d4f5fe9b9d85c70737246c3a"
+    }
+  ],
+  "verification": {
+    "sourceClean": true,
+    "portablePresent": true,
+    "checksumsGenerated": true,
+    "sourceCommit": "ede575b9cb15af9d85563cb2bd41626f3228d088",
+    "rootRegressionSuite": "PASS",
+    "rootValidation": "PASS",
+    "developmentBuild": "PASS",
+    "sourceReconstruction": {
+      "status": "PASS",
+      "tracked": 318,
+      "missing": 0,
+      "extra": 0,
+      "mismatches": 0,
+      "treeExact": true
+    },
+    "browserSmokeWorkflows": {
+      "status": "PASS",
+      "passed": 34,
+      "total": 34,
+      "note": "Extension/smoke source is unchanged from the exact 34/34 acceptance checkpoint; final production package also passed extension-load smoke."
+    },
+    "packagedExtensionLoadSmoke": "PASS",
+    "packagedExtensionSha256": "a22825827f59fee2374cbd85f502c67f8c45b24b25ebbeefc1381547d8661933",
+    "desktopDurableTaskSearchTests": {
+      "status": "PASS",
+      "passed": 22,
+      "total": 22
+    },
+    "desktopReliabilitySecurityTests": {
+      "status": "PASS",
+      "passed": 52,
+      "total": 52
+    },
+    "pageHookMirror": "PASS",
+    "desktopBridgePluginRelayDeviceAgent": "PASS",
+    "realChromiumExtensionDesktopDiskE2E": "PASS",
+    "updateService": "PASS",
+    "eventFirstNoFixedPollingRegression": "PASS",
+    "fullPermissionsRegression": "PASS",
+    "windowsNativeComputerUse": "PASS",
+    "electronTarget": "44.4.4",
+    "broadPermissionsPreserved": true,
+    "productionManifest": {
+      "permissions": 13,
+      "hostPermissions": 26,
+      "localhostBridge": true
+    },
+    "oauthEmbeddedClientIds": false,
+    "canonicalSourceZipSha256": "4a8d71f9eb5eb9aab263d6fa15c59aad250d63aa60def368f5306b48a3e3eb26",
+    "sourceDeltaSha256": "93d0831b1d6eb5ac7e25a1621d01ce96c470ddd85f9e672ddb397ffb674db62f",
+    "integratedElectronWindowsSmoke": "PASS",
+    "windowsPackagedPortable": "PASS",
+    "blobExactSourcePackaging": "PASS",
+    "sourceTree": "85cfb73fc7e207d7500d692369b491f41232aa99",
+    "authoritativeRuns": {
+      "linux": 36213968031,
+      "windows": 36213967995,
+      "stagingHead": "86121695a62f4c36ff0a60f760236459850125f3"
+    },
+    "deterministicExtensionPackaging": "PASS",
+    "playwrightManagedLinuxChromium": "CONFIGURED_IN_CANONICAL_SOURCE",
+    "linuxExactSourceGate": {
+      "status": "PASS",
+      "runId": 36213968031,
+      "stagingHead": "86121695a62f4c36ff0a60f760236459850125f3",
+      "sourceCommit": "ede575b9cb15af9d85563cb2bd41626f3228d088"
+    },
+    "windowsRuntime": {
+      "schema": "project-constellation-windows-runtime-v1",
+      "product": "Project Constellation",
+      "version": "0.20.0",
+      "sourceCommit": "ede575b9cb15af9d85563cb2bd41626f3228d088",
+      "platform": "windows-latest",
+      "electron": "44.4.4",
+      "nativeComputerUse": "PASS",
+      "integratedElectron": "PASS",
+      "packagedPortable": "PASS",
+      "portableFile": "Project-Constellation-Desktop-0.20.0-x64.zip",
+      "portableSize": 153106082,
+      "portableSha256": "c0081ead03e9d73dbc2b0f7e3446c5cef567beb443b0bdd87930c353e2fd82b2",
+      "setupFile": "Project-Constellation-Desktop-0.20.0-x64.exe",
+      "setupSize": 120275609,
+      "setupSha256": "faac2a211d61fef2355ab06452009f2eaed24430d3cebae0ba263fdb7edb8146"
+    }
+  },
+  "createdAt": "2026-09-26T03:37:41.665Z"
+}

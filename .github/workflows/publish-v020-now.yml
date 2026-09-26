@@ -1,0 +1,38 @@
+name: Publish Project Constellation v0.20.0 Now
+
+on:
+  push:
+    branches: ['release/v0.20.0-reliability-foundation']
+    paths: ['.github/workflows/publish-v020-now.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download verified Windows artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v0.20.0 >/dev/null 2>&1; then
+            echo "v0.20.0 already exists; refusing mutation" >&2
+            exit 1
+          fi
+          gh run download 36213967995 -n Project-Constellation-v0.20.0-Windows -D windows-dist
+          cp windows-dist/Project-Constellation-Desktop-0.20.0-x64.zip releases/v0.20.0/Project-Constellation-v0.20.0-Windows-Portable.zip
+          cp windows-dist/Project-Constellation-Desktop-0.20.0-x64.exe releases/v0.20.0/Project-Constellation-v0.20.0-Windows-Setup.exe
+          cp windows-dist/WINDOWS-RUNTIME-RECEIPT.json releases/v0.20.0/WINDOWS-RUNTIME-RECEIPT.json
+          cd releases/v0.20.0
+          sha256sum -c SHA256SUMS-v0.20.0.txt
+      - name: Publish immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create v0.20.0             releases/v0.20.0/Project-Constellation-v0.20.0-Extension.zip             releases/v0.20.0/Project-Constellation-v0.20.0-source.zip             releases/v0.20.0/Project-Constellation-v0.20.0-Windows-Portable.zip             releases/v0.20.0/Project-Constellation-v0.20.0-Windows-Setup.exe             releases/v0.20.0/RELEASE-RECEIPT-v0.20.0.json             releases/v0.20.0/SHA256SUMS-v0.20.0.txt             releases/v0.20.0/WINDOWS-RUNTIME-RECEIPT.json             releases/v0.20.0/v0.20.0-release-notes.md             --target "$GITHUB_SHA"             --title "Project Constellation v0.20.0"             --notes-file releases/v0.20.0/v0.20.0-release-notes.md             --latest
