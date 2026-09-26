@@ -1,0 +1,17 @@
+{
+  "schema": "project-constellation-windows-runtime-v1",
+  "product": "Project Constellation",
+  "version": "0.20.0",
+  "sourceCommit": "ede575b9cb15af9d85563cb2bd41626f3228d088",
+  "platform": "windows-latest",
+  "electron": "44.4.4",
+  "nativeComputerUse": "PASS",
+  "integratedElectron": "PASS",
+  "packagedPortable": "PASS",
+  "portableFile": "Project-Constellation-Desktop-0.20.0-x64.zip",
+  "portableSize": 153106082,
+  "portableSha256": "c0081ead03e9d73dbc2b0f7e3446c5cef567beb443b0bdd87930c353e2fd82b2",
+  "setupFile": "Project-Constellation-Desktop-0.20.0-x64.exe",
+  "setupSize": 120275609,
+  "setupSha256": "faac2a211d61fef2355ab06452009f2eaed24430d3cebae0ba263fdb7edb8146"
+}

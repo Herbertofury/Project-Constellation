@@ -1,0 +1,12 @@
+461f7db5801c77747f52a4fa94e78b419f108a4fd1948bf0da64b4e0248cd95c  desktop-package-verification.json
+047e07e13212000e29343b005999b88ed8b25d4b57fd6028c0bbd93c8eb15178  Project-Constellation-v0.19.1-Commander-0.7.4-Migration-Patch.zip
+653ffd8e65518c1cf49f2afb36b13859fd1323bba7c558505aa386ebe01c89d3  Project-Constellation-v0.19.1-Extension.zip
+648192ff397bf62e01318ad1db3fda4ef589e3cae6e6ef3a4e1926d5d8a767d9  Project-Constellation-v0.19.1-production-source.zip
+a4fcc998752df9372661a9f96c80fd3a7c4c2ca6386ecb8fec99e3244f17402b  Project-Constellation-v0.19.1-release-notes.md
+648192ff397bf62e01318ad1db3fda4ef589e3cae6e6ef3a4e1926d5d8a767d9  Project-Constellation-v0.19.1-source.zip
+400c1b138b926f394b64d0881e905def40d42abc05c41c9c420967d663935f5a  Project-Constellation-v0.19.1-Windows-Portable.zip
+0beaf4fbecfbe05ce946e55c17ccea8182d245c03f5c812f39c5cf9254039f0e  Project-Constellation-v0.19.1-Windows-Portable.zip.part-00
+8dfb81d788b5479fa566c7bef560230d79383c924f2b2f6498ae2aeb9cdc8d72  Project-Constellation-v0.19.1-Windows-Portable.zip.part-01
+c1be0a9f5ead5ae2305ddce9866a238b178f195866c61ba52a038fd7246d4399  Project-Constellation-v0.19.1-Windows-Portable.zip.part-02
+9467ad11e892c286a1fed9c71af041ec4fe06fa1f0a6e741c90fa5b017c3514c  Reassemble-Project-Constellation-v0.19.1.ps1
+57d4eff40acc7f0ec23798d7aa0861b02aea853c3735559db6103f314d7bd3eb  RELEASE-RECEIPT-v0.19.1.json

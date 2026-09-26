@@ -1,0 +1,44 @@
+{
+  "product": "Project Constellation",
+  "version": "0.19.0",
+  "sourceCommit": "0bca66f304dfdcf6afcda8a5189df372f81416db",
+  "extensionId": "geljambmkfjkhodgkpjhnmfojkpcamig",
+  "commanderBaseVersion": "0.7.4",
+  "portableSha256": "f9cb6a4d2bf0a5322d1a206eb388df36c2c156d2744d28ea7864998c445bdf3c",
+  "portableSize": 158399868,
+  "portableParts": [
+    {
+      "name": "Project-Constellation-v0.19.0-Windows-Portable.zip.part-00",
+      "size": 67108864,
+      "sha256": "65499c8da8fed1681d83be36b1ae3def5e97b2a2ffe49c6dc5b6bad088c6ccf2"
+    },
+    {
+      "name": "Project-Constellation-v0.19.0-Windows-Portable.zip.part-01",
+      "size": 67108864,
+      "sha256": "ce2ba531c8a6bf6b418e0e352bbf71d9ff51071ed51658b66fc8580e1cd5e6cc"
+    },
+    {
+      "name": "Project-Constellation-v0.19.0-Windows-Portable.zip.part-02",
+      "size": 24182140,
+      "sha256": "c83ce4f1d2b673ff7b19cb072ca1cb01e95d7938653f62c47b3892a4d46da435"
+    }
+  ],
+  "extensionSha256": "773e6362b2bb6c99b71558dd807e332c8a45d880b9abe79323336351f0a074f2",
+  "sourceSha256": "29b8e44b2ea72df94a035b1f4b3cd0ab9144bcade1568df3645885941743d680",
+  "migrationPatchSha256": "7a19db24856f155f8f5c529e747d2e6186f06e3d25bf4590ff3f4d084e51ea00",
+  "verification": {
+    "rootTests": "PASS",
+    "rootValidate": "PASS",
+    "rootBuildDev": "PASS",
+    "desktopRetainedSuite": "PASS",
+    "freshExtensionChromium": "PASS",
+    "scheduledRecoveryPackagedBytes": "PASS",
+    "sidePanelPackagedBytes": "PASS",
+    "windowsAsarIntegrity": "PASS",
+    "windowsNativeComputerUse": "NOT_EXECUTED_LINUX_HOST"
+  },
+  "oauth": {
+    "embeddedClientIds": false,
+    "note": "Matches prior v0.18.1 packaged release behavior; user-configured connections remain supported."
+  }
+}

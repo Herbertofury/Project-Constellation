@@ -1,0 +1,6 @@
+a22825827f59fee2374cbd85f502c67f8c45b24b25ebbeefc1381547d8661933  Project-Constellation-v0.20.0-Extension.zip
+4a8d71f9eb5eb9aab263d6fa15c59aad250d63aa60def368f5306b48a3e3eb26  Project-Constellation-v0.20.0-source.zip
+c0081ead03e9d73dbc2b0f7e3446c5cef567beb443b0bdd87930c353e2fd82b2  Project-Constellation-v0.20.0-Windows-Portable.zip
+faac2a211d61fef2355ab06452009f2eaed24430d3cebae0ba263fdb7edb8146  Project-Constellation-v0.20.0-Windows-Setup.exe
+8f0e4259e7aee731404ab1eaf8b02fb06f9666cff0d298939757a463857fc3e4  v0.20.0-release-notes.md
+f6974b123021bb6a417849636a211d95633ffd41d4f5fe9b9d85c70737246c3a  WINDOWS-RUNTIME-RECEIPT.json

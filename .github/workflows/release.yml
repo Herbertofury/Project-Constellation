@@ -1,99 +1,90 @@
-name: Production release
+name: Project Constellation Unified Release
 
 on:
-  push:
-    tags: ['v*']
-    branches: ['release/v*']
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing vX.Y.Z tag to publish
+        description: Release tag, for example v0.20.0
         required: true
-        type: string
+        default: v0.20.0
+  push:
+    tags: ['v*']
 
 permissions:
   contents: write
 
+env:
+  VERSION: 0.20.0
+
 jobs:
-  release:
+  verify-linux:
+    uses: ./.github/workflows/ci.yml
+
+  windows-release:
+    uses: ./.github/workflows/windows-runtime.yml
+
+  publish:
+    needs: [verify-linux, windows-release]
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID }}
-      PROJECT_CONSTELLATION_GITHUB_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GITHUB_CLIENT_ID }}
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.tag || github.ref }}
-      - name: Resolve release tag
-        id: release_meta
-        shell: bash
-        run: |
-          if [ -n "${{ inputs.tag }}" ]; then
-            TAG="${{ inputs.tag }}"
-          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
-            TAG="${GITHUB_REF_NAME}"
-          elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
-            TAG="${GITHUB_REF_NAME#release/}"
-          else
-            echo "Unsupported release ref: ${GITHUB_REF}" >&2
-            exit 1
-          fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Resolved release tag: $TAG"
+        with: { fetch-depth: 0 }
       - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-          cache: pip
-          cache-dependency-path: requirements-dev.txt
-      - run: python -m venv .venv
-      - run: .venv/bin/python -m pip install -r requirements-dev.txt
-      - run: .venv/bin/python -m playwright install --with-deps chromium
-      - run: npm run verify
-      - run: npm run build
-      - run: npm run package
-      - name: Confirm tag/version agreement
+        with: { node-version: 24 }
+
+      - name: Reconstruct exact release source
         shell: bash
         run: |
-          TAG="${{ steps.release_meta.outputs.tag }}"
-          VERSION="v$(node -p "require('./package.json').version")"
-          test "$TAG" = "$VERSION"
-      - name: Ensure immutable release tag exists
-        shell: bash
-        run: |
-          TAG="${{ steps.release_meta.outputs.tag }}"
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            TAG_COMMIT="$(git rev-list -n 1 "$TAG")"
-            HEAD_COMMIT="$(git rev-parse HEAD)"
-            test "$TAG_COMMIT" = "$HEAD_COMMIT"
-          else
-            git config user.name "Project Constellation Release"
-            git config user.email "actions@users.noreply.github.com"
-            git tag -a "$TAG" -m "Project Constellation $TAG"
-            git push origin "refs/tags/$TAG"
-          fi
-      - name: Publish or update GitHub Release
-        shell: bash
-        run: |
-          TAG="${{ steps.release_meta.outputs.tag }}"
-          VERSION="${TAG#v}"
-          NOTES="docs/v${VERSION}-release-notes.md"
-          test -f "$NOTES"
-          FILES=(releases/"$TAG"/Project-Constellation-v"$VERSION"-unpacked.zip releases/"$TAG"/Project-Constellation-v"$VERSION"-source.zip releases/"$TAG"/SHA256SUMS.txt releases/"$TAG"/RELEASE-RECEIPT.json)
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "Project Constellation $TAG" --notes-file "$NOTES"
-            gh release upload "$TAG" "${FILES[@]}" --clobber
-          else
-            gh release create "$TAG" "${FILES[@]}" --verify-tag --title "Project Constellation $TAG" --notes-file "$NOTES"
-          fi
-      - uses: actions/upload-artifact@v7
+          set -euo pipefail
+          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
+          test -f "$manifest"
+          baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
+          baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
+          delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
+          delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
+          [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
+          [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
+          root="$GITHUB_WORKSPACE/pc-source"
+          mkdir -p "$root"
+          unzip -q "$baseline" -d "$root"
+          git -C "$root" init -q
+          git -C "$root" config user.name 'Project Constellation Release'
+          git -C "$root" config user.email 'actions@users.noreply.github.com'
+          git -C "$root" config core.autocrlf false
+          git -C "$root" add -A
+          git -C "$root" commit -q -m 'Project Constellation verified production baseline'
+          git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
+          git -C "$root" checkout-index -a -f
+          [[ "$(node -p "require('$root/package.json').version")" == "$VERSION" ]]
+          echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v8
         with:
-          name: Project-Constellation-release
-          path: releases/v*/
+          name: Project-Constellation-v0.20.0-Windows
+          path: windows-dist
+
+      - name: Build exact extension and unified release set
+        env:
+          PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID }}
+          PROJECT_CONSTELLATION_GITHUB_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GITHUB_CLIENT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$PC_SOURCE_ROOT"
+          mkdir -p desktop/dist-electron
+          find "$GITHUB_WORKSPACE/windows-dist" -maxdepth 2 -type f -exec cp -f {} desktop/dist-electron/ \;
+          npm ci --no-audit --no-fund
+          if [[ -n "$PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID" && -n "$PROJECT_CONSTELLATION_GITHUB_CLIENT_ID" ]]; then npm run build; else node tools/build.mjs --mode=production --allow-unprovisioned-oauth; fi
+          node tools/package-unified-release.mjs
+
+      - name: Publish immutable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.tag || github.ref_name }}"
+          test "$TAG" = "v${VERSION}"
+          if gh release view "$TAG" >/dev/null 2>&1; then echo "Release $TAG already exists; refusing to mutate immutable published bytes." >&2; exit 1; fi
+          gh release create "$TAG" "$PC_SOURCE_ROOT"/releases/v${VERSION}/* --verify-tag --title "Project Constellation $TAG" --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
