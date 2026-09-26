@@ -382,10 +382,10 @@ index 0000000000000000000000000000000000000000..605510a2697b1563700902a12ae0bb3b
 +          if-no-files-found: error
 +          retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index aa4b1e342be87548d448db2772448e8552446fb2..0fce8c9ee238dab5b4a351e65dbe618df890fa88 100644
+index aa4b1e342be87548d448db2772448e8552446fb2..3c128096501855b8478d9cb89cab43fec12610dc 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -1,3 +1,27 @@
+@@ -1,3 +1,28 @@
 +# Changelog
 +
 +## 0.20.0 — Reliability Foundation
@@ -400,6 +400,7 @@ index aa4b1e342be87548d448db2772448e8552446fb2..0fce8c9ee238dab5b4a351e65dbe618d
 +- Fixed Windows process execution with a short-lived PowerShell wrapper plus a structured-argv fast path for explicit simple native calls, preserving embedded quotes, exit codes, partial output, and large output without weakening real PowerShell semantics; Windows PowerShell 5.1 remains a compatibility fallback. Packaged the canonical ChatGPT page hook with byte-for-byte drift protection.
 +- Made the integrated Electron acceptance gate wait for shell-runtime proof before closing on the first tool result, removing a Windows-only timing race from release validation.
 +- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
++- Made source archives reproducible from raw committed Git blobs so release ZIP contents cannot drift through export-time line-ending conversion.
 +- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
 +
 +## 0.19.1 - Recovery Efficiency Hotfix
@@ -2314,7 +2315,7 @@ index 0000000000000000000000000000000000000000..477d7030a308719ba587d29f77ce7139
 +- Full root regression/validation/build/smoke and retained desktop reliability suites are release gates for this hotfix.
 diff --git a/docs/v0.20.0-release-notes.md b/docs/v0.20.0-release-notes.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..0fb9faa197e9b1334291ea6b8d62995f7615be99
+index 0000000000000000000000000000000000000000..2e5ef0fd066f2b2358a1137d9e685a912f2f6fa6
 --- /dev/null
 +++ b/docs/v0.20.0-release-notes.md
 @@ -0,0 +1,52 @@
@@ -2353,7 +2354,7 @@ index 0000000000000000000000000000000000000000..0fb9faa197e9b1334291ea6b8d62995f
 +
 +## Release pipeline
 +
-+The 0.20 release toolchain generates the extension ZIP, committed-source ZIP, Windows portable ZIP, optional Windows installer, release notes, SHA-256 manifest, and machine-readable release receipt from one source revision. Published release bytes are treated as immutable; a later fix receives a new version rather than silently replacing an old release.
++The 0.20 release toolchain generates the extension ZIP, committed-source ZIP, Windows portable ZIP, optional Windows installer, release notes, SHA-256 manifest, and machine-readable release receipt from one source revision. The source archiver writes raw Git blob bytes rather than export-converted working-tree text, so CRLF-attributed PowerShell files remain byte-identical to the committed tree. Published release bytes are treated as immutable; a later fix receives a new version rather than silently replacing an old release.
 +
 +## Permission model
 +
@@ -4298,7 +4299,7 @@ index d76c178a45b89c451b2de842c5e9105738cafad8..b74c7375ffbc889151529dbbc05c2775
    }
  }
 diff --git a/package.json b/package.json
-index 7e2256bf7ea099e4ed25326e52093fd09f9105a2..7babba5148e02e4121b6a41c84720b4c3524cd24 100644
+index 7e2256bf7ea099e4ed25326e52093fd09f9105a2..68c1a2ef5e5e0311f4d2ecaa9395838db18e38d3 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,10 +1,10 @@
@@ -4310,7 +4311,7 @@ index 7e2256bf7ea099e4ed25326e52093fd09f9105a2..7babba5148e02e4121b6a41c84720b4c
    "type": "module",
    "scripts": {
 -    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/project-intelligence-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/project-identity-core.test.mjs && node tests/output-integrity-semantic.test.mjs && node tests/scheduled-task-guardian.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/chat-organizer-project-qol.test.mjs && node tests/runtime-error-hardening.test.mjs && node tests/ui-qol-static.test.mjs && node tests/unified-v019.test.mjs",
-+    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/project-intelligence-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/project-identity-core.test.mjs && node tests/output-integrity-semantic.test.mjs && node tests/scheduled-task-guardian.test.mjs && node tests/recovery-polling-regression.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/chat-organizer-project-qol.test.mjs && node tests/runtime-error-hardening.test.mjs && node tests/ui-qol-static.test.mjs && node tests/unified-v019.test.mjs && node tests/provider-health-core.test.mjs && node tests/incident-brain-core.test.mjs && node tests/state-event-bus-core.test.mjs && node tests/background-message-router-core.test.mjs && node tests/no-fixed-polling.test.mjs && node tests/brain-db-v11-static.test.mjs && node tests/provider-health-runtime-static.test.mjs && node tests/full-permissions-regression.test.mjs",
++    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/project-intelligence-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/project-identity-core.test.mjs && node tests/output-integrity-semantic.test.mjs && node tests/scheduled-task-guardian.test.mjs && node tests/recovery-polling-regression.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/chat-organizer-project-qol.test.mjs && node tests/runtime-error-hardening.test.mjs && node tests/ui-qol-static.test.mjs && node tests/unified-v019.test.mjs && node tests/provider-health-core.test.mjs && node tests/incident-brain-core.test.mjs && node tests/state-event-bus-core.test.mjs && node tests/background-message-router-core.test.mjs && node tests/no-fixed-polling.test.mjs && node tests/brain-db-v11-static.test.mjs && node tests/provider-health-runtime-static.test.mjs && node tests/full-permissions-regression.test.mjs && node tests/source-archive-static.test.mjs",
      "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
      "build": "node tools/build.mjs --mode=production",
      "build:dev": "node tools/build.mjs --mode=development",
@@ -4818,6 +4819,24 @@ index eac0fb510f0de4303ca7d59e16980c532ff5d031..0690c3e4fe9de4b2cfe45c4edbd98024
          page.wait_for_timeout(800)
          auth = page.evaluate("() => new Promise(resolve=>window.__listener({type:'PC_AUTH_STATUS'},null,resolve))")
          result = page.evaluate("""() => {const turns=window.__brain.filter(row=>row.type==='TURN_UPSERT');return {roles:turns.map(row=>row.data.role),chatIds:[...new Set(turns.map(row=>row.data.chatId))],turns:turns.length};}""")
+diff --git a/tests/source-archive-static.test.mjs b/tests/source-archive-static.test.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b0693844d547324759f2c10daf695d91bbf3724b
+--- /dev/null
++++ b/tests/source-archive-static.test.mjs
+@@ -0,0 +1,12 @@
++import assert from 'node:assert/strict';
++import fs from 'node:fs';
++
++const sourceArchive=fs.readFileSync(new URL('../tools/source-archive.mjs',import.meta.url),'utf8');
++const packager=fs.readFileSync(new URL('../tools/package-unified-release.mjs',import.meta.url),'utf8');
++assert.match(sourceArchive,/git', \['ls-tree', '-r', '-z'/);
++assert.match(sourceArchive,/git', \['cat-file', 'blob'/);
++assert.match(sourceArchive,/Unsupported git file mode/);
++assert.match(sourceArchive,/zip', \['-X', '-q', target, '-@'/);
++assert.match(packager,/writeExactGitSourceZip/);
++assert.doesNotMatch(packager,/git',\['archive'/);
++console.log('source archive static: PASS');
 diff --git a/tests/state-event-bus-core.test.mjs b/tests/state-event-bus-core.test.mjs
 new file mode 100644
 index 0000000000000000000000000000000000000000..589a945e72b0f582384ce119baa06b3dce0bbe9a
@@ -4895,16 +4914,17 @@ index 2f227084438aa92d4541a07f1d6bcefb27524002..ba9c30d01c1585fee6e758376f6af08c
  const backgroundPath = path.join(unpacked, 'background.js');
 diff --git a/tools/package-unified-release.mjs b/tools/package-unified-release.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b03ce1f6b7c388dabfbd3d60ae25c0cb7346cbcf
+index 0000000000000000000000000000000000000000..6a15659f2076298b200b452fe3e45015042f8453
 --- /dev/null
 +++ b/tools/package-unified-release.mjs
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,46 @@
 +import crypto from 'node:crypto';
 +import fs from 'node:fs';
 +import path from 'node:path';
 +import process from 'node:process';
 +import {spawnSync} from 'node:child_process';
 +import {fileURLToPath} from 'node:url';
++import {writeExactGitSourceZip} from './source-archive.mjs';
 +
 +const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 +const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
@@ -4921,7 +4941,7 @@ index 0000000000000000000000000000000000000000..b03ce1f6b7c388dabfbd3d60ae25c0cb
 +const run=(cmd,args,cwd=root)=>{const r=spawnSync(cmd,args,{cwd,encoding:'utf8',stdio:'pipe'});if(r.status!==0)throw new Error(`${cmd}: ${r.stderr||r.stdout}`);};
 +const zipDir=(source,target)=>{fs.rmSync(target,{force:true});if(process.platform==='win32'){const q=v=>String(v).replaceAll("'","''");run('powershell.exe',['-NoProfile','-Command',`Compress-Archive -Path '${q(path.join(source,'*'))}' -DestinationPath '${q(target)}' -CompressionLevel Optimal -Force`]);}else run('zip',['-X','-q','-r',target,'.'],source);};
 +const extensionZip=path.join(releaseDir,`Project-Constellation-v${version}-Extension.zip`);zipDir(path.join(root,'build','unpacked'),extensionZip);
-+const sourceZip=path.join(releaseDir,`Project-Constellation-v${version}-source.zip`);run('git',['archive','--format=zip',`--output=${sourceZip}`,commit]);
++const sourceZip=path.join(releaseDir,`Project-Constellation-v${version}-source.zip`);writeExactGitSourceZip({repoRoot:root,commit,target:sourceZip});
 +const desktopDir=path.join(root,'desktop','dist-electron');
 +const desktopZip=fs.existsSync(desktopDir)?fs.readdirSync(desktopDir).map(name=>path.join(desktopDir,name)).find(file=>/\.zip$/i.test(file)&&/0\.20\.0|Project-Constellation/i.test(path.basename(file))):null;
 +if(!desktopZip)throw new Error('Windows portable ZIP missing. Run desktop npm run build:portable:win first.');
@@ -4944,3 +4964,91 @@ index 0000000000000000000000000000000000000000..b03ce1f6b7c388dabfbd3d60ae25c0cb
 +const receipt={schema:'project-constellation-unified-release-v1',product:'Project Constellation',version,sourceCommit:commit,extensionId:'geljambmkfjkhodgkpjhnmfojkpcamig',extensionBuild:buildInfo,desktop:{electron:desktopPkg.devDependencies.electron,electronBuilder:desktopPkg.devDependencies['electron-builder']},artifacts:artifacts.map(file=>({name:path.basename(file),size:fs.statSync(file).size,sha256:sha256(file)})),verification:{sourceClean:true,portablePresent:true,checksumsGenerated:true,...externalVerification,...(windowsRuntime?{windowsRuntime}:{})},createdAt:new Date().toISOString()};
 +fs.writeFileSync(path.join(releaseDir,`RELEASE-RECEIPT-v${version}.json`),JSON.stringify(receipt,null,2)+'\n');
 +console.log(JSON.stringify(receipt,null,2));
+diff --git a/tools/source-archive.mjs b/tools/source-archive.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e7053639b4e46d49b0589e6ad9ba1797dc4b622
+--- /dev/null
++++ b/tools/source-archive.mjs
+@@ -0,0 +1,82 @@
++import crypto from 'node:crypto';
++import fs from 'node:fs';
++import os from 'node:os';
++import path from 'node:path';
++import process from 'node:process';
++import {spawnSync} from 'node:child_process';
++import {fileURLToPath, pathToFileURL} from 'node:url';
++
++function run(repoRoot, command, args, options = {}) {
++  const result = spawnSync(command, args, {cwd: repoRoot, ...options});
++  if (result.status !== 0) {
++    const stderr = Buffer.isBuffer(result.stderr) ? result.stderr.toString('utf8') : String(result.stderr || '');
++    const stdout = Buffer.isBuffer(result.stdout) ? result.stdout.toString('utf8') : String(result.stdout || '');
++    throw new Error(`${command} ${args.join(' ')} failed: ${stderr || stdout || `exit ${result.status}`}`);
++  }
++  return result;
++}
++
++function sha256(file) {
++  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
++}
++
++function parseTree(buffer) {
++  return buffer.toString('utf8').split('\0').filter(Boolean).map(record => {
++    const tab = record.indexOf('\t');
++    if (tab < 0) throw new Error(`Malformed git ls-tree record: ${record}`);
++    const [mode, type, object] = record.slice(0, tab).split(' ');
++    const filePath = record.slice(tab + 1);
++    if (type !== 'blob') throw new Error(`Unsupported git tree entry type ${type}: ${filePath}`);
++    if (!['100644', '100755'].includes(mode)) throw new Error(`Unsupported git file mode ${mode}: ${filePath}`);
++    if (!filePath || path.isAbsolute(filePath) || filePath.split('/').includes('..') || /[\r\n]/.test(filePath) || filePath.startsWith('-')) {
++      throw new Error(`Unsafe archive path: ${JSON.stringify(filePath)}`);
++    }
++    return {mode, object, filePath};
++  }).sort((a, b) => a.filePath.localeCompare(b.filePath));
++}
++
++function zipExact(stage, target, paths) {
++  fs.mkdirSync(path.dirname(target), {recursive: true});
++  fs.rmSync(target, {force: true});
++  if (process.platform === 'win32') {
++    const quote = value => String(value).replaceAll("'", "''");
++    const command = `Compress-Archive -Path '${quote(path.join(stage, '*'))}' -DestinationPath '${quote(target)}' -CompressionLevel Optimal -Force`;
++    run(stage, 'powershell.exe', ['-NoProfile', '-Command', command], {encoding: 'utf8'});
++    return;
++  }
++  const input = `${paths.join('\n')}\n`;
++  run(stage, 'zip', ['-X', '-q', target, '-@'], {encoding: 'utf8', input});
++}
++
++export function writeExactGitSourceZip({repoRoot, commit = 'HEAD', target}) {
++  const root = path.resolve(repoRoot);
++  const out = path.resolve(target);
++  const treeResult = run(root, 'git', ['ls-tree', '-r', '-z', commit], {encoding: null, maxBuffer: 64 * 1024 * 1024});
++  const entries = parseTree(treeResult.stdout);
++  const timestampResult = run(root, 'git', ['show', '-s', '--format=%ct', commit], {encoding: 'utf8'});
++  const epochSeconds = Number(String(timestampResult.stdout).trim());
++  if (!Number.isFinite(epochSeconds)) throw new Error('Could not resolve source commit timestamp.');
++  const stableTime = new Date(Math.max(epochSeconds, 315532800) * 1000); // ZIP timestamps cannot predate 1980.
++  const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'project-constellation-source-'));
++  try {
++    for (const entry of entries) {
++      const destination = path.join(stage, ...entry.filePath.split('/'));
++      fs.mkdirSync(path.dirname(destination), {recursive: true});
++      const blob = run(root, 'git', ['cat-file', 'blob', entry.object], {encoding: null, maxBuffer: 256 * 1024 * 1024}).stdout;
++      fs.writeFileSync(destination, blob, {mode: entry.mode === '100755' ? 0o755 : 0o644});
++      fs.utimesSync(destination, stableTime, stableTime);
++    }
++    zipExact(stage, out, entries.map(entry => entry.filePath));
++  } finally {
++    fs.rmSync(stage, {recursive: true, force: true});
++  }
++  return {target: out, files: entries.length, sha256: sha256(out), commit};
++}
++
++const invoked = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
++if (invoked) {
++  const repoRoot = path.resolve(process.argv[2] || '.');
++  const commit = process.argv[3] || 'HEAD';
++  const target = path.resolve(process.argv[4] || path.join(repoRoot, 'Project-Constellation-source.zip'));
++  console.log(JSON.stringify(writeExactGitSourceZip({repoRoot, commit, target}), null, 2));
++}
