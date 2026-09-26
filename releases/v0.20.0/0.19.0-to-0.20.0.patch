@@ -1,6 +1,6 @@
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
 new file mode 100644
-index 0000000..ca77c78
+index 0000000000000000000000000000000000000000..ca77c785978b9d2722e4b387164728e04338069c
 --- /dev/null
 +++ b/.github/workflows/ci.yml
 @@ -0,0 +1,82 @@
@@ -88,7 +88,7 @@ index 0000000..ca77c78
 +          if-no-files-found: ignore
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
 new file mode 100644
-index 0000000..b76694d
+index 0000000000000000000000000000000000000000..b76694d89dcafcfeaba7a4892c775e29ffebeaf7
 --- /dev/null
 +++ b/.github/workflows/release.yml
 @@ -0,0 +1,90 @@
@@ -184,7 +184,7 @@ index 0000000..b76694d
 +          gh release create "$TAG" "$PC_SOURCE_ROOT"/releases/v${VERSION}/* --verify-tag --title "Project Constellation $TAG" --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
 diff --git a/.github/workflows/windows-runtime.yml b/.github/workflows/windows-runtime.yml
 new file mode 100644
-index 0000000..605510a
+index 0000000000000000000000000000000000000000..605510a2697b1563700902a12ae0bb3bd5f5fb9c
 --- /dev/null
 +++ b/.github/workflows/windows-runtime.yml
 @@ -0,0 +1,193 @@
@@ -382,7 +382,7 @@ index 0000000..605510a
 +          if-no-files-found: error
 +          retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index aa4b1e3..4eb8771 100644
+index aa4b1e342be87548d448db2772448e8552446fb2..3bde51b65145de47daf01980fe7c66072da866aa 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
 @@ -1,3 +1,26 @@
@@ -397,7 +397,7 @@ index aa4b1e3..4eb8771 100644
 +- Added the desktop Update Center with SHA-256 staging, rollback backups, and one-shot startup checks.
 +- Unified user-facing desktop branding under Project Constellation while preserving migration-sensitive Commander state/CLI identities.
 +- Updated Electron to 44.4.4 stable and added a Windows-native build/runtime gate plus a unified immutable release workflow.
-+- Fixed Windows PowerShell process execution with a short-lived verbatim script wrapper that preserves quoted native arguments and exit codes; packaged the canonical ChatGPT page hook with byte-for-byte drift protection.
++- Fixed Windows process execution with a short-lived PowerShell wrapper plus a structured-argv fast path for explicit simple native calls, preserving embedded quotes, exit codes, partial output, and large output without weakening real PowerShell semantics; Windows PowerShell 5.1 remains a compatibility fallback. Packaged the canonical ChatGPT page hook with byte-for-byte drift protection.
 +- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
 +- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
 +
@@ -413,7 +413,7 @@ index aa4b1e3..4eb8771 100644
  
  
 diff --git a/desktop/README.md b/desktop/README.md
-index eccdfc9..5c78e6a 100644
+index eccdfc906d461ad4f0824e192428c0680282943b..5c78e6af2ae079d0d01e40075e5931f478296f11 100644
 --- a/desktop/README.md
 +++ b/desktop/README.md
 @@ -1,80 +1,98 @@
@@ -565,7 +565,7 @@ index eccdfc9..5c78e6a 100644
 -The release evidence includes 50 Node regressions and 17 scenarios exercised in **real Electron 44.4.4 on Linux**, both unpacked and through the delivered application archive. The ChatGPT response server is an owned fixture, not an authenticated account. The Windows portable retains its prior Electron runtime (44.4.3); native Windows, camera/microphone, PowerShell patch execution, and your authenticated account have not been tested in this environment. No full platform parity or registered remote-app status is claimed.
 +Project Constellation is not an official OpenAI/ChatGPT desktop application registration and does not remove account/platform limits. User-authenticated ChatGPT acceptance remains a final user-environment check after delivery; local fixtures are never presented as proof of account-specific behavior.
 diff --git a/desktop/RELEASE-MANIFEST.json b/desktop/RELEASE-MANIFEST.json
-index 732f71b..5f21505 100644
+index 732f71be2d6475a37cdd64ac20b8c1dff28fc61f..5f21505fe4932fb66146acddcb6f7b23ed28983d 100644
 --- a/desktop/RELEASE-MANIFEST.json
 +++ b/desktop/RELEASE-MANIFEST.json
 @@ -1,31 +1,38 @@
@@ -627,7 +627,7 @@ index 732f71b..5f21505 100644
  }
 diff --git a/desktop/browser-companion/page-hook.js b/desktop/browser-companion/page-hook.js
 new file mode 100644
-index 0000000..a9de071
+index 0000000000000000000000000000000000000000..a9de07189c306a204653bc94113fd95df3283204
 --- /dev/null
 +++ b/desktop/browser-companion/page-hook.js
 @@ -0,0 +1,105 @@
@@ -737,7 +737,7 @@ index 0000000..a9de071
 +  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true});
 +})();
 diff --git a/desktop/electron/call-ledger.cjs b/desktop/electron/call-ledger.cjs
-index aa4b899..b1644cc 100644
+index aa4b8993041db21503a2c37ecdc80d96449a32cd..b1644cc5f7bd3d1f86e2b479d770986cd6861573 100644
 --- a/desktop/electron/call-ledger.cjs
 +++ b/desktop/electron/call-ledger.cjs
 @@ -4,9 +4,9 @@ function canonical(value){if(Array.isArray(value))return value.map(canonical);if
@@ -753,7 +753,7 @@ index aa4b899..b1644cc 100644
      let calls=this.sessions.get(session);if(!calls){calls=new Map();this.sessions.set(session,calls);}
      const previous=calls.get(call.id);
 diff --git a/desktop/electron/chat-preload.cjs b/desktop/electron/chat-preload.cjs
-index 2bf4ab3..d871c27 100644
+index 2bf4ab3205cc5b7bc2940da27b67f8b33fd83c26..d871c2760a9a6bf4280ab0be20ecb9245fc50a45 100644
 --- a/desktop/electron/chat-preload.cjs
 +++ b/desktop/electron/chat-preload.cjs
 @@ -3,7 +3,7 @@
@@ -850,7 +850,7 @@ index 2bf4ab3..d871c27 100644
 +  window.addEventListener('hashchange', () => handleRouteChange(), { passive:true });
  })();
 diff --git a/desktop/electron/chrome.js b/desktop/electron/chrome.js
-index 8a322bb..b2cb7cd 100644
+index 8a322bbbe1539786551025b90a70ae0a34561259..b2cb7cd1ebee172ad2c805ceed87f64d05894b74 100644
 --- a/desktop/electron/chrome.js
 +++ b/desktop/electron/chrome.js
 @@ -35,7 +35,7 @@
@@ -863,7 +863,7 @@ index 8a322bb..b2cb7cd 100644
    $('theme').onchange=e=>changePref({theme:e.target.value});
    $('chat-zoom').onchange=e=>changePref({chatZoom:Number(e.target.value)});
 diff --git a/desktop/electron/fixture-chat.html b/desktop/electron/fixture-chat.html
-index 366f174..7565c67 100644
+index 366f174487f667212cf981e63facea646f026c5e..7565c67ae653d730c1ed026b0c150a44a1d2b7d4 100644
 --- a/desktop/electron/fixture-chat.html
 +++ b/desktop/electron/fixture-chat.html
 @@ -1,5 +1,5 @@
@@ -883,7 +883,7 @@ index 366f174..7565c67 100644
    };
    form.addEventListener('submit',event=>{event.preventDefault();const value=text();turn('user',value);void fetch('https://chatgpt.com/backend-api/conversation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:value}]})}).catch(()=>{});clear();});
 diff --git a/desktop/electron/main.cjs b/desktop/electron/main.cjs
-index 00faf21..6327eb7 100644
+index 00faf21164c9b3ecb0cb02ae694d3b62d606b4b5..6327eb7e57ceeec0e556469e21488fe3b1356b34 100644
 --- a/desktop/electron/main.cjs
 +++ b/desktop/electron/main.cjs
 @@ -15,7 +15,7 @@ let overlayVisible = false;
@@ -1119,7 +1119,7 @@ index 00faf21..6327eb7 100644
    app.quit();
  });
 diff --git a/desktop/electron/shell-preload.cjs b/desktop/electron/shell-preload.cjs
-index fe2f8bb..f656001 100644
+index fe2f8bb77f96596d4119f97d537d234688f645d7..f6560013787afbe1b3a36ab7bf1a0e1e0f51be26 100644
 --- a/desktop/electron/shell-preload.cjs
 +++ b/desktop/electron/shell-preload.cjs
 @@ -36,6 +36,10 @@ contextBridge.exposeInMainWorld('commanderShell', {
@@ -1134,7 +1134,7 @@ index fe2f8bb..f656001 100644
      if (typeof callback !== 'function') return () => {};
      const listener = (_event, payload) => callback(payload);
 diff --git a/desktop/electron/shell.html b/desktop/electron/shell.html
-index 7e064df..9a95a4e 100644
+index 7e064df2223e19cc1ad052a8c17022d91d6d863b..9a95a4ee9bb58f4ba9b1c81037c2962ee4282c7f 100644
 --- a/desktop/electron/shell.html
 +++ b/desktop/electron/shell.html
 @@ -5,20 +5,20 @@
@@ -1193,7 +1193,7 @@ index 7e064df..9a95a4e 100644
  <script src="./shell.js"></script>
  <script src="./workspace.js"></script>
 diff --git a/desktop/electron/shell.js b/desktop/electron/shell.js
-index 07620d8..31ec916 100644
+index 07620d866d362d68576acd06070a7e5f494e6eaa..31ec9164acef93e54a862879a1f1016d6f0bfc8a 100644
 --- a/desktop/electron/shell.js
 +++ b/desktop/electron/shell.js
 @@ -111,7 +111,7 @@
@@ -1261,7 +1261,7 @@ index 07620d8..31ec916 100644
    $('full-access').addEventListener('click', async () => { await api.setFullAccess(!(snapshot?.config?.allowedRoots || []).includes('*')); await refresh(); });
    $('emergency').addEventListener('click', async () => { await api.setEmergencyLock(!snapshot?.emergencyLock); await refresh(); });
 diff --git a/desktop/electron/tasks.js b/desktop/electron/tasks.js
-index c6438e7..6406e4f 100644
+index c6438e718b0938f19d1f41404cf37dd7a9caf27c..6406e4f8f8efc9cf115c4f6ea61ea3cf1aa5e4d0 100644
 --- a/desktop/electron/tasks.js
 +++ b/desktop/electron/tasks.js
 @@ -22,7 +22,7 @@
@@ -1274,7 +1274,7 @@ index c6438e7..6406e4f 100644
        }
        card.append(actions);$('task-list').append(card);
 diff --git a/desktop/package.json b/desktop/package.json
-index 2ea154d..46d0ffd 100644
+index 2ea154df0df494e68fa22cc4329c7ff59afe0fa7..46d0ffd27b5973f463bd5abce91a49c0a47a1a35 100644
 --- a/desktop/package.json
 +++ b/desktop/package.json
 @@ -1,11 +1,15 @@
@@ -1338,7 +1338,7 @@ index 2ea154d..46d0ffd 100644
    }
  }
 diff --git a/desktop/plugin/plugin.json b/desktop/plugin/plugin.json
-index 5410407..290c504 100644
+index 541040727dea7a1d31c63c4ab7877d4faba30100..290c50423ed32c6a5142d90b05574740c7b9342f 100644
 --- a/desktop/plugin/plugin.json
 +++ b/desktop/plugin/plugin.json
 @@ -1,7 +1,7 @@
@@ -1352,7 +1352,7 @@ index 5410407..290c504 100644
      "name": "Herbertofury",
 diff --git a/desktop/scripts/apply-update.ps1 b/desktop/scripts/apply-update.ps1
 new file mode 100644
-index 0000000..5737089
+index 0000000000000000000000000000000000000000..5737089cc1b1c862352aba75e671e48532b8b2f8
 --- /dev/null
 +++ b/desktop/scripts/apply-update.ps1
 @@ -0,0 +1,28 @@
@@ -1385,7 +1385,7 @@ index 0000000..5737089
 +  throw
 +} finally { if(Test-Path $stage){Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue} }
 diff --git a/desktop/scripts/electron-smoke.ps1 b/desktop/scripts/electron-smoke.ps1
-index eb470aa..d5c3f37 100644
+index eb470aa990afaa80b05195db3f4a0fefe6aced51..d5c3f371458336ca9fed426a7a8f36a835def8fb 100644
 --- a/desktop/scripts/electron-smoke.ps1
 +++ b/desktop/scripts/electron-smoke.ps1
 @@ -21,7 +21,7 @@ if (-not (Test-Path $Output)) {
@@ -1405,7 +1405,7 @@ index eb470aa..d5c3f37 100644
 +Write-Host 'Project Constellation integrated Electron ChatGPT smoke: PASS'
 diff --git a/desktop/scripts/rollback-update.ps1 b/desktop/scripts/rollback-update.ps1
 new file mode 100644
-index 0000000..3e0af9a
+index 0000000000000000000000000000000000000000..3e0af9aecae73a4352d61f5d7932f1de0056c687
 --- /dev/null
 +++ b/desktop/scripts/rollback-update.ps1
 @@ -0,0 +1,17 @@
@@ -1427,7 +1427,7 @@ index 0000000..3e0af9a
 +if(-not (Test-Path -LiteralPath $exe)){throw 'Rollback restored files but executable is missing.'}
 +Start-Process -FilePath $exe | Out-Null
 diff --git a/desktop/src/browser-bridge.mjs b/desktop/src/browser-bridge.mjs
-index 2056591..b90ef27 100644
+index 20565913f74efb0bdf8175f8e2053248df838fde..b90ef27d7bb514aed3f08840ff93a7b8b8ce82b5 100644
 --- a/desktop/src/browser-bridge.mjs
 +++ b/desktop/src/browser-bridge.mjs
 @@ -32,7 +32,7 @@ const aliasMap = new Map([
@@ -1476,7 +1476,7 @@ index 2056591..b90ef27 100644
    process.on('SIGINT', shutdown);
    process.on('SIGTERM', shutdown);
 diff --git a/desktop/src/config.mjs b/desktop/src/config.mjs
-index d1fd0e2..893d576 100644
+index d1fd0e281fcfd6a078bf21550d259b1ff13db6a6..893d5767cff88efbf74be2f6102286df95f1688c 100644
 --- a/desktop/src/config.mjs
 +++ b/desktop/src/config.mjs
 @@ -5,7 +5,7 @@ import fs from 'node:fs';
@@ -1500,18 +1500,97 @@ index d1fd0e2..893d576 100644
    const config = { ...defaults, ...persisted };
    if (envRoots) config.allowedRoots = envRoots;
 diff --git a/desktop/src/process-manager.mjs b/desktop/src/process-manager.mjs
-index 14b8281..71b6ea3 100644
+index 14b8281a4749e0b0f8edac62465e93850d4c4ba7..f36d53ffa68ea627a22be61f6252398efb56a29d 100644
 --- a/desktop/src/process-manager.mjs
 +++ b/desktop/src/process-manager.mjs
-@@ -17,6 +17,27 @@ function persist(s){
+@@ -1,4 +1,5 @@
+ import fs from 'node:fs/promises';
++import {existsSync} from 'node:fs';
+ import path from 'node:path';
+ import crypto from 'node:crypto';
+ import os from 'node:os';
+@@ -17,6 +18,101 @@ function persist(s){
    return s.persistQueue;
  }
  export function listManagedProcesses(state){return [...state.processes.values()].map(snapshot);}
++export function resolveWindowsPowerShell(shell,env=process.env,exists=existsSync){
++  const requested=String(shell||'powershell').trim();
++  if(/[/\\]/.test(requested))return requested;
++  const lower=requested.toLowerCase();
++  if(lower==='pwsh'||lower==='pwsh.exe')return 'pwsh.exe';
++  // An explicit powershell.exe request is a compatibility opt-in to Windows PowerShell 5.1.
++  if(lower==='powershell.exe')return 'powershell.exe';
++  if(lower==='powershell'||!requested){
++    const dirs=String(env.Path||env.PATH||'').split(';').map(x=>x.trim().replace(/^"|"$/g,'')).filter(Boolean);
++    const candidates=dirs.map(dir=>path.win32.join(dir,'pwsh.exe'));
++    if(env.ProgramFiles)candidates.push(path.win32.join(String(env.ProgramFiles),'PowerShell','7','pwsh.exe'));
++    if(candidates.some(candidate=>{try{return Boolean(exists(candidate));}catch{return false;}}))return 'pwsh.exe';
++  }
++  return 'powershell.exe';
++}
++export function parseWindowsDirectNativeInvocation(command){
++  const raw=String(command??'');
++  let i=0;
++  const skip=()=>{while(i<raw.length&&/\s/.test(raw[i]))i++;};
++  const fail=()=>null;
++  skip();
++  // Only optimize the explicit PowerShell call operator form. This keeps arbitrary
++  // PowerShell source, pipelines, functions and expansion on the normal shell path.
++  if(raw[i]!=='&')return null;
++  i++;
++  if(i>=raw.length||!/\s/.test(raw[i]))return null;
++  skip();
++  const tokens=[];
++  while(i<raw.length){
++    skip();if(i>=raw.length)break;
++    let value='';
++    if(raw[i]==="'"){
++      i++;
++      let closed=false;
++      while(i<raw.length){
++        if(raw[i]==="'"){
++          if(raw[i+1]==="'"){value+="'";i+=2;continue;}
++          i++;closed=true;break;
++        }
++        value+=raw[i++];
++      }
++      if(!closed)return fail();
++    }else if(raw[i]==='"'){
++      i++;
++      let closed=false;
++      while(i<raw.length){
++        const ch=raw[i++];
++        if(ch==='"'){closed=true;break;}
++        // Double-quoted PowerShell strings can expand variables/subexpressions and
++        // backtick escapes. Leave those to PowerShell rather than changing meaning.
++        if(ch==='$'||ch==='`')return fail();
++        value+=ch;
++      }
++      if(!closed)return fail();
++    }else{
++      const start=i;
++      while(i<raw.length&&!/\s/.test(raw[i])){
++        if(/[;|><&(){}$`]/.test(raw[i]))return fail();
++        i++;
++      }
++      value=raw.slice(start,i);
++    }
++    if(!value)return fail();
++    tokens.push(value);
++    if(i<raw.length&&!/\s/.test(raw[i]))return fail();
++  }
++  if(!tokens.length)return null;
++  const exe=tokens[0];
++  // Restrict the bypass to unmistakable native Windows executables. PowerShell
++  // scripts/functions/modules continue through PowerShell with full semantics.
++  if(!/\.(?:exe|com)$/i.test(exe))return null;
++  return {exe,args:tokens.slice(1),direct:true};
++}
 +export function buildShellSpec(command,shell,platform=process.platform,scriptPath=''){
 +  const raw=String(command??'');
 +  if(platform!=='win32')return {exe:shell||'/bin/bash',args:['-lc',raw]};
 +  if(String(shell||'').toLowerCase().includes('cmd'))return {exe:'cmd.exe',args:['/d','/s','/c',raw]};
-+  const exe=shell&&/[/\\]/.test(shell)?shell:'powershell.exe';
++  const exe=resolveWindowsPowerShell(shell);
 +  if(!scriptPath)scriptPath=path.join(os.tmpdir(),`project-constellation-${crypto.createHash('sha256').update(raw).digest('hex').slice(0,16)}.ps1`);
 +  // Put the user's PowerShell source in a script file verbatim. -Command/Invoke-Expression
 +  // re-parses native argument quoting on Windows and can silently corrupt quoted `node -e`
@@ -1519,6 +1598,7 @@ index 14b8281..71b6ea3 100644
 +  // child inherit stdin for interactive commands. The trailer only converts the final
 +  // PowerShell/native status into the process exit code.
 +  const scriptContent=`$ProgressPreference='SilentlyContinue'
++if(Get-Variable PSNativeCommandArgumentPassing -ErrorAction SilentlyContinue){$PSNativeCommandArgumentPassing='Standard'}
 +$global:LASTEXITCODE=0
 +${raw}
 +$pcSuccess=$?
@@ -1531,14 +1611,20 @@ index 14b8281..71b6ea3 100644
  export async function startManagedProcess(args,config,state){
    assertCommandAllowed(args.command,config);
    const roots=Array.isArray(config.allowedRoots)?config.allowedRoots:[];
-@@ -25,21 +46,24 @@ export async function startManagedProcess(args,config,state){
+@@ -25,21 +121,30 @@ export async function startManagedProcess(args,config,state){
    const timeout=Number(args.timeout_ms??0);
    if(!Number.isFinite(timeout)||timeout<0)throw new Error('timeout_ms must be a non-negative finite number');
    const shell=args.shell||config.defaultShell;
 -  const spec=process.platform==='win32' ? (String(shell||'').toLowerCase().includes('cmd')?{exe:'cmd.exe',args:['/d','/s','/c',args.command]}:{exe:shell&&/[/\\]/.test(shell)?shell:'powershell.exe',args:['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command',args.command]}) : {exe:shell||'/bin/bash',args:['-lc',args.command]};
    const id=`proc_${crypto.randomBytes(8).toString('hex')}`;const dir=path.join(state.baseDir,'processes');await fs.mkdir(dir,{recursive:true});
 +  const scriptPath=process.platform==='win32'&&!String(shell||'').toLowerCase().includes('cmd')?path.join(dir,`${id}.ps1`):'';
-+  const spec=buildShellSpec(args.command,shell,process.platform,scriptPath);
++  // PowerShell's native-command re-serialization on Windows can still corrupt
++  // embedded quote characters for some executables (notably `node.exe -e`). For
++  // an explicit, simple `& 'program.exe' ...` invocation with no shell operators,
++  // bypass PowerShell and hand structured argv directly to CreateProcess via Node.
++  // Supplying an explicit shell override always opts back into shell semantics.
++  const direct=process.platform==='win32'&&!args.shell?parseWindowsDirectNativeInvocation(args.command):null;
++  const spec=direct||buildShellSpec(args.command,shell,process.platform,scriptPath);
    const logPath=path.join(dir,`${id}.log`);await fs.writeFile(logPath,'');
 +  if(spec.scriptContent){const bom=Buffer.from([0xef,0xbb,0xbf]);await fs.writeFile(spec.scriptPath,Buffer.concat([bom,Buffer.from(spec.scriptContent,'utf8')]));}
    const child=spawn(spec.exe,spec.args,{cwd,stdio:['pipe','pipe','pipe'],windowsHide:true,detached:process.platform!=='win32'});
@@ -1559,7 +1645,7 @@ index 14b8281..71b6ea3 100644
      if(!terminalStates.has(s.status))s.status=code===0?'finished':'failed';
      s.exitCode=code;s.signal=signal;s.finishedAt=new Date().toISOString();await persist(s);
    });
-@@ -92,7 +116,9 @@ export async function stopManagedProcess(s,status='terminated'){
+@@ -92,7 +197,9 @@ export async function stopManagedProcess(s,status='terminated'){
  }
  export async function recoverProcesses(state){
    const dir=path.join(state.baseDir,'processes');await fs.mkdir(dir,{recursive:true});
@@ -1571,7 +1657,7 @@ index 14b8281..71b6ea3 100644
      try{const metaPath=path.join(dir,name),s=JSON.parse(await fs.readFile(metaPath,'utf8'));const id=s.session_id;
        state.processes.set(id,{...s,id,pid:null,status:terminalStates.has(s.status)?s.status:'interrupted',error:terminalStates.has(s.status)?s.error:'Application restarted; the previous process is not being controlled. Output was preserved.',logPath:path.join(dir,`${id}.log`),metaPath,readBytes:0,writeQueue:Promise.resolve()});
 diff --git a/desktop/src/tool-definitions.mjs b/desktop/src/tool-definitions.mjs
-index 13a1459..7a650c9 100644
+index 13a145968091eade77aecec3a425e50815561784..7a650c9866d92aa91ca3861edb32dda53fa9b53e 100644
 --- a/desktop/src/tool-definitions.mjs
 +++ b/desktop/src/tool-definitions.mjs
 @@ -10,11 +10,11 @@ const tool = (name, description, inputSchema, annotations = {}) => ({
@@ -1617,7 +1703,7 @@ index 13a1459..7a650c9 100644
    ];
  }
 diff --git a/desktop/src/tools.mjs b/desktop/src/tools.mjs
-index f15be46..a02ccf1 100644
+index f15be464425dc0a2ef44a073c1d15852d3740d20..a02ccf10744e3b802cf9a2c9340e2f08d7fc1488 100644
 --- a/desktop/src/tools.mjs
 +++ b/desktop/src/tools.mjs
 @@ -146,9 +146,9 @@ async function listSystemProcesses() {
@@ -1661,7 +1747,7 @@ index f15be46..a02ccf1 100644
          default: throw new Error(`Unknown tool: ${name}`);
 diff --git a/desktop/src/update-service.mjs b/desktop/src/update-service.mjs
 new file mode 100644
-index 0000000..f1c4cd4
+index 0000000000000000000000000000000000000000..f1c4cd44231fb2f823e7c1d0a3ced886c94c49ed
 --- /dev/null
 +++ b/desktop/src/update-service.mjs
 @@ -0,0 +1,73 @@
@@ -1739,7 +1825,7 @@ index 0000000..f1c4cd4
 +  return Object.freeze({load,check,stage,markInstalling,markRollback,snapshot,paths,hasRollback});
 +}
 diff --git a/desktop/tests/browser-background-smoke.mjs b/desktop/tests/browser-background-smoke.mjs
-index a8497d8..36333e4 100644
+index a8497d829f03e987cfd7c0be56eabf3412a2dc66..36333e4bbf57ace48e37dab60130e4e72ab9013c 100644
 --- a/desktop/tests/browser-background-smoke.mjs
 +++ b/desktop/tests/browser-background-smoke.mjs
 @@ -13,7 +13,7 @@ const message=payload=>new Promise((resolve,reject)=>{const timer=setTimeout(()=
@@ -1752,7 +1838,7 @@ index a8497d8..36333e4 100644
   const proof=path.join(tmp,'proof.txt'); const write=await message({type:'CC_CALL',sessionToken:boot.sessionToken,call:{nonce:boot.nonce,id:'write',tool:'fs_write_text',args:{path:proof,content:'unified-proof',mode:'rewrite'}}}); assert.equal(write.ok,true,JSON.stringify(write)); assert.equal(await fsp.readFile(proof,'utf8'),'unified-proof');
   console.log('Project Constellation unified extension -> real desktop bridge smoke: PASS');
 diff --git a/desktop/tests/browser-bridge-smoke.mjs b/desktop/tests/browser-bridge-smoke.mjs
-index aad0b6d..0d44c8d 100644
+index aad0b6d022e767e2f01d31bab1bc8ace8ed51087..0d44c8d8c9f0e303ca9bc8e5fb347dadaa723923 100644
 --- a/desktop/tests/browser-bridge-smoke.mjs
 +++ b/desktop/tests/browser-bridge-smoke.mjs
 @@ -34,13 +34,13 @@ try {
@@ -1781,7 +1867,7 @@ index aad0b6d..0d44c8d 100644
    await bridge.stop();
    await fsp.rm(root, { recursive: true, force: true });
 diff --git a/desktop/tests/browser-companion-e2e.mjs b/desktop/tests/browser-companion-e2e.mjs
-index e8a48ec..41a5758 100644
+index e8a48ecbc3cd5ed1ea6d41cb7e3595ebd8eb21cc..41a57580598c23935d9bfe10bf8ed9f2980cc3ec 100644
 --- a/desktop/tests/browser-companion-e2e.mjs
 +++ b/desktop/tests/browser-companion-e2e.mjs
 @@ -4,6 +4,7 @@ import path from 'node:path';
@@ -1860,7 +1946,7 @@ index e8a48ec..41a5758 100644
    try { chrome?.kill('SIGTERM'); } catch {}
    await bridge.stop();
 diff --git a/desktop/tests/browser-companion-static.test.mjs b/desktop/tests/browser-companion-static.test.mjs
-index 7f19ea0..8563da7 100644
+index 7f19ea0cdf8c064e282bba9e7bb70447c4daad44..8563da72d9628d4ac5f1d52590bb23befa0330fb 100644
 --- a/desktop/tests/browser-companion-static.test.mjs
 +++ b/desktop/tests/browser-companion-static.test.mjs
 @@ -7,7 +7,7 @@ const pageHook = await fsp.readFile(new URL('../../extension/src/local-work-page
@@ -1873,7 +1959,7 @@ index 7f19ea0..8563da7 100644
  assert.match(await fsp.readFile(new URL('../src/browser-bridge.mjs', import.meta.url), 'utf8'), /geljambmkfjkhodgkpjhnmfojkpcamig/);
  assert.ok(manifest.content_scripts.length >= 2);
 diff --git a/desktop/tests/browser-page-hook-smoke.mjs b/desktop/tests/browser-page-hook-smoke.mjs
-index 3dac80d..6082cd0 100644
+index 3dac80dfcf85592295668671b47b45b1d220bc6b..6082cd0302336d17bc88233c13be32505f0480dc 100644
 --- a/desktop/tests/browser-page-hook-smoke.mjs
 +++ b/desktop/tests/browser-page-hook-smoke.mjs
 @@ -59,4 +59,4 @@ await windowObj.fetch('https://chatgpt.com/backend-api/conversation', {
@@ -1883,7 +1969,7 @@ index 3dac80d..6082cd0 100644
 -console.log('Constellation Commander MAIN-world ChatGPT request hook smoke: PASS');
 +console.log('Project Constellation MAIN-world ChatGPT request hook smoke: PASS');
 diff --git a/desktop/tests/computer-use-windows-smoke.mjs b/desktop/tests/computer-use-windows-smoke.mjs
-index c9d5adb..cea5515 100644
+index c9d5adb33240231b7459cd8f8336e46c85555da9..cea5515dfa58d59c7b56773c663415c34f294e58 100644
 --- a/desktop/tests/computer-use-windows-smoke.mjs
 +++ b/desktop/tests/computer-use-windows-smoke.mjs
 @@ -28,7 +28,7 @@ try {
@@ -1905,7 +1991,7 @@ index c9d5adb..cea5515 100644
    await closeComputerUseHelper();
  }
 diff --git a/desktop/tests/device-agent-smoke.mjs b/desktop/tests/device-agent-smoke.mjs
-index 253252e..98bb94b 100644
+index 253252eec74d24d2f43bb283193dc589b87c42d3..98bb94bc9fd8f7a76dd3bc0dae6c5c5e2c1891b3 100644
 --- a/desktop/tests/device-agent-smoke.mjs
 +++ b/desktop/tests/device-agent-smoke.mjs
 @@ -113,7 +113,7 @@ try {
@@ -1918,7 +2004,7 @@ index 253252e..98bb94b 100644
    if (child) console.error('Agent output:\n' + output.join(''));
    throw error;
 diff --git a/desktop/tests/electron-static.test.mjs b/desktop/tests/electron-static.test.mjs
-index 17bfb5a..914dacf 100644
+index 17bfb5a713cb6403d206fe6e3c0d296893e18856..914dacff4a428a202b815a2ccfd32b053d41441b 100644
 --- a/desktop/tests/electron-static.test.mjs
 +++ b/desktop/tests/electron-static.test.mjs
 @@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
@@ -1942,7 +2028,7 @@ index 17bfb5a..914dacf 100644
 -console.log('Constellation Commander Electron static contract: PASS');
 +console.log('Project Constellation Electron static contract: PASS');
 diff --git a/desktop/tests/native-electron-acceptance.py b/desktop/tests/native-electron-acceptance.py
-index 667abf1..c0dd3ec 100644
+index 667abf1276402b6373d4a344df9c3f7666dd934f..c0dd3ec96d107ffd71c67cb543a4234c4402dba5 100644
 --- a/desktop/tests/native-electron-acceptance.py
 +++ b/desktop/tests/native-electron-acceptance.py
 @@ -33,7 +33,7 @@ async def main():
@@ -1965,7 +2051,7 @@ index 667abf1..c0dd3ec 100644
    await shell.click('#task-example');await shell.fill('#task-title','Native workspace task');await shell.click('#task-run')
 diff --git a/desktop/tests/page-hook-mirror.test.mjs b/desktop/tests/page-hook-mirror.test.mjs
 new file mode 100644
-index 0000000..727911c
+index 0000000000000000000000000000000000000000..727911cef71beda9dd925b9a22aa26c32febcfe9
 --- /dev/null
 +++ b/desktop/tests/page-hook-mirror.test.mjs
 @@ -0,0 +1,6 @@
@@ -1976,7 +2062,7 @@ index 0000000..727911c
 +assert.deepEqual(packaged,canonical,'desktop packaged page hook must remain byte-identical to canonical extension hook');
 +console.log('page-hook-mirror.test.mjs: PASS');
 diff --git a/desktop/tests/plugin-package.test.mjs b/desktop/tests/plugin-package.test.mjs
-index da1a559..3caf99f 100644
+index da1a5599201131d35925de05102ff6217e6cda75..3caf99f749d9bd26f26baa95280af1ae5ccf9af2 100644
 --- a/desktop/tests/plugin-package.test.mjs
 +++ b/desktop/tests/plugin-package.test.mjs
 @@ -9,7 +9,7 @@ const pluginRoot = path.join(root, 'plugin');
@@ -1989,7 +2075,7 @@ index da1a559..3caf99f 100644
  assert.equal(manifest.mcpServers, undefined, 'Normal-chat package must not declare portable MCP servers (Desktop-only import route).');
  assert.equal(manifest.extensions?.com?.openai?.apps, undefined, 'App mapping is added only after a production app ID exists.');
 diff --git a/desktop/tests/relay-smoke.mjs b/desktop/tests/relay-smoke.mjs
-index 1fc700d..e5498c6 100644
+index 1fc700dfc611a299e7e9ed632a5e09b936022a21..e5498c6bc29efb5401fc2c61820a58b81ade1918 100644
 --- a/desktop/tests/relay-smoke.mjs
 +++ b/desktop/tests/relay-smoke.mjs
 @@ -189,7 +189,7 @@ try {
@@ -2002,7 +2088,7 @@ index 1fc700d..e5498c6 100644
    await relay.close();
    await fsp.rm(dataDir, { recursive: true, force: true });
 diff --git a/desktop/tests/reliability.test.mjs b/desktop/tests/reliability.test.mjs
-index efe7c67..2dfd350 100644
+index efe7c675a14c98d0410807634af4eb2bc7ca410a..a1d29c6aab1e1568f37e0d87168620951959e7dc 100644
 --- a/desktop/tests/reliability.test.mjs
 +++ b/desktop/tests/reliability.test.mjs
 @@ -5,7 +5,7 @@ import path from 'node:path';
@@ -2010,20 +2096,21 @@ index efe7c67..2dfd350 100644
  import {createToolHandler} from '../src/tools.mjs';
  import {createRuntimeState} from '../src/state.mjs';
 -import {recoverProcesses} from '../src/process-manager.mjs';
-+import {recoverProcesses,buildShellSpec} from '../src/process-manager.mjs';
++import {recoverProcesses,buildShellSpec,resolveWindowsPowerShell,parseWindowsDirectNativeInvocation} from '../src/process-manager.mjs';
  import {CallLedger} from '../electron/call-ledger.cjs';
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'commander-regression-'));
  const workspace=path.join(root,'workspace');await fs.mkdir(workspace);await fs.mkdir(path.join(root,'searches'));
-@@ -14,6 +14,7 @@ const state=createRuntimeState(root),call=createToolHandler({config,configPath:p
+@@ -14,6 +14,8 @@ const state=createRuntimeState(root),call=createToolHandler({config,configPath:p
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const nodeCommand=code=>process.platform==='win32'?`& '${process.execPath.replaceAll("'","''")}' -e '${code.replaceAll("'","''")}'`:`'${process.execPath}' -e '${code.replaceAll("'","'\\''")}'`;
  async function finish(id){let result,all='';for(let i=0;i<100;i++){result=await call('read_process_output',{session_id:id});all+=result.output;if(!['starting','running'].includes(result.status))return {...result,all};await sleep(30);}throw new Error('Process did not finish');}
-+await test('Windows PowerShell process wrapper preserves native exit codes and quoted payloads safely',()=>{const raw=`& 'C:\\Program Files\\nodejs\\node.exe' -e 'process.stdout.write("quoted");process.exit(7)'`;const script='C:\\Temp\\pc-command.ps1';const spec=buildShellSpec(raw,'powershell','win32',script);assert.equal(spec.exe,'powershell.exe');assert.ok(spec.args.includes('-File'));assert.ok(spec.args.includes(script));assert.doesNotMatch(spec.args.join(' '),/Invoke-Expression|-EncodedCommand/);assert.match(spec.scriptContent,/process\.stdout\.write\("quoted"\)/);assert.match(spec.scriptContent,/exit \$pcExitCode/);assert.equal(spec.scriptPath,script);});
++await test('Windows PowerShell process wrapper prefers PowerShell 7 Standard argument passing and preserves source safely',()=>{const raw=`& 'C:\\Program Files\\nodejs\\node.exe' -e 'process.stdout.write("quoted");process.exit(7)'`;const script='C:\\Temp\\pc-command.ps1';const spec=buildShellSpec(raw,'pwsh','win32',script);assert.equal(spec.exe,'pwsh.exe');assert.ok(spec.args.includes('-File'));assert.ok(spec.args.includes(script));assert.doesNotMatch(spec.args.join(' '),/Invoke-Expression|-EncodedCommand/);assert.match(spec.scriptContent,/PSNativeCommandArgumentPassing='Standard'/);assert.match(spec.scriptContent,/process\.stdout\.write\("quoted"\)/);assert.match(spec.scriptContent,/exit \$pcExitCode/);assert.equal(spec.scriptPath,script);assert.equal(buildShellSpec(raw,'powershell.exe','win32',script).exe,'powershell.exe');assert.equal(resolveWindowsPowerShell('powershell',{Path:'C:\\Tools;C:\\Program Files\\PowerShell\\7'},candidate=>candidate.toLowerCase().endsWith('\\pwsh.exe')),'pwsh.exe');});
++await test('Windows explicit native call bypass preserves embedded argv quotes byte-for-byte',()=>{const raw=`& 'C:\\Program Files\\nodejs\\node.exe' -e 'process.stdout.write("first");setTimeout(()=>process.stdout.write("second\\n"),250)'`;const spec=parseWindowsDirectNativeInvocation(raw);assert.deepEqual(spec,{exe:'C:\\Program Files\\nodejs\\node.exe',args:['-e','process.stdout.write("first");setTimeout(()=>process.stdout.write("second\\n"),250)'],direct:true});assert.equal(parseWindowsDirectNativeInvocation(`& 'C:\\Program Files\\nodejs\\node.exe' -e 'x' | Out-String`),null);assert.equal(parseWindowsDirectNativeInvocation(`& "$env:ProgramFiles\\node.exe" -e 'x'`),null);assert.equal(parseWindowsDirectNativeInvocation(`Write-Output 'x'`),null);});
  await test('move onto same path never deletes source',async()=>{const p=path.join(workspace,'same.txt');await fs.writeFile(p,'safe');await call('move_file',{source:p,destination:p,overwrite:true});assert.equal(await fs.readFile(p,'utf8'),'safe');});
  await test('overwrite move retains old destination backup',async()=>{const a=path.join(workspace,'a.txt'),b=path.join(workspace,'b.txt');await fs.writeFile(a,'new');await fs.writeFile(b,'old');const result=await call('move_file',{source:a,destination:b,overwrite:true});assert.equal(await fs.readFile(b,'utf8'),'new');assert.equal(await fs.readFile(result.backup,'utf8'),'old');});
  await test('symlink or junction cannot escape roots',async()=>{const outside=path.join(root,'outside');await fs.mkdir(outside);await fs.writeFile(path.join(outside,'secret.txt'),'fixture');await fs.symlink(outside,path.join(workspace,'link'),process.platform==='win32'?'junction':'dir');await assert.rejects(call('read_file',{path:path.join(workspace,'link','secret.txt')}),/outside allowed/);await assert.rejects(call('write_file',{path:path.join(workspace,'link','new.txt'),content:'denied'}),/outside allowed/);});
 diff --git a/desktop/tests/shell-static.test.mjs b/desktop/tests/shell-static.test.mjs
-index e35bb64..7c9078a 100644
+index e35bb642e8fa173b1d193b99cdc1752029051445..7c9078a8f2643face942f1213751e7c1c23d452c 100644
 --- a/desktop/tests/shell-static.test.mjs
 +++ b/desktop/tests/shell-static.test.mjs
 @@ -7,7 +7,7 @@ const js = fs.readFileSync(new URL('../electron/shell.js', import.meta.url), 'ut
@@ -2048,7 +2135,7 @@ index e35bb64..7c9078a 100644
 +assert.match(main, /cc-shell:update-check/);
 +console.log('Project Constellation desktop shell static contract: PASS');
 diff --git a/desktop/tests/smoke.mjs b/desktop/tests/smoke.mjs
-index 6c751fb..4b58580 100644
+index 6c751fb3abcd6cc5f12d90ce24b0b7a99115a188..4b585809b287880ad4bb3b83a17a2eeabeb30329 100644
 --- a/desktop/tests/smoke.mjs
 +++ b/desktop/tests/smoke.mjs
 @@ -46,7 +46,7 @@ try {
@@ -2061,7 +2148,7 @@ index 6c751fb..4b58580 100644
    const pdfBytes = await fsp.readFile(pdf);
    assert.equal(pdfBytes.subarray(0,8).toString('ascii'),'%PDF-1.4');
 diff --git a/desktop/tests/ui-regression.py b/desktop/tests/ui-regression.py
-index 7776da9..e4278e3 100644
+index 7776da98a94321543a15389270c5c0c60848d4cb..e4278e3a515f22500a8251f25ac3b72a8ec380eb 100644
 --- a/desktop/tests/ui-regression.py
 +++ b/desktop/tests/ui-regression.py
 @@ -83,7 +83,7 @@ async def main():
@@ -2074,7 +2161,7 @@ index 7776da9..e4278e3 100644
    await chat.evaluate('''()=>{const nodes=[...document.querySelectorAll('[data-message-author-role="assistant"]')];const a=nodes.find(n=>n.textContent.includes('fixture-ping'));const copy=a.cloneNode(true);delete copy.dataset.constellationCommanderCallClaimed;delete copy.dataset.constellationCommanderCallId;a.replaceWith(copy);}''')
    await chat.wait_for_timeout(150);assert (await rpc('metrics'))['chatCalls']==1;results.append('DOM remount cannot replay an action')
 diff --git a/desktop/tests/ui-worker.mjs b/desktop/tests/ui-worker.mjs
-index 23aa641..3ccbcba 100644
+index 23aa641d88b6c887efcbecb36f82065e431d1062..3ccbcba4d8a2d742b125b9aa77fd8d12ad12753a 100644
 --- a/desktop/tests/ui-worker.mjs
 +++ b/desktop/tests/ui-worker.mjs
 @@ -8,7 +8,7 @@ const state=createRuntimeState(dir),config={allowedRoots:[root],enableShell:true
@@ -2097,7 +2184,7 @@ index 23aa641..3ccbcba 100644
   }catch(e){console.log(JSON.stringify({id:request.id,error:String(e.message)}));}
 diff --git a/desktop/tests/update-service.test.mjs b/desktop/tests/update-service.test.mjs
 new file mode 100644
-index 0000000..56c80aa
+index 0000000000000000000000000000000000000000..56c80aa0613ed7d3a3806c28ef910e0eb01bf663
 --- /dev/null
 +++ b/desktop/tests/update-service.test.mjs
 @@ -0,0 +1,31 @@
@@ -2134,7 +2221,7 @@ index 0000000..56c80aa
 +console.log('update-service.test.mjs: PASS');
 diff --git a/docs/v0.19.1-release-notes.md b/docs/v0.19.1-release-notes.md
 new file mode 100644
-index 0000000..477d703
+index 0000000000000000000000000000000000000000..477d7030a308719ba587d29f77ce713982acf679
 --- /dev/null
 +++ b/docs/v0.19.1-release-notes.md
 @@ -0,0 +1,23 @@
@@ -2163,7 +2250,7 @@ index 0000000..477d703
 +- Full root regression/validation/build/smoke and retained desktop reliability suites are release gates for this hotfix.
 diff --git a/docs/v0.20.0-release-notes.md b/docs/v0.20.0-release-notes.md
 new file mode 100644
-index 0000000..44e087d
+index 0000000000000000000000000000000000000000..f2cbad629bb41fee3c129ce0f4a9c5b9f4ed1084
 --- /dev/null
 +++ b/docs/v0.20.0-release-notes.md
 @@ -0,0 +1,51 @@
@@ -2182,7 +2269,7 @@ index 0000000..44e087d
 +- **Integrated Update Center.** The desktop can check the stable GitHub release channel, verify SHA-256 before staging an update, install after the app exits, retain a previous install as rollback state, and restore it on failed replacement. It performs a single startup availability check rather than permanent update polling.
 +- **Project Constellation desktop identity.** User-facing Commander branding is consolidated under Project Constellation while the existing application ID, state directories, CLI aliases, extension ID, and migration-sensitive bridge contracts stay compatible.
 +- **Electron 44.4.4.** 0.20.0 moves from 44.4.3 to the current stable 44.4.4 line while retaining electron-builder 26.16.1.
-+- **Windows process reliability.** PowerShell-backed local commands now execute from a short-lived UTF-8-BOM `.ps1` wrapper that preserves the user command source verbatim, native exit codes, quoted `node -e` payloads, large output, and restart recovery without `Invoke-Expression` re-parsing.
++- **Windows process reliability.** PowerShell-backed local commands execute from a short-lived UTF-8-BOM `.ps1` wrapper with fail-fast exit propagation. Explicit simple native calls such as `& 'program.exe' ...` now bypass PowerShell native-command re-serialization and launch with structured argv, preserving embedded quotes and large/partial output byte-for-byte; real PowerShell pipelines, functions, expansion, and explicit shell overrides stay on the normal shell path. PowerShell 7 remains preferred, with Windows PowerShell 5.1 as a compatibility fallback.
 +- **Packaged ChatGPT hook integrity.** The desktop carries an explicit packaged mirror of the canonical browser page hook, with a byte-for-byte regression check so source and packaged injection logic cannot silently drift.
 +- **Fail-fast modern CI.** Windows PowerShell jobs now promote native command failures to CI failures, and workflows use the current Node-24 GitHub Actions line rather than deprecated Node-20 action runtimes.
 +
@@ -2219,7 +2306,7 @@ index 0000000..44e087d
 +
 +User-configured Google Drive and GitHub connections remain supported. Distribution builds do not embed private OAuth client secrets. A production package may be created without embedded client IDs for environments where the user supplies/configures connections separately; the build receipt records whether OAuth IDs were actually embedded.
 diff --git a/extension/background.js b/extension/background.js
-index 73fe8dc..cb3be2c 100644
+index 73fe8dc857dbd6408f9e18dd3d3bbb93a42b7a25..cb3be2c3a69b1d67af1fb977ccac40eca1d4b194 100644
 --- a/extension/background.js
 +++ b/extension/background.js
 @@ -7,6 +7,11 @@ import './src/project-router-core.js';
@@ -2940,7 +3027,7 @@ index 73fe8dc..cb3be2c 100644
  }
  
 diff --git a/extension/home.html b/extension/home.html
-index e93a5b9..932622c 100644
+index e93a5b968969af475b1363410b04f1e8357576ab..932622c66b635c793675b1991b1da10c15601d43 100644
 --- a/extension/home.html
 +++ b/extension/home.html
 @@ -122,6 +122,8 @@
@@ -2953,7 +3040,7 @@ index e93a5b9..932622c 100644
          <div id="liveWork" class="cards"></div>
          <div class="section-title"><div><p>PINNED WORKSPACE</p><h2>Your project launchpad</h2></div><button data-jump="projects">Organize projects</button></div><div id="pinnedProjects" class="project-grid home-project-shelf"></div>
 diff --git a/extension/home.js b/extension/home.js
-index 19493b7..ed84a72 100644
+index 19493b7631d91d9e91744554af3750ec0aa577d9..ed84a72885de89e499257666ef868cc9b3134d1d 100644
 --- a/extension/home.js
 +++ b/extension/home.js
 @@ -62,7 +62,7 @@
@@ -3033,7 +3120,7 @@ index 19493b7..ed84a72 100644
    loadWorkbenchState().then(()=>{const url=new URL(location.href);const requested=url.searchParams.get('view');switchView(VIEW_META[requested]?requested:(workbenchState.activeView||'overview'));return loadHome().then(()=>{if(url.searchParams.get('focus')==='live-health')requestAnimationFrame(()=>$('liveHealthSettingsCard')?.scrollIntoView({block:'center'}));});}).catch((error)=>{$('railSub').textContent=error.message;});
  })();
 diff --git a/extension/manifest.json b/extension/manifest.json
-index d82764b..963c616 100644
+index d82764bf4c6197a34acd2787a278d2116014ffbe..963c6163ee23e7900a147d2c84856259cdba38ae 100644
 --- a/extension/manifest.json
 +++ b/extension/manifest.json
 @@ -1,7 +1,7 @@
@@ -3062,7 +3149,7 @@ index d82764b..963c616 100644
          "src/live-sentinel.js",
          "src/tab-beacon.js",
 diff --git a/extension/sidepanel.js b/extension/sidepanel.js
-index 653c10b..0aa6309 100644
+index 653c10bde92296fb6e11b61f4dbcf157be5cee0e..0aa63097eceee9a147dcce896f0ddca106ff1f46 100644
 --- a/extension/sidepanel.js
 +++ b/extension/sidepanel.js
 @@ -13,6 +13,7 @@
@@ -3104,7 +3191,7 @@ index 653c10b..0aa6309 100644
  })();
 diff --git a/extension/src/background-message-router-core.js b/extension/src/background-message-router-core.js
 new file mode 100644
-index 0000000..98ab42e
+index 0000000000000000000000000000000000000000..98ab42eb103b2f11d7e02f7e49c1f710017d6f7d
 --- /dev/null
 +++ b/extension/src/background-message-router-core.js
 @@ -0,0 +1,38 @@
@@ -3148,7 +3235,7 @@ index 0000000..98ab42e
 +})();
 diff --git a/extension/src/brain-db-core.js b/extension/src/brain-db-core.js
 new file mode 100644
-index 0000000..fdf0577
+index 0000000000000000000000000000000000000000..fdf05772c8e5b0ec5a7576965c8c050dfe263be3
 --- /dev/null
 +++ b/extension/src/brain-db-core.js
 @@ -0,0 +1,49 @@
@@ -3202,7 +3289,7 @@ index 0000000..fdf0577
 +  globalThis.ProjectConstellationBrainDbCore = Object.freeze({ createSharedConnection });
 +})();
 diff --git a/extension/src/content.js b/extension/src/content.js
-index 81d4f15..e53c29c 100644
+index 81d4f15bca2f730e43f8f8bc7047c7d6506394bd..e53c29c5cea53ce8bbbc7d2c0ee27788b9cf733a 100644
 --- a/extension/src/content.js
 +++ b/extension/src/content.js
 @@ -7,7 +7,8 @@
@@ -3309,7 +3396,7 @@ index 81d4f15..e53c29c 100644
    }, { once: true });
 diff --git a/extension/src/incident-brain-core.js b/extension/src/incident-brain-core.js
 new file mode 100644
-index 0000000..6652ad7
+index 0000000000000000000000000000000000000000..6652ad78525ca678b38e3ece23ef9f9bf6c36104
 --- /dev/null
 +++ b/extension/src/incident-brain-core.js
 @@ -0,0 +1,81 @@
@@ -3395,7 +3482,7 @@ index 0000000..6652ad7
 +  globalThis.ProjectConstellationIncidentBrainCore = Object.freeze({ VERSION, fingerprint, normalize, merge, resolve, bestMatch, hash });
 +})();
 diff --git a/extension/src/local-work-content.js b/extension/src/local-work-content.js
-index b69770d..ace48b2 100644
+index b69770d6cd156e866d0002d449b39e406c1bf1e9..ace48b24dbbc3094ef1841c7789d7cea9fbc2a56 100644
 --- a/extension/src/local-work-content.js
 +++ b/extension/src/local-work-content.js
 @@ -1,11 +1,12 @@
@@ -3439,7 +3526,7 @@ index b69770d..ace48b2 100644
 +  window.addEventListener('hashchange', () => handleRouteChange(), { passive:true });
  })();
 diff --git a/extension/src/local-work-controller.js b/extension/src/local-work-controller.js
-index dae9700..96d6311 100644
+index dae9700bca859f52337effe79a218886c9ea54c9..96d631176fcbc40552a2a992ac3cf59b315c6d1c 100644
 --- a/extension/src/local-work-controller.js
 +++ b/extension/src/local-work-controller.js
 @@ -1,6 +1,6 @@
@@ -3499,7 +3586,7 @@ index dae9700..96d6311 100644
 -void pcxEnsureDesktopAlarm().then(pcxAnnounceDesktop);
 +void pcxAnnounceDesktop();
 diff --git a/extension/src/local-work-page-hook.js b/extension/src/local-work-page-hook.js
-index 6ec965d..a9de071 100644
+index 6ec965d791e19f57a948f857062d5ac8ae24820a..a9de07189c306a204653bc94113fd95df3283204 100644
 --- a/extension/src/local-work-page-hook.js
 +++ b/extension/src/local-work-page-hook.js
 @@ -4,7 +4,7 @@
@@ -3520,7 +3607,7 @@ index 6ec965d..a9de071 100644
  })();
 diff --git a/extension/src/provider-health-core.js b/extension/src/provider-health-core.js
 new file mode 100644
-index 0000000..3514a72
+index 0000000000000000000000000000000000000000..3514a722fe968b7668278932c16c3b7bee594200
 --- /dev/null
 +++ b/extension/src/provider-health-core.js
 @@ -0,0 +1,88 @@
@@ -3613,7 +3700,7 @@ index 0000000..3514a72
 +  globalThis.ProjectConstellationProviderHealthCore = Object.freeze({ VERSION, CAPABILITY_WEIGHTS, normalizeCapabilities, evaluate, transition, hash });
 +})();
 diff --git a/extension/src/pulse-ux.js b/extension/src/pulse-ux.js
-index 3b79bc3..1907754 100644
+index 3b79bc3bd56023a72d54324885b3a9d7cd950807..190775498cffa921a187547c3801b1f89d8b6776 100644
 --- a/extension/src/pulse-ux.js
 +++ b/extension/src/pulse-ux.js
 @@ -505,12 +505,14 @@
@@ -3638,7 +3725,7 @@ index 3b79bc3..1907754 100644
      refreshCounts().catch(() => {});
 diff --git a/extension/src/route-observer.js b/extension/src/route-observer.js
 new file mode 100644
-index 0000000..d906ce8
+index 0000000000000000000000000000000000000000..d906ce8ecd45d73864d4a538eddde184b24e7303
 --- /dev/null
 +++ b/extension/src/route-observer.js
 @@ -0,0 +1,29 @@
@@ -3672,7 +3759,7 @@ index 0000000..d906ce8
 +  queueMicrotask(() => emit('initial'));
 +})();
 diff --git a/extension/src/scheduled-task-recovery-controller.js b/extension/src/scheduled-task-recovery-controller.js
-index 36b1b2a..348561c 100644
+index 36b1b2a9413d7bd0d079607e65b1d9bb2189af6f..348561ca55d37d376e5c1cccee82b069559ed00c 100644
 --- a/extension/src/scheduled-task-recovery-controller.js
 +++ b/extension/src/scheduled-task-recovery-controller.js
 @@ -1,19 +1,248 @@
@@ -3938,7 +4025,7 @@ index 36b1b2a..348561c 100644
 +
 +void pcxRecEnsureFallback().catch(()=>{});
 diff --git a/extension/src/scheduled-task-recovery-page.js b/extension/src/scheduled-task-recovery-page.js
-index 6c242ac..925d977 100644
+index 6c242ac1df2c33c43d33cac47080f2eddc1a7061..925d9774cb358781d45a147ce0ef6b607938d404 100644
 --- a/extension/src/scheduled-task-recovery-page.js
 +++ b/extension/src/scheduled-task-recovery-page.js
 @@ -2,6 +2,8 @@
@@ -4013,7 +4100,7 @@ index 6c242ac..925d977 100644
  })();
 diff --git a/extension/src/scheduled-task-recovery-policy.js b/extension/src/scheduled-task-recovery-policy.js
 new file mode 100644
-index 0000000..17ed955
+index 0000000000000000000000000000000000000000..17ed9558b098b165c5bedcfc172ac1f09f1ecb73
 --- /dev/null
 +++ b/extension/src/scheduled-task-recovery-policy.js
 @@ -0,0 +1,37 @@
@@ -4056,7 +4143,7 @@ index 0000000..17ed955
 +}
 diff --git a/extension/src/state-event-bus-core.js b/extension/src/state-event-bus-core.js
 new file mode 100644
-index 0000000..350b355
+index 0000000000000000000000000000000000000000..350b35587adb22e6c889bac53e582cfa2c70bc76
 --- /dev/null
 +++ b/extension/src/state-event-bus-core.js
 @@ -0,0 +1,66 @@
@@ -4127,7 +4214,7 @@ index 0000000..350b355
 +  globalThis.ProjectConstellationStateEventBusCore = Object.freeze({ SCHEMA, envelope, publish, publishCoalesced, isStateEvent });
 +})();
 diff --git a/package-lock.json b/package-lock.json
-index d76c178..b74c737 100644
+index d76c178a45b89c451b2de842c5e9105738cafad8..b74c7375ffbc889151529dbbc05c27758b6ae742 100644
 --- a/package-lock.json
 +++ b/package-lock.json
 @@ -1,12 +1,12 @@
@@ -4146,7 +4233,7 @@ index d76c178..b74c737 100644
    }
  }
 diff --git a/package.json b/package.json
-index 7e2256b..7babba5 100644
+index 7e2256bf7ea099e4ed25326e52093fd09f9105a2..7babba5148e02e4121b6a41c84720b4c3524cd24 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,10 +1,10 @@
@@ -4173,7 +4260,7 @@ index 7e2256b..7babba5 100644
  }
 diff --git a/tests/background-message-router-core.test.mjs b/tests/background-message-router-core.test.mjs
 new file mode 100644
-index 0000000..7e13b8d
+index 0000000000000000000000000000000000000000..7e13b8d44f15ccea0b09d4398d617e49b5d3a589
 --- /dev/null
 +++ b/tests/background-message-router-core.test.mjs
 @@ -0,0 +1,19 @@
@@ -4198,7 +4285,7 @@ index 0000000..7e13b8d
 +console.log('background message router core PASS');
 diff --git a/tests/brain-db-v11-static.test.mjs b/tests/brain-db-v11-static.test.mjs
 new file mode 100644
-index 0000000..50456fb
+index 0000000000000000000000000000000000000000..50456fb4e834377e132670429e4e8d0dc641748d
 --- /dev/null
 +++ b/tests/brain-db-v11-static.test.mjs
 @@ -0,0 +1,8 @@
@@ -4212,7 +4299,7 @@ index 0000000..50456fb
 +console.log('brain db v11 static PASS');
 diff --git a/tests/full-permissions-regression.test.mjs b/tests/full-permissions-regression.test.mjs
 new file mode 100644
-index 0000000..3d145cb
+index 0000000000000000000000000000000000000000..3d145cb975070d8c59a9420de567872c9f6685f4
 --- /dev/null
 +++ b/tests/full-permissions-regression.test.mjs
 @@ -0,0 +1,6 @@
@@ -4224,7 +4311,7 @@ index 0000000..3d145cb
 +console.log('full permissions regression PASS');
 diff --git a/tests/incident-brain-core.test.mjs b/tests/incident-brain-core.test.mjs
 new file mode 100644
-index 0000000..81ae231
+index 0000000000000000000000000000000000000000..81ae2315161470670760cc29ff772cfb2019f76c
 --- /dev/null
 +++ b/tests/incident-brain-core.test.mjs
 @@ -0,0 +1,13 @@
@@ -4242,7 +4329,7 @@ index 0000000..81ae231
 +assert(core.bestMatch([resolved],{kind:'provider-capability',scope:'chatgpt',signature:'composer-missing',environment:'https://chatgpt.com/c/abc'}));
 +console.log('incident-brain-core.test.mjs: PASS');
 diff --git a/tests/navigation-safety.test.mjs b/tests/navigation-safety.test.mjs
-index 1a1340d..b56b05b 100644
+index 1a1340ddb83c7caa05b838124cb5dfc104d0ee48..b56b05b4e5b29687febde3dadb752b8c957a7155 100644
 --- a/tests/navigation-safety.test.mjs
 +++ b/tests/navigation-safety.test.mjs
 @@ -6,6 +6,9 @@ const sidepanel = fs.readFileSync(new URL('../extension/sidepanel.js', import.me
@@ -4257,7 +4344,7 @@ index 1a1340d..b56b05b 100644
  assert.ok(!background.includes("chrome.tabs.create({ url:requestedUrl"), 'Pulse must not recreate a missing ChatGPT target');
 diff --git a/tests/no-fixed-polling.test.mjs b/tests/no-fixed-polling.test.mjs
 new file mode 100644
-index 0000000..34acc17
+index 0000000000000000000000000000000000000000..34acc17b818c4c9b531777d21c90cb05da284aa2
 --- /dev/null
 +++ b/tests/no-fixed-polling.test.mjs
 @@ -0,0 +1,17 @@
@@ -4280,7 +4367,7 @@ index 0000000..34acc17
 +console.log('no-fixed-polling.test.mjs: PASS');
 diff --git a/tests/provider-health-core.test.mjs b/tests/provider-health-core.test.mjs
 new file mode 100644
-index 0000000..a817afa
+index 0000000000000000000000000000000000000000..a817afaf0d2426242540541058baf58dafb7fbec
 --- /dev/null
 +++ b/tests/provider-health-core.test.mjs
 @@ -0,0 +1,13 @@
@@ -4299,7 +4386,7 @@ index 0000000..a817afa
 +console.log('provider-health-core.test.mjs: PASS');
 diff --git a/tests/provider-health-runtime-static.test.mjs b/tests/provider-health-runtime-static.test.mjs
 new file mode 100644
-index 0000000..93301f4
+index 0000000000000000000000000000000000000000..93301f440626efaee0070f5d97972100b90ddd76
 --- /dev/null
 +++ b/tests/provider-health-runtime-static.test.mjs
 @@ -0,0 +1,12 @@
@@ -4317,7 +4404,7 @@ index 0000000..93301f4
 +console.log('provider health runtime static PASS');
 diff --git a/tests/recovery-polling-regression.test.mjs b/tests/recovery-polling-regression.test.mjs
 new file mode 100644
-index 0000000..c45f311
+index 0000000000000000000000000000000000000000..c45f311ae4e5fe27b875356c10819f348f738a31
 --- /dev/null
 +++ b/tests/recovery-polling-regression.test.mjs
 @@ -0,0 +1,31 @@
@@ -4353,7 +4440,7 @@ index 0000000..c45f311
 +
 +console.log('recovery-polling-regression.test.mjs: PASS');
 diff --git a/tests/smoke/approval_background_smoke.py b/tests/smoke/approval_background_smoke.py
-index 195fecb..a281bfe 100644
+index 195fecb690a32b47bcb4243727f91b3c0b7eb842..a281bfe837ac1a2b920b6851e2d665470ab73d44 100644
 --- a/tests/smoke/approval_background_smoke.py
 +++ b/tests/smoke/approval_background_smoke.py
 @@ -1,7 +1,8 @@
@@ -4376,7 +4463,7 @@ index 195fecb..a281bfe 100644
      const now=Date.now();
      await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[
 diff --git a/tests/smoke/approval_recovery_smoke.py b/tests/smoke/approval_recovery_smoke.py
-index baf1965..08a132d 100644
+index baf1965ae63344fde4ff5f409973cc411e1e4884..08a132d48baf7f9b807326e0d30026e977ea9342 100644
 --- a/tests/smoke/approval_recovery_smoke.py
 +++ b/tests/smoke/approval_recovery_smoke.py
 @@ -1,7 +1,7 @@
@@ -4398,7 +4485,7 @@ index baf1965..08a132d 100644
      # Exact screenshot-shaped flow: "Allow ChatGPT to use GitHub?" + Allow + chevron.
      # This fixture models the tougher variant where selecting the persistent option
 diff --git a/tests/smoke/auth_backend_smoke.py b/tests/smoke/auth_backend_smoke.py
-index 87ac57c..5ec337c 100644
+index 87ac57cf6718d7353243e36ea780075466e28e39..5ec337cb67683606d9f2f46c3ccefa29d00f4743 100644
 --- a/tests/smoke/auth_backend_smoke.py
 +++ b/tests/smoke/auth_backend_smoke.py
 @@ -5,7 +5,8 @@ manifest=json.loads((root/'manifest.json').read_text())
@@ -4421,7 +4508,7 @@ index 87ac57c..5ec337c 100644
      const ghStart=await __send({type:'PC_GITHUB_OAUTH_START',clientId:'Iv1.projectconstellation'});
      const ghPoll=await __send({type:'PC_GITHUB_OAUTH_POLL'});
 diff --git a/tests/smoke/background_smoke.py b/tests/smoke/background_smoke.py
-index 59e1376..ff073e3 100644
+index 59e137618e7d9ec8e19bc104a8a0e349d8c0a79c..ff073e3847f7ed8dcc1a03efbbf79537e94e5466 100644
 --- a/tests/smoke/background_smoke.py
 +++ b/tests/smoke/background_smoke.py
 @@ -11,7 +11,8 @@ router=(root/'src/project-router-core.js').read_text()
@@ -4447,7 +4534,7 @@ index 59e1376..ff073e3 100644
      page.wait_for_timeout(100)
      result=page.evaluate("""async()=>{
 diff --git a/tests/smoke/branch_continue_smoke.py b/tests/smoke/branch_continue_smoke.py
-index f73adf7..f7737dd 100644
+index f73adf7310f93a61c39dd9161fb5a067aa545446..f7737ddbdfbc9e2aabced6dfb96ac304df043285 100644
 --- a/tests/smoke/branch_continue_smoke.py
 +++ b/tests/smoke/branch_continue_smoke.py
 @@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
@@ -4469,7 +4556,7 @@ index f73adf7..f7737dd 100644
      before=page.evaluate('''() => ({sentPrompt:window.__sentPrompt,completeCalls:window.__completeCalls,composerText:document.getElementById('prompt-textarea').innerText,armed:document.getElementById('prompt-textarea').dataset.projectConstellationBranchReady||'',toast:!!document.getElementById('projectConstellationBranchToast')})''')
      assert not before['sentPrompt'] and 'Project Constellation Safe Handoff' in before['composerText'] and 'direct continuation' in before['composerText']
 diff --git a/tests/smoke/chatgpt_current_dom_smoke.py b/tests/smoke/chatgpt_current_dom_smoke.py
-index 26737b3..5817bc4 100644
+index 26737b3b428e382483e4d0a3828cc7dfdccf6d27..5817bc4146f886dc8dfe4b918e8bca5feea15b75 100644
 --- a/tests/smoke/chatgpt_current_dom_smoke.py
 +++ b/tests/smoke/chatgpt_current_dom_smoke.py
 @@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
@@ -4491,7 +4578,7 @@ index 26737b3..5817bc4 100644
      print(json.dumps({'result':result,'errors':errors},sort_keys=True))
      assert result['sections']==2 and result['turnCount']==2 and result['roles']==['user','assistant']
 diff --git a/tests/smoke/content_smoke.py b/tests/smoke/content_smoke.py
-index 1f43ae6..51a2cc5 100644
+index 1f43ae602fde026861f2e4e9147023bd19405fde..51a2cc55ac45571e4c7cc63c7a6ff864f37996a2 100644
 --- a/tests/smoke/content_smoke.py
 +++ b/tests/smoke/content_smoke.py
 @@ -1,11 +1,11 @@
@@ -4509,7 +4596,7 @@ index 1f43ae6..51a2cc5 100644
      pressure_relief=page.evaluate('''() => { const decorative=document.createElement('div');decorative.setAttribute('aria-hidden','true');decorative.className='animate-spark transition-fast backdrop-blur';decorative.style.cssText='animation-duration:5s;transition-duration:4s;filter:blur(8px);backdrop-filter:blur(12px)';const control=document.createElement('button');control.className='animate-spark transition-fast';control.style.cssText='animation-duration:5s;transition-duration:4s';control.textContent='Keep working';document.body.append(decorative,control);document.documentElement.dataset.projectConstellationPressure='high';const a=getComputedStyle(decorative),b=getComputedStyle(control);const result={decorativeAnimation:a.animationDuration,decorativeTransition:a.transitionDuration,decorativeFilter:a.filter,controlTransition:b.transitionDuration,controlText:control.textContent};document.documentElement.dataset.projectConstellationPressure='normal';decorative.remove();control.remove();return result;}''')
      calls_before_burst=page.evaluate('window.__messageCalls')
 diff --git a/tests/smoke/full_capture_smoke.py b/tests/smoke/full_capture_smoke.py
-index 901c0de..3ad0743 100644
+index 901c0ded0077a9d2df957c424eb842a01ffc03e0..3ad0743c54615f3f8104d5360f96c46f72a2ae6d 100644
 --- a/tests/smoke/full_capture_smoke.py
 +++ b/tests/smoke/full_capture_smoke.py
 @@ -3,7 +3,8 @@ import pathlib, json, re, os
@@ -4532,7 +4619,7 @@ index 901c0de..3ad0743 100644
        const start=await __pcSend({type:'PC_FULL_CAPTURE_START',providerIds:['chatgpt'],speed:'fast'});
        let state=start.state; const doneResponses=[];
 diff --git a/tests/smoke/live_chat_state_smoke.py b/tests/smoke/live_chat_state_smoke.py
-index e52882f..ede5ae3 100644
+index e52882f1cee33a6358f4021945424203b7aa1865..ede5ae375d689d888bdd065c6cac677a7b2cffd6 100644
 --- a/tests/smoke/live_chat_state_smoke.py
 +++ b/tests/smoke/live_chat_state_smoke.py
 @@ -1,7 +1,7 @@
@@ -4554,7 +4641,7 @@ index e52882f..ede5ae3 100644
      page.evaluate("""() => {document.getElementById('tool').textContent='Searched Google Drive for Creeperella 1.4.16 files';const b=document.createElement('button');b.setAttribute('aria-label','Copy');b.textContent='Copy';const p=document.createElement('p');p.textContent='The production release pipeline passed verification, build, packaging, and release publishing. Thinking and reasoning are mentioned only as final prose.';document.querySelector('[data-message-author-role="assistant"]').appendChild(p);document.getElementById('assistant-turn').appendChild(b);}""")
      page.wait_for_timeout(2600)
 diff --git a/tests/smoke/live_health_smoke.py b/tests/smoke/live_health_smoke.py
-index a99773e..eec3a8c 100644
+index a99773e79c5cbfac79991b4c36379774e2657dbb..eec3a8c45755405a30f93670fd15797892cc5264 100644
 --- a/tests/smoke/live_health_smoke.py
 +++ b/tests/smoke/live_health_smoke.py
 @@ -1,7 +1,7 @@
@@ -4585,7 +4672,7 @@ index a99773e..eec3a8c 100644
      stale=page.evaluate('''() => { const h=document.getElementById('projectConstellationHealthHud');const s=h.shadowRoot;return {state:s.getElementById('pcHealthTitle').textContent,detail:s.getElementById('pcHealthDetail').textContent,page:s.getElementById('pcHealthPage').textContent,refreshHidden:s.getElementById('pcHealthRefresh').hidden,level:h.dataset.level}; }''')
      assert stale['state']=='This tab is behind' and stale['page']=='behind' and stale['refreshHidden'] is False and stale['level']=='critical'
 diff --git a/tests/smoke/live_health_state_stability_smoke.py b/tests/smoke/live_health_state_stability_smoke.py
-index 2fef16f..73471c7 100644
+index 2fef16f02cc2fc5e7ae7f8ba0a7df939fd080bd9..73471c73a0d8519daaffb6bc126291f32f1a90f9 100644
 --- a/tests/smoke/live_health_state_stability_smoke.py
 +++ b/tests/smoke/live_health_state_stability_smoke.py
 @@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
@@ -4624,7 +4711,7 @@ index 2fef16f..73471c7 100644
      completed=page.evaluate("__send({type:'PC_GET_LIVE_CHAT_STATE'})")
      before=page.evaluate("""() => {const h=document.getElementById('projectConstellationHealthHud'),s=h?.shadowRoot;return {level:h?.dataset.level,state:h?.dataset.state,title:s?.getElementById('pcHealthTitle')?.textContent,page:s?.getElementById('pcHealthPage')?.textContent,network:s?.getElementById('pcHealthNetwork')?.textContent,now:s?.getElementById('pcHealthNowTitle')?.textContent};}""")
 diff --git a/tests/smoke/project_context_staging_smoke.py b/tests/smoke/project_context_staging_smoke.py
-index 15cc7a7..6acfc8c 100644
+index 15cc7a70af2d2f491646c06d059d8aebe917b9ad..6acfc8cba2ed9b448dd233568aede91cd1b99907 100644
 --- a/tests/smoke/project_context_staging_smoke.py
 +++ b/tests/smoke/project_context_staging_smoke.py
 @@ -6,7 +6,7 @@ core=(root/'src/core.js').read_text()
@@ -4646,7 +4733,7 @@ index 15cc7a7..6acfc8c 100644
      payload='''# Project context\n\nObjective: Validate the guarded dependency brain.\n\nReusable lesson: Keep expensive project reasoning off the live capture path.'''
      content_hash=page.evaluate('(value)=>ProjectConstellationBrainCore.hashString(value)',payload)
 diff --git a/tests/smoke/provider_dom_smoke.py b/tests/smoke/provider_dom_smoke.py
-index eac0fb5..0690c3e 100644
+index eac0fb510f0de4303ca7d59e16980c532ff5d031..0690c3e4fe9de4b2cfe45c4edbd98024f2f829fc 100644
 --- a/tests/smoke/provider_dom_smoke.py
 +++ b/tests/smoke/provider_dom_smoke.py
 @@ -5,6 +5,7 @@ root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT', '/mnt/data/proj
@@ -4668,7 +4755,7 @@ index eac0fb5..0690c3e 100644
          result = page.evaluate("""() => {const turns=window.__brain.filter(row=>row.type==='TURN_UPSERT');return {roles:turns.map(row=>row.data.role),chatIds:[...new Set(turns.map(row=>row.data.chatId))],turns:turns.length};}""")
 diff --git a/tests/state-event-bus-core.test.mjs b/tests/state-event-bus-core.test.mjs
 new file mode 100644
-index 0000000..589a945
+index 0000000000000000000000000000000000000000..589a945e72b0f582384ce119baa06b3dce0bbe9a
 --- /dev/null
 +++ b/tests/state-event-bus-core.test.mjs
 @@ -0,0 +1,10 @@
@@ -4683,7 +4770,7 @@ index 0000000..589a945
 +assert(core.isStateEvent(event));
 +console.log('state-event-bus-core.test.mjs: PASS');
 diff --git a/tests/unified-v019.test.mjs b/tests/unified-v019.test.mjs
-index 34ee00c..8b9dd2d 100644
+index 34ee00ccd2dd904f92c591daa41a89bf6c80fee6..8b9dd2d2d11c4e9103dcc16b49cec6339ec9464e 100644
 --- a/tests/unified-v019.test.mjs
 +++ b/tests/unified-v019.test.mjs
 @@ -1,7 +1,7 @@
@@ -4711,7 +4798,7 @@ index 34ee00c..8b9dd2d 100644
  assert.match(rec,/INTENT_PERSISTED/); assert.match(rec,/SECURITY_APPROVAL_REQUIRED/); assert.doesNotMatch(rec,/approve\(\)|click.*allow/i);
  console.log('Unified 0.19 product regression: PASS');
 diff --git a/tools/build.mjs b/tools/build.mjs
-index 2f22708..ba9c30d 100644
+index 2f227084438aa92d4541a07f1d6bcefb27524002..ba9c30d01c1585fee6e758376f6af08c460efe19 100644
 --- a/tools/build.mjs
 +++ b/tools/build.mjs
 @@ -9,14 +9,15 @@ const buildRoot = path.join(repoRoot, 'build');
@@ -4743,7 +4830,7 @@ index 2f22708..ba9c30d 100644
  const backgroundPath = path.join(unpacked, 'background.js');
 diff --git a/tools/package-unified-release.mjs b/tools/package-unified-release.mjs
 new file mode 100644
-index 0000000..b03ce1f
+index 0000000000000000000000000000000000000000..b03ce1f6b7c388dabfbd3d60ae25c0cb7346cbcf
 --- /dev/null
 +++ b/tools/package-unified-release.mjs
 @@ -0,0 +1,45 @@
