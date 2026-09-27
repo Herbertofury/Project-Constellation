@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag, for example v0.20.0
+        description: Release tag, for example v0.20.1
         required: true
-        default: v0.20.0
+        default: v0.20.1
   push:
     tags: ['v*']
 
@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 env:
-  VERSION: 0.20.0
+  VERSION: 0.20.1
 
 jobs:
   verify-linux:
@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
+          manifest="$GITHUB_WORKSPACE/releases/v0.20.1/SOURCE-MANIFEST.json"
           test -f "$manifest"
           baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
           baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: Project-Constellation-v0.20.0-Windows
+          name: Project-Constellation-v0.20.1-Windows
           path: windows-dist
 
       - name: Build exact extension and unified release set
