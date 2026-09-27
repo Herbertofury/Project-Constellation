@@ -1,0 +1,1963 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index b2b86e0c4c2e47c7d78d5151bd6be4809249f0c0..5b11a3f4d960e9cd9367edb8d430b3185222c9d9 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -28,7 +28,7 @@ jobs:
+         run: |
+           set -euo pipefail
+           root="$GITHUB_WORKSPACE"
+-          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
++          manifest="$GITHUB_WORKSPACE/releases/v0.20.1/SOURCE-MANIFEST.json"
+           if [[ -f "$manifest" ]]; then
+             baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
+             baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
+@@ -49,7 +49,8 @@ jobs:
+             git -C "$root" commit -q -m 'Project Constellation verified production baseline'
+             git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
+             git -C "$root" checkout-index -a -f
+-            [[ "$(node -p "require('$root/package.json').version")" == '0.20.0' ]]
++            expected_version=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.version)" "$manifest")
++            [[ "$(node -p "require('$root/package.json').version")" == "$expected_version" ]]
+             echo "PC_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
+           fi
+           echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index b76694d89dcafcfeaba7a4892c775e29ffebeaf7..30678f22590825d72915825379ec8770588f2e67 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -4,9 +4,9 @@ on:
+   workflow_dispatch:
+     inputs:
+       tag:
+-        description: Release tag, for example v0.20.0
++        description: Release tag, for example v0.20.1
+         required: true
+-        default: v0.20.0
++        default: v0.20.1
+   push:
+     tags: ['v*']
+ 
+@@ -14,7 +14,7 @@ permissions:
+   contents: write
+ 
+ env:
+-  VERSION: 0.20.0
++  VERSION: 0.20.1
+ 
+ jobs:
+   verify-linux:
+@@ -37,7 +37,7 @@ jobs:
+         shell: bash
+         run: |
+           set -euo pipefail
+-          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
++          manifest="$GITHUB_WORKSPACE/releases/v0.20.1/SOURCE-MANIFEST.json"
+           test -f "$manifest"
+           baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
+           baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
+@@ -61,7 +61,7 @@ jobs:
+ 
+       - uses: actions/download-artifact@v8
+         with:
+-          name: Project-Constellation-v0.20.0-Windows
++          name: Project-Constellation-v0.20.1-Windows
+           path: windows-dist
+ 
+       - name: Build exact extension and unified release set
+diff --git a/.github/workflows/windows-runtime.yml b/.github/workflows/windows-runtime.yml
+index 605510a2697b1563700902a12ae0bb3bd5f5fb9c..98f6eca4c6f26e1d08f2bd63047fe929b9741ec3 100644
+--- a/.github/workflows/windows-runtime.yml
++++ b/.github/workflows/windows-runtime.yml
+@@ -10,14 +10,14 @@ on:
+       - 'tests/**'
+       - 'tools/**'
+       - 'package.json'
+-      - 'releases/v0.20.0/0.19.0-to-0.20.0.patch'
+-      - 'releases/v0.20.0/SOURCE-MANIFEST.json'
++      - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
++      - 'releases/v0.20.1/SOURCE-MANIFEST.json'
+       - '.github/workflows/windows-runtime.yml'
+   push:
+     branches: ['release/**']
+     paths:
+-      - 'releases/v0.20.0/0.19.0-to-0.20.0.patch'
+-      - 'releases/v0.20.0/SOURCE-MANIFEST.json'
++      - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
++      - 'releases/v0.20.1/SOURCE-MANIFEST.json'
+       - '.github/workflows/windows-runtime.yml'
+ 
+ permissions:
+@@ -30,17 +30,17 @@ jobs:
+     steps:
+       - uses: actions/checkout@v7
+ 
+-      - name: Reconstruct exact 0.20 source lineage
++      - name: Reconstruct exact 0.20.1 source lineage
+         shell: pwsh
+         run: |
+           $ErrorActionPreference = 'Stop'
+           $PSNativeCommandUseErrorActionPreference = $true
+-          $manifest = Get-Content 'releases/v0.20.0/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
+-          if ($manifest.version -ne '0.20.0') { throw "Unexpected source manifest version: $($manifest.version)" }
++          $manifest = Get-Content 'releases/v0.20.1/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
++          if ($manifest.version -ne '0.20.1') { throw "Unexpected source manifest version: $($manifest.version)" }
+           $baseline = [string]$manifest.baseline.artifact
+           $delta = [string]$manifest.delta.artifact
+           if (-not (Test-Path $baseline)) { throw "Baseline source archive missing: $baseline" }
+-          if (-not (Test-Path $delta)) { throw "0.20 source delta missing: $delta" }
++          if (-not (Test-Path $delta)) { throw "0.20.1 source delta missing: $delta" }
+           $baselineHash = (Get-FileHash $baseline -Algorithm SHA256).Hash.ToLowerInvariant()
+           $deltaHash = (Get-FileHash $delta -Algorithm SHA256).Hash.ToLowerInvariant()
+           if ($baselineHash -ne [string]$manifest.baseline.sha256) { throw "Baseline SHA mismatch: $baselineHash" }
+@@ -53,19 +53,20 @@ jobs:
+           git config user.email 'actions@users.noreply.github.com'
+           git config core.autocrlf false
+           git add -A
+-          git commit -q -m 'Project Constellation 0.19.0 production baseline'
+-          git apply --cached '..\releases\v0.20.0\0.19.0-to-0.20.0.patch'
++          git commit -q -m 'Project Constellation 0.20.0 production baseline'
++          git apply --cached "..\$delta"
+           git checkout-index -a -f
+ 
+           $version = node -p "require('./package.json').version" 2>$null
+           if ($LASTEXITCODE -ne 0) {
+             $version = (Get-Content 'package.json' -Raw | ConvertFrom-Json).version
+           }
+-          if ($version -ne '0.20.0') { throw "Reconstructed package version mismatch: $version" }
++          if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
+           Set-Location '..'
+           $root = (Resolve-Path 'pc-source').Path
+           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+           "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
++          "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+           Write-Host "reconstructed_source=$root"
+           Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
+ 
+@@ -157,7 +158,7 @@ jobs:
+           $receipt = [ordered]@{
+             schema='project-constellation-windows-runtime-v1'
+             product='Project Constellation'
+-            version='0.20.0'
++            version=$env:PC_SOURCE_VERSION
+             sourceCommit=$env:PC_SOURCE_COMMIT
+             platform='windows-latest'
+             electron='44.4.4'
+@@ -187,7 +188,7 @@ jobs:
+ 
+       - uses: actions/upload-artifact@v7
+         with:
+-          name: Project-Constellation-v0.20.0-Windows
++          name: Project-Constellation-v0.20.1-Windows
+           path: windows-dist/*
+           if-no-files-found: error
+           retention-days: 30
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c6b8e062d832d1833e5a38aa307d0067e2d70f66..45dff64a927210983a21310dea3f98dca55963a3 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,16 @@
+ # Changelog
+ 
++## 0.20.1 — All-Tab Chat Guardian Hotfix
++
++- Added an event-first Chat Guardian that independently supervises every open ChatGPT conversation tab and keeps recoverable tabs resident without stealing focus.
++- Added semantic handling for ChatGPT’s new stream-recovery timeout/error wording, including `ChatGPT stream recovery polling timed out`, plus recovery-control-anchored fallback detection so future current-turn failure copy can change without breaking recovery.
++- Automatically sends the separate safe continuation turn `Continue the unfinished task.` when a current task is demonstrably unfinished, instead of replaying ChatGPT’s native Retry control or duplicating prior tool side effects.
++- Uses `Promise.allSettled` across all open ChatGPT tabs so one broken, discarded, frozen, or non-responsive tab cannot block recovery of the others; Chrome frozen/discarded transitions are tracked and reconciled immediately when the tab becomes runnable again.
++- Preserves user drafts and non-bypassable provider-review, approval, authentication, rate-limit, unavailable, and conversation-capacity holds.
++- Adds one bounded reload fallback only when an explicit terminal failure cannot be continued because the composer/send surface is unavailable; reload attempts are fingerprinted and capped.
++- Replaces fixed guardian polling with state-transition triggers plus adaptive one-shot fallback alarms, and persists bounded per-chat recovery history for deduplication.
++- Added unit, static-contract, real-browser DOM, and background integration regressions for multi-tab recovery, new provider error wording, healthy-tab non-interference, and native-Retry non-activation.
++
+ ## 0.20.0 — Reliability Foundation
+ 
+ - Added a cross-surface state-event bus and removed fixed polling loops from key UI/route/recovery paths, including the legacy one-minute stall watchdog.
+diff --git a/desktop/README.md b/desktop/README.md
+index 5c78e6af2ae079d0d01e40075e5931f478296f11..22bedc721c52d5ae11acd10aa124a616cbeba713 100644
+--- a/desktop/README.md
++++ b/desktop/README.md
+@@ -1,9 +1,12 @@
+-# Project Constellation Desktop 0.20.0
++# Project Constellation Desktop 0.20.1
+ 
+ Project Constellation is the unified desktop runtime and browser companion for authenticated ChatGPT work, project continuity, local computer tools, saved tasks, recovery, provider health, and durable project state. The normal ChatGPT experience uses the user's existing signed-in web session; it does **not** require a separate OpenAI API key.
+ 
+-## 0.20.0 highlights
++## 0.20.1 highlights
+ 
++- **All-tab Chat Guardian.** Every open ChatGPT conversation tab is independently supervised; unfinished failed/stalled turns can receive one safe `Continue the unfinished task.` turn without auto-clicking native Retry or replaying uncertain tool side effects.
++- **Current ChatGPT recovery UI support.** Stream-recovery timeout/error surfaces, including `ChatGPT stream recovery polling timed out`, are classified semantically and trigger event-first recovery with bounded one-shot fallback checks.
++- **Draft/hold-safe recovery.** User drafts, approvals, authentication, rate limits, provider review, unavailable conversations, and capacity handoff states remain non-bypassable; reload fallback is fingerprinted and capped.
+ - **Project Constellation identity everywhere.** Commander-era application IDs, data/config paths, CLI aliases, persistent ChatGPT partition, extension ID, and bridge contracts are retained where changing them would break upgrades or strand user state, but the product presented to the user is Project Constellation.
+ - **Electron 44.4.4 stable.** Desktop runtime is pinned to Electron 44.4.4 and electron-builder 26.16.1.
+ - **Event-first runtime.** Browser/desktop route and status tracking use real state/route events with bounded one-shot fallbacks rather than permanent high-frequency polling.
+@@ -11,15 +14,15 @@ Project Constellation is the unified desktop runtime and browser companion for a
+ - **Incident Brain.** Verified failure fingerprints can retain the proven recovery recipe, invalidation conditions, and regression protection so repeat incidents do not require rediscovery.
+ - **Brain DB v11.** Shared IndexedDB connection/migration ownership adds durable provider-health, incident-recipe, and migration-receipt stores.
+ - **Update Center + rollback.** A stable release can be checked, downloaded, SHA-256 verified, staged, installed after exit, and rolled back to the previous application directory if replacement fails.
+-- **Broad capability model preserved.** The browser companion intentionally retains the existing broad permission/provider-host direction. 0.20 does not reduce those capabilities.
++- **Broad capability model preserved.** The browser companion intentionally retains the existing broad permission/provider-host direction. 0.20.1 does not reduce those capabilities.
+ 
+ ## Start
+ 
+ ### Portable Windows build
+ 
+-Extract the complete `Project-Constellation-Desktop-0.20.0-x64.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
++Extract the complete `Project-Constellation-Desktop-0.20.1-x64.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
+ 
+-Project Constellation intentionally reuses the existing Commander/Constellation application identity and persistent ChatGPT partition for upgrade continuity. Existing local settings, tasks, project state, and signed-in browser state are not intentionally reset by the 0.20 migration.
++Project Constellation intentionally reuses the existing Commander/Constellation application identity and persistent ChatGPT partition for upgrade continuity. Existing local settings, tasks, project state, and signed-in browser state are not intentionally reset by the 0.20.1 hotfix.
+ 
+ ### Development
+ 
+@@ -73,11 +76,11 @@ Search is indexed/paginated and handles files beyond the old 16 MB scan ceiling.
+ 
+ ## Updates
+ 
+-0.20 includes an integrated update service. Stable updates are staged only after SHA-256 verification. The updater keeps a rollback copy of the previous application directory and provides explicit apply/rollback scripts. Update availability is checked on startup/on demand rather than by a permanent short-interval poll.
++0.20.1 retains the integrated update service. Stable updates are staged only after SHA-256 verification. The updater keeps a rollback copy of the previous application directory and provides explicit apply/rollback scripts. Update availability is checked on startup/on demand rather than by a permanent short-interval poll.
+ 
+ ## Verification contract
+ 
+-The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.20 build must prove the exact source revision on Windows with:
++The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.20.1 build must prove the exact source revision on Windows with:
+ 
+ - root regression/contract checks;
+ - desktop syntax + full regression/security tests;
+@@ -87,9 +90,9 @@ The authoritative Windows release gate is `../.github/workflows/windows-runtime.
+ - fresh extraction and launch of the produced portable application;
+ - SHA-256/size receipt generation.
+ 
+-Browser acceptance additionally includes the complete 34-workflow Chromium smoke set.
++Browser acceptance additionally includes the complete 35-workflow Chromium smoke set, including the new multi-tab Chat Guardian recovery regression.
+ 
+-See `RELEASE-MANIFEST.json` and `../docs/v0.20.0-release-notes.md` for the current release contract and exact proof state.
++See `RELEASE-MANIFEST.json` and `../docs/v0.20.1-release-notes.md` for the current release contract and exact proof state.
+ 
+ ## Compatibility notes
+ 
+diff --git a/desktop/RELEASE-MANIFEST.json b/desktop/RELEASE-MANIFEST.json
+index 5f21505fe4932fb66146acddcb6f7b23ed28983d..40cf107ed849ccf735a2d7a3870c6eae936a3127 100644
+--- a/desktop/RELEASE-MANIFEST.json
++++ b/desktop/RELEASE-MANIFEST.json
+@@ -1,6 +1,6 @@
+ {
+   "project": "Project Constellation",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "runtime": {
+     "electron": "44.4.4",
+     "electron_builder": "26.16.1",
+@@ -14,25 +14,35 @@
+     "incident_brain": true,
+     "brain_db_version": 11,
+     "update_center": true,
++    "chat_guardian": true,
++    "all_open_chatgpt_tabs": true,
++    "event_first_guardian": true,
++    "one_shot_guardian_fallback": true,
+     "fixed_polling_reduced": true,
+     "broad_permissions_preserved": true
+   },
+   "verification": {
+     "root_regressions": "PASS",
+-    "browser_smoke_workflows": "PASS: 34/34",
+-    "desktop_static_and_update_service": "PASS",
++    "root_validation": "PASS",
++    "development_build": "PASS",
++    "chat_guardian_browser_dom_smoke": "PASS",
++    "chat_guardian_background_integration": "PASS",
++    "desktop_static_and_reliability": "PASS",
++    "full_browser_smoke_suite": "PASS: 35/35",
+     "native_windows": "REQUIRES_PASSING_WINDOWS_RUNTIME_RECEIPT_FOR_RELEASE",
+     "authenticated_user_chatgpt": "USER_RUNTIME_ACCEPTANCE"
+   },
+   "preserved": [
++    "immutable 0.20.0 release bytes and source lineage",
+     "ChatGPT persistent partition",
+     "existing local tool definitions",
+     "Commander-era state/config paths for upgrade compatibility",
+-    "stable browser extension identity and local bridge protocol"
++    "stable browser extension identity and local bridge protocol",
++    "provider/approval/auth/rate-limit/user-draft safety holds"
+   ],
+-  "delivery": "Unified source + browser extension + Windows portable/setup + checksums + release receipt after native Windows gate",
++  "delivery": "0.20.0 exact source + deterministic 0.20.1 delta + browser extension + Windows portable/setup + checksums + release receipt after exact-source Linux/Windows gates",
+   "remaining_release_gates": [
+-    "A passing WINDOWS-RUNTIME-RECEIPT.json is required before final 0.20 publication",
++    "A passing 0.20.1 WINDOWS-RUNTIME-RECEIPT.json is required before final publication",
+     "User authenticated ChatGPT acceptance after delivery"
+   ]
+ }
+diff --git a/desktop/browser-companion/page-hook.js b/desktop/browser-companion/page-hook.js
+index a9de07189c306a204653bc94113fd95df3283204..4ffce4cea35f41df923225e13c2815fa1071dea8 100644
+--- a/desktop/browser-companion/page-hook.js
++++ b/desktop/browser-companion/page-hook.js
+@@ -4,7 +4,7 @@
+   const SOURCE = 'constellation-commander-page-hook';
+   const CONTEXT_OPEN='[PROJECT CONSTELLATION LOCAL CONTEXT]', CONTEXT_CLOSE='[/PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const post = (type, extra = {}) => { try { window.postMessage({source:SOURCE,type,...extra},'*'); } catch {} };
+-  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true}); return; }
++  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.20.1',receipts:true}); return; }
+   window.__constellationHookInstalled = true;
+   let pending = null;
+   const normalize = value => String(value ?? '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+@@ -101,5 +101,5 @@
+       return send.call(this,changed.body);
+     };
+   }
+-  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true});
++  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.1',receipts:true});
+ })();
+diff --git a/desktop/electron/chat-preload.cjs b/desktop/electron/chat-preload.cjs
+index d871c2760a9a6bf4280ab0be20ecb9245fc50a45..35b72d554beecae0400c4c19b9ec102c7ef34c0a 100644
+--- a/desktop/electron/chat-preload.cjs
++++ b/desktop/electron/chat-preload.cjs
+@@ -3,7 +3,7 @@
+ const { ipcRenderer } = require('electron');
+ 
+ (() => {
+-  const VERSION = '0.20.0';
++  const VERSION = '0.20.1';
+   const CONTEXT_OPEN = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const RESULT_OPEN = '[PC BUDDY TOOL RESULT]';
+diff --git a/desktop/electron/main.cjs b/desktop/electron/main.cjs
+index 3a4bd9194fa2c8b7dfdf3a8bef888b9c2ffe213e..c548bf049b04570996c047d9c7289083108afaf6 100644
+--- a/desktop/electron/main.cjs
++++ b/desktop/electron/main.cjs
+@@ -15,7 +15,7 @@ let overlayVisible = false;
+ const downloads = new Map();
+ let chatExecution = Promise.resolve();
+ 
+-const VERSION = '0.20.0';
++const VERSION = '0.20.1';
+ const CHAT_URL = 'https://chatgpt.com/';
+ const CHAT_PARTITION = 'persist:constellation-chatgpt';
+ const SESSION_TTL_MS = 60 * 60 * 1000;
+diff --git a/desktop/electron/shell.html b/desktop/electron/shell.html
+index 9a95a4ee9bb58f4ba9b1c81037c2962ee4282c7f..98d6d178ecdd3c3484d7e3402571a90e726abae8 100644
+--- a/desktop/electron/shell.html
++++ b/desktop/electron/shell.html
+@@ -9,7 +9,7 @@
+ <link href="./shell.css" rel="stylesheet"/>
+ </head>
+ <body data-view="chat">
+-<nav aria-label="Project Constellation navigation" class="rail"><button aria-label="Chat" aria-pressed="true" class="rail-button" data-view="chat" title="Chat"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"></path></svg><span>Chat</span></button><button aria-label="Files" aria-pressed="false" class="rail-button" data-view="workspace" title="Files"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 6h7l2 3h9v12H3Z"></path></svg><span>Files</span></button><button aria-label="Terminal" aria-pressed="false" class="rail-button" data-view="terminal" title="Terminal"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m5 7 5 5-5 5m8 0h6"></path></svg><span>Terminal</span></button><button aria-label="Desktop" aria-pressed="false" class="rail-button" data-view="desktop" title="Desktop"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 4h18v13H3Zm9 13v4m-5 0h10"></path></svg><span>Desktop</span></button><button aria-label="Activity" aria-pressed="false" class="rail-button" data-view="activity" title="Activity"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><span>Activity</span></button><button aria-label="Connect" aria-pressed="false" class="rail-button" data-view="connections" title="Connect"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m9 15-3 3a4 4 0 0 1-5-5l5-5a4 4 0 0 1 6 0m0 1 3-3a4 4 0 0 1 5 5l-5 5a4 4 0 0 1-6 0"></path></svg><span>Connect</span></button><button aria-label="Settings" aria-pressed="false" class="rail-button" data-view="settings" title="Settings"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"></path></svg><span>Settings</span></button><div class="rail-bottom"><span class="avatar">PC</span><span>This PC</span></div></nav><header class="topbar"><div class="brand"><span class="brand-mark">C</span><strong>Project Constellation</strong><span class="version" id="version">0.20.0</span></div><div class="top-nav"><button aria-label="Back in ChatGPT" class="icon-button" id="chat-back" title="Back in ChatGPT"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button><button aria-label="New ChatGPT chat" class="icon-button" id="home" title="New ChatGPT chat"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></button><button aria-label="Reload ChatGPT" class="icon-button" id="reload" title="Reload ChatGPT"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M20 5v6h-6M4 19v-6h6m-5-5a8 8 0 0 1 13-3m1 11a8 8 0 0 1-13 3"></path></svg></button><span class="divider"></span><strong id="view-title">ChatGPT</strong><span class="online-label">WEB</span></div><div class="top-actions"><span class="top-status"><span class="dot dot-warn" id="chat-dot"></span><span id="chat-state">Connecting</span></span><button aria-label="Quick actions (Ctrl+Shift+P)" class="icon-button" id="command-palette" title="Quick actions (Ctrl+Shift+P)"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6"></path></svg></button><button aria-label="Keep window on top" class="icon-button" id="pin-window" title="Keep window on top"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m16 3 5 5-4 3v5l-3-1-4 4-5-5 4-4-1-3h5Zm-9 14-4 4"></path></svg></button><button class="ghost" id="workspace-toggle">Workspace</button><button class="pill" id="controls">Computer access</button><button class="danger" id="stop-all">Stop</button></div></header>
++<nav aria-label="Project Constellation navigation" class="rail"><button aria-label="Chat" aria-pressed="true" class="rail-button" data-view="chat" title="Chat"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"></path></svg><span>Chat</span></button><button aria-label="Files" aria-pressed="false" class="rail-button" data-view="workspace" title="Files"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 6h7l2 3h9v12H3Z"></path></svg><span>Files</span></button><button aria-label="Terminal" aria-pressed="false" class="rail-button" data-view="terminal" title="Terminal"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m5 7 5 5-5 5m8 0h6"></path></svg><span>Terminal</span></button><button aria-label="Desktop" aria-pressed="false" class="rail-button" data-view="desktop" title="Desktop"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 4h18v13H3Zm9 13v4m-5 0h10"></path></svg><span>Desktop</span></button><button aria-label="Activity" aria-pressed="false" class="rail-button" data-view="activity" title="Activity"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><span>Activity</span></button><button aria-label="Connect" aria-pressed="false" class="rail-button" data-view="connections" title="Connect"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m9 15-3 3a4 4 0 0 1-5-5l5-5a4 4 0 0 1 6 0m0 1 3-3a4 4 0 0 1 5 5l-5 5a4 4 0 0 1-6 0"></path></svg><span>Connect</span></button><button aria-label="Settings" aria-pressed="false" class="rail-button" data-view="settings" title="Settings"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"></path></svg><span>Settings</span></button><div class="rail-bottom"><span class="avatar">PC</span><span>This PC</span></div></nav><header class="topbar"><div class="brand"><span class="brand-mark">C</span><strong>Project Constellation</strong><span class="version" id="version">0.20.1</span></div><div class="top-nav"><button aria-label="Back in ChatGPT" class="icon-button" id="chat-back" title="Back in ChatGPT"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button><button aria-label="New ChatGPT chat" class="icon-button" id="home" title="New ChatGPT chat"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></button><button aria-label="Reload ChatGPT" class="icon-button" id="reload" title="Reload ChatGPT"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M20 5v6h-6M4 19v-6h6m-5-5a8 8 0 0 1 13-3m1 11a8 8 0 0 1-13 3"></path></svg></button><span class="divider"></span><strong id="view-title">ChatGPT</strong><span class="online-label">WEB</span></div><div class="top-actions"><span class="top-status"><span class="dot dot-warn" id="chat-dot"></span><span id="chat-state">Connecting</span></span><button aria-label="Quick actions (Ctrl+Shift+P)" class="icon-button" id="command-palette" title="Quick actions (Ctrl+Shift+P)"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6"></path></svg></button><button aria-label="Keep window on top" class="icon-button" id="pin-window" title="Keep window on top"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m16 3 5 5-4 3v5l-3-1-4 4-5-5 4-4-1-3h5Zm-9 14-4 4"></path></svg></button><button class="ghost" id="workspace-toggle">Workspace</button><button class="pill" id="controls">Computer access</button><button class="danger" id="stop-all">Stop</button></div></header>
+ <aside class="sidebar"><div class="inspector-heading"><h2>Computer access</h2><span class="badge">LOCAL</span></div>
+ <section class="hero-card">
+ <div class="eyebrow">THIS COMPUTER</div>
+diff --git a/desktop/electron/shell.js b/desktop/electron/shell.js
+index 31ec9164acef93e54a862879a1f1016d6f0bfc8a..aebe8c76160912e21e23eb510b155c8d1baa4025 100644
+--- a/desktop/electron/shell.js
++++ b/desktop/electron/shell.js
+@@ -197,7 +197,7 @@
+     window.dispatchEvent(new CustomEvent('commander-snapshot',{detail:next}));
+     const chat = next.chat || {};
+     const config = next.config || {};
+-    $('version').textContent = `v${next.version || '0.20.0'}`;
++    $('version').textContent = `v${next.version || '0.20.1'}`;
+     document.body.classList.toggle('sidebar-collapsed', Boolean(next.shellCollapsed));
+     $('controls').textContent = 'Computer access';$('controls').setAttribute('aria-expanded',String(!next.shellCollapsed));
+     const off=config.localToolMode==='off';
+diff --git a/desktop/package.json b/desktop/package.json
+index 46d0ffd27b5973f463bd5abce91a49c0a47a1a35..b0c5d02ff95f8d2ee8473f64b2b09baa1bc44990 100644
+--- a/desktop/package.json
++++ b/desktop/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "project-constellation-desktop",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "description": "Project Constellation desktop runtime and local Work-agent bridge.",
+   "type": "module",
+   "private": true,
+diff --git a/desktop/plugin/plugin.json b/desktop/plugin/plugin.json
+index 290c50423ed32c6a5142d90b05574740c7b9342f..49f3872891190e5ece13489fcb15bfcc1091c621 100644
+--- a/desktop/plugin/plugin.json
++++ b/desktop/plugin/plugin.json
+@@ -1,7 +1,7 @@
+ {
+   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+   "name": "constellation-commander",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "description": "Use an authorized computer through the integrated Constellation Commander Electron ChatGPT workspace; browser-extension and hosted MCP transports are optional fallbacks.",
+   "author": {
+     "name": "Herbertofury",
+diff --git a/desktop/scripts/electron-smoke.ps1 b/desktop/scripts/electron-smoke.ps1
+index d5c3f371458336ca9fed426a7a8f36a835def8fb..da70e67b310714860aeda5927f7811751dbfc71b 100644
+--- a/desktop/scripts/electron-smoke.ps1
++++ b/desktop/scripts/electron-smoke.ps1
+@@ -21,7 +21,7 @@ if (-not (Test-Path $Output)) {
+   throw "Electron integrated-chat smoke timed out.`nTRACE:`n$trace`nSTDOUT:`n$out`nSTDERR:`n$err"
+ }
+ $data = Get-Content $Output -Raw | ConvertFrom-Json
+-if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false -or $data.detail.shellRuntime.ok -ne $true -or $data.detail.shellRuntime.version -ne '0.20.0' -or $data.detail.shellRuntime.toolCount -lt 45 -or $data.detail.shellRuntime.singleInstanceOwner -ne $true -or $data.detail.shellRuntime.health.ok -ne $true) {
++if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false -or $data.detail.shellRuntime.ok -ne $true -or $data.detail.shellRuntime.version -ne '0.20.1' -or $data.detail.shellRuntime.toolCount -lt 45 -or $data.detail.shellRuntime.singleInstanceOwner -ne $true -or $data.detail.shellRuntime.health.ok -ne $true) {
+   $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
+   $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
+   $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }
+diff --git a/desktop/src/config.mjs b/desktop/src/config.mjs
+index 893d5767cff88efbf74be2f6102286df95f1688c..b3105967780d7a7875c91a8f2683f29e88f12660 100644
+--- a/desktop/src/config.mjs
++++ b/desktop/src/config.mjs
+@@ -5,7 +5,7 @@ import fs from 'node:fs';
+ import fsp from 'node:fs/promises';
+ 
+ export const APP_NAME = 'Project Constellation';
+-export const VERSION = '0.20.0';
++export const VERSION = '0.20.1';
+ 
+ export function stateDir() {
+   return process.env.CONSTELLATION_COMMANDER_HOME || path.join(os.homedir(), '.constellation-commander');
+diff --git a/desktop/tests/browser-background-smoke.mjs b/desktop/tests/browser-background-smoke.mjs
+index 36333e4bbf57ace48e37dab60130e4e72ab9013c..d9f86c3469730153e27605a16f57a7365244bdef 100644
+--- a/desktop/tests/browser-background-smoke.mjs
++++ b/desktop/tests/browser-background-smoke.mjs
+@@ -13,7 +13,7 @@ const message=payload=>new Promise((resolve,reject)=>{const timer=setTimeout(()=
+ try{
+  await import(`${pathToFileURL(path.resolve('../extension/src/local-work-controller.js')).href}?smoke=${Date.now()}`);
+  await new Promise(r=>setTimeout(r,80));
+- const health=await message({type:'CC_HEALTH'}); assert.equal(health.ok,true); assert.equal(health.version,'0.20.0'); assert.equal(health.companionConnected,true); assert.equal(health.companionVersion,'0.20.0');
++ const health=await message({type:'CC_HEALTH'}); assert.equal(health.ok,true); assert.equal(health.version,'0.20.1'); assert.equal(health.companionConnected,true); assert.equal(health.companionVersion,'0.20.1');
+  const boot=await message({type:'CC_BOOTSTRAP',chatId:'background-smoke',url:'https://chatgpt.com/c/test'}); assert.equal(boot.ok,true); assert.ok(boot.sessionToken); assert.ok(boot.nonce);
+  const proof=path.join(tmp,'proof.txt'); const write=await message({type:'CC_CALL',sessionToken:boot.sessionToken,call:{nonce:boot.nonce,id:'write',tool:'fs_write_text',args:{path:proof,content:'unified-proof',mode:'rewrite'}}}); assert.equal(write.ok,true,JSON.stringify(write)); assert.equal(await fsp.readFile(proof,'utf8'),'unified-proof');
+  console.log('Project Constellation unified extension -> real desktop bridge smoke: PASS');
+diff --git a/desktop/tests/browser-bridge-smoke.mjs b/desktop/tests/browser-bridge-smoke.mjs
+index 0d44c8d8c9f0e303ca9bc8e5fb347dadaa723923..bbdd1ee8263d855e5b6aec51631079801f866863 100644
+--- a/desktop/tests/browser-bridge-smoke.mjs
++++ b/desktop/tests/browser-bridge-smoke.mjs
+@@ -34,13 +34,13 @@ try {
+   assert.equal(staleHealth.body.companionVersionMatch, false);
+ 
+   const hello = await json(`${base}/v1/companion/hello`, {
+-    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify({ version: '0.20.0', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' })
++    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify({ version: '0.20.1', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' })
+   });
+   assert.equal(hello.status, 200);
+   assert.equal(hello.body.ok, true);
+   const healthAfterHello = await json(`${base}/health`);
+   assert.equal(healthAfterHello.body.companionConnected, true);
+-  assert.equal(healthAfterHello.body.companionVersion, '0.20.0');
++  assert.equal(healthAfterHello.body.companionVersion, '0.20.1');
+   assert.equal(healthAfterHello.body.companionVersionMatch, true);
+   assert.equal(healthAfterHello.body.companionExtensionId, 'geljambmkfjkhodgkpjhnmfojkpcamig');
+ 
+diff --git a/desktop/tests/browser-companion-e2e.mjs b/desktop/tests/browser-companion-e2e.mjs
+index 41a57580598c23935d9bfe10bf8ed9f2980cc3ec..9a9a90abe4a85566a2acfb328d82e1cece2b04f9 100644
+--- a/desktop/tests/browser-companion-e2e.mjs
++++ b/desktop/tests/browser-companion-e2e.mjs
+@@ -144,7 +144,7 @@ try {
+   await call('Runtime.enable');
+   await call('Runtime.addBinding', { name: '__ccBridgeBinding' });
+ 
+-  const hello = await bridgeFetch('/v1/companion/hello', { method: 'POST', body: { version: '0.20.0', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' } });
++  const hello = await bridgeFetch('/v1/companion/hello', { method: 'POST', body: { version: '0.20.1', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' } });
+   assert.equal(hello.ok, true, JSON.stringify(hello));
+ 
+   const pageHtml = `
+diff --git a/desktop/tests/browser-companion-static.test.mjs b/desktop/tests/browser-companion-static.test.mjs
+index 8563da72d9628d4ac5f1d52590bb23befa0330fb..65a1865d2d1c8f10196b94905bc3b1817c4059d8 100644
+--- a/desktop/tests/browser-companion-static.test.mjs
++++ b/desktop/tests/browser-companion-static.test.mjs
+@@ -7,7 +7,7 @@ const pageHook = await fsp.readFile(new URL('../../extension/src/local-work-page
+ const content = await fsp.readFile(new URL('../../extension/src/local-work-content.js', import.meta.url), 'utf8');
+ 
+ assert.equal(manifest.manifest_version, 3);
+-assert.equal(manifest.version, '0.20.0');
++assert.equal(manifest.version, '0.20.1');
+ assert.ok(typeof manifest.key === 'string' && manifest.key.length > 300);
+ assert.match(await fsp.readFile(new URL('../src/browser-bridge.mjs', import.meta.url), 'utf8'), /geljambmkfjkhodgkpjhnmfojkpcamig/);
+ assert.ok(manifest.content_scripts.length >= 2);
+diff --git a/desktop/tests/electron-static.test.mjs b/desktop/tests/electron-static.test.mjs
+index 42e65067f72868236b0fa421cd4925a43b17f917..0ca5106dd2ddf46833af39aeb0cde8c6dad02d91 100644
+--- a/desktop/tests/electron-static.test.mjs
++++ b/desktop/tests/electron-static.test.mjs
+@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
+ const main = fs.readFileSync(new URL('../electron/main.cjs', import.meta.url), 'utf8');
+ const preload = fs.readFileSync(new URL('../electron/chat-preload.cjs', import.meta.url), 'utf8');
+ const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+-assert.equal(pkg.version, '0.20.0');
++assert.equal(pkg.version, '0.20.1');
+ assert.equal(pkg.devDependencies.electron, '44.4.4');
+ assert.equal(pkg.build.asar, true);
+ assert.deepEqual(pkg.build.asarUnpack, ['native/**/*','scripts/**/*']);
+diff --git a/desktop/tests/native-electron-acceptance.py b/desktop/tests/native-electron-acceptance.py
+index c0dd3ec96d107ffd71c67cb543a4234c4402dba5..5acd86779ad0745fd0fa2cea3ecbd7b76066e7d7 100644
+--- a/desktop/tests/native-electron-acceptance.py
++++ b/desktop/tests/native-electron-acceptance.py
+@@ -33,7 +33,7 @@ async def main():
+     await asyncio.sleep(.1)
+    raise AssertionError('Snapshot condition not met: '+json.dumps(snapshot))
+   await wait_shell_expr('window.commanderShell!==undefined')
+-  snap=await shell.evaluate('window.commanderShell.snapshot()');assert snap['version']=='0.20.0',snap
++  snap=await shell.evaluate('window.commanderShell.snapshot()');assert snap['version']=='0.20.1',snap
+   assert snap['toolCount']==56,snap;results.append('real Electron shell, sandboxed preload bridge, production tool catalog')
+   await chat.wait_for_function('window.fixture!==undefined')
+   await chat.wait_for_timeout(500)
+@@ -107,7 +107,7 @@ async def main():
+   await shell.click('.rail-button[data-view="connections"]');await shell.click('#connection-test')
+   await chat.wait_for_function('fixture.results.length===2',timeout=15000)
+   await wait_snapshot(lambda s:s['chat']['phase']=='verified');results.append('Test chat access button drives actual request, native ping and result receipt')
+-  # 0.20.0: use real shell controls and real chat IPC for saved multi-step work.
++  # 0.20.1: use real shell controls and real chat IPC for saved multi-step work.
+   await shell.click('.rail-button[data-view="activity"]')
+   await shell.locator('#task-builder summary').click()
+   await shell.click('#task-example');await shell.fill('#task-title','Native workspace task');await shell.click('#task-run')
+diff --git a/desktop/tests/plugin-package.test.mjs b/desktop/tests/plugin-package.test.mjs
+index 3caf99f749d9bd26f26baa95280af1ae5ccf9af2..838510d4de92771a4192b5285b7e5447046c7e80 100644
+--- a/desktop/tests/plugin-package.test.mjs
++++ b/desktop/tests/plugin-package.test.mjs
+@@ -9,7 +9,7 @@ const pluginRoot = path.join(root, 'plugin');
+ const manifest = JSON.parse(await fsp.readFile(path.join(pluginRoot, 'plugin.json'), 'utf8'));
+ assert.equal(manifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
+ assert.equal(manifest.name, 'constellation-commander');
+-assert.equal(manifest.version, '0.20.0');
++assert.equal(manifest.version, '0.20.1');
+ assert.equal(manifest.skills, undefined, 'Portable Agent Plugins auto-discover skills/; the 1.0 schema forbids an extra top-level skills property.');
+ assert.equal(manifest.mcpServers, undefined, 'Normal-chat package must not declare portable MCP servers (Desktop-only import route).');
+ assert.equal(manifest.extensions?.com?.openai?.apps, undefined, 'App mapping is added only after a production app ID exists.');
+diff --git a/desktop/tests/ui-worker.mjs b/desktop/tests/ui-worker.mjs
+index 3ccbcba4d8a2d742b125b9aa77fd8d12ad12753a..55a262f5cc7abe52075d4335e79dff3787e5e33b 100644
+--- a/desktop/tests/ui-worker.mjs
++++ b/desktop/tests/ui-worker.mjs
+@@ -8,7 +8,7 @@ const state=createRuntimeState(dir),config={allowedRoots:[root],enableShell:true
+ const call=createToolHandler({config,configPath:path.join(dir,'config.json'),state});let chatCalls=0;const pending=new Map();
+ for await(const line of readline.createInterface({input:process.stdin})){
+  const request=JSON.parse(line);try{let result;const {op,args={}}=request;
+- if(op==='snapshot')result={ok:true,version:'0.20.0',config,chat:{phase:'error',lastError:'Offline fixture',pageHookReady:false},recentCalls:[],stats:{totalCalls:0},toolCount:toolDefinitions().length,pendingResults:[...pending.values()]};
++ if(op==='snapshot')result={ok:true,version:'0.20.1',config,chat:{phase:'error',lastError:'Offline fixture',pageHookReady:false},recentCalls:[],stats:{totalCalls:0},toolCount:toolDefinitions().length,pendingResults:[...pending.values()]};
+  else if(op==='listTools')result={ok:true,tools:toolDefinitions()};
+  else if(op==='runTool')result={ok:true,result:await call(args.name,args.args||{})};
+  else if(op==='cc:bootstrap')result={ok:true,nonce:'ui-test-nonce',expiresAt:new Date(Date.now()+60000).toISOString(),tools:toolDefinitions(),contract:'fixture'};
+@@ -16,7 +16,7 @@ for await(const line of readline.createInterface({input:process.stdin})){
+  else if(op==='cc:save-result'){pending.set(args.id,args);result={ok:true};}
+  else if(op==='cc:ack-result'){pending.delete(args.id);result={ok:true};}
+  else if(op==='metrics')result={chatCalls,pending:[...pending.values()]};
+- else if(op==='cc:status')result={ok:true,localToolMode:'auto',version:'0.20.0'};
++ else if(op==='cc:status')result={ok:true,localToolMode:'auto',version:'0.20.1'};
+  else result={ok:true};
+  console.log(JSON.stringify({id:request.id,result}));
+  }catch(e){console.log(JSON.stringify({id:request.id,error:String(e.message)}));}
+diff --git a/docs/v0.20.1-release-notes.md b/docs/v0.20.1-release-notes.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..c09ce3108e2946ff0c2db0e8685c5ee9ba3f24f2
+--- /dev/null
++++ b/docs/v0.20.1-release-notes.md
+@@ -0,0 +1,62 @@
++# Project Constellation 0.20.1 — All-Tab Chat Guardian Hotfix
++
++Project Constellation 0.20.1 builds directly on the immutable 0.20.0 Reliability Foundation and hardens ChatGPT continuity against the current site’s newer stream-recovery/error surfaces. The goal is simple: unfinished work should keep moving across every open ChatGPT tab without losing state, replaying unsafe side effects, or requiring the user to babysit error banners.
++
++## All-tab Chat Guardian
++
++- **Every open ChatGPT conversation is supervised independently.** The background guardian enumerates the full open-tab set and fans health/recovery checks out with `Promise.allSettled`, so one unresponsive or broken tab cannot hold the others hostage.
++- **Background tabs stay eligible for recovery.** Recoverable ChatGPT tabs are marked non-auto-discardable when Chrome permits it; already-discarded tabs are reloaded without foreground focus. Chrome 132+ frozen tabs are detected explicitly, skipped instead of accumulating queued probes, and reconciled immediately on unfreeze/activation.
++- **Event-first recovery.** Explicit failure/stall state changes schedule an immediate guardian sweep. An adaptive one-shot alarm is retained only as a bounded safety fallback; there is no permanent fixed guardian polling loop.
++- **Bounded state and deduplication.** Per-chat failure fingerprints, continuation attempts, reload attempts, cooldowns, and recent recovery history are persisted so the same error cannot trigger an uncontrolled retry/reload loop.
++
++## New ChatGPT error handling
++
++0.20.1 recognizes the current ChatGPT stream-recovery failure family, including the observed message:
++
++`ChatGPT stream recovery polling timed out`
++
++It also recognizes semantically equivalent current-turn stream/response timeout and failure wording so a minor text change does not break recovery. If ChatGPT changes the sentence more substantially but still exposes a native current-turn **Retry / Try again** affordance beside failure-like copy, Constellation treats that recovery-control-anchored surface as an interruption without depending on one exact string. Detection remains scoped to the current frontier and guarded against ordinary assistant prose that merely discusses timeouts or recovery architecture.
++
++## Safe continuation instead of Retry replay
++
++When the guardian proves that the current task is unfinished and the tab is in a recoverable failure/stall state, it sends one simple new user turn:
++
++`Continue the unfinished task.`
++
++That is deliberately separate from ChatGPT’s native **Retry / Try again / Regenerate** control. Constellation does not automatically click that native control because replaying a failed turn can duplicate external tool calls, writes, uploads, or other side effects whose completion may be uncertain.
++
++The continuation sender:
++
++- validates the expected chat before acting;
++- requires an unresolved/current user task;
++- refuses to wake a healthy completed chat;
++- refuses to overwrite a non-empty composer or user draft;
++- stages text through current ChatGPT composer variants and waits for a usable Send control;
++- fingerprints the continuation in page/session state where available so the same recovery is not emitted repeatedly.
++
++## Holds that remain protected
++
++Automatic continuation never bypasses provider-review/security gates, connected-app/tool approvals, sign-in/authentication requirements, rate limits/cooldowns, unavailable/deleted conversations, or conversation-capacity handoff states. These remain explicit holds rather than being reclassified as recoverable errors.
++
++## Bounded reload fallback
++
++A reload is allowed only for an explicit terminal failure when the separate continuation cannot be staged or sent because the current composer/send surface is unavailable. It is capped to one reload per failure fingerprint. A busy composer/user draft is never cleared or reloaded over.
++
++## Regression coverage
++
++0.20.1 adds dedicated coverage for:
++
++- exact, future-form, and recovery-control-anchored stream/error classification;
++- semantic false-positive rejection;
++- every-open-tab fanout, frozen/discarded-tab reconciliation, and per-tab failure isolation;
++- healthy/completed tabs remaining untouched;
++- user-draft and protected-hold preservation;
++- native Retry controls never being auto-clicked;
++- one-shot guardian fallback scheduling rather than fixed polling;
++- bounded reload fallback and failure-fingerprint deduplication;
++- real Chromium DOM recovery of multiple independent failed ChatGPT-like tabs;
++- background integration proving only failed tabs receive `Continue the unfinished task.`.
++
++## Release lineage
++
++0.20.0 remains immutable. 0.20.1 is a source-compatible hotfix lineage built from the exact verified 0.20.0 source archive plus the 0.20.1 delta. All 0.20.0 provider/permission coverage, stable extension identity, desktop compatibility identifiers, Update Center behavior, and existing reliability/security contracts remain required release gates.
+diff --git a/extension/background.js b/extension/background.js
+index cb3be2c3a69b1d67af1fb977ccac40eca1d4b194..756d6dafdc531290c0bc2473cb729fd6a65634ba 100644
+--- a/extension/background.js
++++ b/extension/background.js
+@@ -7,6 +7,7 @@ import './src/project-router-core.js';
+ import './src/project-intelligence-core.js';
+ import './src/health-core.js';
+ import './src/scheduled-task-guardian-core.js';
++import './src/chat-guardian-core.js';
+ import './src/state-event-bus-core.js';
+ import './src/provider-health-core.js';
+ import './src/incident-brain-core.js';
+@@ -22,6 +23,7 @@ const projectRouter = globalThis.ProjectConstellationProjectRouterCore;
+ const projectIntelligence = globalThis.ProjectConstellationProjectIntelligenceCore;
+ const health = globalThis.ProjectConstellationHealthCore;
+ const scheduledGuardian = globalThis.ProjectConstellationScheduledTaskGuardianCore;
++const chatGuardian = globalThis.ProjectConstellationChatGuardianCore;
+ const stateBus = globalThis.ProjectConstellationStateEventBusCore;
+ const providerHealth = globalThis.ProjectConstellationProviderHealthCore;
+ const incidentBrain = globalThis.ProjectConstellationIncidentBrainCore;
+@@ -58,6 +60,8 @@ const KNOWLEDGE_BACKFILL_KEY = 'projectConstellationKnowledgeBackfill';
+ const SCHEDULE_GUARDIAN_STATE_KEY = 'projectConstellationScheduledTaskGuardianState';
+ const SCHEDULE_GUARDIAN_TASK_STATE_KEY = 'projectConstellationScheduledTaskGuardianTasks';
+ const SCHEDULE_GUARDIAN_ALARM = 'project-constellation-scheduled-task-guardian';
++const CHAT_GUARDIAN_STATE_KEY = 'projectConstellationChatGuardianState';
++const CHAT_GUARDIAN_ALARM = 'project-constellation-chat-guardian';
+ const LIVE_HEALTH_CONTEXT_TTL_MS = 5000;
+ const CAPACITY_STATS_TTL_MS = 15000;
+ const LIVE_NETWORK_TTL_MS = 10 * 60 * 1000;
+@@ -72,7 +76,7 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
+ const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
+ const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
+ const TAB_BEACON_FILE = 'src/tab-beacon.js';
+-const LIVE_SENTINEL_VERSION = '0.17.6';
++const LIVE_SENTINEL_VERSION = '0.17.8';
+ const CHATGPT_PAGE_PROBE_VERSION = '0.18.1';
+ const TAB_BEACON_VERSION = '0.17.6';
+ const TAB_GROUP_PREFIX = 'PC ✦';
+@@ -141,6 +145,7 @@ const defaultBrainSettings = Object.freeze({
+   knowledge: { enabled: true, extractionBatchSize: 28, activeExtractionBatchSize: 6, backfillBatchSize: 180, idleBackfillOnly: true, lastBackfillAt: 0, extractionVersion: knowledge.VERSION },
+   liveHealth: { ...health.DEFAULTS },
+   scheduledTaskGuardian: { ...scheduledGuardian.DEFAULTS },
++  chatGuardian: { ...chatGuardian.DEFAULTS },
+   approvalAutopilot: {
+     enabled: false, acknowledged: false, alwaysAllow: true, fallbackAllowOnce: true, autoRecoverPaused: true,
+     backgroundRecovery: false, attentionNavigationIntervalMs: 4500, fullSweepNavigationIntervalMs: 8000, autoRescanFreshMs: 24 * 60 * 60 * 1000, lastSweepAt: 0, lastRecoveredAt: 0, recoveredCount: 0, failedCount: 0
+@@ -1021,6 +1026,7 @@ function deepMergeSettings(stored = {}) {
+     knowledge: { ...defaultBrainSettings.knowledge, ...(stored.knowledge || {}) },
+     liveHealth: health.normalizeSettings({ ...defaultBrainSettings.liveHealth, ...migratedLiveHealth }),
+     scheduledTaskGuardian: scheduledGuardian.normalizeSettings({ ...defaultBrainSettings.scheduledTaskGuardian, ...(stored.scheduledTaskGuardian || {}) }),
++    chatGuardian: chatGuardian.normalizeSettings({ ...defaultBrainSettings.chatGuardian, ...(stored.chatGuardian || {}) }),
+     approvalAutopilot: { ...defaultBrainSettings.approvalAutopilot, ...(stored.approvalAutopilot || {}) }
+   };
+ }
+@@ -1056,6 +1062,7 @@ async function patchSettings(patch) {
+       projectIntegrity: { ...current.projectIntegrity, ...(patch.projectIntegrity || {}) },
+       knowledge: { ...current.knowledge, ...(patch.knowledge || {}) },
+       liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(patch.liveHealth || {}) }),
++      chatGuardian: chatGuardian.normalizeSettings({ ...current.chatGuardian, ...(patch.chatGuardian || {}) }),
+       approvalAutopilot: { ...current.approvalAutopilot, ...(patch.approvalAutopilot || {}) }
+     });
+   });
+@@ -4294,6 +4301,7 @@ chrome.runtime.onInstalled.addListener(async () => {
+   await ensureTabTagMenus().catch(() => {});
+   await expandLegacyAutoCollapsedCompletedGroupsOnce().catch(() => false);
+   await installLiveSentinelIntoOpenTabs().catch(() => {});
++  await runChatGuardian({ trigger:'installed' }).catch(() => {});
+   await refreshAllTabPresentations().catch(() => {});
+ });
+ 
+@@ -4320,6 +4328,7 @@ chrome.runtime.onStartup.addListener(async () => {
+   await ensureTabTagMenus().catch(() => {});
+   await expandLegacyAutoCollapsedCompletedGroupsOnce().catch(() => false);
+   await installLiveSentinelIntoOpenTabs().catch(() => {});
++  await runChatGuardian({ trigger:'startup' }).catch(() => {});
+   await refreshAllTabPresentations().catch(() => {});
+ });
+ 
+@@ -4333,6 +4342,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
+   else if (alarm.name === INTEGRITY_MAINTENANCE_ALARM) runProjectIntegrityScan({ force: false }).catch(() => {});
+   else if (alarm.name === KNOWLEDGE_INDEX_ALARM) processKnowledgeWork().catch(() => {});
+   else if (alarm.name === SCHEDULE_GUARDIAN_ALARM) runScheduledGuardian().catch(() => {});
++  else if (alarm.name === CHAT_GUARDIAN_ALARM) runChatGuardian({ trigger:'fallback-alarm' }).catch(() => {});
+   else if (alarm.name === DRIVE_SYNC_ALARM) driveSync({ interactive: false }).catch(async () => {
+     const dirty = (await chrome.storage.local.get(DIRTY_KEY))[DIRTY_KEY];
+     if (dirty) chrome.alarms.create(DRIVE_SYNC_ALARM, { when: Date.now() + 30 * 60 * 1000 });
+@@ -4584,7 +4594,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+       case 'PC_BRAIN_SETTINGS_SET': {
+         return mutateSettings(async () => {
+           const current = await settings();
+-          const next = await saveSettings({ ...current, ...(message.settings || {}), github: { ...current.github, ...(message.settings?.github || {}) }, drive: { ...current.drive, ...(message.settings?.drive || {}) }, catalog: { ...current.catalog, ...(message.settings?.catalog || {}) }, refreshRecovery: { ...current.refreshRecovery, ...(message.settings?.refreshRecovery || {}) }, projectIntegrity: { ...current.projectIntegrity, ...(message.settings?.projectIntegrity || {}) }, knowledge: { ...current.knowledge, ...(message.settings?.knowledge || {}) }, liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(message.settings?.liveHealth || {}) }), scheduledTaskGuardian: scheduledGuardian.normalizeSettings({ ...current.scheduledTaskGuardian, ...(message.settings?.scheduledTaskGuardian || {}) }), approvalAutopilot: { ...current.approvalAutopilot, ...(message.settings?.approvalAutopilot || {}) } });
++          const next = await saveSettings({ ...current, ...(message.settings || {}), github: { ...current.github, ...(message.settings?.github || {}) }, drive: { ...current.drive, ...(message.settings?.drive || {}) }, catalog: { ...current.catalog, ...(message.settings?.catalog || {}) }, refreshRecovery: { ...current.refreshRecovery, ...(message.settings?.refreshRecovery || {}) }, projectIntegrity: { ...current.projectIntegrity, ...(message.settings?.projectIntegrity || {}) }, knowledge: { ...current.knowledge, ...(message.settings?.knowledge || {}) }, liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(message.settings?.liveHealth || {}) }), scheduledTaskGuardian: scheduledGuardian.normalizeSettings({ ...current.scheduledTaskGuardian, ...(message.settings?.scheduledTaskGuardian || {}) }), chatGuardian: chatGuardian.normalizeSettings({ ...current.chatGuardian, ...(message.settings?.chatGuardian || {}) }), approvalAutopilot: { ...current.approvalAutopilot, ...(message.settings?.approvalAutopilot || {}) } });
+           if (message.settings?.projectIntegrity) {
+             await chrome.alarms.clear(INTEGRITY_MAINTENANCE_ALARM).catch(() => {});
+             if (next.projectIntegrity.enabled && next.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(next.projectIntegrity.scanIntervalMinutes || 15)) });
+@@ -4677,6 +4687,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+         return { ok: true, tabId: tab?.id || null };
+       }
+       case 'PC_LIVE_CHAT_PULSE': return liveChatPulse({ force:Boolean(message.force) });
++      case 'PC_CHAT_GUARDIAN_RUN': return runChatGuardian({ trigger:'manual-message' });
++      case 'PC_CHAT_GUARDIAN_STATUS': return { ok:true, settings:(await settings()).chatGuardian, state:await chatGuardianState() };
+       case 'PC_FOCUS_LIVE_CHAT': return focusLiveChat(message);
+       case 'PC_RETRY_LIVE_CHAT_FAILURE': return retryLiveChatFailure(message.tabId || sender?.tab?.id);
+       case 'PC_LIVE_CHAT_STATE_PUSH': return handleLiveChatStatePush(message, sender);
+@@ -4687,7 +4699,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+       case 'PC_INTEGRITY_SCAN': return runProjectIntegrityScan({ projectIds: Array.isArray(message.projectIds) ? message.projectIds : [], force: message.force !== false });
+       case 'PC_INTEGRITY_STATUS': return { ok: true, integrity: await integritySummary() };
+       case 'PC_REQUEST_GOVERNOR_STATUS': return { ok: true, requestGovernor: publicRequestGovernor(await requestGovernorState()) };
+-      case 'PC_BRAIN_CLEAR': await deleteAllStores(); await chrome.storage.local.remove([CATALOG_STATE_KEY, FULL_CAPTURE_STATE_KEY, APPROVAL_RECOVERY_STATE_KEY, REFRESH_RECOVERY_KEY, REQUEST_GOVERNOR_KEY, KNOWLEDGE_BACKFILL_KEY, SCHEDULE_GUARDIAN_STATE_KEY, SCHEDULE_GUARDIAN_TASK_STATE_KEY, DIRTY_KEY, BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await transientStorage().remove([BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await chrome.alarms.clear(KNOWLEDGE_INDEX_ALARM).catch(() => {}); await updateAttentionBadge(); return { ok: true };
++      case 'PC_BRAIN_CLEAR': await deleteAllStores(); await chrome.storage.local.remove([CATALOG_STATE_KEY, FULL_CAPTURE_STATE_KEY, APPROVAL_RECOVERY_STATE_KEY, REFRESH_RECOVERY_KEY, CHAT_GUARDIAN_STATE_KEY, REQUEST_GOVERNOR_KEY, KNOWLEDGE_BACKFILL_KEY, SCHEDULE_GUARDIAN_STATE_KEY, SCHEDULE_GUARDIAN_TASK_STATE_KEY, DIRTY_KEY, BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await transientStorage().remove([BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await chrome.alarms.clear(KNOWLEDGE_INDEX_ALARM).catch(() => {}); await updateAttentionBadge(); return { ok: true };
+       default: return { ok: false, error: 'Unknown message' };
+     }
+   })().then(sendResponse).catch((error) => sendResponse({ ok: false, error: String(error?.message || error) }));
+@@ -5399,6 +5411,193 @@ function livePulseTimeout(promise, timeoutMs = LIVE_CHAT_PROBE_TIMEOUT_MS) {
+   ]).finally(() => { if (timer) clearTimeout(timer); });
+ }
+ 
++let chatGuardianRunPromise = null;
++let chatGuardianSweepTimer = 0;
++
++function defaultChatGuardianState() {
++  return { version:1, chats:{}, sweeps:0, continuations:0, reloadRecoveries:0, failures:0, lastSweepAt:0, lastContinuationAt:0, updatedAt:0 };
++}
++
++async function chatGuardianState() {
++  const stored = (await chrome.storage.local.get(CHAT_GUARDIAN_STATE_KEY))?.[CHAT_GUARDIAN_STATE_KEY];
++  return { ...defaultChatGuardianState(), ...(stored || {}), chats:{ ...(stored?.chats || {}) } };
++}
++
++async function saveChatGuardianState(state = {}) {
++  const chats = { ...(state?.chats || {}) };
++  const entries = Object.entries(chats);
++  if (entries.length > 500) {
++    entries.sort((a, b) => Number(b[1]?.updatedAt || b[1]?.lastResultAt || 0) - Number(a[1]?.updatedAt || a[1]?.lastResultAt || 0));
++    for (const [key] of entries.slice(500)) delete chats[key];
++  }
++  const next = { ...defaultChatGuardianState(), ...(state || {}), chats, updatedAt:Date.now() };
++  await chrome.storage.local.set({ [CHAT_GUARDIAN_STATE_KEY]:next });
++  stateBus.publishCoalesced('chat.guardian.changed', { sweeps:next.sweeps, continuations:next.continuations, failures:next.failures, updatedAt:next.updatedAt }, { source:'chat-guardian', key:'runtime', delayMs:120 });
++  return next;
++}
++
++async function armChatGuardianFallback(delayMs = null) {
++  const cfg = (await settings()).chatGuardian;
++  if (!cfg?.enabled) {
++    await chrome.alarms.clear(CHAT_GUARDIAN_ALARM).catch(() => false);
++    return false;
++  }
++  const delay = Math.max(30_000, Number(delayMs || cfg.activeFallbackMs || 60_000));
++  await chrome.alarms.create(CHAT_GUARDIAN_ALARM, { when:Date.now() + delay });
++  return true;
++}
++
++function scheduleChatGuardianSweep(delay = 450) {
++  if (chatGuardianSweepTimer) clearTimeout(chatGuardianSweepTimer);
++  chatGuardianSweepTimer = setTimeout(() => {
++    chatGuardianSweepTimer = 0;
++    runChatGuardian({ trigger:'event' }).catch(() => {});
++  }, Math.max(80, Number(delay || 0)));
++}
++
++async function keepChatGptTabResident(tab) {
++  if (!tab?.id) return false;
++  try { await chrome.tabs.update(Number(tab.id), { autoDiscardable:false }); } catch (_) {}
++  if (!tab.discarded) return true;
++  try {
++    await chrome.tabs.reload(Number(tab.id), { bypassCache:false });
++    return false;
++  } catch (_) { return false; }
++}
++
++async function runChatGuardian({ trigger = 'manual' } = {}) {
++  if (chatGuardianRunPromise) return chatGuardianRunPromise;
++  chatGuardianRunPromise = (async () => {
++    const cfg = (await settings()).chatGuardian;
++    if (!cfg?.enabled) {
++      await chrome.alarms.clear(CHAT_GUARDIAN_ALARM).catch(() => false);
++      return { ok:true, enabled:false, tabs:0, candidates:0, continued:0 };
++    }
++
++    const tabs = (await chrome.tabs.query({})).filter((tab) => {
++      const provider = providers.detectProvider(tab.url || '');
++      return Boolean(tab?.id && provider?.id === 'chatgpt' && providers.isLikelyChatUrl(tab.url || '', provider.id));
++    });
++    if (!tabs.length) {
++      await chrome.alarms.clear(CHAT_GUARDIAN_ALARM).catch(() => false);
++      const emptyState = await chatGuardianState();
++      emptyState.sweeps = Number(emptyState.sweeps || 0) + 1;
++      emptyState.lastSweepAt = Date.now();
++      await saveChatGuardianState(emptyState);
++      return { ok:true, enabled:true, tabs:0, candidates:0, continued:0 };
++    }
++
++    // User-requested all-tab reliability means ChatGPT tabs are not allowed to silently
++    // fall out of supervision because Chrome discarded a background tab. Keep them
++    // non-discardable and wake any already-discarded tab without focusing it.
++    await Promise.allSettled(tabs.map((tab) => keepChatGptTabResident(tab)));
++
++    // Chrome 132+ can freeze background tabs. Frozen pages cannot execute content-script
++    // event handlers or timers, and extension messages are queued until the tab is
++    // unfrozen. Do not pile duplicate guardian probes onto a frozen tab. onUpdated and
++    // onActivated below trigger an immediate sweep when Chrome makes it runnable again.
++    // Discarded tabs are similarly reloaded above and re-enter through the load event.
++    const deferredTabs = tabs.filter((tab) => Boolean(tab.frozen || tab.discarded));
++    const probeTabs = tabs.filter((tab) => !tab.frozen && !tab.discarded);
++    const settled = await Promise.allSettled(probeTabs.map((tab) => livePulseTimeout(readLiveStateFromTab(tab, { allowInject:true }), Math.max(3000, LIVE_CHAT_PROBE_TIMEOUT_MS * 2))));
++    const rows = settled.map((result, index) => ({ tab:probeTabs[index], row:result.status === 'fulfilled' ? result.value : null })).filter((entry) => entry.row);
++    let state = await chatGuardianState();
++    const now = Date.now();
++    const candidates = [];
++    for (const { tab, row } of rows) {
++      const key = String(row.chatId || `tab:${tab.id}`);
++      const history = state.chats[key] || {};
++      const decision = chatGuardian.shouldAttempt(row, history, cfg, now);
++      if (!decision.recover) continue;
++      const same = String(history.fingerprint || '') === String(decision.fingerprint || '');
++      const nextHistory = same ? { ...history } : { fingerprint:decision.fingerprint, attempts:0, reloads:0, continuations:0 };
++      nextHistory.fingerprint = decision.fingerprint;
++      nextHistory.attempts = Number(decision.attempts || 0) + 1;
++      nextHistory.lastAttemptAt = now;
++      nextHistory.lastReason = decision.reason;
++      nextHistory.lastTabId = Number(tab.id || 0);
++      nextHistory.lastUrl = String(tab.url || row.url || '');
++      nextHistory.lastResult = 'attempting';
++      nextHistory.updatedAt = now;
++      state.chats[key] = nextHistory;
++      candidates.push({ tab, row, key, decision });
++    }
++    state.sweeps = Number(state.sweeps || 0) + 1;
++    state.lastSweepAt = now;
++    await saveChatGuardianState(state);
++
++    const attempts = await Promise.allSettled(candidates.map(async ({ tab, row, key, decision }) => {
++      const response = await livePulseTimeout(chrome.tabs.sendMessage(Number(tab.id), {
++        type:'PC_LIVE_SENTINEL_CONTINUE_UNFINISHED',
++        expectedChatId:String(row.chatId || ''),
++        reason:String(decision.reason || ''),
++        fingerprint:String(decision.fingerprint || ''),
++        prompt:String(decision.prompt || cfg.prompt || 'Continue the unfinished task.')
++      }), 16_000);
++      return { tab, row, key, decision, response:response || { ok:false, action:'timeout', error:'Chat Guardian continuation timed out.' } };
++    }));
++
++    state = await chatGuardianState();
++    let continued = 0;
++    let reloaded = 0;
++    let failed = 0;
++    for (let index = 0; index < attempts.length; index += 1) {
++      const meta = candidates[index];
++      const result = attempts[index];
++      if (!meta) continue;
++      const response = result.status === 'fulfilled' ? result.value?.response || {} : { ok:false, action:'failed', error:String(result.reason?.message || result.reason || 'Continuation call failed.') };
++      const history = { ...(state.chats[meta.key] || {}) };
++      history.lastResult = String(response.action || (response.ok ? 'sent-continue' : 'failed'));
++      history.lastError = String(response.error || '').slice(0, 320);
++      history.lastResultAt = Date.now();
++      history.updatedAt = history.lastResultAt;
++      if (response.ok === true && response.action === 'sent-continue') {
++        continued += 1;
++        history.continuations = Number(history.continuations || 0) + 1;
++        history.lastContinuationAt = history.lastResultAt;
++        state.continuations = Number(state.continuations || 0) + 1;
++        state.lastContinuationAt = history.lastResultAt;
++        await addEvent('chat-guardian-continue', 'chat', meta.row.chatId || meta.key, meta.row.chatId || '', { trigger, reason:meta.decision.reason, tabId:Number(meta.tab.id || 0), fingerprint:meta.decision.fingerprint, prompt:String(meta.decision.prompt || cfg.prompt || '') }).catch(() => {});
++        scheduleLiveTabReconcile(Number(meta.tab.id), 260);
++      } else {
++        const safeReloadActions = new Set(['composer-unavailable','send-unavailable','stage-failed']);
++        const sameFingerprint = String(history.fingerprint || '') === String(meta.decision.fingerprint || '');
++        const reloads = sameFingerprint ? Number(history.reloads || 0) : 0;
++        if (meta.decision.severity === 'failure' && safeReloadActions.has(String(response.action || '')) && reloads < 1) {
++          try {
++            await chrome.tabs.reload(Number(meta.tab.id), { bypassCache:false });
++            reloaded += 1;
++            history.reloads = reloads + 1;
++            history.lastReloadAt = Date.now();
++            history.lastAttemptAt = 0;
++            history.lastResult = 'reload-for-continuation';
++            state.reloadRecoveries = Number(state.reloadRecoveries || 0) + 1;
++            scheduleChatGuardianSweep(2200);
++          } catch (error) {
++            failed += 1;
++            history.lastError = String(error?.message || error || 'Reload failed.').slice(0, 320);
++          }
++        } else if (!['not-unfinished','already-complete','still-running','blocked-hold','composer-busy','deduped'].includes(String(response.action || ''))) {
++          failed += 1;
++        }
++      }
++      state.chats[meta.key] = history;
++    }
++    state.failures = Number(state.failures || 0) + failed;
++    await saveChatGuardianState(state);
++
++    const policyDelay = chatGuardian.nextFallbackMs(rows.map((entry) => entry.row), cfg);
++    const nextDelay = deferredTabs.length ? Math.min(policyDelay, Number(cfg.activeFallbackMs || 60_000)) : policyDelay;
++    await armChatGuardianFallback(nextDelay);
++    return {
++      ok:true, enabled:true, tabs:tabs.length, responsive:rows.length, deferred:deferredTabs.length,
++      frozen:deferredTabs.filter((tab) => Boolean(tab.frozen)).length, discarded:deferredTabs.filter((tab) => Boolean(tab.discarded)).length,
++      candidates:candidates.length, continued, reloaded, failed, nextCheckMs:nextDelay
++    };
++  })().finally(() => { chatGuardianRunPromise = null; });
++  return chatGuardianRunPromise;
++}
++
+ function fallbackLiveRow(tab, cached = null) {
+   const provider = providers.detectProvider(tab?.url || '');
+   if (!provider) return null;
+@@ -5608,6 +5807,10 @@ async function handleLiveChatStatePush(message, sender) {
+   };
+   await rememberLiveTabState(row);
+   stateBus.publishCoalesced('live.chat.changed', { tabId:row.tabId, chatId:row.chatId, providerId:row.providerId, status:row.status, healthState:row.healthState, bucket }, { source:'live-sentinel', key:String(row.tabId), delayMs:120 });
++  if (provider.id === 'chatgpt') {
++    const tokens = chatGuardian.stateTokens(row);
++    if (tokens.some((token) => chatGuardian.FAILURE_STATES.has(token) || chatGuardian.HARD_STOP_STATES.has(token) || chatGuardian.STALL_STATES.has(token))) scheduleChatGuardianSweep(2200);
++  }
+   return { ok:true, bucket };
+ }
+ 
+@@ -5754,12 +5957,23 @@ if (chrome.webRequest?.onBeforeRequest) {
+   chrome.webRequest.onErrorOccurred.addListener((details) => noteNetworkDone(details, true), filter);
+ }
+ if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); clearPersistedLiveTransition(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; });
+-if (chrome.tabs?.onCreated) chrome.tabs.onCreated.addListener(() => { liveChatPulseCacheAt = 0; });
+-if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
++if (chrome.tabs?.onCreated) chrome.tabs.onCreated.addListener((tab) => {
++  liveChatPulseCacheAt = 0;
++  const provider = providers.detectProvider(tab?.url || '');
++  if (provider?.id === 'chatgpt') scheduleChatGuardianSweep(1200);
++});
++if (chrome.tabs?.onActivated) chrome.tabs.onActivated.addListener(({ tabId }) => {
++  liveChatPulseCacheAt = 0;
++  chrome.tabs.get(Number(tabId)).then((tab) => {
++    const provider = providers.detectProvider(tab?.url || '');
++    if (provider?.id === 'chatgpt') scheduleChatGuardianSweep(120);
++  }).catch(() => {});
++});
++if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+   const id = Number(tabId);
+   // Constellation itself changes tab titles for beacons. Title-only updates must not
+   // invalidate the live-pulse cache or they become a feedback source.
+-  if (changeInfo?.url || changeInfo?.status || changeInfo?.groupId !== undefined) liveChatPulseCacheAt = 0;
++  if (changeInfo?.url || changeInfo?.status || changeInfo?.groupId !== undefined || changeInfo?.frozen !== undefined || changeInfo?.discarded !== undefined) liveChatPulseCacheAt = 0;
+   if (changeInfo?.url) {
+     liveTabStateByTab.delete(id);
+     clearPersistedLiveTransition(id);
+@@ -5774,6 +5988,8 @@ if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo
+     const row = liveTabStateByTab.get(id);
+     if (row) row.title = String(changeInfo.title || row.title || '').replace(/^\s*[✅🟢🟡🔴🟣🔵🛡️⚠️]+\s*/u,'').slice(0,220);
+   }
++  const provider = providers.detectProvider(tab?.url || changeInfo?.url || '');
++  if (provider?.id === 'chatgpt' && (changeInfo?.url || changeInfo?.status === 'complete' || changeInfo?.frozen === false || changeInfo?.discarded === false)) scheduleChatGuardianSweep(changeInfo?.status === 'complete' ? 500 : changeInfo?.frozen === false ? 120 : 1100);
+ });
+ if (chrome.tabs?.onReplaced) chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => { const id=Number(removedTabId); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; void addedTabId; });
+ if (chrome.tabGroups?.onUpdated) chrome.tabGroups.onUpdated.addListener(() => { liveChatPulseCacheAt = 0; });
+diff --git a/extension/manifest.json b/extension/manifest.json
+index 963c6163ee23e7900a147d2c84856259cdba38ae..4497a1a951bcf0140439dbf425e1c198c91f6e44 100644
+--- a/extension/manifest.json
++++ b/extension/manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "manifest_version": 3,
+   "name": "Project Constellation",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "minimum_chrome_version": "116",
+   "description": "Unified Project Constellation browser workspace with scheduled-task self-healing and secure local desktop Work-agent bridge.",
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",
+diff --git a/extension/sidepanel.js b/extension/sidepanel.js
+index 0aa63097eceee9a147dcce896f0ddca106ff1f46..5e220a792cc0473e2e9fd8f050568dfa78785bf8 100644
+--- a/extension/sidepanel.js
++++ b/extension/sidepanel.js
+@@ -165,10 +165,14 @@
+     const response=await call({type:'PC_PULSE_CHAT_PROJECT_SET',input:{chatId:quickProjectDialogState.chatId,tabId:quickProjectDialogState.tabId,projectId,newProjectName,newProjectIcon,newProjectColor,remove}}).catch((error)=>({ok:false,error:error.message}));
+     if(!response?.ok){$('quickProjectStatus').textContent=response?.error||'Project assignment failed.';return;}
+     activeChatContext=response.result?.context||activeChatContext;
++    // The assignment itself is authoritative. Release the modal immediately so a slower
++    // organization-summary refresh can never leave the rest of the side panel blocked.
++    // The summary reconciliation continues after close and refreshes project counts/cards.
++    $('quickProjectStatus').textContent=remove?'Removed from the project.':response.result?.created?`Created ${response.result.project?.name||'project'} and added this chat.`:`Added to ${response.result.project?.name||'project'}.`;
++    renderCurrentChatProject();
++    if($('quickProjectDialog').open)$('quickProjectDialog').close();
+     const orgResponse=await call({type:'PC_ORG_SUMMARY'}).catch(()=>null);if(orgResponse?.ok)organization=orgResponse.organization;
+     renderCurrentChatProject();renderProjects();
+-    $('quickProjectStatus').textContent=remove?'Removed from the project.':response.result?.created?`Created ${response.result.project?.name||'project'} and added this chat.`:`Added to ${response.result.project?.name||'project'}.`;
+-    setTimeout(()=>{if($('quickProjectDialog').open)$('quickProjectDialog').close();},220);
+   }
+ 
+   function renderProjects(){
+diff --git a/extension/src/chat-guardian-core.js b/extension/src/chat-guardian-core.jsnew file mode 100644
+index 0000000000000000000000000000000000000000..a3fd9a23e6ad43f35cb3f335270cb3e299dcbaa8
+--- /dev/null
++++ b/extension/src/chat-guardian-core.js
+@@ -0,0 +1,122 @@
++(() => {
++  'use strict';
++
++  const VERSION = 1;
++  const DEFAULTS = Object.freeze({
++    enabled: true,
++    prompt: 'Continue the unfinished task.',
++    failureDelayMs: 1800,
++    cooldownMs: 45 * 1000,
++    maxContinuationsPerFingerprint: 6,
++    minStallRecoveryMs: 3 * 60 * 1000,
++    activeFallbackMs: 60 * 1000,
++    idleFallbackMs: 2 * 60 * 1000
++  });
++
++  const FAILURE_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
++  const HARD_STOP_STATES = new Set(['paused','refresh-required','dead','tool-dead','request-dead']);
++  const STALL_STATES = new Set(['stalled','tool-stalled','request-stalled']);
++  const HOLD_STATES = new Set(['provider-review','blocked-approval','rate-limited','auth-required','unavailable','capacity-watch','capacity-handoff','capacity-reached']);
++
++  const clamp = (value, fallback, min, max) => Math.max(min, Math.min(max, Number(value) || fallback));
++  const clean = (value, max = 700) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
++  const hash = (value) => {
++    const text = String(value || '');
++    let h = 2166136261;
++    for (let i = 0; i < text.length; i += 1) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); }
++    return (h >>> 0).toString(36);
++  };
++
++  function normalizeSettings(input = {}) {
++    const cfg = { ...DEFAULTS, ...(input || {}) };
++    cfg.enabled = cfg.enabled !== false;
++    cfg.prompt = clean(cfg.prompt || DEFAULTS.prompt, 80) || DEFAULTS.prompt;
++    cfg.failureDelayMs = clamp(cfg.failureDelayMs, DEFAULTS.failureDelayMs, 500, 30 * 1000);
++    cfg.cooldownMs = clamp(cfg.cooldownMs, DEFAULTS.cooldownMs, 10 * 1000, 30 * 60 * 1000);
++    cfg.maxContinuationsPerFingerprint = Math.max(1, Math.min(20, Math.round(Number(cfg.maxContinuationsPerFingerprint) || DEFAULTS.maxContinuationsPerFingerprint)));
++    cfg.minStallRecoveryMs = clamp(cfg.minStallRecoveryMs, DEFAULTS.minStallRecoveryMs, 60 * 1000, 30 * 60 * 1000);
++    cfg.activeFallbackMs = clamp(cfg.activeFallbackMs, DEFAULTS.activeFallbackMs, 30 * 1000, 10 * 60 * 1000);
++    cfg.idleFallbackMs = clamp(cfg.idleFallbackMs, DEFAULTS.idleFallbackMs, cfg.activeFallbackMs, 30 * 60 * 1000);
++    return cfg;
++  }
++
++  function stateTokens(row = {}) {
++    return [...new Set([
++      clean(row.status, 80).toLowerCase(),
++      clean(row.rawStatus, 80).toLowerCase(),
++      clean(row.healthState, 80).toLowerCase(),
++      clean(row.failure?.state || row.failure?.status, 80).toLowerCase()
++    ].filter(Boolean))];
++  }
++
++  function recoverySignal(row = {}, settings = {}, now = Date.now()) {
++    const cfg = normalizeSettings(settings);
++    if (!cfg.enabled) return { recover:false, reason:'disabled' };
++    if (String(row.providerId || '').toLowerCase() !== 'chatgpt') return { recover:false, reason:'non-chatgpt' };
++    if (!Number(row.tabId || 0)) return { recover:false, reason:'no-tab' };
++    if (!String(row.chatId || '')) return { recover:false, reason:'no-chat' };
++
++    const tokens = stateTokens(row);
++    const hold = tokens.find((token) => HOLD_STATES.has(token));
++    if (hold) return { recover:false, reason:'hold', state:hold };
++
++    const failureState = tokens.find((token) => FAILURE_STATES.has(token));
++    const failure = row.failure?.active || failureState ? (row.failure || {}) : null;
++    if (failure) {
++      const detectedAt = Math.max(0, Number(failure.detectedAt || row.failureDetectedAt || 0));
++      if (detectedAt && Number(now) - detectedAt < cfg.failureDelayMs) return { recover:false, reason:'failure-settling', state:failureState || clean(failure.state || failure.status, 80) };
++      return { recover:true, reason:failureState || clean(failure.state || failure.status, 80) || 'response-interrupted', severity:'failure' };
++    }
++
++    if (Number(row.network?.pending || 0) > 0) return { recover:false, reason:'network-active' };
++    const hard = tokens.find((token) => HARD_STOP_STATES.has(token));
++    if (hard) return { recover:true, reason:hard, severity:'hard-stop' };
++
++    const stalled = tokens.find((token) => STALL_STATES.has(token));
++    if (stalled) {
++      const quietForMs = Math.max(0, Number(row.generation?.quietForMs || row.progressAgeMs || 0));
++      if (quietForMs < cfg.minStallRecoveryMs) return { recover:false, reason:'stall-settling', state:stalled, quietForMs };
++      return { recover:true, reason:stalled, severity:'stalled' };
++    }
++
++    return { recover:false, reason:'healthy' };
++  }
++
++  function fingerprint(row = {}, signal = {}) {
++    const failure = row.failure || {};
++    const basis = [
++      row.chatId || row.tabId || '',
++      signal.reason || '',
++      failure.fingerprint || '',
++      failure.rawText || failure.title || failure.detail || '',
++      row.healthState || row.status || ''
++    ].map((value) => clean(value, 700)).join('|');
++    return hash(basis);
++  }
++
++  function shouldAttempt(row = {}, history = {}, settings = {}, now = Date.now()) {
++    const cfg = normalizeSettings(settings);
++    const signal = recoverySignal(row, cfg, now);
++    if (!signal.recover) return { ...signal, fingerprint:'' };
++    const fp = fingerprint(row, signal);
++    const same = String(history.fingerprint || '') === fp;
++    const attempts = same ? Math.max(0, Number(history.attempts || 0)) : 0;
++    const lastAttemptAt = same ? Math.max(0, Number(history.lastAttemptAt || 0)) : 0;
++    if (lastAttemptAt && Number(now) - lastAttemptAt < cfg.cooldownMs) return { recover:false, reason:'cooldown', state:signal.reason, fingerprint:fp, attempts };
++    if (attempts >= cfg.maxContinuationsPerFingerprint) return { recover:false, reason:'attempt-cap', state:signal.reason, fingerprint:fp, attempts };
++    return { ...signal, fingerprint:fp, attempts, prompt:cfg.prompt };
++  }
++
++  function nextFallbackMs(rows = [], settings = {}) {
++    const cfg = normalizeSettings(settings);
++    const active = (Array.isArray(rows) ? rows : []).some((row) => {
++      const tokens = stateTokens(row);
++      return Boolean(row?.generation?.active || Number(row?.network?.pending || 0) > 0 || tokens.some((token) => FAILURE_STATES.has(token) || HARD_STOP_STATES.has(token) || STALL_STATES.has(token)));
++    });
++    return active ? cfg.activeFallbackMs : cfg.idleFallbackMs;
++  }
++
++  const api = Object.freeze({ VERSION, DEFAULTS, FAILURE_STATES, HARD_STOP_STATES, STALL_STATES, HOLD_STATES, normalizeSettings, stateTokens, recoverySignal, fingerprint, shouldAttempt, nextFallbackMs });
++  globalThis.ProjectConstellationChatGuardianCore = api;
++  if (typeof module !== 'undefined' && module.exports) module.exports = api;
++})();
+diff --git a/extension/src/health-core.js b/extension/src/health-core.js
+index 18db6abbd59489e058aa5a6ddb6096ee3cbb7dd7..e7a80dd66d0867b658dece5ef4c2b017c22d3e90 100644
+--- a/extension/src/health-core.js
++++ b/extension/src/health-core.js
+@@ -1,6 +1,6 @@
+ (() => {
+   'use strict';
+-  const VERSION = 11;
++  const VERSION = 12;
+   const DEFAULTS = Object.freeze({
+     enabled: true,
+     showHealthy: true,
+@@ -72,10 +72,15 @@
+       partialAssistantChars, toolActivitySeen, observedAfterUser
+     });
+ 
++    if (/(?:chatgpt\s+)?stream recovery(?:\s+polling)?\s+(?:timed out|timeout)|(?:response|generation|stream(?:ing)?)(?:\s+recovery)?(?:\s+polling)?[^.!?]{0,80}(?:timed out|timeout)|(?:timed out|timeout)[^.!?]{0,80}(?:response|generation|stream(?:ing)?)/.test(lower)) {
++      return common('response-interrupted','Response stream timed out', retryAvailable
++        ? 'ChatGPT stopped the current response stream and exposes a native Retry control. Constellation preserves that control while Chat Guardian can continue unfinished work with a new continuation turn.'
++        : 'ChatGPT stopped the current response stream. Constellation records the interruption so Chat Guardian can continue unfinished work without repeating the provider Retry action.');
++    }
+     if (/message delivery timed out|delivery timed out/.test(lower)) {
+       return common('delivery-timeout','Message delivery timed out', retryAvailable
+-        ? 'ChatGPT stopped the current turn with an explicit delivery timeout. A native Retry control is available; Constellation will only use it when you click Retry.'
+-        : 'ChatGPT stopped the current turn with an explicit delivery timeout. Constellation preserved the interruption as Needs Attention and will not retry or refresh automatically.');
++        ? 'ChatGPT stopped the current turn with an explicit delivery timeout. A native Retry control is available; Constellation preserves it while Chat Guardian can continue unfinished work with a new continuation turn.'
++        : 'ChatGPT stopped the current turn with an explicit delivery timeout. Constellation records the interruption so Chat Guardian can continue unfinished work without replaying an uncertain provider request.');
+     }
+     if (/connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|a network error occurred|network error occurred|error occurred while connecting to the websocket|websocket (?:connection )?(?:error|failed|closed)/.test(lower)) {
+       return common('connection-interrupted','Connection interrupted', retryAvailable
+@@ -89,8 +94,26 @@
+     }
+     if (/there was an error generating (?:a )?response|error generating (?:a )?response|failed to (?:generate|respond)|response generation failed|generation (?:was )?interrupted|response (?:was )?interrupted|something went wrong(?: while generating)?/.test(lower)) {
+       return common('response-interrupted','Response interrupted', retryAvailable
+-        ? 'The provider ended the response with an explicit generation error. A native Retry/Regenerate control is available; Constellation leaves it manual to avoid duplicating side effects from tool calls.'
+-        : 'The provider ended the response with an explicit generation error. Constellation records the interruption and does not silently retry tool or model work.');
++        ? 'The provider ended the response with an explicit generation error. Constellation keeps native Retry untouched while Chat Guardian can continue the unfinished conversation in a new turn.'
++        : 'The provider ended the response with an explicit generation error. Constellation records the interruption so unfinished work can continue without silently replaying tool side effects.');
++    }
++    const genericTerminalFailure = /(?:response|generation|stream(?:ing)?|request|message|connection|network|websocket)[^.!?]{0,100}(?:timed out|failed|interrupted|disconnected|closed unexpectedly|ended unexpectedly|recovery failed)|(?:timed out|failed|interrupted|disconnected)[^.!?]{0,100}(?:response|generation|stream(?:ing)?|request|message|connection|network|websocket)/.test(lower);
++    if (genericTerminalFailure) {
++      const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
++      return common(responseSide ? 'response-interrupted' : 'connection-interrupted', responseSide ? 'Response interrupted' : 'Connection interrupted', retryAvailable
++        ? 'The provider exposed a current-turn terminal error with a recovery control. Constellation preserves native Retry and can continue unfinished work as a separate continuation turn.'
++        : 'The provider exposed a current-turn terminal error. Constellation records it so unfinished work can be continued without guessing that the failed request completed.');
++    }
++    // ChatGPT changes terminal-card copy more often than it changes the recovery affordance.
++    // When a current-turn provider surface is anchored by a native Retry/Try again control,
++    // accept broader failure language without depending on one exact English sentence.
++    // This remains intentionally gated by `retryAvailable` + `observedAfterUser` so ordinary
++    // assistant prose discussing an error never becomes an automatic recovery incident.
++    const retryAnchoredTerminalFailure = retryAvailable && observedAfterUser && /(?:error|problem|issue|snag|unable|could(?:n['’]t| not)|stopp(?:ed|ing)|abort(?:ed|ing)?|cancel(?:led|ed|ing)|fail(?:ed|ure|ing)?|timed?\s*out|timeout|interrupt(?:ed|ion)?|disconnect(?:ed|ion)?|connection\s+lost|closed|ended|recover(?:y|ing)?|restor(?:e|ing)|respond(?:ing)?|response|stream(?:ing)?|generation)/.test(lower);
++    if (retryAnchoredTerminalFailure) {
++      const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
++      return common(responseSide ? 'response-interrupted' : 'connection-interrupted', responseSide ? 'Response interrupted' : 'Connection interrupted',
++        'The provider exposed a current-turn recovery control next to failure-like status text. Constellation treats this as an unfinished interruption even when the provider wording is new, preserves native Retry, and lets Chat Guardian continue in a separate turn.');
+     }
+     if (/failed to deliver message/.test(lower)) {
+       const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
+diff --git a/extension/src/live-sentinel.js b/extension/src/live-sentinel.js
+index f604d68c6822d0a2c03276e39da1f3d3c6c0ce6c..3b6452e4cc4cc670dbc662bca4f8b8ae9fbe0f8a 100644
+--- a/extension/src/live-sentinel.js
++++ b/extension/src/live-sentinel.js
+@@ -1,7 +1,7 @@
+ (() => {
+   'use strict';
+ 
+-  const VERSION = '0.17.6';
++  const VERSION = '0.17.8';
+   const existing = globalThis.ProjectConstellationLiveSentinel;
+   if (existing?.version === VERSION) return;
+   try { existing?.dispose?.(); } catch (_) {}
+@@ -42,7 +42,7 @@
+   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
+   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
+   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
+-  const HEALTH_CORE_VERSION = '11';
++  const HEALTH_CORE_VERSION = '12';
+   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
+   const STATE_EVENT = 'project-constellation:live-sentinel-state';
+   const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
+@@ -453,15 +453,15 @@
+     return values.join(' | ').slice(-12000);
+   }
+ 
+-  const FAILURE_RECOVERY_CONTROL_PATTERN = /^(?:retry|try again|regenerate(?: response)?|resend(?: message)?|reconnect)$/i;
++  const FAILURE_RECOVERY_CONTROL_PATTERN = /^(?:retry(?: response| message| request)?|try again|regenerate(?: response)?|resend(?: message)?|reconnect)$/i;
+   const TERMINAL_FALLBACK_SELECTOR = 'div,section,p,span';
+-  const TERMINAL_CONTROL_PATTERN = /^(?:retry|try again|regenerate(?: response)?|resend(?: message)?|reconnect|start new chat|new chat|branch(?: & continue)?|continue in a new chat)$/i;
++  const TERMINAL_CONTROL_PATTERN = /^(?:retry(?: response| message| request)?|try again|regenerate(?: response)?|resend(?: message)?|reconnect|start new chat|new chat|branch(?: & continue)?|continue in a new chat)$/i;
+ 
+-  function terminalTextClassification(text = '') {
++  function terminalTextClassification(text = '', hints = {}) {
+     const core = healthCore();
+     const raw = clean(text, 2200);
+     if (!raw || !core) return { terminal:false, failure:null, capacity:null };
+-    const failure = core.classifyProviderFailure?.(raw, {}) || null;
++    const failure = core.classifyProviderFailure?.(raw, hints || {}) || null;
+     const capacity = core.classifyProviderCapacity?.(raw) || null;
+     return { terminal:Boolean(failure?.active || capacity?.explicitLimitSignal || capacity?.nearLimitSignal), failure, capacity };
+   }
+@@ -469,13 +469,13 @@
+   function terminalSurfaceCandidates(frontier = conversationFrontier()) {
+     const out = [];
+     const seen = new Set();
+-    const add = (node) => {
++    const add = (node, hints = {}) => {
+       const element = elementFor(node);
+       if (!element || seen.has(element) || isOwnedNode(element) || !isUsable(element) || !isCurrentFrontierNode(element, frontier)) return;
+       const owner = turnOwner(element);
+       const text = clean(element.getAttribute?.('aria-label') || element.textContent || '', 2200);
+       if (!text) return;
+-      const classification = terminalTextClassification(text);
++      const classification = terminalTextClassification(text, hints);
+       if (!classification.terminal) return;
+       // Plain assistant prose may quote an error while discussing it. Only accept a
+       // terminal phrase inside an assistant turn when the provider gave that node
+@@ -490,8 +490,10 @@
+     // the native recovery button and inspect only a few nearby ancestors.
+     for (const control of [...document.querySelectorAll('button,[role="button"]')].slice(-120).reverse()) {
+       if (!isUsable(control) || isOwnedNode(control) || !TERMINAL_CONTROL_PATTERN.test(failureControlLabel(control))) continue;
++      const retryLabel = failureControlLabel(control);
++      const hints = { retryAvailable:true, retryLabel, observedAfterUser:Boolean(frontier?.latestUser) };
+       let cursor = control.parentElement;
+-      for (let depth = 0; cursor && cursor !== document.body && depth < 6; depth += 1, cursor = cursor.parentElement) add(cursor);
++      for (let depth = 0; cursor && cursor !== document.body && depth < 6; depth += 1, cursor = cursor.parentElement) add(cursor, hints);
+     }
+ 
+     // Capacity banners sometimes render as a plain low-emphasis div with no ARIA role
+@@ -969,6 +971,155 @@
+     return state;
+   }
+ 
++  let guardianContinueBusy = false;
++
++  function guardianComposer() {
++    const selectors = [
++      '#prompt-textarea.ProseMirror[contenteditable="true"]',
++      '#prompt-textarea[contenteditable="true"]',
++      'div.ProseMirror[contenteditable="true"][role="textbox"]',
++      '[contenteditable="true"][role="textbox"][aria-label*="Chat" i]',
++      'textarea[name="prompt-textarea"]',
++      'textarea[placeholder]'
++    ];
++    for (const selector of selectors) {
++      for (const node of document.querySelectorAll(selector)) {
++        if (!(node instanceof HTMLElement) || node.getAttribute('aria-disabled') === 'true') continue;
++        if (!isUsable(node)) continue;
++        return node;
++      }
++    }
++    return null;
++  }
++
++  function guardianComposerText(node) {
++    if (node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement) return node.value || '';
++    return node?.innerText || node?.textContent || '';
++  }
++
++  function guardianComposerContains(node, value) {
++    const normalize = (text) => String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
++    const actual = normalize(guardianComposerText(node));
++    const expected = normalize(value);
++    return expected ? actual.includes(expected.slice(0, Math.min(48, expected.length))) : !actual;
++  }
++
++  function guardianSetComposerText(node, text) {
++    if (!node) return false;
++    const value = String(text || '');
++    node.focus();
++    if (node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement) {
++      const proto = node instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
++      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
++      if (setter) setter.call(node, value); else node.value = value;
++      try { node.dispatchEvent(new InputEvent('input', { bubbles:true, composed:true, inputType:'insertText', data:value })); }
++      catch (_) { node.dispatchEvent(new Event('input', { bubbles:true })); }
++      node.dispatchEvent(new Event('change', { bubbles:true }));
++      return guardianComposerContains(node, value);
++    }
++    let inserted = false;
++    try {
++      const selection = window.getSelection?.();
++      const range = document.createRange();
++      range.selectNodeContents(node);
++      selection?.removeAllRanges?.();
++      selection?.addRange?.(range);
++      inserted = Boolean(document.execCommand?.('insertText', false, value));
++    } catch (_) {}
++    if (!inserted || !guardianComposerContains(node, value)) {
++      try {
++        const selection = window.getSelection?.();
++        const range = document.createRange();
++        range.selectNodeContents(node);
++        selection?.removeAllRanges?.();
++        selection?.addRange?.(range);
++        const transfer = new DataTransfer();
++        transfer.setData('text/plain', value);
++        node.dispatchEvent(new ClipboardEvent('paste', { bubbles:true, cancelable:true, composed:true, clipboardData:transfer }));
++      } catch (_) {}
++    }
++    if (!guardianComposerContains(node, value)) {
++      const fragment = document.createDocumentFragment();
++      for (const line of value.split('\n')) {
++        const paragraph = document.createElement('p');
++        if (line) paragraph.textContent = line; else paragraph.appendChild(document.createElement('br'));
++        fragment.appendChild(paragraph);
++      }
++      node.replaceChildren(fragment);
++      try { node.dispatchEvent(new InputEvent('input', { bubbles:true, composed:true, inputType:'insertText', data:value })); }
++      catch (_) { node.dispatchEvent(new Event('input', { bubbles:true })); }
++    }
++    node.dispatchEvent(new Event('change', { bubbles:true }));
++    return guardianComposerContains(node, value);
++  }
++
++  function guardianSendButton(composer) {
++    const scope = composer?.closest?.('form') || composer?.parentElement?.parentElement || document;
++    const selector = '#composer-submit-button,[data-testid="send-button"],button[aria-label*="send" i],button[data-testid*="send" i],button[type="submit"]';
++    return [...(scope.querySelectorAll?.(selector) || [])].find((button) => isUsable(button) && !button.disabled && button.getAttribute('aria-disabled') !== 'true' && !/stop|cancel/i.test(`${button.getAttribute('aria-label') || ''} ${button.textContent || ''}`)) || null;
++  }
++
++  async function continueUnfinishedTask(message = {}) {
++    if (guardianContinueBusy) return { ok:false, action:'busy', error:'Chat Guardian continuation is already in progress.' };
++    if (providerInfo().id !== 'chatgpt') return { ok:false, action:'non-chatgpt' };
++    const expectedChatId = clean(message.expectedChatId || '', 220);
++    const currentId = chatgptConversationId();
++    if (expectedChatId && currentId && expectedChatId !== currentId && expectedChatId !== `chatgpt:${currentId}`) return { ok:false, action:'chat-moved', chatId:currentId };
++
++    guardianContinueBusy = true;
++    try {
++      const state = scan(true);
++      const frontier = conversationFrontier();
++      const failure = state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null;
++      const healthState = String(state?.chat?.healthState || '');
++      const status = String(state?.chat?.status || '');
++      const recoveryState = String(message.reason || failure?.state || failure?.status || healthState || status || '');
++      const holds = new Set(['provider-review','blocked-approval','rate-limited','auth-required','unavailable','capacity-watch','capacity-handoff','capacity-reached']);
++      const recoverable = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','paused','refresh-required','dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled']);
++      if ([status, healthState, recoveryState].some((value) => holds.has(String(value)))) return { ok:false, action:'blocked-hold', state:recoveryState || healthState || status };
++      if (!frontier.latestUser) return { ok:false, action:'no-user-turn' };
++      if (!failure?.active && !recoverable.has(recoveryState) && !recoverable.has(healthState) && !recoverable.has(status)) return { ok:false, action:'not-unfinished', state:healthState || status };
++      if (!failure?.active && state?.generation?.finalControls && !['paused','refresh-required'].includes(recoveryState)) return { ok:false, action:'already-complete', state:healthState || status };
++      if (!failure?.active && state?.generation?.active && !['dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled'].includes(recoveryState)) return { ok:false, action:'still-running', state:healthState || status };
++
++      const fingerprint = clean(message.fingerprint || `${currentId}|${recoveryState}|${failure?.rawText || failure?.title || ''}`, 900);
++      const dedupeKey = `pc-chat-guardian:${currentId || location.pathname}:${fingerprint}`;
++      let lastSentAt = 0;
++      try { lastSentAt = Number(sessionStorage.getItem(dedupeKey) || 0); } catch (_) {}
++      if (lastSentAt && Date.now() - lastSentAt < 30_000) return { ok:false, action:'deduped', sentAt:lastSentAt };
++
++      const prompt = clean(message.prompt || 'Continue the unfinished task.', 160) || 'Continue the unfinished task.';
++      const deadline = Date.now() + 8000;
++      let composer = null;
++      while (Date.now() < deadline && !composer) {
++        composer = guardianComposer();
++        if (!composer) await new Promise((resolve) => setTimeout(resolve, 120));
++      }
++      if (!composer) return { ok:false, action:'composer-unavailable', state:recoveryState };
++      if (guardianComposerText(composer).trim()) return { ok:false, action:'composer-busy', state:recoveryState };
++      if (!guardianSetComposerText(composer, prompt)) return { ok:false, action:'stage-failed', state:recoveryState };
++
++      let send = null;
++      const sendDeadline = Date.now() + 6000;
++      while (Date.now() < sendDeadline && !send) {
++        send = guardianSendButton(composer);
++        if (!send) await new Promise((resolve) => setTimeout(resolve, 100));
++      }
++      if (!send) return { ok:false, action:'send-unavailable', state:recoveryState, staged:true };
++      send.click();
++      try { sessionStorage.setItem(dedupeKey, String(Date.now())); } catch (_) {}
++      lastActivityAt = now();
++      lastProgressAt = lastActivityAt;
++      scheduleScan(100);
++      if (providerInfo().id === 'chatgpt') setTimeout(() => requestTranscript(true), 250);
++      return { ok:true, action:'sent-continue', chatId:currentId, state:recoveryState, prompt };
++    } catch (error) {
++      return { ok:false, action:'failed', error:String(error?.message || error || 'Chat Guardian continuation failed.').slice(0, 320) };
++    } finally {
++      guardianContinueBusy = false;
++    }
++  }
++
+   function retryCurrentFailure() {
+     const frontier = conversationFrontier();
+     const transcript = freshTranscript(frontier, now());
+@@ -1269,6 +1420,10 @@
+       sendResponse(retryCurrentFailure());
+       return false;
+     }
++    if (message?.type === 'PC_LIVE_SENTINEL_CONTINUE_UNFINISHED') {
++      void continueUnfinishedTask(message).then(sendResponse).catch((error) => sendResponse({ ok:false, action:'failed', error:String(error?.message || error || 'Chat Guardian continuation failed.') }));
++      return true;
++    }
+     if (message?.type !== 'PC_GET_LIVE_SENTINEL_STATE') return false;
+     sendResponse(scan(true));
+     return false;
+@@ -1292,6 +1447,7 @@
+     rescan:() => scan(true),
+     diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, responseStartedAt, lastResponseDurationMs, lastResponseCompletedAt, lastToolProgressSignature, lastTranscriptProgressSignature, lastFailureFingerprint, failureDetectedAt, lastFailureClearedAt, failureRetryAttempts, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
+     retryFailure:() => retryCurrentFailure(),
++    continueUnfinished:(message = {}) => continueUnfinishedTask(message),
+     dispose:() => {
+       pageObserver?.disconnect(); pageObserver = null;
+       hudHostObserver?.disconnect(); hudHostObserver = null;
+diff --git a/extension/src/local-work-content.js b/extension/src/local-work-content.js
+index ace48b24dbbc3094ef1841c7789d7cea9fbc2a56..576c9b1b2febd013c5637c4931be6d6e50fb35e3 100644
+--- a/extension/src/local-work-content.js
++++ b/extension/src/local-work-content.js
+@@ -1,5 +1,5 @@
+ (() => {
+-  const VERSION = '0.20.0';
++  const VERSION = '0.20.1';
+   const CONTEXT_OPEN = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const CALL_RE = /\[PC_BUDDY_CALL\](\{[\s\S]*?\})\[\/PC_BUDDY_CALL\]/;
+diff --git a/extension/src/local-work-controller.js b/extension/src/local-work-controller.js
+index 96d631176fcbc40552a2a992ac3cf59b315c6d1c..f34153e087d802ca6441a5589adcc935efa3a9d8 100644
+--- a/extension/src/local-work-controller.js
++++ b/extension/src/local-work-controller.js
+@@ -1,5 +1,5 @@
+ const PCX_DESKTOP_BASE = 'http://127.0.0.1:47721';
+-const PCX_DESKTOP_VERSION = '0.20.0';
++const PCX_DESKTOP_VERSION = '0.20.1';
+ const PCX_DESKTOP_ALARM = 'pcx-local-work-heartbeat-v020';
+ const PCX_DESKTOP_STATUS_KEY = 'projectConstellationDesktopStatus';
+ 
+diff --git a/extension/src/local-work-page-hook.js b/extension/src/local-work-page-hook.js
+index a9de07189c306a204653bc94113fd95df3283204..4ffce4cea35f41df923225e13c2815fa1071dea8 100644
+--- a/extension/src/local-work-page-hook.js
++++ b/extension/src/local-work-page-hook.js
+@@ -4,7 +4,7 @@
+   const SOURCE = 'constellation-commander-page-hook';
+   const CONTEXT_OPEN='[PROJECT CONSTELLATION LOCAL CONTEXT]', CONTEXT_CLOSE='[/PROJECT CONSTELLATION LOCAL CONTEXT]';
+   const post = (type, extra = {}) => { try { window.postMessage({source:SOURCE,type,...extra},'*'); } catch {} };
+-  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true}); return; }
++  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.20.1',receipts:true}); return; }
+   window.__constellationHookInstalled = true;
+   let pending = null;
+   const normalize = value => String(value ?? '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+@@ -101,5 +101,5 @@
+       return send.call(this,changed.body);
+     };
+   }
+-  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.0',receipts:true});
++  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.1',receipts:true});
+ })();
+diff --git a/package-lock.json b/package-lock.json
+index b74c7375ffbc889151529dbbc05c27758b6ae742..9706e368ca5ef8e25266711deab7eabb21d82f2a 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "project-constellation-extension",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "project-constellation-extension",
+-      "version": "0.20.0"
++      "version": "0.20.1"
+     }
+   }
+ }
+diff --git a/package.json b/package.json
+index 68c1a2ef5e5e0311f4d2ecaa9395838db18e38d3..d4af36defda3401c344fb77552305e4c778e84cc 100644
+--- a/package.json
++++ b/package.json
+@@ -1,10 +1,10 @@
+ {
+   "name": "project-constellation-extension",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "private": true,
+   "type": "module",
+   "scripts": {
+-    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/project-intelligence-core.test.mjs && node tests/health-core.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/project-identity-core.test.mjs && node tests/output-integrity-semantic.test.mjs && node tests/scheduled-task-guardian.test.mjs && node tests/recovery-polling-regression.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/chat-organizer-project-qol.test.mjs && node tests/runtime-error-hardening.test.mjs && node tests/ui-qol-static.test.mjs && node tests/unified-v019.test.mjs && node tests/provider-health-core.test.mjs && node tests/incident-brain-core.test.mjs && node tests/state-event-bus-core.test.mjs && node tests/background-message-router-core.test.mjs && node tests/no-fixed-polling.test.mjs && node tests/brain-db-v11-static.test.mjs && node tests/provider-health-runtime-static.test.mjs && node tests/full-permissions-regression.test.mjs && node tests/source-archive-static.test.mjs",
++    "test": "node tests/core.test.mjs && node tests/brain-core.test.mjs && node tests/provider-core.test.mjs && node tests/integrity-core.test.mjs && node tests/knowledge-core.test.mjs && node tests/project-memory-core.test.mjs && node tests/project-router-core.test.mjs && node tests/project-intelligence-core.test.mjs && node tests/health-core.test.mjs && node tests/chat-guardian-core.test.mjs && node tests/chat-guardian-runtime-static.test.mjs && node tests/live-state-policy.test.mjs && node tests/navigation-safety.test.mjs && node tests/interruption-safety.test.mjs && node tests/tab-group-convergence.test.mjs && node tests/project-identity-core.test.mjs && node tests/output-integrity-semantic.test.mjs && node tests/scheduled-task-guardian.test.mjs && node tests/recovery-polling-regression.test.mjs && node tests/chat-vault-core.test.mjs && node tests/command-center-action-core.test.mjs && node tests/closed-chat-watch-core.test.mjs && node tests/closed-chat-watch-runtime-static.test.mjs && node tests/closed-chat-vault-bridge-static.test.mjs && node tests/command-center-actions-runtime.test.mjs && node tests/popup-attention-qol.test.mjs && node tests/chat-vault-static.test.mjs && node tests/chat-organizer-project-qol.test.mjs && node tests/runtime-error-hardening.test.mjs && node tests/ui-qol-static.test.mjs && node tests/unified-v019.test.mjs && node tests/provider-health-core.test.mjs && node tests/incident-brain-core.test.mjs && node tests/state-event-bus-core.test.mjs && node tests/background-message-router-core.test.mjs && node tests/no-fixed-polling.test.mjs && node tests/brain-db-v11-static.test.mjs && node tests/provider-health-runtime-static.test.mjs && node tests/full-permissions-regression.test.mjs && node tests/source-archive-static.test.mjs",
+     "validate": "node tools/validate.mjs && node tools/ui-contract.mjs && node tools/message-contract.mjs",
+     "build": "node tools/build.mjs --mode=production",
+     "build:dev": "node tools/build.mjs --mode=development",
+diff --git a/tests/chat-guardian-core.test.mjs b/tests/chat-guardian-core.test.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b36292440b245c0c81317945f18f6ad1962768c9
+--- /dev/null
++++ b/tests/chat-guardian-core.test.mjs
+@@ -0,0 +1,45 @@
++import assert from 'node:assert/strict';
++await import('../extension/src/chat-guardian-core.js');
++const guardian = globalThis.ProjectConstellationChatGuardianCore;
++assert(guardian);
++const now = 1_000_000;
++const base = { tabId:7, providerId:'chatgpt', chatId:'chatgpt:abc', status:'idle', healthState:'healthy', generation:{active:false,quietForMs:0}, network:{pending:0} };
++
++let decision = guardian.shouldAttempt({ ...base, status:'response-interrupted', failure:{active:true,state:'response-interrupted',detectedAt:now-5000,rawText:'ChatGPT stream recovery polling timed out'} }, {}, {}, now);
++assert.equal(decision.recover, true);
++assert.equal(decision.reason, 'response-interrupted');
++assert.equal(decision.prompt, 'Continue the unfinished task.');
++assert(decision.fingerprint);
++
++const history = { fingerprint:decision.fingerprint, attempts:1, lastAttemptAt:now-1000 };
++decision = guardian.shouldAttempt({ ...base, status:'response-interrupted', failure:{active:true,state:'response-interrupted',detectedAt:now-5000,rawText:'ChatGPT stream recovery polling timed out'} }, history, {}, now);
++assert.equal(decision.recover, false);
++assert.equal(decision.reason, 'cooldown');
++
++decision = guardian.shouldAttempt({ ...base, status:'blocked-approval', healthState:'blocked-approval' }, {}, {}, now);
++assert.equal(decision.recover, false);
++assert.equal(decision.reason, 'hold');
++
++decision = guardian.shouldAttempt({ ...base, status:'provider-review', healthState:'provider-review' }, {}, {}, now);
++assert.equal(decision.recover, false);
++assert.equal(decision.reason, 'hold');
++
++decision = guardian.shouldAttempt({ ...base, healthState:'tool-stalled', generation:{active:true,quietForMs:181000}, network:{pending:1} }, {}, {}, now);
++assert.equal(decision.recover, false, 'an in-flight provider request is never interrupted by the guardian');
++assert.equal(decision.reason, 'network-active');
++
++decision = guardian.shouldAttempt({ ...base, healthState:'tool-stalled', generation:{active:false,quietForMs:100000}, network:{pending:0} }, {}, {}, now);
++assert.equal(decision.recover, false, 'a newly stalled state gets a settling window before an automatic continue');
++assert.equal(decision.reason, 'stall-settling');
++
++decision = guardian.shouldAttempt({ ...base, healthState:'tool-stalled', generation:{active:false,quietForMs:220000}, network:{pending:0} }, {}, {}, now);
++assert.equal(decision.recover, true);
++assert.equal(decision.reason, 'tool-stalled');
++
++decision = guardian.shouldAttempt({ ...base, healthState:'healthy' }, {}, {}, now);
++assert.equal(decision.recover, false, 'completed/healthy idle chats are never woken');
++assert.equal(decision.reason, 'healthy');
++
++assert.equal(guardian.nextFallbackMs([{...base,status:'running',generation:{active:true}}],{}), guardian.DEFAULTS.activeFallbackMs);
++assert.equal(guardian.nextFallbackMs([{...base,status:'idle'}],{}), guardian.DEFAULTS.idleFallbackMs);
++console.log('chat-guardian-core.test.mjs: PASS');
+diff --git a/tests/chat-guardian-runtime-static.test.mjs b/tests/chat-guardian-runtime-static.test.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..2bf6dd9fcbac15c25b4edde20d0903809eceaa1f
+--- /dev/null
++++ b/tests/chat-guardian-runtime-static.test.mjs
+@@ -0,0 +1,33 @@
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++
++const background = fs.readFileSync(new URL('../extension/background.js', import.meta.url), 'utf8');
++const sentinel = fs.readFileSync(new URL('../extension/src/live-sentinel.js', import.meta.url), 'utf8');
++const health = fs.readFileSync(new URL('../extension/src/health-core.js', import.meta.url), 'utf8');
++
++assert.match(background, /import '\.\/src\/chat-guardian-core\.js'/, 'background must load the reusable all-tab guardian policy');
++assert.match(background, /ProjectConstellationChatGuardianCore/, 'background must use the guardian policy instead of duplicating status rules');
++assert.match(background, /chrome\.tabs\.query\(\{\}\)/, 'guardian must be able to enumerate all open ChatGPT tabs');
++assert.match(background, /Promise\.allSettled\(tabs\.map/, 'one broken tab must not block supervision of the rest');
++assert.match(background, /autoDiscardable:false/, 'ChatGPT work tabs are kept resident instead of silently falling out of supervision');
++assert.match(background, /tab\.frozen \|\| tab\.discarded/, 'frozen/discarded ChatGPT tabs are deferred instead of accumulating queued probes');
++assert.match(background, /chrome\.tabs\.onActivated/, 'a tab becoming active triggers immediate guardian reconciliation after Chrome unfreezes it');
++assert.match(background, /changeInfo\?\.frozen === false/, 'Chrome frozen-state transitions trigger immediate reconciliation when a tab becomes runnable');
++assert.match(background, /PC_LIVE_SENTINEL_CONTINUE_UNFINISHED/, 'guardian recovery must ask the in-tab sentinel to continue unfinished work');
++assert.match(background, /CHAT_GUARDIAN_ALARM[\s\S]{0,1200}\{ when:/, 'guardian fallback must be a re-armed one-shot alarm');
++assert.doesNotMatch(background, /chrome\.alarms\.create\(CHAT_GUARDIAN_ALARM,\s*\{\s*periodInMinutes/, 'guardian must not regress to fixed repeating polling');
++assert.match(background, /scheduleChatGuardianSweep\(2200\)/, 'explicit terminal state changes trigger an event-first recovery check');
++assert.match(background, /safeReloadActions = new Set\(\['composer-unavailable','send-unavailable','stage-failed'\]\)/, 'a failed continuation can use one bounded reload fallback without looping');
++
++assert.match(sentinel, /const VERSION = '0\.17\.8'/, 'hot-injected sentinel version must advance so already-open tabs receive the fix');
++assert.match(sentinel, /PC_LIVE_SENTINEL_CONTINUE_UNFINISHED/, 'sentinel must expose the guarded continuation operation');
++assert.match(sentinel, /Continue the unfinished task\./, 'automatic recovery sends a simple continuation turn');
++assert.match(sentinel, /composer-busy/, 'guardian must never overwrite a user draft');
++assert.match(sentinel, /already-complete/, 'guardian must not wake a completed conversation');
++assert.match(sentinel, /blocked-hold/, 'approval/auth/rate-limit/review holds remain non-bypassable');
++assert.match(sentinel, /sessionStorage\.setItem\(dedupeKey/, 'in-tab dedupe prevents duplicate continuation sends during worker races');
++
++assert.match(health, /stream recovery\(\?:\\s\+polling\)\?/, 'health classifier covers the new stream-recovery timeout wording family');
++assert.match(health, /genericTerminalFailure/, 'equivalent future provider terminal wording has semantic fallback classification');
++
++console.log('chat-guardian-runtime-static.test.mjs: PASS');
+diff --git a/tests/health-core.test.mjs b/tests/health-core.test.mjs
+index 8a340dc6fcf3d6fd595fca23e17af91033a6c276..68952942820be11cc7c5175f3d6b991af3133110 100644
+--- a/tests/health-core.test.mjs
++++ b/tests/health-core.test.mjs
+@@ -120,6 +120,9 @@ assert.equal(core.classifyProviderHold('The model is thinking about this request
+ 
+ for (const [text, state, title] of [
+   ['Message delivery timed out. Please try again.','delivery-timeout','Message delivery timed out'],
++  ['ChatGPT stream recovery polling timed out','response-interrupted','Response stream timed out'],
++  ['Response stream timed out while recovering. Retry','response-interrupted','Response stream timed out'],
++  ['The generation stream ended unexpectedly. Try again','response-interrupted','Response interrupted'],
+   ['A network error occurred. Please check your connection and try again.','connection-interrupted','Connection interrupted'],
+   ['There was an error generating a response.','response-interrupted','Response interrupted'],
+   ['Message was not sent.','send-failed','Message was not sent']
+@@ -131,6 +134,11 @@ for (const [text, state, title] of [
+   assert.equal(failureRow.level, 'critical'); assert.equal(failureRow.title, title); assert.equal(failureRow.recommendedAction, 'retry');
+   assert.ok(failureRow.chips.includes('45 partial chars preserved'));
+ }
++assert.equal(core.classifyProviderFailure('We discussed request timeout handling in the architecture.', {}).active, false, 'ordinary prose about timeout handling is not a provider failure');
++assert.equal(core.classifyProviderFailure('We hit a snag while restoring this answer. Please try again.', { retryAvailable:true, retryLabel:'Try again', observedAfterUser:true }).state, 'response-interrupted', 'new provider wording remains recoverable when a native current-turn recovery control anchors the surface');
++assert.equal(core.classifyProviderFailure('We hit a snag while restoring this answer. Please try again.', { retryAvailable:false, observedAfterUser:true }).active, false, 'broad fallback wording alone must not classify ordinary prose without a recovery affordance');
++assert.equal(core.classifyProviderFailure('The stream failed after the latest prompt.', { observedAfterUser:true }).state, 'response-interrupted', 'semantically equivalent current-turn failures remain recoverable across provider copy changes');
++
+ const noRetryFailure = core.classifyProviderFailure('Message delivery timed out. Please try again.', {});
+ assert.equal(noRetryFailure.recommendedAction, 'refresh');
+ assert.equal(core.deriveHealth({ now, chatStatus:'delivery-timeout', failure:noRetryFailure }).state, 'delivery-timeout');
+diff --git a/tests/smoke/approval_background_smoke.py b/tests/smoke/approval_background_smoke.py
+index a281bfe837ac1a2b920b6851e2d665470ab73d44..4653719c95480b5e05129926242e6a47f753a5b5 100644
+--- a/tests/smoke/approval_background_smoke.py
++++ b/tests/smoke/approval_background_smoke.py
+@@ -1,7 +1,7 @@
+ from playwright.sync_api import sync_playwright
+ import pathlib, json, re, os
+ root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation-v090-work'))
+-manifest=json.loads((root/'manifest.json').read_text());brain=(root/'src/brain-core.js').read_text();providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text();bg=(root/'background.js').read_text();bg=re.sub(r"^import ['\"]\./src/[^'\"]+['\"];\s*",'',bg,flags=re.M)
++manifest=json.loads((root/'manifest.json').read_text());brain=(root/'src/brain-core.js').read_text();providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); chat_guardian=(root/'src/chat-guardian-core.js').read_text();bg=(root/'background.js').read_text();bg=re.sub(r"^import ['\"]\./src/[^'\"]+['\"];\s*",'',bg,flags=re.M)
+ state_bus=(root/'src/state-event-bus-core.js').read_text(); provider_health=(root/'src/provider-health-core.js').read_text(); incident_brain=(root/'src/incident-brain-core.js').read_text(); brain_db=(root/'src/brain-db-core.js').read_text(); message_router=(root/'src/background-message-router-core.js').read_text()
+ mock=f"""
+ (() => {{
+@@ -30,7 +30,7 @@ mock=f"""
+ """
+ with sync_playwright() as p:
+   browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None));page=browser.new_page();errors=[];page.on('pageerror',lambda exc:errors.append(str(exc)))
+-  page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=router);page.add_script_tag(content=intelligence);page.add_script_tag(content=health);page.add_script_tag(content=guardian);page.add_script_tag(content=state_bus);page.add_script_tag(content=provider_health);page.add_script_tag(content=incident_brain);page.add_script_tag(content=brain_db);page.add_script_tag(content=message_router);page.add_script_tag(content=bg);page.wait_for_timeout(100)
++  page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=router);page.add_script_tag(content=intelligence);page.add_script_tag(content=health);page.add_script_tag(content=guardian);page.add_script_tag(content=chat_guardian);page.add_script_tag(content=state_bus);page.add_script_tag(content=provider_health);page.add_script_tag(content=incident_brain);page.add_script_tag(content=brain_db);page.add_script_tag(content=message_router);page.add_script_tag(content=bg);page.wait_for_timeout(100)
+   result=page.evaluate("""async()=>{
+     const now=Date.now();
+     await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[
+diff --git a/tests/smoke/auth_backend_smoke.py b/tests/smoke/auth_backend_smoke.py
+index 5ec337cb67683606d9f2f46c3ccefa29d00f4743..80772d2a8938555176d22a91aa31a57ec2d06570 100644
+--- a/tests/smoke/auth_backend_smoke.py
++++ b/tests/smoke/auth_backend_smoke.py
+@@ -4,7 +4,7 @@ root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project
+ manifest=json.loads((root/'manifest.json').read_text())
+ manifest.setdefault('oauth2', {'scopes':['https://www.googleapis.com/auth/drive.file']})
+ manifest['oauth2']['client_id']='pc-test.apps.googleusercontent.com'
+-brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); bg=(root/'background.js').read_text()
++brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); chat_guardian=(root/'src/chat-guardian-core.js').read_text(); bg=(root/'background.js').read_text()
+ bg=re.sub(r"^import ['\"]\./src/[^'\"]+['\"];\s*",'',bg,flags=re.M)
+ state_bus=(root/'src/state-event-bus-core.js').read_text(); provider_health=(root/'src/provider-health-core.js').read_text(); incident_brain=(root/'src/incident-brain-core.js').read_text(); brain_db=(root/'src/brain-db-core.js').read_text(); message_router=(root/'src/background-message-router-core.js').read_text()
+ mock=f"""
+@@ -37,7 +37,7 @@ mock=f"""
+ with sync_playwright() as p:
+   browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
+   page=browser.new_page(); errors=[]; page.on('pageerror',lambda e: errors.append(str(e)))
+-  page.set_content('<!doctype html><html><body></body></html>'); page.add_script_tag(content=mock); page.add_script_tag(content=brain); page.add_script_tag(content=providers); page.add_script_tag(content=integrity); page.add_script_tag(content=knowledge); page.add_script_tag(content=memory); page.add_script_tag(content=router); page.add_script_tag(content=intelligence); page.add_script_tag(content=health); page.add_script_tag(content=guardian); page.add_script_tag(content=state_bus); page.add_script_tag(content=provider_health); page.add_script_tag(content=incident_brain); page.add_script_tag(content=brain_db); page.add_script_tag(content=message_router); page.add_script_tag(content=bg); page.wait_for_timeout(40)
++  page.set_content('<!doctype html><html><body></body></html>'); page.add_script_tag(content=mock); page.add_script_tag(content=brain); page.add_script_tag(content=providers); page.add_script_tag(content=integrity); page.add_script_tag(content=knowledge); page.add_script_tag(content=memory); page.add_script_tag(content=router); page.add_script_tag(content=intelligence); page.add_script_tag(content=health); page.add_script_tag(content=guardian); page.add_script_tag(content=chat_guardian); page.add_script_tag(content=state_bus); page.add_script_tag(content=provider_health); page.add_script_tag(content=incident_brain); page.add_script_tag(content=brain_db); page.add_script_tag(content=message_router); page.add_script_tag(content=bg); page.wait_for_timeout(40)
+   result=page.evaluate("""async()=>{
+     const ghStart=await __send({type:'PC_GITHUB_OAUTH_START',clientId:'Iv1.projectconstellation'});
+     const ghPoll=await __send({type:'PC_GITHUB_OAUTH_POLL'});
+diff --git a/tests/smoke/background_smoke.py b/tests/smoke/background_smoke.py
+index ff073e3847f7ed8dcc1a03efbbf79537e94e5466..1f256a8cce6390c3d053ab1374f5a48301b4b5cb 100644
+--- a/tests/smoke/background_smoke.py
++++ b/tests/smoke/background_smoke.py
+@@ -9,7 +9,7 @@ knowledge=(root/'src/knowledge-core.js').read_text()
+ memory=(root/'src/project-memory-core.js').read_text()
+ router=(root/'src/project-router-core.js').read_text()
+ intelligence=(root/'src/project-intelligence-core.js').read_text()
+-health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text()
++health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); chat_guardian=(root/'src/chat-guardian-core.js').read_text()
+ bg=(root/'background.js').read_text()
+ bg=re.sub(r"^import ['\"]\./src/[^'\"]+['\"];\s*",'',bg,flags=re.M)
+ state_bus=(root/'src/state-event-bus-core.js').read_text(); provider_health=(root/'src/provider-health-core.js').read_text(); incident_brain=(root/'src/incident-brain-core.js').read_text(); brain_db=(root/'src/brain-db-core.js').read_text(); message_router=(root/'src/background-message-router-core.js').read_text()
+@@ -68,7 +68,7 @@ mock=f"""
+    alarms:{{create:async()=>{{}},clear:async()=>true,onAlarm:{{addListener:(fn)=>listeners.alarm=fn}}}},
+    sidePanel:{{setPanelBehavior:async()=>{{}}}},action:{{setBadgeText:async()=>{{}},setTitle:async()=>{{}}}},
+    identity:{{getAuthToken:async()=>({{token:'test-token'}}),removeCachedAuthToken:async()=>{{}},clearAllCachedAuthTokens:async()=>{{}}}},
+-   idle:{{queryState:async()=> 'idle'}},tabs:{{query:async()=>[],create:async(options)=>{{globalThis.__pcCreatedTabs.push(options);return {{id:88,...options}};}},onRemoved:{{addListener:(fn)=>listeners.tabRemoved=fn}}}},scripting:{{executeScript:async(options)=>{{const id=Number(options?.target?.tabId||0);if(id===104)return [{{result:{{ok:true,source:'scripting-dom-probe',chat:{{status:'idle',rawStatus:'idle',title:'Old Tab',url:'https://chatgpt.com/c/old-a',lastActivityAt:Date.now()-2500,healthState:'healthy'}},generation:{{active:false}},healthActive:false,healthStale:false,observedAt:Date.now()}}}}];return [];}}}},downloads:{{}},
++   idle:{{queryState:async()=> 'idle'}},tabs:{{query:async()=>[],create:async(options)=>{{globalThis.__pcCreatedTabs.push(options);return {{id:88,...options}};}},update:async(id,props)=>({{id,...props}}),reload:async()=>undefined,get:async()=>null,sendMessage:async()=>({{ok:true}}),onRemoved:{{addListener:(fn)=>listeners.tabRemoved=fn}},onCreated:{{addListener:(fn)=>listeners.tabCreated=fn}},onUpdated:{{addListener:(fn)=>listeners.tabUpdated=fn}},onReplaced:{{addListener:(fn)=>listeners.tabReplaced=fn}}}},scripting:{{executeScript:async(options)=>{{const id=Number(options?.target?.tabId||0);if(id===104)return [{{result:{{ok:true,source:'scripting-dom-probe',chat:{{status:'idle',rawStatus:'idle',title:'Old Tab',url:'https://chatgpt.com/c/old-a',lastActivityAt:Date.now()-2500,healthState:'healthy'}},generation:{{active:false}},healthActive:false,healthStale:false,observedAt:Date.now()}}}}];return [];}}}},downloads:{{}},
+    tabGroups:{{query:async()=>[],get:async()=>null,update:async()=>null,onUpdated:{{addListener:(fn)=>listeners.tabGroupUpdated=fn}},onRemoved:{{addListener:(fn)=>listeners.tabGroupRemoved=fn}}}},
+    webRequest:{{onBeforeRequest:{{addListener:(fn)=>listeners.webBefore=fn}},onResponseStarted:{{addListener:(fn)=>listeners.webResponse=fn}},onCompleted:{{addListener:(fn)=>listeners.webComplete=fn}},onErrorOccurred:{{addListener:(fn)=>listeners.webError=fn}}}},
+    notifications:{{create:async(id,options)=>{{__pcNotifications.push({{id,options}});return id;}},clear:async(id)=>{{__pcClearedNotifications.push(id);return true;}},onClicked:{{addListener:(fn)=>listeners.notificationClicked=fn}},onButtonClicked:{{addListener:(fn)=>listeners.notificationButton=fn}}}}
+@@ -98,6 +98,7 @@ with sync_playwright() as p:
+     page.add_script_tag(content=intelligence)
+     page.add_script_tag(content=health)
+     page.add_script_tag(content=guardian)
++    page.add_script_tag(content=chat_guardian)
+     page.add_script_tag(content=state_bus)
+     page.add_script_tag(content=provider_health)
+     page.add_script_tag(content=incident_brain)
+@@ -204,28 +205,46 @@ with sync_playwright() as p:
+         throw new Error('Receiving end does not exist');
+       };
+       const livePulse=await __pcSend({type:'PC_LIVE_CHAT_PULSE',force:true});
++      globalThis.__pcGuardianSends=[];
++      chrome.tabs.query=async()=>[
++        {id:121,windowId:3,groupId:-1,url:'https://chatgpt.com/c/guardian-failed',title:'Guardian Failed',discarded:false},
++        {id:122,windowId:3,groupId:-1,url:'https://chatgpt.com/c/guardian-healthy',title:'Guardian Healthy',discarded:false}
++      ];
++      chrome.tabs.sendMessage=async(id,msg)=>{
++        if(msg.type==='PC_GET_LIVE_SENTINEL_STATE'){
++          if(id===121)return {ok:true,source:'live-sentinel',sentinel:true,version:'0.17.8',chat:{id:'chatgpt:guardian-failed',status:'response-interrupted',rawStatus:'response-interrupted',healthState:'response-interrupted',lastActivityAt:Date.now()-5000},failure:{active:true,state:'response-interrupted',status:'response-interrupted',title:'Response stream timed out',rawText:'ChatGPT stream recovery polling timed out',fingerprint:'provider-timeout',detectedAt:Date.now()-5000},generation:{active:false,quietForMs:5000}};
++          return {ok:true,source:'live-sentinel',sentinel:true,version:'0.17.8',chat:{id:'chatgpt:guardian-healthy',status:'idle',rawStatus:'idle',healthState:'healthy',lastActivityAt:Date.now()},generation:{active:false,finalControls:true,quietForMs:0}};
++        }
++        if(msg.type==='PC_LIVE_SENTINEL_CONTINUE_UNFINISHED'){
++          __pcGuardianSends.push({id,message:structuredClone(msg)});
++          return {ok:true,action:'sent-continue',chatId:'guardian-failed',state:msg.reason,prompt:msg.prompt};
++        }
++        return {ok:true};
++      };
++      const chatGuardianRun=await __pcSend({type:'PC_CHAT_GUARDIAN_RUN'});
++      const chatGuardianStatus=await __pcSend({type:'PC_CHAT_GUARDIAN_STATUS'});
+       __pcDbStores.get('chats').rows.delete('chatgpt:live-a');
+       __pcDbStores.get('turns').rows.delete('chatgpt:live-a:user:9');
+       globalThis.__pcNotifications=[];
+       __pcSessionBag['projectConstellationLiveTransition:106']={tabId:106,bucket:'active',status:'running',healthState:'working',chatId:'chatgpt:session',url:'https://chatgpt.com/c/session',observedAt:Date.now()-1000};
+-      const sessionCompletionPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'idle',chat:{id:'chatgpt:session',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Session Resume',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:106,windowId:1,url:'https://chatgpt.com/c/session',title:'Session Resume'}});
++      const sessionCompletionPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'idle',chat:{id:'chatgpt:session',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Session Resume',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:106,windowId:1,url:'https://chatgpt.com/c/session',title:'Session Resume'}});
+       await new Promise(r=>setTimeout(r,15));
+       const sessionCompletionNotifications=structuredClone(__pcNotifications);
+       globalThis.__pcNotifications=[];
+       const legacyIgnored=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+-      const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
++      const completedPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+       await new Promise(r=>setTimeout(r,15));
+       const completionNotifications=structuredClone(__pcNotifications);
+-      await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'working',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:61000,quietForMs:1200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+-      const attentionPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'capacity-handoff',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:62000,quietForMs:2200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
++      await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'working',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:61000,quietForMs:1200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
++      const attentionPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'running',chat:{id:'chatgpt:live-a',status:'running',rawStatus:'running',healthState:'capacity-handoff',title:'Live A',lastActivityAt:Date.now()},generation:{active:true,elapsedMs:62000,quietForMs:2200}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+       await new Promise(r=>setTimeout(r,15));
+-      const holdPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'provider-review',chat:{id:'chatgpt:live-a',status:'provider-review',rawStatus:'provider-review',healthState:'provider-review',title:'Live A',lastActivityAt:Date.now()},generation:{active:false,phase:'review-hold'}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
++      const holdPush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'provider-review',chat:{id:'chatgpt:live-a',status:'provider-review',rawStatus:'provider-review',healthState:'provider-review',title:'Live A',lastActivityAt:Date.now()},generation:{active:false,phase:'review-hold'}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+       await new Promise(r=>setTimeout(r,15));
+       const notificationsDuringHold=structuredClone(__pcNotifications);
+-      const reviewReleasePush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
++      const reviewReleasePush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'idle',chat:{id:'chatgpt:live-a',status:'idle',rawStatus:'idle',healthState:'healthy',title:'Live A',lastActivityAt:Date.now()},generation:{active:false}}},{tab:{id:101,windowId:1,url:'https://chatgpt.com/c/live-a',title:'Live A'}});
+       await new Promise(r=>setTimeout(r,15));
+       const reviewReleaseNotifications=structuredClone(__pcNotifications);
+-      const failurePush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.6',status:'delivery-timeout',failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'},chat:{id:'chatgpt:stale-a',status:'delivery-timeout',rawStatus:'delivery-timeout',healthState:'delivery-timeout',title:'Stale A',lastActivityAt:Date.now(),failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'}},generation:{active:false,interrupted:true}}},{tab:{id:102,windowId:1,url:'https://chatgpt.com/c/stale-a',title:'Stale A'}});
++      const failurePush=await __pcSend({type:'PC_LIVE_CHAT_STATE_PUSH',state:{source:'live-sentinel',sentinel:true,version:'0.17.8',status:'delivery-timeout',failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'},chat:{id:'chatgpt:stale-a',status:'delivery-timeout',rawStatus:'delivery-timeout',healthState:'delivery-timeout',title:'Stale A',lastActivityAt:Date.now(),failure:{active:true,state:'delivery-timeout',title:'Message delivery timed out',retryAvailable:true,retryLabel:'Retry'}},generation:{active:false,interrupted:true}}},{tab:{id:102,windowId:1,url:'https://chatgpt.com/c/stale-a',title:'Stale A'}});
+       await new Promise(r=>setTimeout(r,15));
+       const attentionNotifications=structuredClone(__pcNotifications);
+       await __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{scheduledTaskGuardian:{enabled:true,observeTaskState:true,desktopNotifications:true,notifyRunCompleted:true,notifyStateChanges:true}}});
+@@ -270,7 +289,7 @@ with sync_playwright() as p:
+       const knowledgeSearch=await __pcSend({type:'PC_KNOWLEDGE_LIST',filters:{query:'ModernFix Minecraft',limit:30}});
+       const dash=await __pcSend({type:'PC_BRAIN_DASHBOARD'});
+       const snap=await __pcSend({type:'PC_BRAIN_SNAPSHOT'});
+-      return {ingest,rescueAck,rescueChat,recoveredRetryFlags,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,capacityMigration,capacityCustom,homeAfterSettings,homeWithLiveAttention,homeWithUncertain,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,pulseActive,pulseAssign,pulseCreate,pulseMismatch,livePulse,sessionCompletionPush,sessionCompletionNotifications,legacyIgnored,completedPush,attentionPush,holdPush,reviewReleasePush,failurePush,completionNotifications,notificationsDuringHold,reviewReleaseNotifications,attentionNotifications,guardianBaseline,guardianBaselineNotifications,guardianTransition,guardianTransitionNotifications,guardianRepeat,guardianRepeatNotifications,createdBeforeGuardianOpen,guardianOpenedTab,guardianMutedStatus,guardianMutedTransition,guardianMutedNotifications,guardianTestWhileMuted,missingFocus,createdBeforeMissingFocus,createdAfterMissingFocus,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
++      return {ingest,rescueAck,rescueChat,recoveredRetryFlags,outputObserve,outputVault,outputRevisions,outputCanonical,group:group.item,project:project.item,smart:smart.item,patch:patch.items,org:org.organization,orgChats:orgChats.items,pinnedChats:pinnedChats.items,favoriteChats:favoriteChats.items,archivedChats:archivedChats.items,migratedLegacy,migratedIndexes,settingsWrites,settingsGet,capacityMigration,capacityCustom,homeAfterSettings,homeWithLiveAttention,homeWithUncertain,search:search.results?.map(x=>({type:x.entityType,chatId:x.chatId,title:x.title,excerpt:x.excerpt})),summary:dash.dashboard?.summary,integrityScan,governor:governor.requestGovernor,providerCheck1,providerCheck2,fetchCount:__pcFetchCount,knowledgeSummary:knowledgeSummary.knowledge,knowledgeSearch:knowledgeSearch.items,snapshot:snap.snapshot,healthActive,healthQuiet,pulseActive,pulseAssign,pulseCreate,pulseMismatch,livePulse,chatGuardianRun,chatGuardianStatus,chatGuardianSends:structuredClone(__pcGuardianSends),sessionCompletionPush,sessionCompletionNotifications,legacyIgnored,completedPush,attentionPush,holdPush,reviewReleasePush,failurePush,completionNotifications,notificationsDuringHold,reviewReleaseNotifications,attentionNotifications,guardianBaseline,guardianBaselineNotifications,guardianTransition,guardianTransitionNotifications,guardianRepeat,guardianRepeatNotifications,createdBeforeGuardianOpen,guardianOpenedTab,guardianMutedStatus,guardianMutedTransition,guardianMutedNotifications,guardianTestWhileMuted,missingFocus,createdBeforeMissingFocus,createdAfterMissingFocus,handoff,branch,wrongBranchClaim,branchClaim,branchComplete,branchResolve,createdTabs:__pcCreatedTabs,branchParent:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:test')),branchChild:structuredClone(__pcDbStores.get('chats').rows.get('chatgpt:continued')),branchCheckpoint:structuredClone(__pcDbStores.get('checkpoints').rows.get(branch.checkpointId))};
+     }""")
+     print(json.dumps({'result':result,'errors':errors},sort_keys=True))
+     assert result['ingest']['ok']
+@@ -325,6 +344,10 @@ with sync_playwright() as p:
+     checks=[result['providerCheck1'],result['providerCheck2']]
+     assert any(c.get('coolingDown') is True and c.get('source')=='request-governor' and c.get('retryAfterMs',0)>0 for c in checks)
+     assert result['livePulse']['openChatTabs']==5 and result['livePulse']['responsiveTabs']==4 and result['livePulse']['partial'] is True
++    assert result['chatGuardianRun']['ok'] and result['chatGuardianRun']['tabs']==2 and result['chatGuardianRun']['candidates']==1 and result['chatGuardianRun']['continued']==1
++    assert len(result['chatGuardianSends'])==1 and result['chatGuardianSends'][0]['id']==121
++    assert result['chatGuardianSends'][0]['message']['prompt']=='Continue the unfinished task.'
++    assert result['chatGuardianStatus']['state']['continuations']>=1
+     assert result['livePulse']['counts']=={'critical':0,'hold':0,'active':1,'stale':2,'completed':2}
+     assert result['missingFocus']['ok'] is False and result['createdAfterMissingFocus']==result['createdBeforeMissingFocus']
+     assert result['livePulse']['groups']['active'][0]['tabId']==101 and {row['tabId'] for row in result['livePulse']['groups']['stale']}=={102,105}
+diff --git a/tests/smoke/chat_guardian_multitab_smoke.py b/tests/smoke/chat_guardian_multitab_smoke.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6241514bbc4328e06bd04282ce2922824f01a51a
+--- /dev/null
++++ b/tests/smoke/chat_guardian_multitab_smoke.py
+@@ -0,0 +1,96 @@
++from playwright.sync_api import sync_playwright
++import pathlib, os, json
++
++repo = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_REPO', pathlib.Path(__file__).resolve().parents[2])).resolve()
++health_src = (repo / 'extension' / 'src' / 'health-core.js').read_text(encoding='utf-8')
++guardian_src = (repo / 'extension' / 'src' / 'chat-guardian-core.js').read_text(encoding='utf-8')
++sentinel_src = (repo / 'extension' / 'src' / 'live-sentinel.js').read_text(encoding='utf-8')
++# The runtime is exercised in a local synthetic page because this harness blocks network
++# navigation to chatgpt.com. Only the location reads are test-substituted; production
++# detection/recovery code is otherwise executed byte-for-byte.
++sentinel_src = sentinel_src.replace("const host = location.hostname.toLowerCase();", "const host = String(globalThis.__PC_TEST_HOST || location.hostname).toLowerCase();")
++sentinel_src = sentinel_src.replace("String(location.pathname || '')", "String(globalThis.__PC_TEST_PATH || location.pathname || '')")
++paths = [
++    '/c/0a0a0a0a-1111-2222-3333-444444444444',
++    '/c/0b0b0b0b-1111-2222-3333-444444444444',
++    '/c/0c0c0c0c-1111-2222-3333-444444444444',
++    '/c/0d0d0d0d-1111-2222-3333-444444444444',
++    '/c/0e0e0e0e-1111-2222-3333-444444444444',
++]
++
++def page_html(kind):
++    if kind == 'timeout':
++        terminal = '<section class="new-provider-card"><div>ChatGPT stream recovery polling timed out</div><button id="retry" type="button">Retry</button></section>'
++        assistant = ''
++    elif kind == 'generic':
++        terminal = '<div class="provider-card"><span>We hit a snag while restoring this answer. Please try again.</span><button id="retry" type="button" aria-label="Try again">Try again</button></div>'
++        assistant = ''
++    elif kind == 'draft':
++        terminal = '<section class="new-provider-card"><div>ChatGPT stream recovery polling timed out</div><button id="retry" type="button">Retry</button></section>'
++        assistant = ''
++    elif kind == 'review':
++        terminal = '<div class="review-card">Our systems are thinking a bit more about this request before responding. You can retry with a faster model.</div>'
++        assistant = ''
++    else:
++        terminal = ''
++        assistant = '<article data-turn="assistant" data-testid="conversation-turn-2" data-message-author-role="assistant" data-message-id="a1"><div class="markdown">The test is complete and all checks passed.</div><button type="button" aria-label="Copy">Copy</button></article>'
++    return f'''<!doctype html><html><body><main>
++<article data-turn="user" data-testid="conversation-turn-1" data-message-author-role="user" data-message-id="u1">Finish the performance integration and keep testing it.</article>
++{assistant}{terminal}
++<form id="composer-form"><div id="prompt-textarea" class="ProseMirror" contenteditable="true" role="textbox">{'Keep my draft exactly' if kind == 'draft' else ''}</div><button id="composer-submit-button" type="button" aria-label="Send">Send</button></form>
++</main><script>
++window.__retryClicks=0; window.__sent=[];
++document.querySelector('#retry')?.addEventListener('click',()=>window.__retryClicks++);
++document.querySelector('#composer-submit-button').addEventListener('click',()=>{{const c=document.querySelector('#prompt-textarea'); const t=(c.innerText||c.textContent||'').trim(); if(t){{window.__sent.push(t); c.replaceChildren();}}}});
++</script></body></html>'''
++
++with sync_playwright() as p:
++    browser = p.chromium.launch(executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None), headless=True, args=['--no-sandbox'])
++    context = browser.new_context()
++    pages=[]; states=[]; decisions=[]
++    for index,kind in enumerate(['timeout','generic','healthy','draft','review']):
++        page=context.new_page()
++        page.set_content(page_html(kind), wait_until='domcontentloaded')
++        page.evaluate("""([path]) => {
++          window.__PC_TEST_HOST='chatgpt.com'; window.__PC_TEST_PATH=path;
++          window.__pcRuntimeListeners=[];
++          window.chrome={
++            runtime:{sendMessage:()=>Promise.resolve({ok:true}),onMessage:{addListener:(fn)=>window.__pcRuntimeListeners.push(fn),removeListener:()=>{}}},
++            storage:{local:{get:async()=>({})},onChanged:{addListener:()=>{},removeListener:()=>{}}}
++          };
++        }""", [paths[index]])
++        page.add_script_tag(content=health_src)
++        page.add_script_tag(content=guardian_src)
++        page.add_script_tag(content=sentinel_src)
++        page.wait_for_timeout(350)
++        state=page.evaluate('ProjectConstellationLiveSentinel.getState(true)')
++        row={
++          'tabId':index+1,'providerId':'chatgpt','chatId':state.get('chat',{}).get('id',''),
++          'status':state.get('chat',{}).get('status',''),'healthState':state.get('chat',{}).get('healthState',''),
++          'failure':state.get('failure'),'generation':state.get('generation'),'network':{'pending':0}
++        }
++        decision=page.evaluate('(row)=>ProjectConstellationChatGuardianCore.shouldAttempt(row,{}, {failureDelayMs:500}, Date.now()+2000)', row)
++        response=None
++        if decision.get('recover'):
++            response=page.evaluate('(d)=>ProjectConstellationLiveSentinel.continueUnfinished({reason:d.reason,fingerprint:d.fingerprint,prompt:d.prompt})', decision)
++            if kind == 'draft':
++                assert response.get('ok') is False and response.get('action') == 'composer-busy', response
++            else:
++                assert response.get('ok') is True and response.get('action') == 'sent-continue', response
++        pages.append(page); states.append(state); decisions.append(decision)
++
++    sent=[page.evaluate('window.__sent') for page in pages]
++    retry=[page.evaluate('window.__retryClicks') for page in pages]
++    drafts=[page.locator('#prompt-textarea').inner_text() for page in pages]
++    assert states[0]['failure']['state']=='response-interrupted', states[0]
++    assert states[1]['failure']['state']=='response-interrupted', states[1]
++    assert states[3]['failure']['state']=='response-interrupted', states[3]
++    assert states[4]['chat']['healthState']=='provider-review', states[4]
++    assert decisions[0]['recover'] is True and decisions[1]['recover'] is True and decisions[3]['recover'] is True, decisions
++    assert decisions[2]['recover'] is False and decisions[4]['recover'] is False, decisions
++    assert sent[0]==['Continue the unfinished task.'] and sent[1]==['Continue the unfinished task.'], sent
++    assert sent[2]==[] and sent[3]==[] and sent[4]==[], sent
++    assert drafts[3]=='Keep my draft exactly', drafts
++    assert retry==[0,0,0,0,0], retry
++    print(json.dumps({'states':[s['chat']['healthState'] for s in states], 'decisions':decisions, 'sent':sent, 'retry':retry, 'drafts':drafts}, sort_keys=True))
++    context.close(); browser.close()
+diff --git a/tests/smoke/full_capture_smoke.py b/tests/smoke/full_capture_smoke.py
+index 3ad0743c54615f3f8104d5360f96c46f72a2ae6d..12ad110c35bfaf4c84421d393afa05bb97a85ce2 100644
+--- a/tests/smoke/full_capture_smoke.py
++++ b/tests/smoke/full_capture_smoke.py
+@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
+ import pathlib, json, re, os
+ root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation'))
+ manifest=json.loads((root/'manifest.json').read_text())
+-brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); bg=(root/'background.js').read_text()
++brain=(root/'src/brain-core.js').read_text(); providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); chat_guardian=(root/'src/chat-guardian-core.js').read_text(); bg=(root/'background.js').read_text()
+ bg=re.sub(r"^import ['\"]\./src/[^'\"]+['\"];\s*",'',bg,flags=re.M)
+ state_bus=(root/'src/state-event-bus-core.js').read_text(); provider_health=(root/'src/provider-health-core.js').read_text(); incident_brain=(root/'src/incident-brain-core.js').read_text(); brain_db=(root/'src/brain-db-core.js').read_text(); message_router=(root/'src/background-message-router-core.js').read_text()
+ mock=f"""
+@@ -43,7 +43,7 @@ mock=f"""
+ with sync_playwright() as p:
+     browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None))
+     page=browser.new_page(); errors=[]; page.on('pageerror',lambda exc: errors.append(str(exc)))
+-    page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=router);page.add_script_tag(content=intelligence);page.add_script_tag(content=health);page.add_script_tag(content=guardian);page.add_script_tag(content=state_bus);page.add_script_tag(content=provider_health);page.add_script_tag(content=incident_brain);page.add_script_tag(content=brain_db);page.add_script_tag(content=message_router);page.add_script_tag(content=bg);page.wait_for_timeout(80)
++    page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=router);page.add_script_tag(content=intelligence);page.add_script_tag(content=health);page.add_script_tag(content=guardian);page.add_script_tag(content=chat_guardian);page.add_script_tag(content=state_bus);page.add_script_tag(content=provider_health);page.add_script_tag(content=incident_brain);page.add_script_tag(content=brain_db);page.add_script_tag(content=message_router);page.add_script_tag(content=bg);page.wait_for_timeout(80)
+     result=page.evaluate("""async()=>{
+       const start=await __pcSend({type:'PC_FULL_CAPTURE_START',providerIds:['chatgpt'],speed:'fast'});
+       let state=start.state; const doneResponses=[];
+diff --git a/tests/smoke/live_sentinel_smoke.py b/tests/smoke/live_sentinel_smoke.py
+index 9e310a4372a4bc0048143fce2b220c8b7179a1bc..62811e9cda25400212500660662a5e488608e7b9 100644
+--- a/tests/smoke/live_sentinel_smoke.py
++++ b/tests/smoke/live_sentinel_smoke.py
+@@ -40,7 +40,7 @@ with sync_playwright() as p:
+     quiet=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+     # The current Health Core owns richer persisted capacity evidence. Sentinel may carry
+     # capacity attention from the content HUD, but it independently derives stall/failure state.
+-    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='11'; h.dataset.state='capacity-handoff'; h.dataset.level='danger'; }""")
++    page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); h.dataset.watchdog='12'; h.dataset.state='capacity-handoff'; h.dataset.level='danger'; }""")
+     page.wait_for_timeout(220)
+     watchdog=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
+     page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); delete h.dataset.watchdog; h.dataset.state='tool-running'; h.dataset.level='active'; }""")
+diff --git a/tests/smoke/state_convergence_smoke.py b/tests/smoke/state_convergence_smoke.py
+index fc94c527f98f28e9b9bef40da0ef20792d164d25..cf61838b6dd57952baccbb3269454750901c1c8d 100644
+--- a/tests/smoke/state_convergence_smoke.py
++++ b/tests/smoke/state_convergence_smoke.py
+@@ -48,7 +48,7 @@ with sync_playwright() as p:
+     page2.evaluate("""() => {
+       const main=document.getElementById('main');
+       main.innerHTML='<section data-testid="conversation-turn-1"><div data-message-author-role="user" data-message-id="u1">Keep working.</div></section><div id="progress" class="text-token-text-tertiary">Inspecting ModForge source and report formats</div>';
+-      __hud('11','tool-stalled');
++      __hud('12','tool-stalled');
+     }""")
+     before=page2.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthTitle').textContent")
+     page2.add_script_tag(content=health); page2.add_script_tag(content=sentinel); page2.wait_for_timeout(220)
+diff --git a/tests/unified-v019.test.mjs b/tests/unified-v019.test.mjs
+index 8b9dd2d2d11c4e9103dcc16b49cec6339ec9464e..baf06d32b0cd204cb3a948269474e240224c5890 100644
+--- a/tests/unified-v019.test.mjs
++++ b/tests/unified-v019.test.mjs
+@@ -1,7 +1,7 @@
+ import assert from 'node:assert/strict';
+ import fs from 'node:fs';
+ const manifest=JSON.parse(fs.readFileSync('extension/manifest.json','utf8'));
+-assert.equal(manifest.version,'0.20.0');
++assert.equal(manifest.version,'0.20.1');
+ assert.ok(manifest.host_permissions.includes('http://127.0.0.1:47721/*'));
+ assert.ok(manifest.content_scripts.some(x=>x.js?.includes('src/local-work-page-hook.js')&&x.world==='MAIN'));
+ assert.ok(manifest.content_scripts.some(x=>x.js?.includes('src/local-work-content.js')&&x.js?.includes('src/scheduled-task-recovery-page.js')));
+@@ -10,7 +10,7 @@ assert.match(entry,/local-work-controller\.js/); assert.match(entry,/scheduled-t
+ const bridge=fs.readFileSync('desktop/src/browser-bridge.mjs','utf8');
+ assert.match(bridge,/geljambmkfjkhodgkpjhnmfojkpcamig/); assert.doesNotMatch(bridge,/khfbmdpkpnaghpfnacidbjfaaikfmanh/);
+ const pkg=JSON.parse(fs.readFileSync('desktop/package.json','utf8'));
+-assert.equal(pkg.version,'0.20.0'); assert.equal(pkg.build.productName,'Project Constellation');
++assert.equal(pkg.version,'0.20.1'); assert.equal(pkg.build.productName,'Project Constellation');
+ const companionDir='desktop/browser-companion';
+ assert.ok(fs.existsSync(companionDir));
+ assert.deepEqual(fs.readdirSync(companionDir).sort(),['page-hook.js']);
+diff --git a/tools/validate.mjs b/tools/validate.mjs
+index b5c7600daafd9a12f65979aa928a9b3e1e542787..5c80015dcd264bfe679ebbe14783163d948ebdc4 100644
+--- a/tools/validate.mjs
++++ b/tools/validate.mjs
+@@ -71,7 +71,13 @@ const fullCaptureEnd = background.indexOf('async function waitForTabComplete', f
+ const fullCaptureBlock = fullCaptureStart >= 0 && fullCaptureEnd > fullCaptureStart ? background.slice(fullCaptureStart, fullCaptureEnd) : '';
+ if (fullCaptureBlock.includes("state: 'minimized'") || fullCaptureBlock.includes('state:"minimized"')) throw new Error('Full Capture must not use minimized windows; hidden-page throttling breaks reliability.');
+ if (!background.includes('APPROVAL_RECOVERY_STATE_KEY') || !background.includes('openRecoveryTabForItem') || background.includes("chrome.windows.create({ url: item.url")) throw new Error('Approval Recovery must be open-tabs-only and must never create a ChatGPT recovery window.');
+-if (background.includes('chrome.tabs.reload(')) throw new Error('Passive recovery must never reload an AI tab automatically.');
++const automaticReloadOffsets = [...background.matchAll(/chrome\.tabs\.reload\(/g)].map((match) => match.index);
++const chatGuardianStart = background.indexOf('async function keepChatGptTabResident');
++const chatGuardianEnd = background.indexOf('function fallbackLiveRow', chatGuardianStart);
++for (const offset of automaticReloadOffsets) {
++  if (chatGuardianStart < 0 || chatGuardianEnd <= chatGuardianStart || offset < chatGuardianStart || offset >= chatGuardianEnd) throw new Error('Only the bounded Chat Guardian recovery lane may reload an AI tab automatically.');
++}
++if (automaticReloadOffsets.length && (!background.includes("safeReloadActions = new Set(['composer-unavailable','send-unavailable','stage-failed'])") || !background.includes('reloads < 1') || !background.includes("'composer-busy'"))) throw new Error('Chat Guardian reload fallback must remain one-shot and must never reload over a user draft.');
+ if (background.includes('chrome.tabs.create({ url:requestedUrl')) throw new Error('Pulse focus must never recreate a missing AI chat URL.');
+ for (const marker of ['PC_GITHUB_OAUTH_START','PC_GITHUB_OAUTH_POLL','PC_DRIVE_CONNECT','PC_PROVIDER_SESSION_STATUS','PC_CONNECTIONS_STATUS','PC_FULL_CAPTURE_RUNNER_DONE','PC_APPROVAL_RECOVERY_START','PC_APPROVAL_RECOVERY_STOP','PC_REFRESH_RECOVERY_REQUEST','PC_INTEGRITY_SCAN','PC_REQUEST_GOVERNOR_STATUS','PC_KNOWLEDGE_SUMMARY','PC_KNOWLEDGE_LIST','PC_KNOWLEDGE_REINDEX','knowledgeItems','projectContinuity','watchForStalls','updateAttentionBadge']) if (!background.includes(marker)) throw new Error(`Readiness backend missing: ${marker}`);
+ if (!background.includes('onMessage.addListener((message, sender, sendResponse)')) throw new Error('Capture runner sender identity must be preserved.');
