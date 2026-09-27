@@ -62,10 +62,13 @@ jobs:
             $version = (Get-Content 'package.json' -Raw | ConvertFrom-Json).version
           }
           if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
+          $actualTree = (git write-tree).Trim()
+          if ($actualTree -ne [string]$manifest.sourceTree) { throw "Reconstructed source tree mismatch: $actualTree" }
           Set-Location '..'
           $root = (Resolve-Path 'pc-source').Path
           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PC_SOURCE_TREE=$($manifest.sourceTree)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "reconstructed_source=$root"
           Write-Host "canonical_source_commit=$($manifest.sourceCommit)"

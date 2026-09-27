@@ -2,8 +2,8 @@
   "schema": "project-constellation-ci-source-v2",
   "product": "Project Constellation",
   "version": "0.20.1",
-  "sourceCommit": "71370e2a56515a655ab8b313a5d0fccbd49a4a33",
-  "sourceTree": "602bea851f225687fb7b3fccd9418348cea8737e",
+  "sourceCommit": "aaed3ac72a85c7043fc69c6619fc790a0d2835cf",
+  "sourceTree": "89b711f46672830e786ba3afcdf0d1973325a896",
   "baseline": {
     "version": "0.20.0",
     "artifact": "releases/v0.20.0/Project-Constellation-v0.20.0-source.zip",
@@ -11,15 +11,15 @@
   },
   "delta": {
     "artifact": "releases/v0.20.1/0.20.0-to-0.20.1.patch",
-    "sha256": "be47033fd0214f3aac13c4bb89df4620c744340fb20a189f43aa1f815a62d040"
+    "sha256": "adf9338cfe92d3835607bf9dce103f8015458e580081cacd38aa1ae3439f20b3"
   },
   "canonicalSourceZip": {
     "artifact": "releases/v0.20.1/Project-Constellation-v0.20.1-source.zip",
-    "sha256": "888065b4bbe4d1eec7ae04c8f924bb0b822bee02c511df96354e50cfdaf2d1bf"
+    "sha256": "f915360079f2191ff8c2d4a699f1cf0f67bfe06d8b19fb60835f6f542eb7a109"
   },
   "extensionZip": {
     "artifact": "releases/v0.20.1/Project-Constellation-v0.20.1-Extension.zip",
     "sha256": "0cafef2ddd4b92bec54d7596760f1c67a4e88c31e13c77ce008db002aa65ba56"
   },
-  "reconstruction": "Extract the immutable v0.20.0 exact source archive, initialize it as a Git index with core.autocrlf=false, apply the v0.20.1 delta to the index, then checkout the patched index. Compare the resulting Git tree/file bytes with the canonical v0.20.1 source archive."
+  "reconstruction": "Extract the immutable v0.20.0 exact source archive, initialize it as a Git index with core.autocrlf=false, apply the v0.20.1 delta to the index, checkout the patched index, and require git write-tree to equal sourceTree before any CI, Windows runtime, or release packaging proceeds."
 }

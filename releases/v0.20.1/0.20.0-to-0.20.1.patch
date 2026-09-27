@@ -1,8 +1,8 @@
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
-index b2b86e0c4c2e47c7d78d5151bd6be4809249f0c0..5b11a3f4d960e9cd9367edb8d430b3185222c9d9 100644
+index b2b86e0..e8f82ea 100644
 --- a/.github/workflows/ci.yml
 +++ b/.github/workflows/ci.yml
-@@ -28,7 +28,7 @@ jobs:
+@@ -28,13 +28,14 @@ jobs:
          run: |
            set -euo pipefail
            root="$GITHUB_WORKSPACE"
@@ -11,18 +11,29 @@ index b2b86e0c4c2e47c7d78d5151bd6be4809249f0c0..5b11a3f4d960e9cd9367edb8d430b318
            if [[ -f "$manifest" ]]; then
              baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
              baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
-@@ -49,7 +49,8 @@ jobs:
+             delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
+             delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
+             source_commit=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceCommit)" "$manifest")
++            source_tree=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceTree)" "$manifest")
+             [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
+             [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
+             root="$GITHUB_WORKSPACE/pc-source"
+@@ -49,8 +50,12 @@ jobs:
              git -C "$root" commit -q -m 'Project Constellation verified production baseline'
              git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
              git -C "$root" checkout-index -a -f
 -            [[ "$(node -p "require('$root/package.json').version")" == '0.20.0' ]]
 +            expected_version=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.version)" "$manifest")
 +            [[ "$(node -p "require('$root/package.json').version")" == "$expected_version" ]]
++            actual_tree=$(git -C "$root" write-tree)
++            [[ "$actual_tree" == "$source_tree" ]]
              echo "PC_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
++            echo "PC_SOURCE_TREE=$source_tree" >> "$GITHUB_ENV"
            fi
            echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
+           echo "exact_source_root=$root"
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
-index b76694d89dcafcfeaba7a4892c775e29ffebeaf7..30678f22590825d72915825379ec8770588f2e67 100644
+index b76694d..11489f3 100644
 --- a/.github/workflows/release.yml
 +++ b/.github/workflows/release.yml
 @@ -4,9 +4,9 @@ on:
@@ -46,7 +57,7 @@ index b76694d89dcafcfeaba7a4892c775e29ffebeaf7..30678f22590825d72915825379ec8770
  
  jobs:
    verify-linux:
-@@ -37,7 +37,7 @@ jobs:
+@@ -37,12 +37,14 @@ jobs:
          shell: bash
          run: |
            set -euo pipefail
@@ -55,7 +66,24 @@ index b76694d89dcafcfeaba7a4892c775e29ffebeaf7..30678f22590825d72915825379ec8770
            test -f "$manifest"
            baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
            baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
-@@ -61,7 +61,7 @@ jobs:
+           delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
+           delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
++          source_commit=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceCommit)" "$manifest")
++          source_tree=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceTree)" "$manifest")
+           [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
+           [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
+           root="$GITHUB_WORKSPACE/pc-source"
+@@ -57,11 +59,17 @@ jobs:
+           git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
+           git -C "$root" checkout-index -a -f
+           [[ "$(node -p "require('$root/package.json').version")" == "$VERSION" ]]
++          actual_tree=$(git -C "$root" write-tree)
++          [[ "$actual_tree" == "$source_tree" ]]
++          git -C "$root" commit -q -m "Project Constellation v${VERSION} reconstructed release source"
++          test -z "$(git -C "$root" status --porcelain --untracked-files=no)"
+           echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
++          echo "PC_CANONICAL_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
++          echo "PC_CANONICAL_SOURCE_TREE=$source_tree" >> "$GITHUB_ENV"
  
        - uses: actions/download-artifact@v8
          with:
@@ -65,7 +93,7 @@ index b76694d89dcafcfeaba7a4892c775e29ffebeaf7..30678f22590825d72915825379ec8770
  
        - name: Build exact extension and unified release set
 diff --git a/.github/workflows/windows-runtime.yml b/.github/workflows/windows-runtime.yml
-index 605510a2697b1563700902a12ae0bb3bd5f5fb9c..98f6eca4c6f26e1d08f2bd63047fe929b9741ec3 100644
+index 605510a..4f6699b 100644
 --- a/.github/workflows/windows-runtime.yml
 +++ b/.github/workflows/windows-runtime.yml
 @@ -10,14 +10,14 @@ on:
@@ -109,7 +137,7 @@ index 605510a2697b1563700902a12ae0bb3bd5f5fb9c..98f6eca4c6f26e1d08f2bd63047fe929
            $baselineHash = (Get-FileHash $baseline -Algorithm SHA256).Hash.ToLowerInvariant()
            $deltaHash = (Get-FileHash $delta -Algorithm SHA256).Hash.ToLowerInvariant()
            if ($baselineHash -ne [string]$manifest.baseline.sha256) { throw "Baseline SHA mismatch: $baselineHash" }
-@@ -53,19 +53,20 @@ jobs:
+@@ -53,19 +53,23 @@ jobs:
            git config user.email 'actions@users.noreply.github.com'
            git config core.autocrlf false
            git add -A
@@ -125,15 +153,18 @@ index 605510a2697b1563700902a12ae0bb3bd5f5fb9c..98f6eca4c6f26e1d08f2bd63047fe929
            }
 -          if ($version -ne '0.20.0') { throw "Reconstructed package version mismatch: $version" }
 +          if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
++          $actualTree = (git write-tree).Trim()
++          if ($actualTree -ne [string]$manifest.sourceTree) { throw "Reconstructed source tree mismatch: $actualTree" }
            Set-Location '..'
            $root = (Resolve-Path 'pc-source').Path
            "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
            "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
++          "PC_SOURCE_TREE=$($manifest.sourceTree)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 +          "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
            Write-Host "reconstructed_source=$root"
            Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
  
-@@ -157,7 +158,7 @@ jobs:
+@@ -157,7 +161,7 @@ jobs:
            $receipt = [ordered]@{
              schema='project-constellation-windows-runtime-v1'
              product='Project Constellation'
@@ -142,7 +173,7 @@ index 605510a2697b1563700902a12ae0bb3bd5f5fb9c..98f6eca4c6f26e1d08f2bd63047fe929
              sourceCommit=$env:PC_SOURCE_COMMIT
              platform='windows-latest'
              electron='44.4.4'
-@@ -187,7 +188,7 @@ jobs:
+@@ -187,7 +191,7 @@ jobs:
  
        - uses: actions/upload-artifact@v7
          with:
@@ -152,7 +183,7 @@ index 605510a2697b1563700902a12ae0bb3bd5f5fb9c..98f6eca4c6f26e1d08f2bd63047fe929
            if-no-files-found: error
            retention-days: 30
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index c6b8e062d832d1833e5a38aa307d0067e2d70f66..45dff64a927210983a21310dea3f98dca55963a3 100644
+index c6b8e06..45dff64 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
 @@ -1,5 +1,16 @@
@@ -173,7 +204,7 @@ index c6b8e062d832d1833e5a38aa307d0067e2d70f66..45dff64a927210983a21310dea3f98dc
  
  - Added a cross-surface state-event bus and removed fixed polling loops from key UI/route/recovery paths, including the legacy one-minute stall watchdog.
 diff --git a/desktop/README.md b/desktop/README.md
-index 5c78e6af2ae079d0d01e40075e5931f478296f11..22bedc721c52d5ae11acd10aa124a616cbeba713 100644
+index 5c78e6a..22bedc7 100644
 --- a/desktop/README.md
 +++ b/desktop/README.md
 @@ -1,9 +1,12 @@
@@ -237,7 +268,7 @@ index 5c78e6af2ae079d0d01e40075e5931f478296f11..22bedc721c52d5ae11acd10aa124a616
  ## Compatibility notes
  
 diff --git a/desktop/RELEASE-MANIFEST.json b/desktop/RELEASE-MANIFEST.json
-index 5f21505fe4932fb66146acddcb6f7b23ed28983d..40cf107ed849ccf735a2d7a3870c6eae936a3127 100644
+index 5f21505..40cf107 100644
 --- a/desktop/RELEASE-MANIFEST.json
 +++ b/desktop/RELEASE-MANIFEST.json
 @@ -1,6 +1,6 @@
@@ -290,7 +321,7 @@ index 5f21505fe4932fb66146acddcb6f7b23ed28983d..40cf107ed849ccf735a2d7a3870c6eae
    ]
  }
 diff --git a/desktop/browser-companion/page-hook.js b/desktop/browser-companion/page-hook.js
-index a9de07189c306a204653bc94113fd95df3283204..4ffce4cea35f41df923225e13c2815fa1071dea8 100644
+index a9de071..4ffce4c 100644
 --- a/desktop/browser-companion/page-hook.js
 +++ b/desktop/browser-companion/page-hook.js
 @@ -4,7 +4,7 @@
@@ -310,7 +341,7 @@ index a9de07189c306a204653bc94113fd95df3283204..4ffce4cea35f41df923225e13c2815fa
 +  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.1',receipts:true});
  })();
 diff --git a/desktop/electron/chat-preload.cjs b/desktop/electron/chat-preload.cjs
-index d871c2760a9a6bf4280ab0be20ecb9245fc50a45..35b72d554beecae0400c4c19b9ec102c7ef34c0a 100644
+index d871c27..35b72d5 100644
 --- a/desktop/electron/chat-preload.cjs
 +++ b/desktop/electron/chat-preload.cjs
 @@ -3,7 +3,7 @@
@@ -323,7 +354,7 @@ index d871c2760a9a6bf4280ab0be20ecb9245fc50a45..35b72d554beecae0400c4c19b9ec102c
    const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
    const RESULT_OPEN = '[PC BUDDY TOOL RESULT]';
 diff --git a/desktop/electron/main.cjs b/desktop/electron/main.cjs
-index 3a4bd9194fa2c8b7dfdf3a8bef888b9c2ffe213e..c548bf049b04570996c047d9c7289083108afaf6 100644
+index 3a4bd91..c548bf0 100644
 --- a/desktop/electron/main.cjs
 +++ b/desktop/electron/main.cjs
 @@ -15,7 +15,7 @@ let overlayVisible = false;
@@ -336,7 +367,7 @@ index 3a4bd9194fa2c8b7dfdf3a8bef888b9c2ffe213e..c548bf049b04570996c047d9c7289083
  const CHAT_PARTITION = 'persist:constellation-chatgpt';
  const SESSION_TTL_MS = 60 * 60 * 1000;
 diff --git a/desktop/electron/shell.html b/desktop/electron/shell.html
-index 9a95a4ee9bb58f4ba9b1c81037c2962ee4282c7f..98d6d178ecdd3c3484d7e3402571a90e726abae8 100644
+index 9a95a4e..98d6d17 100644
 --- a/desktop/electron/shell.html
 +++ b/desktop/electron/shell.html
 @@ -9,7 +9,7 @@
@@ -349,7 +380,7 @@ index 9a95a4ee9bb58f4ba9b1c81037c2962ee4282c7f..98d6d178ecdd3c3484d7e3402571a90e
  <section class="hero-card">
  <div class="eyebrow">THIS COMPUTER</div>
 diff --git a/desktop/electron/shell.js b/desktop/electron/shell.js
-index 31ec9164acef93e54a862879a1f1016d6f0bfc8a..aebe8c76160912e21e23eb510b155c8d1baa4025 100644
+index 31ec916..aebe8c7 100644
 --- a/desktop/electron/shell.js
 +++ b/desktop/electron/shell.js
 @@ -197,7 +197,7 @@
@@ -362,7 +393,7 @@ index 31ec9164acef93e54a862879a1f1016d6f0bfc8a..aebe8c76160912e21e23eb510b155c8d
      $('controls').textContent = 'Computer access';$('controls').setAttribute('aria-expanded',String(!next.shellCollapsed));
      const off=config.localToolMode==='off';
 diff --git a/desktop/package.json b/desktop/package.json
-index 46d0ffd27b5973f463bd5abce91a49c0a47a1a35..b0c5d02ff95f8d2ee8473f64b2b09baa1bc44990 100644
+index 46d0ffd..b0c5d02 100644
 --- a/desktop/package.json
 +++ b/desktop/package.json
 @@ -1,6 +1,6 @@
@@ -374,7 +405,7 @@ index 46d0ffd27b5973f463bd5abce91a49c0a47a1a35..b0c5d02ff95f8d2ee8473f64b2b09baa
    "type": "module",
    "private": true,
 diff --git a/desktop/plugin/plugin.json b/desktop/plugin/plugin.json
-index 290c50423ed32c6a5142d90b05574740c7b9342f..49f3872891190e5ece13489fcb15bfcc1091c621 100644
+index 290c504..49f3872 100644
 --- a/desktop/plugin/plugin.json
 +++ b/desktop/plugin/plugin.json
 @@ -1,7 +1,7 @@
@@ -387,7 +418,7 @@ index 290c50423ed32c6a5142d90b05574740c7b9342f..49f3872891190e5ece13489fcb15bfcc
    "author": {
      "name": "Herbertofury",
 diff --git a/desktop/scripts/electron-smoke.ps1 b/desktop/scripts/electron-smoke.ps1
-index d5c3f371458336ca9fed426a7a8f36a835def8fb..da70e67b310714860aeda5927f7811751dbfc71b 100644
+index d5c3f37..da70e67 100644
 --- a/desktop/scripts/electron-smoke.ps1
 +++ b/desktop/scripts/electron-smoke.ps1
 @@ -21,7 +21,7 @@ if (-not (Test-Path $Output)) {
@@ -400,7 +431,7 @@ index d5c3f371458336ca9fed426a7a8f36a835def8fb..da70e67b310714860aeda5927f781175
    $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
    $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }
 diff --git a/desktop/src/config.mjs b/desktop/src/config.mjs
-index 893d5767cff88efbf74be2f6102286df95f1688c..b3105967780d7a7875c91a8f2683f29e88f12660 100644
+index 893d576..b310596 100644
 --- a/desktop/src/config.mjs
 +++ b/desktop/src/config.mjs
 @@ -5,7 +5,7 @@ import fs from 'node:fs';
@@ -413,7 +444,7 @@ index 893d5767cff88efbf74be2f6102286df95f1688c..b3105967780d7a7875c91a8f2683f29e
  export function stateDir() {
    return process.env.CONSTELLATION_COMMANDER_HOME || path.join(os.homedir(), '.constellation-commander');
 diff --git a/desktop/tests/browser-background-smoke.mjs b/desktop/tests/browser-background-smoke.mjs
-index 36333e4bbf57ace48e37dab60130e4e72ab9013c..d9f86c3469730153e27605a16f57a7365244bdef 100644
+index 36333e4..d9f86c3 100644
 --- a/desktop/tests/browser-background-smoke.mjs
 +++ b/desktop/tests/browser-background-smoke.mjs
 @@ -13,7 +13,7 @@ const message=payload=>new Promise((resolve,reject)=>{const timer=setTimeout(()=
@@ -426,7 +457,7 @@ index 36333e4bbf57ace48e37dab60130e4e72ab9013c..d9f86c3469730153e27605a16f57a736
   const proof=path.join(tmp,'proof.txt'); const write=await message({type:'CC_CALL',sessionToken:boot.sessionToken,call:{nonce:boot.nonce,id:'write',tool:'fs_write_text',args:{path:proof,content:'unified-proof',mode:'rewrite'}}}); assert.equal(write.ok,true,JSON.stringify(write)); assert.equal(await fsp.readFile(proof,'utf8'),'unified-proof');
   console.log('Project Constellation unified extension -> real desktop bridge smoke: PASS');
 diff --git a/desktop/tests/browser-bridge-smoke.mjs b/desktop/tests/browser-bridge-smoke.mjs
-index 0d44c8d8c9f0e303ca9bc8e5fb347dadaa723923..bbdd1ee8263d855e5b6aec51631079801f866863 100644
+index 0d44c8d..bbdd1ee 100644
 --- a/desktop/tests/browser-bridge-smoke.mjs
 +++ b/desktop/tests/browser-bridge-smoke.mjs
 @@ -34,13 +34,13 @@ try {
@@ -446,7 +477,7 @@ index 0d44c8d8c9f0e303ca9bc8e5fb347dadaa723923..bbdd1ee8263d855e5b6aec5163107980
    assert.equal(healthAfterHello.body.companionExtensionId, 'geljambmkfjkhodgkpjhnmfojkpcamig');
  
 diff --git a/desktop/tests/browser-companion-e2e.mjs b/desktop/tests/browser-companion-e2e.mjs
-index 41a57580598c23935d9bfe10bf8ed9f2980cc3ec..9a9a90abe4a85566a2acfb328d82e1cece2b04f9 100644
+index 41a5758..9a9a90a 100644
 --- a/desktop/tests/browser-companion-e2e.mjs
 +++ b/desktop/tests/browser-companion-e2e.mjs
 @@ -144,7 +144,7 @@ try {
@@ -459,7 +490,7 @@ index 41a57580598c23935d9bfe10bf8ed9f2980cc3ec..9a9a90abe4a85566a2acfb328d82e1ce
  
    const pageHtml = `
 diff --git a/desktop/tests/browser-companion-static.test.mjs b/desktop/tests/browser-companion-static.test.mjs
-index 8563da72d9628d4ac5f1d52590bb23befa0330fb..65a1865d2d1c8f10196b94905bc3b1817c4059d8 100644
+index 8563da7..65a1865 100644
 --- a/desktop/tests/browser-companion-static.test.mjs
 +++ b/desktop/tests/browser-companion-static.test.mjs
 @@ -7,7 +7,7 @@ const pageHook = await fsp.readFile(new URL('../../extension/src/local-work-page
@@ -472,7 +503,7 @@ index 8563da72d9628d4ac5f1d52590bb23befa0330fb..65a1865d2d1c8f10196b94905bc3b181
  assert.match(await fsp.readFile(new URL('../src/browser-bridge.mjs', import.meta.url), 'utf8'), /geljambmkfjkhodgkpjhnmfojkpcamig/);
  assert.ok(manifest.content_scripts.length >= 2);
 diff --git a/desktop/tests/electron-static.test.mjs b/desktop/tests/electron-static.test.mjs
-index 42e65067f72868236b0fa421cd4925a43b17f917..0ca5106dd2ddf46833af39aeb0cde8c6dad02d91 100644
+index 42e6506..0ca5106 100644
 --- a/desktop/tests/electron-static.test.mjs
 +++ b/desktop/tests/electron-static.test.mjs
 @@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
@@ -485,7 +516,7 @@ index 42e65067f72868236b0fa421cd4925a43b17f917..0ca5106dd2ddf46833af39aeb0cde8c6
  assert.equal(pkg.build.asar, true);
  assert.deepEqual(pkg.build.asarUnpack, ['native/**/*','scripts/**/*']);
 diff --git a/desktop/tests/native-electron-acceptance.py b/desktop/tests/native-electron-acceptance.py
-index c0dd3ec96d107ffd71c67cb543a4234c4402dba5..5acd86779ad0745fd0fa2cea3ecbd7b76066e7d7 100644
+index c0dd3ec..5acd867 100644
 --- a/desktop/tests/native-electron-acceptance.py
 +++ b/desktop/tests/native-electron-acceptance.py
 @@ -33,7 +33,7 @@ async def main():
@@ -507,7 +538,7 @@ index c0dd3ec96d107ffd71c67cb543a4234c4402dba5..5acd86779ad0745fd0fa2cea3ecbd7b7
    await shell.locator('#task-builder summary').click()
    await shell.click('#task-example');await shell.fill('#task-title','Native workspace task');await shell.click('#task-run')
 diff --git a/desktop/tests/plugin-package.test.mjs b/desktop/tests/plugin-package.test.mjs
-index 3caf99f749d9bd26f26baa95280af1ae5ccf9af2..838510d4de92771a4192b5285b7e5447046c7e80 100644
+index 3caf99f..838510d 100644
 --- a/desktop/tests/plugin-package.test.mjs
 +++ b/desktop/tests/plugin-package.test.mjs
 @@ -9,7 +9,7 @@ const pluginRoot = path.join(root, 'plugin');
@@ -520,7 +551,7 @@ index 3caf99f749d9bd26f26baa95280af1ae5ccf9af2..838510d4de92771a4192b5285b7e5447
  assert.equal(manifest.mcpServers, undefined, 'Normal-chat package must not declare portable MCP servers (Desktop-only import route).');
  assert.equal(manifest.extensions?.com?.openai?.apps, undefined, 'App mapping is added only after a production app ID exists.');
 diff --git a/desktop/tests/ui-worker.mjs b/desktop/tests/ui-worker.mjs
-index 3ccbcba4d8a2d742b125b9aa77fd8d12ad12753a..55a262f5cc7abe52075d4335e79dff3787e5e33b 100644
+index 3ccbcba..55a262f 100644
 --- a/desktop/tests/ui-worker.mjs
 +++ b/desktop/tests/ui-worker.mjs
 @@ -8,7 +8,7 @@ const state=createRuntimeState(dir),config={allowedRoots:[root],enableShell:true
@@ -543,10 +574,10 @@ index 3ccbcba4d8a2d742b125b9aa77fd8d12ad12753a..55a262f5cc7abe52075d4335e79dff37
   }catch(e){console.log(JSON.stringify({id:request.id,error:String(e.message)}));}
 diff --git a/docs/v0.20.1-release-notes.md b/docs/v0.20.1-release-notes.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..c09ce3108e2946ff0c2db0e8685c5ee9ba3f24f2
+index 0000000..b199ee1
 --- /dev/null
 +++ b/docs/v0.20.1-release-notes.md
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,63 @@
 +# Project Constellation 0.20.1 — All-Tab Chat Guardian Hotfix
 +
 +Project Constellation 0.20.1 builds directly on the immutable 0.20.0 Reliability Foundation and hardens ChatGPT continuity against the current site’s newer stream-recovery/error surfaces. The goal is simple: unfinished work should keep moving across every open ChatGPT tab without losing state, replaying unsafe side effects, or requiring the user to babysit error banners.
@@ -605,12 +636,13 @@ index 0000000000000000000000000000000000000000..c09ce3108e2946ff0c2db0e8685c5ee9
 +- bounded reload fallback and failure-fingerprint deduplication;
 +- real Chromium DOM recovery of multiple independent failed ChatGPT-like tabs;
 +- background integration proving only failed tabs receive `Continue the unfinished task.`.
++- exact-source CI/Windows/release reconstruction now validates the full Git tree hash, and the release packager preserves the canonical source commit/tree identity after creating its clean ephemeral packaging commit.
 +
 +## Release lineage
 +
 +0.20.0 remains immutable. 0.20.1 is a source-compatible hotfix lineage built from the exact verified 0.20.0 source archive plus the 0.20.1 delta. All 0.20.0 provider/permission coverage, stable extension identity, desktop compatibility identifiers, Update Center behavior, and existing reliability/security contracts remain required release gates.
 diff --git a/extension/background.js b/extension/background.js
-index cb3be2c3a69b1d67af1fb977ccac40eca1d4b194..756d6dafdc531290c0bc2473cb729fd6a65634ba 100644
+index cb3be2c..756d6da 100644
 --- a/extension/background.js
 +++ b/extension/background.js
 @@ -7,6 +7,7 @@ import './src/project-router-core.js';
@@ -964,7 +996,7 @@ index cb3be2c3a69b1d67af1fb977ccac40eca1d4b194..756d6dafdc531290c0bc2473cb729fd6
  if (chrome.tabs?.onReplaced) chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => { const id=Number(removedTabId); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; void addedTabId; });
  if (chrome.tabGroups?.onUpdated) chrome.tabGroups.onUpdated.addListener(() => { liveChatPulseCacheAt = 0; });
 diff --git a/extension/manifest.json b/extension/manifest.json
-index 963c6163ee23e7900a147d2c84856259cdba38ae..4497a1a951bcf0140439dbf425e1c198c91f6e44 100644
+index 963c616..4497a1a 100644
 --- a/extension/manifest.json
 +++ b/extension/manifest.json
 @@ -1,7 +1,7 @@
@@ -977,7 +1009,7 @@ index 963c6163ee23e7900a147d2c84856259cdba38ae..4497a1a951bcf0140439dbf425e1c198
    "description": "Unified Project Constellation browser workspace with scheduled-task self-healing and secure local desktop Work-agent bridge.",
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",
 diff --git a/extension/sidepanel.js b/extension/sidepanel.js
-index 0aa63097eceee9a147dcce896f0ddca106ff1f46..5e220a792cc0473e2e9fd8f050568dfa78785bf8 100644
+index 0aa6309..5e220a7 100644
 --- a/extension/sidepanel.js
 +++ b/extension/sidepanel.js
 @@ -165,10 +165,14 @@
@@ -999,7 +1031,7 @@ index 0aa63097eceee9a147dcce896f0ddca106ff1f46..5e220a792cc0473e2e9fd8f050568dfa
    function renderProjects(){
 diff --git a/extension/src/chat-guardian-core.js b/extension/src/chat-guardian-core.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..a3fd9a23e6ad43f35cb3f335270cb3e299dcbaa8
+index 0000000..a3fd9a2
 --- /dev/null
 +++ b/extension/src/chat-guardian-core.js
 @@ -0,0 +1,122 @@
@@ -1126,7 +1158,7 @@ index 0000000000000000000000000000000000000000..a3fd9a23e6ad43f35cb3f335270cb3e2
 +  if (typeof module !== 'undefined' && module.exports) module.exports = api;
 +})();
 diff --git a/extension/src/health-core.js b/extension/src/health-core.js
-index 18db6abbd59489e058aa5a6ddb6096ee3cbb7dd7..e7a80dd66d0867b658dece5ef4c2b017c22d3e90 100644
+index 18db6ab..e7a80dd 100644
 --- a/extension/src/health-core.js
 +++ b/extension/src/health-core.js
 @@ -1,6 +1,6 @@
@@ -1185,7 +1217,7 @@ index 18db6abbd59489e058aa5a6ddb6096ee3cbb7dd7..e7a80dd66d0867b658dece5ef4c2b017
      if (/failed to deliver message/.test(lower)) {
        const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
 diff --git a/extension/src/live-sentinel.js b/extension/src/live-sentinel.js
-index f604d68c6822d0a2c03276e39da1f3d3c6c0ce6c..3b6452e4cc4cc670dbc662bca4f8b8ae9fbe0f8a 100644
+index f604d68..3b6452e 100644
 --- a/extension/src/live-sentinel.js
 +++ b/extension/src/live-sentinel.js
 @@ -1,7 +1,7 @@
@@ -1430,7 +1462,7 @@ index f604d68c6822d0a2c03276e39da1f3d3c6c0ce6c..3b6452e4cc4cc670dbc662bca4f8b8ae
        pageObserver?.disconnect(); pageObserver = null;
        hudHostObserver?.disconnect(); hudHostObserver = null;
 diff --git a/extension/src/local-work-content.js b/extension/src/local-work-content.js
-index ace48b24dbbc3094ef1841c7789d7cea9fbc2a56..576c9b1b2febd013c5637c4931be6d6e50fb35e3 100644
+index ace48b2..576c9b1 100644
 --- a/extension/src/local-work-content.js
 +++ b/extension/src/local-work-content.js
 @@ -1,5 +1,5 @@
@@ -1441,7 +1473,7 @@ index ace48b24dbbc3094ef1841c7789d7cea9fbc2a56..576c9b1b2febd013c5637c4931be6d6e
    const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
    const CALL_RE = /\[PC_BUDDY_CALL\](\{[\s\S]*?\})\[\/PC_BUDDY_CALL\]/;
 diff --git a/extension/src/local-work-controller.js b/extension/src/local-work-controller.js
-index 96d631176fcbc40552a2a992ac3cf59b315c6d1c..f34153e087d802ca6441a5589adcc935efa3a9d8 100644
+index 96d6311..f34153e 100644
 --- a/extension/src/local-work-controller.js
 +++ b/extension/src/local-work-controller.js
 @@ -1,5 +1,5 @@
@@ -1452,7 +1484,7 @@ index 96d631176fcbc40552a2a992ac3cf59b315c6d1c..f34153e087d802ca6441a5589adcc935
  const PCX_DESKTOP_STATUS_KEY = 'projectConstellationDesktopStatus';
  
 diff --git a/extension/src/local-work-page-hook.js b/extension/src/local-work-page-hook.js
-index a9de07189c306a204653bc94113fd95df3283204..4ffce4cea35f41df923225e13c2815fa1071dea8 100644
+index a9de071..4ffce4c 100644
 --- a/extension/src/local-work-page-hook.js
 +++ b/extension/src/local-work-page-hook.js
 @@ -4,7 +4,7 @@
@@ -1472,7 +1504,7 @@ index a9de07189c306a204653bc94113fd95df3283204..4ffce4cea35f41df923225e13c2815fa
 +  post('CC_PAGE_HOOK_READY_V2',{version:'0.20.1',receipts:true});
  })();
 diff --git a/package-lock.json b/package-lock.json
-index b74c7375ffbc889151529dbbc05c27758b6ae742..9706e368ca5ef8e25266711deab7eabb21d82f2a 100644
+index b74c737..9706e36 100644
 --- a/package-lock.json
 +++ b/package-lock.json
 @@ -1,12 +1,12 @@
@@ -1491,7 +1523,7 @@ index b74c7375ffbc889151529dbbc05c27758b6ae742..9706e368ca5ef8e25266711deab7eabb
    }
  }
 diff --git a/package.json b/package.json
-index 68c1a2ef5e5e0311f4d2ecaa9395838db18e38d3..d4af36defda3401c344fb77552305e4c778e84cc 100644
+index 68c1a2e..d4af36d 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,10 +1,10 @@
@@ -1509,7 +1541,7 @@ index 68c1a2ef5e5e0311f4d2ecaa9395838db18e38d3..d4af36defda3401c344fb77552305e4c
      "build:dev": "node tools/build.mjs --mode=development",
 diff --git a/tests/chat-guardian-core.test.mjs b/tests/chat-guardian-core.test.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b36292440b245c0c81317945f18f6ad1962768c9
+index 0000000..b362924
 --- /dev/null
 +++ b/tests/chat-guardian-core.test.mjs
 @@ -0,0 +1,45 @@
@@ -1560,7 +1592,7 @@ index 0000000000000000000000000000000000000000..b36292440b245c0c81317945f18f6ad1
 +console.log('chat-guardian-core.test.mjs: PASS');
 diff --git a/tests/chat-guardian-runtime-static.test.mjs b/tests/chat-guardian-runtime-static.test.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..2bf6dd9fcbac15c25b4edde20d0903809eceaa1f
+index 0000000..2bf6dd9
 --- /dev/null
 +++ b/tests/chat-guardian-runtime-static.test.mjs
 @@ -0,0 +1,33 @@
@@ -1598,7 +1630,7 @@ index 0000000000000000000000000000000000000000..2bf6dd9fcbac15c25b4edde20d090380
 +
 +console.log('chat-guardian-runtime-static.test.mjs: PASS');
 diff --git a/tests/health-core.test.mjs b/tests/health-core.test.mjs
-index 8a340dc6fcf3d6fd595fca23e17af91033a6c276..68952942820be11cc7c5175f3d6b991af3133110 100644
+index 8a340dc..6895294 100644
 --- a/tests/health-core.test.mjs
 +++ b/tests/health-core.test.mjs
 @@ -120,6 +120,9 @@ assert.equal(core.classifyProviderHold('The model is thinking about this request
@@ -1624,7 +1656,7 @@ index 8a340dc6fcf3d6fd595fca23e17af91033a6c276..68952942820be11cc7c5175f3d6b991a
  assert.equal(noRetryFailure.recommendedAction, 'refresh');
  assert.equal(core.deriveHealth({ now, chatStatus:'delivery-timeout', failure:noRetryFailure }).state, 'delivery-timeout');
 diff --git a/tests/smoke/approval_background_smoke.py b/tests/smoke/approval_background_smoke.py
-index a281bfe837ac1a2b920b6851e2d665470ab73d44..4653719c95480b5e05129926242e6a47f753a5b5 100644
+index a281bfe..4653719 100644
 --- a/tests/smoke/approval_background_smoke.py
 +++ b/tests/smoke/approval_background_smoke.py
 @@ -1,7 +1,7 @@
@@ -1646,7 +1678,7 @@ index a281bfe837ac1a2b920b6851e2d665470ab73d44..4653719c95480b5e05129926242e6a47
      const now=Date.now();
      await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[
 diff --git a/tests/smoke/auth_backend_smoke.py b/tests/smoke/auth_backend_smoke.py
-index 5ec337cb67683606d9f2f46c3ccefa29d00f4743..80772d2a8938555176d22a91aa31a57ec2d06570 100644
+index 5ec337c..80772d2 100644
 --- a/tests/smoke/auth_backend_smoke.py
 +++ b/tests/smoke/auth_backend_smoke.py
 @@ -4,7 +4,7 @@ root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project
@@ -1668,7 +1700,7 @@ index 5ec337cb67683606d9f2f46c3ccefa29d00f4743..80772d2a8938555176d22a91aa31a57e
      const ghStart=await __send({type:'PC_GITHUB_OAUTH_START',clientId:'Iv1.projectconstellation'});
      const ghPoll=await __send({type:'PC_GITHUB_OAUTH_POLL'});
 diff --git a/tests/smoke/background_smoke.py b/tests/smoke/background_smoke.py
-index ff073e3847f7ed8dcc1a03efbbf79537e94e5466..1f256a8cce6390c3d053ab1374f5a48301b4b5cb 100644
+index ff073e3..1f256a8 100644
 --- a/tests/smoke/background_smoke.py
 +++ b/tests/smoke/background_smoke.py
 @@ -9,7 +9,7 @@ knowledge=(root/'src/knowledge-core.js').read_text()
@@ -1773,7 +1805,7 @@ index ff073e3847f7ed8dcc1a03efbbf79537e94e5466..1f256a8cce6390c3d053ab1374f5a483
      assert result['livePulse']['groups']['active'][0]['tabId']==101 and {row['tabId'] for row in result['livePulse']['groups']['stale']}=={102,105}
 diff --git a/tests/smoke/chat_guardian_multitab_smoke.py b/tests/smoke/chat_guardian_multitab_smoke.py
 new file mode 100644
-index 0000000000000000000000000000000000000000..6241514bbc4328e06bd04282ce2922824f01a51a
+index 0000000..6241514
 --- /dev/null
 +++ b/tests/smoke/chat_guardian_multitab_smoke.py
 @@ -0,0 +1,96 @@
@@ -1874,7 +1906,7 @@ index 0000000000000000000000000000000000000000..6241514bbc4328e06bd04282ce292282
 +    print(json.dumps({'states':[s['chat']['healthState'] for s in states], 'decisions':decisions, 'sent':sent, 'retry':retry, 'drafts':drafts}, sort_keys=True))
 +    context.close(); browser.close()
 diff --git a/tests/smoke/full_capture_smoke.py b/tests/smoke/full_capture_smoke.py
-index 3ad0743c54615f3f8104d5360f96c46f72a2ae6d..12ad110c35bfaf4c84421d393afa05bb97a85ce2 100644
+index 3ad0743..12ad110 100644
 --- a/tests/smoke/full_capture_smoke.py
 +++ b/tests/smoke/full_capture_smoke.py
 @@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
@@ -1896,7 +1928,7 @@ index 3ad0743c54615f3f8104d5360f96c46f72a2ae6d..12ad110c35bfaf4c84421d393afa05bb
        const start=await __pcSend({type:'PC_FULL_CAPTURE_START',providerIds:['chatgpt'],speed:'fast'});
        let state=start.state; const doneResponses=[];
 diff --git a/tests/smoke/live_sentinel_smoke.py b/tests/smoke/live_sentinel_smoke.py
-index 9e310a4372a4bc0048143fce2b220c8b7179a1bc..62811e9cda25400212500660662a5e488608e7b9 100644
+index 9e310a4..62811e9 100644
 --- a/tests/smoke/live_sentinel_smoke.py
 +++ b/tests/smoke/live_sentinel_smoke.py
 @@ -40,7 +40,7 @@ with sync_playwright() as p:
@@ -1909,7 +1941,7 @@ index 9e310a4372a4bc0048143fce2b220c8b7179a1bc..62811e9cda25400212500660662a5e48
      watchdog=page.evaluate("__send({type:'PC_GET_LIVE_SENTINEL_STATE'})")
      page.evaluate("""() => { const h=document.getElementById('projectConstellationHealthHud'); delete h.dataset.watchdog; h.dataset.state='tool-running'; h.dataset.level='active'; }""")
 diff --git a/tests/smoke/state_convergence_smoke.py b/tests/smoke/state_convergence_smoke.py
-index fc94c527f98f28e9b9bef40da0ef20792d164d25..cf61838b6dd57952baccbb3269454750901c1c8d 100644
+index fc94c52..cf61838 100644
 --- a/tests/smoke/state_convergence_smoke.py
 +++ b/tests/smoke/state_convergence_smoke.py
 @@ -48,7 +48,7 @@ with sync_playwright() as p:
@@ -1921,8 +1953,38 @@ index fc94c527f98f28e9b9bef40da0ef20792d164d25..cf61838b6dd57952baccbb3269454750
      }""")
      before=page2.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthTitle').textContent")
      page2.add_script_tag(content=health); page2.add_script_tag(content=sentinel); page2.wait_for_timeout(220)
+diff --git a/tests/source-archive-static.test.mjs b/tests/source-archive-static.test.mjs
+index 4b2c6d7..e33cf7c 100644
+--- a/tests/source-archive-static.test.mjs
++++ b/tests/source-archive-static.test.mjs
+@@ -3,6 +3,9 @@ import fs from 'node:fs';
+ 
+ const sourceArchive=fs.readFileSync(new URL('../tools/source-archive.mjs',import.meta.url),'utf8');
+ const packager=fs.readFileSync(new URL('../tools/package-unified-release.mjs',import.meta.url),'utf8');
++const ciWorkflow=fs.readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
++const windowsWorkflow=fs.readFileSync(new URL('../.github/workflows/windows-runtime.yml',import.meta.url),'utf8');
++const releaseWorkflow=fs.readFileSync(new URL('../.github/workflows/release.yml',import.meta.url),'utf8');
+ assert.match(sourceArchive,/git', \['ls-tree', '-r', '-z'/);
+ assert.match(sourceArchive,/git', \['cat-file', 'blob'/);
+ assert.match(sourceArchive,/Unsupported git file mode/);
+@@ -14,4 +17,15 @@ assert.match(packager,/writeDirectoryFilesZip/);
+ assert.doesNotMatch(packager,/Compress-Archive/);
+ assert.doesNotMatch(packager,/\['-X','-q','-r'/);
+ assert.doesNotMatch(packager,/git',\['archive'/);
++assert.match(packager,/PC_CANONICAL_SOURCE_COMMIT/);
++assert.match(packager,/PC_CANONICAL_SOURCE_TREE/);
++assert.match(packager,/sourceCommit:canonicalSourceCommit,sourceTree/);
++assert.match(ciWorkflow,/actual_tree=\$\(git -C "\$root" write-tree\)/);
++assert.match(ciWorkflow,/\[\[ "\$actual_tree" == "\$source_tree" \]\]/);
++assert.match(windowsWorkflow,/\$actualTree = \(git write-tree\)\.Trim\(\)/);
++assert.match(windowsWorkflow,/Reconstructed source tree mismatch/);
++assert.match(releaseWorkflow,/actual_tree=\$\(git -C "\$root" write-tree\)/);
++assert.match(releaseWorkflow,/reconstructed release source/);
++assert.match(releaseWorkflow,/PC_CANONICAL_SOURCE_COMMIT/);
++assert.match(releaseWorkflow,/PC_CANONICAL_SOURCE_TREE/);
+ console.log('source archive static: PASS');
 diff --git a/tests/unified-v019.test.mjs b/tests/unified-v019.test.mjs
-index 8b9dd2d2d11c4e9103dcc16b49cec6339ec9464e..baf06d32b0cd204cb3a948269474e240224c5890 100644
+index 8b9dd2d..baf06d3 100644
 --- a/tests/unified-v019.test.mjs
 +++ b/tests/unified-v019.test.mjs
 @@ -1,7 +1,7 @@
@@ -1943,8 +2005,31 @@ index 8b9dd2d2d11c4e9103dcc16b49cec6339ec9464e..baf06d32b0cd204cb3a948269474e240
  const companionDir='desktop/browser-companion';
  assert.ok(fs.existsSync(companionDir));
  assert.deepEqual(fs.readdirSync(companionDir).sort(),['page-hook.js']);
+diff --git a/tools/package-unified-release.mjs b/tools/package-unified-release.mjs
+index b1ec6a6..031052e 100644
+--- a/tools/package-unified-release.mjs
++++ b/tools/package-unified-release.mjs
+@@ -15,6 +15,10 @@ const buildInfo=JSON.parse(fs.readFileSync(path.join(root,'build','build-info.js
+ if(buildInfo.version!==version)throw new Error('Extension build metadata version mismatch.');
+ const git=(args)=>{const r=spawnSync('git',args,{cwd:root,encoding:'utf8'});if(r.status!==0)throw new Error(r.stderr||r.stdout);return r.stdout.trim();};
+ const commit=git(['rev-parse','HEAD']);
++const sourceTree=git(['rev-parse',`${commit}^{tree}`]);
++const canonicalSourceCommit=String(process.env.PC_CANONICAL_SOURCE_COMMIT||'').trim()||commit;
++const canonicalSourceTree=String(process.env.PC_CANONICAL_SOURCE_TREE||'').trim();
++if(canonicalSourceTree&&canonicalSourceTree!==sourceTree)throw new Error(`Reconstructed source tree ${sourceTree} != canonical ${canonicalSourceTree}`);
+ const dirty=git(['status','--porcelain','--untracked-files=no']);
+ if(dirty)throw new Error('Unified release packaging requires a clean committed source tree.');
+ const releaseDir=path.join(root,'releases',`v${version}`);fs.rmSync(releaseDir,{recursive:true,force:true});fs.mkdirSync(releaseDir,{recursive:true});
+@@ -39,6 +43,6 @@ let externalVerification={};
+ if(fs.existsSync(verificationSource))externalVerification=JSON.parse(fs.readFileSync(verificationSource,'utf8').replace(/^\uFEFF/,''));
+ const artifacts=[extensionZip,sourceZip,portable,...(installer?[installer]:[]),notes,...(windowsRuntime?[path.join(releaseDir,'WINDOWS-RUNTIME-RECEIPT.json')]:[])];
+ const sums=artifacts.map(file=>`${sha256(file)}  ${path.basename(file)}`).join('\n')+'\n';fs.writeFileSync(path.join(releaseDir,`SHA256SUMS-v${version}.txt`),sums);
+-const receipt={schema:'project-constellation-unified-release-v1',product:'Project Constellation',version,sourceCommit:commit,extensionId:'geljambmkfjkhodgkpjhnmfojkpcamig',extensionBuild:buildInfo,desktop:{electron:desktopPkg.devDependencies.electron,electronBuilder:desktopPkg.devDependencies['electron-builder']},artifacts:artifacts.map(file=>({name:path.basename(file),size:fs.statSync(file).size,sha256:sha256(file)})),verification:{sourceClean:true,portablePresent:true,checksumsGenerated:true,...externalVerification,...(windowsRuntime?{windowsRuntime}:{})},createdAt:new Date().toISOString()};
++const receipt={schema:'project-constellation-unified-release-v1',product:'Project Constellation',version,sourceCommit:canonicalSourceCommit,sourceTree,extensionId:'geljambmkfjkhodgkpjhnmfojkpcamig',extensionBuild:buildInfo,desktop:{electron:desktopPkg.devDependencies.electron,electronBuilder:desktopPkg.devDependencies['electron-builder']},artifacts:artifacts.map(file=>({name:path.basename(file),size:fs.statSync(file).size,sha256:sha256(file)})),verification:{sourceClean:true,portablePresent:true,checksumsGenerated:true,...externalVerification,...(windowsRuntime?{windowsRuntime}:{})},createdAt:new Date().toISOString()};
+ fs.writeFileSync(path.join(releaseDir,`RELEASE-RECEIPT-v${version}.json`),JSON.stringify(receipt,null,2)+'\n');
+ console.log(JSON.stringify(receipt,null,2));
 diff --git a/tools/validate.mjs b/tools/validate.mjs
-index b5c7600daafd9a12f65979aa928a9b3e1e542787..5c80015dcd264bfe679ebbe14783163d948ebdc4 100644
+index b5c7600..5c80015 100644
 --- a/tools/validate.mjs
 +++ b/tools/validate.mjs
 @@ -71,7 +71,13 @@ const fullCaptureEnd = background.indexOf('async function waitForTabComplete', f

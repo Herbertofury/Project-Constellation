@@ -43,6 +43,8 @@ jobs:
           baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
           delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
           delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
+          source_commit=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceCommit)" "$manifest")
+          source_tree=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceTree)" "$manifest")
           [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
           [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
           root="$GITHUB_WORKSPACE/pc-source"
@@ -57,7 +59,13 @@ jobs:
           git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
           git -C "$root" checkout-index -a -f
           [[ "$(node -p "require('$root/package.json').version")" == "$VERSION" ]]
+          actual_tree=$(git -C "$root" write-tree)
+          [[ "$actual_tree" == "$source_tree" ]]
+          git -C "$root" commit -q -m "Project Constellation v${VERSION} reconstructed release source"
+          test -z "$(git -C "$root" status --porcelain --untracked-files=no)"
           echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
+          echo "PC_CANONICAL_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
+          echo "PC_CANONICAL_SOURCE_TREE=$source_tree" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v8
         with:
