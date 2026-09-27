@@ -1,0 +1,7 @@
+adf9338cfe92d3835607bf9dce103f8015458e580081cacd38aa1ae3439f20b3  0.20.0-to-0.20.1.patch
+f915360079f2191ff8c2d4a699f1cf0f67bfe06d8b19fb60835f6f542eb7a109  Project-Constellation-v0.20.1-source.zip
+0cafef2ddd4b92bec54d7596760f1c67a4e88c31e13c77ce008db002aa65ba56  Project-Constellation-v0.20.1-Extension.zip
+293fd7c8ec6cf3b1c85028b40623d898403ba7118c50cf69ab5d477b3bea3841  Project-Constellation-v0.20.1-Windows-artifact.zip
+5a99fee83e3ddf37a77c3b39a303742bb18df9717abeee89f09c6263dff965aa  Project-Constellation-Desktop-0.20.1-x64.zip
+caa0b35e6d9b40dbb7b6c8ed68c5aa6dd833c895917a325647abc0302c413d38  Project-Constellation-Desktop-0.20.1-x64.exe
+dcb85082f4b4fe9d2d6212f70aa72fb93e45b66b752961e39809393873e5e8fe  WINDOWS-RUNTIME-RECEIPT.json
