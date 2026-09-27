@@ -997,7 +997,8 @@ index 0aa63097eceee9a147dcce896f0ddca106ff1f46..5e220a792cc0473e2e9fd8f050568dfa
    }
  
    function renderProjects(){
-diff --git a/extension/src/chat-guardian-core.js b/extension/src/chat-guardian-core.jsnew file mode 100644
+diff --git a/extension/src/chat-guardian-core.js b/extension/src/chat-guardian-core.js
+new file mode 100644
 index 0000000000000000000000000000000000000000..a3fd9a23e6ad43f35cb3f335270cb3e299dcbaa8
 --- /dev/null
 +++ b/extension/src/chat-guardian-core.js
