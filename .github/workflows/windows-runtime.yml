@@ -65,7 +65,8 @@ jobs:
           Set-Location '..'
           $root = (Resolve-Path 'pc-source').Path
           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8\n          "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "reconstructed_source=$root"
           Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
 
