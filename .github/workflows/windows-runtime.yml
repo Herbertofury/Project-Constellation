@@ -10,14 +10,14 @@ on:
       - 'tests/**'
       - 'tools/**'
       - 'package.json'
-      - 'releases/v0.20.0/0.19.0-to-0.20.0.patch'
-      - 'releases/v0.20.0/SOURCE-MANIFEST.json'
+      - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
+      - 'releases/v0.20.1/SOURCE-MANIFEST.json'
       - '.github/workflows/windows-runtime.yml'
   push:
     branches: ['release/**']
     paths:
-      - 'releases/v0.20.0/0.19.0-to-0.20.0.patch'
-      - 'releases/v0.20.0/SOURCE-MANIFEST.json'
+      - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
+      - 'releases/v0.20.1/SOURCE-MANIFEST.json'
       - '.github/workflows/windows-runtime.yml'
 
 permissions:
@@ -30,17 +30,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Reconstruct exact 0.20 source lineage
+      - name: Reconstruct exact 0.20.1 source lineage
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          $manifest = Get-Content 'releases/v0.20.0/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
-          if ($manifest.version -ne '0.20.0') { throw "Unexpected source manifest version: $($manifest.version)" }
+          $manifest = Get-Content 'releases/v0.20.1/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
+          if ($manifest.version -ne '0.20.1') { throw "Unexpected source manifest version: $($manifest.version)" }
           $baseline = [string]$manifest.baseline.artifact
           $delta = [string]$manifest.delta.artifact
           if (-not (Test-Path $baseline)) { throw "Baseline source archive missing: $baseline" }
-          if (-not (Test-Path $delta)) { throw "0.20 source delta missing: $delta" }
+          if (-not (Test-Path $delta)) { throw "0.20.1 source delta missing: $delta" }
           $baselineHash = (Get-FileHash $baseline -Algorithm SHA256).Hash.ToLowerInvariant()
           $deltaHash = (Get-FileHash $delta -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($baselineHash -ne [string]$manifest.baseline.sha256) { throw "Baseline SHA mismatch: $baselineHash" }
@@ -53,19 +53,19 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git config core.autocrlf false
           git add -A
-          git commit -q -m 'Project Constellation 0.19.0 production baseline'
-          git apply --cached '..\releases\v0.20.0\0.19.0-to-0.20.0.patch'
+          git commit -q -m 'Project Constellation 0.20.0 production baseline'
+          git apply --cached "..\$delta"
           git checkout-index -a -f
 
           $version = node -p "require('./package.json').version" 2>$null
           if ($LASTEXITCODE -ne 0) {
             $version = (Get-Content 'package.json' -Raw | ConvertFrom-Json).version
           }
-          if ($version -ne '0.20.0') { throw "Reconstructed package version mismatch: $version" }
+          if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
           Set-Location '..'
           $root = (Resolve-Path 'pc-source').Path
           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8\n          "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "reconstructed_source=$root"
           Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
 
@@ -157,7 +157,7 @@ jobs:
           $receipt = [ordered]@{
             schema='project-constellation-windows-runtime-v1'
             product='Project Constellation'
-            version='0.20.0'
+            version=$env:PC_SOURCE_VERSION
             sourceCommit=$env:PC_SOURCE_COMMIT
             platform='windows-latest'
             electron='44.4.4'
@@ -187,7 +187,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: Project-Constellation-v0.20.0-Windows
+          name: Project-Constellation-v0.20.1-Windows
           path: windows-dist/*
           if-no-files-found: error
           retention-days: 30
