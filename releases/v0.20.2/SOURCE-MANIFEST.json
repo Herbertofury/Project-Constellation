@@ -1,0 +1,32 @@
+{
+  "schema": "project-constellation-ci-source-v2",
+  "product": "Project Constellation",
+  "version": "0.20.2",
+  "sourceCommit": "a4976d85095aba5e63aca5004d15171c78d58177",
+  "sourceTree": "b42703a57dc2317b91e364ae1182ab717a6070e8",
+  "baseline": {
+    "version": "0.20.0",
+    "artifact": "releases/v0.20.0/Project-Constellation-v0.20.0-source.zip",
+    "sha256": "4a8d71f9eb5eb9aab263d6fa15c59aad250d63aa60def368f5306b48a3e3eb26"
+  },
+  "delta": {
+    "artifact": "releases/v0.20.2/0.20.0-to-0.20.2.patch",
+    "sha256": "347721e007c105b71250b4e487bd1338486c9cf9c944439b5ec7fc2f938d2f8a",
+    "parts": [
+      "releases/v0.20.2/0.20.0-to-0.20.2.patch.part-00",
+      "releases/v0.20.2/0.20.0-to-0.20.2.patch.part-01",
+      "releases/v0.20.2/0.20.0-to-0.20.2.patch.part-02",
+      "releases/v0.20.2/0.20.0-to-0.20.2.patch.part-03"
+    ],
+    "transport": "ordered-concatenation"
+  },
+  "canonicalSourceZip": {
+    "artifact": "releases/v0.20.2/Project-Constellation-v0.20.2-source.zip",
+    "sha256": "226de6b7d14db40fab82b351c9ee857f7f6cf419375f4194d429a3522e0c6b84"
+  },
+  "extensionZip": {
+    "artifact": "releases/v0.20.2/Project-Constellation-v0.20.2-Extension.zip",
+    "sha256": "f3d165b32cbaaec3708bcef061980ecc0015c34af63e27b0f6a91997f61601da"
+  },
+  "reconstruction": "Use the immutable embedded v0.20.0 source archive as the carrier anchor, concatenate delta.parts byte-for-byte in manifest order, verify the cumulative delta SHA-256, apply it with core.autocrlf=false, checkout the patched index, and require git write-tree to equal sourceTree before CI, Windows runtime, or release packaging proceeds. The product development lineage still advances from the verified v0.20.1 source without content loss."
+}
