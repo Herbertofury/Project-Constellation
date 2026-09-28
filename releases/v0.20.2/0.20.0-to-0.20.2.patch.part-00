@@ -1,0 +1,281 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index b2b86e0..e8f82ea 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -28,13 +28,14 @@ jobs:
+         run: |
+           set -euo pipefail
+           root="$GITHUB_WORKSPACE"
+-          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
++          manifest="$GITHUB_WORKSPACE/releases/v0.20.1/SOURCE-MANIFEST.json"
+           if [[ -f "$manifest" ]]; then
+             baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
+             baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
+             delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
+             delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
+             source_commit=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceCommit)" "$manifest")
++            source_tree=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceTree)" "$manifest")
+             [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
+             [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
+             root="$GITHUB_WORKSPACE/pc-source"
+@@ -49,8 +50,12 @@ jobs:
+             git -C "$root" commit -q -m 'Project Constellation verified production baseline'
+             git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
+             git -C "$root" checkout-index -a -f
+-            [[ "$(node -p "require('$root/package.json').version")" == '0.20.0' ]]
++            expected_version=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.version)" "$manifest")
++            [[ "$(node -p "require('$root/package.json').version")" == "$expected_version" ]]
++            actual_tree=$(git -C "$root" write-tree)
++            [[ "$actual_tree" == "$source_tree" ]]
+             echo "PC_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
++            echo "PC_SOURCE_TREE=$source_tree" >> "$GITHUB_ENV"
+           fi
+           echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
+           echo "exact_source_root=$root"
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index b76694d..11489f3 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -4,9 +4,9 @@ on:
+   workflow_dispatch:
+     inputs:
+       tag:
+-        description: Release tag, for example v0.20.0
++        description: Release tag, for example v0.20.1
+         required: true
+-        default: v0.20.0
++        default: v0.20.1
+   push:
+     tags: ['v*']
+ 
+@@ -14,7 +14,7 @@ permissions:
+   contents: write
+ 
+ env:
+-  VERSION: 0.20.0
++  VERSION: 0.20.1
+ 
+ jobs:
+   verify-linux:
+@@ -37,12 +37,14 @@ jobs:
+         shell: bash
+         run: |
+           set -euo pipefail
+-          manifest="$GITHUB_WORKSPACE/releases/v0.20.0/SOURCE-MANIFEST.json"
++          manifest="$GITHUB_WORKSPACE/releases/v0.20.1/SOURCE-MANIFEST.json"
+           test -f "$manifest"
+           baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
+           baseline_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.sha256)" "$manifest")
+           delta=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.artifact)" "$manifest")
+           delta_sha=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.delta.sha256)" "$manifest")
++          source_commit=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceCommit)" "$manifest")
++          source_tree=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.sourceTree)" "$manifest")
+           [[ "$(sha256sum "$baseline" | awk '{print $1}')" == "$baseline_sha" ]]
+           [[ "$(sha256sum "$delta" | awk '{print $1}')" == "$delta_sha" ]]
+           root="$GITHUB_WORKSPACE/pc-source"
+@@ -57,11 +59,17 @@ jobs:
+           git -C "$root" apply --cached "$GITHUB_WORKSPACE/$delta"
+           git -C "$root" checkout-index -a -f
+           [[ "$(node -p "require('$root/package.json').version")" == "$VERSION" ]]
++          actual_tree=$(git -C "$root" write-tree)
++          [[ "$actual_tree" == "$source_tree" ]]
++          git -C "$root" commit -q -m "Project Constellation v${VERSION} reconstructed release source"
++          test -z "$(git -C "$root" status --porcelain --untracked-files=no)"
+           echo "PC_SOURCE_ROOT=$root" >> "$GITHUB_ENV"
++          echo "PC_CANONICAL_SOURCE_COMMIT=$source_commit" >> "$GITHUB_ENV"
++          echo "PC_CANONICAL_SOURCE_TREE=$source_tree" >> "$GITHUB_ENV"
+ 
+       - uses: actions/download-artifact@v8
+         with:
+-          name: Project-Constellation-v0.20.0-Windows
++          name: Project-Constellation-v0.20.1-Windows
+           path: windows-dist
+ 
+       - name: Build exact extension and unified release set
+diff --git a/.github/workflows/windows-runtime.yml b/.github/workflows/windows-runtime.yml
+index 605510a..4f6699b 100644
+--- a/.github/workflows/windows-runtime.yml
++++ b/.github/workflows/windows-runtime.yml
+@@ -10,14 +10,14 @@ on:
+       - 'tests/**'
+       - 'tools/**'
+       - 'package.json'
+-      - 'releases/v0.20.0/0.19.0-to-0.20.0.patch'
+-      - 'releases/v0.20.0/SOURCE-MANIFEST.json'
++      - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
++      - 'releases/v0.20.1/SOURCE-MANIFEST.json'
+       - '.github/workflows/windows-runtime.yml'
+   push:
+     branches: ['release/**']
+     paths:
+-      - 'releases/v0.20.0/0.19.0-to-0.20.0.patch'
+-      - 'releases/v0.20.0/SOURCE-MANIFEST.json'
++      - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
++      - 'releases/v0.20.1/SOURCE-MANIFEST.json'
+       - '.github/workflows/windows-runtime.yml'
+ 
+ permissions:
+@@ -30,17 +30,17 @@ jobs:
+     steps:
+       - uses: actions/checkout@v7
+ 
+-      - name: Reconstruct exact 0.20 source lineage
++      - name: Reconstruct exact 0.20.1 source lineage
+         shell: pwsh
+         run: |
+           $ErrorActionPreference = 'Stop'
+           $PSNativeCommandUseErrorActionPreference = $true
+-          $manifest = Get-Content 'releases/v0.20.0/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
+-          if ($manifest.version -ne '0.20.0') { throw "Unexpected source manifest version: $($manifest.version)" }
++          $manifest = Get-Content 'releases/v0.20.1/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
++          if ($manifest.version -ne '0.20.1') { throw "Unexpected source manifest version: $($manifest.version)" }
+           $baseline = [string]$manifest.baseline.artifact
+           $delta = [string]$manifest.delta.artifact
+           if (-not (Test-Path $baseline)) { throw "Baseline source archive missing: $baseline" }
+-          if (-not (Test-Path $delta)) { throw "0.20 source delta missing: $delta" }
++          if (-not (Test-Path $delta)) { throw "0.20.1 source delta missing: $delta" }
+           $baselineHash = (Get-FileHash $baseline -Algorithm SHA256).Hash.ToLowerInvariant()
+           $deltaHash = (Get-FileHash $delta -Algorithm SHA256).Hash.ToLowerInvariant()
+           if ($baselineHash -ne [string]$manifest.baseline.sha256) { throw "Baseline SHA mismatch: $baselineHash" }
+@@ -53,19 +53,23 @@ jobs:
+           git config user.email 'actions@users.noreply.github.com'
+           git config core.autocrlf false
+           git add -A
+-          git commit -q -m 'Project Constellation 0.19.0 production baseline'
+-          git apply --cached '..\releases\v0.20.0\0.19.0-to-0.20.0.patch'
++          git commit -q -m 'Project Constellation 0.20.0 production baseline'
++          git apply --cached "..\$delta"
+           git checkout-index -a -f
+ 
+           $version = node -p "require('./package.json').version" 2>$null
+           if ($LASTEXITCODE -ne 0) {
+             $version = (Get-Content 'package.json' -Raw | ConvertFrom-Json).version
+           }
+-          if ($version -ne '0.20.0') { throw "Reconstructed package version mismatch: $version" }
++          if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
++          $actualTree = (git write-tree).Trim()
++          if ($actualTree -ne [string]$manifest.sourceTree) { throw "Reconstructed source tree mismatch: $actualTree" }
+           Set-Location '..'
+           $root = (Resolve-Path 'pc-source').Path
+           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+           "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
++          "PC_SOURCE_TREE=$($manifest.sourceTree)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
++          "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+           Write-Host "reconstructed_source=$root"
+           Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
+ 
+@@ -157,7 +161,7 @@ jobs:
+           $receipt = [ordered]@{
+             schema='project-constellation-windows-runtime-v1'
+             product='Project Constellation'
+-            version='0.20.0'
++            version=$env:PC_SOURCE_VERSION
+             sourceCommit=$env:PC_SOURCE_COMMIT
+             platform='windows-latest'
+             electron='44.4.4'
+@@ -187,7 +191,7 @@ jobs:
+ 
+       - uses: actions/upload-artifact@v7
+         with:
+-          name: Project-Constellation-v0.20.0-Windows
++          name: Project-Constellation-v0.20.1-Windows
+           path: windows-dist/*
+           if-no-files-found: error
+           retention-days: 30
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c6b8e06..b3cca46 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,25 @@
+ # Changelog
+ 
++## 0.20.2 — Persistent Allow All Guardian Hotfix
++
++- Approval Autopilot is now persistent-only: saved and migrated settings always normalize to `alwaysAllow: true` and `fallbackAllowOnce: false`, so an older profile cannot silently downgrade to the one-time **Allow** action.
++- Updated ChatGPT approval detection for current combined menu-bearing **Allow** buttons, split-button variants, portalled Radix menus, and persistent **Allow all** / conversation-wide options.
++- When the persistent option has not mounted yet, Constellation leaves plain **Allow** untouched, reports `persistent-pending`, and retries with bounded observer/guardian backoff instead of granting one-time access.
++- Every responsive open ChatGPT tab supervised by Chat Guardian is also scanned for approval prompts while Approval Autopilot is enabled and risk-acknowledged; one tab cannot block approval handling in another.
++- Preserved the explicit user acknowledgement boundary, user drafts, provider-review/auth/rate-limit/capacity holds, and the no-native-Retry replay guarantee.
++- Added storage-migration, current-DOM, combined-menu, all-tab fanout, and no-plain-Allow regression coverage.
++
++## 0.20.1 — All-Tab Chat Guardian Hotfix
++
++- Added an event-first Chat Guardian that independently supervises every open ChatGPT conversation tab and keeps recoverable tabs resident without stealing focus.
++- Added semantic handling for ChatGPT’s new stream-recovery timeout/error wording, including `ChatGPT stream recovery polling timed out`, plus recovery-control-anchored fallback detection so future current-turn failure copy can change without breaking recovery.
++- Automatically sends the separate safe continuation turn `Continue the unfinished task.` when a current task is demonstrably unfinished, instead of replaying ChatGPT’s native Retry control or duplicating prior tool side effects.
++- Uses `Promise.allSettled` across all open ChatGPT tabs so one broken, discarded, frozen, or non-responsive tab cannot block recovery of the others; Chrome frozen/discarded transitions are tracked and reconciled immediately when the tab becomes runnable again.
++- Preserves user drafts and non-bypassable provider-review, approval, authentication, rate-limit, unavailable, and conversation-capacity holds.
++- Adds one bounded reload fallback only when an explicit terminal failure cannot be continued because the composer/send surface is unavailable; reload attempts are fingerprinted and capped.
++- Replaces fixed guardian polling with state-transition triggers plus adaptive one-shot fallback alarms, and persists bounded per-chat recovery history for deduplication.
++- Added unit, static-contract, real-browser DOM, and background integration regressions for multi-tab recovery, new provider error wording, healthy-tab non-interference, and native-Retry non-activation.
++
+ ## 0.20.0 — Reliability Foundation
+ 
+ - Added a cross-surface state-event bus and removed fixed polling loops from key UI/route/recovery paths, including the legacy one-minute stall watchdog.
+diff --git a/desktop/README.md b/desktop/README.md
+index 5c78e6a..214b604 100644
+--- a/desktop/README.md
++++ b/desktop/README.md
+@@ -1,9 +1,15 @@
+-# Project Constellation Desktop 0.20.0
++# Project Constellation Desktop 0.20.2
+ 
+ Project Constellation is the unified desktop runtime and browser companion for authenticated ChatGPT work, project continuity, local computer tools, saved tasks, recovery, provider health, and durable project state. The normal ChatGPT experience uses the user's existing signed-in web session; it does **not** require a separate OpenAI API key.
+ 
+-## 0.20.0 highlights
++## 0.20.2 highlights
+ 
++- **Persistent Allow All only.** Once Approval Autopilot is explicitly enabled and acknowledged, it will wait for and choose the persistent approval option; it never silently downgrades to one-time **Allow**.
++- **Approval monitoring in every open tab.** Chat Guardian scans all responsive ChatGPT conversation tabs for persistent approval prompts alongside failure/stall supervision, with independent per-tab isolation.
++- **Current approval-menu compatibility.** Split buttons, combined menu-bearing Allow controls, and portalled Radix-style **Allow all** menu items are covered.
++- **All-tab Chat Guardian.** Every open ChatGPT conversation tab is independently supervised; unfinished failed/stalled turns can receive one safe `Continue the unfinished task.` turn without auto-clicking native Retry or replaying uncertain tool side effects.
++- **Current ChatGPT recovery UI support.** Stream-recovery timeout/error surfaces, including `ChatGPT stream recovery polling timed out`, are classified semantically and trigger event-first recovery with bounded one-shot fallback checks.
++- **Draft/hold-safe recovery.** User drafts, approvals, authentication, rate limits, provider review, unavailable conversations, and capacity handoff states remain non-bypassable; reload fallback is fingerprinted and capped.
+ - **Project Constellation identity everywhere.** Commander-era application IDs, data/config paths, CLI aliases, persistent ChatGPT partition, extension ID, and bridge contracts are retained where changing them would break upgrades or strand user state, but the product presented to the user is Project Constellation.
+ - **Electron 44.4.4 stable.** Desktop runtime is pinned to Electron 44.4.4 and electron-builder 26.16.1.
+ - **Event-first runtime.** Browser/desktop route and status tracking use real state/route events with bounded one-shot fallbacks rather than permanent high-frequency polling.
+@@ -11,15 +17,15 @@ Project Constellation is the unified desktop runtime and browser companion for a
+ - **Incident Brain.** Verified failure fingerprints can retain the proven recovery recipe, invalidation conditions, and regression protection so repeat incidents do not require rediscovery.
+ - **Brain DB v11.** Shared IndexedDB connection/migration ownership adds durable provider-health, incident-recipe, and migration-receipt stores.
+ - **Update Center + rollback.** A stable release can be checked, downloaded, SHA-256 verified, staged, installed after exit, and rolled back to the previous application directory if replacement fails.
+-- **Broad capability model preserved.** The browser companion intentionally retains the existing broad permission/provider-host direction. 0.20 does not reduce those capabilities.
++- **Broad capability model preserved.** The browser companion intentionally retains the existing broad permission/provider-host direction. 0.20.2 does not reduce those capabilities.
+ 
+ ## Start
+ 
+ ### Portable Windows build
+ 
+-Extract the complete `Project-Constellation-Desktop-0.20.0-x64.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
++Extract the complete `Project-Constellation-Desktop-0.20.2-x64.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
+ 
+-Project Constellation intentionally reuses the existing Commander/Constellation application identity and persistent ChatGPT partition for upgrade continuity. Existing local settings, tasks, project state, and signed-in browser state are not intentionally reset by the 0.20 migration.
++Project Constellation intentionally reuses the existing Commander/Constellation application identity and persistent ChatGPT partition for upgrade continuity. Existing local settings, tasks, project state, and signed-in browser state are not intentionally reset by the 0.20.2 hotfix.
+ 
+ ### Development
+ 
+@@ -73,11 +79,11 @@ Search is indexed/paginated and handles files beyond the old 16 MB scan ceiling.
+ 
+ ## Updates
+ 
+-0.20 includes an integrated update service. Stable updates are staged only after SHA-256 verification. The updater keeps a rollback copy of the previous application directory and provides explicit apply/rollback scripts. Update availability is checked on startup/on demand rather than by a permanent short-interval poll.
++0.20.2 retains the integrated update service. Stable updates are staged only after SHA-256 verification. The updater keeps a rollback copy of the previous application directory and provides explicit apply/rollback scripts. Update availability is checked on startup/on demand rather than by a permanent short-interval poll.
+ 
+ ## Verification contract
+ 
+-The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.20 build must prove the exact source revision on Windows with:
++The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.20.2 build must prove the exact source revision on Windows with:
+ 
+ - root regression/contract checks;
+ - desktop syntax + full regression/security tests;
+@@ -87,9 +93,9 @@ The authoritative Windows release gate is `../.github/workflows/windows-runtime.
+ - fresh extraction and launch of the produced portable application;
+ - SHA-256/size receipt generation.
+ 
+-Browser acceptance additionally includes the complete 34-workflow Chromium smoke set.
++Browser acceptance additionally includes the complete 35-workflow Chromium smoke set, including the new multi-tab Chat Guardian recovery regression.
+ 
+-See `RELEASE-MANIFEST.json` and `../docs/v0.20.0-release-notes.md` for the current release contract and exact proof state.
++See `RELEASE-MANIFEST.json` and `../docs/v0.20.2-release-notes.md` for the current release contract and exact proof state.
+ 
+ ## Compatibility notes
+ 
