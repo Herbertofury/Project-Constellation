@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Constellation Task Recovery</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+<header><span class="eyebrow">PROJECT CONSTELLATION</span><h1>Task Recovery</h1><p>Browser-side recovery for existing scheduled runs.</p></header>
+<main>
+<section class="status"><span id="dot"></span><div><strong id="status">Loading saved state...</strong><p id="last">No inspection yet.</p></div></section>
+<div class="toolbar"><button id="check">Inspect now</button><button id="toggle" class="secondary">Pause recovery</button><button id="open" class="secondary">Open task page</button></div>
+<section class="stats"><div><strong id="count">0</strong><span>Tasks inspected</span></div><div><strong id="resumed">0</strong><span>Runs observed progressing</span></div><div><strong id="pending">0</strong><span>Unresolved runs</span></div></section>
+<section><h2>Recovery activity</h2><div id="sessions" class="cards"><p class="muted">No recovery session has been started.</p></div></section>
+<details><summary>Controls and diagnostics</summary>
+<label class="field">Inspection interval (minutes)<input id="interval" type="number" min="1" max="60" value="1"></label>
+<label><input id="discover" type="checkbox" checked> Include newly discovered tasks that explicitly need attention</label>
+<label><input id="continue" type="checkbox" checked> Answer an explicit request to continue the same run</label>
+<label class="field">Known permanent task titles, one per line<textarea id="titles" rows="5"></textarea></label>
+<button id="save" class="secondary">Save controls</button><button id="export" class="secondary">Export local diagnostics</button>
+<p id="coverage" class="muted"></p><pre id="history"></pre>
+</details>
+<aside>Runs inside this browser profile. It does not recreate tasks, weaken their instructions, export your login, or grant new permissions. Login, security approval and genuinely missing information are recorded rather than falsely marked repaired.</aside>
+<p id="error" role="alert"></p>
+</main><footer>v1.0.0 <span>Local state only. No remote-control service.</span></footer>
+<script src="core.js"></script><script src="popup.js"></script>
+</body></html>

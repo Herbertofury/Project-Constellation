@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Constellation Task Recovery",
+  "version": "1.0.0",
+  "minimum_chrome_version": "120",
+  "description": "Opens stuck scheduled task follow-ups, resumes interrupted runs and checks progress using your signed-in browser. Keeps original tasks intact.",
+  "permissions": ["storage", "tabs", "alarms", "scripting"],
+  "host_permissions": ["https://chatgpt.com/*"],
+  "background": {"service_worker": "background.js", "type": "module"},
+  "action": {"default_title": "Constellation Task Recovery", "default_popup": "popup.html"},
+  "options_page": "popup.html",
+  "content_scripts": [{
+    "matches": ["https://chatgpt.com/*"],
+    "js": ["core.js", "page.js", "content.js"],
+    "run_at": "document_idle", "all_frames": false
+  }]
+}
