@@ -21,3 +21,21 @@ For each meaningful upstream change, record the source URL, publication/version 
 - [ ] Measure current implementation before a replacement or optimization.
 - [ ] Record correctness, usability, resource cost and recovery results together.
 - [ ] Link only proven improvements to implementation milestones; retain unproven candidates as research.
+
+## Reuse foundations and concrete parts to evaluate
+
+[Tab Session Manager source](https://github.com/sienori/Tab-Session-Manager): inspect tab/session serialization and recovery logic; compare an adapter to a clean reimplementation. Session Buddy is workflow inspiration only unless licensing explicitly permits reuse.
+
+## Integration with our projects
+
+Noxviola supplies links to canonical issues and accepted evidence, not another copy of private chats. Agent-Foundry can consume a redacted continuity receipt schema: project ID, source revision, action, evidence status and recovery boundary.
+
+## Target improvement and acceptance boundary
+
+Show exact conversation/artifact recovery beyond merely reopening a URL. Test interruption, duplicate captures and restart with unchanged privacy scope; do not expand browser permissions automatically.
+
+## License, access and adoption gate
+
+Status: research candidate, not integrated or benchmark-proven. Before copying code, pin the exact upstream revision and record its LICENSE, dependency licenses, notices and distribution obligations. Missing/ambiguous terms block reuse; behavioral study or a permitted interoperable adapter may remain possible. Service documentation is not a source-code license or API grant. Preserve existing user permissions, private/public boundaries and creator/game asset rights.
+
+Choose reuse, adapter, fork or independent implementation only after a target-workload comparison. Retain raw failures and rollback; share no credentials, private fixtures or account details. Adoption remains blocked until licensing, correctness, performance and maintenance cost are reviewed together. Review delta dated 2026-11-12.
