@@ -123,3 +123,7 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 The repository runs deterministic unit/contract suites, browser workflow smokes, structural validation, UI ownership checks, message-contract checks, and a real extension service-worker load in extension-capable Chromium. The v0.16 reliability lane additionally includes a two-tab browser smoke that requires both a foreground and a background stale ChatGPT tab to reload and send the continuation prompt. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).
+
+## Competitive landscape and related approaches
+
+See the [source-led comparison and evaluation plan](docs/competitive-landscape.md). Documented capabilities, research proposals and measured results are kept separate.
