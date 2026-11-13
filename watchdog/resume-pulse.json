@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "emitted_at_utc": "2026-11-13T19:52:39.907Z",
-  "reason": "heartbeat age 74399.06m > 75m",
+  "emitted_at_utc": "2026-11-13T20:07:44.290Z",
+  "reason": "heartbeat age 74414.12m > 75m",
   "last_chatgpt_heartbeat_utc": "2026-09-23T03:53:35Z",
   "requested_action": "Resume/recover the stalled ChatGPT scheduled-task system from durable recovery state.",
   "recovery_controller": "watchdog/recovery-controller.json",
