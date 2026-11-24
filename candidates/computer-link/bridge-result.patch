@@ -1,0 +1,164 @@
+diff --git a/LINK-CANDIDATE.md b/LINK-CANDIDATE.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..42aa439e1dafd9df6105af1bf78d2b57d3e05fa3
+--- /dev/null
++++ b/LINK-CANDIDATE.md
+@@ -0,0 +1,13 @@
++# Project Constellation: computer-link verification candidate
++
++This is a desktop bridge status and evidence repair on the exact 0.20.1 source tree (89b711f46672830e786ba3afcdf0d1973325a896), not a reconstruction of the incomplete 0.20.2 staging release. The candidate retains the base app version, permissions, and profile layout. Test a new candidate copy before replacing a working install.
++
++- An acknowledged local tool error now reports failure, not a verified bridge.
++- A ping requires a positive pong. A visible tool-wrapper leak and an older unproven retry do not count as verification.
++- A saved result retains its success evidence for retry; retry still does not reexecute the operation.
++- The packaged Electron smoke requires a successful, non-leaking ping receipt in addition to the native shell proof.
++- This does not change access selections, auto-grant new permission, or configure a relay.
++
++Run `npm run check` and `npm test` in `desktop/`. The Electron/native fixture is an owned test endpoint, not a live signed-in ChatGPT test. On Windows, run the existing Windows-native smoke and `desktop/scripts/electron-smoke.ps1` before promoting a build.
++
++Live acceptance remains separate: launch the candidate on the intended Windows machine, open a signed-in ChatGPT conversation inside Constellation, open **Connect > Test chat access**, and verify a completed ping receipt. In a user-selected disposable folder, request a test file write and read back the contents. Confirm that Off and Emergency Lock prevent actions, and that pending results stay in their originating conversation. This tests the app's integrated route, not a live attachment to a separate Dot chat.
+diff --git a/desktop/electron/chat-preload.cjs b/desktop/electron/chat-preload.cjs
+index 35b72d554beecae0400c4c19b9ec102c7ef34c0a..04cb52a1036c6ca77ed2e1f861372e94d8a5e4a5 100644
+--- a/desktop/electron/chat-preload.cjs
++++ b/desktop/electron/chat-preload.cjs
+@@ -409,7 +409,7 @@ function sameConversation(first, second) {
+     const attachments=response?._attachments||[],safe={...response};delete safe._attachments;
+     const payload=`${RESULT_OPEN}\n${JSON.stringify({id:call.id,tool:call.tool,...safe})}\n${RESULT_CLOSE}`;
+     // The action result is saved BEFORE trying the network-facing composer.
+-    const pending={id:crypto.randomUUID(),callId:call.id,tool:call.tool,url:context.url,payload,attachments};
++    const pending={id:crypto.randomUUID(),callId:call.id,tool:call.tool,url:context.url,payload,attachments,toolSucceeded:response?.ok===true,pong:response?.result?.pong===true};
+     try{await ipcRenderer.invoke('cc:save-result',pending);}catch(error){
+       toast('Could not save the completed result. Do not repeat the action. Check the data folder.','error',true);
+       await diagnostic('result-save-failed',{id:call.id,tool:call.tool,error:String(error?.message||error)});return;
+@@ -420,7 +420,7 @@ function sameConversation(first, second) {
+       await ipcRenderer.invoke('cc:ack-result',{id:pending.id});
+       context.results++;
+       const visibleLeak=assistantCandidates().some(node=>(node.textContent||'').trim().startsWith(CALL_OPEN)&&getComputedStyle(node).display!=='none'&&getComputedStyle(node).visibility!=='hidden');
+-      await diagnostic('tool-result-sent',{tool:call.tool,ok:response?.ok!==false,pong: response?.result?.pong === true,visibleLeak,chatId:context.chatId});
++      await diagnostic('tool-result-sent',{tool:call.tool,ok:pending.toolSucceeded,pong:pending.pong,visibleLeak,chatId:context.chatId});
+     }catch(error){
+       toast(`Action result saved: ${String(error?.message||error)}`,'warn',true);
+       await diagnostic('delivery-pending',{id:call.id,tool:call.tool,error:String(error?.message||error)});
+@@ -439,7 +439,7 @@ function sameConversation(first, second) {
+     try{
+       await sendText(pending.payload,{internal:true,attachments:pending.attachments||[],expectedRoute:pending.url});
+       await ipcRenderer.invoke('cc:ack-result',{id:pending.id});
+-      await diagnostic('saved-result-delivered',{id:pending.id,tool:pending.tool});
++      await diagnostic('saved-result-delivered',{id:pending.id,tool:pending.tool,ok:pending.toolSucceeded,pong:pending.pong});
+     }catch(error){await diagnostic('delivery-pending',{id:pending.id,error:String(error?.message||error)});}
+   });
+ 
+diff --git a/desktop/electron/chrome.js b/desktop/electron/chrome.js
+index b2cb7cd1ebee172ad2c805ceed87f64d05894b74..5d3c71a4d4ae436dfd7665dba4bc16595eb8bfd4 100644
+--- a/desktop/electron/chrome.js
++++ b/desktop/electron/chrome.js
+@@ -62,7 +62,7 @@
+     else if(e.key==='Escape'&&view==='access')void navigate('chat');
+   });
+   function renderDownloads(rows){$('downloads-list').replaceChildren();for(const item of rows||[]){const row=document.createElement('div');row.className='download-row';const info=document.createElement('div'),title=document.createElement('strong'),sub=document.createElement('small');title.textContent=item.name;sub.textContent=`${item.state} / ${(item.received/1048576).toFixed(1)} MB${item.total?' of '+(item.total/1048576).toFixed(1)+' MB':''}`;info.append(title,sub);row.append(info);if(item.state==='completed'){const b=document.createElement('button');b.textContent='Show in folder';b.onclick=()=>api.revealDownload(item.id).catch(e=>toast(e.message,true));row.append(b);}$('downloads-list').append(row);}if(!rows?.length){const p=document.createElement('p');p.className='small muted';p.textContent='No downloads in this session.';$('downloads-list').append(p);}}
+-  function onSnapshot(s){snapshot=s;appearance(s.ui||{});$('runtime-status').textContent=`Local runtime / ${s.toolCount||0} tools`;$('device-name').textContent=s.config?.deviceName||'This PC';$('runtime-platform').textContent=s.platform==='win32'?'Windows':s.platform||'';$('status-access').textContent=s.emergencyLock?'Locked':s.config?.allowedRoots?.includes('*')?'Full PC':`${s.config?.allowedRoots?.length||0} folder(s)`;$('bridge-status').textContent=s.emergencyLock?'Chat access: locked':s.config?.localToolMode==='off'?'Chat access: off':s.chat?.phase==='verified'?'Chat access: result delivered':s.chat?.phase==='delivery-pending'?'Result waiting - Activity':s.chat?.pageHookReady?'Chat adapter ready - unverified':'Chat access: not connected';$('connection-chat').textContent=s.chat?.lastError||s.chat?.message||'Not connected';$('connection-chat').className='badge '+(s.chat?.phase==='verified'?'good':'warn');$('connection-local').textContent=s.emergencyLock?'Locked':`${s.toolCount||0} local tools available`;$('connection-local').className='badge '+(s.emergencyLock?'bad':'good');renderDownloads(s.downloads);}
++  function onSnapshot(s){snapshot=s;appearance(s.ui||{});$('runtime-status').textContent=`Local runtime / ${s.toolCount||0} tools`;$('device-name').textContent=s.config?.deviceName||'This PC';$('runtime-platform').textContent=s.platform==='win32'?'Windows':s.platform||'';$('status-access').textContent=s.emergencyLock?'Locked':s.config?.allowedRoots?.includes('*')?'Full PC':`${s.config?.allowedRoots?.length||0} folder(s)`;$('bridge-status').textContent=s.emergencyLock?'Chat access: locked':s.config?.localToolMode==='off'?'Chat access: off':s.chat?.phase==='verified'?'Chat access: result delivered':s.chat?.phase==='delivery-pending'?'Result waiting - Activity':s.chat?.phase==='result-unverified'?'Chat result delivered - unverified':s.chat?.phase==='error'?'Chat access: action or connection failed':s.chat?.pageHookReady?'Chat adapter ready - unverified':'Chat access: not connected';$('connection-chat').textContent=s.chat?.lastError||s.chat?.message||'Not connected';$('connection-chat').className='badge '+(s.chat?.phase==='verified'?'good':'warn');$('connection-local').textContent=s.emergencyLock?'Locked':`${s.toolCount||0} local tools available`;$('connection-local').className='badge '+(s.emergencyLock?'bad':'good');renderDownloads(s.downloads);}
+   async function refresh(){const s=await api.snapshot();window.dispatchEvent(new CustomEvent('commander-snapshot',{detail:s}));}
+   window.addEventListener('commander-snapshot',e=>onSnapshot(e.detail));
+   api.onEvent?.(e=>{if(e.type==='navigate')void navigate(e.detail.view);if(e.type==='open-palette')void openPalette();if(e.type==='downloads-changed')void refresh();if(e.type==='remote-state'){$('relay-status').textContent=[e.detail.phase,e.detail.code?'Pairing code: '+e.detail.code:'',e.detail.error||''].filter(Boolean).join(' / ');}});
+diff --git a/desktop/electron/main.cjs b/desktop/electron/main.cjs
+index c548bf049b04570996c047d9c7289083108afaf6..10b750c06d7be32d2fb87f203dfc74ae6a1c52a0 100644
+--- a/desktop/electron/main.cjs
++++ b/desktop/electron/main.cjs
+@@ -587,11 +587,25 @@ function installIpc() {
+     if (payload.event === 'arm-start') setChatState({phase:'arming',message:'Preparing computer access for this request',lastError:''});
+     if (payload.event === 'request-accepted') setChatState({phase:'waiting-tool',message:'Request accepted - waiting for ChatGPT',lastError:''});
+     if (payload.event === 'assistant-call-detected') setChatState({phase:'executing',message:'Running '+String(payload.detail?.tool||'local tool'),lastError:''});
+-    if (['tool-result-sent','saved-result-delivered'].includes(payload.event)) setChatState({phase:'verified',message:'Computer action completed and result accepted by ChatGPT',lastError:''});
++    if (['tool-result-sent','saved-result-delivered'].includes(payload.event)) {
++      const detail = payload.detail || {};
++      if (detail.ok === false) {
++        setChatState({phase:'error',message:'Local action failed; ChatGPT received the error',lastError:'See Activity for the failed local action.'});
++      } else if (detail.ok !== true || (detail.tool === 'ping' && detail.pong !== true) || detail.visibleLeak === true) {
++        setChatState({phase:'result-unverified',message:'Result delivered; computer access not verified',lastError:''});
++      } else {
++        setChatState({phase:'verified',message:'Computer action completed and result accepted by ChatGPT',lastError:''});
++      }
++    }
+     if (['delivery-pending','result-save-failed'].includes(payload.event)) setChatState({phase:'delivery-pending',message:'Action completed - result needs attention in Activity',lastError:String(payload.detail?.error||'')});
+     if (payload.event === 'arm-failed') setChatState({ phase: 'error', message: 'Project Constellation arm failed', lastError: String(payload.detail?.error || 'Unknown arm failure') });
+     if (TEST_MODE && TEST_OUTPUT && !INTERACTIVE_TEST) {
+       if (payload.event === 'tool-result-sent') {
++        if (chatState.phase !== 'verified' || payload.detail?.tool !== 'ping' || payload.detail?.pong !== true) {
++          fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok:false, event:'chat-round-trip-not-proven', detail:payload.detail || null, at:nowIso() }, null, 2));
++          setTimeout(() => app.quit(), 250);
++          return {ok:true};
++        }
+         await awaitShellSmokeProof();
+         if (shellSmokeState.status !== 'passed') {
+           fs.writeFileSync(TEST_OUTPUT, JSON.stringify({ ok: false, event: 'shell-runtime-not-proven', detail: shellSmokeState, at: nowIso() }, null, 2));
+diff --git a/desktop/tests/electron-static.test.mjs b/desktop/tests/electron-static.test.mjs
+index 0ca5106dd2ddf46833af39aeb0cde8c6dad02d91..c978e97771e454e66ecc7c1795bf53f846aebdfd 100644
+--- a/desktop/tests/electron-static.test.mjs
++++ b/desktop/tests/electron-static.test.mjs
+@@ -36,5 +36,6 @@ assert.match(preload, /parsed\.arguments/);
+ assert.match(preload, /node\.style\.visibility = 'hidden'/);
+ assert.match(preload, /ipcRenderer\.invoke\('cc:call'/);
+ assert.match(preload, /visibleLeak/);
+-assert.match(preload, /pong: response\?\.result\?\.pong === true/);
++assert.match(preload, /pong:response\?\.result\?\.pong===true/);
++assert.match(preload, /ok:pending\.toolSucceeded,pong:pending\.pong/);
+ console.log('Project Constellation Electron static contract: PASS');
+diff --git a/desktop/tests/main-boundary.test.mjs b/desktop/tests/main-boundary.test.mjs
+index 690fd0561cb78e0ac1ecc0e3aaa2ffe32011249f..272db820195a1080e1353b55d32911abb37abe3e 100644
+--- a/desktop/tests/main-boundary.test.mjs
++++ b/desktop/tests/main-boundary.test.mjs
+@@ -5,7 +5,7 @@ const chat={mainFrame:frame,isDestroyed:()=>false,send:()=>{},getURL:()=>frame.u
+ let calls=0;const runtime={dir:'/fixture',configPath:'/fixture/config.json',config:{allowedRoots:['/chosen/project'],localToolMode:'auto',enableShell:true},state:{processes:new Map(),searches:new Map()},saveConfig:async()=>{},toolDefinitions:()=>[{name:'ping',inputSchema:{}},{name:'set_config_value',inputSchema:{}}],callTool:async()=>{calls++;return {pong:true};}};
+ const electron={app:{setAppUserModelId:()=>{},quit:()=>{},commandLine:{appendSwitch:()=>{}},requestSingleInstanceLock:()=>true,on:()=>{},whenReady:()=>new Promise(()=>{}),isPackaged:false,hasSingleInstanceLock:()=>true},ipcMain:{handle:(name,fn)=>handlers.set(name,fn)}};
+ const context=vm.createContext({require:name=>name==='electron'?electron:nativeRequire(name),process,console,Buffer,URL,__dirname:path.dirname(filename),setTimeout,clearTimeout});
+-vm.runInContext(fs.readFileSync(filename,'utf8')+'\nglobalThis.initialize=(r,w,c)=>{runtime=r;win=w;chatView=c;installIpc();installShellIpc();};globalThis.testChatCall=executeChatCall;',context,{filename});
++vm.runInContext(fs.readFileSync(filename,'utf8')+'\nglobalThis.initialize=(r,w,c)=>{runtime=r;win=w;chatView=c;installIpc();installShellIpc();};globalThis.testChatCall=executeChatCall;globalThis.currentChatState=()=>chatState;',context,{filename});
+ context.initialize(runtime,{webContents:shell,isDestroyed:()=>false},{webContents:chat});
+ await test('IPC rejects foreign frame even when webContents matches',async()=>{await assert.rejects(handlers.get('cc:bootstrap')({sender:chat,senderFrame:{...frame}},{chatId:'test'}),/Untrusted/);});
+ await test('IPC rejects login/foreign origins for local calls',async()=>{frame.url='https://accounts.google.com/';await assert.rejects(handlers.get('cc:bootstrap')({sender:chat,senderFrame:frame},{chatId:'test'}),/origin/);frame.url='https://chatgpt.com/c/test';});
+@@ -44,3 +44,23 @@ await test('each explicitly renewed user task gets a fresh nonce and old task ca
+  assert.notEqual(a.nonce,b.nonce);
+  await assert.rejects(context.testChatCall('rotate',{id:'stale-call',nonce:a.nonce,tool:'ping',args:{}}),/stale/);
+ });
++
++await test('result delivery verifies access only with positive local evidence', async()=>{
++ const sender={sender:chat,senderFrame:frame}, diagnostic=handlers.get('cc:diagnostic');
++ const send=(event,detail)=>diagnostic(sender,{event,detail});
++ const phase=()=>context.currentChatState().phase;
++ await send('tool-result-sent',{tool:'ping',ok:false,pong:false});
++ assert.equal(phase(),'error');
++ await send('tool-result-sent',{tool:'ping',ok:true,pong:false});
++ assert.equal(phase(),'result-unverified');
++ await send('tool-result-sent',{tool:'ping',ok:true,pong:true,visibleLeak:true});
++ assert.equal(phase(),'result-unverified');
++ await send('saved-result-delivered',{tool:'ping'});
++ assert.equal(phase(),'result-unverified','legacy saved results have no positive proof');
++ await send('saved-result-delivered',{tool:'write_file',ok:false});
++ assert.equal(phase(),'error');
++ await send('saved-result-delivered',{tool:'ping',ok:true,pong:true});
++ assert.equal(phase(),'verified');
++ await send('tool-result-sent',{tool:'write_file',ok:true});
++ assert.equal(phase(),'verified');
++});
+diff --git a/desktop/tests/native-electron-acceptance.py b/desktop/tests/native-electron-acceptance.py
+index 5acd86779ad0745fd0fa2cea3ecbd7b76066e7d7..51547095964ad7251b41f9641297aadbf2ee1710 100644
+--- a/desktop/tests/native-electron-acceptance.py
++++ b/desktop/tests/native-electron-acceptance.py
+@@ -152,6 +152,16 @@ async def main():
+   await wait_shell_expr('document.getElementById("bridge-status").textContent.includes("off")')
+   await wait_shell_expr('document.getElementById("agent-state").textContent.includes("off")')
+   results.append('Off remains enforced and consistent across all status indicators')
++  await shell.evaluate('commanderShell.setLocalMode("auto")')
++  await chat.evaluate("fixture.tool='unknown_fixture_tool';fixture.resultStatus=200;fixture.responseDelay=0")
++  before_results=await chat.evaluate('fixture.results.length')
++  await chat.locator('#prompt-textarea').fill('test this computer when a local action fails')
++  await chat.click('#composer-submit-button')
++  await chat.wait_for_function('(before)=>fixture.results.length===before+1',arg=before_results,timeout=15000)
++  failed=await chat.evaluate('fixture.results.at(-1)')
++  assert failed['ok'] is False,failed
++  await wait_snapshot(lambda s:s['chat']['phase']=='error' and 'received the error' in s['chat']['message'])
++  results.append('a real local rejection delivered to ChatGPT does not show as a verified link')
+   await shell.click('.rail-button[data-view="workspace"]')
+   await shell.screenshot(path=str(out/'shell.png'));await shell.click('.rail-button[data-view="activity"]');await shell.screenshot(path=str(out/'tasks.png'));await chat.screenshot(path=str(out/'chat-fixture.png'))
+   (out/'native-results.json').write_text(json.dumps({'passed':results,'failed':[],'runtime':'Electron 44.4.4 Linux; real application main, IPC, preloads, CSP and filesystem; simulated ChatGPT server, not authenticated account','chromiumSandboxNote':'--no-sandbox used only for root Linux test host; production webPreferences isolation retained'},indent=2));print(json.dumps(results,indent=2))

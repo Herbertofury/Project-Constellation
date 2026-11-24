@@ -13,12 +13,14 @@ on:
       - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
       - 'releases/v0.20.1/SOURCE-MANIFEST.json'
       - '.github/workflows/windows-runtime.yml'
+      - 'candidates/computer-link/**'
   push:
     branches: ['release/**']
     paths:
       - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
       - 'releases/v0.20.1/SOURCE-MANIFEST.json'
       - '.github/workflows/windows-runtime.yml'
+      - 'candidates/computer-link/**'
 
 permissions:
   contents: read
@@ -64,14 +66,27 @@ jobs:
           if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
           $actualTree = (git write-tree).Trim()
           if ($actualTree -ne [string]$manifest.sourceTree) { throw "Reconstructed source tree mismatch: $actualTree" }
+          $sourceCommit = [string]$manifest.sourceCommit
+          $candidatePath = '..\candidates\computer-link\SOURCE-MANIFEST.json'
+          if (Test-Path $candidatePath) {
+            $candidate = Get-Content $candidatePath -Raw | ConvertFrom-Json
+            if ($actualTree -ne [string]$candidate.baseTree) { throw "Candidate baseline tree mismatch: $actualTree" }
+            $overlay = '..\candidates\computer-link\bridge-result.patch'
+            if ((Get-FileHash $overlay -Algorithm SHA256).Hash.ToLowerInvariant() -ne [string]$candidate.patchSha256) { throw 'Candidate patch hash mismatch.' }
+            git apply --cached $overlay
+            $actualTree = (git write-tree).Trim()
+            if ($actualTree -ne [string]$candidate.sourceTree) { throw "Candidate source tree mismatch: $actualTree" }
+            git checkout-index -a -f
+            $sourceCommit = $env:GITHUB_SHA
+          }
           Set-Location '..'
           $root = (Resolve-Path 'pc-source').Path
           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "PC_SOURCE_COMMIT=$($manifest.sourceCommit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "PC_SOURCE_TREE=$($manifest.sourceTree)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PC_SOURCE_COMMIT=$sourceCommit" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PC_SOURCE_TREE=$actualTree" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "PC_SOURCE_VERSION=$($manifest.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "reconstructed_source=$root"
-          Write-Host "canonical_source_commit=$($manifest.sourceCommit)"
+          Write-Host "canonical_source_commit=$sourceCommit"
 
       - uses: actions/setup-node@v7
         with:
@@ -163,6 +178,7 @@ jobs:
             product='Project Constellation'
             version=$env:PC_SOURCE_VERSION
             sourceCommit=$env:PC_SOURCE_COMMIT
+            sourceTree=$env:PC_SOURCE_TREE
             platform='windows-latest'
             electron='44.4.4'
             nativeComputerUse='PASS'
