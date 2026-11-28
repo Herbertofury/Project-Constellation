@@ -53,7 +53,9 @@ matching version tag, or an explicit workflow dispatch. The branch route lets
 an authorized maintainer publish through the supported GitHub app without
 placing a personal access token in the workspace. The workflow checks that its
 requested version is the source version. A pre-existing tag must point to that
-same source commit.
+same source commit. Merge workflow changes to the default branch before starting
+publication with the Actions token; a release branch alone does not satisfy
+GitHub's workflow-file permission rules.
 
 All of these reusable workflows must pass before publication:
 
@@ -67,7 +69,9 @@ All of these reusable workflows must pass before publication:
 
 The runtime jobs upload immutable workflow artifacts. The release job downloads
 them from the same workflow run and validates version, commit, file size and
-SHA-256. The Windows setup receipt must explicitly reject acceptance-fixture
+SHA-256. Desktop packaging verifies the clean expected Git tree before and
+after building and records that evidence; missing clean-source evidence is a
+publication failure. The Windows setup receipt must explicitly reject acceptance-fixture
 status and carry all seven mandatory real-Windows checks. Compiler success
 alone is insufficient. No artifact is selected through a loose version glob.
 
@@ -99,7 +103,9 @@ so it cannot be confused with the compact native installer.
    signing, Windows publisher signing and target-account acceptance remain open.
 3. The workflow refuses to overwrite an existing release. Download the release
    assets and verify all hashes again; do not equate upload completion with
-   byte-level verification.
+   byte-level verification. It creates a missing tag without force, resolves
+   the live remote tag before publication, and checks that target again after
+   downloading the release assets.
 4. Synchronize `wiki/*.md` to the live GitHub Wiki and read back its remote head.
    A local wiki mirror alone is not a completed remote documentation update.
 5. Preserve the same artifacts and evidence in the versioned Drive checkpoint

@@ -86,6 +86,14 @@ jobs:
         run: cargo test --locked --all-targets --manifest-path native/constellation-monitor/Cargo.toml
       - name: Source-build and exercise all Computer Tools native capabilities
         run: node tools/computer-link/build.mjs --test
+      - name: Native owner concurrency stability gate
+        run: |
+          # Reproduce the observed intermittent child-handle assertion with its
+          # bounded diagnostics. Every sweep must pass; stop on the first failure.
+          for iteration in {1..12}; do
+            echo "Native owner concurrency sweep $iteration/12"
+            cargo test --locked --manifest-path computer-link/windows-owner/Cargo.toml --lib
+          done
       - name: Build labeled rollback fixture from exact clean source
         run: python tools/build-windows-setup.py --require-clean-source --acceptance-fixture --output build/windows-setup-fixture-artifacts
       - name: Build final self-contained Windows setup

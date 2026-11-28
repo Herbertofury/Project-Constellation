@@ -36,10 +36,10 @@
     ],
     "excluded_self_reference": "docs/RELEASE-OPTIMIZATION-0.22.0.json",
     "source_file_count": 915,
-    "source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
+    "source_manifest_sha256": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
     "source_file_sha256": {
       ".editorconfig": "8e1c9a78d4dedcde12bb3cd6279ce83942819d1cd178f1d9d731ef3a62606ac7",
-      ".gitattributes": "d9d3aae3b2471bfaabd1ec2c1c5921b5bfb55e66ad9f019a97d7e0f56c5b0d82",
+      ".gitattributes": "9d2194cce6b4c0df4776369b5924824e59fd1613debab8217a579000114c9014",
       ".github/workflows/chatgpt-local-rescue-heartbeat.yml": "846f38a56d907f59ee01580d639320e6d9eb96534560d0166c8adbd74c86ffc9",
       ".github/workflows/chatgpt-task-watchdog.yml": "dc8bfd1375c6eae8e0867d8298afdf160ce896ee1159fc7d5b12ec16fcf728e3",
       ".github/workflows/chatgpt-ui-auth-probe.yml": "4c4dab5eb7c4f2d9be97a6d0748152d76930d06457fda0f5fe5abdd83bf0ce6d",
@@ -52,8 +52,8 @@
       ".github/workflows/external-chatgpt-scheduler-rescue.yml": "b5b4f4d0c08fe68828f8788138bc84e96ef11757be0b420ec0f39bbed604f9bc",
       ".github/workflows/native-monitor.yml": "bdce7d842e92846c9c5b2f772c838bf9b881c9a3b4d83912baef1a2b5e94e22d",
       ".github/workflows/release.yml": "24da5e48edd8d20baaf7473d7a9b1a6ca19819b22d952831e2b5019138ac8c1f",
-      ".github/workflows/windows-runtime.yml": "42949875a8e8dd641f095dcd105454e479a95fcd0eaea36150d5ce0a7fb19c39",
-      ".github/workflows/windows-setup.yml": "aa70e870a477cdf62e7dcdc1d165df4bd349b7334880828f9b90de933154060e",
+      ".github/workflows/windows-runtime.yml": "e573ed7d5be933830466689f2daed6e71a21632fa2e5acbed245fea19ce43bcc",
+      ".github/workflows/windows-setup.yml": "b8bdf778f739d3e861549d7104b6bd08b852014e9b4183a1ecfcd158144c2676",
       ".gitignore": "64638320c3ab14fb8ae3aca51a894c6c646db31d120cb15d89b23a49f7d7333d",
       "AGENTS.md": "fb328c4c6ab685e63c40453a51e42fa9cd9a14864ec55f335a4b94a6d8dfd95c",
       "CHANGELOG.md": "d1286027091a386212b80d3e62f5d28cd0ecfe75a56c135ea98e65296351b50c",
@@ -206,7 +206,7 @@
       "computer-link/windows-owner/src/local_export_preview.rs": "ef869566c225303b10198c12ed9f06733cb10be7a3a975c3ccfb4f63ca6acaf5",
       "computer-link/windows-owner/src/local_export_ui.rs": "7c30ed3b967c03c2e7dff34eddc6113b69d43e1a99309cf406e0b4eb571cac0c",
       "computer-link/windows-owner/src/main.rs": "2099a65ec00fe18f47701fe70eca5d3f8663ec92dabd3e2374f1953be0839215",
-      "computer-link/windows-owner/src/owned_worker.rs": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
+      "computer-link/windows-owner/src/owned_worker.rs": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
       "computer-link/windows-owner/src/status_protocol.rs": "7d5555027b497340a749695910121774ce53b807557cc9ce27131e81548d69fd",
       "computer-link/windows-owner/src/stdio_pipe.rs": "2c38e022987c4e479859c880d63f0bbc99aff94c5c793302b59d550e960c47b7",
       "computer-link/windows-owner/src/window_focus.rs": "0f23266109cd3e4668659a1f0b568a723f4f4b04fa7e9bb89230594846d53779",
@@ -329,7 +329,7 @@
       "docs/AGENT-MONITOR.md": "a7059d0410433fb174e8dc00e7081191cb2f1a1e02fd2cc926a84a98af391154",
       "docs/ARCHITECTURE.md": "f5c608fba9a0623b7f84e64a91ba0b23324af682bbe4fdc26ac3065f156ececb",
       "docs/CHATGPT-COMPATIBILITY.md": "213ead714b409eb496036609f52ec8de19bae1f3226da31661f231c91b5685f7",
-      "docs/COMPUTER-LINK-MIGRATION.md": "8ceabf06e1746309f21b1a98eb3183ea23f5df1e54000c40d1e846393f9ac96b",
+      "docs/COMPUTER-LINK-MIGRATION.md": "3eead76ecc3e7d48ee702e5aaf41c8805bb061d650b97d5ad4c8949d7c72869f",
       "docs/CONSTELLATION-COMMANDER-v0.6.0-ELECTRON-REPAIR-CHECKPOINT.md": "926a314d57f6a6b2df3bf3e4b8fdd159852aa42e3c8b7a3decda2460812b701d",
       "docs/CONSTELLATION-COMMANDER-v0.7.0-FINAL.md": "6be711bd63a781ba644870ec90afbd1ec55c1df348608a5d5b2c39a9ee7beac6",
       "docs/CONTINUATION.md": "acc616ee981c384b61eb660673fea9441a092b2ff386b2009655faa12b1ca526",
@@ -509,8 +509,8 @@
       "recovery/README.md": "2be70d34c947f0608ba3785adde3284f87401762ca1793bc1cfb44c8031626be",
       "recovery/computer-link/GITHUB-METADATA.json": "5a4c9da6e4649c6cc4b7ec1d04dc806bd0a188a8d78915e5e0a12ab4a706e218",
       "recovery/computer-link/IMPORT-HYGIENE.json": "03496ea6e80f7b007b7fb81a5afcdae2bc6eff0f64026e1822740fcef9d25cf9",
-      "recovery/computer-link/INTEGRATION-DELTAS.json": "e502c334c0ab420616c73875110540e560b93020054cf87f8977a906c05c5da4",
-      "recovery/computer-link/INTEGRATION-RECEIPT.json": "5706ccd1047774899fb273a58842ce4c9c093ce80a8de91f652831af5621172c",
+      "recovery/computer-link/INTEGRATION-DELTAS.json": "8a7b7a2ed896567767055b6f3afcb7619c382b2be5006b723fdfc9cbe81b307e",
+      "recovery/computer-link/INTEGRATION-RECEIPT.json": "0c7679f5b1a90cf0f00853c87dd24616e660396338d83e1a63c525183bc27202",
       "recovery/computer-link/SOURCE-MANIFEST.json": "829698f74c8afbcd703f373424a54971d659b097ca5a9648c2e24e93b515033e",
       "recovery/computer-link/main-snapshot/README.md": "4f6241d405ddc193d2684440c34bbcf6885a44ebf395392fd7695154a0276c70",
       "recovery/computer-link/main-snapshot/docs/architecture.md": "3768b037cb0a0a16861c02961611751d47f4abab471ce29460c3a046a8162007",
@@ -934,7 +934,7 @@
       "wiki/Agent-Monitor.md": "e58758ed516a48c6f178a26e0fff56974f59a4d46873f1255b25a2003dbb75e7",
       "wiki/Architecture.md": "e613fa8daf9d6d0298f904f41278b31372563e888cf83d2b87eeae40dcf7d6d1",
       "wiki/ChatGPT-Integration.md": "54b4e5dffb1a6fd696c344d0a1fc85d3e55092c7561144cf9cc6baf8c4d714a0",
-      "wiki/Computer-Tools.md": "8ceabf06e1746309f21b1a98eb3183ea23f5df1e54000c40d1e846393f9ac96b",
+      "wiki/Computer-Tools.md": "3eead76ecc3e7d48ee702e5aaf41c8805bb061d650b97d5ad4c8949d7c72869f",
       "wiki/Contributor-and-Agent-Continuation.md": "acc616ee981c384b61eb660673fea9441a092b2ff386b2009655faa12b1ca526",
       "wiki/Development-and-Building.md": "59a908d64ef15a43d6b2f0877358d2eeb59103829579fd7465a3987f9998198a",
       "wiki/FAQ.md": "d53ca5f6d2722038fd29209aeba7f35476985a8d81b1f14dba32c74d804d5365",
@@ -947,7 +947,7 @@
       "wiki/Privacy-Policy.md": "59ddded99803acc16b129089d4d3375e26d9b29ec9149854e2302800590e59a0",
       "wiki/README.md": "b0583978f669dd3ec83625e3f1cc408a3a34fd62674065ebfb8d263e82e8d417",
       "wiki/Recovery.md": "1fefc0c7dff94d850f06bc29e7d85ead92eb7c71ccca641c6beb1080c1ca1e44",
-      "wiki/Release-Process.md": "b0bd05edb3d572ec5f5c2ed8240a3dd3f087eb4d2ed2a3a798141829322126c7",
+      "wiki/Release-Process.md": "f89b8dc20ec839819ee03814015d3127f54e743b57f6b4e11dd38d23421438a0",
       "wiki/Security-and-Privacy.md": "4c1f97725f7c9c06b3d55f9326a4bda06c401ea8913f37aea9820d9b91d681a6",
       "wiki/Troubleshooting.md": "026b628b2c1d1b220f86cd66e36cc897b762e1419fd4bfa5ebd1933af98c9e00",
       "wiki/Updating.md": "fcd5d4ee8d1543e70f25953c0eebd93585750d7d3574b4d10fbd80ad901f5f93",
@@ -964,7 +964,7 @@
       "sha256": "71a25374be55d4b21e2d65a2611aba038011c43a35ace437c06c0e373c97b868"
     },
     "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
-    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior."
+    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source."
   },
   "tools": {
     "shrink-anything": {
@@ -2626,7 +2626,12 @@
     "v022-release-amendment-new-fixture-whitespace.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "v022-release-amendment-input-sha256.json": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
     "v022-release-amendment.diff": "89b73214b039ba21a78ebb1776ccc6b32d987dea429bea4a0da74157b4b4c103",
-    "v022-release-amendment-syntax.py": "89e6a99d9e01816c5f773e2e354337fefd4385967b52bff7f34243e02c73d8e3"
+    "v022-release-amendment-syntax.py": "89e6a99d9e01816c5f773e2e354337fefd4385967b52bff7f34243e02c73d8e3",
+    "v022-checkout-amendment-input-sha256.json": "dc0c27b61c21a5736ed674609223fc2e46e1ac3ea95e6007dae36c0eed889f5d",
+    "v022-checkout-amendment.diff": "2fa2464409da83c69d3777d17c3bb22ccde15e336d21ce202c2e02759b63a571",
+    "v022-checkout-amendment-validation.json": "93d0e689c554f0af83d4572b14c087d42025839a66fe4d494ec12255b84ffd68",
+    "v022-worker-diagnostic-amendment-input-sha256.json": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
+    "v022-worker-diagnostic-amendment.diff": "09f0ca604867b400e85bef3b66c716cea41044eacc0fbd9d376a36c1df35be40"
   },
   "gate_limits": [
     "This is an optimization/preservation annex, not a release-wide or installation acceptance pass. Hosted CI, Windows setup/uninstall/upgrade, actual Windows native UI, installed browser/nativeMessaging, speaker output and user-account workflows have separate gates.",
@@ -2639,7 +2644,9 @@
     "This receipt explicitly separates its final ten-path installer/documentation amendment from the named original measurement/profile snapshot. Static/size assessments were refreshed only for affected scopes; no unaffected timing was rerun or silently relabelled.",
     "Whitespace evidence is qualified: earlier working-tree checks exited0, but the subsequent all-files commit check exited2 with 28 findings in five hash-identical original imported source/license files. Those bytes are intentionally preserved. No unconditional staged/all-files whitespace PASS is claimed.",
     "The final post-CI amendment changes only canonical-path expectations in one Rust test file. Alias inputs and exact equality assertions are retained; production code and performance evidence are unchanged. Actual Windows installer/GUI acceptance remains a separate hosted gate.",
-    "The final 15-path amendment records exact source/fixture/workflow/documentation inputs and refreshed static analysis with focused syntax/contracts. Original measured timings remain evidence only for their named baseline and unchanged workloads. Final installed-browser, Windows setup/GUI and publication acceptance remain distinct hosted gates."
+    "The final 15-path amendment records exact source/fixture/workflow/documentation inputs and refreshed static analysis with focused syntax/contracts. Original measured timings remain evidence only for their named baseline and unchanged workloads. Final installed-browser, Windows setup/GUI and publication acceptance remain distinct hosted gates.",
+    "The last two-path amendment preserves exact legacy Git bytes through path-specific -text attributes and triggers Windows runtime CI for attribute changes. Independent attribute/YAML/diff checks passed; the fresh-checkout proof is attributed and hosted Windows acceptance remains a separate gate.",
+    "The final Windows owned-worker change adds bounded test diagnostics and a success marker while preserving all exclusion checks. It does not claim resolution of the failing hosted child. Production code is byte-identical, but whole-file build-input fingerprints require fresh target payloads; prior timings retain their original baseline identity."
   ],
   "validation_commands_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
   "final_source_amendment": {
@@ -3536,6 +3543,281 @@
       },
       "unified_diff_sha256": "89b73214b039ba21a78ebb1776ccc6b32d987dea429bea4a0da74157b4b4c103",
       "script_sha256": "d69e425afe7fd144a4ce1958457bb6e8f432fbbec80f680e782ed1d93c519d3e"
+    }
+  ],
+  "post_ci_checkout_amendments": [
+    {
+      "reason": "Actual hosted Windows source-clean checks exposed legacy committed CRLF/mixed-ending PowerShell blobs that became dirty immediately under blanket text/eol conversion. Preserve their exact committed bytes and ensure the Windows Desktop workflow is triggered by the policy fix.",
+      "prior_receipt_sha256": "0fe4c7539cf46bbced8456e13920f388111db561848eabc2b354ee0eed1f85de",
+      "previous_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
+      "final_source_manifest_sha256": "dc0c27b61c21a5736ed674609223fc2e46e1ac3ea95e6007dae36c0eed889f5d",
+      "source_file_count": 915,
+      "changed_paths": [
+        {
+          "path": ".gitattributes",
+          "previous_sha256": "d9d3aae3b2471bfaabd1ec2c1c5921b5bfb55e66ad9f019a97d7e0f56c5b0d82",
+          "final_sha256": "9d2194cce6b4c0df4776369b5924824e59fd1613debab8217a579000114c9014",
+          "previous_bytes": 131,
+          "final_bytes": 513
+        },
+        {
+          "path": ".github/workflows/windows-runtime.yml",
+          "previous_sha256": "42949875a8e8dd641f095dcd105454e479a95fcd0eaea36150d5ce0a7fb19c39",
+          "final_sha256": "e573ed7d5be933830466689f2daed6e71a21632fa2e5acbed245fea19ce43bcc",
+          "previous_bytes": 13078,
+          "final_bytes": 13128
+        }
+      ],
+      "unchanged_source_files": 913,
+      "added_paths": [],
+      "removed_paths": [],
+      "reviewed_changes": [
+        "Four exact tools/chatgpt-ui-rescue legacy paths receive -text overrides. No wildcard exemption or existing global attribute rule is removed.",
+        "Only .gitattributes is added to both pull_request and push path filters of windows-runtime.yml; all other parsed workflow semantics are identical.",
+        "The existing source-clean guard remains strict. The fix changes checkout conversion policy rather than relaxing the guard or modifying legacy PowerShell source bytes.",
+        "This audit never reads or edits the four pre-existing dirty workspace PowerShell files. They remain excluded from the assessed/published change scope."
+      ],
+      "independent_validation": {
+        "attributes": {
+          "argv": [
+            "git",
+            "check-attr",
+            "text",
+            "eol",
+            "--",
+            "tools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1",
+            "tools/chatgpt-ui-rescue/install-local-agent.ps1",
+            "tools/chatgpt-ui-rescue/status-local-agent.ps1",
+            "tools/chatgpt-ui-rescue/uninstall-local-agent.ps1",
+            "desktop/native/windows-computer-use.ps1"
+          ],
+          "exit_code": 0,
+          "stdout": "tools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1: text: unset\ntools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1: eol: crlf\ntools/chatgpt-ui-rescue/install-local-agent.ps1: text: unset\ntools/chatgpt-ui-rescue/install-local-agent.ps1: eol: crlf\ntools/chatgpt-ui-rescue/status-local-agent.ps1: text: unset\ntools/chatgpt-ui-rescue/status-local-agent.ps1: eol: crlf\ntools/chatgpt-ui-rescue/uninstall-local-agent.ps1: text: unset\ntools/chatgpt-ui-rescue/uninstall-local-agent.ps1: eol: crlf\ndesktop/native/windows-computer-use.ps1: text: set\ndesktop/native/windows-computer-use.ps1: eol: crlf\n",
+          "interpretation": "Only the four exact legacy paths unset text conversion. Their inherited eol=crlf remains visible but does not convert bytes when text is unset. Other PowerShell files retain text/eol=crlf policy.",
+          "file_contents_read": false
+        },
+        "workflow": {
+          "yaml_parse": "passed",
+          "pull_request_path_present_once": true,
+          "push_path_present_once": true,
+          "no_other_yaml_semantic_change": true
+        },
+        "diff": {
+          "argv": [
+            "git",
+            "diff",
+            "--check",
+            "--",
+            ".gitattributes",
+            ".github/workflows/windows-runtime.yml"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "reported_checkout_validation": {
+        "source": "Coordinator/migration agent's isolated fresh Windows-style checkout proof; not rerun by this receipt amendment",
+        "before": "The four original committed blobs become dirty before tests under the previous text/eol attributes.",
+        "after": "The fresh checkout is clean with exact path -text overrides, preserving original committed blob bytes and workspace edits.",
+        "hosted_gate": "Requires the subsequent actual Windows rerun; neither this attribute check nor a clean local reproduction is recorded as Windows Setup/Desktop acceptance."
+      },
+      "optimizer_applicability": {
+        "rerun": false,
+        "reason": "Only Git byte-conversion policy and two workflow trigger entries changed. No executable source, dependency, test workload or measured native binary changed. Existing pinned static assessments retain their recorded source snapshots; repeating shrink/fast/rust analysis would not assess checkout correctness.",
+        "retained_optimization": false
+      },
+      "performance_evidence": {
+        "rerun": false,
+        "assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "reason": "All original timing/profile workload inputs are unchanged, and the amendment affects checkout policy only. No prior measurement is relabelled as a measurement of the final tree."
+      },
+      "diff_hygiene": "These two coordinated edits pass their scoped diff check. The earlier original-import/license whitespace exception remains intact; no whole-repository whitespace PASS is asserted.",
+      "unified_diff_sha256": "2fa2464409da83c69d3777d17c3bb22ccde15e336d21ce202c2e02759b63a571",
+      "validation_sha256": "93d0e689c554f0af83d4572b14c087d42025839a66fe4d494ec12255b84ffd68",
+      "script_sha256": "f7714b75bba73d7b047e6a8eabc513de12a73c21c407379a404c07bcb6cb6a0e",
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      }
+    }
+  ],
+  "post_ci_worker_diagnostic_amendments": [
+    {
+      "reason": "Expose a Windows-only child assertion behind exit code 101 without weakening its inheritance-isolation acceptance gate. This is a diagnostic follow-up; the failure's root cause remains unresolved pending the next actual Windows run.",
+      "prior_receipt_sha256": "19df2adfb65411c44bb79940052dc7b0985a248d012a46a7570ecd5c7031173a",
+      "previous_source_manifest_sha256": "dc0c27b61c21a5736ed674609223fc2e46e1ac3ea95e6007dae36c0eed889f5d",
+      "final_source_manifest_sha256": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
+      "source_file_count": 915,
+      "changed_paths": [
+        {
+          "path": ".github/workflows/windows-setup.yml",
+          "previous_sha256": "aa70e870a477cdf62e7dcdc1d165df4bd349b7334880828f9b90de933154060e",
+          "final_sha256": "b8bdf778f739d3e861549d7104b6bd08b852014e9b4183a1ecfcd158144c2676",
+          "previous_bytes": 5396,
+          "final_bytes": 5839
+        },
+        {
+          "path": "computer-link/windows-owner/src/owned_worker.rs",
+          "previous_sha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
+          "final_sha256": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
+          "previous_bytes": 14793,
+          "final_bytes": 17184
+        },
+        {
+          "path": "docs/COMPUTER-LINK-MIGRATION.md",
+          "previous_sha256": "8ceabf06e1746309f21b1a98eb3183ea23f5df1e54000c40d1e846393f9ac96b",
+          "final_sha256": "3eead76ecc3e7d48ee702e5aaf41c8805bb061d650b97d5ad4c8949d7c72869f",
+          "previous_bytes": 15630,
+          "final_bytes": 15801
+        },
+        {
+          "path": "recovery/computer-link/INTEGRATION-DELTAS.json",
+          "previous_sha256": "e502c334c0ab420616c73875110540e560b93020054cf87f8977a906c05c5da4",
+          "final_sha256": "8a7b7a2ed896567767055b6f3afcb7619c382b2be5006b723fdfc9cbe81b307e",
+          "previous_bytes": 3555,
+          "final_bytes": 4136
+        },
+        {
+          "path": "recovery/computer-link/INTEGRATION-RECEIPT.json",
+          "previous_sha256": "5706ccd1047774899fb273a58842ce4c9c093ce80a8de91f652831af5621172c",
+          "final_sha256": "0c7679f5b1a90cf0f00853c87dd24616e660396338d83e1a63c525183bc27202",
+          "previous_bytes": 3334,
+          "final_bytes": 3334
+        },
+        {
+          "path": "wiki/Computer-Tools.md",
+          "previous_sha256": "8ceabf06e1746309f21b1a98eb3183ea23f5df1e54000c40d1e846393f9ac96b",
+          "final_sha256": "3eead76ecc3e7d48ee702e5aaf41c8805bb061d650b97d5ad4c8949d7c72869f",
+          "previous_bytes": 15630,
+          "final_bytes": 15801
+        },
+        {
+          "path": "wiki/Release-Process.md",
+          "previous_sha256": "b0bd05edb3d572ec5f5c2ed8240a3dd3f087eb4d2ed2a3a798141829322126c7",
+          "final_sha256": "f89b8dc20ec839819ee03814015d3127f54e743b57f6b4e11dd38d23421438a0",
+          "previous_bytes": 6264,
+          "final_bytes": 6768
+        }
+      ],
+      "unchanged_source_files": 908,
+      "added_paths": [],
+      "removed_paths": [],
+      "independent_review": {
+        "test_only_module": "All worker changes are within the existing #[cfg(test)] module; the complete prefix before that module is byte-identical.",
+        "production_prefix_bytes": 9091,
+        "production_prefix_sha256": "7b9d695f8d92b0c7c142cfd5d40882997fc375012458aa70cd4533ac0355340c",
+        "existing_assertions_retained": [
+          "Five-second WaitForSingleObject timeout",
+          "Child process exit code must equal zero",
+          "DuplicateHandle invalid-handle exclusion path",
+          "CompareObjectHandles must reject identity with the unrelated inheritable event"
+        ],
+        "diagnostic_bounds": "PeekNamedPipe reports already available stdout bytes; only min(available,8192) bytes are read. Diagnostics do not wait for EOF or extend the existing process timeout.",
+        "diagnostic_truthfulness": "A caught child assertion is reported through the explicit stdout pipe and resumed as the same panic. A required HANDLE_LIST_FIXTURE_OK line additionally confirms execution of the exclusion assertion; a mere zero exit cannot pass by skipping the fixture.",
+        "other_changes": "Migration docs/wiki identify the eighth test-only delta. INTEGRATION-RECEIPT changes only documentedDeltas 7 to 8. Release-process wiki matches the already reviewed docs/RELEASING.md except its two existing wiki navigation link targets.",
+        "windows_stability_gate": "The setup workflow adds twelve required consecutive complete native-owner library-test sweeps after the usual Computer Tools build. This deliberately reproduces the observed intermittent failure while retaining concurrency; any failed sweep stops the step."
+      },
+      "preservation": {
+        "original_source_manifest_changed": false,
+        "original_imports": 123,
+        "recorded_branch_trees": 26,
+        "recorded_reachable_commits": 92,
+        "documented_deltas_before": 7,
+        "documented_deltas_after": 8,
+        "byte_identical_imports_after": 115,
+        "new_delta": {
+          "path": "computer-link/windows-owner/src/owned_worker.rs",
+          "upstreamSha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
+          "sha256": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
+          "reason": "Test-only bounded child stdout diagnostics for Windows handle-inheritance acceptance; retain the original timeout, exit-code and object-identity exclusion assertions, and require an explicit successful child assertion marker. Production process containment and explicit handle-list inheritance are unchanged."
+        },
+        "all_eight_final_delta_hashes_verified": true,
+        "original_history_and_licenses_unchanged": true
+      },
+      "reported_validation": {
+        "source": "Frozen migration-agent and coordinator reports; not re-executed by this narrow receipt audit",
+        "windows_target_cargo_check_tests": "passed",
+        "private_mode_import_verification": "passed: 123 imports, 26 exact branch trees and 92 reachable commits",
+        "separate_actual_windows_results": "Coordinator reports the PR Setup run passed all ten GUI/lifecycle/uninstall checks; a separate push run failed the owned-worker child assertion with exit 101. The successful run does not supersede the failing run or identify its root cause.",
+        "next_gate": "Actual Windows diagnostic rerun remains required. No child-inheritance fix, final all-green acceptance, or production behavior change is claimed."
+      },
+      "independent_scoped_diff": {
+        "argv": [
+          "git",
+          "diff",
+          "--check",
+          "--",
+          ".github/workflows/windows-setup.yml",
+          "computer-link/windows-owner/src/owned_worker.rs",
+          "docs/COMPUTER-LINK-MIGRATION.md",
+          "recovery/computer-link/INTEGRATION-DELTAS.json",
+          "recovery/computer-link/INTEGRATION-RECEIPT.json",
+          "wiki/Computer-Tools.md",
+          "wiki/Release-Process.md"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "independent_stability_gate_validation": {
+        "yaml_parse": "passed",
+        "bash_n": 0,
+        "explicit_shell": "bash",
+        "runner_style_execution": [
+          "bash",
+          "--noprofile",
+          "--norc",
+          "-e",
+          "-o",
+          "pipefail"
+        ],
+        "shell_control_flow_results": [
+          {
+            "injected_failure_at": null,
+            "exit_code": 0,
+            "cargo_stub_calls": 12
+          },
+          {
+            "injected_failure_at": 3,
+            "exit_code": 42,
+            "cargo_stub_calls": 3
+          }
+        ],
+        "scope": "Injected cargo function verifies shell fail-fast control flow only; no native tests or Windows acceptance are simulated as passing.",
+        "suite_policy": "Exactly 12 complete native-owner library sweeps, each required; ordinary test concurrency and assertion selection remain unchanged. Stop at the first failed sweep, never retry until green."
+      },
+      "bounded_hygiene": {
+        "files_scanned": 7,
+        "categories": [
+          "aws_access_key",
+          "github_personal_token",
+          "openai_secret",
+          "private_key_header",
+          "slack_token"
+        ],
+        "matches": [],
+        "limit": "Common patterns only, not a universal absence-of-secrets claim."
+      },
+      "optimizer_applicability": {
+        "rerun": false,
+        "retained_optimization": false,
+        "reason": "The only code delta is an existing native Rust test fixture plus diagnostics; other changes are a bounded CI stability gate, preservation metadata and documentation. Rust-to-Rust porting is inapplicable and repeated production profiling would not test the Windows failure. Existing pinned assessments retain their exact prior input bindings."
+      },
+      "performance_evidence": {
+        "rerun": false,
+        "assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "reason": "Original timings and binaries remain evidence for the explicitly named baseline. Although cfg(test) changes leave reviewed production code unchanged, the complete source fingerprint used by payload builders includes this file and may change. No old binary/build-manifest hash is relabelled as belonging to the final source; target payloads must be rebuilt and validated against the final inputs."
+      },
+      "diff_hygiene": "Scoped coordinated edits pass. Previously recorded original-import/license whitespace exceptions remain unchanged, without an unconditional whole-repository PASS.",
+      "unified_diff_sha256": "09f0ca604867b400e85bef3b66c716cea41044eacc0fbd9d376a36c1df35be40",
+      "script_sha256": "3bc05e7ed11651df421a75a1d276b09b9166bb2f1a46702e85bb46bcc2f66f8f",
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      }
     }
   ]
 }

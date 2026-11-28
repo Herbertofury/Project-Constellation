@@ -119,10 +119,12 @@ process, an unrelated browser, or an independently launched Computer Tools UI.
 ## Source and dependency preservation
 
 123 upstream files were imported with Git blob/SHA-256 identity. Original source
-tests and original per-crate Cargo.lock files remain present. Seven documented
+tests and original per-crate Cargo.lock files remain present. Eight documented
 source deltas introduce the integrated README, Constellation native owner captions
 with corresponding exact-caption fixtures, and an event-driven `Process.wait`
-method. The runnable worker CLI, adapter, launcher/build tools and integration
+method. The eighth delta adds bounded diagnostics and an explicit success marker
+to the Windows handle-isolation test; its production code and exclusion
+assertions remain intact. The runnable worker CLI, adapter, launcher/build tools and integration
 tests are new files. `INTEGRATION-DELTAS.json` records their relationship to the
 unchanged upstream objects.
 

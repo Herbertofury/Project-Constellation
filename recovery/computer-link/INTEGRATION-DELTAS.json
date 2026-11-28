@@ -42,6 +42,12 @@
       "upstreamSha256": "1348b0ffbbf7b84f4e45ff396d0a590a8931b2eb67f8ef0b39cf6129ef81840f",
       "sha256": "635edb8b39e1650884bf135ad38a6964dad55b2db4e7f584612232ad982f25b2",
       "reason": "Add event-driven Process.wait API used by installed owned-worker CLI; original backend lifecycle/environment/creation-time containment unchanged."
+    },
+    {
+      "path": "computer-link/windows-owner/src/owned_worker.rs",
+      "upstreamSha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
+      "sha256": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
+      "reason": "Test-only bounded child stdout diagnostics for Windows handle-inheritance acceptance; retain the original timeout, exit-code and object-identity exclusion assertions, and require an explicit successful child assertion marker. Production process containment and explicit handle-list inheritance are unchanged."
     }
   ],
   "addedIntegration": [

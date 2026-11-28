@@ -8,7 +8,7 @@
     "restoredBranchTrees": 26,
     "reachableCommits": 92,
     "completeGitBundles": 2,
-    "documentedDeltas": 7,
+    "documentedDeltas": 8,
     "verified": true,
     "bundleStorage": "private-local-only; excluded from public source and artifacts",
     "publicHistoryMigration": "pending specific archive-publication approval and durable verification",

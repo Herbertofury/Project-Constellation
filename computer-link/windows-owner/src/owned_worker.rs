@@ -170,29 +170,65 @@ fn quote(s:&std::ffi::OsStr)->io::Result<Vec<u16>> {
   let args=vec!["--exact".into(),"owned_worker::tests::handle_list_fixture".into(),"--ignored".into(),"--nocapture".into()];
   let mut worker=OwnedWorker::launch_inner(&std::env::current_exe().unwrap(),&args,Some(&mut pipes)).unwrap();
   let mut io=pipes.into_parent();writeln!(io.input,"{}\n{}",event.0 as usize,name).unwrap();drop(io.input);
-  assert_eq!(unsafe{WaitForSingleObject(worker.process.0,5000)},0,"handle fixture timed out");
-  assert_eq!(worker.exit_code().unwrap(),Some(0));worker.stop().unwrap();
+  let wait=unsafe{WaitForSingleObject(worker.process.0,5000)};
+  let output=handle_fixture_output(&mut io.output).unwrap_or_else(|error|format!("fixture output unavailable: {error}"));
+  assert_eq!(wait,0,"handle fixture timed out; stdout: {output}");
+  assert_eq!(worker.exit_code().unwrap(),Some(0),"handle fixture failed; stdout: {output}");
+  assert!(output.lines().any(|line|line.trim()=="HANDLE_LIST_FIXTURE_OK"),"handle fixture did not confirm its assertion; stdout: {output}");
+  worker.stop().unwrap();
+ }
+ // Read only the bytes already available. Never wait for pipe EOF after a failed
+ // fixture or let diagnostic output turn the existing five-second wait unbounded.
+ fn handle_fixture_output(output:&mut std::fs::File)->io::Result<String>{
+  use std::{io::Read,os::windows::io::AsRawHandle};
+  unsafe extern "system"{fn PeekNamedPipe(pipe:H,buffer:*mut c_void,size:u32,read:*mut u32,available:*mut u32,left:*mut u32)->i32;}
+  let mut available=0;
+  if unsafe{PeekNamedPipe(output.as_raw_handle(),ptr::null_mut(),0,ptr::null_mut(),&mut available,ptr::null_mut())}==0{
+   let error=io::Error::last_os_error();
+   if error.raw_os_error()==Some(109){return Ok(String::new())}
+   return Err(error);
+  }
+  let mut bytes=vec![0;available.min(8192) as usize];output.read_exact(&mut bytes)?;
+  let mut text=String::from_utf8_lossy(&bytes).into_owned();
+  if available>8192{text.push_str("\n[fixture diagnostic exceeded 8192 bytes]")}
+  Ok(text)
  }
  #[test] #[ignore] fn handle_list_fixture(){
-  let mut value=String::new();std::io::stdin().read_line(&mut value).unwrap();
-  let handle=value.trim().parse::<usize>().unwrap() as H;
-  let mut name=String::new();std::io::stdin().read_line(&mut name).unwrap();
+  use std::io::Write;
+  // Production stderr remains NUL. This isolated test child reports its panic
+  // through its explicit stdout pipe, then resumes unwinding with the same error.
+  let result=std::panic::catch_unwind(assert_handle_list_exclusion);
+  let mut output=std::io::stdout().lock();
+  match result{
+   Ok(())=>{let _=writeln!(output,"\nHANDLE_LIST_FIXTURE_OK");let _=output.flush();},
+   Err(payload)=>{
+    let message=payload.downcast_ref::<String>().map(String::as_str).or_else(||payload.downcast_ref::<&str>().copied()).unwrap_or("non-string panic payload");
+    let _=writeln!(output,"\nHANDLE_LIST_FIXTURE_FAILED: {message}");let _=output.flush();drop(output);
+    std::panic::resume_unwind(payload);
+   }
+  }
+ }
+ fn assert_handle_list_exclusion(){
+  let mut value=String::new();std::io::stdin().read_line(&mut value).expect("read parent event handle");
+  let handle=value.trim().parse::<usize>().expect("parse parent event handle") as H;
+  let mut name=String::new();std::io::stdin().read_line(&mut name).expect("read parent event name");
   unsafe extern "system"{fn OpenEventW(access:u32,inherit:i32,name:*const u16)->H;fn GetCurrentProcess()->H;fn DuplicateHandle(source:H,handle:H,target:H,result:*mut H,access:u32,inherit:i32,options:u32)->i32;}
   unsafe extern "system"{fn GetModuleHandleW(name:*const u16)->H;fn GetProcAddress(module:H,name:*const u8)->*mut c_void;}
   // The documented export exists on supported Windows, but SDKs need not ship
   // kernelbase.lib. Resolve only this already-loaded system module; no loading.
   let module_name=wide(std::ffi::OsStr::new("kernelbase.dll")).unwrap();
-  let module=unsafe{GetModuleHandleW(module_name.as_ptr())};assert!(!module.is_null());
-  let address=unsafe{GetProcAddress(module,b"CompareObjectHandles\0".as_ptr())};assert!(!address.is_null());
+  let module=unsafe{GetModuleHandleW(module_name.as_ptr())};assert!(!module.is_null(),"resolve loaded kernelbase.dll: {}",io::Error::last_os_error());
+  let address=unsafe{GetProcAddress(module,b"CompareObjectHandles\0".as_ptr())};assert!(!address.is_null(),"resolve CompareObjectHandles: {}",io::Error::last_os_error());
   let compare:unsafe extern "system" fn(H,H)->i32=unsafe{mem::transmute(address)};
   let mut observed=ptr::null_mut();
   let me=unsafe{GetCurrentProcess()};
   if unsafe{DuplicateHandle(me,handle,me,&mut observed,0,0,2)}==0 {
-   assert_eq!(io::Error::last_os_error().raw_os_error(),Some(6));return;
+   let error=io::Error::last_os_error();
+   assert_eq!(error.raw_os_error(),Some(6),"duplicate child handle {handle:p}: {error}");return;
   }
   let observed=Handle(observed);
   let name=wide(std::ffi::OsStr::new(name.trim())).unwrap();
-  let known=Handle(unsafe{OpenEventW(0x100000,0,name.as_ptr())});assert!(!known.0.is_null());
+  let known=Handle(unsafe{OpenEventW(0x100000,0,name.as_ptr())});assert!(!known.0.is_null(),"open parent event for identity comparison: {}",io::Error::last_os_error());
   // Compare identity, not numeric validity: startup may recycle the old number.
   assert_eq!(unsafe{compare(observed.0,known.0)},0,"unrelated inheritable event leaked");
  }
