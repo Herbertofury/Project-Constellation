@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 
 export const APP_NAME = 'Project Constellation';
-export const VERSION = '0.24.0';
+export const VERSION = '0.25.0';
 
 export function stateDir() {
   return process.env.CONSTELLATION_COMMANDER_HOME || path.join(os.homedir(), '.constellation-commander');

@@ -1,0 +1,2621 @@
+{
+  "schema": "constellation-full-dashboard-benchmark-v1",
+  "baselineCommit": "fc9a2322c6fb521f09f056d6f8208d6431fdfc07",
+  "benchmarkToolSha256": "27c5e08bbd804fa1b97da2b0db93a3e8eb7af77ee52b0268d68b7fdf7239f42c",
+  "candidateHead": "fc9a2322c6fb521f09f056d6f8208d6431fdfc07",
+  "capturedSourceSha256": {
+    "baseline": {
+      "js": "a6faa0ec3fc35ba9198808501040e3cc1f3a27173f31cedf99dc5bfbd730ceab",
+      "html": "6e302d2c890193405f3a25cfc053d11bda625b451b3ca917d6d48182fb3d934a",
+      "css": "23968bbfc6bd4e83218143e57a75f65ab0b4a1d703b54413c6135b0ba858ed33"
+    },
+    "candidate": {
+      "js": "47f24a8891c3391faf0cde203b86ab616943a27958de3f095ec434e37e93f27b",
+      "html": "21b7f20e72aad583f44e10084385f2a5d3cd912103f65c1c3fcd76cb09e23f20",
+      "css": "011a16f5f4131c0ca3b6cc881cb10b1b303b757b7db539c1bb51885976e6b5d1"
+    }
+  },
+  "workload": "All sessions and one incident per two sessions. Cold eval/status replies/DOM/layout; complete unchanged and two-row changed refreshes. No caps/culling/pagination.",
+  "memoryScope": "CDP JSHeapUsedSize after explicit collection, total for this page; not process RSS.",
+  "timingUnit": "milliseconds",
+  "samples": 11,
+  "results": [
+    {
+      "variant": "baseline",
+      "sessions": 100,
+      "incidents": 50,
+      "timings": {
+        "cold": {
+          "n": 11,
+          "p50": 30.4000000001397,
+          "p95": 40.199999999953434,
+          "p99": 40.199999999953434,
+          "min": 27.399999999906868,
+          "max": 40.199999999953434
+        },
+        "unchanged": {
+          "n": 11,
+          "p50": 3.199999999953434,
+          "p95": 7.099999999860302,
+          "p99": 7.099999999860302,
+          "min": 2.6000000000931323,
+          "max": 7.099999999860302
+        },
+        "changed": {
+          "n": 11,
+          "p50": 3.199999999953434,
+          "p95": 5,
+          "p99": 5,
+          "min": 2.300000000046566,
+          "max": 5
+        }
+      },
+      "jsHeapUsedBytesAfterGc": {
+        "n": 11,
+        "p50": 1119036,
+        "p95": 1119444,
+        "p99": 1119444,
+        "min": 1117904,
+        "max": 1119444
+      },
+      "allSamplesRenderedCompleteWorkload": true,
+      "raw": [
+        {
+          "cold": {
+            "ms": 38.300000000046566,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.699999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1117904,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3728,
+            "jsEventListeners": 281
+          }
+        },
+        {
+          "cold": {
+            "ms": 28.300000000046566,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.699999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.199999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1117904,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3728,
+            "jsEventListeners": 281
+          }
+        },
+        {
+          "cold": {
+            "ms": 28.199999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.6000000000931323,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 2.699999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1119108,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3802,
+            "jsEventListeners": 285
+          }
+        },
+        {
+          "cold": {
+            "ms": 30.199999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 4,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.1000000000931323,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1119412,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3802,
+            "jsEventListeners": 285
+          }
+        },
+        {
+          "cold": {
+            "ms": 27.399999999906868,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.1000000000931323,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 2.300000000046566,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1117904,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3728,
+            "jsEventListeners": 281
+          }
+        },
+        {
+          "cold": {
+            "ms": 40.199999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 7.099999999860302,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 5,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1119068,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3802,
+            "jsEventListeners": 285
+          }
+        },
+        {
+          "cold": {
+            "ms": 30.4000000001397,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.699999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.4000000001396984,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1119036,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3802,
+            "jsEventListeners": 285
+          }
+        },
+        {
+          "cold": {
+            "ms": 31.100000000093132,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.9000000001396984,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.6000000000931323,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1119444,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3802,
+            "jsEventListeners": 285
+          }
+        },
+        {
+          "cold": {
+            "ms": 28.899999999906868,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.0999999998603016,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 2.8999999999068677,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1119108,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3802,
+            "jsEventListeners": 285
+          }
+        },
+        {
+          "cold": {
+            "ms": 30.899999999906868,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.199999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.3999999999068677,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1117904,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3728,
+            "jsEventListeners": 281
+          }
+        },
+        {
+          "cold": {
+            "ms": 33,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.699999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.199999999953434,
+            "height": 14097,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1117904,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3728,
+            "jsEventListeners": 281
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "sessions": 100,
+      "incidents": 50,
+      "timings": {
+        "cold": {
+          "n": 11,
+          "p50": 32.300000000046566,
+          "p95": 48.699999999953434,
+          "p99": 48.699999999953434,
+          "min": 27.899999999906868,
+          "max": 48.699999999953434
+        },
+        "unchanged": {
+          "n": 11,
+          "p50": 4,
+          "p95": 5.399999999906868,
+          "p99": 5.399999999906868,
+          "min": 2.199999999953434,
+          "max": 5.399999999906868
+        },
+        "changed": {
+          "n": 11,
+          "p50": 3.199999999953434,
+          "p95": 4.899999999906868,
+          "p99": 4.899999999906868,
+          "min": 2.4000000001396984,
+          "max": 4.899999999906868
+        }
+      },
+      "jsHeapUsedBytesAfterGc": {
+        "n": 11,
+        "p50": 1202000,
+        "p95": 1203632,
+        "p99": 1203632,
+        "min": 1201948,
+        "max": 1203632
+      },
+      "allSamplesRenderedCompleteWorkload": true,
+      "raw": [
+        {
+          "cold": {
+            "ms": 30.199999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.3999999999068677,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.199999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1202000,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 42.5999999998603,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 5.199999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 4.300000000046566,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1202000,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 28.300000000046566,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 4,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 2.6000000000931323,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1201968,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 46.699999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 4.099999999860302,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 4.899999999906868,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1202000,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 35.299999999813735,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 4.099999999860302,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.7000000001862645,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1201948,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 27.899999999906868,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.5999999998603016,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 2.4000000001396984,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1203276,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3918,
+            "jsEventListeners": 344
+          }
+        },
+        {
+          "cold": {
+            "ms": 32.300000000046566,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.199999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1201980,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 48.699999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 5.399999999906868,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.7999999998137355,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1202000,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 30.399999999906868,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 3.6000000000931323,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 2.8999999999068677,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1201956,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3843,
+            "jsEventListeners": 339
+          }
+        },
+        {
+          "cold": {
+            "ms": 31.600000000093132,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 4.400000000139698,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.5,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1203632,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3918,
+            "jsEventListeners": 344
+          }
+        },
+        {
+          "cold": {
+            "ms": 36.199999999953434,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 2.800000000046566,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 100,
+            "retainedIncidents": 50
+          },
+          "changed": {
+            "ms": 3.1000000000931323,
+            "height": 14161,
+            "sessions": 100,
+            "incidents": 50,
+            "retainedSessions": 99,
+            "retainedIncidents": 49
+          },
+          "jsHeapUsedBytesAfterGc": 1203264,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 3918,
+            "jsEventListeners": 344
+          }
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "sessions": 1000,
+      "incidents": 500,
+      "timings": {
+        "cold": {
+          "n": 11,
+          "p50": 138.80000000004657,
+          "p95": 238.5,
+          "p99": 238.5,
+          "min": 130.5,
+          "max": 238.5
+        },
+        "unchanged": {
+          "n": 11,
+          "p50": 9,
+          "p95": 15.399999999906868,
+          "p99": 15.399999999906868,
+          "min": 8.5,
+          "max": 15.399999999906868
+        },
+        "changed": {
+          "n": 11,
+          "p50": 13.600000000093132,
+          "p95": 19.399999999906868,
+          "p99": 19.399999999906868,
+          "min": 10,
+          "max": 19.399999999906868
+        }
+      },
+      "jsHeapUsedBytesAfterGc": {
+        "n": 11,
+        "p50": 2550828,
+        "p95": 2623448,
+        "p99": 2623448,
+        "min": 2549204,
+        "max": 2623448
+      },
+      "allSamplesRenderedCompleteWorkload": true,
+      "raw": [
+        {
+          "cold": {
+            "ms": 238.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 15.399999999906868,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 17.700000000186265,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2587104,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 220.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 14.600000000093132,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 19.399999999906868,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2623448,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 144.9000000001397,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 13.699999999953434,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 16.699999999953434,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2585100,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 141.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 9,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 11.300000000046566,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2550828,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 134.10000000009313,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.599999999860302,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 10.400000000139698,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2550828,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 138.80000000004657,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 10.099999999860302,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2550576,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 138.69999999995343,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.700000000186265,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 13.600000000093132,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2550612,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 139.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.800000000046566,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 16.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2550828,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 134.10000000009313,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 10.100000000093132,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 12,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2549204,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 130.5,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.599999999860302,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 15.799999999813735,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2613692,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        },
+        {
+          "cold": {
+            "ms": 133.5999999998603,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 10.199999999953434,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 10,
+            "height": 134697,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2549384,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 31628,
+            "jsEventListeners": 2531
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "sessions": 1000,
+      "incidents": 500,
+      "timings": {
+        "cold": {
+          "n": 11,
+          "p50": 194.80000000004657,
+          "p95": 237.69999999995343,
+          "p99": 237.69999999995343,
+          "min": 141.80000000004657,
+          "max": 237.69999999995343
+        },
+        "unchanged": {
+          "n": 11,
+          "p50": 12.600000000093132,
+          "p95": 18.4000000001397,
+          "p99": 18.4000000001397,
+          "min": 8.399999999906868,
+          "max": 18.4000000001397
+        },
+        "changed": {
+          "n": 11,
+          "p50": 11.600000000093132,
+          "p95": 17.699999999953434,
+          "p99": 17.699999999953434,
+          "min": 9.699999999953434,
+          "max": 17.699999999953434
+        }
+      },
+      "jsHeapUsedBytesAfterGc": {
+        "n": 11,
+        "p50": 2697780,
+        "p95": 2709592,
+        "p99": 2709592,
+        "min": 2688396,
+        "max": 2709592
+      },
+      "allSamplesRenderedCompleteWorkload": true,
+      "raw": [
+        {
+          "cold": {
+            "ms": 219.70000000018626,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 12.600000000093132,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 16.100000000093132,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2688480,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 231.70000000018626,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 14.599999999860302,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 17.699999999953434,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2705708,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 237.69999999995343,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 13.399999999906868,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 17.199999999953434,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2705736,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 162.60000000009313,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.699999999953434,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 9.699999999953434,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2688468,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 158.10000000009313,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 18.4000000001397,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 10.899999999906868,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2701408,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 141.80000000004657,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 8.399999999906868,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 9.699999999953434,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2688432,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 147.0999999998603,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 11.300000000046566,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 10,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2688396,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 166.10000000009313,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 11.100000000093132,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 11.600000000093132,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2688468,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 194.80000000004657,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 13.699999999953434,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 10.200000000186265,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2697780,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 217.60000000009313,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 13.099999999860302,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 17.399999999906868,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2707492,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        },
+        {
+          "cold": {
+            "ms": 208.10000000009313,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 10.5,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 1000,
+            "retainedIncidents": 500
+          },
+          "changed": {
+            "ms": 13.899999999906868,
+            "height": 134761,
+            "sessions": 1000,
+            "incidents": 500,
+            "retainedSessions": 999,
+            "retainedIncidents": 499
+          },
+          "jsHeapUsedBytesAfterGc": 2709592,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 32193,
+            "jsEventListeners": 3039
+          }
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "sessions": 2000,
+      "incidents": 1000,
+      "timings": {
+        "cold": {
+          "n": 11,
+          "p50": 331.19999999995343,
+          "p95": 426.30000000004657,
+          "p99": 426.30000000004657,
+          "min": 292.69999999995343,
+          "max": 426.30000000004657
+        },
+        "unchanged": {
+          "n": 11,
+          "p50": 19.299999999813735,
+          "p95": 24.800000000046566,
+          "p99": 24.800000000046566,
+          "min": 15.600000000093132,
+          "max": 24.800000000046566
+        },
+        "changed": {
+          "n": 11,
+          "p50": 27.699999999953434,
+          "p95": 38.300000000046566,
+          "p99": 38.300000000046566,
+          "min": 19.600000000093132,
+          "max": 38.300000000046566
+        }
+      },
+      "jsHeapUsedBytesAfterGc": {
+        "n": 11,
+        "p50": 4055856,
+        "p95": 4068156,
+        "p99": 4068156,
+        "min": 4044952,
+        "max": 4068156
+      },
+      "allSamplesRenderedCompleteWorkload": true,
+      "raw": [
+        {
+          "cold": {
+            "ms": 360.89999999990687,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 21.399999999906868,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 32,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4054984,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 331.19999999995343,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 20.199999999953434,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 38.300000000046566,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4068156,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 426.30000000004657,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 20.399999999906868,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 20.5,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4053732,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 342.10000000009313,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 17.800000000046566,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 20.699999999953434,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4056472,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 377.60000000009313,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 17.799999999813735,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 27.699999999953434,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4044952,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 310,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 18.4000000001397,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 21.399999999906868,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4059968,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 306.60000000009313,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 24.300000000046566,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 34.5,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4055856,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 330.69999999995343,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 15.600000000093132,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 20.600000000093132,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4059260,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 345.69999999995343,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 19.299999999813735,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 28.5,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4048316,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 326.9000000001397,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 24.800000000046566,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 34.300000000046566,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4051452,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        },
+        {
+          "cold": {
+            "ms": 292.69999999995343,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 17.600000000093132,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 19.600000000093132,
+            "height": 268697,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4064212,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 62628,
+            "jsEventListeners": 5031
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "sessions": 2000,
+      "incidents": 1000,
+      "timings": {
+        "cold": {
+          "n": 11,
+          "p50": 335.30000000004657,
+          "p95": 462.80000000004657,
+          "p99": 462.80000000004657,
+          "min": 288.19999999995343,
+          "max": 462.80000000004657
+        },
+        "unchanged": {
+          "n": 11,
+          "p50": 18,
+          "p95": 25.9000000001397,
+          "p99": 25.9000000001397,
+          "min": 14,
+          "max": 25.9000000001397
+        },
+        "changed": {
+          "n": 11,
+          "p50": 22.5999999998603,
+          "p95": 36.89999999990687,
+          "p99": 36.89999999990687,
+          "min": 17.0999999998603,
+          "max": 36.89999999990687
+        }
+      },
+      "jsHeapUsedBytesAfterGc": {
+        "n": 11,
+        "p50": 4210676,
+        "p95": 4674416,
+        "p99": 4674416,
+        "min": 4176096,
+        "max": 4674416
+      },
+      "allSamplesRenderedCompleteWorkload": true,
+      "raw": [
+        {
+          "cold": {
+            "ms": 328.5,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 16,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 17.0999999998603,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210732,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 308.70000000018626,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 18,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 19.699999999953434,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4674416,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 355.80000000004657,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 25.200000000186265,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 28.300000000046566,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210688,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 348.30000000004657,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 17.5999999998603,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 22.5999999998603,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210676,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 384.60000000009313,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 25.9000000001397,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 34.300000000046566,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4176096,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 371.0999999998603,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 21.5999999998603,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 19.5,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210420,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 462.80000000004657,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 16.699999999953434,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 22.800000000046566,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210424,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 321.5999999998603,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 17.5,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 20.899999999906868,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210724,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 335.30000000004657,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 23.800000000046566,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 36.89999999990687,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4211420,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 316.29999999981374,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 18.799999999813735,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 33,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210408,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        },
+        {
+          "cold": {
+            "ms": 288.19999999995343,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 0,
+            "retainedIncidents": 0
+          },
+          "unchanged": {
+            "ms": 14,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 2000,
+            "retainedIncidents": 1000
+          },
+          "changed": {
+            "ms": 21.600000000093132,
+            "height": 268761,
+            "sessions": 2000,
+            "incidents": 1000,
+            "retainedSessions": 1999,
+            "retainedIncidents": 999
+          },
+          "jsHeapUsedBytesAfterGc": 4210584,
+          "domCounters": {
+            "documents": 9,
+            "nodes": 63693,
+            "jsEventListeners": 6039
+          }
+        }
+      ]
+    }
+  ],
+  "browserVersion": "158.0.8127.0",
+  "elapsedSeconds": 49.57643600100005,
+  "complete": true,
+  "candidateVersion": "0.25.0",
+  "baselineVersion": "0.24.0",
+  "measuredAtUtc": "2026-11-28T10:45:37.966199+00:00",
+  "rawReport": {
+    "path": "logs/release-0.25.0/ui-performance-final.json",
+    "sha256": "e6afe24f494856462020d4cb49ea2f8e9b2eb322e39e0bc721fa68e9441bb1bc"
+  },
+  "comparison": [
+    {
+      "sessions": 100,
+      "incidents": 50,
+      "timings": {
+        "cold": {
+          "baseline": {
+            "n": 11,
+            "p50": 30.4000000001397,
+            "p95": 40.199999999953434,
+            "p99": 40.199999999953434,
+            "min": 27.399999999906868,
+            "max": 40.199999999953434
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 32.300000000046566,
+            "p95": 48.699999999953434,
+            "p99": 48.699999999953434,
+            "min": 27.899999999906868,
+            "max": 48.699999999953434
+          },
+          "p50DifferenceMs": 1.8999999999068677
+        },
+        "unchanged": {
+          "baseline": {
+            "n": 11,
+            "p50": 3.199999999953434,
+            "p95": 7.099999999860302,
+            "p99": 7.099999999860302,
+            "min": 2.6000000000931323,
+            "max": 7.099999999860302
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 4,
+            "p95": 5.399999999906868,
+            "p99": 5.399999999906868,
+            "min": 2.199999999953434,
+            "max": 5.399999999906868
+          },
+          "p50DifferenceMs": 0.8000000000465661
+        },
+        "changed": {
+          "baseline": {
+            "n": 11,
+            "p50": 3.199999999953434,
+            "p95": 5,
+            "p99": 5,
+            "min": 2.300000000046566,
+            "max": 5
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 3.199999999953434,
+            "p95": 4.899999999906868,
+            "p99": 4.899999999906868,
+            "min": 2.4000000001396984,
+            "max": 4.899999999906868
+          },
+          "p50DifferenceMs": 0.0
+        }
+      },
+      "jsHeapBytesAfterGc": {
+        "baselineP50": 1119036,
+        "candidateP50": 1202000
+      }
+    },
+    {
+      "sessions": 1000,
+      "incidents": 500,
+      "timings": {
+        "cold": {
+          "baseline": {
+            "n": 11,
+            "p50": 138.80000000004657,
+            "p95": 238.5,
+            "p99": 238.5,
+            "min": 130.5,
+            "max": 238.5
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 194.80000000004657,
+            "p95": 237.69999999995343,
+            "p99": 237.69999999995343,
+            "min": 141.80000000004657,
+            "max": 237.69999999995343
+          },
+          "p50DifferenceMs": 56.0
+        },
+        "unchanged": {
+          "baseline": {
+            "n": 11,
+            "p50": 9,
+            "p95": 15.399999999906868,
+            "p99": 15.399999999906868,
+            "min": 8.5,
+            "max": 15.399999999906868
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 12.600000000093132,
+            "p95": 18.4000000001397,
+            "p99": 18.4000000001397,
+            "min": 8.399999999906868,
+            "max": 18.4000000001397
+          },
+          "p50DifferenceMs": 3.6000000000931323
+        },
+        "changed": {
+          "baseline": {
+            "n": 11,
+            "p50": 13.600000000093132,
+            "p95": 19.399999999906868,
+            "p99": 19.399999999906868,
+            "min": 10,
+            "max": 19.399999999906868
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 11.600000000093132,
+            "p95": 17.699999999953434,
+            "p99": 17.699999999953434,
+            "min": 9.699999999953434,
+            "max": 17.699999999953434
+          },
+          "p50DifferenceMs": -2.0
+        }
+      },
+      "jsHeapBytesAfterGc": {
+        "baselineP50": 2550828,
+        "candidateP50": 2697780
+      }
+    },
+    {
+      "sessions": 2000,
+      "incidents": 1000,
+      "timings": {
+        "cold": {
+          "baseline": {
+            "n": 11,
+            "p50": 331.19999999995343,
+            "p95": 426.30000000004657,
+            "p99": 426.30000000004657,
+            "min": 292.69999999995343,
+            "max": 426.30000000004657
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 335.30000000004657,
+            "p95": 462.80000000004657,
+            "p99": 462.80000000004657,
+            "min": 288.19999999995343,
+            "max": 462.80000000004657
+          },
+          "p50DifferenceMs": 4.100000000093132
+        },
+        "unchanged": {
+          "baseline": {
+            "n": 11,
+            "p50": 19.299999999813735,
+            "p95": 24.800000000046566,
+            "p99": 24.800000000046566,
+            "min": 15.600000000093132,
+            "max": 24.800000000046566
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 18,
+            "p95": 25.9000000001397,
+            "p99": 25.9000000001397,
+            "min": 14,
+            "max": 25.9000000001397
+          },
+          "p50DifferenceMs": -1.2999999998137355
+        },
+        "changed": {
+          "baseline": {
+            "n": 11,
+            "p50": 27.699999999953434,
+            "p95": 38.300000000046566,
+            "p99": 38.300000000046566,
+            "min": 19.600000000093132,
+            "max": 38.300000000046566
+          },
+          "candidate": {
+            "n": 11,
+            "p50": 22.5999999998603,
+            "p95": 36.89999999990687,
+            "p99": 36.89999999990687,
+            "min": 17.0999999998603,
+            "max": 36.89999999990687
+          },
+          "p50DifferenceMs": -5.100000000093132
+        }
+      },
+      "jsHeapBytesAfterGc": {
+        "baselineP50": 4055856,
+        "candidateP50": 4210676
+      }
+    }
+  ],
+  "performanceClaim": "No blanket speedup or zero-cost feature claim. The complete 1,000-session cold median rose from 138.8 ms to 194.8 ms; that added-control/source-logic cost and broad cold-run variation remain disclosed. At 2,000 sessions cold medians were 331.2/335.3 ms, unchanged refresh 19.3/18.0 ms and two-row changed refresh 27.7/22.6 ms. The candidate adds selectable incident controls, bounded action handling, profile drafts and delivery evidence. Caching/reconciliation reduce repeated equivalent model/DOM work, but these mixed measurements are not promoted as a verified zero-loss optimization win.",
+  "measurementBoundaries": [
+    "Real isolated Chromium headless shell 158.0.8127.0 on the same Linux host, with alternated variant order and 11 fresh pages per variant/size. No prewarming, culling, content-visibility suppression, pagination, reduced rows or deferred mandatory work.",
+    "Cold means evaluation, cloned complete status replies, all DOM creation and forced whole-document layout in a new page within an already running isolated browser; it is not process startup, disk-cache cold start or owner-machine responsiveness.",
+    "All sessions and all matching incidents are present after every sample. The 1000/2000-row UI stress fixtures intentionally exceed native transport capacity without changing that capacity.",
+    "A changed sample changes one session title and one incident reason; all other visible records remain. Heap is CDP JavaScript heap after explicit GC, not process RSS, OS memory or GPU use.",
+    "The v0.24 baseline lacks the new controls/behavior; both receive the same complete data. Functional/correctness work and its costs are explicit, not represented as equivalent feature guarantees.",
+    "p95/p99 use nearest-rank order statistics; at 11 samples both select the maximum. Full sample distributions and observed variation remain in this receipt.",
+    "Input source hashes are checked against the final candidate. Local fixtures are not installed-MV3, physical sound, operating-system notification or authenticated-provider acceptance. Hosted runtime gates remain separate."
+  ],
+  "engineeringReview": {
+    "priorExperiments": [
+      "logs/release-0.25.0/ui-performance-first.json",
+      "logs/release-0.25.0/ui-performance-model-cache.json",
+      "logs/release-0.25.0/ui-performance-row-reuse.json"
+    ],
+    "profiling": "logs/release-0.25.0/ui-profile.json; actual production function wrapping and DOM mutation observation identified model/reconciliation work. Complete model reuse and stable-order row replacement avoid repeated allocation and preserve original controls. No row or feature removal was tested or retained.",
+    "independentReview": "logs/release-0.25.0/browser/INDEPENDENT-ROOT-UI-REVIEW.json",
+    "semanticProof": "tests/agent-monitor-ui-logic.test.mjs and tests/smoke/agent_monitor_smoke.py cover full inventory, final-row changes, search, selection scopes, failures, malformed replies, stop/deadlines, profile races, delivery ambiguity and focus."
+  }
+}

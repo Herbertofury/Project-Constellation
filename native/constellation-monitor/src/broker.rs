@@ -121,11 +121,14 @@ impl Hub {
         result
     }
     fn persist(&mut self, directory: &Path) -> io::Result<()> {
-        let bytes = serde_json::to_vec(&self.store.snapshot())?;
-        if bytes.len() > wire::MAX_FRAME {
-            return Err(io::Error::other("state exceeds storage limit"));
-        }
-        match platform::atomic_write(&directory.join("state.json"), &bytes) {
+        let saved = (|| {
+            let bytes = serde_json::to_vec(&self.store.persisted_snapshot())?;
+            if bytes.len() > wire::MAX_FRAME {
+                return Err(io::Error::other("state exceeds storage limit"));
+            }
+            platform::atomic_write(&directory.join("state.json"), &bytes)
+        })();
+        match saved {
             Ok(()) => {
                 self.persistence_error = None;
                 Ok(())
@@ -479,7 +482,7 @@ fn process_request(
                 )
             }
             "remove" => {
-                changed = hub.store.remove(client, state::tab_id(request)?, now);
+                changed = hub.store.remove_observed(client, request, now)?;
                 reply(
                     &id,
                     "ack",

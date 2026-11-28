@@ -20,13 +20,25 @@ function log(event, data = {}) {
 }
 
 function readJson(file, fallback) {
-  try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; }
+  // Windows PowerShell 5.1 writes a UTF-8 BOM for Set-Content -Encoding UTF8.
+  // Accept those installed configs and state files without hiding other syntax errors.
+  try { return JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "")); } catch { return fallback; }
 }
 
 function writeJson(file, value) {
   const tmp = file + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + "\n", "utf8");
+  const fd = fs.openSync(tmp, "w");
+  try {
+    fs.writeFileSync(fd, JSON.stringify(value, null, 2) + "\n", "utf8");
+    fs.fsyncSync(fd);
+  } finally { fs.closeSync(fd); }
   fs.renameSync(tmp, file);
+}
+
+function savedTime(value, now = Date.now()) {
+  if (typeof value !== "string") return 0;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= now ? parsed : 0;
 }
 
 function pidAlive(pid) {
@@ -54,17 +66,22 @@ function releaseLock() {
 
 function requiredConfig() {
   const cfg = readJson(configPath, null);
-  if (!cfg) throw new Error("agent-config.json is missing.");
+  if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) throw new Error("agent-config.json is missing or contains invalid JSON.");
   for (const key of ["heartbeatUrl", "cdpUrl", "chromePath", "profileDir"]) {
     if (!cfg[key]) throw new Error(`agent-config.json is missing ${key}.`);
   }
-  return {
+  const result = {
     heartbeatPollSeconds: 240,
+    heartbeatTimeoutSeconds: 10,
     minRescueIntervalSeconds: 55,
     cdpReadySeconds: 20,
     rescueTimeoutSeconds: 120,
     ...cfg
   };
+  if (!Number.isFinite(result.heartbeatTimeoutSeconds) || result.heartbeatTimeoutSeconds <= 0 || result.heartbeatTimeoutSeconds > 30) {
+    throw new Error("agent-config.json heartbeatTimeoutSeconds must be a number greater than 0 and at most 30.");
+  }
+  return result;
 }
 
 function parseHeartbeat(body) {
@@ -75,10 +92,11 @@ function parseHeartbeat(body) {
 }
 
 async function fetchHeartbeat(cfg, state) {
-  const last = Date.parse(state.lastHeartbeatFetch || 0) || 0;
+  const last = savedTime(state.lastHeartbeatFetch);
   if (Date.now() - last < cfg.heartbeatPollSeconds * 1000 && state.lastHeartbeat) return state.lastHeartbeat;
   try {
     const response = await fetch(cfg.heartbeatUrl, {
+      signal: AbortSignal.timeout(Math.max(1, Math.ceil(cfg.heartbeatTimeoutSeconds * 1000))),
       headers: {
         "Accept": "application/vnd.github+json",
         "User-Agent": "ProjectConstellation-ChatGPT-Rescue-Agent"
@@ -170,26 +188,37 @@ function runRescue(cfg) {
 
 if (!acquireLock()) process.exit(0);
 
-let state = readJson(statePath, { schema: 1 });
+const savedState = readJson(statePath, null);
+let state = savedState && typeof savedState === "object" && !Array.isArray(savedState) ? savedState : { schema: 1 };
 try {
   const cfg = requiredConfig();
   const hb = await fetchHeartbeat(cfg, state);
-  const lastRescueMs = Date.parse(state.lastRescueAt || 0) || 0;
-  const heartbeatChanged = Number(hb.generation || 0) > Number(state.lastHeartbeatGeneration || 0);
-  const intervalDue = Date.now() - lastRescueMs >= cfg.minRescueIntervalSeconds * 1000;
+  const lastAttemptMs = Math.max(savedTime(state.lastAttemptAt), savedTime(state.lastRescueAt));
+  const lastGeneration = Math.max(Number(state.lastAttemptHeartbeatGeneration || 0), Number(state.lastHeartbeatGeneration || 0));
+  const heartbeatChanged = Number(hb.generation || 0) > lastGeneration;
+  const intervalDue = Date.now() - lastAttemptMs >= cfg.minRescueIntervalSeconds * 1000;
   const force = process.env.CHATGPT_FORCE_RESCUE === "1";
 
   if (!force && !heartbeatChanged && !intervalDue) {
     writeJson(statePath, state);
-    log("healthy-noop", { heartbeat_generation: hb.generation || 0 });
+    log("cooldown-noop", { heartbeat_generation: hb.generation || 0, previous_attempt: state.lastAttemptStatus || state.lastReportStatus || "unknown" });
     process.exitCode = 0;
   } else {
+    // Commit the attempt before Chrome launch or rescue can change anything.
+    // A terminated agent therefore cannot immediately replay the same request.
+    // This is an attempt claim, never evidence that a task was repaired.
+    state.lastAttemptAt = nowIso();
+    state.lastAttemptHeartbeatGeneration = Number(hb.generation || 0);
+    state.lastAttemptStatus = "started";
+    delete state.lastAgentError;
+    writeJson(statePath, state);
     await ensureChrome(cfg);
     const result = await runRescue(cfg);
     state.lastRescueAt = nowIso();
     state.lastHeartbeatGeneration = Number(hb.generation || state.lastHeartbeatGeneration || 0);
     state.lastExitCode = result.code;
     state.lastReportStatus = result.report?.status || "missing-report";
+    state.lastAttemptStatus = result.code === 0 ? "completed" : "failed";
     state.lastRepairedCards = result.report?.repaired_cards?.map((x) => x.title) || [];
     state.lastRemainingBlockedCards = result.report?.remaining_blocked_cards || [];
     state.lastErrors = result.report?.errors || [];
@@ -213,6 +242,7 @@ try {
     }
   }
 } catch (err) {
+  state.lastAttemptStatus = "failed";
   state.lastAgentError = { at: nowIso(), message: String(err.stack || err) };
   writeJson(statePath, state);
   log("agent-error", { message: String(err.stack || err) });

@@ -1,6 +1,6 @@
 # OAuth provisioning and production acceptance checklist
 
-## Current release configuration — v0.24.0
+## Current release configuration — v0.25.0
 
 Configured release builds retain the existing Google Chrome Extension client and
 GitHub OAuth App client. Users open **Accounts & Connections** and sign in through
@@ -8,10 +8,10 @@ the provider's own prompts; they do not create new OAuth applications or supply
 client secrets. Preserve the stable extension ID `geljambmkfjkhodgkpjhnmfojkpcamig`
 and its manifest `key`.
 
-The [published v0.23.0 receipt](https://github.com/Herbertofury/Project-Constellation/releases/download/v0.23.0/RELEASE-RECEIPT-v0.23.0.json)
+The [published v0.24.0 receipt](https://github.com/Herbertofury/Project-Constellation/releases/download/v0.24.0/RELEASE-RECEIPT-v0.24.0.json)
 records a production extension build with both `oauth.google` and `oauth.github`
-set to `true`. Retain those provisioned product client IDs for v0.24.0. Inspect the
-matching v0.24.0 release receipt and `build-info.json` for the actual new artifact;
+set to `true`. Retain those provisioned product client IDs for v0.25.0. Inspect the
+matching v0.25.0 release receipt and `build-info.json` for the actual new artifact;
 a prior receipt does not establish the configuration of a later build.
 
 Release maintainers reuse `PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID` and
@@ -30,13 +30,18 @@ those results.
 
 ## Historical v0.14.0 provisioning handoff
 
-The following material preserves the state, setup steps and commands recorded for
-v0.14.0. Its pending-client statement, old package names and tag commands are
-historical evidence. Use the current guidance above for retained clients and new
-releases; do not recreate an existing client or repeat these historical publish
-commands during an ordinary upgrade.
+The following material retains the technical setup steps, version labels and
+commands recorded for v0.14.0. Account identities, cloud project identifiers and
+operator-specific provisioning records are omitted from this public guide.
+The old package names and tag commands remain historical instructions. Use the
+current guidance above for retained clients and new releases; do not recreate an
+existing client or repeat these historical publish commands during an ordinary
+upgrade. Immutable historical evidence is unchanged.
 
-This is the exact production handoff for Project Constellation v0.14.0. The extension source, stable ID, build injection, token refresh logic, failure states, and mocked regression coverage are already in place. The Google Chrome Extension client is provisioned and stored in GitHub Actions; a final production package still requires the GitHub OAuth App client ID plus real signed-in acceptance tests.
+The v0.14.0 handoff documented the stable extension identity, build injection,
+token refresh logic, failure states, mocked regression coverage and the setup and
+acceptance sequence below. This historical sequence does not establish the
+configuration or signed-in acceptance of a current account or release.
 
 Do not put a client secret, access token, refresh token, password, recovery code, or browser profile in this repository. The two client IDs below are public application identifiers.
 
@@ -47,8 +52,8 @@ Do not put a client secret, access token, refresh token, password, recovery code
 | Extension name | `Project Constellation` |
 | Release line | `v0.14.0` |
 | Chrome extension ID | `geljambmkfjkhodgkpjhnmfojkpcamig` |
-| Google Cloud project name | `Project Constellation` |
-| Google Cloud project ID | `project-constellation-506518` |
+| Google Cloud project name | Select the existing product project in Google Cloud Console. |
+| Google Cloud project ID | Read it from the maintainer's release configuration; keep account-specific identifiers out of public documentation. |
 | Google OAuth audience | `External` |
 | Google scope | `https://www.googleapis.com/auth/drive.file` |
 | GitHub repository | `https://github.com/Herbertofury/Project-Constellation` |
@@ -56,20 +61,24 @@ Do not put a client secret, access token, refresh token, password, recovery code
 
 The manifest `key` is already fixed to the extension ID above. Do not regenerate or remove it.
 
-### Google: finish the existing setup
+### Google: verify the existing configuration
 
-Already completed on 2026-08-24:
+Open [Google Auth Platform](https://console.cloud.google.com/auth/overview) and
+select the existing product project. Verify the following configuration before
+creating or replacing resources:
 
-- dedicated unbilled project `project-constellation-506518` created;
-- Google Drive API enabled;
-- Google Auth Platform configured with app name `Project Constellation`;
-- support/contact account set to `herbertofury@gmail.com`;
-- audience set to External;
-- Google API Services User Data Policy accepted.
-- Chrome Extension OAuth client created for the stable extension ID;
-- public Google client ID stored as the `PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID` GitHub Actions secret.
+- Google Drive API is enabled.
+- OAuth branding uses the app name `Project Constellation`.
+- Support and contact details use accounts designated by the maintainer.
+- The audience is External and the applicable Google API Services User Data
+  Policy requirements have been completed by an authorized maintainer.
+- The Chrome Extension OAuth client uses the stable extension ID.
+- The release environment supplies its public client ID through
+  `PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID`.
 
-Continue at [Google Auth Platform](https://console.cloud.google.com/auth/overview?project=project-constellation-506518).
+These are configuration checks, not claims that a particular account or Actions
+environment has completed them. Record account-specific operational details in
+the maintainer's private configuration records.
 
 #### 1. Configure Data Access
 
@@ -85,7 +94,7 @@ Continue at [Google Auth Platform](https://console.cloud.google.com/auth/overvie
 #### 2. Configure Audience
 
 1. Open **Audience**.
-2. While the app is in Testing, add `herbertofury@gmail.com` as a test user.
+2. While the app is in Testing, add only the accounts authorized for the acceptance run as test users.
 3. For the public production release, choose **Publish app** / **In production** after confirming Data Access contains only `drive.file`.
 
 If Branding asks for a privacy-policy URL, use the public policy listed in the identity table. Do not invent a domain or mark a domain as verified unless Google has actually verified it.

@@ -1,7 +1,7 @@
 // Minimal cross-browser DOM adapter; no transcript capture and no provider requests.
 (() => {
   'use strict';
-  const VERSION='0.24.0';
+  const VERSION='0.25.0';
   if(globalThis.__pcBrowserMonitorSensor?.version===VERSION)return;
   globalThis.__pcBrowserMonitorSensor?.dispose?.();
   const api=globalThis.browser||globalThis.chrome;

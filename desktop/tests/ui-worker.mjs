@@ -10,7 +10,7 @@ const state=createRuntimeState(dir),config={allowedRoots:[root],enableShell:true
 const call=createToolHandler({config,configPath:path.join(dir,'config.json'),state});let chatCalls=0;const pending=new Map(),diagnostics=[];
 for await(const line of readline.createInterface({input:process.stdin})){
  const request=JSON.parse(line);try{let result;const {op,args={}}=request;
- if(op==='snapshot')result={ok:true,version:'0.24.0',config,chat:{phase:'error',lastError:'Offline fixture',pageHookReady:false},recentCalls:[],stats:{totalCalls:0},toolCount:toolDefinitions().length,pendingResults:[...pending.values()]};
+ if(op==='snapshot')result={ok:true,version:'0.25.0',config,chat:{phase:'error',lastError:'Offline fixture',pageHookReady:false},recentCalls:[],stats:{totalCalls:0},toolCount:toolDefinitions().length,pendingResults:[...pending.values()]};
  else if(op==='listTools')result={ok:true,tools:toolDefinitions()};
  else if(op==='native-status')result=await getComputerLinkStatus();
  else if(op==='native-session')result=await getComputerLinkMcpStatus();
@@ -21,7 +21,7 @@ for await(const line of readline.createInterface({input:process.stdin})){
  else if(op==='cc:ack-result'){pending.delete(args.id);result={ok:true};}
  else if(op==='cc:diagnostic'){diagnostics.push(args);result={ok:true};}
  else if(op==='metrics')result={chatCalls,pending:[...pending.values()],diagnostics};
- else if(op==='cc:status')result={ok:true,localToolMode:'auto',version:'0.24.0'};
+ else if(op==='cc:status')result={ok:true,localToolMode:'auto',version:'0.25.0'};
  else result={ok:true};
  console.log(JSON.stringify({id:request.id,result}));
  }catch(e){console.log(JSON.stringify({id:request.id,error:String(e.message)}));}

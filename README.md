@@ -1,12 +1,10 @@
 # Project Constellation
 
-## 0.24.0 — Durable observations and reliable recovery
+## 0.25.0 — Bulk triage and durable closure recovery
 
-This update fixes lost monitoring state after failed writes or abrupt restarts, delayed close/navigation events that could remove newer problems, and interrupted alert delivery. Browser sensors recover from hung acknowledgements and pause while a document is in the back/forward cache. The native hub saves ordering evidence before accepting it, and Windows Computer Tools handles fragmented local pipe messages without relaxing authorization or cancellation.
+Agent Monitor now handles selected incidents together: acknowledge or snooze the visible selection, stop unsent work, and review each failed or unconfirmed outcome. Search includes chat URLs, profile drafts survive background refreshes, and exact matching delivery records explain what happened to sound and notifications.
 
-External scheduler supervision now preserves an incident before attempting a recovery PR, records permission blocks clearly, rejects invalid or future audit evidence, and avoids repeated unchanged repository activity. Its diagnostic CI dispatch is identified accurately; a stale committed audit is never presented as a live ChatGPT outage. See the [watchdog guide](docs/TASK-WATCHDOG.md).
-
-The production build also fixes a GitHub sign-in configuration guard that rejected its own provisioned client ID. Published-package checks now inspect the generated configuration behavior in addition to the receipt flags.
+This update also repairs stale browser evidence receiving a new timestamp, uncertain sound being replayed, reminders lost after failed persistence, and closed native sessions being resurrected after restart or reconnect. Setup protects linked managed data and runtime directories. The optional local recovery agent reads Windows PowerShell configuration correctly and preserves child failures, timeouts and crash cooldowns.
 
 The desktop runs Electron 45.5.0 with electron-builder 26.18.1. Current release jobs use Node 26.13.1, Rust 1.100.1 and Playwright 1.65.2; actual packaged Windows acceptance and published hashes remain mandatory.
 
@@ -21,7 +19,7 @@ Permission prompts remain visible for direct user review. Constellation does not
 - [Windows installation and lifecycle](docs/WINDOWS-SETUP.md)
 - [Agent Monitor guide](docs/AGENT-MONITOR.md)
 - [Computer-Link capability and source migration](docs/COMPUTER-LINK-MIGRATION.md)
-- [0.24.0 release notes](docs/v0.24.0-release-notes.md)
+- [0.25.0 release notes](docs/v0.25.0-release-notes.md)
 - [Verification and remaining acceptance](docs/MONITOR-VERIFICATION.md)
 - [Rust companion CLI](native/constellation-monitor/README.md)
 
@@ -66,7 +64,7 @@ Supported surfaces currently include ChatGPT, Claude, Gemini, Grok, DeepSeek, Pe
 
 For a published release:
 
-1. Download `Project-Constellation-v0.24.0-Extension.zip` and `SHA256SUMS-v0.24.0.txt` from the matching GitHub Release.
+1. Download `Project-Constellation-v0.25.0-Extension.zip` and `SHA256SUMS-v0.25.0.txt` from the matching GitHub Release.
 2. Verify the archive checksum.
 3. Extract the archive to a permanent folder.
 4. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder.
@@ -149,6 +147,6 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 
 ## Verification status
 
-The root `npm test` command invokes 51 deterministic test scripts. Repository verification also covers browser workflow smokes, structural validation, UI ownership and message contracts. The service-worker load smoke requires a browser environment that permits unpacked-extension loading. See [verification and remaining acceptance](docs/MONITOR-VERIFICATION.md) for the commands actually executed, their results and any environment limits. Account-enabled production builds require the retained Google/GitHub product configuration; real signed-in backup and restore acceptance remains a separate check.
+The root `npm test` command invokes 52 deterministic test command entries. Repository verification also covers browser workflow smokes, structural validation, UI ownership and message contracts. The service-worker load smoke requires a browser environment that permits unpacked-extension loading. See [verification and remaining acceptance](docs/MONITOR-VERIFICATION.md) for the commands actually executed, their results and any environment limits. Account-enabled production builds require the retained Google/GitHub product configuration; real signed-in backup and restore acceptance remains a separate check.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).

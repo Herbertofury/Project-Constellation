@@ -40,6 +40,16 @@
           <div class="toolbar"><label class="search-box"><span class="ui-icon icon-search" aria-hidden="true"></span><input id="searchAgents" type="search" placeholder="Find a chat, browser or issue…" aria-label="Search observed agents"><kbd>/</kbd></label><label class="browser-filter"><span class="sr-only">Browser</span><select id="browserFilter"><option value="all">All browsers</option><option value="chrome">Chrome</option><option value="firefox">Firefox</option><option value="opera_gx">Opera GX</option><option value="edge">Edge</option><option value="chromium">Chromium</option></select></label></div>
           <section class="incident-section" aria-labelledby="inboxTitle">
             <div class="section-heading"><div><h2 id="inboxTitle">Attention inbox <span id="inboxCount" class="count-badge">0</span></h2><p>One incident per problem. Clear evidence and a direct next step.</p></div><div class="inbox-controls"><label><span class="sr-only">Filter incidents</span><select id="inboxFilter"><option value="all">All open incidents</option><option value="pending">Needs you</option><option value="acknowledged">Acknowledged</option><option value="snoozed">Snoozed</option><option value="unavailable">Source unavailable</option></select></label><button id="showResolved" class="text-button" aria-pressed="false">Show resolved</button></div></div>
+            <div id="bulkActions" class="bulk-actions" aria-label="Selected incident actions" hidden>
+              <label class="select-visible"><input id="selectVisibleIncidents" type="checkbox"> Select visible</label>
+              <span id="selectionCount" class="selection-count" role="status">0 selected</span>
+              <button id="acknowledgeSelected" class="button quiet" disabled>Acknowledge selected</button>
+              <label class="bulk-duration"><span class="sr-only">Snooze selected incidents for</span><select id="bulkSnoozeMinutes"><option value="5">5 minutes</option><option value="10" selected>10 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option></select></label>
+              <button id="snoozeSelected" class="button quiet" disabled>Snooze selected</button>
+              <button id="clearIncidentSelection" class="text-button" disabled>Clear selection</button>
+              <button id="stopBulkAction" class="text-button" hidden>Stop remaining</button>
+            </div>
+            <div id="bulkResult" class="batch-result" role="status" hidden></div>
             <div id="incidentList" class="incident-list" aria-live="polite"></div>
           </section>
           <section class="session-section" aria-labelledby="sessionsTitle">
@@ -60,7 +70,8 @@
             <button id="disconnectNative" class="button full quiet" hidden>Disconnect browser hub</button>
             <details class="setup-details"><summary>Set up another browser</summary><ol><li>Run the Constellation Windows Setup EXE once. It installs the Rust hub and prepares your browser folders. On Linux, use the companion’s <code>install</code> command.</li><li>Use Setup’s browser buttons to open the extension page and copy its folder path. Load the extension in each Chrome, Edge or Opera GX profile, or the temporary sensor in Firefox.</li><li>Choose Connect browser hub here and give each profile a useful name.</li></ol><p>Each monitored browser/profile needs its sensor enabled. The temporary Firefox sensor must be loaded again after Firefox restarts.</p><a href="docs/AGENT-MONITOR.md" target="_blank" rel="noreferrer">Open included setup guide <span class="ui-icon icon-open" aria-hidden="true"></span></a></details>
             <label class="field-label" for="browserIdentity">This browser</label><select id="browserIdentity"><option value="chrome">Google Chrome</option><option value="edge">Microsoft Edge</option><option value="opera_gx">Opera GX</option><option value="firefox">Firefox</option><option value="chromium">Chromium</option></select>
-            <label class="field-label" for="profileLabel">Profile name</label><div class="profile-row"><input id="profileLabel" maxlength="80" placeholder="e.g. Chrome · Work"><button id="saveProfile" class="button quiet">Save</button></div>
+            <label class="field-label" for="profileLabel">Profile name</label><div class="profile-row"><input id="profileLabel" maxlength="80" placeholder="e.g. Chrome · Work"><button id="saveProfile" class="button quiet">Save</button><button id="resetProfile" class="text-button" hidden>Reset</button></div>
+            <p id="profileFeedback" class="profile-feedback" role="status" hidden></p>
           </section>
           <section class="inspector-card" id="alertSettings">
             <div class="section-heading"><h2>Alert controls</h2><span id="alertScope" class="tiny-label">THIS BROWSER</span></div>

@@ -1406,3 +1406,182 @@ fn uninstall_preserves_linked_backup_left_by_committed_install() {
         assert_preserved_browser_link(&f, &outcome, &data, &link_target);
     }
 }
+
+#[test]
+fn repair_or_upgrade_rejects_linked_managed_directories_without_touching_targets() {
+    for managed in ["data", "data/monitor", "versions"] {
+        for action in ["upgrade", "repair", "rollback"] {
+            let f = Fixture::new();
+            let mut s = FakeSystem::default();
+            let old = f.payload("0.24.0");
+            if action == "rollback" {
+                let earlier = f.payload("0.23.0");
+                engine::install(&f.options, &Payload::parse(&earlier).unwrap(), &mut s).unwrap();
+            }
+            engine::install(&f.options, &Payload::parse(&old).unwrap(), &mut s).unwrap();
+            let linked = f.options.root.join(managed);
+            let outside = f.dir.join("owner-storage");
+            fs::rename(&linked, &outside).unwrap();
+            directory_link(&outside, &linked);
+            fs::write(outside.join("owner-note.txt"), b"preserve owner storage").unwrap();
+            let link_target = fs::read_link(&linked).unwrap();
+            #[cfg(unix)]
+            let protected = if managed == "data" {
+                outside.join("monitor")
+            } else {
+                outside.clone()
+            };
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&protected, fs::Permissions::from_mode(0o750)).unwrap();
+            }
+            let receipt = fs::read(f.options.root.join(RECEIPT)).unwrap();
+            let registry = s.values.clone();
+            let writes = s.writes;
+            let stops = s.stops;
+            let incoming = if action == "repair" {
+                old
+            } else {
+                f.payload("0.25.0")
+            };
+            let result = if action == "rollback" {
+                engine::rollback(&f.options, &mut s)
+            } else {
+                engine::install(&f.options, &Payload::parse(&incoming).unwrap(), &mut s)
+            };
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                assert_eq!(
+                    fs::metadata(&protected).unwrap().permissions().mode() & 0o777,
+                    0o750,
+                    "{action} changed permissions outside the installation through {managed}"
+                );
+            }
+            assert!(
+                result.is_err(),
+                "{action} unexpectedly accepted linked managed directory {managed}"
+            );
+            let error = result.unwrap_err();
+            assert!(
+                error.to_string().contains("symbolic links or junctions"),
+                "{error}"
+            );
+            assert_eq!(
+                s.writes, writes,
+                "{managed}: registry writes before rejection"
+            );
+            assert_eq!(s.values, registry);
+            assert_eq!(s.stops, stops);
+            assert_eq!(fs::read(f.options.root.join(RECEIPT)).unwrap(), receipt);
+            assert_eq!(fs::read_link(&linked).unwrap(), link_target);
+            assert_eq!(
+                fs::read(outside.join("owner-note.txt")).unwrap(),
+                b"preserve owner storage"
+            );
+            assert!(
+                !f.options
+                    .root
+                    .join(".constellation-transaction.json")
+                    .exists()
+            );
+            assert!(!fs::read_dir(&f.options.root).unwrap().any(|entry| {
+                entry
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with(".release-stage-")
+            }));
+            assert_eq!(engine::verify(&f.options).unwrap()["ok"], false);
+            // A rejected repair must still leave an explicit uninstall usable.
+            // It must not ask a valid executable to operate on linked data.
+            engine::uninstall(&f.options, &mut s).unwrap();
+            assert!(s.values.is_empty());
+            assert!(!f.options.root.join(RECEIPT).exists());
+            assert_eq!(s.stops, stops);
+            assert_eq!(fs::read_link(&linked).unwrap(), link_target);
+            assert_eq!(
+                fs::read(outside.join("owner-note.txt")).unwrap(),
+                b"preserve owner storage"
+            );
+        }
+    }
+}
+
+#[test]
+fn uninstall_preserves_linked_release_directories_without_leaving_a_receipt_trap() {
+    for entire_versions in [false, true] {
+        for dangling in [false, true] {
+            let f = Fixture::new();
+            let mut s = FakeSystem::default();
+            let bytes = f.payload("0.24.0");
+            engine::install(&f.options, &Payload::parse(&bytes).unwrap(), &mut s).unwrap();
+            let receipt = engine::read_receipt(&f.options).unwrap().unwrap();
+            let linked = f.options.root.join(if entire_versions {
+                "versions"
+            } else {
+                &receipt.active
+            });
+            let outside = f.dir.join("owner-retained-runtime");
+            fs::rename(&linked, &outside).unwrap();
+            fs::write(outside.join("owner-note.txt"), b"preserve owner runtime").unwrap();
+            directory_link(&outside, &linked);
+            let link_target = fs::read_link(&linked).unwrap();
+            let data = if dangling {
+                let moved = f.dir.join("relocated-owner-runtime");
+                fs::rename(&outside, &moved).unwrap();
+                moved
+            } else {
+                outside
+            };
+            let result = engine::uninstall(&f.options, &mut s);
+            assert!(
+                result.is_ok(),
+                "Uninstall trapped by a linked runtime: {result:?}"
+            );
+            let outcome = result.unwrap();
+            assert_eq!(outcome.action, "uninstalled");
+            assert!(s.values.is_empty());
+            assert!(!f.options.root.join(RECEIPT).exists());
+            assert!(
+                f.options
+                    .root
+                    .join("constellation-uninstalled.json")
+                    .is_file()
+            );
+            assert_eq!(s.stops, 0, "Never execute an unverified linked runtime");
+            assert_eq!(fs::read_link(&linked).unwrap(), link_target);
+            assert_eq!(
+                fs::read(data.join("owner-note.txt")).unwrap(),
+                b"preserve owner runtime"
+            );
+            let release_data = if entire_versions {
+                data.join(Path::new(&receipt.active).file_name().unwrap())
+            } else {
+                data
+            };
+            for file in &receipt.releases[0].files {
+                let preserved = fs::read(release_data.join(&file.path)).unwrap();
+                assert_eq!(hash(&preserved), file.sha256);
+            }
+            let locations: Vec<_> = outcome
+                .notes
+                .iter()
+                .filter_map(|note| note.strip_prefix("Preserved linked directory: "))
+                .collect();
+            assert_eq!(locations.len(), 1, "Report the exact preserved link once");
+            let reported = Path::new(locations[0]);
+            assert!(reported.is_absolute());
+            // Compare the entry's canonical parent and literal name, not its
+            // target: a dangling junction cannot itself be canonicalized and
+            // Windows TEMP may use a different 8.3 spelling of the same parent.
+            assert_eq!(
+                reported.parent().unwrap().canonicalize().unwrap(),
+                linked.parent().unwrap().canonicalize().unwrap()
+            );
+            assert_eq!(reported.file_name(), linked.file_name());
+            assert_eq!(fs::read_link(reported).unwrap(), link_target);
+        }
+    }
+}

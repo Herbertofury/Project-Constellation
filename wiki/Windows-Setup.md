@@ -2,7 +2,7 @@
 
 Open **Project Constellation Setup** from the Windows Start menu to return to the native installer and repair controls. The full desktop app keeps its separate **Project Constellation** entry.
 
-Download **Constellation-0.24.0-Windows-Setup.exe** and its checksum from the
+Download **Constellation-0.25.0-Windows-Setup.exe** and its checksum from the
 matching Project Constellation GitHub release. This compact installer contains
 the Rust browser hub, Chromium extension, Firefox sensor and native Computer
 Tools. It installs without a compiler, Python or an additional payload download.
@@ -105,3 +105,22 @@ already committed such a link into its transaction backup, recovery moves the
 link itself into a named `preserved-browsers-link-*` location and reports the
 path without following its target. Live and dangling links are preserved, and
 cleanup can finish so later repair and uninstall remain usable.
+
+## Linked monitor data and runtime directories
+
+Setup also checks the managed `data/monitor` and `versions` ancestry before
+staging an install, repair or rollback. A symbolic link or Windows junction in
+those paths is reported as unhealthy; Setup does not change the external
+target's permissions or launch the monitor against linked managed data.
+
+Back up or preserve any external data, then restore ordinary directories in the
+intended managed locations before using Repair or rollback. Do not delete the
+external target to remove a link entry. If the installation is being removed,
+uninstall can still restore owned discovery/registrations while preserving
+linked runtime entries and their external contents. Review the reported
+preservation paths before any later manual cleanup.
+
+The release gate adds real Windows junction cases and executes the optional
+local-agent launcher in Windows PowerShell 5.1 with disposable literal paths
+and actual Node exits 7 and 0. These checks do not enroll the owner's browsers
+or register the optional recovery task on their machine.

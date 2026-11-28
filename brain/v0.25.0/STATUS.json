@@ -1,0 +1,59 @@
+{
+  "version": "0.25.0",
+  "status": "source-candidate-requires-matching-hosted-release-receipts",
+  "publicationAuthorized": true,
+  "publicationInstruction": "Owner grants full approval to continue improving and fixing; completed upgrades end with a versioned GitHub release and verified closeout.",
+  "branch": "review/constellation-v0.25.0",
+  "baselineCommit": "fc9a2322c6fb521f09f056d6f8208d6431fdfc07",
+  "baselineRelease": "https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.24.0",
+  "baselineCloseout": {
+    "githubAssetsVerified": 15,
+    "wikiPagesVerified": 24
+  },
+  "rootTestScripts": 52,
+  "uiMessageContracts": 94,
+  "releaseWorkflow": ".github/workflows/release.yml",
+  "requiredWindowsSetupChecks": [
+    "install",
+    "repair",
+    "diagnostics",
+    "rollback",
+    "rollback-manager-repair",
+    "uninstall",
+    "setup-gui",
+    "owner-gui",
+    "integrations-restored"
+  ],
+  "acceptanceRemaining": [
+    "Physical audio and operating-system notification visibility",
+    "Owner Chrome/Edge/Opera GX/Firefox profile enrollment",
+    "Permanent Firefox signing",
+    "Windows publisher signing",
+    "Signed-in account backup and restore round trips"
+  ],
+  "evidence": [
+    "docs/MONITOR-VERIFICATION.md",
+    "docs/RELEASE-OPTIMIZATION-0.25.0.json",
+    "docs/RELEASE-STACK-0.25.0.json",
+    "docs/v0.25.0-release-notes.md",
+    "docs/NATIVE-ACK-PERFORMANCE-0.25.0.json",
+    "docs/AGENT-MONITOR-PERFORMANCE-0.25.0.json"
+  ],
+  "note": "Committed source evidence is a candidate checkpoint. The matching tag, completed workflows and published receipts establish executed release acceptance. No runtime or account success is inferred from prepared tests.",
+  "historicalBundlePublication": {
+    "publicUploadAuthorized": false,
+    "instruction": "Publish only the declared current release artifacts. Preserve original source provenance and historical evidence; use public upstream references for verification."
+  },
+  "requiredAdditionalWindowsWorkflowSteps": [
+    "Windows PowerShell 5.1 local-agent launcher preserves literal paths and actual exits 7/0",
+    "Exact-checkout local-agent install, three payload SHA-256 comparisons, and disposable task/profile cleanup"
+  ],
+  "requiredWorkflowFamilies": [
+    "ci.yml",
+    "windows-runtime.yml",
+    "windows-setup.yml",
+    "native-monitor.yml",
+    "computer-tools.yml",
+    "chatgpt-ui-scheduler-rescue.yml"
+  ]
+}

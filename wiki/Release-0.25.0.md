@@ -1,0 +1,164 @@
+# Project Constellation 0.25.0 — Bulk triage and durable closure recovery
+
+This release adds a practical workflow for handling several incidents together
+and repairs failures in observation ordering, alert delivery, native reconnects,
+Windows setup and the optional local recovery agent. Existing project, capture,
+desktop, provider and Computer Tools capabilities remain available.
+
+## Handle several incidents without losing their individual outcomes
+
+In Agent Monitor, narrow the inbox with search, browser and incident filters,
+then select individual incidents or choose **Select visible**. Use
+**Acknowledge selected**, or choose 5, 10, 30 or 60 minutes and select
+**Snooze selected**. The operation reports successful, unconfirmed and unsent
+items separately. Failed items remain selected when their original context is
+still available. **Stop remaining** stops work that has not been sent; already
+sent requests finish normally.
+
+At most four requests are in flight. A missing reply has a deadline and stops
+the remaining batch because the action may already have completed. Refresh and
+review current state before retrying. Changing the filter clears hidden
+selections, and a changed document, run or incident context cannot inherit an
+old selection. Acknowledgement and snooze affect monitoring records; provider
+permission decisions remain in the original chat.
+
+Search now includes the full recorded chat URL. Every matching row remains
+rendered. Unchanged rows retain their DOM nodes and keyboard focus; a refresh
+with stable row order replaces only rows whose displayed content changed.
+Mute and snooze controls update once at their existing deadline without adding
+an idle polling loop or a provider request.
+
+Browser identity and profile-name drafts survive background refreshes, read
+failures and failed saves. Saving captures the submitted values while preserving
+any newer edits made during the request. **Reset** restores the last accepted
+profile configuration.
+
+When an exact local delivery record is available, the incident explains the
+last recorded sound and notification results, errors and retry state. Native
+incidents borrow that evidence only when the client, session, document, run,
+URL and kind match unambiguously. Historical or different-run incidents do not
+inherit a current incident's delivery claim.
+
+## Preserve the time and authority of browser evidence
+
+Delayed Sentinel replies retain their source observation time. Receiving or
+enriching an old reply no longer makes it new evidence, and an ignored old
+observation cannot update the legacy live-state map or drive newer tab
+presentation. Weak DOM probes remain explicitly unconfirmed. They cannot clear
+a confirmed problem, create a false confirmed run boundary or manufacture a
+new notification when the provider later confirms the same episode.
+
+Failed persistence remains retryable for scoped closes and repeated offline
+transitions. A caller cannot receive durable success merely because the
+in-memory state already changed. Existing sensor and provider compatibility
+paths remain present; no conversation text or new provider traffic is required.
+
+## Make alert retries truthful and bounded
+
+Sound grouping uses the actual delivery attempt time, including time spent
+waiting for a notification channel. Two delayed incidents cannot accidentally
+play back-to-back merely because the first timestamp was captured too early.
+Notification and audio-surface operations have bounded waits so a stalled
+browser API cannot hold all later observations indefinitely.
+
+A missing playback reply after audio may have started is **interrupted** and
+uncertain. It is never silently marked successful or automatically replayed.
+Failed reminder persistence keeps the reminder eligible for a bounded recovery
+attempt. Ordinary repeated owner-health updates cannot rearm an exhausted
+retry budget. Sound and notification channels retain independent results.
+
+**Test alert** remains an explicit diagnostic, including when automatic alerts
+are muted. Browser acceptance establishes an API result, not physical speaker
+playback or visibility through operating-system notification suppression.
+
+## Closed native sessions stay closed across replay and restart
+
+The Rust hub now durably retains private ordering records after a session is
+closed or retired. Older observations, and equal-time observations from the
+same closed context, cannot recreate the session or its incident after a
+restart. A genuinely new document at the same clock tick remains admissible.
+Ordinary transport disconnection still means unavailable coverage, not an
+authoritative closure.
+
+These records survive client retirement and session-capacity replacement.
+They expire only after the existing incoming-observation acceptance window
+can no longer admit the evidence they reject. The public protocol remains
+version 1 with the same 16-client, 128-session and 256-incident limits. Private
+ordering data shares the existing 1 MB durable-state bound. A failed or
+oversized write rolls back the proposed mutation and exposes unhealthy
+persistence instead of acknowledging unsaved state.
+
+On reconnect, the browser reconciles locally retained closed documents with
+its own native sessions, including documents closed while another document
+occupied the same tab offline. Actual tab-removal context remains available
+for retry. Failed native writes use the existing bounded reconnect sequence;
+an initial successful handshake does not reset that budget before replay
+itself succeeds. Source-timed removal and manual-refresh replies preserve their
+original observation clock, so a delayed response cannot retire or clear a newer
+permission incident.
+
+## Recover Windows setup and the optional local agent
+
+Setup checks managed data, monitor and version paths before staging an update,
+repair or rollback. Linked directories cannot redirect permissions or writes
+into an external target. Diagnostics report the condition and avoid launching
+the monitor against linked managed data. Uninstall can preserve changed linked
+runtime entries and their targets while completing owned discovery cleanup.
+
+The optional ChatGPT UI local recovery agent accepts the UTF-8 BOM produced by
+Windows PowerShell. Its generated launcher quotes paths literally and evaluates
+the child process exit code when the launcher runs. A Node failure therefore
+reaches the scheduler instead of being frozen as success during installation.
+The optional `-SourceDirectory` installer argument validates all three payload
+files before changing an installation. CI uses that path and verifies each
+installed file against the exact candidate checkout before cleanup. The normal
+download-based installation remains available.
+
+Heartbeat reads have a timeout. The agent records a durable attempt claim before
+starting recovery, so immediate repeats respect the configured minimum interval.
+A new heartbeat generation, explicit force or an elapsed interval still permits
+another attempt. The cooldown and reported outcomes remain explicit. No
+committed heartbeat is fabricated, and a stale audit is not described as proof of a live ChatGPT outage.
+
+## Verification, performance and release evidence
+
+The candidate evidence is recorded in
+[MONITOR-VERIFICATION.md](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/MONITOR-VERIFICATION.md). Regressions exercise actual
+production functions, real native child processes, filesystem transactions and
+rendered dashboard workflows. Independent agents cross-review browser/native,
+installer/recovery and dashboard boundaries. Hosted acceptance must also run
+the actual Windows junction and Windows PowerShell 5.1 launcher cases, all
+retained browser/runtime fixtures, native pipes, packaged setup and desktop
+applications.
+
+[AGENT-MONITOR-PERFORMANCE-0.25.0.json](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/AGENT-MONITOR-PERFORMANCE-0.25.0.json)
+and [NATIVE-ACK-PERFORMANCE-0.25.0.json](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/NATIVE-ACK-PERFORMANCE-0.25.0.json)
+bind complete baseline/candidate workloads to their measured source hashes.
+New controls and durable closure work have costs; neither is advertised as a
+speedup over an implementation missing that functionality. No row cap,
+culling, deferred mandatory work or content reduction is used to improve a
+measurement. The mandatory pinned optimizer assessments and scoped migration
+decision are in [RELEASE-OPTIMIZATION-0.25.0.json](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/RELEASE-OPTIMIZATION-0.25.0.json).
+
+The selected stable stack remains Electron 45.5.0, electron-builder 26.18.1,
+Node 26.13.1, Rust 1.100.1 and Playwright 1.65.2. Fresh official metadata and the
+bounded shared-capability review are in
+[RELEASE-STACK-0.25.0.json](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/RELEASE-STACK-0.25.0.json). The changed local recovery workflow also advances to Node 26.13.1 and
+Playwright Node 1.65.1, and its Linux/Windows fixtures now run on pull requests
+and as a required unified-release job. No dependency downgrade or unsupported
+whole-application Rust migration is introduced.
+
+## Downloads and upgrade
+
+Start with **Constellation-0.25.0-Windows-Setup.exe**. The matching release also
+contains the desktop installer and portable ZIP, Chromium extension, Firefox
+sensor, Linux hub, exact source ZIP, runtime receipts and SHA-256 checksums.
+Preserve working account configuration and data, verify the checksum, run
+Setup/Repair and reload each enabled sensor. Follow
+[Windows Setup](Windows-Setup) or [Installation](Installation).
+
+This remains a **prerelease** while Windows publisher signing, permanent Firefox
+signing, physical sound/system-notification confirmation, owner profile
+enrollment and authenticated backup/restore round trips remain open. The
+matching completed workflow, published bytes, live Wiki and closeout receipt
+establish release acceptance; prepared CI is not substituted for executed proof.

@@ -70,6 +70,23 @@ preferences once; later profiles cannot silently overwrite it. Other connected
 browsers continue collecting observations. When the hub disconnects, the
 extension returns to local monitoring and marks remote sources unavailable.
 
+## Triage a selection
+
+1. Use search, the browser filter and the inbox filter to show the incidents you want. Search also matches the full recorded chat URL.
+2. Select individual incident checkboxes or choose **Select visible**. Changing search or filters clears the selection so hidden incidents are not acted on accidentally.
+3. Choose **Acknowledge selected**, or select 5, 10, 30 or 60 minutes and choose **Snooze selected**.
+4. Read the result: completed, unconfirmed and unsent/already-handled counts are separate. Failed items remain selected when their original context is still available.
+
+**Stop remaining** prevents unsent requests from starting and allows already-sent requests to finish. At most four actions run together. A missing reply stops the remaining batch because the request may have completed; refresh and inspect current state before retrying. An incident that resolves or changes document/run/context no longer keeps an old selection. These controls only manage monitoring records; they do not approve provider permissions or alter a conversation.
+
+All matching rows remain rendered. Live changes reuse unchanged rows and keyboard focus. A one-shot local render updates controls at an existing mute or snooze deadline; it performs no provider work or background status polling.
+
+### Profile drafts and delivery details
+
+Changing **This browser** or **Profile name** creates a draft that survives live status updates and read failures. **Save** submits the displayed values; edits made while that save is pending remain a newer draft. A failed save keeps the draft available. **Reset** returns to the latest accepted configuration.
+
+An incident's **Last delivery recorded in this browser** text shows its recorded sound and notification outcomes, errors and retry deadline when known. Native incidents show this only for an unambiguous exact context match. **Interrupted; playback is uncertain** means audio might have started before its reply was lost; Constellation will not automatically replay it. Historical delivery text does not establish current speaker or notification visibility.
+
 ## Cross-browser setup
 
 **Install one native companion, then enable a sensor in each browser/profile
@@ -79,7 +96,7 @@ sensor observations; it does not bypass browser isolation.
 
 ### Windows
 
-1. Run **Constellation-0.24.0-Windows-Setup.exe** from the matching GitHub release and choose **Install / Repair**.
+1. Run **Constellation-0.25.0-Windows-Setup.exe** from the matching GitHub release and choose **Install / Repair**.
 2. Use the button for Chrome, Edge or Opera GX. Setup opens its extension page and copies the sensor path. Enable Developer mode, choose **Load unpacked**, and select that folder.
 3. Open **Agent Monitor**, choose **Connect browser hub**, and approve the browser's native-messaging permission yourself.
 4. Repeat sensor setup in each browser/profile. Use a clear name such as `Chrome · Work` or `Edge · Testing`.
@@ -250,3 +267,12 @@ was already claimed has an uncertain outcome and is recorded as **interrupted**,
 with a visible delivery error; it is not silently marked successful or replayed.
 Use **Test alert** to check audio explicitly. Physical sound and operating-system
 notification visibility still require checking on the destination computer.
+
+
+### Closed documents and durable native recovery
+
+After a native session closes, private closure ordering survives removal from the visible session list, client retirement and a hub restart. Older evidence and equal-time replay of that closed context cannot reopen it. An equal-time different document may still be accepted. Ordinary disconnection only marks unavailable coverage; it does not close the document.
+
+The browser reconciles retained closed documents against its own hub sessions when it reconnects, including intermediate documents closed while offline. A failed native durable write remains a failure and uses the bounded reconnect sequence. A successful handshake alone does not reset the retry budget before replay succeeds.
+
+Private closure records expire only when the existing 24-hour input window makes their rejected observations inadmissible. They share the existing 1 MB durable-state bound without consuming public session or incident slots. Storage overflow or a failed write rejects and rolls back the mutation with an explicit persistence-health error. Protocol version 1 and its published capacity limits remain unchanged.

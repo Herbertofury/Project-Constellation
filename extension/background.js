@@ -77,7 +77,7 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.24.0';
+const LIVE_SENTINEL_VERSION = '0.25.0';
 const CHATGPT_PAGE_PROBE_VERSION = '0.18.1';
 const TAB_BEACON_VERSION = '0.17.6';
 const TAB_GROUP_PREFIX = 'PC ✦';
@@ -5051,9 +5051,10 @@ async function refreshAllTabPresentations() {
   return { ok:true, tabs:Number(snapshot?.openChatTabs || 0) };
 }
 
-async function renderActionBadge(snapshot = null) {
-  if (snapshot?.counts) liveToolbarSnapshot = { critical:Number(snapshot.counts.critical || 0), hold:Number(snapshot.counts.hold || 0), active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0), open:Number(snapshot.openChatTabs || 0) };
+async function renderActionBadge(snapshot = null, isCurrent = () => true) {
   const cfg = await pulseUxSettings().catch(() => normalizePulseUx());
+  if(!isCurrent())return {ok:true,skipped:'source-changed'};
+  if (snapshot?.counts) liveToolbarSnapshot = { critical:Number(snapshot.counts.critical || 0), hold:Number(snapshot.counts.hold || 0), active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0), open:Number(snapshot.openChatTabs || 0) };
   const critical = Number(liveToolbarSnapshot.critical || 0);
   const hold = Number(liveToolbarSnapshot.hold || 0);
   const active = Number(liveToolbarSnapshot.active || 0);
@@ -5067,7 +5068,9 @@ async function renderActionBadge(snapshot = null) {
   else if (attention) { text = attention > 99 ? '99+' : String(attention); color = cfg.staleColor; title = `Project Constellation · ${attention} chat${attention === 1 ? '' : 's'} need attention`; }
   else if (cfg.tabBeaconsEnabled && liveToolbarSnapshot.open) { text = '✓'; color = cfg.completedColor; title = `Project Constellation · ${liveToolbarSnapshot.completed} completed chat${liveToolbarSnapshot.completed === 1 ? '' : 's'}`; }
   try { await chrome.action?.setBadgeText?.({ text }); } catch (_) {}
+  if(!isCurrent())return {ok:true,skipped:'source-changed'};
   try { if (text) await chrome.action?.setBadgeBackgroundColor?.({ color }); } catch (_) {}
+  if(!isCurrent())return {ok:true,skipped:'source-changed'};
   try { await chrome.action?.setTitle?.({ title }); } catch (_) {}
 }
 
@@ -5225,14 +5228,30 @@ async function notifyChatAttention(row) {
 }
 
 async function rememberLiveTabState(row, { notify = true } = {}) {
-  if (globalThis.pcAttention) await globalThis.pcAttention.observe(row).catch((error) => console.warn('Constellation attention observation failed:', String(error?.message || error)));
   const tabId = Number(row?.tabId || 0);
-  if (!tabId) return;
-  const inMemoryPrevious = liveTabStateByTab.get(tabId) || null;
-  let previous = inMemoryPrevious;
+  if (!tabId) return {ok:false,error:'A live tab is required.'};
+  const ignored=(reason)=>{
+    const current=liveTabStateByTab.get(tabId);
+    return {ok:true,ignored:reason,row:current&&sameLiveConversation(current,row)&&Number(current.observedAt)>=Number(row.observedAt)?current:null};
+  };
+  if (globalThis.pcAttention) {
+    // Preserve the durable journal's decision all the way to Pulse and the
+    // legacy transition cache. A stale/failed observation is not a live ACK.
+    const accepted=await globalThis.pcAttention.observe(row);
+    if(accepted?.ok!==true)throw new Error(accepted?.error||'The live observation was not accepted.');
+    if(accepted.ignored)return ignored(accepted.ignored);
+    if(accepted.session)row={...row,observedAt:accepted.session.observedAt};
+  }
+  let previous = liveTabStateByTab.get(tabId) || null;
   if (!previous) previous = await readPersistedLiveTransition(tabId);
+  // A storage read may finish after another accepted update. Recheck the map
+  // immediately before writing; never publish the older row over that update.
+  const inMemoryPrevious = liveTabStateByTab.get(tabId) || null;
+  if(inMemoryPrevious)previous=inMemoryPrevious;
+  if(previous&&Number(previous.observedAt)>Number(row.observedAt))return ignored('out-of-order');
   const comparablePrevious = previous && sameLiveConversation(previous, row) ? previous : null;
-  liveTabStateByTab.set(tabId, { ...row, observedAt:Number(row.observedAt || Date.now()) });
+  row={...row,observedAt:Number(row.observedAt || Date.now())};
+  liveTabStateByTab.set(tabId,row);
   persistLiveTransition(row);
   liveChatPulseCacheAt = 0;
   const presentationChanged = !inMemoryPrevious
@@ -5241,18 +5260,31 @@ async function rememberLiveTabState(row, { notify = true } = {}) {
     || String(inMemoryPrevious?.context?.projectName || '') !== String(row?.context?.projectName || '')
     || !tabPresentationSignatures.has(tabId);
   if (presentationChanged) syncTabPresentation(row).catch(() => {});
-  if (!notify || !comparablePrevious) return;
+  if (!notify || !comparablePrevious) return {ok:true,row};
   const releasedFromHold = comparablePrevious.bucket === 'hold' && row.bucket !== 'hold';
   if (row.bucket === 'critical' && comparablePrevious.bucket !== 'critical') {
     await notifyChatCritical(row, { releasedFromHold });
-    return;
+    return {ok:true,row};
   }
   if (releasedFromHold) {
     await notifyReviewCleared(row);
-    return;
+    return {ok:true,row};
   }
   if (row.bucket === 'completed' && comparablePrevious.bucket !== 'completed') await notifyChatCompletion(row);
   if (row.bucket === 'stale' && comparablePrevious.healthState !== row.healthState && LIVE_NOTIFY_ATTENTION_STATES.has(String(row.healthState || ''))) await notifyChatAttention(row);
+  return {ok:true,row};
+}
+
+function liveEvidenceTime(state, requestedAt) {
+  if(state?.observedAt===undefined||state.observedAt===null)return requestedAt;
+  return typeof state.observedAt==='number'&&Number.isFinite(state.observedAt)&&state.observedAt>0?state.observedAt:0;
+}
+
+function liveEvidenceMatchesTab(state,tab) {
+  try{
+    const expected=new URL(state?.chat?.url||tab?.url),actual=new URL(tab?.url);
+    return expected.protocol==='https:'&&expected.origin===actual.origin&&expected.pathname===actual.pathname;
+  }catch(_){return false;}
 }
 
 function livePulseDomProbe() {
@@ -5369,6 +5401,7 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   if (!tabId || !tab?.url) return null;
   const provider = providers.detectProvider(tab.url);
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return null;
+  const requestedAt=Date.now();
   // Read the already-running Sentinel first. v0.14.4 performed a MAIN-world probe
   // version check on every Pulse refresh for every ChatGPT tab, which could make a
   // 10+ tab popup refresh slow or fail as one giant injection burst. Only bootstrap the
@@ -5390,6 +5423,8 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
   if (state?.ok && (typeof state?.chat?.status !== 'string' || !state.chat.status)) state = null;
   if (!state?.ok && allowInject) state = await probeLiveStateFromTab(tabId);
   if (!state?.ok) return null;
+  const observedAt=liveEvidenceTime(state,requestedAt);
+  if(!observedAt||!liveEvidenceMatchesTab(state,tab))return null;
   const network = networkStateForTab(tabId);
   const bucket = livePulseBucket(state, network);
   const row = {
@@ -5414,10 +5449,10 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
     health:state?.health || null, source:String(state?.source || ''), discarded:Boolean(tab.discarded), frozen:Boolean(tab.frozen),
     network:{ pending:Number(network.pending || 0), streamLikely:Boolean(network.streamLikely), lastStartAt:Number(network.lastStartAt || 0), lastCompleteAt:Number(network.lastCompleteAt || 0) },
     lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0), Number(network.lastStartAt || 0), Number(network.lastResponseAt || 0), Number(network.lastCompleteAt || 0)),
-    observedAt:Date.now()
+    observedAt
   };
-  await rememberLiveTabState(row);
-  return row;
+  const accepted=await rememberLiveTabState(row);
+  return accepted?.row||null;
 }
 
 function livePulseTimeout(promise, timeoutMs = LIVE_CHAT_PROBE_TIMEOUT_MS) {
@@ -5755,29 +5790,53 @@ async function liveChatPulse({ force = false } = {}) {
       const provider = providers.detectProvider(tab.url || '');
       return Boolean(provider && providers.isLikelyChatUrl(tab.url || '', provider.id));
     });
+    const priorRows=new Map(tabs.map(tab=>[Number(tab.id),liveTabStateByTab.get(Number(tab.id))]));
     const [settled, groupMap] = await Promise.all([
       Promise.allSettled(tabs.map((tab) => livePulseTimeout(readLiveStateFromTab(tab), LIVE_CHAT_PROBE_TIMEOUT_MS))),
       liveGroupMap()
     ]);
-    let responsiveTabs = 0;
     const baseRows = settled.map((result, index) => {
       const tab = tabs[index];
       let row = result.status === 'fulfilled' && result.value ? result.value : null;
-      if (row) responsiveTabs += 1;
+      const current=liveTabStateByTab.get(Number(tab?.id || 0));
+      // A push accepted while this read was waiting is fresher than its failed
+      // probe. Do not turn that newer evidence into an offline snapshot.
+      if(current&&current!==priorRows.get(Number(tab.id))&&(!row||Number(current.observedAt)>=Number(row.observedAt)))row=current;
       if (!row) {
-        row = fallbackLiveRow(tab, liveTabStateByTab.get(Number(tab?.id || 0)));
-        void globalThis.pcAttention?.observe({...row,status:'sensor-offline',healthState:'sensor-offline',authoritative:false,observedAt:Date.now()}).catch(()=>{});
+        row = fallbackLiveRow(tab,current);
+        // Transport loss is derived availability, not newer provider evidence.
+        // Scope it to the exact accepted row so a pending push wins the race.
+        const expected=current&&globalThis.ProjectConstellationAttentionService?.observation(current,Date.now());
+        if(expected)void globalThis.pcAttention?.observe({...current,status:'sensor-offline',healthState:'sensor-offline',authoritative:false,observedAt:expected.observedAt},expected).catch(()=>{});
       }
       return withTabGroup(row, tab, groupMap);
     }).filter(Boolean);
-    const enrichedRows = await Promise.all(baseRows.map(async (row) => {
+    const evidenceRows=new Map(baseRows.map(row=>[Number(row.tabId),liveTabStateByTab.get(Number(row.tabId))]));
+    const tabsById=new Map(tabs.map(tab=>[Number(tab.id),tab]));
+    let enrichedRows = await Promise.all(baseRows.map(async (row) => {
       try { return await enrichLiveRowContext(row); }
       catch (_) { return { ...row, catalogChatId:canonicalLiveCatalogChatId(row), context:{ projectId:'', projectName:'', taskHint:'', taskSource:'', liveActivity:specificLiveActivity(row) } }; }
     }));
-    const rows = enrichedRows.sort((a,b) => Number(b.lastActivityAt || b.observedAt || 0) - Number(a.lastActivityAt || a.observedAt || 0));
-    const groups = { critical:[], hold:[], active:[], stale:[], completed:[] };
-    for (const row of rows) groups[row.bucket]?.push(row);
-    const snapshot = {
+    const refreshEvidence=()=>{
+      let changed=false;
+      enrichedRows=enrichedRows.map(row=>{
+        const id=Number(row.tabId),current=liveTabStateByTab.get(id);
+        if(current===evidenceRows.get(id))return row;
+        changed=true;evidenceRows.set(id,current);
+        if(!current)return withTabGroup(fallbackLiveRow(tabsById.get(id),row),tabsById.get(id),groupMap);
+        const same=sameLiveConversation(row,current);
+        return withTabGroup({...row,...current,responsive:true,reconnecting:false,
+          context:same?row.context:{},catalogChatId:same?row.catalogChatId:canonicalLiveCatalogChatId(current)},tabsById.get(id),groupMap);
+      });
+      return changed;
+    };
+    const evidenceCurrent=()=>[...evidenceRows].every(([id,row])=>liveTabStateByTab.get(id)===row);
+    const makeSnapshot=()=>{
+      const rows=enrichedRows.sort((a,b)=>Number(b.lastActivityAt||b.observedAt||0)-Number(a.lastActivityAt||a.observedAt||0));
+      const groups={critical:[],hold:[],active:[],stale:[],completed:[]};
+      for(const row of rows)groups[row.bucket]?.push(row);
+      const responsiveTabs=rows.filter(row=>row.responsive!==false&&!row.reconnecting).length;
+      return {
       ok:true,
       generatedAt:Date.now(),
       openChatTabs:tabs.length,
@@ -5787,14 +5846,24 @@ async function liveChatPulse({ force = false } = {}) {
       recentChats:rows,
       statusCounts:rows.reduce((out,row)=>{out[row.status]=(out[row.status]||0)+1;return out;},{}),
       partial:responsiveTabs !== tabs.length
+      };
     };
+    // Metadata and badge APIs can yield while a provider pushes a newer state.
+    // Merge its accepted fields without restarting an unbounded enrichment loop.
+    refreshEvidence();let snapshot=makeSnapshot();
+    await renderActionBadge(snapshot,evidenceCurrent).catch(() => {});
+    if(refreshEvidence()){
+      snapshot=makeSnapshot();
+      const currentRows=new Map(evidenceRows);
+      void renderActionBadge(snapshot,()=>[...currentRows].every(([id,row])=>liveTabStateByTab.get(id)===row)).catch(()=>{});
+    }
     liveChatPulseCache = snapshot; liveChatPulseCacheAt = Date.now();
-    await renderActionBadge(snapshot).catch(() => {});
     // Periodic convergence pass: if Chrome reports a Constellation-owned group that no
     // longer matches the canonical bucket, repair it even when a prior transition call
     // was dropped. User-created groups are intentionally excluded.
-    for (const row of rows) {
-      if (row?.tabGroup?.managed && row.tabGroup.managedBucket !== row.bucket) syncTabPresentation(row, { force:true }).catch(() => {});
+    for (const row of snapshot.recentChats) {
+      const current=liveTabStateByTab.get(Number(row.tabId));
+      if (current && current === evidenceRows.get(Number(row.tabId)) && row?.tabGroup?.managed && row.tabGroup.managedBucket !== row.bucket) syncTabPresentation(row,{force:true}).catch(()=>{});
     }
     return snapshot;
   })().finally(() => { liveChatPulseRequest = null; });
@@ -5817,6 +5886,8 @@ async function handleLiveChatStatePush(message, sender) {
   if (!provider || !providers.isLikelyChatUrl(tab.url, provider.id)) return { ok:true, ignored:true };
   const network = networkStateForTab(tab.id);
   const state = { ...(message?.state || {}), chat:{ ...(message?.state?.chat || {}), status:message?.state?.status || message?.state?.chat?.status || 'idle' }, generation:message?.state?.generation || null };
+  const observedAt=liveEvidenceTime(state,0);
+  if(!observedAt||!liveEvidenceMatchesTab(state,tab))return {ok:true,ignored:true,reason:'stale-or-invalid-live-evidence'};
   const bucket = livePulseBucket(state, network);
   const row = {
     tabId:Number(tab.id), windowId:Number(tab.windowId || 0), providerId:provider.id, providerName:provider.name,
@@ -5824,9 +5895,10 @@ async function handleLiveChatStatePush(message, sender) {
     status:String(state?.chat?.status || 'idle'), rawStatus:String(state?.chat?.rawStatus || state?.chat?.status || 'idle'), healthState:String(state?.chat?.healthState || ''), bucket,
     critical:bucket==='critical', hold:bucket==='hold', active:bucket==='active', stale:bucket==='stale', completed:bucket==='completed', failure:state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null, generation:state?.generation || null,
     health:state?.health || null, source:String(state?.source || ''), discarded:Boolean(tab.discarded), frozen:Boolean(tab.frozen),
-    network:{pending:Number(network.pending || 0),streamLikely:Boolean(network.streamLikely)}, lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0),Number(network.lastStartAt || 0),Number(network.lastResponseAt || 0),Number(network.lastCompleteAt || 0)), observedAt:Date.now()
+    network:{pending:Number(network.pending || 0),streamLikely:Boolean(network.streamLikely)}, lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0),Number(network.lastStartAt || 0),Number(network.lastResponseAt || 0),Number(network.lastCompleteAt || 0)), observedAt
   };
-  await rememberLiveTabState(row);
+  const accepted=await rememberLiveTabState(row);
+  if(accepted?.ignored)return {ok:true,ignored:true,reason:accepted.ignored};
   stateBus.publishCoalesced('live.chat.changed', { tabId:row.tabId, chatId:row.chatId, providerId:row.providerId, status:row.status, healthState:row.healthState, bucket }, { source:'live-sentinel', key:String(row.tabId), delayMs:120 });
   if (provider.id === 'chatgpt') {
     const tokens = chatGuardian.stateTokens(row);

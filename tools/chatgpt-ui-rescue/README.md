@@ -53,6 +53,19 @@ The installer:
 
 On first run, the dedicated Chrome profile opens ChatGPT Scheduled. Sign in normally there once. If ChatGPT asks for a normal browser verification, complete it in that **local** Chrome window. The next one-minute run continues automatically.
 
+For an install from a specific local checkout, pass its rescue-tool directory:
+
+```powershell
+.\install-local-agent.ps1 -SourceDirectory (Get-Location).Path
+```
+
+Run this command from the rescue-tool directory. This option copies exactly `rescue.mjs`,
+`local-agent.mjs` and `package.json` from that directory. It validates all three
+files before changing the installation. Node dependencies still install through
+npm. Omitting the option retains the default download from the repository's
+`main` branch. CI uses the checked-out candidate and verifies SHA256 hashes of
+all three installed files before removing its disposable task and profile.
+
 ## Status
 
 Run:
@@ -62,6 +75,22 @@ Run:
 ```
 
 The status command shows the Windows task state, last result, next run, latest agent state, recent repaired task titles, remaining blockers, and recent agent log lines.
+
+The generated PowerShell launcher returns the agent's actual exit result and
+supports literal installation paths containing spaces, apostrophes, dollar
+signs, backticks or brackets. The agent accepts the UTF-8 configuration emitted
+by Windows PowerShell 5.1, including its byte-order mark.
+
+A stalled GitHub heartbeat request times out after ten seconds by default, so
+local recovery can continue using the last known heartbeat. The optional
+`heartbeatTimeoutSeconds` configuration accepts a number greater than zero and
+at most thirty. Before launching Chrome or the rescue worker, the agent saves
+an attempt record. If it is interrupted, the next run respects the minimum
+rescue interval; a new heartbeat generation or an explicit
+`CHATGPT_FORCE_RESCUE=1` still requests another attempt. A `cooldown-noop` log
+means the agent is waiting for that interval, not that it has verified the
+scheduled tasks are healthy. Future saved timestamps cannot hold that cooldown
+open indefinitely.
 
 ## Uninstall
 
@@ -81,5 +110,18 @@ The CI workflow `.github/workflows/chatgpt-ui-scheduler-rescue.yml` performs:
 - the complete in-memory Needs attention -> Allow all actions -> Allow -> Resume fixture;
 - a real Chrome DevTools Protocol integration test that launches Chrome, attaches the rescue worker over CDP, and requires the blocker to disappear;
 - Windows PowerShell syntax validation for the installer/status/uninstaller.
+- isolated local-agent configuration, heartbeat timeout, process-crash and retry
+  tests with a loopback fixture and a disposable worker;
+- actual Windows PowerShell 5.1 execution of the generated launcher against a
+  disposable Node script, including literal paths and exit-code propagation;
+- isolated local payload copying with exact-byte checks and rejection of invalid
+  sources before any partial overwrite;
+- installation and removal of a disposable Windows task using only the current
+  checkout payload, with SHA256 verification of all three installed files.
+
+The Windows Setup release gate also runs the local-agent and generated-launcher
+tests. The unified release additionally requires the complete rescue CI workflow.
+These tests do not register an owner-machine task or use a signed-in ChatGPT
+profile. They do not establish signed-in ChatGPT account acceptance.
 
 The CI workflow does **not** attempt to sign into ChatGPT from a GitHub datacenter browser.

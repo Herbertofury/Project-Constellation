@@ -1,41 +1,51 @@
-# Current continuation: Project Constellation 0.24.0
+# Current continuation: Project Constellation 0.25.0
 
-Read `brain/v0.24.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
-`docs/v0.24.0-release-notes.md`, `docs/MONITOR-VERIFICATION.md`, the optimization
+Read `brain/v0.25.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
+`docs/v0.25.0-release-notes.md`, `docs/MONITOR-VERIFICATION.md`, the optimization
 and stack receipts, and the matching published release receipt first.
 
-The root preserves the original application, native Agent Monitor, repairable
-Windows setup and Computer Tools migration. Continue from accepted source;
-never unpack a historical carrier archive over it. The source candidate records
-local evidence; the matching GitHub tag, workflow and release receipts record
-final runtime and publication evidence. The owner requires a versioned GitHub
-release at upgrade closeout.
+The accepted baseline is v0.24.0, commit
+`fc9a2322c6fb521f09f056d6f8208d6431fdfc07`. Its 15 GitHub assets and 24 live Wiki
+pages were verified before this work. Resolve the current version and source
+through the public repository, release receipts and completed hosted checks.
+The user explicitly requested another substantial improvement pass using
+multiple subagents and authorized release closeout.
 
-Each monitored browser/profile still needs its sensor enabled. Permission
-choices remain direct user actions. Firefox's temporary sensor, publisher
-signing, actual speakers and account-specific acceptance remain documented.
-Preserve the Computer-Link repository and private history bundles.
+This candidate adds scoped bulk incident triage and profile drafts; repairs
+source timestamp/authority, uncertain delivery and reminder persistence;
+retains native closure ordering across restart and reconnect; and hardens
+managed-path setup plus the optional local recovery launcher. Preserve every
+existing project, browser, desktop and Computer Tools capability, Computer-Link
+source provenance and unrelated worktree edits.
+
+Committed source records candidate evidence. The matching tag, completed
+hosted jobs, shipped-byte readbacks and live Wiki establish public release
+acceptance. Continue through those authorized publication steps.
+Physical sound, OS notification visibility, owner profile enrollment, signed-in
+account round trips, permanent Firefox signing and Windows publisher signing
+remain explicit prerelease boundaries.
 
 ## Historical continuation records
 
-The following text preserves prior lineage and operating instructions. Its
-older version strings do not override the current checkpoint above.
+The following notes retain earlier version lineage and technical operating
+guidance. Checkout paths and release checks are portable across maintainer
+machines. Older version strings do not override the current release record.
 
 # Contributor and agent continuation
 
 ## Canonical state
 
-- Local: `C:\Users\Owner\Desktop\Project Constellation`
+- Local checkout: `<PROJECT_CONSTELLATION_CHECKOUT>` (replace this placeholder with your own absolute checkout path).
 - GitHub: `Herbertofury/Project-Constellation`
-- Drive: the Project Constellation folder and ACTIVE CHECKPOINT identified in the latest release receipt
-- Base lineage: v0.13.0; current verified development line: v0.17.6 (Drive-backed v0.17.x; canonical GitHub catch-up remains pending)
+- Release authority: matching public tags, release receipts, source trees and completed hosted checks.
+- Base lineage: v0.13.0; historical development line: v0.17.6 within v0.17.x. Current published records take precedence over these earlier version labels.
 
 ProjectDump is historical input only. Do not write Project Constellation changes back into it. Preserve unrelated ProjectDump content.
 
 ## Start-of-work checklist
 
 1. Read `AGENTS.md`, this document, latest `CHANGELOG.md`, release receipt, and the highest-versioned `brain/` state present. Never hardcode an older brain version as the continuation authority.
-2. Run `git status`, inspect remote/tag/release state, and compare Drive checkpoint metadata before assuming currentness.
+2. Run `git status`, inspect the public remote/tag/release state, and compare the source commit/tree with the matching release receipt before assuming currentness.
 3. Run `npm run verify` to establish the local baseline.
 4. Treat generated `build/` and `logs/` as disposable; never infer release success from stale output.
 
@@ -56,7 +66,7 @@ ProjectDump is historical input only. Do not write Project Constellation changes
 2. Update docs/wiki/changelog for behavior changes.
 3. Build production only with secure OAuth client ID injection.
 4. Load/test the actual built extension in Chrome and exercise signed-in Google, GitHub, ChatGPT, storage, service-worker restart, restore, and failure states.
-5. Package, checksum, sign/tag/commit, publish release/wiki, upload Drive artifacts, verify all remotes, and append the ACTIVE CHECKPOINT.
+5. Package, checksum, sign/tag/commit, publish the release and Wiki, and verify the public tag, source tree, asset readbacks and release receipt agree.
 6. Record unresolved external acceptance explicitly; never translate “code path tested” into “account integration verified.”
 
 

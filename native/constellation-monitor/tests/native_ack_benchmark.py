@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure complete native ACK workloads; unsafe old ACKs are not equivalent durability."""
+"""Measure complete durable native ACK workloads, including retained closure metadata."""
 import argparse
 import hashlib
 import json
@@ -97,7 +97,7 @@ def percentiles(samples):
             "p99Ms": ordered[int((len(ordered) - 1) * .99)], "maxMs": max(samples)}
 
 
-def measure(binary):
+def measure(binary, retired_sessions=0):
     with tempfile.TemporaryDirectory(prefix="constellation-ack-") as temporary:
         directory = Path(temporary)
         sensor = Sensor(binary, directory)
@@ -106,6 +106,19 @@ def measure(binary):
                                             "instanceId": "session", "label": "Benchmark"})
             startup = (time.perf_counter_ns() - sensor.started) / 1_000_000
             clock = int(time.time() * 1000) - 100_000
+            retired = []
+            closure_samples = []
+            for tab in range(retired_sessions):
+                clock += 1
+                event = {"tabId": 10_000 + tab, "documentId": f"retired-document-{tab}", "runId": f"retired-run-{tab}",
+                         "url": f"https://chatgpt.com/c/retired-{tab}", "title": f"Retired session {tab}",
+                         "status": "idle", "reason": "", "observedAt": clock}
+                sensor.request("observe", event=event)
+                clock += 1
+                event.update(status="closed", observedAt=clock)
+                _, elapsed = sensor.request("observe", event=event)
+                closure_samples.append(elapsed)
+                retired.append(event.copy())
             events = [{"tabId": tab, "documentId": f"document-{tab}", "runId": f"run-{tab}",
                        "url": f"https://chatgpt.com/c/complete-{tab}", "title": f"Complete session {tab}",
                        "status": "error", "reason": "Initial issue", "observedAt": clock}
@@ -133,6 +146,8 @@ def measure(binary):
             saved = json.loads(state_path.read_bytes())
             saved_times = {row["tabId"]: row["observedAt"] for row in saved["sessions"]}
             durable = all(saved_times.get(event["tabId"]) == event["observedAt"] for event in events)
+            closure_times = {row["tabId"]: row["observedAt"] for row in saved.get("closureFences", [])}
+            closures_durable = all(closure_times.get(event["tabId"]) == event["observedAt"] for event in retired)
             before_retry = state_path.stat()
             retries = []
             for _ in range(4):
@@ -151,7 +166,10 @@ def measure(binary):
                     "advancingDuplicateCompletionMs": complete, "exactRetryAck": percentiles(retries),
                     "acknowledgedWatermarksDurable": durable, "duplicateBroadcasts": 0,
                     "exactRetriesRewroteState": False, "sessions": 96, "incidents": 192,
-                    "unresolvedIncidents": 96, "stateBytes": state_path.stat().st_size}
+                    "unresolvedIncidents": 96, "retiredSessions": retired_sessions,
+                    "closureFencesDurable": closures_durable,
+                    "closureAck": percentiles(closure_samples) if closure_samples else None,
+                    "stateBytes": state_path.stat().st_size}
         finally:
             sensor.close()
 
@@ -161,23 +179,30 @@ def main():
     parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--iterations", type=int, default=5)
+    parser.add_argument("--retired-sessions", type=int, default=0)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.iterations < 1:
         parser.error("iterations must be positive")
+    if not 0 <= args.retired_sessions <= 128:
+        parser.error("retired-sessions must be between 0 and 128 for this fixed full-workload comparison")
     binaries = {name: getattr(args, name).resolve() for name in ("baseline", "candidate")}
-    result = {"schema": "constellation-native-ack-measurement-v1", "platform": platform.system(),
+    result = {"schema": "constellation-native-ack-measurement-v2", "platform": platform.system(),
               "architecture": platform.machine(), "python": platform.python_version(),
-              "workload": {"sessions": 96, "incidents": 192, "advancingDuplicates": 384, "exactRetries": 384},
-              "note": "The baseline's unsafe duplicate ACKs do not provide equivalent durability. This measures the explicit cost of the repair, not a no-loss speedup. Startup is a fresh process with normal OS caches.",
-              "binaries": {name: {"sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+              "workload": {"sessions": 96, "incidents": 192, "advancingDuplicates": 384, "exactRetries": 384,
+                           "retiredSessions": args.retired_sessions},
+              "note": "Both implementations must durably save advancing live-session ordering before ACK. Retired closure protection is checked separately: an older baseline without closure fences does not provide equivalent retired-session replay protection. Any added cost includes that stronger guarantee. Startup uses fresh processes with normal OS caches; no content or public workload is removed.",
+              "harnessSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "binaries": {name: {"sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "path": str(path),
+                                  "version": subprocess.check_output([str(path), "--version"], text=True).strip()}
                            for name, path in binaries.items()}, "runs": []}
     for iteration in range(args.iterations):
         order = ("baseline", "candidate") if iteration % 2 == 0 else ("candidate", "baseline")
         for name in order:
-            measured = measure(binaries[name])
+            measured = measure(binaries[name], args.retired_sessions)
+            assert measured["acknowledgedWatermarksDurable"], f"{name} live-session ACK was not durable"
             if name == "candidate":
-                assert measured["acknowledgedWatermarksDurable"], "candidate ACK was not durable"
+                assert measured["closureFencesDurable"], "candidate closure ACK was not durable"
             result["runs"].append({"implementation": name, "iteration": iteration + 1, **measured})
     result["passed"] = True
     args.output.parent.mkdir(parents=True, exist_ok=True)

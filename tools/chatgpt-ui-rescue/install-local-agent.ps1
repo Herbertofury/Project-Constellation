@@ -1,7 +1,8 @@
 param(
   [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "ProjectConstellation\ChatGPTRescueAgent"),
   [string]$TaskName = "Project Constellation - ChatGPT Scheduled Rescue",
-  [switch]$SkipStart
+  [switch]$SkipStart,
+  [string]$SourceDirectory
 )
 
 $ErrorActionPreference = "Stop"
@@ -47,6 +48,57 @@ function Find-Chrome {
   throw "Google Chrome could not be found."
 }
 
+function Get-AgentPayloadSources([string]$Directory) {
+  if ([string]::IsNullOrWhiteSpace($Directory)) {
+    throw "SourceDirectory must name a local directory containing rescue.mjs, local-agent.mjs and package.json."
+  }
+  $Source = Get-Item -LiteralPath $Directory -Force -ErrorAction Stop
+  if ($Source.PSProvider.Name -ne "FileSystem" -or -not $Source.PSIsContainer) {
+    throw "SourceDirectory must name a filesystem directory: $Directory"
+  }
+  $Payload = @()
+  foreach ($Name in @("rescue.mjs", "local-agent.mjs", "package.json")) {
+    $File = Get-Item -LiteralPath (Join-Path $Source.FullName $Name) -Force -ErrorAction Stop
+    if ($File.PSIsContainer -or ($File.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+      throw "SourceDirectory payload must be a regular file: $($File.FullName)"
+    }
+    $Payload += $File
+  }
+  return $Payload
+}
+
+function Copy-LocalAgentPayload([string]$SourceDirectory, [string]$InstallDirectory) {
+  # Validate the complete set before copying any file, including on a repeat
+  # install. Literal filesystem paths preserve metacharacters in checkout paths.
+  $Payload = @(Get-AgentPayloadSources -Directory $SourceDirectory)
+  foreach ($File in $Payload) {
+    Write-Host "Copying $($File.Name) from the selected source directory..."
+    [IO.File]::Copy($File.FullName, (Join-Path $InstallDirectory $File.Name), $true)
+  }
+}
+
+function New-AgentRunnerScript([string]$Directory, [string]$NodePath) {
+  # These variables belong to the future runner. A single-quoted template keeps
+  # the installer from expanding them or freezing its own npm exit status.
+  # PowerShell literal strings also preserve apostrophes, $, backticks and [].
+  $LiteralDirectory = $Directory.Replace("'", "''")
+  $LiteralNode = $NodePath.Replace("'", "''")
+  $LiteralAgent = (Join-Path $Directory "local-agent.mjs").Replace("'", "''")
+  return (@'
+$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath '{0}'
+& '{1}' '{2}'
+exit $LASTEXITCODE
+'@ -f $LiteralDirectory, $LiteralNode, $LiteralAgent)
+}
+
+# Invalid local sources must fail before installing tools, creating a profile,
+# or replacing an existing task. With no option, retain the current main download.
+$UseLocalPayload = $PSBoundParameters.ContainsKey("SourceDirectory")
+if ($UseLocalPayload) {
+  Get-AgentPayloadSources -Directory $SourceDirectory | Out-Null
+}
+
 $Node = Ensure-Tool "node.exe" "OpenJS.NodeJS.LTS"
 $Npm = Ensure-Tool "npm.cmd" "OpenJS.NodeJS.LTS"
 $Chrome = Find-Chrome
@@ -55,15 +107,19 @@ New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 $ProfileDir = Join-Path $env:LOCALAPPDATA "ProjectConstellation\ChatGPTRescueChrome"
 New-Item -ItemType Directory -Path $ProfileDir -Force | Out-Null
 
-$Base = "https://raw.githubusercontent.com/Herbertofury/Project-Constellation/main/tools/chatgpt-ui-rescue"
-$Files = @("rescue.mjs", "local-agent.mjs", "package.json")
-foreach ($File in $Files) {
-  $Target = Join-Path $InstallDir $File
-  Write-Host "Downloading $File..."
-  Invoke-WebRequest -UseBasicParsing -Uri "$Base/$File" -OutFile $Target
+if ($UseLocalPayload) {
+  Copy-LocalAgentPayload -SourceDirectory $SourceDirectory -InstallDirectory $InstallDir
+} else {
+  $Base = "https://raw.githubusercontent.com/Herbertofury/Project-Constellation/main/tools/chatgpt-ui-rescue"
+  $Files = @("rescue.mjs", "local-agent.mjs", "package.json")
+  foreach ($File in $Files) {
+    $Target = Join-Path $InstallDir $File
+    Write-Host "Downloading $File..."
+    Invoke-WebRequest -UseBasicParsing -Uri "$Base/$File" -OutFile $Target
+  }
 }
 
-Push-Location $InstallDir
+Push-Location -LiteralPath $InstallDir
 try {
   & $Npm install --omit=dev --no-audit --no-fund
   if ($LASTEXITCODE -ne 0) { throw "npm install failed with exit code $LASTEXITCODE." }
@@ -81,16 +137,11 @@ $Config = [ordered]@{
   cdpReadySeconds = 25
   rescueTimeoutSeconds = 120
 }
-$Config | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $InstallDir "agent-config.json") -Encoding UTF8
+$Config | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $InstallDir "agent-config.json") -Encoding UTF8
 
 $Runner = Join-Path $InstallDir "run-agent.ps1"
-$RunnerBody = @"
-$ErrorActionPreference = "Continue"
-Set-Location "$InstallDir"
-& "$Node" "$InstallDir\local-agent.mjs"
-exit $LASTEXITCODE
-"@
-$RunnerBody | Set-Content -Path $Runner -Encoding UTF8
+$RunnerBody = New-AgentRunnerScript -Directory $InstallDir -NodePath $Node
+$RunnerBody | Set-Content -LiteralPath $Runner -Encoding UTF8
 
 $Action = New-ScheduledTaskAction `
   -Execute "powershell.exe" `

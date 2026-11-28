@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '0.24.0';
+  const VERSION = '0.25.0';
   const CONTEXT_OPEN = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
   const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
   const CALL_RE = /\[PC_BUDDY_CALL\](\{[\s\S]*?\})\[\/PC_BUDDY_CALL\]/;

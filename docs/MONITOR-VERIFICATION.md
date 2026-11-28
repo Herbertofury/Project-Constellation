@@ -1,151 +1,298 @@
-# Project Constellation 0.24.0 — verification record
+# Project Constellation 0.25.0 — verification record
 
-This source checkpoint records local candidate evidence. The matching published
-release receipt and completed GitHub workflows establish the final commit/tree,
-actual Windows and installed-browser acceptance, and shipped bytes. A prepared
-workflow, a compiler check or a configuration flag is not runtime acceptance.
+This checkpoint records executed local candidate evidence on 2026-11-28. The
+candidate starts from released v0.24.0 commit
+`fc9a2322c6fb521f09f056d6f8208d6431fdfc07`, tree
+`ad1e2f3fbe1169eb3187acda1c5a47852dcf5d1a`. Current candidate bytes are bound by
+the source hashes and receipts below; the baseline HEAD is not mislabeled as a
+new release commit. Matching hosted workflows, clean committed source and the
+published artifact receipts must establish final-source acceptance.
 
-## Local regression evidence
+## Executed local results
 
-| Area | Executed local evidence and scope |
+| Area | Actual evidence and scope |
 | --- | --- |
-| Root regressions | All 51 npm test command entries retained; browser persistence/lifecycle, scheduler and generated production-build checks exercise the actual production modules |
-| Source/UI/message contracts | Validation passes with all 94 existing UI message contracts; no added content-script network or provider actions |
-| Full browser smoke inventory | 40 of 43 workflows pass with the available real Chromium headless shell; three installed-extension checks fail at the documented local capability boundary |
-| Desktop | `npm run check` and `npm test` pass: 22 task/search tests, 81 runtime tests, static/package/relay/device-agent checks and a real Chromium-to-desktop bridge-to-disk round trip |
-| Native hub | 22 Linux unit tests and 14 actual child-process/transport tests pass; formatting and strict Linux/Windows-GNU Clippy pass |
-| Installer | 29 Linux transaction tests, one digest-format unit and seven Python builder tests pass; Windows junction cases compile and require actual hosted execution |
-| Computer Tools | 23 Python tests pass; 14 Windows transport tests typecheck, including four fragmented-frame/deadline/authorization regressions that require actual Windows execution |
-| Scheduler supervision | 19 Node and 11 Python tests pass, including independent failure channels, malformed/future audit evidence, persistent attempt claims, cooldowns and post-side-effect save failures |
-| Released browser regressions | Six focused behavioral cases fail against released `7fe2bf4` and pass against the repaired service; native and browser agents independently cross-reviewed the final implementation |
-| Generated account configuration | Production/development/unprovisioned build regressions execute the generated GitHub client-ID accessor and inspect Google manifest configuration; this is local configuration proof, not a signed-in account round trip |
-| Stack and optimization | Official current-stack evidence and the pinned, isolated optimizer results are recorded in the matching 0.24.0 receipts |
+| Root regressions | All **52 npm test command entries pass**, including the existing service, sensor, bridge, dashboard, generated-build and scheduler suites and the added local-agent suite |
+| Source/UI/message contracts | `validate.mjs` and `ui-contract.mjs` pass; `message-contract.mjs` passes all **94 UI message types** |
+| Complete browser smoke run | **39 of 43 workflows pass**; four failures are retained: three installed-MV3 capability failures and a missing Firefox executable |
+| Separate minimal sensor check | The unchanged fixture passes its supported Chromium-only mode: **26 observed events**, zero page errors, zero provider requests, zero permission clicks and preserved draft text; this does not replace Firefox acceptance |
+| Agent Monitor | Actual production logic regressions and real Chromium rendered fixtures pass, including bulk triage, uncertain replies, profile-save races, delivery identity, complete inventory, DOM reuse, focus and narrow-window controls |
+| Desktop | `npm run check` and `npm test` pass: **22 task/search tests + 81 runtime tests**, static/package/relay/device-agent checks and the real Chromium → desktop bridge → disk round trip; the Windows-only computer-use smoke explicitly skips locally |
+| Native hub | **28 Linux unit tests + 18 real child-process/transport tests** pass on final 0.25.0 inputs; formatting and strict Linux/Windows-GNU Clippy pass, with Windows-GNU results limited to compilation/static analysis |
+| Windows Setup engine | **31 Linux transaction tests + 1 digest unit** pass after the version sweep; link/ancestor recovery and external-target preservation regressions are retained |
+| Setup builder | All **7 Python builder tests** pass |
+| Optional local recovery agent | All **9 Node-reported tests** pass, including six top-level tests and three positive-retry subtests; Windows PowerShell launcher/copy and task lifecycle execution remain hosted gates |
+| Generated account configuration | Existing production/development/unprovisioned build regressions pass and exercise actual generated GitHub accessor behavior and Google manifest configuration; no signed-in account round trip is inferred |
 
-The full local `npm run verify` run used Node 24.22.3, Python 3.12.14,
-Playwright 1.62.0 and Chromium 158.0.8127.0. Native local checks used Rust 1.99.0.
-These are not the selected hosted release versions: Node 26.13.1, Rust 1.100.1,
-Playwright 1.65.2 and Electron 45.5.0 remain required in their release jobs.
+The local run uses Node **24.22.3**, Python **3.12.14**, Playwright Python
+**1.62.0**, Chromium headless shell **158.0.8127.0** and cached Rust **1.99.0**.
+These supplement, rather than replace, the selected hosted stack in
+[RELEASE-STACK-0.25.0.json](RELEASE-STACK-0.25.0.json): Node 26.13.1, Rust
+1.100.1, Playwright Python 1.65.2, the optional recovery runtime's Node Playwright
+1.65.1 and Electron 45.5.0.
 
-The three local failures are `drive_autosync_smoke.py`,
-`extension_load_smoke.py` and `multitab_reliability_smoke.py`. The available
-headless shell does not load the installed MV3 extension pages/worker; full
-Chromium startup requires a Unix socket unavailable in this execution environment.
-The failures are retained, and local `npm run verify` exits 1. They are not
-converted into skips or passing status. Hosted CI must execute the complete
-inventory using its isolated display and actual installed-browser support.
+### Complete smoke result and separate sensor evidence
 
-The full smoke run followed the coordinated version sweep. A subsequent
-build-only OAuth correction has separate generated-build regression coverage
-and the final full root test pass; hosted verification binds the complete final
-tree. The first local version-sweep attempt stopped on one stale version regex;
-that assertion was corrected and the full run restarted. Raw failure and rerun
-logs remain available rather than being overwritten as passing evidence.
+The full `npm run verify` rerun passed all 52 root command entries, validation,
+94 message contracts and the development build, then ran **every one of the 43
+smoke workflows**. It finished with `AggregateError: 4/43 smoke workflows failed`
+and a failing overall result. The failures were not removed, converted into
+skips or relabeled as a successful full run.
 
-## What the regressions establish
+| Failed workflow | Observed local result |
+| --- | --- |
+| `browser_monitor_sensor_smoke.py` | Chromium completed before Firefox launch failed because Playwright's `firefox-1538/firefox/firefox` executable was absent |
+| `drive_autosync_smoke.py` | Installed extension popup navigation failed with `net::ERR_ABORTED` |
+| `extension_load_smoke.py` | No installed MV3 service worker appeared within the fixture's 15-second deadline |
+| `multitab_reliability_smoke.py` | Installed extension popup navigation failed with `net::ERR_ABORTED` |
 
-Browser storage tests verify failed-write retries, durable advancing ordering,
-same-timestamp authority changes and repeated mirrored native ACK/snooze after a
-failed save. Native tests abruptly stop a real hub immediately after an ACK and
-restart it, preserving the accepted watermark; forced persistence failures leave
-the prior accepted state intact. Exact retries add no write or duplicate alert.
+The supplied headless shell does not provide the installed extension
+pages/service-worker acceptance required by the three MV3 workflows. No cached
+Firefox executable or archive was found in the available scratch/runtime
+locations. The default sensor fixture still requires both Chromium and Firefox.
+Its separate unchanged invocation with
+`PROJECT_CONSTELLATION_TEST_BROWSERS=chromium` passed all assertions; the result
+is scoped to Chromium and does not turn the full inventory into a 40/43 result.
+Hosted Chromium/Firefox and installed-extension lanes remain required.
 
-Lifecycle tests distinguish old navigation/close/discard callbacks from current
-tab state and document/run identity. Reconnection restores quiet remote coverage
-without inventing a newer provider observation; native history restored as
-explicitly disconnected remains unavailable until fresh evidence arrives.
+The raw complete-run log is `logs/release-0.25.0/full-verify.log`; the four
+per-workflow logs remain under `logs/smoke`. Separate sensor proof is
+`logs/release-0.25.0/browser/browser-monitor-sensor-chromium.log`. Sensor lifecycle
+coverage dispatches pagehide/pageshow events in the real renderer; it does not
+claim a genuine browser-cache navigation cycle or an owner browser profile.
 
-The extended sensor test runs in a real renderer with controlled extension
-messaging. It verifies response deadlines, bounded fresh retries, inert late
-ACKs, dispatched page lifecycle pause/resume and disposed-sensor reinjection,
-with preserved draft text, zero provider requests and zero permission clicks.
-Dispatched page events are not claimed as a genuine browser-cache navigation
-cycle or installed-extension acceptance.
+### Initial integration failure
 
-Alert tests recover unstarted delivery and retain stable notification IDs.
-Already-claimed audio becomes **interrupted** with an explicit error; it is not
-silently marked successful or automatically replayed. Neither an accepted audio
-API call nor a mocked notification proves physical sound or OS visibility.
+The first full verification attempt stopped in the existing
+`live-state-policy.test.mjs` assertion because the new guarded Pulse condition
+omitted the spaces expected by its source-contract regex. The production
+condition's spacing was restored. Both current-evidence checks and the original
+managed-group mismatch guard remain present; the assertion was not changed.
+All 52 root test command entries then passed, and the complete verification
+rerun above followed.
 
-Installer tests preserve exact external target bytes, ownership receipts and
-registrations while rejecting active links before mutation or recovering an old
-committed linked backup. Windows tests use disposable junctions, avoiding a
-false requirement for symlink elevation. All installer/runtime fixtures remain
-excluded from release artifacts.
+`logs/release-0.25.0/full-verify-integration-formatting-failure.log` preserves the
+failure. `browser/INTEGRATION-FORMATTING-PROOF.json` under the same release log
+directory proves that reversing that single whitespace-only change reconstructs
+the previously accepted full-file SHA256 exactly. Independent review accepted
+the scoped change while retaining the original probe/test bindings. Earlier
+renderer evidence retains its original source hash; current worker source is
+`d2107d244ec682b90e5085d330b5c83e7b83af473df9615848d7bd1cfd9afd6b`.
 
-The immutable v0.23.0 Extension ZIP reproduces the GitHub client-ID build defect:
-a populated receipt coexists with an accessor that rejects the configured ID.
-The repair changes only the intended configuration declaration. Package readback
-must check actual generated behavior and the stable manifest identity, not only
-whether a receipt says that IDs were supplied. No account credentials or owner
-browser profile is used in these checks.
+## What the behavioral regressions establish
 
-## Performance and preservation
+### Alerts, observations and lifecycle
 
-[NATIVE-ACK-PERFORMANCE-0.24.0.json](NATIVE-ACK-PERFORMANCE-0.24.0.json)
-contains five alternating baseline/candidate pairs for the final-version native
-binary. Each run retains 96 sessions and 192 incidents, handles 384 advancing
-observations and then 384 exact retries, and checks durable saved watermarks.
-The median of per-run ACK medians rises from 0.159 ms to 1.297 ms because the
-candidate performs required persistence before acknowledging. Exact-retry
-medians are 0.150/0.155 ms, with zero retry rewrites or duplicate broadcasts.
-Tail results, variance and full source/binary hashes remain in that report.
-These are Linux measurements with ordinary OS caches, not Windows or physical
-cold-cache claims and not a speedup over equivalent durable guarantees.
+Failed reminder persistence restores the consumed reminder count and preserves
+the due work. Recovery uses the bounded 2/10/30-second schedule; an exhausted
+storage budget is not rearmed by routine ownership refresh or transfer. Startup
+and scoped-close retries flush dirty state before returning success.
 
-The exact dashboard HTML/CSS/JavaScript remains unchanged from the measured
-v0.23.0 incremental renderer. Its historical performance evidence is explicitly
-reused, not relabeled as a new v0.24.0 benchmark. Full matching rows and existing
-features/tests remain intact; no new caps, culling, deferred work or content cuts
-are introduced as an optimization tactic. Existing protocol retention limits
-remain documented, including the separate direct-client replay/tombstone question.
+Audio grouping uses the actual sound claim time. A lost playback reply or a
+partially scheduled tone group remains **interrupted/uncertain**, retains its
+claim and is not replayed automatically. Partial WebAudio setup releases the
+whole group. Notification/audio operations have finite deadlines; late
+notification creates or clears reconcile the latest intent for the stable ID
+without repeating sound. An accepted API call is not physical speaker or system
+notification proof.
 
-[RELEASE-OPTIMIZATION-0.24.0.json](RELEASE-OPTIMIZATION-0.24.0.json) records
-fresh pinned shrink-anything, fast-anything and rust-anything assessments on a
-complete isolated source snapshot, together with the scoped Google
-migrate-to-rust applicability decision. The changed native paths are already
-Rust; browser host APIs and small audit/build orchestration do not supply a
-material supported legacy compute boundary. No artificial migration is claimed.
-The upstream shrink report's refusal without a destructive cut is recorded
-explicitly; no cut is performed. No unmeasured optimization is retained.
+The worker preserves provider observation time through live pushes, tab reads,
+durable acknowledgement, legacy caches and Pulse. Rejected or older observations
+cannot clear a newer permission request. Newly accepted evidence wins across
+session-storage reads, metadata enrichment and badge awaits. Legacy timestamp-less
+reads use request-start time; the same rule now applies to manual native-monitor
+refresh, and malformed refresh timestamps request a rescan.
 
-Raw evidence is under `logs/release-0.24.0`, `logs/alerts-browser-0.24.0`,
-`logs/review-setup-linked-browser` and `logs/review-scheduler-recovery`.
-The prior verification record remains in
-[MONITOR-VERIFICATION-0.23.0.md](MONITOR-VERIFICATION-0.23.0.md).
+Weak evidence cannot supersede a confirmed incident or use an untrusted run
+label to reset its acknowledgement. Stronger same-state evidence promotes a
+weak episode in place even when its confirmed run label differs. The native
+bridge represents missing reliable evidence as suspension under protocol one.
+No provider draft mutation, automatic permission decision or new provider
+request is introduced.
 
-## Required hosted release gates
+### Dashboard actions and profile edits
 
-1. **Verify:** all root regressions, contracts, complete installed-browser smoke
-   inventory and desktop regressions with the selected hosted stack.
-2. **Windows runtime:** actual native computer use, integrated Electron,
-   packaged portable launch/exit and graceful shutdown of the exact artifact.
-3. **Windows setup:** real install, repair, diagnostics, rollback,
-   retained-manager corruption/repair, uninstall, setup/owner UI and restored
-   registry/shortcut integrations; linked-folder transaction regressions also
-   execute on Windows.
-4. **Native monitor:** formatting, strict Clippy and real transport tests on
-   Linux/Windows; Chromium and Firefox detector/rendered fixtures.
-5. **Computer Tools:** preserved provenance, supported native tests, fragmented
-   authorization/token frames and real status-only MCP handshakes.
+Bulk actions retain exact source/incident/document/run context and send at most
+four existing per-incident requests concurrently. Stop, timeout, rejected
+transport and missing/malformed receipts stop unsent work while retaining
+unconfirmed selection. An explicit boolean `ok:false` remains a confirmed
+backend refusal. These controls acknowledge or snooze Constellation incidents;
+they do not approve provider permission requests.
 
-The unified release validates clean committed source, exact versions and hashes,
-production configuration and all nine required Windows setup acceptance routes.
-It refuses to overwrite an immutable release, verifies its tag target, downloads
-all published bytes and checks checksums, then synchronizes the live Wiki.
-Independent closeout reconstructs the source Git tree from ZIP bytes and modes,
-checks the shipped extension and artifact receipts, verifies the live asset set
-and mirrors the release with raw-download hash verification.
+Profile drafts survive background refresh and edits made while saving. A failed
+follow-up read cannot replace a successful save with stale configuration, and a
+pre-save GET cannot overwrite the accepted normalized response. Delivery details
+require one unambiguous current context and matching local ledger. Complete
+matching sessions and incidents remain rendered; retained controls read their
+current row data, including after reordering and source disconnection.
 
-## Target-machine and distribution acceptance
+### Native closure durability
+
+Real broker reproductions show that the released v0.24.0 binary can recreate a
+removed session, including a closure that preceded its first observation. The
+candidate persists private closure ordering before ACK and rejects those stale
+observations after restart. Failed writes roll back visible and private state;
+exact retries add no rewrite or duplicate broadcast. Contextual closure replay
+precedes the latest live per-tab evidence after reconnect, and persistent native
+write failures exhaust the finite reconnect budget.
+
+Protocol-one `remove` accepts a validated optional source timestamp. New sensors
+send it so delayed removal cannot close a newer accepted document; legacy
+callers retain the prior receive-time default. Automatic retirement preserves
+the last accepted source watermark rather than inventing newer provider time.
+Private closure records share the existing durable-state byte budget and expire
+only when the old evidence they reject falls outside the accepted 24-hour range.
+Storage exhaustion refuses and rolls back a request instead of discarding an
+unexpired ordering record. Public transport/history limits are not increased.
+
+### Setup and optional local recovery
+
+Managed-directory ancestor checks reject linked data/monitor or versions paths
+before staging, permission or registration changes. Uninstall preserves the
+first linked directory and its target while completing owned cleanup, avoiding
+a permanent retry trap. Tests retain exact external bytes and registration
+ownership.
+
+The local recovery agent accepts valid BOM-prefixed JSON, bounds heartbeat
+waiting, and durably claims an attempt before Chrome or a rescue worker can act.
+Crash, failed-save and future-time cases retain an honest cooldown state;
+fresh heartbeat, explicit force and elapsed intervals still permit recovery.
+The existing lock is not promoted to an exactly-once guarantee.
+
+The Windows launcher preserves runtime variables, literal paths and the actual
+Node exit result. Its optional source directory validates all expected payload
+files before copying, so the hosted test can install the exact checkout rather
+than an unrelated `main` payload. The Windows PowerShell 5.1 copy/launcher and
+disposable install/register/hash/uninstall branches are independently reviewed
+but were not executed locally.
+
+## Measured performance and preservation
+
+### Complete dashboard workloads
+
+[AGENT-MONITOR-PERFORMANCE-0.25.0.json](AGENT-MONITOR-PERFORMANCE-0.25.0.json)
+records 11 alternating baseline/candidate fresh-page samples per size in the
+same isolated Chromium renderer. Every session and one incident per two sessions
+is present after every sample. The arrows below mean **v0.24.0 → v0.25.0**;
+each timing cell gives **p50 / p95 in milliseconds**.
+
+| Sessions / incidents | Complete cold render | Unchanged refresh | Two-row changed refresh |
+| --- | --- | --- | --- |
+| 100 / 50 | 30.4 / 40.2 → 32.3 / 48.7 | 3.2 / 7.1 → 4.0 / 5.4 | 3.2 / 5.0 → 3.2 / 4.9 |
+| 1,000 / 500 | 138.8 / 238.5 → 194.8 / 237.7 | 9.0 / 15.4 → 12.6 / 18.4 | 13.6 / 19.4 → 11.6 / 17.7 |
+| 2,000 / 1,000 | 331.2 / 426.3 → 335.3 / 462.8 | 19.3 / 24.8 → 18.0 / 25.9 | 27.7 / 38.3 → 22.6 / 36.9 |
+
+The 1,000-session cold median increased by **56.0 ms**; that cost is retained in
+the report rather than dismissed as a verified speedup. At 2,000 sessions,
+changed-refresh medians are 27.7 → 22.6 ms while cold medians are 331.2 → 335.3 ms.
+The candidate adds incident selection, bounded action handling, draft protection
+and delivery evidence. Full-model reuse and stable-order reconciliation reduce
+repeated equivalent work, but this mixed comparison is not a zero-cost or
+blanket performance-win claim. At 11 samples the nearest-rank p95 and p99 both
+select the maximum; full distributions remain in the receipt.
+
+| Sessions / incidents | Median post-GC page JavaScript heap, bytes | Candidate increase, bytes |
+| --- | --- | --- |
+| 100 / 50 | 1,119,036 → 1,202,000 | +82,964 |
+| 1,000 / 500 | 2,550,828 → 2,697,780 | +146,952 |
+| 2,000 / 1,000 | 4,055,856 → 4,210,676 | +154,820 |
+
+Cold includes evaluation, complete cloned status replies, DOM construction and
+forced whole-document layout in a fresh page inside an already running browser.
+It excludes browser process startup and physical disk-cache cold start. Heap is
+CDP JavaScript heap after explicit collection, not process RSS, GPU memory or
+peak memory. These synthetic complete-data fixtures use a real renderer and
+preserve all rows; the 1,000/2,000-session stress cases exceed native capacity
+without changing it. There is no pagination, culling, content-visibility
+suppression, prewarming or deferred mandatory work.
+
+### Native durable acknowledgement workloads
+
+[NATIVE-ACK-PERFORMANCE-0.25.0.json](NATIVE-ACK-PERFORMANCE-0.25.0.json)
+records 20 runs: five alternating pairs for each of two scenarios. Each run
+preserves 96 live sessions and 192 incidents, processes 384 advancing evidence
+observations, then 384 exact retries. Both versions durably persist live ordering;
+the second candidate scenario additionally retains 96 closure fences.
+
+| Scenario | Median of per-run ACK p50, ms | Median complete 384 ACKs, ms | Median of per-run exact-retry p50, ms |
+| --- | --- | --- | --- |
+| 96 active sessions | 1.228 → 1.237 | 513.421 → 520.310 | 0.132 → 0.184 |
+| 96 active + 96 retired sessions | 1.272 → 1.448 | 513.517 → 610.691 | 0.191 → 0.183 |
+
+Both versions retain the complete active workload, with zero duplicate
+broadcasts and zero exact-retry rewrites. The candidate's 96 retired-session
+fences add **18,900 saved bytes** and additional durable-work cost; the baseline
+does not provide equivalent retired-session replay protection. Values above are
+rounded to three decimals; full per-run tails, maxima and binary/source hashes
+remain in the report. These are Linux release-build measurements with fresh
+processes and ordinary OS caches. They do not establish Windows disk latency,
+physical cold-cache behavior, peak RSS or a speedup.
+
+The final source-clock corrections were measured again. Earlier exploratory
+source, binary and receipts remain under `logs/release-0.25.0/native/pre-clock-fix`
+and are not used as final-source measurements.
+
+## Source binding and independent review
+
+The final dashboard JS/HTML/CSS hashes match the dashboard measurement receipt.
+All eight recorded native implementation hashes match the native measurement
+receipt. The following current production files anchor the browser, native,
+setup and optional local-agent evidence; metadata-only and later formatting
+differences are explained by the corresponding receipts rather than concealed.
+
+| Current production file | SHA256 |
+| --- | --- |
+| `extension/background.js` | `d2107d244ec682b90e5085d330b5c83e7b83af473df9615848d7bd1cfd9afd6b` |
+| `extension/src/attention-service.js` | `f341797c58c34ee54524c775d33539fa747757f12d64636a70a40314cc280675` |
+| `extension/src/attention-background.js` | `073aa9e8c026d1916916b5c2341feb721864341d7dd1a492fb8ec435361c2842` |
+| `extension/src/attention-audio.js` | `603963af2f6c530476eca9dbda9a188258fd0768bf274394c3c257cd4318be61` |
+| `extension/src/native-monitor-bridge.js` | `f8f4cbbde3fb4a071f77f6a12a6cf0eec7218662035a315de590a78856e07eae` |
+| `extension/agent-monitor.js` | `47f24a8891c3391faf0cde203b86ab616943a27958de3f095ec434e37e93f27b` |
+| `extension/agent-monitor.html` | `21b7f20e72aad583f44e10084385f2a5d3cd912103f65c1c3fcd76cb09e23f20` |
+| `extension/agent-monitor.css` | `011a16f5f4131c0ca3b6cc881cb10b1b303b757b7db539c1bb51885976e6b5d1` |
+| `native/constellation-monitor/src/state.rs` | `c49d3b9056397858b672c14f4453d761be389dcd595f85ae9cae459a1895f23a` |
+| `native/constellation-monitor/src/broker.rs` | `b63a05166cd1e0be65f66533c508b44c058faec78f68c2d8df1ae39c717235d2` |
+| `native/constellation-setup/src/engine.rs` | `cc5c87f6b214b0baf7b94440d75555588e2639ccb1e32449d06681c7b4366805` |
+| `tools/chatgpt-ui-rescue/local-agent.mjs` | `4940fb764858f3b3e9b32fee515f6d15ce09565722a436fd0643d27f2960f9e6` |
+| `tools/chatgpt-ui-rescue/install-local-agent.ps1` | `3822390db38ffe9323f0db8cdfb95d3b13c8199a728db1c7e1e56279fc211a6c` |
+
+Raw source-bound reviews and failure reproductions are retained under
+`logs/release-0.25.0/browser`, `logs/release-0.25.0/native` and
+`logs/release-0.25.0/setup`. In particular:
+
+- `browser/BROWSER-VERIFICATION.json` binds the browser implementation, original renderer capture, final 52-command integration pass and independently accepted formatting proof.
+- `browser/INDEPENDENT-ROOT-UI-REVIEW.json` records the reproduced bulk-reply, profile-save and delivery-attribution failures and their passing final probes.
+- `browser/INDEPENDENT-BRIDGE-REVIEW.json` binds the final bridge suite and actual-service manual-refresh reproduction.
+- `native/NATIVE-RELIABILITY-EVIDENCE.json` binds the final 28/18 native tests, strict checks and real broker reproduction.
+- `setup/SETUP-RELIABILITY-REVIEW.json` retains the initial setup/local-agent probe and test inputs; `setup/LOCAL-AGENT-SOURCE-BINDING-REVIEW.json` separately binds the later exact-checkout installer/workflow repair and its pending Windows execution.
+
+The current stack selection is recorded in
+[RELEASE-STACK-0.25.0.json](RELEASE-STACK-0.25.0.json). Final mandatory optimizer
+assessment and publication must bind the complete accepted source snapshot;
+this document does not assert that a prepared assessment or workflow has run.
+The changed native paths remain Rust, and no destructive content/feature cut,
+artificial work cap or speculative runtime replacement is used to manufacture
+an optimization claim.
+
+## Required hosted and target-machine acceptance
+
+At this local checkpoint, the following acceptance is **pending**:
+
+1. **Verify:** the selected hosted Node/Playwright stack, all root regressions and contracts, all 43 smoke workflows including installed MV3, and the complete desktop chain.
+2. **Browser/native matrix:** actual Chromium and Firefox sensor/rendered checks, final-source Rust 1.100.1 tests, and real Windows transport/ACL/process lifecycle regressions.
+3. **Windows runtime:** native Computer Tools use, integrated Electron, exact packaged portable launch/exit and graceful shutdown; local Windows-GNU compilation is not this proof.
+4. **Windows Setup:** all required install, repair, diagnostics, rollback, retained-manager corruption/repair, uninstall, setup/owner UI and restored registry/shortcut routes, including linked-path transaction cases.
+5. **Optional local recovery:** Linux/Windows synthetic CDP compatibility, Windows PowerShell 5.1 literal-path/exit tests and disposable exact-checkout install/register/hash/uninstall.
+6. **Release assembly:** clean committed source, exact tag/tree/version and asset checksums, production OAuth behavior and stable extension identity, all required runtime/setup receipts, published-byte readback, live Wiki synchronization and the verified archive mirror.
 
 Owner Chrome/Edge/Opera GX/Firefox profile enrollment, physical speaker and
 system-notification visibility, signed-in backup/restore/revocation, permanent
-Firefox signing and Windows publisher signing remain explicit prerelease
-boundaries. Operational scheduler jobs record committed audit freshness and
-actual channel outcomes; they do not certify live ChatGPT health or successful
-native task recovery. Repository policy denial remains a truthful **blocked**
-outcome, not repaired service health.
+Firefox signing and Windows publisher signing remain explicit target-machine
+and distribution boundaries. Synthetic recovery tests do not certify live
+ChatGPT task health or owner-account recovery. Direct permission decisions remain
+with the owner.
 
-See [RELEASING.md](RELEASING.md) for exact assembly and publication. The matching
-completed workflow and attached receipts establish which final-source platform
-and artifact gates actually executed.
+See [RELEASING.md](RELEASING.md) for final assembly and publication gates. The
+prior record is preserved byte-for-byte from the released HEAD in
+[MONITOR-VERIFICATION-0.24.0.md](MONITOR-VERIFICATION-0.24.0.md), SHA256
+`ffddb8e90864866c8c623dddc520ecf5a63872caf32cf9f170b7963132deab86`.

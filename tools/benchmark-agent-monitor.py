@@ -109,7 +109,8 @@ MEASURE = """async ({source,mode,expectedSessions,expectedIncidents}) => {
 def summary(values: list[float]) -> dict:
     ordered = sorted(values)
     return {"n": len(values), "p50": statistics.median(ordered),
-            "p95": ordered[max(0, math.ceil(len(ordered)*.95)-1)], "min": ordered[0], "max": ordered[-1]}
+            "p95": ordered[max(0, math.ceil(len(ordered)*.95)-1)],
+            "p99": ordered[max(0, math.ceil(len(ordered)*.99)-1)], "min": ordered[0], "max": ordered[-1]}
 
 
 def main() -> None:
@@ -124,6 +125,7 @@ def main() -> None:
         raise SystemExit('Use at least three samples and positive workloads with at least two sessions.')
     variants = {'baseline': sources(args.baseline), 'candidate': sources(None)}
     report = {"schema": "constellation-full-dashboard-benchmark-v1", "baselineCommit": args.baseline,
+              "benchmarkToolSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "candidateHead": subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip(),
               "capturedSourceSha256": {name: source['sha256'] for name, source in variants.items()},
               "workload": "All sessions and one incident per two sessions. Cold eval/status replies/DOM/layout; complete unchanged and two-row changed refreshes. No caps/culling/pagination.",

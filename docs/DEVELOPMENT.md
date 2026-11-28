@@ -15,7 +15,7 @@ There are no runtime npm dependencies. The extension is plain JavaScript/CSS/HTM
 
 | Command | Purpose |
 | --- | --- |
-| `npm test` | Six deterministic core suites |
+| `npm test` | 52 deterministic regression command entries |
 | `npm run validate` | Manifest, safety, UI ownership, and message contracts |
 | `npm run build:dev` | Development unpacked build without fake OAuth |
 | `npm run test:smoke` | All cross-platform browser/service-worker workflows |
@@ -31,15 +31,15 @@ Production build refuses missing or malformed clients. Development build removes
 
 ## Release checklist
 
-1. Update package/manifest version, changelog, notes, README, and wiki.
-2. Run `npm run verify`.
-3. Set secure OAuth client ID environment variables.
-4. Run `npm run build` and inspect `build/build-info.json`.
-5. Load `build/unpacked` in Chrome and run signed-in Google/GitHub/ChatGPT acceptance.
-6. Run `npm run package`; independently verify checksums.
-7. Commit, merge the preserved filtered ProjectDump ancestry if not already present, and tag `vX.Y.Z`.
-8. Push source/tag, publish the GitHub Release, push the wiki, upload Drive artifacts, and verify remote bytes/metadata.
-9. Update Drive checkpoint/receipt and confirm all three canonical surfaces agree.
+1. Update current versions, changelog, release notes, README, guides and Wiki together; preserve historical evidence.
+2. Run `npm run verify` and the changed native/desktop/setup checks. Record actual environment limits without converting failures into passing results.
+3. Complete the required pinned optimizer assessments, official stack review and exact-source performance/equivalence evidence. Commit the reviewed source and open the release PR.
+4. Pass the retained hosted workflow families on the accepted source, including real Windows setup, launcher, pipes and packaged desktop acceptance. Merge only the reviewed, verified tree.
+5. Follow [the unified release runbook](RELEASING.md) to build and package from that clean accepted commit. The production job injects the retained OAuth client IDs, inspects build information, checks source/version/artifact identities and verifies checksums before publication.
+6. Verify the actual published GitHub assets and tag, read back the live Wiki, and confirm the source commit/tree, downloaded hashes and public release receipt agree.
+7. Report remaining owner-profile, physical sound/notification, authenticated-account and signing acceptance explicitly. A configured build or isolated fixture is not a signed-in round trip.
+
+Historical ProjectDump ancestry has already been preserved. Do not repeat an import or unpack an old carrier archive over the current root during an ordinary release.
 
 ## Test maintenance
 
