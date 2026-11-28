@@ -101,6 +101,33 @@ impl System for FakeSystem {
     }
 }
 
+fn assert_preserved_recovery_location(error: &io::Error, preserved: &Path) {
+    let message = error.to_string();
+    let locations: Vec<_> = message
+        .lines()
+        .filter_map(|line| {
+            line.strip_prefix("Preserved browser files changed during the failed installation: ")
+        })
+        .collect();
+    assert_eq!(
+        locations.len(),
+        1,
+        "Recovery must report the exact preserved directory once: {message}"
+    );
+    let reported = Path::new(locations[0]);
+    assert!(
+        reported.is_absolute() && reported.is_dir(),
+        "The reported recovery location must be an existing absolute directory: {message}"
+    );
+    // Windows TEMP may use an 8.3 alias while recovery reports its canonical
+    // long path. Resolve both spellings, retaining the exact-directory check.
+    assert_eq!(
+        reported.canonicalize().unwrap(),
+        preserved.canonicalize().unwrap(),
+        "Recovery must locate the actual preserved directory: {message}"
+    );
+}
+
 fn payload(version: &str, files: &[(&str, &[u8])]) -> Vec<u8> {
     let mut data = Vec::new();
     let mut records = Vec::new();
@@ -389,12 +416,7 @@ fn failed_update_preserves_new_browser_edits_without_blocking_recovery() {
             .expect("Recovery must retain the user's exact changed/unknown bytes")
             .path();
         assert_eq!(fs::read(preserved.join(path)).unwrap(), user_bytes);
-        assert!(
-            error
-                .to_string()
-                .contains(&preserved.to_string_lossy().to_string()),
-            "The recovery result must locate preserved files: {error}"
-        );
+        assert_preserved_recovery_location(&error, &preserved);
         assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
         engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap();
         assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
@@ -464,12 +486,7 @@ fn failed_update_reports_preserved_bytes_when_registry_recovery_is_pending() {
         })
         .expect("Changed bytes must be preserved even when registry recovery cannot finish")
         .path();
-    assert!(
-        error
-            .to_string()
-            .contains(&preserved.to_string_lossy().to_string()),
-        "Pending recovery must locate successfully preserved bytes: {error}"
-    );
+    assert_preserved_recovery_location(&error, &preserved);
     assert!(
         f.options
             .root
