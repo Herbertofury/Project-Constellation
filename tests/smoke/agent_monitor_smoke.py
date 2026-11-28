@@ -52,7 +52,7 @@ window.__monitorCalls=[]; window.__monitorEvents=[]; window.__monitorFixture=fix
 // The UI clock is fixed so unchanged nodes are tested independently of labels
 // legitimately changing from e.g. 17s to 18s during a slow hosted run.
 Date.now=()=>FIXTURE_NOW;
-window.chrome={runtime:{id:'monitor-test',getManifest:()=>({version:'0.23.0'}),
+window.chrome={runtime:{id:'monitor-test',getManifest:()=>({version:'0.24.0'}),
 onMessage:{addListener:fn=>__monitorEvents.push(fn)},sendMessage:async m=>{
   __monitorCalls.push(m);
   if(__monitorReadErrors[m.type])throw new Error(__monitorReadErrors[m.type]);

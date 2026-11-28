@@ -1,5 +1,5 @@
 const PCX_DESKTOP_BASE = 'http://127.0.0.1:47721';
-const PCX_DESKTOP_VERSION = '0.23.0';
+const PCX_DESKTOP_VERSION = '0.24.0';
 const PCX_DESKTOP_ALARM = 'pcx-local-work-heartbeat-v020';
 const PCX_DESKTOP_STATUS_KEY = 'projectConstellationDesktopStatus';
 

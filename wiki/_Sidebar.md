@@ -12,6 +12,7 @@
 - [Performance](Performance)
 - [Troubleshooting](Troubleshooting)
 - [Recovery](Recovery)
+- [Scheduler recovery](Scheduler-Recovery)
 - [Development & building](Development-and-Building)
 - [Production release process](Release-Process)
 - [Updating](Updating)

@@ -13,7 +13,7 @@ const message=payload=>new Promise((resolve,reject)=>{const timer=setTimeout(()=
 try{
  await import(`${pathToFileURL(path.resolve('../extension/src/local-work-controller.js')).href}?smoke=${Date.now()}`);
  await new Promise(r=>setTimeout(r,80));
- const health=await message({type:'CC_HEALTH'}); assert.equal(health.ok,true); assert.equal(health.version,'0.23.0'); assert.equal(health.companionConnected,true); assert.equal(health.companionVersion,'0.23.0');
+ const health=await message({type:'CC_HEALTH'}); assert.equal(health.ok,true); assert.equal(health.version,'0.24.0'); assert.equal(health.companionConnected,true); assert.equal(health.companionVersion,'0.24.0');
  const boot=await message({type:'CC_BOOTSTRAP',chatId:'background-smoke',url:'https://chatgpt.com/c/test'}); assert.equal(boot.ok,true); assert.ok(boot.sessionToken); assert.ok(boot.nonce);
  const proof=path.join(tmp,'proof.txt'); const write=await message({type:'CC_CALL',sessionToken:boot.sessionToken,call:{nonce:boot.nonce,id:'write',tool:'fs_write_text',args:{path:proof,content:'unified-proof',mode:'rewrite'}}}); assert.equal(write.ok,true,JSON.stringify(write)); assert.equal(await fsp.readFile(proof,'utf8'),'unified-proof');
  console.log('Project Constellation unified extension -> real desktop bridge smoke: PASS');

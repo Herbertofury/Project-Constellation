@@ -5,6 +5,7 @@ on:
     - cron: "17 * * * *"
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - "watchdog/**"
       - ".github/workflows/chatgpt-watchdog-external.yml"
@@ -13,117 +14,58 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: chatgpt-watchdog-external
+  cancel-in-progress: false
+
 jobs:
   heartbeat:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHATGPT_STALE_MINUTES: "240"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@v7
+        with: { node-version: '26.13.1' }
+      - uses: actions/setup-python@v7
+        with: { python-version: '3.12' }
 
-      - name: Validate ChatGPT watchdog heartbeat
-        id: heartbeat
-        shell: bash
+      - name: Verify audit and incident decisions
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          import os
-          from datetime import datetime, timezone
+          node --test tests/external-scheduler-recovery.test.mjs
+          python -m unittest discover -s tests -p test_external_scheduler_rescue.py -v
 
-          path = "watchdog/heartbeat.json"
-          stale_hours = 4.0
-          state = "healthy"
-          detail = ""
+      - name: Validate current committed audit with hourly-monitor threshold
+        run: python watchdog/external_scheduler_rescue.py --threshold-source hours --out logs/external-watchdog/health.json
 
-          try:
-              with open(path, "r", encoding="utf-8") as f:
-                  data = json.load(f)
-              stamp = data["last_ok_utc"]
-              last = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
-              age_h = (datetime.now(timezone.utc) - last.astimezone(timezone.utc)).total_seconds() / 3600
-              stale_hours = float(data.get("stale_after_hours", stale_hours))
-              if age_h > stale_hours:
-                  state = "stale"
-                  detail = f"Heartbeat age {age_h:.2f}h exceeds threshold {stale_hours:.2f}h. Last OK: {stamp}."
-              else:
-                  detail = f"Heartbeat healthy. Age {age_h:.2f}h, threshold {stale_hours:.2f}h. Last OK: {stamp}."
-          except Exception as exc:
-              state = "broken"
-              detail = f"Heartbeat validation failed: {type(exc).__name__}: {exc}"
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write(f"state={state}\n")
-              out.write("detail<<EOF\n")
-              out.write(detail + "\n")
-              out.write("EOF\n")
-          print(state, detail)
-          PY
-
-      - name: Open or refresh stale-heartbeat issue
-        if: steps.heartbeat.outputs.state != 'healthy'
-        uses: actions/github-script@v7
-        env:
-          WATCHDOG_DETAIL: ${{ steps.heartbeat.outputs.detail }}
+      - name: Reconcile the independent audit incident
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const title = "[Watchdog] ChatGPT scheduled-task heartbeat stale";
-            const detail = process.env.WATCHDOG_DETAIL || "No detail returned.";
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: "open",
-              per_page: 100,
-            });
-            const existing = issues.find(i => i.title === title);
-            const body = [
-              "The external GitHub monitor detected a stale or malformed ChatGPT watchdog heartbeat.",
-              "",
-              detail,
-              "",
-              "Recovery source: `watchdog/recovery-controller.json` and `watchdog/recovery-protocol.md`.",
-              "The next healthy ChatGPT watchdog/project run should consume this incident, repair live automation state, checkpoint the result, and refresh the heartbeat.",
-              "",
-              "This issue contains no credentials or secrets."
-            ].join("\n");
-            if (existing) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: existing.number,
-                body,
-              });
-            } else {
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title,
-                body,
-              });
+            const fs = require('node:fs');
+            const path = require('node:path');
+            const { pathToFileURL } = require('node:url');
+            const { reportAuditIncident } = await import(pathToFileURL(path.resolve('watchdog/external_scheduler_recovery.mjs')).href);
+            const health = JSON.parse(fs.readFileSync('logs/external-watchdog/health.json', 'utf8'));
+            let report;
+            try { report = await reportAuditIncident({ github, context, health }); }
+            catch (error) {
+              report = { outcome: 'failed', reason: Number.isInteger(error.status) ? `GitHub HTTP ${error.status}` : 'GitHub request failed' };
             }
+            fs.writeFileSync('logs/external-watchdog/result.json', JSON.stringify(report, null, 2) + '\n');
+            if (report.outcome === 'failed') core.setFailed('Independent audit incident could not be fully reconciled. See retained evidence.');
+            await core.summary.addHeading('Independent committed-audit monitor')
+              .addRaw(`Audit state: ${health.scheduler_state}. Age: ${health.heartbeat_age_minutes ?? 'unavailable'} minutes. Outcome: ${report.outcome}.\n`)
+              .addRaw('This is committed audit evidence, not current ChatGPT service-health or recovery proof.\n').write();
 
-      - name: Close stale-heartbeat issue after recovery
-        if: steps.heartbeat.outputs.state == 'healthy'
-        uses: actions/github-script@v7
+      - name: Preserve current audit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          script: |
-            const title = "[Watchdog] ChatGPT scheduled-task heartbeat stale";
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: "open",
-              per_page: 100,
-            });
-            for (const issue of issues.filter(i => i.title === title)) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                body: "Heartbeat is healthy again. Closing the external recovery incident."
-              });
-              await github.rest.issues.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                state: "closed",
-                state_reason: "completed",
-              });
-            }
+          name: external-watchdog-${{ github.run_id }}-${{ github.run_attempt }}
+          path: logs/external-watchdog/*.json
+          if-no-files-found: warn
+          retention-days: 30

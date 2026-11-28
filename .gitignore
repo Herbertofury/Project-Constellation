@@ -21,6 +21,7 @@ __pycache__/
 .pytest_cache/
 output/playwright/
 native/**/target/
+computer-link/**/target/
 
 # Generated release payloads live locally and as GitHub Release/Drive assets.
 releases/v*/Project-Constellation-*-unpacked.zip

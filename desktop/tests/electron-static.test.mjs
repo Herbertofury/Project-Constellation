@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const main = fs.readFileSync(new URL('../electron/main.cjs', import.meta.url), 'utf8');
 const preload = fs.readFileSync(new URL('../electron/chat-preload.cjs', import.meta.url), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
-assert.equal(pkg.version, '0.23.0');
+assert.equal(pkg.version, '0.24.0');
 assert.equal(pkg.devDependencies.electron, '45.5.0');
 assert.equal(pkg.build.asar, true);
 assert.deepEqual(pkg.build.asarUnpack, ['native/**/*','scripts/**/*']);

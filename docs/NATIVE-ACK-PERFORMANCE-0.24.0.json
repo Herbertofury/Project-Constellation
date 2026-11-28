@@ -1,0 +1,349 @@
+{
+  "schema": "constellation-native-ack-measurement-v1",
+  "platform": "Linux",
+  "architecture": "x86_64",
+  "python": "3.12.14",
+  "workload": {
+    "sessions": 96,
+    "incidents": 192,
+    "advancingDuplicates": 384,
+    "exactRetries": 384
+  },
+  "note": "The baseline's unsafe duplicate ACKs do not provide equivalent durability. This measures the explicit cost of the repair, not a no-loss speedup. Startup is a fresh process with normal OS caches.",
+  "binaries": {
+    "baseline": {
+      "sha256": "b5e9bb6672ad526aa2c0416a1b32d62dbbf4eda3f99795a42f2cf1d489aff90c"
+    },
+    "candidate": {
+      "sha256": "a2467b1ba3cd1afe24dfeb52f58722e484fdfb4c2a183c4e8ee9ae73b801f83f"
+    }
+  },
+  "runs": [
+    {
+      "implementation": "baseline",
+      "iteration": 1,
+      "startupToHelloMs": 53.495968,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 0.1738665,
+        "p95Ms": 0.355324,
+        "p99Ms": 1.509726,
+        "maxMs": 2.579653
+      },
+      "advancingDuplicateCompletionMs": 100.046494,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.143301,
+        "p95Ms": 0.227886,
+        "p99Ms": 0.367902,
+        "maxMs": 2.063643
+      },
+      "acknowledgedWatermarksDurable": false,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "candidate",
+      "iteration": 1,
+      "startupToHelloMs": 53.316905,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.3114905000000001,
+        "p95Ms": 1.976874,
+        "p99Ms": 4.07311,
+        "maxMs": 5.486721
+      },
+      "advancingDuplicateCompletionMs": 598.201138,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.154867,
+        "p95Ms": 0.213364,
+        "p99Ms": 0.276006,
+        "maxMs": 0.400439
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "candidate",
+      "iteration": 2,
+      "startupToHelloMs": 52.947359,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.296672,
+        "p95Ms": 1.933326,
+        "p99Ms": 2.313697,
+        "maxMs": 3.195421
+      },
+      "advancingDuplicateCompletionMs": 569.888481,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.24303249999999998,
+        "p95Ms": 0.333486,
+        "p99Ms": 0.548177,
+        "maxMs": 2.294748
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "baseline",
+      "iteration": 2,
+      "startupToHelloMs": 53.97884,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 0.2534085,
+        "p95Ms": 0.459388,
+        "p99Ms": 0.910903,
+        "maxMs": 2.582349
+      },
+      "advancingDuplicateCompletionMs": 131.472476,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.211892,
+        "p95Ms": 0.307734,
+        "p99Ms": 0.510944,
+        "maxMs": 3.053853
+      },
+      "acknowledgedWatermarksDurable": false,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "baseline",
+      "iteration": 3,
+      "startupToHelloMs": 53.451903,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 0.1181845,
+        "p95Ms": 0.21664,
+        "p99Ms": 0.495741,
+        "maxMs": 3.867964
+      },
+      "advancingDuplicateCompletionMs": 67.584823,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.147202,
+        "p95Ms": 0.19608,
+        "p99Ms": 0.301305,
+        "maxMs": 0.626243
+      },
+      "acknowledgedWatermarksDurable": false,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "candidate",
+      "iteration": 3,
+      "startupToHelloMs": 54.205293,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.30897,
+        "p95Ms": 2.642696,
+        "p99Ms": 4.519966,
+        "maxMs": 6.816307
+      },
+      "advancingDuplicateCompletionMs": 594.957453,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1246335,
+        "p95Ms": 0.211412,
+        "p99Ms": 0.651791,
+        "maxMs": 5.605777
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "candidate",
+      "iteration": 4,
+      "startupToHelloMs": 52.237549,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.289997,
+        "p95Ms": 1.931378,
+        "p99Ms": 4.035491,
+        "maxMs": 5.248429
+      },
+      "advancingDuplicateCompletionMs": 565.369513,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.178894,
+        "p95Ms": 0.288305,
+        "p99Ms": 0.431196,
+        "maxMs": 0.614847
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "baseline",
+      "iteration": 4,
+      "startupToHelloMs": 52.775676,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 0.155637,
+        "p95Ms": 0.257701,
+        "p99Ms": 0.342966,
+        "maxMs": 6.723661
+      },
+      "advancingDuplicateCompletionMs": 83.067801,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1550635,
+        "p95Ms": 0.209023,
+        "p99Ms": 0.273318,
+        "maxMs": 1.305811
+      },
+      "acknowledgedWatermarksDurable": false,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "baseline",
+      "iteration": 5,
+      "startupToHelloMs": 52.75809,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 0.1587765,
+        "p95Ms": 0.227615,
+        "p99Ms": 0.293708,
+        "maxMs": 0.445322
+      },
+      "advancingDuplicateCompletionMs": 79.022605,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.149786,
+        "p95Ms": 0.200921,
+        "p99Ms": 0.258336,
+        "maxMs": 0.687129
+      },
+      "acknowledgedWatermarksDurable": false,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    },
+    {
+      "implementation": "candidate",
+      "iteration": 5,
+      "startupToHelloMs": 53.594894,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2246864999999998,
+        "p95Ms": 1.463258,
+        "p99Ms": 1.756465,
+        "maxMs": 2.633303
+      },
+      "advancingDuplicateCompletionMs": 502.281309,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1399215,
+        "p95Ms": 0.228577,
+        "p99Ms": 0.345414,
+        "maxMs": 0.539776
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "stateBytes": 116537
+    }
+  ],
+  "passed": true,
+  "candidateVersion": "0.24.0",
+  "baselineVersion": "0.23.0",
+  "baselineCommit": "7fe2bf40e1f207b8980c8bd68f2a24b647667f6b",
+  "compiler": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "buildProfile": "release",
+  "candidateSourceHashes": {
+    "native/constellation-monitor/src/broker.rs": "e1c5c08e87d0f069f23e0d6a67ece4b3fd075cfdcca0f7295d4bcc914c568c27",
+    "native/constellation-monitor/src/install.rs": "3b36d150ae74765ae78821f4ccde325542acc6427c858cc3ff8cd64281794b23",
+    "native/constellation-monitor/src/lib.rs": "d8cb124169d0199ca833fdf664483f8985846a692663bef56a7da5308b5ee2b3",
+    "native/constellation-monitor/src/lifecycle.rs": "bb74a107febd9d902aa0eb9c935ad059eb1edd51da8aee7df3e2c7f05f4ebd03",
+    "native/constellation-monitor/src/main.rs": "33b6261185fad0a4b3870728b560f7aaba8d1db53a3b3cb64a1547bf7df26960",
+    "native/constellation-monitor/src/platform.rs": "047f612c633e333ec409d5fbd171cb5c4ccb183d30d1a6c10d3162b6e1c92c59",
+    "native/constellation-monitor/src/state.rs": "e9d3d165b64a555a51b3f116d7966ce4535abe775f43eb8ea82be84b9029c187",
+    "native/constellation-monitor/src/wire.rs": "6f8d6174d6cf7051cc783e29faacb3ac20c2bb991df0c20c3558cd42105e7543"
+  },
+  "candidateMetadataHashes": {
+    "native/constellation-monitor/Cargo.toml": "3956c447b1cba747f51d267bc9d257688906a75c40d594f9b1f42d844fac09e8",
+    "native/constellation-monitor/Cargo.lock": "9b07f44346e1f3e6eb736faa5469c57a2fe7aee534a23328c20bc33c53bee973"
+  },
+  "harness": {
+    "path": "native/constellation-monitor/tests/native_ack_benchmark.py",
+    "sha256": "95e5c1e1eac9023ef5f0c8d043768684902b2d3591f1f81ca5c2cb814958208d"
+  },
+  "measurementMethod": "Five alternating baseline/candidate runs, each with 384 sequential advancing duplicate ACKs and 384 exact retries after constructing all 96 sessions and 192 incidents. Per-run percentiles and full-completion duration retained. Shared Linux execution environment; not a claim about Windows disk latency or physical cold cache.",
+  "summary": {
+    "baseline": {
+      "runs": 5,
+      "medianOfRunP50AckMs": 0.1587765,
+      "medianOfRunP95AckMs": 0.257701,
+      "medianOfRunP99AckMs": 0.495741,
+      "worstRunP99AckMs": 1.509726,
+      "medianComplete384AckMs": 83.067801,
+      "medianExactRetryP50Ms": 0.149786,
+      "medianProcessToHelloMs": 53.451903,
+      "allRequiredWatermarksDurable": false,
+      "allStatePreserved": true,
+      "duplicateBroadcasts": 0,
+      "exactRetryRewrites": 0
+    },
+    "candidate": {
+      "runs": 5,
+      "medianOfRunP50AckMs": 1.296672,
+      "medianOfRunP95AckMs": 1.933326,
+      "medianOfRunP99AckMs": 4.035491,
+      "worstRunP99AckMs": 4.519966,
+      "medianComplete384AckMs": 569.888481,
+      "medianExactRetryP50Ms": 0.154867,
+      "medianProcessToHelloMs": 53.316905,
+      "allRequiredWatermarksDurable": true,
+      "allStatePreserved": true,
+      "duplicateBroadcasts": 0,
+      "exactRetryRewrites": 0
+    }
+  },
+  "performanceClaim": "No speedup claim. New durable ordering requires synchronous persistence; baseline acknowledgements omitted it. Exact retry and process startup results are reported separately without hidden work or content loss."
+}

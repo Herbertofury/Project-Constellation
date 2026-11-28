@@ -145,11 +145,19 @@ the idle transition, rather than a timer that periodically scans for browsers.
   message limit. The maximum complete snapshot, including escaped text and
   historical chat identities, is covered by a size regression. Active records
   are not silently evicted to make room; stale disconnected or resolved history
-  is retired first.
+  is retired first. The 256-incident retained history is not an unbounded archive;
+  the oldest resolved incident can be retired when another incident needs room.
 - Writes use a synced temporary file and atomic replacement. Persistence
   failures roll back the requested observation, acknowledgement, snooze, or
   removal in memory and surface an error. An acknowledgement is never reported
   as applied when it could not be saved.
+- A newer duplicate observation saves its ordering timestamp before replying,
+  without incrementing the visible revision, broadcasting or repeating an alert.
+  Exact retries of already saved evidence do not write again. Crash recovery
+  preserves accepted source-clock skew so a delayed clearance remains stale.
+- Document closure carries its document, run, URL and observation timestamp.
+  Delayed closure or navigation work cannot retire a newer document. Actual
+  browser tab removal remains an authoritative separate operation.
 - Restarted records are marked disconnected until the browser re-observes the
   live page. A stale saved incident does not imply current monitoring coverage.
 - Suspension pauses an unresolved incident without claiming recovery. Seeing
@@ -207,9 +215,18 @@ The integration tests launch **real native-host child processes** and a shared
 Rust broker. They test cross-browser status merging using simulated Chrome and
 Firefox sensors, tab routing, duplicate incident suppression, acknowledgement
 persistence, removal/recovery, malformed framing, authentication failure, and
-restart/disconnect semantics. They do not prove a live browser installation or
+restart/disconnect semantics. They include an abrupt broker kill immediately
+after duplicate acknowledgement, accepted clock skew, failed-write retry and
+delayed document closure. They do not prove a live browser installation or
 native notification/audio delivery; those require the extension smoke suite
 and real target-browser acceptance.
+
+`tests/native_ack_benchmark.py` compares two release binaries using complete
+96-session/192-incident workloads, 384 advancing duplicate acknowledgements and
+384 exact retries per run. It verifies durable timestamps, unchanged incident
+identity/counts, no duplicate broadcasts and no exact-retry writes. It reports
+the cost of adding durability honestly; an older unsaved acknowledgement is
+not an equivalent-durability performance baseline.
 
 Lifecycle regressions use real native-host stdin EOF, multiple simultaneous
 browser processes, a final-disconnect exit, reconnect within grace, automatic

@@ -522,6 +522,139 @@ fn failed_durable_write_rolls_back_observation_and_incident_sequence() {
 }
 
 #[test]
+fn acknowledged_duplicate_ordering_survives_an_abrupt_broker_restart() {
+    let runtime = Runtime::new();
+    let mut daemon = Command::new(env!("CARGO_BIN_EXE_constellation-monitor"))
+        .arg("daemon")
+        .arg("--data-dir")
+        .arg(&runtime.directory)
+        .env("CONSTELLATION_IDLE_GRACE_MS", "5000")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(4);
+    while !runtime.directory.join("endpoint.json").exists() {
+        assert!(
+            daemon.try_wait().unwrap().is_none(),
+            "broker exited during startup"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "broker did not publish its endpoint"
+        );
+        thread::sleep(Duration::from_millis(10));
+    }
+    let mut sensor = Sensor::new(&runtime);
+    sensor.hello("chrome");
+    let now = now_ms();
+    let mut event = json!({"tabId":42,"documentId":"doc","runId":"run",
+        "url":"https://chatgpt.com/c/restart","title":"Durable ordering",
+        "status":"error","reason":"Same issue","observedAt":now+60_000});
+    sensor.send(json!({"v":1,"id":"initial","op":"observe","event":event}));
+    assert_eq!(sensor.response("initial")["ok"], true);
+    sensor.send(json!({"v":1,"id":"acknowledge","op":"ack","incidentId":"incident-1"}));
+    assert_eq!(sensor.response("acknowledge")["ok"], true);
+    let before = sensor.snapshot();
+    event["observedAt"] = json!(now + 120_000);
+    sensor.send(json!({"v":1,"id":"duplicate","op":"observe","event":event}));
+    let response = sensor.response("duplicate");
+    assert_eq!(response["ok"], true);
+    assert_eq!(response["data"]["changed"], false);
+    assert_eq!(response["data"]["revision"], before["revision"]);
+    let saved: Value = serde_json::from_slice(
+        &platform::read_private(&runtime.directory.join("state.json"), 1_000_000).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        saved["sessions"][0]["observedAt"],
+        now + 120_000,
+        "the successful acknowledgement must cover durable ordering metadata"
+    );
+
+    // Kill only the child created above. Unlike graceful shutdown, no final
+    // save can hide an acknowledged observation that existed only in memory.
+    daemon.kill().unwrap();
+    daemon.wait().unwrap();
+    sensor.close_pipe();
+    let mut reopened = Sensor::new(&runtime);
+    reopened.hello("chrome");
+    event["status"] = json!("running");
+    // Accepted source-clock skew must remain ordered after restore too; do
+    // not clamp the saved watermark back to this process's wall clock.
+    event["observedAt"] = json!(now + 90_000);
+    reopened.send(json!({"v":1,"id":"late-clearance","op":"observe","event":event}));
+    let response = reopened.response("late-clearance");
+    assert_eq!(response["ok"], true);
+    assert_eq!(response["data"]["changed"], false);
+    event["status"] = json!("closed");
+    reopened.send(json!({"v":1,"id":"late-close","op":"observe","event":event}));
+    assert_eq!(reopened.response("late-close")["data"]["changed"], false);
+    event["documentId"] = json!("previous-document");
+    event["observedAt"] = json!(now + 150_000);
+    reopened.send(json!({"v":1,"id":"unrelated-close","op":"observe","event":event}));
+    assert_eq!(
+        reopened.response("unrelated-close")["data"]["changed"],
+        false
+    );
+    let after = reopened.snapshot();
+    assert_eq!(after["sessions"][0]["status"], "error");
+    assert_eq!(after["incidents"].as_array().unwrap().len(), 1);
+    assert!(after["incidents"][0]["resolvedAt"].is_null());
+    assert_eq!(
+        after["incidents"][0]["acknowledgedAt"],
+        before["incidents"][0]["acknowledgedAt"]
+    );
+}
+
+#[test]
+fn duplicate_ordering_write_failure_rolls_back_and_can_be_retried() {
+    let runtime = Runtime::new();
+    let mut sensor = Sensor::new(&runtime);
+    sensor.hello("chrome");
+    let now = now_ms();
+    let mut event = json!({"tabId":42,"documentId":"doc","url":"https://chatgpt.com/c/retry",
+        "status":"error","reason":"Same issue","observedAt":now-1000});
+    sensor.send(json!({"v":1,"id":"initial","op":"observe","event":event}));
+    assert_eq!(sensor.response("initial")["ok"], true);
+    let before = sensor.snapshot();
+    let state_path = runtime.directory.join("state.json");
+    let saved_path = runtime.directory.join("saved-state.json");
+    fs::rename(&state_path, &saved_path).unwrap();
+    fs::create_dir(&state_path).unwrap();
+    sensor.send(json!({"v":1,"id":"exact-retry","op":"observe","event":event}));
+    let response = sensor.response("exact-retry");
+    assert_eq!(
+        response["ok"], true,
+        "an exact already-durable retry requires no new write"
+    );
+    assert_eq!(response["data"]["changed"], false);
+    event["observedAt"] = json!(now - 500);
+    sensor.send(json!({"v":1,"id":"failed-duplicate","op":"observe","event":event}));
+    assert_eq!(
+        sensor.response("failed-duplicate")["error"]["code"],
+        "persistence_failed"
+    );
+    let after = sensor.snapshot();
+    assert_eq!(after["revision"], before["revision"]);
+    assert_eq!(after["sessions"], before["sessions"]);
+    assert_eq!(after["incidents"], before["incidents"]);
+    assert_eq!(after["health"]["persistence"], "error");
+    fs::remove_dir(&state_path).unwrap();
+    fs::rename(&saved_path, &state_path).unwrap();
+    sensor.send(json!({"v":1,"id":"retry-duplicate","op":"observe","event":event}));
+    let response = sensor.response("retry-duplicate");
+    assert_eq!(response["ok"], true);
+    assert_eq!(response["data"]["changed"], false);
+    assert_eq!(response["data"]["revision"], before["revision"]);
+    let saved: Value =
+        serde_json::from_slice(&platform::read_private(&state_path, 1_000_000).unwrap()).unwrap();
+    assert_eq!(saved["sessions"][0]["observedAt"], now - 500);
+    assert_eq!(sensor.snapshot()["health"]["persistence"], "ok");
+}
+
+#[test]
 fn follower_alert_settings_merge_broadcast_and_survive_broker_restart() {
     let runtime = Runtime::new();
     let mut chrome = Sensor::new(&runtime);

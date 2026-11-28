@@ -22,7 +22,7 @@ let nativeAccessRevoking = 0;
 let quitCleanup;
 let quitReady = false;
 
-const VERSION = '0.23.0';
+const VERSION = '0.24.0';
 const CHAT_URL = 'https://chatgpt.com/';
 const CHAT_PARTITION = 'persist:constellation-chatgpt';
 const SESSION_TTL_MS = 60 * 60 * 1000;

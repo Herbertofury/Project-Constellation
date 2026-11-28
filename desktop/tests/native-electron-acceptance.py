@@ -33,7 +33,7 @@ async def main():
     await asyncio.sleep(.1)
    raise AssertionError('Snapshot condition not met: '+json.dumps(snapshot))
   await wait_shell_expr('window.commanderShell!==undefined')
-  snap=await shell.evaluate('window.commanderShell.snapshot()');assert snap['version']=='0.23.0',snap
+  snap=await shell.evaluate('window.commanderShell.snapshot()');assert snap['version']=='0.24.0',snap
   assert snap['toolCount']==56,snap;results.append('real Electron shell, sandboxed preload bridge, production tool catalog')
   await chat.wait_for_function('window.fixture!==undefined')
   await chat.wait_for_timeout(500)

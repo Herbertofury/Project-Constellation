@@ -73,9 +73,40 @@ with sync_playwright() as p:
         assert page.evaluate('__pcBrowserMonitorSensor.delivery.ok') is False
         page.evaluate('''async() => {__rejectedDeliveries=0;await __rescan();}''')
         assert page.evaluate('__pcBrowserMonitorSensor.delivery.ok') is True
+        before=page.evaluate('__events.length')
+        reply=page.evaluate('''async() => {
+            const send=browser.runtime.sendMessage;
+            browser.runtime.sendMessage=message=>{__events.push(message.event);return new Promise(resolve=>{window.__lateAck=resolve;});};
+            const result=await __rescan();
+            browser.runtime.sendMessage=send;
+            return result;
+        }''')
+        assert reply[0]['ok'] is False and 'four seconds' in reply[0]['error'], 'A hung background response must reach its finite deadline'
+        page.wait_for_function('__pcBrowserMonitorSensor.delivery.ok===true')
+        assert page.evaluate('__events.length')==before+2, 'A hung acknowledgment recovers with one bounded fresh retry'
+        page.evaluate('__lateAck({ok:true})');page.wait_for_timeout(350)
+        assert page.evaluate('__events.length')==before+2 and page.evaluate('__pcBrowserMonitorSensor.delivery.attempts')==2, 'A late old acknowledgment cannot overwrite the accepted retry'
+        before=page.evaluate('__events.length');document_id=page.evaluate('__events.at(-1).documentId')
+        reply=page.evaluate('''async() => {
+            window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));
+            document.querySelector('main').insertAdjacentHTML('beforeend','<div id="restored-error" role="alert">Network error: failed to generate</div>');
+            document.dispatchEvent(new Event('visibilitychange'));
+            return await __rescan();
+        }''')
+        assert reply[0]['ok'] is False, 'An unavailable cached document must not send observations'
+        page.wait_for_timeout(350)
+        assert page.evaluate('__events.length')==before, 'Hidden-document mutations must not enqueue observation or retry work'
+        page.evaluate("window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))")
+        assert state('error')['documentId']==document_id, 'Page restoration resumes the same document with fresh visible evidence'
+        page.evaluate('__pcBrowserMonitorSensor.dispose()')
+        assert page.evaluate('__listeners.length')==0 and page.evaluate('typeof __pcBrowserMonitorSensor')=='undefined'
+        page.add_script_tag(content=source)
+        page.wait_for_function('__events.at(-1).documentId!=='+json.dumps(document_id))
+        assert page.evaluate('__listeners.length')==1, 'Same-version reinjection replaces a disposed sensor exactly once'
+        assert state('error')['documentId']!=document_id
         assert page.evaluate('__network')==0 and page.evaluate('__clicks')==0
         assert page.input_value('textarea')=='Preserve this user draft'
         assert not errors,errors
-        results.append({'browser':name,'events':page.evaluate('__events.length'),'stable_history_frontier':True,'bounded_delivery_recovery':True,'truthful_rescan':True,'permission_clicks':0,'provider_requests':0,'draft_preserved':True,'errors':errors})
+        results.append({'browser':name,'events':page.evaluate('__events.length'),'stable_history_frontier':True,'bounded_delivery_recovery':True,'response_deadline_recovery':True,'dispatched_page_lifecycle_recovery':True,'disposed_sensor_reinjection':True,'truthful_rescan':True,'permission_clicks':0,'provider_requests':0,'draft_preserved':True,'errors':errors})
         browser.close()
 print(json.dumps({'browser_sensor_acceptance':results}))

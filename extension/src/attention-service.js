@@ -57,7 +57,7 @@
       muteUntil:clamp(value.muteUntil, 0, Number.MAX_SAFE_INTEGER, 0) };
   }
   function observation(input = {}, at = Date.now()) {
-    const tabId = Math.trunc(Number(input.tabId || 0));
+    const tabId = Number(input.tabId || 0);
     if (!Number.isSafeInteger(tabId) || tabId < 1) return null;
     const url = canonicalUrl(input.url || input.chat?.url);
     if (!url) return null;
@@ -93,6 +93,7 @@
     let owner = { enabled:true, reason:'standalone' };
     let scheduledAt;
     let started=false;
+    let needsPersistence=false;
     const listeners = new Set();
     const enqueue = (work) => { const task = queue.then(work); queue = task.catch(() => {}); return task; };
     async function load() {
@@ -103,6 +104,7 @@
           sessions:Array.isArray(stored.sessions) ? stored.sessions : [],
           incidents:Array.isArray(stored.incidents) ? stored.incidents : [],
           delivery:stored.delivery && typeof stored.delivery === 'object' ? stored.delivery : {}, updatedAt:Number(stored.updatedAt || 0) };
+        recoverInterruptedDeliveries();
         return state;
       })().finally(() => { loading = null; });
       return loading;
@@ -115,6 +117,9 @@
         sessions:state.sessions.length } });
     }
     async function persist(event = null) {
+      // A rejected write must remain dirty even if the next observation has the
+      // same visible state. In-memory deduplication is not a durable ACK.
+      needsPersistence=true;
       state.updatedAt = now();
       if (state.incidents.length > 500) {
         const open = state.incidents.filter((x) => !x.resolvedAt);
@@ -123,10 +128,41 @@
       }
       state.sessions = [...state.sessions.filter((x) => x.status === 'closed').slice(-500), ...state.sessions.filter((x) => x.status !== 'closed')];
       await io.write?.(STORAGE_KEY, state);
+      needsPersistence=false;
       if (event) {
         for (const listener of listeners) { try { listener(copy(event)); } catch (_) {} }
         io.changed?.({ type:event.type, id:event.incident?.id || '', session:event.session ? copy(event.session) : null });
       }
+    }
+    function recoverInterruptedDeliveries() {
+      for(const item of state.incidents) {
+        const delivery=item.delivery;
+        if(!delivery||(!['pending','claimed'].includes(delivery.audio)&&delivery.notification!=='pending'))continue;
+        if(delivery.notification==='pending') {
+          delivery.notification='failed';
+          delivery.notificationError='The worker stopped before notification delivery was confirmed.';
+        }
+        if(delivery.audio==='pending'||delivery.audio==='claimed') {
+          // Older journals used pending for both unstarted and claimed audio.
+          // A durable playback claim is ambiguous after termination: report it,
+          // but never automatically replay sound which may already have started.
+          const claimed=delivery.audio==='claimed'||Number(state.delivery.lastAudioAt||0)===Number(delivery.at||-1);
+          delivery.audio=claimed?'interrupted':'failed';
+          delivery.audioError=claimed?'Sound delivery was interrupted after its playback claim. Use Test alert to check audio.':'The worker stopped before sound playback was requested.';
+        }
+        const failed=delivery.notification==='failed'||delivery.audio==='failed';
+        const delay=DELIVERY_RETRY_MS[Math.max(0,Number(delivery.attempt||1)-1)];
+        delivery.retryAt=failed&&delay?Math.max(now(),Number(delivery.at||0)+delay):0;
+        delivery.retryExhausted=failed&&!delay;
+        state.delivery.lastResult=copy(delivery);
+        state.delivery.lastError=[delivery.notificationError,delivery.audioError].filter(Boolean).join(' ');
+        if(delivery.retryExhausted)state.delivery.lastError+=' Automatic delivery retries are exhausted. Check the alert channels and use Test alert.';
+        state.delivery.lastErrorAt=now();
+        needsPersistence=true;
+      }
+    }
+    function matchesSnapshot(row, expected) {
+      return !expected||Boolean(row&&['key','runId','status','suspended','observedAt'].every(field=>row[field]===expected[field]));
     }
     function channelsEnabled() {
       return state.settings.notificationsEnabled || (state.settings.audioEnabled && state.settings.volume > 0);
@@ -177,7 +213,7 @@
       }
       item.delivery = { at, reason, attempt, retryAt:0, retryExhausted:false,
         notification:notify?'pending':retryOnly&&previous.notification==='accepted'?'accepted':'disabled',
-        audio:sound?'pending':retryOnly&&['started','grouped-or-disabled'].includes(previous.audio)?previous.audio:'grouped-or-disabled' };
+        audio:sound?'pending':retryOnly&&['started','grouped-or-disabled','interrupted'].includes(previous.audio)?previous.audio:'grouped-or-disabled' };
       // Persist the episode before contacting the OS. Stable notification identifiers
       // let a retry replace the toast instead of multiplying it.
       try {await persist();}
@@ -187,7 +223,7 @@
         Object.assign(item,beforeClaim);throw error;
       }
       let notification = { ok:true, skipped:true };
-      let audio = { ok:true, skipped:true };
+      let audio = retryOnly&&previous.audio==='interrupted'?{ok:false,error:previous.audioError}:{ ok:true, skipped:true };
       if (notify) {
         try { notification = await io.notify?.(copy(item)) || {ok:false,error:'Notifications are unavailable.'}; }
         catch (error) { notification = {ok:false,error:text(error?.message || error)}; }
@@ -199,6 +235,7 @@
           // Commit the sound claim before playback: worker restarts must not create
           // overlapping alarms for an already-announced episode.
           state.delivery.lastAudioAt = at;
+          item.delivery.audio='claimed';
           try {await persist();audio = await io.sound?.({kind:item.kind,severity:item.severity,volume:state.settings.volume}) || {ok:false,error:'Audio is unavailable.'}; }
           catch (error) { audio = {ok:false,error:text(error?.message || error)}; }
           if(audio.ok!==true)state.delivery.lastAudioAt=lastSound;
@@ -218,16 +255,21 @@
       await persist({type:'delivery',incident:item});
       return {ok:notification.ok && audio.ok,notification,audio};
     }
-    async function observe(input) {
+    async function observe(input, expected = null) {
       return enqueue(async () => {
         await load();
         const row = observation(input, now());
         if (!row) return {ok:false,error:'A valid open HTTPS chat tab is required.'};
         const currentTab=state.sessions.filter((x)=>x.sourceId===row.sourceId&&x.tabId===row.tabId)
-          .reduce((latest,item)=>!latest||item.observedAt>latest.observedAt?item:latest,null);
-        if(currentTab&&row.observedAt<currentTab.observedAt)return {ok:true,ignored:'out-of-order'};
+          .reduce((latest,item)=>!latest||item.observedAt>=latest.observedAt?item:latest,null);
+        const ignore=async(reason)=>{if(needsPersistence)await persist();return {ok:true,ignored:reason};};
+        if(!matchesSnapshot(currentTab,expected))return ignore('session-changed');
+        if(row.status==='closed'&&currentTab&&(row.key!==currentTab.key||row.runId&&currentTab.runId&&row.runId!==currentTab.runId))return ignore('stale-close');
+        if(currentTab&&row.observedAt<currentTab.observedAt)return ignore('out-of-order');
         const previous = state.sessions.find((x) => x.key === row.key);
-        if (previous && row.observedAt < previous.observedAt) return {ok:true,ignored:'out-of-order'};
+        if(previous?.closedAt&&row.observedAt<=previous.closedAt)return ignore('closed-document');
+        if (previous && row.observedAt < previous.observedAt) return ignore('out-of-order');
+        if(row.status==='closed')row.closedAt=row.observedAt;
         // A tab's document may navigate. Old unresolved incidents retain evidence,
         // but cannot keep ringing or focus the newly opened conversation.
         for (const prior of state.sessions) {
@@ -241,7 +283,10 @@
         const active = state.incidents.filter((x) => x.sessionKey === row.key && !x.resolvedAt);
         let created = null;
         let unannounced = null;
-        if (row.suspended) for (const item of active) item.suspended = true;
+        if (row.suspended) for (const item of active) {
+          item.suspended = true;
+          if(row.status==='closed'){item.sourceClosed=true;await clearToast(item.id);}
+        }
         else if (row.incident) {
           const recordedRun=previous?.runId||active.find((item)=>item.runId)?.runId||'';
           const newRun=Boolean(row.authoritative&&row.runId&&recordedRun&&row.runId!==recordedRun);
@@ -263,12 +308,18 @@
         } else if (row.authoritative && (SETTLED_STATES.has(row.status) || QUIET_STATES.has(row.status))) {
           for (const item of active) { item.resolvedAt=now(); item.resolution='provider-state-cleared'; await clearToast(item.id); }
         }
-        const changed = !previous || previous.status !== row.status || previous.runId !== row.runId || previous.title !== row.title || previous.reason !== row.reason;
+        // Authority and availability are part of evidence too. Two messages may
+        // share a timestamp while only the later one can resolve an incident.
+        const changed = !previous || Object.entries(row).some(([field,value])=>field!=='observedAt'&&previous[field]!==value);
         if (!created && state.settings.completionEnabled && previous && /^(running|working|tool-running|quiet-working|tool-quiet|uncertain-working)$/.test(previous.status) && /^(idle|healthy|completed)$/.test(row.status) && row.authoritative) {
           state.sequence+=1;created={id:`pc-attention:${hash(row.key)}:${state.sequence}`,sessionKey:row.key,sourceId:row.sourceId,tabId:row.tabId,documentId:row.documentId,url:row.url,title:row.title,browser:row.browser,kind:'completed',status:'completed',label:'Chat completed',severity:'info',reason:'The response is ready to review.',firstSeenAt:now(),lastSeenAt:now(),resolvedAt:0,acknowledgedAt:0,snoozedUntil:0,nextReminderAt:0,reminders:0};state.incidents.push(created);
         }
         const event={type:created ? 'incident' : 'observation',session:row,incident:created};
-        if (changed || created || now()-Number(state.updatedAt || 0)>30000) await persist(event);
+        // A duplicate issue can carry newer ordering evidence without opening a
+        // new episode. Persist that watermark before acknowledging it, so a
+        // restarted worker cannot accept an older delayed clearance.
+        const orderingAdvanced=previous&&row.observedAt>previous.observedAt;
+        if (needsPersistence || changed || created || orderingAdvanced || now()-Number(state.updatedAt || 0)>30000) await persist(event);
         else for (const listener of listeners) {try {listener(copy(event));} catch (_) {}}
         if (unannounced) await deliver(unannounced);
         if (created) {await deliver(created);if (created.kind==='completed') {created.resolvedAt=now();created.resolution='completion-notice';created.nextReminderAt=0;await persist({type:'completed',incident:created});}}
@@ -325,7 +376,13 @@
         // Preserve the source token even after local snooze delivery clears its
         // active deadline. Reconnecting to the same expired native snooze cannot
         // replay it after worker/browser restarts.
-        if(item.mirroredState?.acknowledgedAt===acknowledgedAt&&item.mirroredState?.snoozedUntil===snoozedUntil)return {ok:true,unchanged:true,incident:copy(item)};
+        if(item.mirroredState?.acknowledgedAt===acknowledgedAt&&item.mirroredState?.snoozedUntil===snoozedUntil){
+          if(needsPersistence){
+            await persist({type:'incident-state-mirrored',incident:item});
+            await deliverDue();await schedule();
+          }
+          return {ok:true,unchanged:true,incident:copy(item)};
+        }
         const wasSnoozed=Number(item.snoozedUntil||0)>0;
         item.acknowledgedAt=acknowledgedAt;item.snoozedUntil=snoozedUntil;item.mirroredState=mirrored;
         if(acknowledgedAt)item.nextReminderAt=0;
@@ -363,7 +420,7 @@
           // Storage is history, not proof that a browser tab is still alive. Fresh
           // provider observations or the one-shot startup reconcile restore coverage.
           for(const row of state.sessions){if(row.status==='closed')continue;row.lastKnownStatus=row.status;row.status='sensor-offline';row.kind='suspended';row.suspended=true;row.authoritative=false;for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt))item.suspended=true;}
-          if(state.sessions.length)await persist({type:'reconnecting'});
+          if(state.sessions.length||needsPersistence)await persist({type:'reconnecting'});
         }
         await schedule();return snapshot();
       }),
@@ -385,7 +442,16 @@
         if(!wasEnabled&&owner.enabled)await deliverDue('ownership-transfer');
         await schedule();return copy(owner);
       }),
-      closeTab:(tabId,sourceId='local')=>enqueue(async()=>{await load();for(const row of state.sessions.filter((x)=>x.tabId===Number(tabId)&&x.sourceId===sourceId)){row.suspended=true;row.status='closed';for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt)){item.sourceClosed=true;await clearToast(item.id);}}await persist({type:'closed'});await schedule();return {ok:true};}),
+      closeTab:(tabId,sourceId='local',expected=null)=>enqueue(async()=>{
+        await load();
+        const rows=state.sessions.filter((row)=>row.tabId===Number(tabId)&&row.sourceId===sourceId&&matchesSnapshot(row,expected));
+        if(expected&&!rows.length)return {ok:true,ignored:'session-changed'};
+        for(const row of rows){
+          row.observedAt=Math.max(now(),Number(row.observedAt||0));row.closedAt=row.observedAt;row.suspended=true;row.status='closed';
+          for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt)){item.sourceClosed=true;await clearToast(item.id);}
+        }
+        await persist({type:'closed'});await schedule();return {ok:true};
+      }),
       test:()=>enqueue(async()=>{
         await load();let sound,notification;
         try{sound=await io.sound?.({kind:'test',severity:'warning',volume:state.settings.volume})||{ok:false,error:'Audio is unavailable.'};}catch(error){sound={ok:false,error:text(error?.message||error)};}

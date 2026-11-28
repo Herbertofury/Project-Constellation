@@ -3,7 +3,7 @@
 const { ipcRenderer } = require('electron');
 
 (() => {
-  const VERSION = '0.23.0';
+  const VERSION = '0.24.0';
   const CONTEXT_OPEN = '[PROJECT CONSTELLATION LOCAL CONTEXT]';
   const CONTEXT_CLOSE = '[/PROJECT CONSTELLATION LOCAL CONTEXT]';
   const RESULT_OPEN = '[PC BUDDY TOOL RESULT]';

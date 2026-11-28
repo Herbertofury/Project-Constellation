@@ -1,7 +1,7 @@
-# Current continuation: Project Constellation 0.23.0
+# Current continuation: Project Constellation 0.24.0
 
-Read `brain/v0.23.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
-`docs/v0.23.0-release-notes.md`, `docs/MONITOR-VERIFICATION.md`, the optimization
+Read `brain/v0.24.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
+`docs/v0.24.0-release-notes.md`, `docs/MONITOR-VERIFICATION.md`, the optimization
 and stack receipts, and the matching published release receipt first.
 
 The root preserves the original application, native Agent Monitor, repairable

@@ -1,6 +1,6 @@
 {
   "name": "project-constellation-desktop",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "description": "Project Constellation desktop runtime and local Work-agent bridge.",
   "type": "module",
   "private": true,

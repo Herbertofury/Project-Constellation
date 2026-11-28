@@ -128,6 +128,132 @@ fn assert_preserved_recovery_location(error: &io::Error, preserved: &Path) {
     );
 }
 
+#[cfg(unix)]
+fn directory_link(target: &Path, link: &Path) {
+    std::os::unix::fs::symlink(target, link).unwrap();
+}
+
+#[cfg(windows)]
+fn directory_link(target: &Path, link: &Path) {
+    // Directory junctions do not require Developer Mode or elevation. Only
+    // disposable fixture paths are passed as quoted PowerShell literals.
+    let quote = |path: &Path| path.to_string_lossy().replace('\'', "''");
+    let script = format!(
+        "$ErrorActionPreference = 'Stop'; New-Item -ItemType Junction -Path '{}' -Target '{}' | Out-Null",
+        quote(link),
+        quote(target)
+    );
+    let result = std::process::Command::new("powershell.exe")
+        .args(["-NoProfile", "-NonInteractive", "-Command"])
+        .arg(script)
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "Junction fixture failed: {}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    fs::read_link(link).expect("The fixture must be a junction, not an ordinary directory");
+}
+
+fn committed_browser_link(f: &Fixture, s: &mut FakeSystem, dangling: bool) -> (PathBuf, PathBuf) {
+    let bytes = f.payload("0.23.0");
+    engine::install(&f.options, &Payload::parse(&bytes).unwrap(), s).unwrap();
+    let receipt = engine::read_receipt(&f.options).unwrap().unwrap();
+    let outside = f.dir.join("owner-browser-files");
+    for browser in ["chromium", "firefox"] {
+        fs::create_dir_all(outside.join(browser)).unwrap();
+        fs::copy(
+            f.options
+                .root
+                .join(format!("browsers/{browser}/manifest.json")),
+            outside.join(format!("{browser}/manifest.json")),
+        )
+        .unwrap();
+    }
+    fs::write(
+        outside.join("owner-note.txt"),
+        b"owner content stays intact",
+    )
+    .unwrap();
+    let backup_name = format!(".browser-backup-{}", receipt.transaction_id);
+    let backup = f.options.root.join(&backup_name);
+    directory_link(&outside, &backup);
+    let link_target = fs::read_link(&backup).unwrap();
+    let data = if dangling {
+        let moved = f.dir.join("relocated-owner-browser-files");
+        fs::rename(&outside, &moved).unwrap();
+        moved
+    } else {
+        outside
+    };
+    // Simulate a 0.23.0 transaction that committed its new receipt but could
+    // not clean the linked backup. The active sensor tree is an ordinary dir.
+    let journal = json!({
+        "schema": 1, "id": receipt.transaction_id,
+        "before": &receipt, "next": &receipt,
+        "registryBefore": receipt.current_registry,
+        "shortcutBefore": fs::read(f.options.shortcut.as_ref().unwrap()).unwrap(),
+        "browserBackup": backup_name,
+        "browserStage": format!(".browser-stage-{}", receipt.transaction_id),
+        "hadBrowsers": true, "introducedRelease": null
+    });
+    fs::write(
+        f.options.root.join(".constellation-transaction.json"),
+        serde_json::to_vec_pretty(&journal).unwrap(),
+    )
+    .unwrap();
+    (data, link_target)
+}
+
+fn assert_preserved_browser_link(
+    f: &Fixture,
+    outcome: &engine::Outcome,
+    data: &Path,
+    link_target: &Path,
+) {
+    let links: Vec<_> = fs::read_dir(&f.options.root)
+        .unwrap()
+        .map(Result::unwrap)
+        .filter(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("preserved-browsers-link-")
+        })
+        .map(|entry| entry.path())
+        .collect();
+    assert_eq!(links.len(), 1);
+    assert_eq!(fs::read_link(&links[0]).unwrap(), link_target);
+    let reported: Vec<_> = outcome
+        .notes
+        .iter()
+        .filter_map(|note| {
+            note.strip_prefix("Preserved browser link without following its target: ")
+        })
+        .collect();
+    assert_eq!(reported.len(), 1);
+    let reported = Path::new(reported[0]);
+    assert!(reported.is_absolute());
+    // Canonicalize only the parent, so dangling links remain testable and
+    // Windows TEMP aliases do not weaken the exact preserved-entry check.
+    assert_eq!(reported.file_name(), links[0].file_name());
+    assert_eq!(
+        reported.parent().unwrap().canonicalize().unwrap(),
+        links[0].parent().unwrap().canonicalize().unwrap()
+    );
+    assert_eq!(fs::read_link(reported).unwrap(), link_target);
+    assert_eq!(
+        fs::read(data.join("chromium/manifest.json")).unwrap(),
+        br#"{"version":"0.23.0"}"#
+    );
+    assert_eq!(fs::read(data.join("firefox/manifest.json")).unwrap(), b"{}");
+    assert_eq!(
+        fs::read(data.join("owner-note.txt")).unwrap(),
+        b"owner content stays intact"
+    );
+}
+
 fn payload(version: &str, files: &[(&str, &[u8])]) -> Vec<u8> {
     let mut data = Vec::new();
     let mut records = Vec::new();
@@ -1168,4 +1294,115 @@ fn rejects_symlinked_parent_and_preserves_the_target() {
     symlink(&outside, &f.options.root).unwrap();
     assert!(engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).is_err());
     assert!(fs::read_dir(&outside).unwrap().next().is_none());
+}
+
+#[test]
+fn linked_active_browser_root_is_rejected_before_repair_or_rollback_commit() {
+    for action in ["repair", "rollback"] {
+        for dangling in [false, true] {
+            let f = Fixture::new();
+            let mut s = FakeSystem::default();
+            let old = f.payload("0.22.0");
+            let current = f.payload("0.23.0");
+            engine::install(&f.options, &Payload::parse(&old).unwrap(), &mut s).unwrap();
+            engine::install(&f.options, &Payload::parse(&current).unwrap(), &mut s).unwrap();
+            let browser = f.options.root.join("browsers");
+            let outside = f.dir.join("owner-browser-files");
+            fs::rename(&browser, &outside).unwrap();
+            directory_link(&outside, &browser);
+            let link_target = fs::read_link(&browser).unwrap();
+            let data = if dangling {
+                let moved = f.dir.join("relocated-owner-browser-files");
+                fs::rename(&outside, &moved).unwrap();
+                moved
+            } else {
+                outside
+            };
+            let before = fs::read(f.options.root.join(RECEIPT)).unwrap();
+            let registry = s.values.clone();
+            let writes = s.writes;
+            let result = if action == "repair" {
+                engine::install(&f.options, &Payload::parse(&current).unwrap(), &mut s)
+            } else {
+                engine::rollback(&f.options, &mut s)
+            };
+            let error = result.unwrap_err();
+            assert!(
+                error.to_string().contains("symbolic links or junctions"),
+                "{error}"
+            );
+            assert!(
+                !f.options
+                    .root
+                    .join(".constellation-transaction.json")
+                    .exists()
+            );
+            assert_eq!(fs::read(f.options.root.join(RECEIPT)).unwrap(), before);
+            assert_eq!(s.values, registry);
+            assert_eq!(s.writes, writes);
+            assert_eq!(fs::read_link(&browser).unwrap(), link_target);
+            assert_eq!(
+                fs::read(data.join("chromium/manifest.json")).unwrap(),
+                br#"{"version":"0.23.0"}"#
+            );
+            // Rejection leaves no recovery trap: an explicit uninstall still
+            // succeeds and preserves the link plus all external sensor bytes.
+            engine::uninstall(&f.options, &mut s).unwrap();
+            assert!(s.values.is_empty());
+            assert_eq!(fs::read_link(&browser).unwrap(), link_target);
+            assert_eq!(
+                fs::read(data.join("chromium/manifest.json")).unwrap(),
+                br#"{"version":"0.23.0"}"#
+            );
+        }
+    }
+}
+
+#[test]
+fn repair_preserves_linked_backup_left_by_committed_install() {
+    for dangling in [false, true] {
+        let f = Fixture::new();
+        let mut s = FakeSystem::default();
+        let (data, link_target) = committed_browser_link(&f, &mut s, dangling);
+        let bytes = f.payload("0.23.0");
+        let outcome =
+            engine::install(&f.options, &Payload::parse(&bytes).unwrap(), &mut s).unwrap();
+        assert_eq!(outcome.action, "repaired");
+        assert!(
+            !f.options
+                .root
+                .join(".constellation-transaction.json")
+                .exists()
+        );
+        assert!(engine::verify(&f.options).unwrap()["ok"].as_bool().unwrap());
+        assert_preserved_browser_link(&f, &outcome, &data, &link_target);
+        engine::uninstall(&f.options, &mut s).unwrap();
+        assert!(s.values.is_empty());
+        assert!(!f.options.root.join(RECEIPT).exists());
+        assert_preserved_browser_link(&f, &outcome, &data, &link_target);
+    }
+}
+
+#[test]
+fn uninstall_preserves_linked_backup_left_by_committed_install() {
+    for dangling in [false, true] {
+        let f = Fixture::new();
+        let mut s = FakeSystem::default();
+        let (data, link_target) = committed_browser_link(&f, &mut s, dangling);
+        let outcome = engine::uninstall(&f.options, &mut s).unwrap();
+        assert_eq!(outcome.action, "uninstalled");
+        assert!(s.values.is_empty());
+        assert!(!f.options.root.join(RECEIPT).exists());
+        assert!(
+            !f.options
+                .root
+                .join(".constellation-transaction.json")
+                .exists()
+        );
+        assert_preserved_browser_link(&f, &outcome, &data, &link_target);
+        let bytes = f.payload("0.23.0");
+        engine::install(&f.options, &Payload::parse(&bytes).unwrap(), &mut s).unwrap();
+        assert!(engine::verify(&f.options).unwrap()["ok"].as_bool().unwrap());
+        assert_preserved_browser_link(&f, &outcome, &data, &link_target);
+    }
 }

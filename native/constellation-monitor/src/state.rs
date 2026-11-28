@@ -246,15 +246,7 @@ impl Session {
         if !STATUSES.contains(&status.as_str()) {
             return Err("unsupported status".into());
         }
-        let observed_at = event
-            .get("observedAt")
-            .and_then(Value::as_u64)
-            .unwrap_or(now);
-        if observed_at > now.saturating_add(5 * 60 * 1000)
-            || observed_at.saturating_add(24 * 60 * 60 * 1000) < now
-        {
-            return Err("observedAt is outside the accepted clock range".into());
-        }
+        let observed_at = observation_time(event, now)?;
         Ok(Self {
             id: format!("{}:{tab_id}", client.id),
             client_id: client.id.clone(),
@@ -288,6 +280,21 @@ impl Session {
             "reason":self.reason,"connected":self.connected,"updatedAt":self.updated_at,
             "observedAt":self.observed_at})
     }
+}
+
+fn observation_time(event: &Value, now: u64) -> Result<u64, String> {
+    let observed_at = match event.get("observedAt") {
+        Some(value) => value
+            .as_u64()
+            .ok_or("observedAt must be an unsigned integer")?,
+        None => now,
+    };
+    if observed_at > now.saturating_add(5 * 60 * 1000)
+        || observed_at.saturating_add(24 * 60 * 60 * 1000) < now
+    {
+        return Err("observedAt is outside the accepted clock range".into());
+    }
+    Ok(observed_at)
 }
 
 #[derive(Clone, Debug)]
@@ -328,9 +335,15 @@ pub struct Store {
     updated_at: u64,
     next_incident: u64,
     alert_settings: Option<AlertSettings>,
+    // Transaction-local ordering changes need durability without changing the
+    // public evidence revision or broadcasting/re-alerting an existing issue.
+    ordering_serial: u64,
 }
 
 impl Store {
+    pub(crate) fn needs_persistence_since(&self, previous: &Self) -> bool {
+        self.revision != previous.revision || self.ordering_serial != previous.ordering_serial
+    }
     fn changed(&mut self, now: u64) {
         self.revision = self.revision.saturating_add(1);
         self.updated_at = now;
@@ -472,7 +485,36 @@ impl Store {
             .filter(|c| c.connected)
             .ok_or("hello required before observation")?;
         if input.get("status").and_then(Value::as_str) == Some("closed") {
-            return Ok(self.remove(client_id, tab_id(input)?, now));
+            let tab = tab_id(input)?;
+            let observed_at = observation_time(input, now)?;
+            let document = input
+                .get("documentId")
+                .map(|_| text(input, "documentId", 80, true))
+                .transpose()?;
+            let run = input
+                .get("runId")
+                .map(|_| text(input, "runId", 80, true))
+                .transpose()?;
+            let url = input
+                .get("url")
+                .map(|_| chat_url(&text(input, "url", 2048, false)?))
+                .transpose()?;
+            let Some(previous) = self.sessions.get(&format!("{client_id}:{tab}")) else {
+                return Ok(false);
+            };
+            // A document closure can arrive after navigation or newer evidence.
+            // Preserve its context all the way from the browser; only explicit
+            // tab removal uses the separate, intentionally unscoped remove op.
+            if observed_at < previous.observed_at
+                || document
+                    .as_ref()
+                    .is_some_and(|id| id != &previous.document_id)
+                || run.as_ref().is_some_and(|id| id != &previous.run_id)
+                || url.as_ref().is_some_and(|url| url != &previous.url)
+            {
+                return Ok(false);
+            }
+            return Ok(self.remove(client_id, tab, now));
         }
         let session = Session::parse(client, input, now)?;
         if let Some(previous) = self.sessions.get_mut(&session.id) {
@@ -484,8 +526,13 @@ impl Store {
                 // A duplicate is not a new incident or a reason to broadcast,
                 // but it is newer evidence. Keep the ordering watermark so a
                 // delayed clearance cannot overwrite a more recent issue.
-                // The next durable mutation persists this metadata too.
-                previous.observed_at = session.observed_at;
+                // Persist the watermark before acknowledging it, including an
+                // abrupt hub exit immediately after the reply. Exact retries
+                // remain read-only and do not repeat the durable write.
+                if previous.observed_at != session.observed_at {
+                    previous.observed_at = session.observed_at;
+                    self.ordering_serial = self.ordering_serial.wrapping_add(1);
+                }
                 return Ok(false);
             }
         } else if self.sessions.len() >= MAX_SESSIONS {
@@ -690,7 +737,10 @@ impl Store {
                 .get("observedAt")
                 .and_then(Value::as_u64)
                 .unwrap_or(now)
-                .min(now);
+                // Live observations permit this source-clock skew. Clamping
+                // to now after a restart would forget an accepted watermark
+                // and allow an older in-flight clearance to resolve the issue.
+                .min(now.saturating_add(5 * 60 * 1000));
             session.updated_at = value
                 .get("updatedAt")
                 .and_then(Value::as_u64)
@@ -999,6 +1049,42 @@ mod tests {
         store.observe(&client, &next, 1012).unwrap();
         assert_eq!(store.incidents.len(), 2);
         assert!(store.incidents[0].resolved_at.is_some());
+    }
+
+    #[test]
+    fn delayed_or_unrelated_closure_cannot_resolve_the_current_document() {
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), 1000).unwrap();
+        store.observe(&client, &event("error", 1010), 1010).unwrap();
+        store.acknowledge("incident-1", 1011).unwrap();
+        let original = store.snapshot();
+
+        assert!(
+            !store
+                .observe(&client, &event("closed", 1005), 1012)
+                .unwrap()
+        );
+        assert_eq!(store.snapshot(), original);
+
+        let mut old_document = event("closed", 1013);
+        old_document["documentId"] = json!("previous-document");
+        assert!(!store.observe(&client, &old_document, 1013).unwrap());
+        assert_eq!(store.snapshot(), original);
+
+        let mut invalid_clock = event("closed", 400_000);
+        assert!(store.observe(&client, &invalid_clock, 1014).is_err());
+        invalid_clock["observedAt"] = json!("unknown");
+        assert!(store.observe(&client, &invalid_clock, 1014).is_err());
+        assert_eq!(store.snapshot(), original);
+
+        assert!(
+            store
+                .observe(&client, &event("closed", 1015), 1015)
+                .unwrap()
+        );
+        assert!(store.sessions.is_empty());
+        assert_eq!(store.incidents[0].resolved_at, Some(1015));
+        assert_eq!(store.incidents[0].acknowledged_at, Some(1011));
     }
 
     #[test]

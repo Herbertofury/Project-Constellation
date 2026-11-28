@@ -1,8 +1,12 @@
 # Project Constellation
 
-## 0.23.0 — Reliable alerts and resilient monitoring
+## 0.24.0 — Durable observations and reliable recovery
 
-This update fixes silent alert-delivery failures, late observations that could clear a newer problem, and native connection loss during bursts. Failed sound or notification channels retry independently; acknowledged and snoozed incidents stay under your control. Agent Monitor retains unavailable browser sessions, adds inbox triage, and updates unchanged rows in place while keeping the full list rendered. Setup now detects and repairs a damaged management executable after rollback and preserves changed browser files during recovery.
+This update fixes lost monitoring state after failed writes or abrupt restarts, delayed close/navigation events that could remove newer problems, and interrupted alert delivery. Browser sensors recover from hung acknowledgements and pause while a document is in the back/forward cache. The native hub saves ordering evidence before accepting it, and Windows Computer Tools handles fragmented local pipe messages without relaxing authorization or cancellation.
+
+External scheduler supervision now preserves an incident before attempting a recovery PR, records permission blocks clearly, rejects invalid or future audit evidence, and avoids repeated unchanged repository activity. Its diagnostic CI dispatch is identified accurately; a stale committed audit is never presented as a live ChatGPT outage. See the [watchdog guide](docs/TASK-WATCHDOG.md).
+
+The production build also fixes a GitHub sign-in configuration guard that rejected its own provisioned client ID. Published-package checks now inspect the generated configuration behavior in addition to the receipt flags.
 
 The desktop runs Electron 45.5.0 with electron-builder 26.18.1. Current release jobs use Node 26.13.1, Rust 1.100.1 and Playwright 1.65.2; actual packaged Windows acceptance and published hashes remain mandatory.
 
@@ -12,12 +16,12 @@ The desktop runs Electron 45.5.0 with electron-builder 26.18.1. Current release 
 
 The Rust hub starts when a browser sensor calls it. Closing the last normal browser window disconnects that profile, including background-app mode. After the last profile disconnects, the hub exits following a five-second reconnect grace. Opening a normal window reconnects on demand. Separate Computer Tools sessions keep their own explicit lifetime.
 
-Permission prompts remain visible for direct user review. Constellation does not click consent or authorization controls automatically. Firefox's sensor is currently unsigned and temporary; reloading after restart and permanent signing remain distribution limits. Account backup requires your configured OAuth client IDs.
+Permission prompts remain visible for direct user review. Constellation does not click consent or authorization controls automatically. Firefox's sensor is currently unsigned and temporary; reloading after restart and permanent signing remain distribution limits. Configured release builds include the retained Google/GitHub product client IDs: open **Accounts & Connections** and sign in to use account backup. Users of those builds do not need to create OAuth applications. Check the matching build receipt for provider configuration; provisioning alone does not establish a successful signed-in backup or restore.
 
 - [Windows installation and lifecycle](docs/WINDOWS-SETUP.md)
 - [Agent Monitor guide](docs/AGENT-MONITOR.md)
 - [Computer-Link capability and source migration](docs/COMPUTER-LINK-MIGRATION.md)
-- [0.23.0 release notes](docs/v0.23.0-release-notes.md)
+- [0.24.0 release notes](docs/v0.24.0-release-notes.md)
 - [Verification and remaining acceptance](docs/MONITOR-VERIFICATION.md)
 - [Rust companion CLI](native/constellation-monitor/README.md)
 
@@ -62,7 +66,7 @@ Supported surfaces currently include ChatGPT, Claude, Gemini, Grok, DeepSeek, Pe
 
 For a published release:
 
-1. Download `Project-Constellation-v0.23.0-Extension.zip` and `SHA256SUMS-v0.23.0.txt` from the matching GitHub Release.
+1. Download `Project-Constellation-v0.24.0-Extension.zip` and `SHA256SUMS-v0.24.0.txt` from the matching GitHub Release.
 2. Verify the archive checksum.
 3. Extract the archive to a permanent folder.
 4. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder.
@@ -145,6 +149,6 @@ See [Folder structure](docs/FOLDER-STRUCTURE.md) for the complete contract.
 
 ## Verification status
 
-The repository runs thirteen deterministic core/contract suites, thirty browser workflow smokes, structural validation, UI ownership checks, and message-contract checks. It also carries a service-worker load smoke for environments where Chrome policy permits unpacked-extension loading. Production release packaging additionally requires real Google and GitHub OAuth product configuration.
+The root `npm test` command invokes 51 deterministic test scripts. Repository verification also covers browser workflow smokes, structural validation, UI ownership and message contracts. The service-worker load smoke requires a browser environment that permits unpacked-extension loading. See [verification and remaining acceptance](docs/MONITOR-VERIFICATION.md) for the commands actually executed, their results and any environment limits. Account-enabled production builds require the retained Google/GitHub product configuration; real signed-in backup and restore acceptance remains a separate check.
 
 Project Constellation is maintained at [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation).

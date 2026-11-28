@@ -1,6 +1,6 @@
 # Project Constellation Windows Setup
 
-`Constellation-0.23.0-Windows-Setup.exe` is a self-contained, current-user
+`Constellation-0.24.0-Windows-Setup.exe` is a self-contained, current-user
 Windows x64 installer for the browser hub, browser sensors, and the migrated
 Computer Tools executables. Double-click it, click **Install / Repair**, then
 choose the browsers you want to connect. The destination computer does not
@@ -121,6 +121,16 @@ being undone, recovery moves those bytes into a named
 The recovery message includes that folder path. Changed files therefore remain
 available without trapping subsequent repairs in a directory-restore loop.
 
+Install, Repair and Roll back reject an active `browsers` path that is a
+symbolic link or Windows junction before changing registrations or committing
+a transaction. If an older setup already committed with a linked browser
+backup, recovery preserves the link entry in a named
+`preserved-browsers-link-*` location and reports that exact path. It does not
+traverse the link or alter its target, including when the target has moved or
+no longer exists. Cleanup can then finish so repair and uninstall remain
+usable. An active linked sensor folder must be replaced with an ordinary
+folder before repair; removing only its link entry leaves external files intact.
+
 An older local Setup candidate's shared Start Menu name is migrated after the
 new installation commits. Its previous desktop shortcut is restored only when
 the old link still matches Setup's recorded bytes; a desktop link installed
@@ -162,14 +172,14 @@ and preserves an existing redirected output pipe. Setup commands, `verify`, and
 `doctor` emit JSON. Use `--quiet` to suppress result message boxes.
 
 ```powershell
-.\Constellation-0.23.0-Windows-Setup.exe install --quiet
-.\Constellation-0.23.0-Windows-Setup.exe manage
-.\Constellation-0.23.0-Windows-Setup.exe doctor --quiet
-.\Constellation-0.23.0-Windows-Setup.exe verify --quiet
-.\Constellation-0.23.0-Windows-Setup.exe rollback --quiet
-.\Constellation-0.23.0-Windows-Setup.exe uninstall --quiet
-.\Constellation-0.23.0-Windows-Setup.exe install --dir "D:\Apps\Constellation" --quiet
-.\Constellation-0.23.0-Windows-Setup.exe payload-info
+.\Constellation-0.24.0-Windows-Setup.exe install --quiet
+.\Constellation-0.24.0-Windows-Setup.exe manage
+.\Constellation-0.24.0-Windows-Setup.exe doctor --quiet
+.\Constellation-0.24.0-Windows-Setup.exe verify --quiet
+.\Constellation-0.24.0-Windows-Setup.exe rollback --quiet
+.\Constellation-0.24.0-Windows-Setup.exe uninstall --quiet
+.\Constellation-0.24.0-Windows-Setup.exe install --dir "D:\Apps\Constellation" --quiet
+.\Constellation-0.24.0-Windows-Setup.exe payload-info
 ```
 
 `verify` checks active installed files and the retained setup manager and reports
@@ -227,7 +237,7 @@ icon, a Windows `asInvoker` manifest and version resources. Use `--prepare-only`
 to create the verified embedded payload without linking. A reduced monitor-only
 package is possible only with an explicit `--monitor-only` flag.
 
-Output: `build/monitor-artifacts/Constellation-0.23.0-Windows-Setup.exe`, its
+Output: `build/monitor-artifacts/Constellation-0.24.0-Windows-Setup.exe`, its
 `.sha256`, and `windows-setup-receipt.json`. The intermediate payload manifest
 records every embedded file. Build receipts truthfully record unsigned status,
 browser confirmation requirements, scoped source commit/dirty status and the
@@ -262,7 +272,7 @@ it never drives the user's mouse, browser profile, or permission prompts.
 ```sh
 python tools/build-windows-setup.py --require-clean-source --acceptance-fixture --output build/windows-setup-fixture-artifacts
 python tools/build-windows-setup.py --require-clean-source --output build/monitor-artifacts
-python tools/windows-setup-acceptance.py --setup build/monitor-artifacts/Constellation-0.23.0-Windows-Setup.exe --fixture build/windows-setup-fixture-artifacts/Constellation-0.23.0-Windows-Setup-Acceptance-Fixture.exe --allow-disposable-user-integration
+python tools/windows-setup-acceptance.py --setup build/monitor-artifacts/Constellation-0.24.0-Windows-Setup.exe --fixture build/windows-setup-fixture-artifacts/Constellation-0.24.0-Windows-Setup-Acceptance-Fixture.exe --allow-disposable-user-integration
 ```
 
 The labeled fixture is the same source revision with an extra marker file,

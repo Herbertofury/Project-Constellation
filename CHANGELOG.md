@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.24.0 — Durable Observations and Reliable Recovery
+
+- Keep failed browser-storage writes eligible for retry; do not acknowledge unsaved in-memory observations.
+- Reconcile startup responses with their actual run/document identity and observation time; scope delayed navigation and close events to their originating context.
+- Recover interrupted notification delivery with stable IDs, retry audio that had not started, and report already-claimed audio as interrupted without replaying or claiming success.
+- Bound sensor acknowledgement waits and pause observers while a document is in the back/forward cache.
+- Persist native ordering watermarks before acknowledging them, including accepted clock skew across restart; reject stale closure and persistence failures without losing newer incidents.
+- Read complete Windows byte-pipe authorization/token frames across partial reads while preserving deadlines, cancellation, revocation and peer checks.
+- Reject linked active sensor folders before setup mutations and recover previously committed linked backups without touching external target files or trapping later repair/uninstall.
+- Repair the external scheduler's undeclared dispatch input and incident-after-PR failure; retain blocked channel evidence without claiming live task recovery.
+- Share strict audit validation with the independent hourly monitor, read current default-branch evidence, reuse existing issues, and bound obsolete/failed workflow retries.
+- Fix production GitHub OAuth injection replacing its own placeholder-rejection guard; execute the generated accessor in regression and release-package verification.
+- Retain current verified stable dependencies, update the two changed operational workflows to an exact current github-script commit, and preserve the full release/runtime verification contract.
+
 ## 0.23.0 — Reliable Alerts and Resilient Monitoring
 
 - Retry failed sound/notification channels independently at bounded deadlines, preserving successful delivery, acknowledgement, snooze, mute, ownership and restart state.
