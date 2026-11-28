@@ -98,6 +98,28 @@ assert.equal(sends.length,1);assert.equal(sends[0].id,1);assert.equal(sends[0].m
 assert.equal(fallbacks.length,1);assert.ok(fallbacks[0]>=30_000);
 enabled=false;const before=queries.length;await vm.runInContext('runChatGuardian()',guardianContext);assert.equal(queries.length,before);
 
+// A user edit, a newly visible hold, or SPA navigation during Send hydration
+// aborts locally. The real background continuation handler must not turn those
+// responses into a reload or focus change that could discard the protected draft.
+tabRows.splice(0,tabRows.length,{id:1,url:'https://chatgpt.com/c/chat-1',active:false});
+enabled=true;
+for (const action of ['composer-busy','blocked-hold','chat-moved','already-complete','still-running','not-unfinished']) {
+  state={chats:{},sweeps:0,continuations:0,failures:0};
+  pending.length=0;
+  const reloadCount=reloads.length,updateCount=updates.length;
+  guardianContext.chrome.tabs.sendMessage=async()=>({ok:false,action,staged:true});
+  const aborted=vm.runInContext('runChatGuardian()',guardianContext);
+  for(let i=0;i<20&&!pending.length;i++)await new Promise(setImmediate);
+  assert.equal(pending.length,1,`probe must execute for ${action}`);
+  pending.splice(0).forEach((resolve)=>resolve());
+  const abortedOutcome=await aborted;
+  assert.equal(abortedOutcome.continued,0,action);
+  assert.equal(abortedOutcome.reloaded,0,action);
+  assert.equal(reloads.length,reloadCount,`${action} must never trigger a reload fallback`);
+  assert.ok(updates.slice(updateCount).every((row)=>row.patch.autoDiscardable===false&&!('active' in row.patch)),`${action} must never activate a background tab`);
+  assert.equal(state.chats['chatgpt:chat-1'].lastResult,action);
+}
+
 // A generic message ACK or old sensor version cannot masquerade as live evidence.
 let response={ok:true};
 const probeContext=vm.createContext({LIVE_SENTINEL_VERSION:manifest.version,chrome:{tabs:{sendMessage:async()=>response}}});

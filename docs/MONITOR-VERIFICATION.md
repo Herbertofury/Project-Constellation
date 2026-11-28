@@ -17,7 +17,8 @@ a prepared workflow is not recorded here as an executed pass.
 | Original Constellation preservation | All 323 reconstructed original files and all 46 historical test files retained |
 | Desktop and native adapter | 22 task + 81 combined tests, 13 other portable scripts and 27 real rendered UI workflows passed locally; native availability remains optional |
 | Optimizer assessments | Pinned shrink-anything, fast-anything and rust-anything assessed in isolation; see RELEASE-OPTIMIZATION-0.22.0.json |
-| Full local npm run verify | Stops at installed-extension acceptance; no full-green local claim |
+| Full local npm run verify | Installed-extension gates remain blocked locally; no full-green local claim |
+| Delayed continuation revalidation | 13 real DOM race cases passed; the old source failed 10 of the initial 11 cases. Background tests preserve all six safe abort responses without reload or focus changes. |
 
 The local runtime has a real Chromium renderer and supports content-script,
 DOM, layout and mock-API fixtures. It does not provide a working installed MV3
@@ -25,10 +26,14 @@ extension service worker. The installed-extension tests require an actual worker
 correct extension identity and a real runtime response. A browser opening with
 an empty worker list is now a failure, not a passing startup check.
 
-The complete local fixture inventory has 42 workflows: **39 passed**, with
+The recorded complete local baseline evaluated 42 workflows: **39 passed**, with
 **3 installed-extension workflows blocked** (`drive_autosync_smoke.py`,
 `extension_load_smoke.py`, and `multitab_reliability_smoke.py`). Firefox runtime
 acceptance runs in the hosted browser job; it was not executed locally.
+The final inventory adds the separately passing 13-case continuation-race
+workflow, for 43 workflows. The multitab acceptance now attaches to its own
+fresh-profile Chromium without Playwright focus emulation and still requires
+genuine hidden-tab state; its final installed-browser result is a hosted gate.
 
 The authoritative local log set is under `logs/release-0.22.0` and `logs/smoke`.
 These are generated evidence, not source. The previous candidate's complete

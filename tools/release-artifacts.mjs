@@ -36,6 +36,7 @@ export function verifyWindowsDesktop(directory, {version, sourceCommit}) {
   const receipt = readReceipt(receiptFile);
   requireValue(receipt.schema === 'project-constellation-windows-runtime-v1', 'Unknown Windows runtime receipt schema');
   sameSource(receipt, version, sourceCommit);
+  requireValue(receipt.sourceDirty === false, 'Windows desktop was built from dirty or unverified sources');
   requireValue(/^windows-/.test(receipt.platform || ''), 'Windows runtime was not executed on Windows');
   for (const check of ['nativeComputerUse', 'nativeComputerTools', 'integratedElectron', 'packagedPortable', 'gracefulShutdown']) {
     requireValue(receipt[check] === 'PASS', `Windows runtime check did not pass: ${check}`);

@@ -81,6 +81,7 @@ jobs:
           if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
           $actualTree = (git write-tree).Trim()
           if ($actualTree -ne [string]$manifest.sourceTree) { throw "Reconstructed source tree mismatch: $actualTree" }
+          git commit -q -m 'Project Constellation verified reconstructed source'
           Set-Location '..'
           $root = (Resolve-Path 'pc-source').Path
           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -124,7 +125,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
-          npm install --no-audit --no-fund
+          # This desktop package intentionally has no committed lockfile.
+          npm install --no-package-lock --no-audit --no-fund
           $actual = (& .\node_modules\.bin\electron.cmd --version | Select-Object -Last 1).ToString().Trim()
           if ($actual -ne 'v44.4.4') { throw "Electron mismatch: $actual" }
           Write-Host "electron_runtime=$actual"
@@ -152,6 +154,10 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
+          $actualTree = (git -C $env:PC_SOURCE_ROOT rev-parse 'HEAD^{tree}').Trim()
+          if ($actualTree -ne $env:PC_SOURCE_TREE) { throw 'Desktop source tree changed before packaging.' }
+          $dirtySource = @(git -C $env:PC_SOURCE_ROOT status --porcelain --untracked-files=all)
+          if ($dirtySource.Count -ne 0) { throw "Desktop packaging requires clean source: $($dirtySource -join '; ')" }
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
           if (Test-Path 'dist-electron') { Remove-Item 'dist-electron' -Recurse -Force }
           npm run build:win
@@ -205,11 +211,17 @@ jobs:
           }
           if ($proc.ExitCode -ne 0) { throw "Packaged portable exited with code $($proc.ExitCode)." }
 
+          $actualTree = (git -C $env:PC_SOURCE_ROOT rev-parse 'HEAD^{tree}').Trim()
+          if ($actualTree -ne $env:PC_SOURCE_TREE) { throw 'Desktop source tree changed during packaging.' }
+          $dirtySource = @(git -C $env:PC_SOURCE_ROOT status --porcelain --untracked-files=all)
+          if ($dirtySource.Count -ne 0) { throw "Desktop receipt requires clean source: $($dirtySource -join '; ')" }
           $receipt = [ordered]@{
             schema='project-constellation-windows-runtime-v1'
             product='Project Constellation'
             version=$env:PC_SOURCE_VERSION
             sourceCommit=$env:PC_SOURCE_COMMIT
+            sourceTree=$actualTree
+            sourceDirty=$false
             platform='windows-latest'
             electron='44.4.4'
             nativeComputerUse='PASS'

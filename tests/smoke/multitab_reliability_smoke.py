@@ -4,7 +4,8 @@ This intentionally requires extension-capable Chromium. It never substitutes a
 mocked worker or reports acceptance when the installed service worker cannot load.
 """
 from playwright.sync_api import sync_playwright
-import pathlib, os, tempfile, time, json
+from contextlib import contextmanager
+import pathlib, os, tempfile, time, json, subprocess
 
 repo=pathlib.Path(__file__).resolve().parents[2]
 root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_BUILD',str(repo/'build/unpacked'))).resolve()
@@ -49,13 +50,52 @@ def fixture_html(kind):
       });
     </script></body></html>'''.replace('KIND',kind).replace('SURFACE',surface).replace('DRAFT',draft).replace('DELAY',str(delay))
 
-# Headless Chromium can expose every tab as visible. This acceptance requires
-# real tab visibility; hosted Linux runs it in a private Xvfb display.
+# Playwright's regular launch enables focus emulation on every controlled page.
+# Attach without those overrides to a browser owned only by this fixture, with
+# an empty temporary profile and an ephemeral loopback debugging port. This
+# preserves Chromium's real tab visibility instead of mocking document.hidden.
+@contextmanager
+def installed_browser(playwright, profile):
+    args=[os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or playwright.chromium.executable_path,
+        f'--user-data-dir={profile}','--remote-debugging-port=0','--remote-debugging-address=127.0.0.1',
+        '--no-first-run','--no-default-browser-check','--disable-dev-shm-usage','--no-sandbox',
+        f'--disable-extensions-except={root}',f'--load-extension={root}']
+    if not headful:args.append('--headless=new')
+    args.append('about:blank')
+    log_path=pathlib.Path(profile)/'browser.log'
+    browser=None
+    with log_path.open('wb') as log:
+        process=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT)
+        try:
+            endpoint_path=pathlib.Path(profile)/'DevToolsActivePort'
+            deadline=time.monotonic()+15
+            while True:
+                try:
+                    endpoint=endpoint_path.read_text().splitlines()
+                    port=int(endpoint[0])
+                    if 0<port<65536 and len(endpoint)>1 and endpoint[1].startswith('/devtools/browser/'):
+                        break
+                except (FileNotFoundError,ValueError,IndexError):
+                    pass
+                if process.poll() is not None or time.monotonic()>=deadline:
+                    raise RuntimeError('Isolated Chromium did not start: '+log_path.read_text(errors='replace')[-6000:])
+                time.sleep(.05)
+            browser=playwright.chromium.connect_over_cdp(f'ws://127.0.0.1:{port}{endpoint[1]}',no_defaults=True)
+            assert len(browser.contexts)==1,'Fixture must use the unmodified default browser context.'
+            yield browser.contexts[0]
+        finally:
+            try:
+                if browser is not None:browser.close()
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                    try:process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill();process.wait(timeout=5)
+
+# Hosted Linux uses a private Xvfb display for actual browser tab activation.
 headful = os.environ.get('PROJECT_CONSTELLATION_HEADFUL') == '1'
-with tempfile.TemporaryDirectory(prefix='project-constellation-multitab-') as profile, sync_playwright() as p:
-    context=p.chromium.launch_persistent_context(profile,channel='chromium',headless=not headful,
-        args=[f'--disable-extensions-except={root}',f'--load-extension={root}','--no-sandbox'],
-        executable_path=os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None)
+with tempfile.TemporaryDirectory(prefix='project-constellation-multitab-') as profile, sync_playwright() as p, installed_browser(p,profile) as context:
     admin=context.new_page();admin.goto(f'chrome-extension://{extension_id}/popup.html',wait_until='domcontentloaded')
     runtime=admin.evaluate('''async()=>{
       const reply=await Promise.race([chrome.runtime.sendMessage({type:'PC_PROVIDER_LIST'}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Installed extension runtime did not answer')),5000))]);
@@ -78,6 +118,7 @@ with tempfile.TemporaryDirectory(prefix='project-constellation-multitab-') as pr
     pages=[context.new_page() for _ in urls]
     for page,url in zip(pages,urls):page.goto(url,wait_until='domcontentloaded')
     pages[0].bring_to_front()
+    pages[1].wait_for_function('document.hidden === true',polling=100,timeout=5000)
     assert pages[1].evaluate('document.hidden') is True,'Fixture must exercise a genuinely hidden runnable tab.'
 
     # Read real canonical IndexedDB state: discovery is not proven by a sent message.
@@ -136,4 +177,3 @@ with tempfile.TemporaryDirectory(prefix='project-constellation-multitab-') as pr
     admin.evaluate('()=>chrome.runtime.sendMessage({type:"PC_CHAT_GUARDIAN_RUN"})')
     assert all(page.evaluate('__sent.length')==(1 if index<2 else 0) for index,page in enumerate(pages)),'Repeat sweep must not duplicate sends.'
     print(json.dumps({'runtime':runtime,'provider_project':project,'tabs':len(urls),'hidden_tabs':sum(not row['active'] for row in prep['tabs']),'guardian':result,'sent':sent,'document_requests':requests,'permission_clicks':0,'retry_clicks':0,'draft_preserved':True,'focus_preserved':True},sort_keys=True))
-    context.close()

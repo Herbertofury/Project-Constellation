@@ -15,7 +15,7 @@ try {
   const portable = artifact('Project-Constellation-Desktop-0.22.0-x64.zip');
   const desktopSetup = artifact('Project-Constellation-Desktop-0.22.0-x64.exe');
   const desktop = {
-    schema: 'project-constellation-windows-runtime-v1', ...expected,
+    schema: 'project-constellation-windows-runtime-v1', ...expected, sourceDirty: false,
     platform: 'windows-latest', nativeComputerUse: 'PASS', nativeComputerTools: 'PASS', integratedElectron: 'PASS', packagedPortable: 'PASS', gracefulShutdown: 'PASS',
     portableFile: portable.file, portableSize: portable.bytes, portableSha256: portable.sha256,
     setupFile: desktopSetup.file, setupSize: desktopSetup.bytes, setupSha256: desktopSetup.sha256,
@@ -30,6 +30,10 @@ try {
   assert.throws(() => verifyWindowsDesktop(directory, expected), /version/);
   write(desktopReceipt, {...desktop, sourceCommit: 'b'.repeat(40)});
   assert.throws(() => verifyWindowsDesktop(directory, expected), /source/);
+  for (const sourceDirty of [true, undefined]) {
+    write(desktopReceipt, {...desktop, sourceDirty});
+    assert.throws(() => verifyWindowsDesktop(directory, expected), /dirty or unverified/);
+  }
   write(desktopReceipt, {...desktop, packagedPortable: 'SKIPPED'});
   assert.throws(() => verifyWindowsDesktop(directory, expected), /did not pass/);
   write(desktopReceipt, {...desktop, nativeComputerTools: 'FAIL'});

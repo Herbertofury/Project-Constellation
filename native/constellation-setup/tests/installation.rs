@@ -393,11 +393,13 @@ fn legacy_shortcut_migration_preserves_desktop_and_keeps_new_manager_after_rollb
                 Some(setup_baseline.as_slice())
             );
             assert_eq!(fs::read(&desktop).ok().as_deref(), expected_desktop);
-            let manager = current
+            // Windows TEMP can contain an 8.3 alias (RUNNER~1). The engine
+            // records its canonical root, and shortcuts use that exact path.
+            let manager = upgraded
                 .root
                 .join(&upgraded.active)
                 .join("Constellation-Setup.exe");
-            let new_link = s.shortcut_bytes(&manager, &current.root).unwrap();
+            let new_link = s.shortcut_bytes(&manager, &upgraded.root).unwrap();
             assert_eq!(fs::read(&setup).unwrap(), new_link);
             let apps_before: BTreeMap<_, _> =
                 ["DisplayIcon", "UninstallString", "QuietUninstallString"]
@@ -437,7 +439,7 @@ fn legacy_shortcut_migration_preserves_desktop_and_keeps_new_manager_after_rollb
             );
             assert_eq!(
                 s.values[&native_host_key].as_string().unwrap(),
-                current
+                rolled_back
                     .root
                     .join(&old.active)
                     .join("hosts/chrome.json")
@@ -532,12 +534,12 @@ fn legacy_journal_recovery_uses_its_recorded_shortcut_path() {
     // Represent interruption after the old setup had written its shortcut but
     // before committing its receipt. Recovery must address this journal's path,
     // even when invoked by a manager with the new default shortcut name.
-    let interrupted_manager = legacy
-        .root
+    let interrupted_root = PathBuf::from(journal["next"]["root"].as_str().unwrap());
+    let interrupted_manager = interrupted_root
         .join(journal["next"]["active"].as_str().unwrap())
         .join("Constellation-Setup.exe");
     let interrupted_shortcut = s
-        .shortcut_bytes(&interrupted_manager, &legacy.root)
+        .shortcut_bytes(&interrupted_manager, &interrupted_root)
         .unwrap();
     assert_eq!(
         hash(&interrupted_shortcut),

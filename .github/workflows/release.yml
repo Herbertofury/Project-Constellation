@@ -160,12 +160,24 @@ jobs:
             echo "Release $PC_RELEASE_TAG already exists; refusing to mutate published bytes." >&2
             exit 1
           fi
+          # Resolve the live remote, not checkout's pre-build tag snapshot.
+          # A non-force push creates the tag atomically and rejects a conflicting
+          # concurrent creation. Release creation must use that verified tag.
+          tag_ref="refs/tags/$PC_RELEASE_TAG"
+          remote_tag=$(git ls-remote --tags origin "$tag_ref" "$tag_ref^{}")
+          if [[ -z "$remote_tag" ]]; then
+            if ! git show-ref --verify --quiet "$tag_ref"; then git tag "$PC_RELEASE_TAG" "$GITHUB_SHA"; fi
+            [[ "$(git rev-parse "$tag_ref^{commit}")" == "$GITHUB_SHA" ]]
+            git push origin "$tag_ref:$tag_ref"
+          fi
+          [[ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$PC_RELEASE_TAG" --jq .sha)" == "$GITHUB_SHA" ]]
           gh release create "$PC_RELEASE_TAG" "$PC_SOURCE_ROOT"/build/releases/v${VERSION}/* \
-            --target "$GITHUB_SHA" --prerelease --latest=false \
+            --verify-tag --target "$GITHUB_SHA" --prerelease --latest=false \
             --title "Project Constellation $PC_RELEASE_TAG — Windows setup and unified computer tools" \
             --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
           mkdir -p "$RUNNER_TEMP/release-readback"
           gh release download "$PC_RELEASE_TAG" --dir "$RUNNER_TEMP/release-readback"
+          [[ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$PC_RELEASE_TAG" --jq .sha)" == "$GITHUB_SHA" ]]
           cd "$RUNNER_TEMP/release-readback"
           cmp "$PC_SOURCE_ROOT/build/releases/v${VERSION}/SHA256SUMS-v${VERSION}.txt" "SHA256SUMS-v${VERSION}.txt"
           sha256sum --check "SHA256SUMS-v${VERSION}.txt"

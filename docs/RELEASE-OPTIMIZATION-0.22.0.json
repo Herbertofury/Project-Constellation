@@ -2,7 +2,7 @@
   "schema": "constellation-release-optimization-v1",
   "candidate_version": "0.22.0",
   "assessment_date": "2026-11-28",
-  "status": "final_inputs_assessed_with_narrow_amendment_no_optimization_retained",
+  "status": "final_inputs_assessed_with_explicit_amendments_no_optimization_retained",
   "retained_optimization": false,
   "performance_claim": null,
   "scope": {
@@ -35,8 +35,8 @@
       ".pyc"
     ],
     "excluded_self_reference": "docs/RELEASE-OPTIMIZATION-0.22.0.json",
-    "source_file_count": 914,
-    "source_manifest_sha256": "e952360fad0b893a3bc8d8bd0176b1a9697eac8b914f105ce113132feb8cff4a",
+    "source_file_count": 915,
+    "source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
     "source_file_sha256": {
       ".editorconfig": "8e1c9a78d4dedcde12bb3cd6279ce83942819d1cd178f1d9d731ef3a62606ac7",
       ".gitattributes": "d9d3aae3b2471bfaabd1ec2c1c5921b5bfb55e66ad9f019a97d7e0f56c5b0d82",
@@ -51,12 +51,12 @@
       ".github/workflows/constellation-commander-windows.yml": "622ac24aa228283cd4510f0478adaa0ae7280f101a9f38c1ac8baefa627c11e3",
       ".github/workflows/external-chatgpt-scheduler-rescue.yml": "b5b4f4d0c08fe68828f8788138bc84e96ef11757be0b420ec0f39bbed604f9bc",
       ".github/workflows/native-monitor.yml": "bdce7d842e92846c9c5b2f772c838bf9b881c9a3b4d83912baef1a2b5e94e22d",
-      ".github/workflows/release.yml": "f36aeac604d4b924586d520338e6275ee065ea64c91d4e654ce4ef08442fea30",
-      ".github/workflows/windows-runtime.yml": "e16f5ebca42ae9881aadfe4632d33129a2635217cfd66f0fe176cc3ed8a583b0",
+      ".github/workflows/release.yml": "24da5e48edd8d20baaf7473d7a9b1a6ca19819b22d952831e2b5019138ac8c1f",
+      ".github/workflows/windows-runtime.yml": "42949875a8e8dd641f095dcd105454e479a95fcd0eaea36150d5ce0a7fb19c39",
       ".github/workflows/windows-setup.yml": "aa70e870a477cdf62e7dcdc1d165df4bd349b7334880828f9b90de933154060e",
       ".gitignore": "64638320c3ab14fb8ae3aca51a894c6c646db31d120cb15d89b23a49f7d7333d",
       "AGENTS.md": "fb328c4c6ab685e63c40453a51e42fa9cd9a14864ec55f335a4b94a6d8dfd95c",
-      "CHANGELOG.md": "a023f254e46fb055e6118503345fa4a146cb131039d197a5daae8b9c51dab3fa",
+      "CHANGELOG.md": "d1286027091a386212b80d3e62f5d28cd0ecfe75a56c135ea98e65296351b50c",
       "CONTRIBUTING.md": "dcbccb9a07712de45e7a9772800d05fd7ca26be1bb369f999d55d3d01a38c34f",
       "PRIVACY.md": "51b5cf8f2d75d7e2dd12af52a7fe3bd84b8c7409e8e8ddc9f0d3f259feddfdd9",
       "README.md": "9e320ecf62cca51d64319b77284b8be0934b4eccb60f7169a994e50695301ca2",
@@ -326,7 +326,7 @@
       "desktop/tests/ui-worker.mjs": "578b7836665ea42ca849f315301770dce76fc6f4474e1540f29a7a006d03523f",
       "desktop/tests/update-service.test.mjs": "64035cc5138df62d7d56810ca549351d1bec52806ead4632752f17f64e204e98",
       "docs/.nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "docs/AGENT-MONITOR.md": "373ef6cdcbc9b483f18bbf9cf04e5e518a1dd5c6c565c50546bf66a827c3af15",
+      "docs/AGENT-MONITOR.md": "a7059d0410433fb174e8dc00e7081191cb2f1a1e02fd2cc926a84a98af391154",
       "docs/ARCHITECTURE.md": "f5c608fba9a0623b7f84e64a91ba0b23324af682bbe4fdc26ac3065f156ececb",
       "docs/CHATGPT-COMPATIBILITY.md": "213ead714b409eb496036609f52ec8de19bae1f3226da31661f231c91b5685f7",
       "docs/COMPUTER-LINK-MIGRATION.md": "8ceabf06e1746309f21b1a98eb3183ea23f5df1e54000c40d1e846393f9ac96b",
@@ -340,13 +340,13 @@
       "docs/INSTALLATION.md": "7fa5a16e288f52afd7d0344448bbfdc0b1a4830b74ce26bbdfeb41c84942e810",
       "docs/MONITOR-OPTIMIZATION.json": "71a25374be55d4b21e2d65a2611aba038011c43a35ace437c06c0e373c97b868",
       "docs/MONITOR-VERIFICATION-0.21.0.md": "c05b36fed5b015a6098a184af7e6c4dd1e17a62f184c3f2358628333f6b33dc2",
-      "docs/MONITOR-VERIFICATION.md": "7fcba49c015fa5bcb8a1f62dab01fefa49af1ac1b7b751016c70c580790384d7",
+      "docs/MONITOR-VERIFICATION.md": "8212a9430f8b26488286f74d9ef070119377b48f4ad1f739aecd6ecd15488e39",
       "docs/OAUTH-PROVISIONING-CHECKLIST.md": "a173e84cf0f4dd15d9b1cc948f1c6403d7a707e50a53330b07069a79b9297cbd",
       "docs/OAUTH.md": "de58e0646bcd491e94ce6e25fb62ae36e618a0e94622883d4d2ec13206258c61",
       "docs/PERFORMANCE.md": "e87ec9bedca3f12e8ee34f1e9c2c913cb78b8e7140d66daf883626ddd9e989be",
       "docs/PROVIDERS.md": "aa1ac8aaaca8ea65f6f00e1d819bb8ee026483358e9fb540e8a39a95e025a5b8",
       "docs/RECOVERY.md": "1fefc0c7dff94d850f06bc29e7d85ead92eb7c71ccca641c6beb1080c1ca1e44",
-      "docs/RELEASING.md": "10c84e5433418e4b28a710b35ec447503a78344e1d94946dd399d66e2fe0d210",
+      "docs/RELEASING.md": "7ba457b1a51ad5ef58558d8cc7481ab12fa8a324aef94fffed7bacc6fc03fd10",
       "docs/SECURITY-AUDIT.md": "4c1f97725f7c9c06b3d55f9326a4bda06c401ea8913f37aea9820d9b91d681a6",
       "docs/SOURCE_PRESERVATION_0.21.0.md": "d6934f662e159a49f896dae86a454721c0e6fca3ec5321f010915932c87f08e9",
       "docs/TASK-WATCHDOG.md": "9a56801e0c11f12feb7520db9ef6395fd8a1cf8230861a96df2c0ea5ab7d01cb",
@@ -389,7 +389,7 @@
       "docs/v0.20.0-release-notes.md": "8f0e4259e7aee731404ab1eaf8b02fb06f9666cff0d298939757a463857fc3e4",
       "docs/v0.20.1-release-notes.md": "7cf1bd15b966b141e9c5c1e5cdea0acc284d142db3e8319e06af4eceeb3be3db",
       "docs/v0.21.0-release-notes.md": "b614b44fbc6c3cc1a6d81964ad2efacfc662b95177a0d6e93b836b88b29c9c81",
-      "docs/v0.22.0-release-notes.md": "963cc8fd98537e09157a79cad306bbf1c4bf8b0ae3c461334f59be6d96b7d9ad",
+      "docs/v0.22.0-release-notes.md": "013810003ef43ab967427c0a623486e12892ecc321f3a9d4dabb967d667957dc",
       "extension/agent-monitor.css": "96a8191b91d52a1586c1f2e83ad369afe8d3dccd02c14a24ff175f6e96bc40e8",
       "extension/agent-monitor.html": "cb477691401b167d832be04d35824b0c8ed9b74b6ba90747afaed75cef8b01d9",
       "extension/agent-monitor.js": "e5646a6deff84632bda3d408ba78a36c8602369b563dd8f64b685498094de0b1",
@@ -445,7 +445,7 @@
       "extension/src/incident-brain-core.js": "4e9396ff17db22b202fc7832a264ea6fbce18efe959d8aa05ea2604649060aa2",
       "extension/src/integrity-core.js": "e48a4649b086f120844325a0b3df98820ceaf5193f9fd545fa98e4f3994b4ec4",
       "extension/src/knowledge-core.js": "6d082359af00d88ae052f0fa1382f016440ee340eb101e565acbe7de3f973d4a",
-      "extension/src/live-sentinel.js": "b21c451ab62ea9de4d0ac9e56c917579780748e8fa44552eff9b964c4bdb1e71",
+      "extension/src/live-sentinel.js": "66e247919bc6b4240c71195ffe73bde0198cc20c4e804f0dcd8540b2ce4a083c",
       "extension/src/local-work-content.js": "411c9c5352e788e791bda82bfb475b5e686c2d42ba697d2b28be09d7afe539b8",
       "extension/src/local-work-controller.js": "b2a2f0cce3c0a7e37ad2a07b4dc510c73ed2aa41d101a370ba5a8d48ab1845a8",
       "extension/src/local-work-page-hook.js": "c846d5912e7356869d283a49e9aee59a3517002f8f74abdb5300368f29a70d14",
@@ -501,7 +501,7 @@
       "native/constellation-setup/src/system.rs": "ac08eb11bfb96efffc98a0bbdaa650e181dc7ff7132f59677a8a9ed95a5948eb",
       "native/constellation-setup/src/ui.rs": "ad3f54e06dc4c19bef440413a24253ca717859082bf92aa0905c2ad0c9ac96ab",
       "native/constellation-setup/src/windows.rs": "6eb653a07be26afa4826581b303bd80acd03c52dfc13f8c85fae4c24cc261381",
-      "native/constellation-setup/tests/installation.rs": "b493245460346d5c99609f409a482f6c56c522b96734cd075787535a9a21d25f",
+      "native/constellation-setup/tests/installation.rs": "aae800a4460f64246841170249ab8370906e304c502ebbd5ab3db77107c917d0",
       "native/constellation-setup/tests/test_payload_builder.py": "fd1711c073783533242ee03b3a589ec8ae6e14c56a44c86c667034d211539039",
       "package-lock.json": "7fa4bf1fb58ab6ff14a890d527c28bf0eba64030bdfd7bdb5ef7e07bc3b67a05",
       "package.json": "b734a7d0a3a0b985697af7b71a0ee52dbdf5f671b1e56c338ecc6a5b19ec4faa",
@@ -802,7 +802,7 @@
       "releases/v0.20.2/0.20.0-to-0.20.2.patch.gz.b64.part-01": "a95e4b964cebafdc9f89f4b296632032cb982bcccff22bf723c886533f28287f",
       "releases/v0.20.2/0.20.0-to-0.20.2.patch.part-00": "4a734bae216fa24705ffc95e99fbf71f20fc39d415b5e0e9dc4ef88adfed8c21",
       "releases/v0.20.2/SOURCE-MANIFEST.json": "50ff30e9cbcfde4bd3bbb1661cc01f7055f87be0f50656124a97c37731320a4c",
-      "requirements-dev.txt": "9264d364a70d81e641e827bb5e977180e41686040d2e7076e9a2505fc103dd3d",
+      "requirements-dev.txt": "2fbf14a3fec69c1ac16794843bae5afc0ef9af9672f8589a3c9e138168193c5d",
       "tests/agent-monitor-ui-logic.test.mjs": "28d164f8532ef07305d7448adf8539c51e2d46be983fde69e2a76037a3b9fca1",
       "tests/attention-background.test.mjs": "b25016eeb7e5dbb66f0d654838bc44ee29f678542d1425d41fcfe66f865a1bf4",
       "tests/attention-service.test.mjs": "890eba67df39a0cbe0b4fa9e1716a372be711d03d2d0a9d8c0885ac1f27a38d2",
@@ -844,8 +844,8 @@
       "tests/provider-health-core.test.mjs": "4e4caa9d55a4afdf875054d56ffd619ed3eba09c024f0f6bcc26bbcb517f1390",
       "tests/provider-health-runtime-static.test.mjs": "8c6488e7d5dfeae138db7200ce2773d91fdda5ff972cca68e9e1a4575a6feb10",
       "tests/recovery-polling-regression.test.mjs": "92c23dd3bf6dbdfedaf19b2eafdf7b3907008e6810e8d314821c87fd6148e045",
-      "tests/release-artifacts.test.mjs": "83f2f9fcb39fea3543f095bf799b4e7fb3ee031048dcc75ece1b65908d4aa23f",
-      "tests/reliability-supervisor-contract.test.mjs": "d453766e32dde84e0977c7ccfcc4009d10252ba80c36283a34564aab5c0b723e",
+      "tests/release-artifacts.test.mjs": "78e58270b47e53c5999e158e2773d83b5a60ae98b114ffa993a00ae978ebecb4",
+      "tests/reliability-supervisor-contract.test.mjs": "0f261d9fe319df5e9a6c87fc7dcb4dbf2c0fe889ff7af2e1babc341aeec87a5d",
       "tests/runtime-error-hardening.test.mjs": "26db4737ccf7e934352882699ec5a571b1b3e1a8d64b7c6891edd482c22011d4",
       "tests/scheduled-task-guardian.test.mjs": "954afb84469179f213bd33d06d048a7c0746970d6c11945f85501eb425e52521",
       "tests/smoke/agent_monitor_smoke.py": "05c09cc8942cf8c2c0ec1a40fd278316d79f955e70b771c17ab0cf2bb096612e",
@@ -858,6 +858,7 @@
       "tests/smoke/background_smoke.py": "3320f64ec4fda2e0e2661440fe2792c7a384c09a6380f8390106ef897a90725d",
       "tests/smoke/branch_continue_smoke.py": "34de60cfd011de0695b1acdcc7e100a0f93b1c9630b111d7f34ae8cf7c21d22f",
       "tests/smoke/browser_monitor_sensor_smoke.py": "d8b040c4ea8a043c1197673ea9423954c38815a4b69a80d0dcb32bc870edbcf0",
+      "tests/smoke/chat_guardian_continuation_race_smoke.py": "e2bf0da560f86fdc0621beb0e7ad4e4e8fb20301cd99f5fbf67f265b9094702d",
       "tests/smoke/chat_guardian_multitab_smoke.py": "64d95933eed1f9c1eba7c59bf9bb6630e3e9493ddbd358dd4f428f7c67b3f868",
       "tests/smoke/chat_organizer_project_ui_smoke.py": "917919fb9ddb0a1d13d092a64c8c25f7e9e321ea5cb9809bdcf8bf1d31708d9d",
       "tests/smoke/chatgpt_current_dom_smoke.py": "beeb0e341cce4802e86e39be3d0b90b9038cd92dfad859b1a0ea5ab316c236f8",
@@ -873,7 +874,7 @@
       "tests/smoke/live_health_state_stability_smoke.py": "aa10dbc61520241147363650d0bf1497c0e2455bb89e9c2f0f3537e7ff5319de",
       "tests/smoke/live_sentinel_observer_scope_smoke.py": "b8cc36583e8a8acb093ab5993840d4780ba7b901b772c7733b22bd32eaf25365",
       "tests/smoke/live_sentinel_smoke.py": "a7555b8a2ff190192ff1b1cc0ff015062db8709ce3413e1b80d47c45055b344e",
-      "tests/smoke/multitab_reliability_smoke.py": "6f48bee218681c62711b6db620aca25fdd7ada8145f6b7aabc4c7cc3dc10aaa7",
+      "tests/smoke/multitab_reliability_smoke.py": "072e53b5e46a8077a7d4877124becb11521586b1381af72d6675801b08cd2923",
       "tests/smoke/offscreen_smoke.py": "ae56d518549f386ea487850d1b1e1f91205edfb8d62823366d847b5b4963f259",
       "tests/smoke/organization_home_smoke.py": "7c16ae645440b3816910d9b8210b233c528ef4f50f2118d34713383362a1aae3",
       "tests/smoke/popup_smoke.py": "29537952ed1c6b8f7fd7a9a4e4ce2661e8d59050e5b8fe3d87cf2b51a59e978d",
@@ -916,7 +917,7 @@
       "tools/package-agent-monitor.py": "50881dd9779861e1ee156d457224e0f67139d6e5434f3cc0edc5dfa4ae59cd87",
       "tools/package-release.mjs": "61b0e38a946ab1fb5875868469e74811c0361242c0a9dadcffc135d721685ec9",
       "tools/package-unified-release.mjs": "8a19c13609838896d457dfe8bc0a4971c7f281a8c0a9b8fd0d3cb42facc2007e",
-      "tools/release-artifacts.mjs": "bee8a121e9f3e7c034e8301d5a4801ebdc4de6b22b8c77721a94c37a0729b7d2",
+      "tools/release-artifacts.mjs": "68ebd0fac2af37a31fbde7c03754d78f5bded7fe7ed5d90508bcba46d96b14a5",
       "tools/run-smokes.mjs": "8eeabf0e799d67947a95afdc2c3a4a2d55c0a9a402da4e2e1eb145a839ed1eb7",
       "tools/source-archive.mjs": "4dd4ce0fe802de329cfd964aa6dc2143d10d13abf925d30237dd236ae90e987e",
       "tools/ui-contract.mjs": "c6274c824ac848a73a4769b6962bfeeb55ae3beb7e25ba90b9ed6d0fd345615d",
@@ -930,7 +931,7 @@
       "watchdog/recovery-protocol.md": "6707cf167846672a01cec04b444d3c18ff7600fe2c11e797f81e38c6aae41d07",
       "watchdog/work-webhook-recovery-task.md": "bb21035b10c0bd18844219f77830a575fc7d2fdeddf79b173dc54a0913bc99a7",
       "wiki/AI-Provider-Support.md": "aa1ac8aaaca8ea65f6f00e1d819bb8ee026483358e9fb540e8a39a95e025a5b8",
-      "wiki/Agent-Monitor.md": "f25737401e1a6035f81a27aea59506936e5e300c726154fac7d0d8e48b294271",
+      "wiki/Agent-Monitor.md": "e58758ed516a48c6f178a26e0fff56974f59a4d46873f1255b25a2003dbb75e7",
       "wiki/Architecture.md": "e613fa8daf9d6d0298f904f41278b31372563e888cf83d2b87eeae40dcf7d6d1",
       "wiki/ChatGPT-Integration.md": "54b4e5dffb1a6fd696c344d0a1fc85d3e55092c7561144cf9cc6baf8c4d714a0",
       "wiki/Computer-Tools.md": "8ceabf06e1746309f21b1a98eb3183ea23f5df1e54000c40d1e846393f9ac96b",
@@ -963,7 +964,7 @@
       "sha256": "71a25374be55d4b21e2d65a2611aba038011c43a35ace437c06c0e373c97b868"
     },
     "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
-    "evidence_binding": "The final inventory includes the explicit amendment below. Original tool profiles, validations and runtime measurements retain their original 3a70f10c baseline; they are not relabelled as measurements of the amended installer."
+    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior."
   },
   "tools": {
     "shrink-anything": {
@@ -1091,7 +1092,64 @@
         "duplicate_groups": 196,
         "outcome": "no_safe_win",
         "cuts_applied": false
-      }
+      },
+      "post_ci_test_static_assessments": [
+        {
+          "argv": [
+            "shrink-anything",
+            "scan",
+            "--json"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.380949,
+          "log": "v022-ci-test-shrink-scan.log",
+          "log_sha256": "17e214804a9d88af5e8fd2b393ef8ac1801e852baec1764938c1eba50350b52b",
+          "assessed_source_manifest_sha256": "67882d9b72940438867ea45f688c2036edac465b7bd2a0f5b7179c0e133f82c3",
+          "parser_scoped_metrics": {
+            "files": 334,
+            "lines": 63252,
+            "code_lines": 57069,
+            "bytes": 4360605,
+            "deps": 15,
+            "assets": 19,
+            "asset_bytes": 3727690
+          },
+          "candidate_count": 10,
+          "duplicate_groups": 196,
+          "cuts_applied": false
+        }
+      ],
+      "final_release_static_assessments": [
+        {
+          "command": {
+            "label": "shrink-scan",
+            "argv": [
+              "shrink-anything",
+              "scan",
+              "--json"
+            ],
+            "cwd": "isolated-amended-candidate",
+            "exit_code": 0,
+            "elapsed_seconds": 0.26549,
+            "log": "v022-release-amendment-shrink-scan.log",
+            "log_sha256": "f75648d260d7a78d1e773278e7ebf5d4cae081fa5049c7969abe8ffda07a1238",
+            "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+          },
+          "parser_scoped_metrics": {
+            "files": 335,
+            "lines": 63552,
+            "code_lines": 57266,
+            "bytes": 4378022,
+            "deps": 15,
+            "assets": 19,
+            "asset_bytes": 3727690
+          },
+          "candidate_count": 10,
+          "duplicate_groups": 196,
+          "cuts_applied": false
+        }
+      ]
     },
     "fast-anything": {
       "version": "0.9.0",
@@ -1244,7 +1302,14 @@
         "Profiler durations include instrumentation and are not compared with unprofiled runtime measurements as a speedup."
       ],
       "assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
-      "final_amendment_applicability": "All measured/profiled production inputs and the exact native MCP binary are unchanged. The new behavior is Windows installer shortcut/receipt/journal handling plus a Windows acceptance assertion, outside those measured workloads. No unrelated profiler run or before/after speedup claim is substituted for Windows acceptance."
+      "final_amendment_applicability": "All measured/profiled production inputs and the exact native MCP binary are unchanged. The new behavior is Windows installer shortcut/receipt/journal handling plus a Windows acceptance assertion, outside those measured workloads. No unrelated profiler run or before/after speedup claim is substituted for Windows acceptance.",
+      "final_release_applicability": [
+        {
+          "rerun": false,
+          "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+          "reason": "The native-status, alert-service and Python diagnostic workload inputs and exact native MCP binary remain unchanged. New changes are browser-interaction guards, CI provenance, test fixtures and documentation. Reprofiling unrelated Node/Python workloads would not measure the new browser behavior; no faster-browser claim is made."
+        }
+      ]
     },
     "rust-anything": {
       "version": "5.0.1",
@@ -1528,7 +1593,75 @@
         "native_rust_applicability": "Installer engine/Windows shortcut code and tests are already Rust; no Rust-to-Rust port applies.",
         "outcome": "no_safe_win",
         "ports_applied": false
-      }
+      },
+      "final_release_static_assessments": [
+        {
+          "commands": [
+            {
+              "label": "rust-analyze-ts",
+              "argv": [
+                "rust-anything",
+                "analyze",
+                ".",
+                "--lang",
+                "ts",
+                "--json"
+              ],
+              "cwd": "isolated-amended-candidate",
+              "exit_code": 0,
+              "elapsed_seconds": 0.26491,
+              "log": "v022-release-amendment-rust-analyze-ts.log",
+              "log_sha256": "113634cb4e84c813582909fa786bb6a9986d7c36d98152c3b6a60f4bd8e242cf",
+              "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+            },
+            {
+              "label": "rust-analyze-python",
+              "argv": [
+                "rust-anything",
+                "analyze",
+                ".",
+                "--lang",
+                "python",
+                "--json"
+              ],
+              "cwd": "isolated-amended-candidate",
+              "exit_code": 0,
+              "elapsed_seconds": 0.21445,
+              "log": "v022-release-amendment-rust-analyze-python.log",
+              "log_sha256": "314e309fd3c05579caf6f38f09961bf437ced797c76cc5465b84906b4e6cf2ad",
+              "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+            }
+          ],
+          "typescript_analysis": {
+            "packages": 3,
+            "source_files": 140,
+            "test_files": 78,
+            "ui_files": 0,
+            "loc": 37777,
+            "units": 35,
+            "ready": 22,
+            "caution": 12,
+            "blocked": 1,
+            "keep": 0,
+            "parse_errors": 0
+          },
+          "python_analysis": {
+            "packages": 1,
+            "source_files": 9,
+            "test_files": 49,
+            "ui_files": 0,
+            "loc": 1478,
+            "units": 5,
+            "ready": 4,
+            "caution": 1,
+            "blocked": 0,
+            "keep": 0,
+            "parse_errors": 0
+          },
+          "ports_applied": false,
+          "applicability": "The amended continuation is browser DOM/native-extension interaction and asynchronous hydration, not a portable compute kernel. New Python code drives Playwright acceptance and owned process lifecycle. Static readiness is not proof of browser equivalence or runtime improvement; no port is justified."
+        }
+      ]
     }
   },
   "tool_provisioning": {
@@ -2476,7 +2609,24 @@
     "v022-amendment-shrink-scan.log": "9d520ac6ad2a871dda7332f5e553d7f3954f403ac2393ae2149de72481372ad6",
     "v022-amendment-rust-analyze-python.log": "6023fdb62da6d1722f434ecda61bf61fdd15d14069b989add3c041d6c207069d",
     "v022-amendment-input-sha256.json": "e952360fad0b893a3bc8d8bd0176b1a9697eac8b914f105ce113132feb8cff4a",
-    "v022-amendment.diff": "fb26674d2e6420f925af902cb34ba3e4ebff8e4f953d1f67299493ef4624b750"
+    "v022-amendment.diff": "fb26674d2e6420f925af902cb34ba3e4ebff8e4f953d1f67299493ef4624b750",
+    "v022-ci-test-shrink-scan.log": "17e214804a9d88af5e8fd2b393ef8ac1801e852baec1764938c1eba50350b52b",
+    "v022-ci-test-amendment.diff": "7a702b5a1cab2583aefc91ffc305f97f0d3b243e2e440ccc4107d2248cfaad81",
+    "v022-ci-test-amendment-input-sha256.json": "67882d9b72940438867ea45f688c2036edac465b7bd2a0f5b7179c0e133f82c3",
+    "v022-release-amendment-shrink-scan.log": "f75648d260d7a78d1e773278e7ebf5d4cae081fa5049c7969abe8ffda07a1238",
+    "v022-release-amendment-rust-analyze-ts.log": "113634cb4e84c813582909fa786bb6a9986d7c36d98152c3b6a60f4bd8e242cf",
+    "v022-release-amendment-rust-analyze-python.log": "314e309fd3c05579caf6f38f09961bf437ced797c76cc5465b84906b4e6cf2ad",
+    "v022-release-amendment-node-syntax-live-sentinel.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "v022-release-amendment-node-syntax-release-artifacts.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "v022-release-amendment-python-syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "v022-release-amendment-release-artifact-contract.log": "eb2bdccae333e39b0a66017e339e5bf9659a7fa7c4eaf4f292dfa44fe499c447",
+    "v022-release-amendment-reliability-contract.log": "c5268dc82bfac7c4d261f42ecba66b5afd715973e1c29e03224925282e467a6e",
+    "v022-release-amendment-yaml-bash-syntax.log": "52f67832a0afa784180fefe2546215c3eb8289e871b1985d1ba88630c6ca1e65",
+    "v022-release-amendment-scoped-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "v022-release-amendment-new-fixture-whitespace.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "v022-release-amendment-input-sha256.json": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
+    "v022-release-amendment.diff": "89b73214b039ba21a78ebb1776ccc6b32d987dea429bea4a0da74157b4b4c103",
+    "v022-release-amendment-syntax.py": "89e6a99d9e01816c5f773e2e354337fefd4385967b52bff7f34243e02c73d8e3"
   },
   "gate_limits": [
     "This is an optimization/preservation annex, not a release-wide or installation acceptance pass. Hosted CI, Windows setup/uninstall/upgrade, actual Windows native UI, installed browser/nativeMessaging, speaker output and user-account workflows have separate gates.",
@@ -2487,7 +2637,9 @@
     "No absent upstream license was silently replaced. The imported source's provenance and dependency/toolchain notices are retained; this audit grants no new license.",
     "The four preexisting rescue PS1 edits are outside the assessment and publication input scope requested for this task.",
     "This receipt explicitly separates its final ten-path installer/documentation amendment from the named original measurement/profile snapshot. Static/size assessments were refreshed only for affected scopes; no unaffected timing was rerun or silently relabelled.",
-    "Whitespace evidence is qualified: earlier working-tree checks exited0, but the subsequent all-files commit check exited2 with 28 findings in five hash-identical original imported source/license files. Those bytes are intentionally preserved. No unconditional staged/all-files whitespace PASS is claimed."
+    "Whitespace evidence is qualified: earlier working-tree checks exited0, but the subsequent all-files commit check exited2 with 28 findings in five hash-identical original imported source/license files. Those bytes are intentionally preserved. No unconditional staged/all-files whitespace PASS is claimed.",
+    "The final post-CI amendment changes only canonical-path expectations in one Rust test file. Alias inputs and exact equality assertions are retained; production code and performance evidence are unchanged. Actual Windows installer/GUI acceptance remains a separate hosted gate.",
+    "The final 15-path amendment records exact source/fixture/workflow/documentation inputs and refreshed static analysis with focused syntax/contracts. Original measured timings remain evidence only for their named baseline and unchanged workloads. Final installed-browser, Windows setup/GUI and publication acceptance remain distinct hosted gates."
   ],
   "validation_commands_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
   "final_source_amendment": {
@@ -2883,5 +3035,507 @@
     "action": "Receipt wording only. No imported source, license notice, runtime code, test, performance workload, or input inventory was changed.",
     "prior_receipt_sha256": "0356a7bb2e5def801070037c4e058f13427d92de8b04b203163c75e6b9675f33",
     "source_manifest_sha256_unchanged": "e952360fad0b893a3bc8d8bd0176b1a9697eac8b914f105ce113132feb8cff4a"
-  }
+  },
+  "post_ci_test_amendments": [
+    {
+      "reason": "Actual Windows execution exposed test expectations using the RUNNER~1 input spelling while the installation receipt and journal correctly record canonical runneradmin paths.",
+      "prior_receipt_sha256": "33d5015271d5dee0606becc6ae5f94538e2a204a79f52f6733279a2dbc05cb2f",
+      "previous_source_manifest_sha256": "e952360fad0b893a3bc8d8bd0176b1a9697eac8b914f105ce113132feb8cff4a",
+      "final_source_manifest_sha256": "67882d9b72940438867ea45f688c2036edac465b7bd2a0f5b7179c0e133f82c3",
+      "path": "native/constellation-setup/tests/installation.rs",
+      "previous_sha256": "b493245460346d5c99609f409a482f6c56c522b96734cd075787535a9a21d25f",
+      "final_sha256": "aae800a4460f64246841170249ab8370906e304c502ebbd5ab3db77107c917d0",
+      "previous_bytes": 35102,
+      "final_bytes": 35348,
+      "unified_diff_sha256": "7a702b5a1cab2583aefc91ffc305f97f0d3b243e2e440ccc4107d2248cfaad81",
+      "reviewed_changes": [
+        "Expected manager and fake-shortcut bytes use the committed upgraded receipt root.",
+        "Expected rolled-back native-host registry path uses the rolled_back receipt root; this additional alias-sensitive assertion was caught by independent review before publication.",
+        "Interrupted-journal fake-shortcut construction uses the next receipt root stored in that journal.",
+        "Original alias-spelled Options input remains in place. Exact byte, hash and registry-string equality assertions are retained; no production implementation or assertion strength is changed."
+      ],
+      "production_inputs_changed": false,
+      "unchanged_source_files": 913,
+      "source_files_added_or_removed": [],
+      "runtime_evidence": {
+        "rerun": false,
+        "source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "reason": "Only Rust test expectations/comments changed. All measured/profiled production inputs, dependencies and the exact native MCP binary remain identical. Original timings retain their named baseline identity."
+      },
+      "applicable_static_assessment": {
+        "argv": [
+          "shrink-anything",
+          "scan",
+          "--json"
+        ],
+        "cwd": "isolated-amended-candidate",
+        "exit_code": 0,
+        "elapsed_seconds": 0.380949,
+        "log": "v022-ci-test-shrink-scan.log",
+        "log_sha256": "17e214804a9d88af5e8fd2b393ef8ac1801e852baec1764938c1eba50350b52b",
+        "assessed_source_manifest_sha256": "67882d9b72940438867ea45f688c2036edac465b7bd2a0f5b7179c0e133f82c3",
+        "parser_scoped_metrics": {
+          "files": 334,
+          "lines": 63252,
+          "code_lines": 57069,
+          "bytes": 4360605,
+          "deps": 15,
+          "assets": 19,
+          "asset_bytes": 3727690
+        },
+        "candidate_count": 10,
+        "duplicate_groups": 196,
+        "cuts_applied": false
+      },
+      "other_optimizer_applicability": "No new fast-anything runtime profile or rust-anything port assessment applies to corrected Rust test expected values. Existing production profiles and language analyses retain their recorded source bindings.",
+      "reported_validation": {
+        "source": "Installer agent's frozen-source report, not independently executed by this receipt audit",
+        "linux_installer_tests": "22 passed",
+        "windows_target_clippy": "passed with warnings denied",
+        "formatting": "passed",
+        "windows_runtime": "Requires the ensuing hosted rerun; this expectation correction is not itself a Windows setup/GUI acceptance pass."
+      },
+      "test_diff_hygiene": {
+        "command": [
+          "git",
+          "diff",
+          "8ac88f46446dbf3831780cdfdd378c6bed21f577",
+          "--check",
+          "--",
+          "native/constellation-setup/tests/installation.rs"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "scope": "Only the corrected installation test. The existing whole-commit preserved-import whitespace exception remains unchanged; no all-files whitespace PASS is inferred."
+      },
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      },
+      "script_sha256": "8bc0d9917c1e193e67c6bcab09c71b25e1d5c89692a0e8c3ce83f7d0605ffbb9"
+    }
+  ],
+  "final_release_amendments": [
+    {
+      "reason": "Bind actual hidden-tab fixture setup, clean Desktop/release-tag provenance checks, and late continuation revalidation plus regression/documentation evidence to the final frozen release candidate.",
+      "prior_receipt_sha256": "04504a4c4814ea79e89e222989bd40651cadebc125c44da18bd50599f285ebb6",
+      "previous_source_manifest_sha256": "67882d9b72940438867ea45f688c2036edac465b7bd2a0f5b7179c0e133f82c3",
+      "final_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
+      "source_file_count": 915,
+      "changed_paths": [
+        {
+          "path": ".github/workflows/release.yml",
+          "previous_sha256": "f36aeac604d4b924586d520338e6275ee065ea64c91d4e654ce4ef08442fea30",
+          "final_sha256": "24da5e48edd8d20baaf7473d7a9b1a6ca19819b22d952831e2b5019138ac8c1f",
+          "previous_bytes": 8976,
+          "final_bytes": 9845,
+          "added": false
+        },
+        {
+          "path": ".github/workflows/windows-runtime.yml",
+          "previous_sha256": "e16f5ebca42ae9881aadfe4632d33129a2635217cfd66f0fe176cc3ed8a583b0",
+          "final_sha256": "42949875a8e8dd641f095dcd105454e479a95fcd0eaea36150d5ce0a7fb19c39",
+          "previous_bytes": 12023,
+          "final_bytes": 13078,
+          "added": false
+        },
+        {
+          "path": "CHANGELOG.md",
+          "previous_sha256": "a023f254e46fb055e6118503345fa4a146cb131039d197a5daae8b9c51dab3fa",
+          "final_sha256": "d1286027091a386212b80d3e62f5d28cd0ecfe75a56c135ea98e65296351b50c",
+          "previous_bytes": 51293,
+          "final_bytes": 51521,
+          "added": false
+        },
+        {
+          "path": "docs/AGENT-MONITOR.md",
+          "previous_sha256": "373ef6cdcbc9b483f18bbf9cf04e5e518a1dd5c6c565c50546bf66a827c3af15",
+          "final_sha256": "a7059d0410433fb174e8dc00e7081191cb2f1a1e02fd2cc926a84a98af391154",
+          "previous_bytes": 12128,
+          "final_bytes": 12476,
+          "added": false
+        },
+        {
+          "path": "docs/MONITOR-VERIFICATION.md",
+          "previous_sha256": "7fcba49c015fa5bcb8a1f62dab01fefa49af1ac1b7b751016c70c580790384d7",
+          "final_sha256": "8212a9430f8b26488286f74d9ef070119377b48f4ad1f739aecd6ecd15488e39",
+          "previous_bytes": 5632,
+          "final_bytes": 6162,
+          "added": false
+        },
+        {
+          "path": "docs/RELEASING.md",
+          "previous_sha256": "10c84e5433418e4b28a710b35ec447503a78344e1d94946dd399d66e2fe0d210",
+          "final_sha256": "7ba457b1a51ad5ef58558d8cc7481ab12fa8a324aef94fffed7bacc6fc03fd10",
+          "previous_bytes": 6270,
+          "final_bytes": 6774,
+          "added": false
+        },
+        {
+          "path": "docs/v0.22.0-release-notes.md",
+          "previous_sha256": "963cc8fd98537e09157a79cad306bbf1c4bf8b0ae3c461334f59be6d96b7d9ad",
+          "final_sha256": "013810003ef43ab967427c0a623486e12892ecc321f3a9d4dabb967d667957dc",
+          "previous_bytes": 4930,
+          "final_bytes": 5217,
+          "added": false
+        },
+        {
+          "path": "extension/src/live-sentinel.js",
+          "previous_sha256": "b21c451ab62ea9de4d0ac9e56c917579780748e8fa44552eff9b964c4bdb1e71",
+          "final_sha256": "66e247919bc6b4240c71195ffe73bde0198cc20c4e804f0dcd8540b2ce4a083c",
+          "previous_bytes": 84847,
+          "final_bytes": 88389,
+          "added": false
+        },
+        {
+          "path": "requirements-dev.txt",
+          "previous_sha256": "9264d364a70d81e641e827bb5e977180e41686040d2e7076e9a2505fc103dd3d",
+          "final_sha256": "2fbf14a3fec69c1ac16794843bae5afc0ef9af9672f8589a3c9e138168193c5d",
+          "previous_bytes": 20,
+          "final_bytes": 20,
+          "added": false
+        },
+        {
+          "path": "tests/release-artifacts.test.mjs",
+          "previous_sha256": "83f2f9fcb39fea3543f095bf799b4e7fb3ee031048dcc75ece1b65908d4aa23f",
+          "final_sha256": "78e58270b47e53c5999e158e2773d83b5a60ae98b114ffa993a00ae978ebecb4",
+          "previous_bytes": 6085,
+          "final_bytes": 6303,
+          "added": false
+        },
+        {
+          "path": "tests/reliability-supervisor-contract.test.mjs",
+          "previous_sha256": "d453766e32dde84e0977c7ccfcc4009d10252ba80c36283a34564aab5c0b723e",
+          "final_sha256": "0f261d9fe319df5e9a6c87fc7dcb4dbf2c0fe889ff7af2e1babc341aeec87a5d",
+          "previous_bytes": 15232,
+          "final_bytes": 16648,
+          "added": false
+        },
+        {
+          "path": "tests/smoke/chat_guardian_continuation_race_smoke.py",
+          "previous_sha256": null,
+          "final_sha256": "e2bf0da560f86fdc0621beb0e7ad4e4e8fb20301cd99f5fbf67f265b9094702d",
+          "previous_bytes": 0,
+          "final_bytes": 9970,
+          "added": true
+        },
+        {
+          "path": "tests/smoke/multitab_reliability_smoke.py",
+          "previous_sha256": "6f48bee218681c62711b6db620aca25fdd7ada8145f6b7aabc4c7cc3dc10aaa7",
+          "final_sha256": "072e53b5e46a8077a7d4877124becb11521586b1381af72d6675801b08cd2923",
+          "previous_bytes": 11274,
+          "final_bytes": 13436,
+          "added": false
+        },
+        {
+          "path": "tools/release-artifacts.mjs",
+          "previous_sha256": "bee8a121e9f3e7c034e8301d5a4801ebdc4de6b22b8c77721a94c37a0729b7d2",
+          "final_sha256": "68ebd0fac2af37a31fbde7c03754d78f5bded7fe7ed5d90508bcba46d96b14a5",
+          "previous_bytes": 6409,
+          "final_bytes": 6518,
+          "added": false
+        },
+        {
+          "path": "wiki/Agent-Monitor.md",
+          "previous_sha256": "f25737401e1a6035f81a27aea59506936e5e300c726154fac7d0d8e48b294271",
+          "final_sha256": "e58758ed516a48c6f178a26e0fff56974f59a4d46873f1255b25a2003dbb75e7",
+          "previous_bytes": 12194,
+          "final_bytes": 12542,
+          "added": false
+        }
+      ],
+      "unchanged_source_files": 900,
+      "removed_paths": [],
+      "reviewed_behavior": [
+        "Desktop verifies the expected HEAD tree and zero tracked/untracked source changes before packaging and before its receipt; the receipt records sourceTree and sourceDirty:false. The validator rejects true or missing sourceDirty. Historical reconstruction is committed after exact tree verification, and npm install intentionally does not generate an untracked lockfile.",
+        "Publication resolves the live remote tag rather than relying on checkout's stale tag snapshot, creates a missing tag with a non-force push, verifies the remote commit before gh release create --verify-tag and after asset readback, and retains trusted staged checksum comparison.",
+        "Merge the workflow changes to main before publishing release/v0.22.0 from the accepted main SHA. This is the coordinator's stated publication sequence and a required condition, not evidence that the merge has already occurred or an outstanding credential request.",
+        "Installed multitab acceptance owns a new temporary browser profile, an ephemeral loopback CDP endpoint and bounded startup/cleanup. Playwright >=1.60 connect_over_cdp(no_defaults=True) preserves actual browser tab visibility. The real document.hidden wait/assert and recovery, draft, focus and repeat-send assertions remain mandatory; endpoint parsing tolerates a partially written startup file.",
+        "Continuation revalidates provider, conversation, path, latest user identity and manual holds after each composer/Send wait. A visible provider-review hold remains authoritative beside an old failure card. Fresh completion/resumption state cancels unnecessary continuation.",
+        "The final Send checks the same connected composer, the exact unchanged staged draft and the current connected Send control without yielding before click. A no-Send timeout checks user edits and holds before any reload-eligible result. Safe aborts remain outside the background reload allowlist, and existing composer focus behavior adds no tab/window activation.",
+        "Thirteen real DOM cases and background contract assertions cover edit/clear, newly visible permission/review, provider resume/completion, navigation/home, replaced composer, changes during composer hydration and an actual no-Send timeout. DOM transport is explicitly stubbed; these cases do not claim installed-extension or account acceptance.",
+        "Release notes/changelog and docs/wiki describe the changes; verification documentation explicitly distinguishes the earlier 42-workflow baseline from the final 43-workflow inventory and leaves actual installed-browser acceptance to hosted gates."
+      ],
+      "applicable_static_assessments": {
+        "shrink": {
+          "command": {
+            "label": "shrink-scan",
+            "argv": [
+              "shrink-anything",
+              "scan",
+              "--json"
+            ],
+            "cwd": "isolated-amended-candidate",
+            "exit_code": 0,
+            "elapsed_seconds": 0.26549,
+            "log": "v022-release-amendment-shrink-scan.log",
+            "log_sha256": "f75648d260d7a78d1e773278e7ebf5d4cae081fa5049c7969abe8ffda07a1238",
+            "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+          },
+          "parser_scoped_metrics": {
+            "files": 335,
+            "lines": 63552,
+            "code_lines": 57266,
+            "bytes": 4378022,
+            "deps": 15,
+            "assets": 19,
+            "asset_bytes": 3727690
+          },
+          "candidate_count": 10,
+          "duplicate_groups": 196,
+          "cuts_applied": false
+        },
+        "rust": {
+          "commands": [
+            {
+              "label": "rust-analyze-ts",
+              "argv": [
+                "rust-anything",
+                "analyze",
+                ".",
+                "--lang",
+                "ts",
+                "--json"
+              ],
+              "cwd": "isolated-amended-candidate",
+              "exit_code": 0,
+              "elapsed_seconds": 0.26491,
+              "log": "v022-release-amendment-rust-analyze-ts.log",
+              "log_sha256": "113634cb4e84c813582909fa786bb6a9986d7c36d98152c3b6a60f4bd8e242cf",
+              "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+            },
+            {
+              "label": "rust-analyze-python",
+              "argv": [
+                "rust-anything",
+                "analyze",
+                ".",
+                "--lang",
+                "python",
+                "--json"
+              ],
+              "cwd": "isolated-amended-candidate",
+              "exit_code": 0,
+              "elapsed_seconds": 0.21445,
+              "log": "v022-release-amendment-rust-analyze-python.log",
+              "log_sha256": "314e309fd3c05579caf6f38f09961bf437ced797c76cc5465b84906b4e6cf2ad",
+              "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+            }
+          ],
+          "typescript_analysis": {
+            "packages": 3,
+            "source_files": 140,
+            "test_files": 78,
+            "ui_files": 0,
+            "loc": 37777,
+            "units": 35,
+            "ready": 22,
+            "caution": 12,
+            "blocked": 1,
+            "keep": 0,
+            "parse_errors": 0
+          },
+          "python_analysis": {
+            "packages": 1,
+            "source_files": 9,
+            "test_files": 49,
+            "ui_files": 0,
+            "loc": 1478,
+            "units": 5,
+            "ready": 4,
+            "caution": 1,
+            "blocked": 0,
+            "keep": 0,
+            "parse_errors": 0
+          },
+          "ports_applied": false,
+          "applicability": "The amended continuation is browser DOM/native-extension interaction and asynchronous hydration, not a portable compute kernel. New Python code drives Playwright acceptance and owned process lifecycle. Static readiness is not proof of browser equivalence or runtime improvement; no port is justified."
+        },
+        "fast": {
+          "rerun": false,
+          "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+          "reason": "The native-status, alert-service and Python diagnostic workload inputs and exact native MCP binary remain unchanged. New changes are browser-interaction guards, CI provenance, test fixtures and documentation. Reprofiling unrelated Node/Python workloads would not measure the new browser behavior; no faster-browser claim is made."
+        }
+      },
+      "validation_commands": [
+        {
+          "label": "node-syntax-live-sentinel",
+          "argv": [
+            "node",
+            "--check",
+            "extension/src/live-sentinel.js"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.064243,
+          "log": "v022-release-amendment-node-syntax-live-sentinel.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "node-syntax-release-artifacts",
+          "argv": [
+            "node",
+            "--check",
+            "tools/release-artifacts.mjs"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.064078,
+          "log": "v022-release-amendment-node-syntax-release-artifacts.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "python-syntax",
+          "argv": [
+            "python",
+            "-m",
+            "py_compile",
+            "tests/smoke/multitab_reliability_smoke.py",
+            "tests/smoke/chat_guardian_continuation_race_smoke.py"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.064061,
+          "log": "v022-release-amendment-python-syntax.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "release-artifact-contract",
+          "argv": [
+            "node",
+            "tests/release-artifacts.test.mjs"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.11422,
+          "log": "v022-release-amendment-release-artifact-contract.log",
+          "log_sha256": "eb2bdccae333e39b0a66017e339e5bf9659a7fa7c4eaf4f292dfa44fe499c447",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "reliability-contract",
+          "argv": [
+            "node",
+            "tests/reliability-supervisor-contract.test.mjs"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.114323,
+          "log": "v022-release-amendment-reliability-contract.log",
+          "log_sha256": "c5268dc82bfac7c4d261f42ecba66b5afd715973e1c29e03224925282e467a6e",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "yaml-bash-syntax",
+          "argv": [
+            "python",
+            "/workspace/scratch/9d0e7bd88c53/lineage-audit/v022-release-amendment-syntax.py"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 0,
+          "elapsed_seconds": 0.064124,
+          "log": "v022-release-amendment-yaml-bash-syntax.log",
+          "log_sha256": "52f67832a0afa784180fefe2546215c3eb8289e871b1985d1ba88630c6ca1e65",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "scoped-diff-check",
+          "argv": [
+            "git",
+            "diff",
+            "--check",
+            "--",
+            ".github/workflows/release.yml",
+            ".github/workflows/windows-runtime.yml",
+            "CHANGELOG.md",
+            "docs/AGENT-MONITOR.md",
+            "docs/MONITOR-VERIFICATION.md",
+            "docs/RELEASING.md",
+            "docs/v0.22.0-release-notes.md",
+            "extension/src/live-sentinel.js",
+            "requirements-dev.txt",
+            "tests/release-artifacts.test.mjs",
+            "tests/reliability-supervisor-contract.test.mjs",
+            "tests/smoke/multitab_reliability_smoke.py",
+            "tools/release-artifacts.mjs",
+            "wiki/Agent-Monitor.md"
+          ],
+          "cwd": "source-root",
+          "exit_code": 0,
+          "elapsed_seconds": 0.007782,
+          "log": "v022-release-amendment-scoped-diff-check.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe"
+        },
+        {
+          "label": "new-fixture-whitespace",
+          "argv": [
+            "git",
+            "diff",
+            "--no-index",
+            "--check",
+            "--",
+            "/dev/null",
+            "/workspace/scratch/9d0e7bd88c53/lineage-audit/candidate-v022-amendment/tests/smoke/chat_guardian_continuation_race_smoke.py"
+          ],
+          "cwd": "isolated-amended-candidate",
+          "exit_code": 1,
+          "elapsed_seconds": 0.003516,
+          "log": "v022-release-amendment-new-fixture-whitespace.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "assessed_source_manifest_sha256": "da44032e907a607be0a33ad6e908c3369ae1bf0f9e4e181142988784f86ebafe",
+          "accepted_exit_codes": [
+            0,
+            1
+          ],
+          "outcome": "Expected no-index difference status; empty --check diagnostic output"
+        }
+      ],
+      "reported_dom_validation": {
+        "source": "Browser review agent's frozen-source report, independently reviewed source but not rerun by this receipt audit",
+        "continuation_dom_cases": "13 passed",
+        "pre_fix_comparison": "Old source failed 10 of the initial 11 cases",
+        "original_guardian_multitab_dom": "passed",
+        "additional_targeted_node_suites": "three passed",
+        "actual_installed_extension": "Separate hosted gate; not inferred from DOM transport-stub tests."
+      },
+      "performance_evidence": {
+        "rerun": false,
+        "assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "native_mcp_binary_sha256": "2eb8d6ff96ef57a356e8d866c8718d397255578dea3a6b50972253e1be70fee6",
+        "native_compiled_source_fingerprint": "36e08e81d635e3b0763d58c2eed26d76905ba97505b73aead0d5a5b30946eaf1",
+        "reason": "None of the profiled native MCP, alert-service or Python diagnostic production inputs changed. All original timings remain bound to their named baseline and are not measurements of the new continuation/CI behavior or Windows GUI acceptance."
+      },
+      "bounded_hygiene": {
+        "amended_files_scanned": 15,
+        "categories": [
+          "aws_access_key",
+          "github_personal_token",
+          "openai_secret",
+          "private_key_header",
+          "slack_token"
+        ],
+        "matches": [],
+        "scope": "Common credential/private-key patterns on the exact changed/added files. This is a bounded scan, not a universal absence-of-secrets claim. All history/licenses retain the prior exact-byte audit."
+      },
+      "diff_hygiene": "Scoped tracked edits and the complete added fixture pass whitespace checks. The prior committed original-import/license whitespace exception remains unchanged; this is not an unconditional whole-repository whitespace PASS.",
+      "gate_limits": [
+        "Source/workflow checks are local syntax and contract evidence, not remote publication or hosted Windows/browser acceptance.",
+        "The ongoing full npm verify is owned by the coordinator; no full-green result is inferred in this receipt.",
+        "Public history bundles remain excluded under the recorded review decision; durable private preservation and exact read-only public-ref verification are unchanged."
+      ],
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      },
+      "unified_diff_sha256": "89b73214b039ba21a78ebb1776ccc6b32d987dea429bea4a0da74157b4b4c103",
+      "script_sha256": "d69e425afe7fd144a4ce1958457bb6e8f432fbbec80f680e782ed1d93c519d3e"
+    }
+  ]
 }

@@ -7,6 +7,7 @@
 - Integrate Computer-Link native inventory, snapshots, export, focus, local MCP, workspace and owned-worker tools; preserve all 26 branch trees, 92 commits, original diagnostics and independent utilities.
 - Add desktop native-tool status, local launch/stop controls and connector diagnostics; keep optional tools independent from ordinary desktop operations.
 - Make paused/connecting hub state visible and allow disabling a pending or paused connection. Do not report a generic acknowledgement as a successful connection.
+- Revalidate delayed chat continuations before staging and sending. Preserve edits and new permission/review holds, stop on navigation or composer replacement, and cancel unnecessary sends when the provider resumes or finishes.
 - Require matching source, version and artifact hashes when assembling a release; publish native setup, browser packages, desktop packages, source, receipts and checksums together.
 
 

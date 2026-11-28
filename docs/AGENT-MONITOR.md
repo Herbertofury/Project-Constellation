@@ -27,6 +27,12 @@ An empty inbox means no current problem has been reported. It cannot prove that
 an inaccessible or disconnected chat is healthy. Browser coverage shows that
 distinction explicitly.
 
+Chat Guardian rechecks a recoverable conversation after waiting for its composer
+or Send control. If the draft changes, a permission/review hold appears, the
+conversation changes, or the provider resumes or finishes, it cancels that
+continuation. These cancellations preserve the current draft and never trigger
+a reload or switch the active tab.
+
 ## Audible alerts that survive a closed dashboard
 
 Sound and desktop notifications are separate channels. Chromium playback uses

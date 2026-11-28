@@ -1099,7 +1099,8 @@
     if (providerInfo().id !== 'chatgpt') return { ok:false, action:'non-chatgpt' };
     const expectedChatId = clean(message.expectedChatId || '', 220);
     const currentId = chatgptConversationId();
-    if (expectedChatId && currentId && expectedChatId !== currentId && expectedChatId !== `chatgpt:${currentId}`) return { ok:false, action:'chat-moved', chatId:currentId };
+    const currentPath = String(location.pathname || '');
+    if (expectedChatId && expectedChatId !== currentId && expectedChatId !== `chatgpt:${currentId}`) return { ok:false, action:'chat-moved', chatId:currentId };
 
     guardianContinueBusy = true;
     try {
@@ -1117,6 +1118,41 @@
       if (!failure?.active && state?.generation?.finalControls && !['paused','refresh-required'].includes(recoveryState)) return { ok:false, action:'already-complete', state:healthState || status };
       if (!failure?.active && state?.generation?.active && !['dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled'].includes(recoveryState)) return { ok:false, action:'still-running', state:healthState || status };
 
+      const userMessageId = turnMessageId(frontier.latestUser);
+      // Composer and Send hydration can take several seconds. Revalidate after
+      // each wait, before any write/click or reload-eligible timeout response.
+      const continuationBlock = () => {
+        const latest = scan(true);
+        const latestFrontier = conversationFrontier();
+        const latestId = chatgptConversationId();
+        if (providerInfo().id !== 'chatgpt' || latestId !== currentId || String(location.pathname || '') !== currentPath) {
+          return { ok:false, action:'chat-moved', chatId:latestId };
+        }
+        const latestStatus = String(latest?.chat?.status || '');
+        const latestHealth = String(latest?.chat?.healthState || '');
+        // A newly visible review hold is authoritative even while the provider
+        // has left its old failure card mounted beside it.
+        const review = reviewHoldSurfaceEvidence(latestFrontier);
+        if (latest?.permission?.active || review.active || holds.has(latestStatus) || holds.has(latestHealth)) {
+          return { ok:false, action:'blocked-hold', state:latest?.permission?.active ? 'blocked-approval' : review.active ? 'provider-review' : holds.has(latestStatus) ? latestStatus : latestHealth };
+        }
+        if (!latestFrontier.latestUser || (userMessageId ? turnMessageId(latestFrontier.latestUser) !== userMessageId : latestFrontier.latestUser !== frontier.latestUser)) {
+          return { ok:false, action:'chat-moved', chatId:latestId, reason:'turn-changed' };
+        }
+        const latestFailure = latest?.failure?.active || latest?.chat?.failure?.active;
+        const latestRecovery = recoverable.has(latestHealth) ? latestHealth : latestStatus;
+        if (!latestFailure && latest?.generation?.finalControls && !['paused','refresh-required'].includes(latestRecovery)) {
+          return { ok:false, action:'already-complete', state:latestHealth || latestStatus };
+        }
+        if (!latestFailure && latest?.generation?.active && !['dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled'].includes(latestRecovery)) {
+          return { ok:false, action:'still-running', state:latestHealth || latestStatus };
+        }
+        if (!latestFailure && !recoverable.has(latestHealth) && !recoverable.has(latestStatus)) {
+          return { ok:false, action:'not-unfinished', state:latestHealth || latestStatus };
+        }
+        return null;
+      };
+
       const fingerprint = clean(message.fingerprint || `${currentId}|${recoveryState}|${failure?.rawText || failure?.title || ''}`, 900);
       const dedupeKey = `pc-chat-guardian:${currentId || location.pathname}:${fingerprint}`;
       let lastSentAt = 0;
@@ -1130,9 +1166,16 @@
         composer = guardianComposer();
         if (!composer) await new Promise((resolve) => setTimeout(resolve, 120));
       }
+      const beforeStage = continuationBlock();
+      if (beforeStage) return beforeStage;
       if (!composer) return { ok:false, action:'composer-unavailable', state:recoveryState };
+      if (!composer.isConnected || guardianComposer() !== composer) return { ok:false, action:'composer-busy', state:recoveryState };
       if (guardianComposerText(composer).trim()) return { ok:false, action:'composer-busy', state:recoveryState };
-      if (!guardianSetComposerText(composer, prompt)) return { ok:false, action:'stage-failed', state:recoveryState };
+      const staged = guardianSetComposerText(composer, prompt);
+      const stagedText = guardianComposerText(composer);
+      if (!staged || clean(stagedText, prompt.length + 1) !== prompt) {
+        return { ok:false, action:stagedText.trim() ? 'composer-busy' : 'stage-failed', state:recoveryState };
+      }
 
       let send = null;
       const sendDeadline = Date.now() + 6000;
@@ -1140,7 +1183,15 @@
         send = guardianSendButton(composer);
         if (!send) await new Promise((resolve) => setTimeout(resolve, 100));
       }
+      const beforeSend = continuationBlock();
+      if (beforeSend) return { ...beforeSend, staged:true };
+      if (!composer.isConnected || guardianComposer() !== composer || guardianComposerText(composer) !== stagedText) {
+        return { ok:false, action:'composer-busy', state:recoveryState, staged:true };
+      }
       if (!send) return { ok:false, action:'send-unavailable', state:recoveryState, staged:true };
+      if (!send.isConnected || guardianSendButton(composer) !== send) return { ok:false, action:'composer-busy', state:recoveryState, staged:true };
+      // Do not yield between the final checks and the click: user edits and
+      // provider navigation must be observed before this turn can be sent.
       send.click();
       try { sessionStorage.setItem(dedupeKey, String(Date.now())); } catch (_) {}
       lastActivityAt = now();
