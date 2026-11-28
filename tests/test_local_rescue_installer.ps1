@@ -80,7 +80,9 @@ assert.equal(fs.realpathSync(process.argv[1]), fs.realpathSync(process.env.CONST
 fs.writeFileSync('runner-result.json', JSON.stringify({ pathsVerified: true }));
 process.exit(Number(process.env.CONSTELLATION_RUNNER_TEST_EXIT));
 '@, (New-Object Text.UTF8Encoding($false)))
-  $LASTEXITCODE = 0
+  # Native commands update the global automatic variable. A script-local
+  # seed would hide the real child-process result from these assertions.
+  $global:LASTEXITCODE = 0
   $RunnerText = New-AgentRunnerScript -Directory $AgentDir -NodePath $Node
   $Runner = Join-Path $AgentDir "run-agent.ps1"
   [IO.File]::WriteAllText($Runner, $RunnerText, (New-Object Text.UTF8Encoding($true)))
@@ -92,7 +94,8 @@ process.exit(Number(process.env.CONSTELLATION_RUNNER_TEST_EXIT));
   foreach ($ExpectedExit in @(7, 0)) {
     $env:CONSTELLATION_RUNNER_TEST_EXIT = "$ExpectedExit"
     & $Shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Runner
-    if ($LASTEXITCODE -ne $ExpectedExit) { throw "Runner returned $LASTEXITCODE, expected actual agent exit $ExpectedExit." }
+    $ActualExit = $global:LASTEXITCODE
+    if ($ActualExit -ne $ExpectedExit) { throw "Runner returned $ActualExit, expected actual agent exit $ExpectedExit." }
     $Result = Get-Content -LiteralPath (Join-Path $AgentDir "runner-result.json") -Raw | ConvertFrom-Json
     if ($Result.pathsVerified -ne $true) {
       throw "Generated launcher reinterpreted the literal install path: $($Result | ConvertTo-Json -Compress)"
