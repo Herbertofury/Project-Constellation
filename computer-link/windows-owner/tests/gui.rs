@@ -97,6 +97,25 @@ fn click_dialog_button(owner:&mut Child,dialog:H,id:i32){
  let button=ready_dialog_button(owner,dialog,id,Instant::now()+Duration::from_secs(5));
  post(button,0xf5,0,0);
 }
+// A MessageBox title can exist before its Static body and response controls.
+// Read one unchanged preview to completion; readiness never depends on the
+// inventory marker, which must still fail immediately if the full snapshot lacks it.
+fn wait_inventory_preview(owner:&mut Child,dialog:H)->(String,usize){
+ let end=Instant::now()+Duration::from_secs(5);
+ loop{
+  assert!(owner.try_wait().unwrap().is_none(),"owner exited before inventory preview was ready");
+  let button=unsafe{GetDlgItem(dialog,6)};let mut pid=0;
+  if !button.is_null(){unsafe{GetWindowThreadProcessId(button,&mut pid);}}
+  let button_ready=!button.is_null()&&pid==owner.id()&&unsafe{IsWindowVisible(button)}!=0&&unsafe{IsWindowEnabled(button)}!=0;
+  let exact_title=title(dialog)=="Review captured window inventory";
+  let body=dialog_body(dialog,owner.id());
+  let declared=body.strip_prefix("Keep this ").and_then(|rest|rest.split_once("-byte snapshot ")).and_then(|(count,_)|count.parse::<usize>().ok());
+  let payload_bytes=body.split_once("\n\n").map(|(_,payload)|payload.len());
+  if exact_title&&button_ready&&declared.zip(payload_bytes).is_some_and(|(expected,actual)|expected==actual){return(body,declared.unwrap())}
+  assert!(Instant::now()<end,"inventory preview not ready: exact_title={exact_title}, ready_owned_button={button_ready}, declared_bytes={declared:?}, payload_bytes={payload_bytes:?}");
+  thread::sleep(Duration::from_millis(20));
+ }
+}
 struct SyntheticWindow(H);impl Drop for SyntheticWindow{fn drop(&mut self){unsafe{DestroyWindow(self.0);}}}
 #[test]fn actual_inventory_preview_keep_and_paired_read(){
  let class:Vec<u16>="STATIC\0".encode_utf16().collect();let label:Vec<u16>="computer-link-synthetic-inventory-marker\0".encode_utf16().collect();let fixture=SyntheticWindow(unsafe{CreateWindowExW(0,class.as_ptr(),label.as_ptr(),0x10000000,0,0,100,50,ptr::null_mut(),ptr::null_mut(),ptr::null_mut(),ptr::null_mut())});assert!(!fixture.0.is_null());
@@ -105,7 +124,7 @@ struct SyntheticWindow(H);impl Drop for SyntheticWindow{fn drop(&mut self){unsaf
  post(h,0x111,6,0);let d=wait_window(&mut owner.0,"#32770");assert_eq!(title(d),"Capture window inventory locally");click_dialog_button(&mut owner.0,d,7);wait_no_dialog(&mut owner.0);assert!(title(h).contains("disconnected"));
  for keep in [false,true]{
  post(h,0x111,6,0);let d=wait_window(&mut owner.0,"#32770");assert_eq!(title(d),"Capture window inventory locally");click_dialog_button(&mut owner.0,d,6);
- let end=Instant::now()+Duration::from_secs(5);let preview=loop{let d=window(owner.0.id(),"#32770");if !d.is_null()&&title(d)=="Review captured window inventory"{break d}assert!(Instant::now()<end,"inventory preview not observed");thread::sleep(Duration::from_millis(20));};let body=dialog_body(preview,owner.0.id());assert!(body.contains("computer-link-synthetic-inventory-marker"),"synthetic visible window absent");let n:usize=body.split("Keep this ").nth(1).unwrap().split("-byte").next().unwrap().parse().unwrap();assert!(n>1&&n<=4096);click_dialog_button(&mut owner.0,preview,if keep{6}else{7});wait_no_dialog(&mut owner.0);assert!(title(h).contains("disconnected"));
+ let end=Instant::now()+Duration::from_secs(5);let preview=loop{let d=window(owner.0.id(),"#32770");if !d.is_null()&&title(d)=="Review captured window inventory"{break d}assert!(Instant::now()<end,"inventory preview not observed");thread::sleep(Duration::from_millis(20));};let(body,n)=wait_inventory_preview(&mut owner.0,preview);assert!(body.contains("computer-link-synthetic-inventory-marker"),"synthetic visible window absent");assert!(n>1&&n<=4096);click_dialog_button(&mut owner.0,preview,if keep{6}else{7});wait_no_dialog(&mut owner.0);assert!(title(h).contains("disconnected"));
  if !keep{continue}
  post(h,0x111,3,0);let d=wait_window(&mut owner.0,"#32770");assert_eq!(title(d),"Explicit local permission");assert!(dialog_body(d,owner.0.id()).contains("captured window inventory"));click_dialog_button(&mut owner.0,d,6);wait_title(&mut owner.0,h,"one local grant");let name=title(h).split(" | ").nth(1).unwrap().to_owned();
  let expected=body.split_once("\n\n").expect("preview payload separator").1.as_bytes().to_vec();assert_eq!(expected.len(),n);let owner_pid=owner.0.id();

@@ -87,6 +87,8 @@ jobs:
       - name: Source-build and exercise all Computer Tools native capabilities
         run: node tools/computer-link/build.mjs --test
       - name: Native owner stability gate
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/build/computer-link/target
         run: |
           # Reproduce the observed intermittent child-handle assertion with its
           # bounded diagnostics. Every sweep must pass; stop on the first failure.

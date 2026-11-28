@@ -22,8 +22,8 @@
     {
       "path": "computer-link/windows-owner/tests/gui.rs",
       "upstreamSha256": "e874fb90846e2b760f6f163ea5c67273c46211f23c607134add06a61d6cbb080",
-      "sha256": "6dc0f2f2d4797e44709dcbcf52151e371fa18d2d1d65703487f4e201713941b2",
-      "reason": "Present native owner as Constellation Computer Tools; update exact UI caption fixtures; retain binary filenames, window class and MCP protocol identifiers."
+      "sha256": "12fb6cf541ff989f584e94718f05d2a51187110343f092bcf10169da86f2fef4",
+      "reason": "Present native owner as Constellation Computer Tools with exact UI caption fixtures; wait for the existing inventory preview title, ready owned response button and complete declared payload before reading it. Preserve direct marker/capacity checks, exact paired-read bytes, deny/keep/revoke/replay assertions and the original production inventory capture."
     },
     {
       "path": "computer-link/windows-owner/tests/probe_gui.rs",

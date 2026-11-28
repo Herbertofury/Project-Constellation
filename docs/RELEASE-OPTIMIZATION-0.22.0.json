@@ -36,7 +36,7 @@
     ],
     "excluded_self_reference": "docs/RELEASE-OPTIMIZATION-0.22.0.json",
     "source_file_count": 915,
-    "source_manifest_sha256": "2bbeafd47561b1443d1a1d41c7c56ec6f360361d4dd197b434e4a4d0ebc69ca4",
+    "source_manifest_sha256": "74f3e4612c2866cf3a8c97744d20c2d0298b291e1cbf83a0ea92f68f1bf177c1",
     "source_file_sha256": {
       ".editorconfig": "8e1c9a78d4dedcde12bb3cd6279ce83942819d1cd178f1d9d731ef3a62606ac7",
       ".gitattributes": "9d2194cce6b4c0df4776369b5924824e59fd1613debab8217a579000114c9014",
@@ -53,7 +53,7 @@
       ".github/workflows/native-monitor.yml": "bdce7d842e92846c9c5b2f772c838bf9b881c9a3b4d83912baef1a2b5e94e22d",
       ".github/workflows/release.yml": "24da5e48edd8d20baaf7473d7a9b1a6ca19819b22d952831e2b5019138ac8c1f",
       ".github/workflows/windows-runtime.yml": "e573ed7d5be933830466689f2daed6e71a21632fa2e5acbed245fea19ce43bcc",
-      ".github/workflows/windows-setup.yml": "28e6be246e289b7cb44a452d366a223675e384cf84fd66d7ab0ada3fe756f557",
+      ".github/workflows/windows-setup.yml": "6f5e49cac68aea5b074a1bc6bcc4357fd25bdd06139d4553ba65742c01ca3d0f",
       ".gitignore": "64638320c3ab14fb8ae3aca51a894c6c646db31d120cb15d89b23a49f7d7333d",
       "AGENTS.md": "fb328c4c6ab685e63c40453a51e42fa9cd9a14864ec55f335a4b94a6d8dfd95c",
       "CHANGELOG.md": "d1286027091a386212b80d3e62f5d28cd0ecfe75a56c135ea98e65296351b50c",
@@ -213,7 +213,7 @@
       "computer-link/windows-owner/src/window_focus_ui.rs": "3c6aa939a4b495400499549052c913abdc29e62fc0e3c9d123ef3a19aa530b62",
       "computer-link/windows-owner/src/window_inventory.rs": "6c79d835f36e58e524ad15f3eceeb8e9e91b57d42cb6e14830f1459899c5af79",
       "computer-link/windows-owner/tests/focus_gui.rs": "c4fc7a2c550fce23da0128f4f87c382651c53db99daa09f3ba8f32ac34f64979",
-      "computer-link/windows-owner/tests/gui.rs": "6dc0f2f2d4797e44709dcbcf52151e371fa18d2d1d65703487f4e201713941b2",
+      "computer-link/windows-owner/tests/gui.rs": "12fb6cf541ff989f584e94718f05d2a51187110343f092bcf10169da86f2fef4",
       "computer-link/windows-owner/tests/probe_gui.rs": "d5d97e896274b7f5fb526bbafb9eaa4225378d94b61fab02909db1a5e5f37efa",
       "computer-link/windows-owner/tests/selection.rs": "83bf2ae9970e59c8024afcdbce3a5f54e6a1ea03521d3eb55e1bc3dbda3b37ac",
       "computer-link/windows-owner/tests/status_protocol.rs": "c792838b3fef517803636eef9bbf64b4f3a64f832d4408b771037faf42daab27",
@@ -509,7 +509,7 @@
       "recovery/README.md": "2be70d34c947f0608ba3785adde3284f87401762ca1793bc1cfb44c8031626be",
       "recovery/computer-link/GITHUB-METADATA.json": "5a4c9da6e4649c6cc4b7ec1d04dc806bd0a188a8d78915e5e0a12ab4a706e218",
       "recovery/computer-link/IMPORT-HYGIENE.json": "03496ea6e80f7b007b7fb81a5afcdae2bc6eff0f64026e1822740fcef9d25cf9",
-      "recovery/computer-link/INTEGRATION-DELTAS.json": "f1f52af15363780aabf786c976b6f6116795e7fda5ea0fac707d6698f893fcfd",
+      "recovery/computer-link/INTEGRATION-DELTAS.json": "1a9e961099264fbe34cbdf5533f4ce32ee4bbb8d37b833ee090b9607b2337f73",
       "recovery/computer-link/INTEGRATION-RECEIPT.json": "0c7679f5b1a90cf0f00853c87dd24616e660396338d83e1a63c525183bc27202",
       "recovery/computer-link/SOURCE-MANIFEST.json": "829698f74c8afbcd703f373424a54971d659b097ca5a9648c2e24e93b515033e",
       "recovery/computer-link/main-snapshot/README.md": "4f6241d405ddc193d2684440c34bbcf6885a44ebf395392fd7695154a0276c70",
@@ -964,7 +964,7 @@
       "sha256": "71a25374be55d4b21e2d65a2611aba038011c43a35ace437c06c0e373c97b868"
     },
     "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
-    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source. The final one-workflow amendment matches the existing serial Windows foreground-GUI contract; its exact argument/fail-first checks do not change any performance binding or assert hosted acceptance. The final two-file test-oracle amendment preserves the 9,091-byte production prefix and all prior runtime/profile bindings; final target fingerprints and hosted stability acceptance remain separate evidence."
+    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source. The final one-workflow amendment matches the existing serial Windows foreground-GUI contract; its exact argument/fail-first checks do not change any performance binding or assert hosted acceptance. The final two-file test-oracle amendment preserves the 9,091-byte production prefix and all prior runtime/profile bindings; final target fingerprints and hosted stability acceptance remain separate evidence. The final three-path CI/output and GUI-readiness amendment preserves production inputs and all prior timing bindings; reported twelve-sweep success is distinct from later packaging/GUI failures and final acceptance."
   },
   "tools": {
     "shrink-anything": {
@@ -2635,7 +2635,9 @@
     "v022-serial-gate-amendment-input-sha256.json": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
     "v022-serial-gate-amendment.diff": "a6517fe21a4a89bd5ec0b221bf0ca87a2eb864f124867a48bd32f02878d32b99",
     "v022-oracle-amendment-input-sha256.json": "2bbeafd47561b1443d1a1d41c7c56ec6f360361d4dd197b434e4a4d0ebc69ca4",
-    "v022-oracle-amendment.diff": "d5af6c0fe40fdb2e0bb88e81bd5cf6c0944e73c08b6feae2ccb4666663015f3f"
+    "v022-oracle-amendment.diff": "d5af6c0fe40fdb2e0bb88e81bd5cf6c0944e73c08b6feae2ccb4666663015f3f",
+    "v022-preview-readiness-amendment-input-sha256.json": "74f3e4612c2866cf3a8c97744d20c2d0298b291e1cbf83a0ea92f68f1bf177c1",
+    "v022-preview-readiness-amendment.diff": "836c18c59031e09d9831822f2547e94f95486eb9a62d5ce2e529e744025d0805"
   },
   "gate_limits": [
     "This is an optimization/preservation annex, not a release-wide or installation acceptance pass. Hosted CI, Windows setup/uninstall/upgrade, actual Windows native UI, installed browser/nativeMessaging, speaker output and user-account workflows have separate gates.",
@@ -2652,7 +2654,8 @@
     "The last two-path amendment preserves exact legacy Git bytes through path-specific -text attributes and triggers Windows runtime CI for attribute changes. Independent attribute/YAML/diff checks passed; the fresh-checkout proof is attributed and hosted Windows acceptance remains a separate gate.",
     "The final Windows owned-worker change adds bounded test diagnostics and a success marker while preserving all exclusion checks. It does not claim resolution of the failing hosted child. Production code is byte-identical, but whole-file build-input fingerprints require fresh target payloads; prior timings retain their original baseline identity.",
     "The twelve owner stability sweeps now use the same --test-threads=1 contract as the existing Windows native test runner because foreground GUI fixtures share a desktop. Every complete sweep remains required and stops on first failure. The original serial handle-isolation failure remains a real diagnostic gate; it is not declared fixed by this workflow correction.",
-    "The final test-only oracle repair checks actual named-event identity and positive/negative controls without assuming arbitrary reused handles support DuplicateHandle or whitelisting error 50. It preserves all timeout/exit/diagnostic safeguards. Actual twelve-sweep serial Windows validation remains required; prior timings and target binaries are not relabelled."
+    "The final test-only oracle repair checks actual named-event identity and positive/negative controls without assuming arbitrary reused handles support DuplicateHandle or whitelisting error 50. It preserves all timeout/exit/diagnostic safeguards. Actual twelve-sweep serial Windows validation remains required; prior timings and target binaries are not relabelled.",
+    "The last three-path amendment directs stability-test build outputs to the existing ignored Cargo target directory and waits only for the same structurally complete inventory preview. Marker/size/paired-byte and authorization lifecycle assertions remain strict. The reported twelve-sweep pass is preserved separately; final source-clean packaging and Windows GUI/setup acceptance remain required."
   ],
   "validation_commands_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
   "final_source_amendment": {
@@ -4010,6 +4013,129 @@
       "diff_hygiene": "These two coordinated edits pass their scoped diff check. Prior original-import/license whitespace qualifications remain intact; no all-files whitespace PASS is inferred.",
       "unified_diff_sha256": "d5af6c0fe40fdb2e0bb88e81bd5cf6c0944e73c08b6feae2ccb4666663015f3f",
       "script_sha256": "1f3974cb23c10306af42c07b122a8e44f69718ba6d0d15b76cd485e69bb28f70",
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      }
+    }
+  ],
+  "post_ci_preview_readiness_amendments": [
+    {
+      "reason": "After the repaired handle oracle passed all twelve serial owner suites, the strict source-clean gate exposed generated stress-step target files. Separately, the GUI fixture read a titled inventory dialog before its body/controls were guaranteed complete. Correct the CI output directory and wait for the same existing complete preview before applying unchanged content assertions.",
+      "prior_receipt_sha256": "d7db99b4c5a4578720a2af43dc4ddbf4e154f5a16f2971bf60362b10c63090b0",
+      "previous_source_manifest_sha256": "2bbeafd47561b1443d1a1d41c7c56ec6f360361d4dd197b434e4a4d0ebc69ca4",
+      "final_source_manifest_sha256": "74f3e4612c2866cf3a8c97744d20c2d0298b291e1cbf83a0ea92f68f1bf177c1",
+      "changed_paths": [
+        {
+          "path": ".github/workflows/windows-setup.yml",
+          "previous_sha256": "28e6be246e289b7cb44a452d366a223675e384cf84fd66d7ab0ada3fe756f557",
+          "final_sha256": "6f5e49cac68aea5b074a1bc6bcc4357fd25bdd06139d4553ba65742c01ca3d0f",
+          "previous_bytes": 5925,
+          "final_bytes": 6017
+        },
+        {
+          "path": "computer-link/windows-owner/tests/gui.rs",
+          "previous_sha256": "6dc0f2f2d4797e44709dcbcf52151e371fa18d2d1d65703487f4e201713941b2",
+          "final_sha256": "12fb6cf541ff989f584e94718f05d2a51187110343f092bcf10169da86f2fef4",
+          "previous_bytes": 21118,
+          "final_bytes": 22465
+        },
+        {
+          "path": "recovery/computer-link/INTEGRATION-DELTAS.json",
+          "previous_sha256": "f1f52af15363780aabf786c976b6f6116795e7fda5ea0fac707d6698f893fcfd",
+          "final_sha256": "1a9e961099264fbe34cbdf5533f4ce32ee4bbb8d37b833ee090b9607b2337f73",
+          "previous_bytes": 4334,
+          "final_bytes": 4534
+        }
+      ],
+      "source_file_count": 915,
+      "unchanged_source_files": 912,
+      "added_paths": [],
+      "removed_paths": [],
+      "independent_review": {
+        "workflow": {
+          "only_change": "Step-scoped CARGO_TARGET_DIR",
+          "value": "${{ github.workspace }}/build/computer-link/target",
+          "same_as_existing_builder": true,
+          "ignored_generated_path_verified": true,
+          "gate_body_unchanged_sha256": "a62721c061c4fcdaf1fcb7ec4a6a6ea3d7210e0417944ce812a0b8dcbd77d824",
+          "twelve_serial_complete_sweeps_and_fail_first_unchanged": true,
+          "strict_source_clean_guard_unchanged": true,
+          "yaml_parse": "passed",
+          "bash_n_exit_code": 0,
+          "ignore_command": [
+            "git",
+            "check-ignore",
+            "--no-index",
+            "--",
+            "build/computer-link/target/receipt-validation"
+          ],
+          "ignore_exit_code": 0
+        },
+        "gui_test_only": "The sole executable change is an integration-test readiness helper plus replacement of its premature body/count read. Reconstructing those two substitutions yields the entire prior GUI test file byte-for-byte.",
+        "same_preview": "The helper accepts the already selected fixed preview handle. It never searches for another dialog, recaptures inventory, posts a command, or clicks a control.",
+        "readiness": "Within five seconds, require the live owner, exact preview title, a visible/enabled response button belonging to that owner, a parseable declared byte count and separator, and a payload whose UTF-8 byte length equals the declaration. Poll every 20ms; malformed/incomplete content reaches the deadline.",
+        "strict_content_after_readiness": "Readiness never checks the synthetic marker. After it returns the same body and count, the original immediate marker and 1<n<=4096 assertions still execute. A complete snapshot lacking the marker fails; it is not polled until success.",
+        "preserved_assertions": "Exact paired-read bytes, capture/deny/keep/revoke/replay behavior and the complete test inventory are unchanged.",
+        "test_inventory_unchanged": [
+          "actual_window_denial_grant_disconnect_exit_and_restart",
+          "actual_gui_authorizes_separate_client_and_invalidates_late_consent",
+          "actual_inventory_preview_keep_and_paired_read",
+          "actual_disconnect_invalidates_initial_permission",
+          "actual_tray_owned_foreground_success_cancel_disconnect_exit"
+        ],
+        "production_code_changed": false
+      },
+      "preservation": {
+        "original_source_manifest_changed": false,
+        "documented_import_deltas": 8,
+        "updated_existing_delta": {
+          "path": "computer-link/windows-owner/tests/gui.rs",
+          "upstreamSha256": "e874fb90846e2b760f6f163ea5c67273c46211f23c607134add06a61d6cbb080",
+          "sha256": "12fb6cf541ff989f584e94718f05d2a51187110343f092bcf10169da86f2fef4",
+          "reason": "Present native owner as Constellation Computer Tools with exact UI caption fixtures; wait for the existing inventory preview title, ready owned response button and complete declared payload before reading it. Preserve direct marker/capacity checks, exact paired-read bytes, deny/keep/revoke/replay assertions and the original production inventory capture."
+        },
+        "all_eight_final_hashes_verified": true,
+        "other_seven_deltas_unchanged": true,
+        "history_licenses_and_production_inputs_unchanged": true
+      },
+      "independent_scoped_diff": {
+        "argv": [
+          "git",
+          "diff",
+          "--check",
+          "--",
+          ".github/workflows/windows-setup.yml",
+          "computer-link/windows-owner/tests/gui.rs",
+          "recovery/computer-link/INTEGRATION-DELTAS.json"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reported_validation": {
+        "source": "Coordinator, installer, migration-agent and browser-review reports; no actual Windows execution performed by this receipt audit",
+        "successful_serial_oracle_validation": {
+          "published_source": "5e3dc15c",
+          "workflow_run": "46104173436",
+          "result": "All twelve serial complete owner suites passed on the PR Setup run, before the later source-clean failure."
+        },
+        "separate_failures": "The PR then rejected untracked windows-owner/target generated by the stress step. A separate push run hit the inventory marker assertion after an immediate dialog-body read. Neither failure is relabelled as a successful complete Setup run.",
+        "windows_gnu_target_gui_tests": "Locked --tests cargo check passed without warnings",
+        "import_verifier": "passed: 123 files, 26 trees, 92 commits, 2 wiki commits, 8 deltas",
+        "independent_browser_review": "Final exact-diff review passed: same preview, structural readiness only, no marker polling or recapture, no assertion loss.",
+        "next_gate": "The new three-path candidate still requires hosted clean packaging and GUI/setup acceptance. The readiness diagnosis and cross-target compile do not themselves prove that run passes."
+      },
+      "optimizer_and_performance": {
+        "rerun": false,
+        "retained_optimization": false,
+        "assessed_runtime_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "reason": "Only a workflow output directory, GUI test synchronization and existing preservation metadata changed. Production code and all measured workload behavior are unchanged; no profiler/optimizer rerun applies. Original timings and binary fingerprints remain bound to their recorded snapshots, and final payloads must use current complete source fingerprints."
+      },
+      "diff_hygiene": "Scoped changes pass. Previously documented original-import/license whitespace exceptions remain intact; no unconditional whole-repository PASS is asserted.",
+      "unified_diff_sha256": "836c18c59031e09d9831822f2547e94f95486eb9a62d5ce2e529e744025d0805",
+      "script_sha256": "e67466e526bf2fd559efa037bf46db4bfde33974bb5b973c876418876237881d",
       "final_drift": {
         "added": [],
         "removed": [],
