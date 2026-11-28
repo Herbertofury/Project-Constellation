@@ -448,4 +448,87 @@ for(const legacyPendingClaim of [false,true]) {
   await restarted.observe({...stored.sessions[0],observedAt:f.now()});await restarted.reminders();
   assert.equal(f.events.length,1);assert.equal((await restarted.get()).incidents[0].delivery.retryExhausted,true,'worker termination cannot reset an exhausted delivery budget');
 }
-console.log('attention-service.test.mjs: PASS (restart, dedup, run episodes, durable write recovery, interrupted channel receipts, scoped lifecycle ordering, mute/settings wake, absolute native state, bounded channel recovery, snooze, priority, suspension, ownership, navigation, completion, retention)');
+// Group sound from its actual durable playback claim, not from the beginning of
+// a notification request which may take seconds to complete.
+{
+  const f=edgeFixture();await f.runtime.start();const notify=f.hooks.notify;let delayed=true;
+  f.hooks.notify=async(item)=>{if(delayed){delayed=false;f.advance(5000);}return notify(item);};
+  await f.observe();const soundAt=f.now();f.advance(50);await f.observe({tabId:2});
+  assert.equal(f.events.length,2,'both current incidents retain their own notification');
+  assert.equal(f.audio.length,1,'two sounds cannot overlap after the first notification took longer than the grouping window');
+  const saved=await f.hooks.read();assert.equal(saved.delivery.lastAudioAt,soundAt);
+  assert.equal(saved.incidents[1].delivery.audio,'grouped-or-disabled');
+}
+{
+  const f=edgeFixture();await f.runtime.start();let calls=0;
+  f.hooks.sound=async()=>{calls++;return {ok:false,interrupted:true,error:'Playback may have started but its reply was lost.'};};
+  await f.observe();f.advance(60000);await f.runtime.reminders();await f.observe();
+  const saved=await f.hooks.read();assert.equal(calls,1,'an ambiguous playback outcome is never treated as a safe automatic retry');
+  assert.equal(saved.incidents[0].delivery.audio,'interrupted');assert.equal(saved.incidents[0].delivery.retryAt,0);
+  assert.match(saved.delivery.lastError,/reply was lost/);assert.equal(f.deadlines.size,0);
+}
+// A one-shot alarm must recover a rejected durable claim without silently using
+// the last reminder. Permanent storage failure still has a finite retry budget.
+{
+  const f=edgeFixture();await f.runtime.start();await f.runtime.settings({reminderMinutes:1,maxReminders:1});await f.observe();
+  const write=f.hooks.write;let fail=true;f.hooks.write=async(...args)=>{if(fail){fail=false;throw new Error('Reminder journal unavailable');}return write(...args);};
+  f.advance(60000);await assert.rejects(f.runtime.reminders(),/Reminder journal unavailable/);
+  assert.equal((await f.runtime.get()).incidents[0].reminders,0,'an untouched reminder retains its budget after a failed claim');
+  assert.equal(f.deadlines.get(core.ALARM_NAME),f.now()+2000,'the consumed one-shot alarm gets one bounded persistence-recovery deadline');
+  f.advance(2000);await f.runtime.reminders();
+  assert.equal(f.events.length,2);assert.equal((await f.hooks.read()).incidents[0].reminders,1);assert.equal(f.deadlines.size,0);
+  f.advance(60000);await f.runtime.reminders();assert.equal(f.events.length,2,'storage recovery does not raise the configured repeat cap');
+}
+{
+  const f=edgeFixture();await f.runtime.start();await f.runtime.settings({reminderMinutes:1,maxReminders:1});await f.observe();
+  f.hooks.write=async()=>{throw new Error('Storage remains unavailable');};f.advance(60000);
+  for(const delay of [2000,10000,30000,0]){
+    await assert.rejects(f.runtime.reminders(),/Storage remains unavailable/);
+    assert.equal((await f.runtime.get()).incidents[0].reminders,0);assert.equal(f.events.length,1);
+    if(delay){assert.equal(f.deadlines.get(core.ALARM_NAME),f.now()+delay);f.advance(delay);}
+    else assert.equal(f.deadlines.size,0,'permanent persistence failure cannot create an endless alarm loop');
+  }
+  assert.match((await f.runtime.get()).delivery.lastError,/persistence retries are exhausted/);
+  await f.runtime.setAudioOwner({enabled:true});await f.runtime.setAudioOwner({enabled:false});await f.runtime.setAudioOwner({enabled:true});
+  assert.equal(f.deadlines.size,0,'routine native ownership refresh and transfer cannot restart an exhausted storage-recovery loop');
+  assert.equal(f.events.length,1);
+}
+{
+  const f=edgeFixture();await f.runtime.start();await f.observe({status:'running'});
+  const captured=(await f.runtime.get()).sessions[0],write=f.hooks.write;let fail=true;
+  f.hooks.write=async(...args)=>{if(fail){fail=false;throw new Error('Close journal unavailable');}return write(...args);};f.advance(10);
+  await assert.rejects(f.runtime.closeTab(1,'local',captured),/Close journal unavailable/);
+  const retry=await f.runtime.closeTab(1,'local',captured);assert.equal(retry.ok,true);
+  assert.equal((await f.hooks.read()).sessions[0].status,'closed','a scoped retry cannot return success while the accepted close remains only in memory');
+  const restarted=core.createService(f.hooks);await restarted.start();assert.equal((await restarted.get()).sessions[0].status,'closed');
+}
+{
+  const f=edgeFixture();await f.observe({status:'running'});const write=f.hooks.write;let fail=true,writes=0;
+  f.hooks.write=async(...args)=>{if(fail){fail=false;throw new Error('Startup journal unavailable');}writes++;return write(...args);};
+  const restarted=core.createService(f.hooks);await assert.rejects(restarted.start(),/Startup journal unavailable/);
+  await restarted.start();const saved=await f.hooks.read();assert.equal(saved.sessions[0].status,'sensor-offline');
+  assert.equal(saved.sessions[0].lastKnownStatus,'running','retrying startup preserves the original last-known provider status');
+  const savedWrites=writes;await restarted.start();assert.equal(writes,savedWrites,'a successfully persisted repeated start remains read-only');
+}
+for(const legacyJournal of [false,true]){
+  const f=edgeFixture();await f.runtime.start();await f.observe();const id=(await f.runtime.get()).incidents[0].id;
+  await f.runtime.acknowledge(id);let runtime=f.runtime;
+  if(legacyJournal){const saved=await f.hooks.read();delete saved.incidents[0].authoritative;await f.hooks.write(core.STORAGE_KEY,saved);runtime=core.createService(f.hooks);await runtime.start();}
+  f.advance(10);await runtime.observe({tabId:1,url:'https://chatgpt.com/c/edge',runId:'unconfirmed-run',status:'error',authoritative:false,source:'scripting-dom-probe',observedAt:f.now()});
+  let snapshot=await runtime.get();assert.equal(snapshot.incidents.length,1,'weak evidence cannot supersede a confirmed permission episode');
+  assert.equal(snapshot.incidents[0].resolvedAt,0);assert.ok(snapshot.incidents[0].acknowledgedAt);assert.equal(snapshot.incidents[0].runId,'run-1');
+  assert.equal(snapshot.sessions[0].authoritative,false);assert.equal(snapshot.sessions[0].suspended,true,'the uncertain current row is explicit while the original incident stays intact');
+  assert.equal(f.events.length,1);
+  f.advance(10);await runtime.observe({tabId:1,url:'https://chatgpt.com/c/edge',runId:'run-1',status:'permission_required',observedAt:f.now()});
+  snapshot=await runtime.get();assert.equal(snapshot.incidents.length,1,'returning confirmed evidence is compared to the confirmed run, not the intervening weak run');
+  assert.equal(snapshot.incidents[0].id,id);assert.ok(snapshot.incidents[0].acknowledgedAt);assert.equal(snapshot.incidents[0].suspended,false);assert.equal(f.events.length,1);
+}
+{
+  const f=edgeFixture();await f.runtime.start();await f.observe({status:'error',authoritative:false,runId:'weak-probe-label'});const id=(await f.runtime.get()).incidents[0].id;
+  assert.equal((await f.runtime.get()).incidents[0].authoritative,false,'new weak evidence remains identified as such');
+  await f.runtime.acknowledge(id);f.advance(10);await f.observe({status:'error',authoritative:true,runId:'confirmed-provider-run'});
+  const snapshot=await f.runtime.get();assert.equal(snapshot.incidents.length,1);assert.equal(snapshot.incidents[0].id,id);assert.equal(snapshot.incidents[0].authoritative,true);
+  assert.ok(snapshot.incidents[0].acknowledgedAt);assert.equal(snapshot.incidents[0].runId,'confirmed-provider-run','untrusted run labels cannot reset owner suppression when confirmed identity arrives');
+  assert.equal(f.events.length,1,'stronger confirmation upgrades the existing episode without replaying its first alert');
+}
+console.log('attention-service.test.mjs: PASS (restart, dedup, run episodes, durable retry recovery, uncertain playback, sound grouping, bounded reminder persistence, scoped lifecycle ordering, mute/settings wake, absolute native state, channel recovery, snooze, priority, suspension, ownership, navigation, completion, retention)');

@@ -7,7 +7,7 @@ const html=fs.readFileSync(new URL('../extension/agent-monitor.html',import.meta
 // This fixture executes the actual dashboard. It proves routing/state behavior;
 // browser-rendered layout, audio playback and OS notification proof stay separate.
 class Element {
-  constructor(tag='div'){this.tagName=tag.toUpperCase();this.className='';this.children=[];this.parentNode=null;this.ownText='';this.value='';this.hidden=false;this.disabled=false;this.listeners=new Map();this.attrs={};this.classList={toggle:(name,on)=>{const parts=new Set(this.className.split(' ').filter(Boolean));if(on)parts.add(name);else parts.delete(name);this.className=[...parts].join(' ');}};}
+  constructor(tag='div'){this.tagName=tag.toUpperCase();this.className='';this.children=[];this.parentNode=null;this.ownText='';this.value='';this.hidden=false;this.disabled=false;this.listeners=new Map();this.attrs={};this.classList={contains:name=>this.className.split(' ').includes(name),toggle:(name,on)=>{const parts=new Set(this.className.split(' ').filter(Boolean));if(on)parts.add(name);else parts.delete(name);this.className=[...parts].join(' ');}};}
   set textContent(value){this.ownText=String(value);this.children=[];}
   get textContent(){return this.ownText+this.children.map(x=>x.textContent).join(' ');}
   get firstChild(){return this.children[0]||null;}
@@ -15,6 +15,7 @@ class Element {
   append(...items){for(const item of items)this.insertBefore(item,null);}
   insertBefore(item,reference){if(item.parentNode)item.parentNode.removeChild(item);const at=reference?this.children.indexOf(reference):this.children.length;assert.ok(at>=0);this.children.splice(at,0,item);item.parentNode=this;return item;}
   removeChild(item){const at=this.children.indexOf(item);assert.ok(at>=0);this.children.splice(at,1);item.parentNode=null;return item;}
+  replaceChild(next,previous){this.insertBefore(next,previous);this.removeChild(previous);return previous;}
   prepend(...items){for(const item of items.reverse())this.insertBefore(item,this.firstChild);}
   replaceChildren(...items){this.ownText='';for(const child of this.children)child.parentNode=null;this.children=[];this.append(...items);}
   setAttribute(key,value){this.attrs[key]=value;}
@@ -24,22 +25,25 @@ class Element {
 }
 const descendants=(root,predicate)=>root.children.flatMap(child=>[...(predicate(child)?[child]:[]),...descendants(child,predicate)]);
 const flush=async()=>{for(let i=0;i<12;i++)await new Promise(setImmediate);};
-async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectResult,readErrors={},incompleteReads={}}={}){
+async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectResult,readErrors={},incompleteReads={},actionHandler,monitorRead,timers,clock}={}){
   const elements=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   elements.get('browserFilter').value='all';elements.get('sortOrder').value='attention';
   const calls=[],events=[];
-  const context={console,URL,Date,Blob,Promise,queueMicrotask,setTimeout:()=>0,clearTimeout:()=>{},
+  let nextTimer=0;
+  const context={console,URL,Date:clock?class extends Date{static now(){return clock();}}:Date,Blob,Promise,queueMicrotask,
+    setTimeout:(fn,ms)=>{const id=++nextTimer;timers?.set(id,{fn,ms});return id;},clearTimeout:id=>timers?.delete(id),
     document:{getElementById:id=>elements.get(id),createElement:tag=>new Element(tag),createTextNode:text=>{const el=new Element('#text');el.textContent=text;return el;},querySelectorAll:()=>[],addEventListener:()=>{},activeElement:null},
-    chrome:{runtime:{getManifest:()=>({version:'0.24.0'}),onMessage:{addListener:fn=>events.push(fn)},sendMessage:async message=>{
+    chrome:{runtime:{getManifest:()=>({version:'0.25.0'}),onMessage:{addListener:fn=>events.push(fn)},sendMessage:async message=>{
       calls.push(structuredClone(message));
       if(readErrors[message.type])throw new Error(readErrors[message.type]);
       if(incompleteReads[message.type])return {ok:true};
       if(message.type==='PC_ATTENTION_GET')return {ok:true,attention:structuredClone(fixture.attention)};
-      if(message.type==='PC_MONITOR_GET')return {ok:true,monitor:structuredClone(fixture.monitor)};
+      if(message.type==='PC_MONITOR_GET')return monitorRead?monitorRead(fixture):{ok:true,monitor:structuredClone(fixture.monitor)};
       if(message.type==='PC_MONITOR_CONNECT')return connectResult??{ok:true,monitor:structuredClone(fixture.monitor)};
       if(message.type==='PC_MONITOR_REFRESH')return {ok:true,monitor:{refresh:{total:4,observed:2,rescanRequested:1,suspended:0,unavailable:1}}};
       if(message.type==='PC_MONITOR_ALERT_SETTINGS'&&sharedSettingsError)return {ok:false,error:sharedSettingsError};
       if(message.type==='PC_ATTENTION_TEST')return {ok:false,error:'Audio output is unavailable.',settingsNotice:'Explicit diagnostic: normal alerts are muted.',audio:{ok:false},notification:{ok:true}};
+      if(actionHandler)return actionHandler(message,fixture);
       return {ok:true};
     }},permissions:{request:async request=>{calls.push({type:'permission-request',...request});return true;}}}
   };
@@ -48,7 +52,7 @@ async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectRe
     context.chrome={runtime:{sendMessage:()=>{throw new Error('Firefox dashboard must use the promise-based browser API.');}}};
   }
   vm.runInNewContext(source,context,{filename:'agent-monitor.js'});await flush();
-  return {elements,calls,events};
+  return {elements,calls,events,context};
 }
 const now=Date.now();
 const own='chrome:work:session',foreign='edge:work:session',url='https://chatgpt.com/c/shared';
@@ -323,4 +327,193 @@ for(const changed of [{},{documentId:'chrome-doc-truncated'},{runId:'new-run'},{
   readErrors.PC_MONITOR_GET='Bridge unavailable';h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
   assert.ok(descendants(h.elements.get('incidentList'),x=>x.tagName==='BUTTON').every(x=>x.disabled),'unavailable-source cards invalidate cached edit eligibility when the hub read fails');
 }
-console.log('agent-monitor-ui-logic.test.mjs: PASS (identity, focus, alert settings, stale-state recovery, complete incremental rendering, complete search and incident triage)');
+{
+  const input=structuredClone(fixture),h=await dashboard(input);
+  h.elements.get('browserIdentity').value='firefox';
+  h.elements.get('profileLabel').value='Research profile';
+  h.elements.get('browserIdentity').listeners.get('change')?.({});
+  h.elements.get('profileLabel').listeners.get('input')?.({});
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.equal(h.elements.get('browserIdentity').value,'firefox','live observations must not discard an unsaved browser choice');
+  assert.equal(h.elements.get('profileLabel').value,'Research profile','a blurred profile draft survives background updates');
+}
+{
+  const input=structuredClone(fixture),h=await dashboard(input);
+  h.elements.get('searchAgents').value='chatgpt.com/c/shared';h.elements.get('searchAgents').listeners.get('input')({});
+  assert.equal(h.elements.get('sessionList').children.length,1,'a copied chat URL finds its observed session');
+  assert.equal(h.elements.get('incidentList').children.length,2,'URL search covers local and remote incidents');
+}
+const selectVisible=h=>{h.elements.get('selectVisibleIncidents').checked=true;h.elements.get('selectVisibleIncidents').listeners.get('change')({});};
+const triageCalls=h=>h.calls.filter(x=>/^PC_(ATTENTION|MONITOR)_(ACK|SNOOZE)$/.test(x.type));
+const applyTriage=(message,input)=>{
+  const rows=message.type.startsWith('PC_MONITOR_')?input.monitor.snapshot.incidents:input.attention.incidents;
+  const row=rows.find(x=>(x.incidentId||x.id)===message.id);
+  if(message.type.endsWith('_ACK'))row.acknowledgedAt=now;
+  if(message.type.endsWith('_SNOOZE')){row.snoozedUntil=now+message.minutes*60000;row.acknowledgedAt=0;}
+  return {ok:true};
+};
+{
+  const input=structuredClone(fixture);input.attention.incidents[0].id=incident.incidentId;
+  const h=await dashboard(input,{actionHandler:applyTriage});
+  selectVisible(h);assert.match(h.elements.get('selectionCount').textContent,/2 selected/);
+  await h.elements.get('acknowledgeSelected').click();await flush();
+  assert.deepEqual(triageCalls(h).map(x=>[x.type,x.id]).sort(),[['PC_ATTENTION_ACK','native-issue'],['PC_MONITOR_ACK','native-issue']],'matching IDs in different sources stay distinct');
+  assert.match(h.elements.get('bulkResult').textContent,/2 acknowledged\. 0 not confirmed/);
+  assert.match(h.elements.get('selectionCount').textContent,/0 selected/);
+  assert.ok(input.attention.incidents[0].acknowledgedAt&&input.monitor.snapshot.incidents[0].acknowledgedAt);
+}
+{
+  const input=structuredClone(fixture);
+  const h=await dashboard(input,{actionHandler:(message,data)=>message.type==='PC_MONITOR_ACK'?{ok:false,error:'Native disk write rejected'}:applyTriage(message,data)});
+  selectVisible(h);await h.elements.get('acknowledgeSelected').click();await flush();
+  assert.match(h.elements.get('bulkResult').textContent,/1 acknowledged\. 1 not confirmed/);
+  assert.match(h.elements.get('bulkResult').textContent,/Edge request: Native disk write rejected/);
+  assert.match(h.elements.get('selectionCount').textContent,/1 selected/,'only failed work remains selected for review');
+  assert.equal(triageCalls(h).length,2,'failure is not silently retried');
+}
+{
+  const input=structuredClone(fixture),h=await dashboard(input,{actionHandler:applyTriage});
+  selectVisible(h);h.elements.get('browserFilter').value='edge';h.elements.get('browserFilter').listeners.get('change')({});
+  assert.match(h.elements.get('selectionCount').textContent,/0 selected/,'changing view clears hidden selections');
+  selectVisible(h);h.elements.get('bulkSnoozeMinutes').value='30';await h.elements.get('snoozeSelected').click();await flush();
+  assert.deepEqual(triageCalls(h).map(x=>[x.type,x.id,x.minutes]),[['PC_MONITOR_SNOOZE','native-issue',30]]);
+  assert.match(h.elements.get('bulkResult').textContent,/1 snoozed for 30 minutes/);
+}
+{
+  const input=structuredClone(fixture),h=await dashboard(input);
+  selectVisible(h);input.monitor.snapshot.incidents[0].runId='replacement-run';
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.match(h.elements.get('selectionCount').textContent,/1 selected/,'selection does not carry into a changed incident context');
+  input.attention.incidents[0].resolvedAt=now;h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.match(h.elements.get('selectionCount').textContent,/0 selected/,'resolved incidents leave selection');
+}
+const batchFixture=()=>{
+  const input=structuredClone(fixture);input.attention.incidents=[];
+  input.monitor.snapshot.incidents=Array.from({length:10},(_,i)=>({...incident,incidentId:`batch-${i}`,title:`Batch ${i}`,firstSeenAt:now-i}));
+  return input;
+};
+{
+  const input=batchFixture(),pending=[];
+  const h=await dashboard(input,{actionHandler:(message,data)=>new Promise(resolve=>pending.push(()=>resolve(applyTriage(message,data))))});
+  selectVisible(h);const work=h.elements.get('acknowledgeSelected').click();await flush();
+  assert.equal(pending.length,4,'a batch sends no more than four requests at a time');
+  await h.elements.get('stopBulkAction').click();pending.forEach(done=>done());await work;await flush();
+  assert.equal(triageCalls(h).length,4,'stop does not send the six remaining requests');
+  assert.match(h.elements.get('bulkResult').textContent,/4 acknowledged\. 0 not confirmed\. 6 not sent/);
+  assert.match(h.elements.get('selectionCount').textContent,/6 selected/,'unsent work remains available after stopping');
+}
+{
+  const input=batchFixture(),timers=new Map();
+  const h=await dashboard(input,{timers,actionHandler:()=>new Promise(()=>{})});
+  selectVisible(h);const work=h.elements.get('acknowledgeSelected').click();await flush();
+  const deadlines=[...timers.values()].filter(x=>x.ms===15000);assert.equal(deadlines.length,4);
+  for(const timer of deadlines)timer.fn();await work;await flush();
+  assert.equal(triageCalls(h).length,4,'uncertain completion stops dispatching further actions');
+  assert.match(h.elements.get('bulkResult').textContent,/0 acknowledged\. 4 not confirmed\. 6 not sent/);
+  assert.match(h.elements.get('bulkResult').textContent,/may have completed/);
+  assert.match(h.elements.get('selectionCount').textContent,/10 selected/);
+}
+{
+  const h=await dashboard(batchFixture(),{actionHandler:()=>{throw new Error('The message port closed before a response was received.');}});
+  selectVisible(h);await h.elements.get('acknowledgeSelected').click();await flush();
+  assert.equal(triageCalls(h).length,4,'transport rejection is uncertain and stops unsent actions');
+  assert.match(h.elements.get('bulkResult').textContent,/0 acknowledged\. 4 not confirmed\. 6 not sent/);
+  assert.match(h.elements.get('bulkResult').textContent,/may have completed/);
+  assert.match(h.elements.get('selectionCount').textContent,/10 selected/);
+}
+for(const result of [undefined,null,{}, {ok:'true'}]){
+  const h=await dashboard(batchFixture(),{actionHandler:()=>result});
+  selectVisible(h);await h.elements.get('acknowledgeSelected').click();await flush();
+  assert.equal(triageCalls(h).length,4,'a missing or malformed acknowledgement stops unsent work');
+  assert.match(h.elements.get('bulkResult').textContent,/0 acknowledged\. 4 not confirmed\. 6 not sent/);
+  assert.match(h.elements.get('bulkResult').textContent,/may have completed/);
+}
+{
+  const h=await dashboard(batchFixture(),{actionHandler:()=>({ok:false,error:'Confirmed backend refusal'})});
+  selectVisible(h);await h.elements.get('acknowledgeSelected').click();await flush();
+  assert.equal(triageCalls(h).length,10,'a confirmed per-item refusal does not suppress unrelated selected work');
+  assert.match(h.elements.get('bulkResult').textContent,/0 acknowledged\. 10 not confirmed\. 0 not sent/);
+}
+{
+  const input=structuredClone(fixture);let complete;
+  const h=await dashboard(input,{actionHandler:(message,data)=>new Promise(resolve=>{complete=()=>{Object.assign(data.monitor.config,message.settings);resolve({ok:true});};})});
+  h.elements.get('profileLabel').value='First draft';h.elements.get('profileLabel').listeners.get('input')({});
+  const saving=h.elements.get('saveProfile').click();await flush();
+  h.elements.get('profileLabel').value='Newer draft';h.elements.get('profileLabel').listeners.get('input')({});
+  complete();await saving;await flush();
+  assert.equal(input.monitor.config.label,'First draft');
+  assert.equal(h.elements.get('profileLabel').value,'Newer draft','an earlier save cannot consume edits made while it was in flight');
+  assert.match(h.elements.get('profileFeedback').textContent,/newer changes are still unsaved/);
+  await h.elements.get('resetProfile').click();assert.equal(h.elements.get('profileLabel').value,'First draft');
+}
+{
+  const input=structuredClone(fixture),h=await dashboard(input,{actionHandler:()=>({ok:false,error:'Profile write failed'})});
+  h.elements.get('browserIdentity').value='firefox';h.elements.get('browserIdentity').listeners.get('change')({});
+  await h.elements.get('saveProfile').click();await flush();
+  assert.equal(h.elements.get('browserIdentity').value,'firefox');assert.match(h.elements.get('profileFeedback').textContent,/Profile write failed/);
+}
+for(const includeConfig of [false,true]){
+  const input=structuredClone(fixture),readErrors={};input.monitor.config.label='Original profile';
+  const h=await dashboard(input,{readErrors,actionHandler:(message,data)=>{
+    Object.assign(data.monitor.config,message.settings);readErrors.PC_MONITOR_GET='Profile status unavailable';
+    return {ok:true,...(includeConfig?{monitor:{config:structuredClone(data.monitor.config)}}:{})};
+  }});
+  h.elements.get('profileLabel').value='Saved new profile';h.elements.get('profileLabel').listeners.get('input')({});
+  await h.elements.get('saveProfile').click();await flush();
+  assert.equal(input.monitor.config.label,'Saved new profile');
+  assert.equal(h.elements.get('profileLabel').value,'Saved new profile','a failed follow-up read cannot restore the pre-save profile');
+  assert.match(h.elements.get('profileFeedback').textContent,includeConfig?/Browser profile saved/:/current profile status is not confirmed/);
+}
+{
+  const input=structuredClone(fixture);input.monitor.config.label='Original profile';let reads=0,finishOldRead;
+  const h=await dashboard(input,{monitorRead:data=>{
+    if(++reads===1)return {ok:true,monitor:structuredClone(data.monitor)};
+    if(reads===2){const old=structuredClone(data.monitor);return new Promise(resolve=>{finishOldRead=()=>resolve({ok:true,monitor:old});});}
+    throw new Error('Later status unavailable');
+  },actionHandler:(message,data)=>{
+    data.monitor.config={...data.monitor.config,...message.settings,label:message.settings.label.trim()};
+    return {ok:true,monitor:{config:structuredClone(data.monitor.config)}};
+  }});
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  h.elements.get('profileLabel').value='  Saved profile  ';h.elements.get('profileLabel').listeners.get('input')({});
+  const saving=h.elements.get('saveProfile').click();await flush();finishOldRead();await saving;await flush();
+  assert.equal(h.elements.get('profileLabel').value,'Saved profile','a pre-save status reply cannot overwrite the normalized accepted configuration');
+  assert.equal(h.elements.get('resetProfile').hidden,true,'a proven accepted configuration need not remain an unsaved draft');
+  assert.match(h.elements.get('profileFeedback').textContent,/Browser profile saved/);
+}
+{
+  const input=structuredClone(fixture),timers=new Map();let at=now;
+  input.monitor.snapshot.alertSettings={...settings,muteUntil:now+1000};
+  const h=await dashboard(input,{timers,clock:()=>at});
+  const deadline=[...timers.values()].find(x=>x.ms===1001);assert.ok(deadline,'existing mute schedules one local deadline render');
+  const reads=h.calls.length;at+=1002;deadline.fn();await flush();
+  assert.equal(h.elements.get('unmute').hidden,true,'expired mute controls update without another provider event');
+  assert.equal(h.calls.length,reads,'deadline rendering does not poll the extension or provider');
+}
+{
+  const input=structuredClone(fixture);
+  input.attention.incidents[0].delivery={audio:'interrupted',notification:'accepted',audioError:'Reply lost after playback claim',retryExhausted:false};
+  const h=await dashboard(input);
+  assert.match(h.elements.get('incidentList').textContent,/Sound: interrupted; playback is uncertain/);
+  assert.match(h.elements.get('incidentList').textContent,/Notification: accepted by browser/);
+  assert.match(h.elements.get('incidentList').textContent,/Reply lost after playback claim/);
+}
+{
+  const input=structuredClone(fixture);input.attention.incidents=[{...local,id:'remote-delivery',sourceId:'native:'+foreign,documentId:session.documentId,runId:session.runId,delivery:{audio:'failed',notification:'accepted',audioError:'Output unavailable'}}];
+  const h=await dashboard(input);
+  assert.match(h.elements.get('incidentList').textContent,/Sound: failed/,'exact live remote context can show this browser delivery journal');
+  input.attention.incidents[0].runId='older-run';h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.doesNotMatch(h.elements.get('incidentList').textContent,/Output unavailable/,'a different run cannot inherit a delivery result');
+  input.attention.incidents[0].runId=session.runId;input.attention.incidents.push({...input.attention.incidents[0],id:'ambiguous-episode'});
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.doesNotMatch(h.elements.get('incidentList').textContent,/Output unavailable/,'ambiguous open episodes do not guess delivery identity');
+}
+{
+  const input=structuredClone(fixture);
+  input.attention.incidents=[{...local,sourceId:'native:'+foreign,documentId:session.documentId,runId:session.runId,delivery:{audio:'failed',notification:'accepted',audioError:'Unique local receipt'}}];
+  input.monitor.snapshot.incidents.push({...incident,incidentId:'duplicate-native-context'});
+  const h=await dashboard(input);
+  assert.equal(h.elements.get('incidentList').children.length,2,'ambiguous native history remains visible');
+  assert.doesNotMatch(h.elements.get('incidentList').textContent,/Unique local receipt/,'one delivery record cannot be attributed to two open native episodes');
+}
+console.log('agent-monitor-ui-logic.test.mjs: PASS (identity, focus, settings drafts, complete rendering/search, scoped bulk triage, partial failures, stop/deadline behavior, honest delivery evidence)');

@@ -8,6 +8,7 @@
   const INSTANCE = 'projectConstellationMonitorInstanceV1';
   const RETRY = 'project-constellation-monitor-reconnect';
   const BACKOFF = [30000, 60000, 180000];
+  const OBSERVATION_MAX_AGE = 24*60*60*1000;
   const ALERT_DEFAULTS = Object.freeze({enabled:true,audioEnabled:true,notificationsEnabled:true,completionEnabled:false,volume:0.45,reminderMinutes:0,maxReminders:3,muteUntil:0});
   const browsers = new Set(['chrome','edge','opera_gx','firefox','chromium']);
   const pending = new Map();
@@ -54,6 +55,9 @@
   }
   function nativeStatus(row) {
     if (row.suspended || /^(closed|suspended|frozen|discarded|sensor-offline)$/.test(row.status)) return row.status==='closed'?'closed':'suspended';
+    // Protocol 1 expresses missing reliable evidence as suspension. A weak
+    // DOM probe must not become a confirmed native issue or resolve one.
+    if (row.authoritative===false) return 'suspended';
     const value=row.kind||row.status;
     if (/^(permission_required|error|rate_limited|context_limit|waiting_for_user|completed|idle|no_visible_progress)$/.test(value)) return value;
     if (value==='auth_required') return 'waiting_for_user';
@@ -103,20 +107,56 @@
       try{sourcePort.postMessage({v:1,id,op,...fields});}catch(error){clearTimeout(timer);pending.delete(id);reject(error);}
     });
   }
+  function wireEvent(row) {
+    const documentId=wireText(row.documentId||row.key,80);
+    return {tabId:Number(row.tabId),documentId,runId:wireText(row.runId,80),
+      url:canonical(row.url),title:wireText(row.title,180),status:nativeStatus(row),reason:wireText(row.reason,240),observedAt:Number(row.observedAt)||Date.now()};
+  }
+  const sameContext=(left,right)=>left.documentId===right.documentId&&left.runId===(right.runId||'')&&left.url===canonical(right.url);
+  function pruneClosedRows() {
+    for(const [tab,row] of localRows)if(nativeStatus(row)==='closed'&&Number(row.observedAt)+OBSERVATION_MAX_AGE<Date.now())localRows.delete(tab);
+  }
+  async function observationFailed(error,sourcePort) {
+    if(sourcePort!==port)return;
+    status.error=text(error.message);announce();
+    if(error.code==='invalid_request')return;
+    // A rejected durable write is not delivery. Retain the row and replay it
+    // through the existing bounded reconnect path, without an idle poller.
+    port=null;sourcePort?.disconnect();await lost(error.message);
+  }
   async function observe(row) {
     if(row.sourceId && row.sourceId!=='local')return;
-    const documentId=wireText(row.documentId||row.key,80);
-    const event={tabId:Number(row.tabId),documentId,runId:wireText(row.runId,80),
-      url:canonical(row.url),title:wireText(row.title,180),status:nativeStatus(row),reason:wireText(row.reason,240),observedAt:Number(row.observedAt)||Date.now()};
+    const event=wireEvent(row),documentId=event.documentId;
     const previous=localRows.get(event.tabId);
     if(previous && (event.observedAt<Number(previous.observedAt)||
-      (event.status==='closed' && (documentId!==previous.wireDocumentId || event.runId!==wireText(previous.runId,80) || event.url!==canonical(previous.url)))))return;
+      (event.status==='closed'&&!sameContext(event,wireEvent(previous)))||
+      (nativeStatus(previous)==='closed'&&event.status!=='closed'&&event.observedAt===Number(previous.observedAt)&&sameContext(event,wireEvent(previous)))))return;
     localRows.set(event.tabId,{...row,observedAt:event.observedAt,wireDocumentId:documentId});
     if(!status.connected)return;
     // Document closure is ordered evidence. Keep its context on the wire;
     // only the browser's authoritative tab-removed event uses unscoped remove.
-    try{await request('observe',{event});}
-    catch(error){status.error=text(error.message);announce();}
+    const sourcePort=port;
+    try{await request('observe',{event});if(sourcePort===port)pruneClosedRows();}
+    catch(error){await observationFailed(error,sourcePort);}
+  }
+  async function replayClosures(local,snapshot,sourcePort,current) {
+    const rows=[...local.sessions.filter(row=>row.sourceId==='local'),...localRows.values()];
+    const events=rows.map(wireEvent);
+    for(const native of snapshot.sessions.filter(row=>row.clientId===status.clientId)){
+      if(!current()||sourcePort!==port)return;
+      const closed=events.filter(row=>row.tabId===native.tabId&&row.status==='closed'&&
+        sameContext(row,native)&&row.observedAt>=Number(native.observedAt||0))
+        .sort((left,right)=>right.observedAt-left.observedAt)[0];
+      if(!closed)continue;
+      const latest=localRows.get(closed.tabId);
+      if(latest&&nativeStatus(latest)!=='closed'&&sameContext(wireEvent(latest),closed)&&Number(latest.observedAt)>=closed.observedAt)continue;
+      if(rows.some(row=>nativeStatus(row)!=='closed'&&Number(row.tabId)===closed.tabId&&
+        sameContext(wireEvent(row),closed)&&Number(row.observedAt)>=closed.observedAt))continue;
+      // An old persisted closure is still a current lifecycle fact. Refresh
+      // only that expired closure's reconciliation time, never provider data.
+      if(closed.observedAt+OBSERVATION_MAX_AGE<Date.now())closed.observedAt=Math.max(Date.now(),Number(native.observedAt)||0);
+      await request('observe',{event:closed});
+    }
   }
   async function syncRemote(snapshot,sourcePort=port) {
     const current=()=>sourcePort&&sourcePort===port&&(!status.snapshot||Number(snapshot?.revision)>=Number(status.snapshot.revision));
@@ -214,7 +254,7 @@
     if(message?.v!==1||sourcePort!==port)return;
     if(message.id && pending.has(message.id)){
       const entry=pending.get(message.id);pending.delete(message.id);clearTimeout(entry.timer);
-      if(message.ok===false)entry.reject(new Error(text(message.error?.message||message.error||'Browser hub rejected the request.')));
+      if(message.ok===false)entry.reject(Object.assign(new Error(text(message.error?.message||message.error||'Browser hub rejected the request.')),{code:message.error?.code}));
       else entry.resolve(message.data||{});
     }
     if(message.kind==='snapshot' && message.data){
@@ -305,7 +345,7 @@
       const snapshot=await request('hello',{client:{browser:config.browser,profileId:config.profileId,instanceId,label:config.label||config.browser},alertSettings:initialSettings});
       if(port!==activePort)throw new Error('The browser hub disconnected during setup.');
       status.connected=true;status.connecting=false;status.clientId=snapshot.clientId||status.clientId;status.lastConnectedAt=Date.now();status.retryAt=0;
-      await api.alarms.clear(RETRY);retries=0;
+      await api.alarms.clear(RETRY);
       if(!current()||port!==activePort)return get();
       if(!status.snapshot||Number(snapshot.revision)>=Number(status.snapshot.revision))status.snapshot=snapshot;
       await syncQueue;
@@ -313,7 +353,16 @@
       if(syncFailure)throw new Error(syncFailure);
       const local=await globalThis.pcAttentionGet();
       if(!current()||port!==activePort)return get();
-      for(const row of local.sessions.filter(x=>x.sourceId==='local'&&x.status!=='closed'))await observe(row);
+      await replayClosures(local,snapshot,activePort,current);
+      if(!current()||port!==activePort)return get();
+      const latest=new Map();
+      for(const row of [...local.sessions.filter(x=>x.sourceId==='local'),...localRows.values()]){
+        const previous=latest.get(row.tabId);
+        if(!previous||Number(row.observedAt)>=Number(previous.observedAt))latest.set(row.tabId,row);
+      }
+      for(const row of latest.values())if(nativeStatus(row)!=='closed')await observe(row);
+      if(port!==activePort)throw new Error(status.error||'The browser hub disconnected during replay.');
+      retries=0;pruneClosedRows();
       announce();return get();
     })().catch(async error=>{
       if(!current())return get();
@@ -364,8 +413,10 @@
     await Promise.all(tabs.map(async tab=>{
       try{
         if(tab.discarded||tab.frozen){result.suspended++;return;}
+        const requestedAt=Date.now();
         const state=await ask(tab.id,'PC_GET_LIVE_SENTINEL_STATE');
-        if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.24.0'&&canonical(state.chat?.url)===canonical(tab.url)){
+        const observedAt=state?.observedAt===undefined?requestedAt:state.observedAt;
+        if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.25.0'&&canonical(state.chat?.url)===canonical(tab.url)&&Number.isSafeInteger(observedAt)&&observedAt>0){
           const current=await api.tabs.get(tab.id);
           if(current.discarded||current.frozen){result.suspended++;return;}
           if(canonical(current.url)!==canonical(tab.url)){result.unavailable++;return;}
@@ -374,7 +425,7 @@
             providerId:state.provider?.id||providers.detectProvider(tab.url)?.id||'',
             status:state.chat.status||'idle',healthState:state.chat.healthState||'',
             generation:state.generation,health:state.health,failure:state.failure,source:state.source,
-            authoritative:true,suspended:false,observedAt:Number(state.observedAt)||Date.now()});
+            authoritative:true,suspended:false,observedAt});
           result.observed++;return;
         }
         const response=await ask(tab.id,'PC_MONITOR_RESCAN');
@@ -408,7 +459,13 @@
   const windowChanged=()=>{void refreshWindows(true).catch(error=>{status.error=text(error.message);announce();});};
   api.windows?.onCreated?.addListener(windowChanged);
   api.windows?.onRemoved?.addListener(windowChanged);
-  api.tabs.onRemoved.addListener(id=>{localRows.delete(id);if(status.connected)void request('remove',{tabId:id}).catch(()=>{});});
+  api.tabs.onRemoved.addListener(id=>{
+    const row=localRows.get(id)||status.snapshot?.sessions.find(row=>row.clientId===status.clientId&&row.tabId===id);
+    if(!row)return;
+    const closed={...row,sourceId:'local',status:'closed',suspended:false,observedAt:Math.max(Date.now(),Number(row.observedAt)||0)};
+    localRows.set(id,{...closed,wireDocumentId:wireEvent(closed).documentId});
+    if(status.connected){const sourcePort=port;void request('remove',{tabId:id,observedAt:closed.observedAt}).then(()=>{if(sourcePort===port)pruneClosedRows();}).catch(error=>observationFailed(error,sourcePort));}
+  });
   api.tabs.onUpdated.addListener((id,change)=>{
     const row=localRows.get(id);
     if(!row)return;

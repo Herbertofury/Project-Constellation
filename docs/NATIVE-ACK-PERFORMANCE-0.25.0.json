@@ -1,0 +1,1080 @@
+{
+  "schema": "constellation-native-ack-measurement-v2",
+  "candidateVersion": "0.25.0",
+  "baselineVersion": "0.24.0",
+  "baselineCommit": "fc9a2322c6fb521f09f056d6f8208d6431fdfc07",
+  "baselineTree": "ad1e2f3fbe1169eb3187acda1c5a47852dcf5d1a",
+  "generatedAt": "2026-11-28T10:43:46.619805+00:00",
+  "platform": "Linux",
+  "architecture": "x86_64",
+  "python": "3.12.14",
+  "compiler": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "buildProfile": "release",
+  "binaries": {
+    "baseline": {
+      "sha256": "a2467b1ba3cd1afe24dfeb52f58722e484fdfb4c2a183c4e8ee9ae73b801f83f",
+      "path": "logs/release-0.24.0/native/target-candidate/release/constellation-monitor",
+      "version": {
+        "name": "constellation-monitor",
+        "protocol": 1,
+        "version": "0.24.0"
+      }
+    },
+    "candidate": {
+      "sha256": "dd0fbfa8010494f3394b988ae6a48bed2b3e2848e96e6e28bd6165f18f421013",
+      "path": "native/constellation-monitor/target/release/constellation-monitor",
+      "version": {
+        "name": "constellation-monitor",
+        "protocol": 1,
+        "version": "0.25.0"
+      }
+    }
+  },
+  "baselineReceipt": {
+    "path": "docs/NATIVE-ACK-PERFORMANCE-0.24.0.json",
+    "sha256": "a2e79402d52fddd1417b91f9d0b9c60281b53d94ee69576ca3d8d34a5ad9a060",
+    "bytes": 11107
+  },
+  "baselineSourceHashes": {
+    "native/constellation-monitor/src/broker.rs": "e1c5c08e87d0f069f23e0d6a67ece4b3fd075cfdcca0f7295d4bcc914c568c27",
+    "native/constellation-monitor/src/install.rs": "3b36d150ae74765ae78821f4ccde325542acc6427c858cc3ff8cd64281794b23",
+    "native/constellation-monitor/src/lib.rs": "d8cb124169d0199ca833fdf664483f8985846a692663bef56a7da5308b5ee2b3",
+    "native/constellation-monitor/src/lifecycle.rs": "bb74a107febd9d902aa0eb9c935ad059eb1edd51da8aee7df3e2c7f05f4ebd03",
+    "native/constellation-monitor/src/main.rs": "33b6261185fad0a4b3870728b560f7aaba8d1db53a3b3cb64a1547bf7df26960",
+    "native/constellation-monitor/src/platform.rs": "047f612c633e333ec409d5fbd171cb5c4ccb183d30d1a6c10d3162b6e1c92c59",
+    "native/constellation-monitor/src/state.rs": "e9d3d165b64a555a51b3f116d7966ce4535abe775f43eb8ea82be84b9029c187",
+    "native/constellation-monitor/src/wire.rs": "6f8d6174d6cf7051cc783e29faacb3ac20c2bb991df0c20c3558cd42105e7543"
+  },
+  "baselineMetadataHashes": {
+    "native/constellation-monitor/Cargo.toml": "3956c447b1cba747f51d267bc9d257688906a75c40d594f9b1f42d844fac09e8",
+    "native/constellation-monitor/Cargo.lock": "9b07f44346e1f3e6eb736faa5469c57a2fe7aee534a23328c20bc33c53bee973"
+  },
+  "candidateSourceHashes": {
+    "native/constellation-monitor/src/broker.rs": "b63a05166cd1e0be65f66533c508b44c058faec78f68c2d8df1ae39c717235d2",
+    "native/constellation-monitor/src/install.rs": "3b36d150ae74765ae78821f4ccde325542acc6427c858cc3ff8cd64281794b23",
+    "native/constellation-monitor/src/lib.rs": "d8cb124169d0199ca833fdf664483f8985846a692663bef56a7da5308b5ee2b3",
+    "native/constellation-monitor/src/lifecycle.rs": "bb74a107febd9d902aa0eb9c935ad059eb1edd51da8aee7df3e2c7f05f4ebd03",
+    "native/constellation-monitor/src/main.rs": "33b6261185fad0a4b3870728b560f7aaba8d1db53a3b3cb64a1547bf7df26960",
+    "native/constellation-monitor/src/platform.rs": "047f612c633e333ec409d5fbd171cb5c4ccb183d30d1a6c10d3162b6e1c92c59",
+    "native/constellation-monitor/src/state.rs": "c49d3b9056397858b672c14f4453d761be389dcd595f85ae9cae459a1895f23a",
+    "native/constellation-monitor/src/wire.rs": "6f8d6174d6cf7051cc783e29faacb3ac20c2bb991df0c20c3558cd42105e7543"
+  },
+  "candidateMetadataHashes": {
+    "native/constellation-monitor/Cargo.toml": "a201412468afd91a82ef9a65e2fcd9d1b38358e8ac2517cc3014f5d4243b9a90",
+    "native/constellation-monitor/Cargo.lock": "6fb9d1d8241e190017681993c6693b4eb563761c7f059adca0685bc518e12219"
+  },
+  "harness": {
+    "path": "native/constellation-monitor/tests/native_ack_benchmark.py",
+    "sha256": "b129fac73de6589d515aca4341f268d8732b420df8c9c5f0acb1b42bee893c00",
+    "bytes": 11300
+  },
+  "candidateRegressionInput": {
+    "path": "logs/release-0.25.0/native/idle-grace-sync/native_roundtrip.measured.rs",
+    "sourcePath": "native/constellation-monitor/tests/native_roundtrip.rs",
+    "publishedSourceReference": "https://github.com/Herbertofury/Project-Constellation/blob/7a77c4bc039f018ddb0e077ba0ab31c649fcb471/native/constellation-monitor/tests/native_roundtrip.rs",
+    "provenance": "Archived byte-for-byte regression input present when these measurements were captured. The published reference has the same bytes; it is not the benchmark checkout. A later test-only correction waits for broker lease release before asserting idle grace. Measured production sources, workloads, binaries and performance results are unchanged.",
+    "sha256": "d63652815cfe99e4e776ad0bcb04a06811a97facf3080fedbe8193f2d214e773",
+    "bytes": 46726
+  },
+  "workload": {
+    "sessions": 96,
+    "incidents": 192,
+    "unresolvedIncidents": 96,
+    "advancingDuplicatesPerRun": 384,
+    "exactRetriesPerRun": 384,
+    "retiredSessionScenarios": [
+      0,
+      96
+    ],
+    "runsPerImplementationPerScenario": 5,
+    "totalRuns": 20
+  },
+  "scenarios": {
+    "activeOnly": {
+      "workload": {
+        "sessions": 96,
+        "incidents": 192,
+        "advancingDuplicates": 384,
+        "exactRetries": 384,
+        "retiredSessions": 0
+      },
+      "rawInput": {
+        "path": "logs/release-0.25.0/native/ACK-MEASUREMENT-active.json",
+        "sha256": "98a7846171c9de71986cc28ad3ae4c8c92a8fbe71709ca7db570ffe0267bc0e8",
+        "bytes": 9627
+      },
+      "passed": true
+    },
+    "with96RetiredSessions": {
+      "workload": {
+        "sessions": 96,
+        "incidents": 192,
+        "advancingDuplicates": 384,
+        "exactRetries": 384,
+        "retiredSessions": 96
+      },
+      "rawInput": {
+        "path": "logs/release-0.25.0/native/ACK-MEASUREMENT-retired.json",
+        "sha256": "837f79d48e6715d07bdf390489e48408a7c311e045232b65d69493f024c1832f",
+        "bytes": 11015
+      },
+      "passed": true
+    }
+  },
+  "runs": [
+    {
+      "scenario": "activeOnly",
+      "implementation": "baseline",
+      "iteration": 1,
+      "startupToHelloMs": 54.651109,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2660040000000001,
+        "p95Ms": 2.078735,
+        "p99Ms": 3.64898,
+        "maxMs": 5.082082
+      },
+      "advancingDuplicateCompletionMs": 557.799907,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1460955,
+        "p95Ms": 0.194256,
+        "p99Ms": 0.275767,
+        "maxMs": 0.428722
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "candidate",
+      "iteration": 1,
+      "startupToHelloMs": 52.408778,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.184857,
+        "p95Ms": 1.497603,
+        "p99Ms": 5.055705,
+        "maxMs": 33.367966
+      },
+      "advancingDuplicateCompletionMs": 570.665189,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.166576,
+        "p95Ms": 0.266483,
+        "p99Ms": 0.683348,
+        "maxMs": 1.129255
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116556
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "candidate",
+      "iteration": 2,
+      "startupToHelloMs": 54.118159,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.1925955,
+        "p95Ms": 1.426652,
+        "p99Ms": 2.140586,
+        "maxMs": 3.368396
+      },
+      "advancingDuplicateCompletionMs": 493.350366,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.224806,
+        "p95Ms": 0.402864,
+        "p99Ms": 0.726991,
+        "maxMs": 2.853697
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116556
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "baseline",
+      "iteration": 2,
+      "startupToHelloMs": 52.781277,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2084925,
+        "p95Ms": 1.419223,
+        "p99Ms": 2.290728,
+        "maxMs": 5.064308
+      },
+      "advancingDuplicateCompletionMs": 505.253173,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.112767,
+        "p95Ms": 0.181248,
+        "p99Ms": 0.287054,
+        "maxMs": 0.619153
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "baseline",
+      "iteration": 3,
+      "startupToHelloMs": 52.907669,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.276657,
+        "p95Ms": 1.59378,
+        "p99Ms": 1.909135,
+        "maxMs": 3.912568
+      },
+      "advancingDuplicateCompletionMs": 530.159529,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.2092035,
+        "p95Ms": 0.964652,
+        "p99Ms": 1.905669,
+        "maxMs": 3.959978
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "candidate",
+      "iteration": 3,
+      "startupToHelloMs": 53.714999,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2528375,
+        "p95Ms": 1.484779,
+        "p99Ms": 2.403924,
+        "maxMs": 3.011124
+      },
+      "advancingDuplicateCompletionMs": 520.309543,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.15488049999999998,
+        "p95Ms": 0.240911,
+        "p99Ms": 0.32571,
+        "maxMs": 3.593519
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116556
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "candidate",
+      "iteration": 4,
+      "startupToHelloMs": 52.36244,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2366540000000001,
+        "p95Ms": 1.445737,
+        "p99Ms": 1.615678,
+        "maxMs": 5.06631
+      },
+      "advancingDuplicateCompletionMs": 509.39427,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1905705,
+        "p95Ms": 0.266387,
+        "p99Ms": 0.362389,
+        "maxMs": 0.955194
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116556
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "baseline",
+      "iteration": 4,
+      "startupToHelloMs": 52.744283,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.228406,
+        "p95Ms": 1.576454,
+        "p99Ms": 2.410373,
+        "maxMs": 4.85633
+      },
+      "advancingDuplicateCompletionMs": 513.420952,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.114592,
+        "p95Ms": 0.255883,
+        "p99Ms": 0.391567,
+        "maxMs": 3.065625
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "baseline",
+      "iteration": 5,
+      "startupToHelloMs": 65.847035,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.1812565,
+        "p95Ms": 1.368097,
+        "p99Ms": 1.477173,
+        "maxMs": 2.890362
+      },
+      "advancingDuplicateCompletionMs": 480.861984,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.13239499999999998,
+        "p95Ms": 0.23752,
+        "p99Ms": 0.340522,
+        "maxMs": 2.342944
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "activeOnly",
+      "implementation": "candidate",
+      "iteration": 5,
+      "startupToHelloMs": 53.184032,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.270821,
+        "p95Ms": 1.913721,
+        "p99Ms": 5.226841,
+        "maxMs": 9.015147
+      },
+      "advancingDuplicateCompletionMs": 572.154879,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1840165,
+        "p95Ms": 0.26422,
+        "p99Ms": 0.350051,
+        "maxMs": 0.446829
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 0,
+      "closureFencesDurable": true,
+      "closureAck": null,
+      "stateBytes": 116556
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "baseline",
+      "iteration": 1,
+      "startupToHelloMs": 53.151723,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2718775,
+        "p95Ms": 1.370891,
+        "p99Ms": 1.47911,
+        "maxMs": 1.870168
+      },
+      "advancingDuplicateCompletionMs": 513.517228,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.19365549999999998,
+        "p95Ms": 0.265001,
+        "p99Ms": 0.306687,
+        "maxMs": 0.404116
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": false,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.122686,
+        "p95Ms": 0.218602,
+        "p99Ms": 0.42011,
+        "maxMs": 0.619353
+      },
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "candidate",
+      "iteration": 1,
+      "startupToHelloMs": 52.725625,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.4484,
+        "p95Ms": 1.791405,
+        "p99Ms": 2.456867,
+        "maxMs": 8.416168
+      },
+      "advancingDuplicateCompletionMs": 610.690813,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1738865,
+        "p95Ms": 0.275041,
+        "p99Ms": 0.441206,
+        "maxMs": 6.499668
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": true,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.320337,
+        "p95Ms": 0.899145,
+        "p99Ms": 2.126541,
+        "maxMs": 15.327308
+      },
+      "stateBytes": 135437
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "candidate",
+      "iteration": 2,
+      "startupToHelloMs": 53.053008,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.4403584999999999,
+        "p95Ms": 1.729346,
+        "p99Ms": 4.31757,
+        "maxMs": 24.268761
+      },
+      "advancingDuplicateCompletionMs": 631.72516,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.182587,
+        "p95Ms": 0.305621,
+        "p99Ms": 0.448241,
+        "maxMs": 2.255486
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": true,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.293702,
+        "p95Ms": 0.467097,
+        "p99Ms": 0.880207,
+        "maxMs": 6.343212
+      },
+      "stateBytes": 135437
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "baseline",
+      "iteration": 2,
+      "startupToHelloMs": 54.999138,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2487035,
+        "p95Ms": 1.391862,
+        "p99Ms": 1.604626,
+        "maxMs": 1.785678
+      },
+      "advancingDuplicateCompletionMs": 503.578578,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.1147795,
+        "p95Ms": 0.178489,
+        "p99Ms": 0.248241,
+        "maxMs": 0.336041
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": false,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.0970685,
+        "p95Ms": 0.202785,
+        "p99Ms": 0.30822,
+        "maxMs": 0.467455
+      },
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "baseline",
+      "iteration": 3,
+      "startupToHelloMs": 59.901809,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.248997,
+        "p95Ms": 1.461915,
+        "p99Ms": 1.673502,
+        "maxMs": 2.375152
+      },
+      "advancingDuplicateCompletionMs": 506.336284,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.19996,
+        "p95Ms": 0.302856,
+        "p99Ms": 0.594177,
+        "maxMs": 1.501002
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": false,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.0893215,
+        "p95Ms": 0.17623,
+        "p99Ms": 0.278626,
+        "maxMs": 0.328524
+      },
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "candidate",
+      "iteration": 3,
+      "startupToHelloMs": 52.841686,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.4694315,
+        "p95Ms": 1.860052,
+        "p99Ms": 3.390884,
+        "maxMs": 16.65127
+      },
+      "advancingDuplicateCompletionMs": 635.591841,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.209927,
+        "p95Ms": 0.287123,
+        "p99Ms": 0.320362,
+        "maxMs": 0.376711
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": true,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.266686,
+        "p95Ms": 0.406104,
+        "p99Ms": 0.507243,
+        "maxMs": 0.629543
+      },
+      "stateBytes": 135437
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "candidate",
+      "iteration": 4,
+      "startupToHelloMs": 53.445581,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.461387,
+        "p95Ms": 1.676327,
+        "p99Ms": 1.928383,
+        "maxMs": 3.498829
+      },
+      "advancingDuplicateCompletionMs": 598.714217,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.20018750000000002,
+        "p95Ms": 0.296431,
+        "p99Ms": 0.652707,
+        "maxMs": 29.859033
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": true,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.312251,
+        "p95Ms": 0.457335,
+        "p99Ms": 0.662352,
+        "maxMs": 0.781607
+      },
+      "stateBytes": 135437
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "baseline",
+      "iteration": 4,
+      "startupToHelloMs": 55.296975,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2741435,
+        "p95Ms": 1.464334,
+        "p99Ms": 1.588978,
+        "maxMs": 1.908139
+      },
+      "advancingDuplicateCompletionMs": 518.26005,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.19075599999999998,
+        "p95Ms": 0.282231,
+        "p99Ms": 0.451576,
+        "maxMs": 2.927847
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": false,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.10109850000000001,
+        "p95Ms": 0.24838,
+        "p99Ms": 0.516566,
+        "maxMs": 2.443347
+      },
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "baseline",
+      "iteration": 5,
+      "startupToHelloMs": 53.356459,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.2728570000000001,
+        "p95Ms": 2.730942,
+        "p99Ms": 4.177049,
+        "maxMs": 7.656109
+      },
+      "advancingDuplicateCompletionMs": 580.693947,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.11748800000000001,
+        "p95Ms": 0.189489,
+        "p99Ms": 0.264515,
+        "maxMs": 0.425838
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": false,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.10236100000000001,
+        "p95Ms": 0.176866,
+        "p99Ms": 0.24796,
+        "maxMs": 0.488205
+      },
+      "stateBytes": 116537
+    },
+    {
+      "scenario": "with96RetiredSessions",
+      "implementation": "candidate",
+      "iteration": 5,
+      "startupToHelloMs": 53.99506,
+      "advancingDuplicateAck": {
+        "count": 384,
+        "p50Ms": 1.374151,
+        "p95Ms": 1.525058,
+        "p99Ms": 1.644134,
+        "maxMs": 2.931903
+      },
+      "advancingDuplicateCompletionMs": 556.277978,
+      "exactRetryAck": {
+        "count": 384,
+        "p50Ms": 0.148013,
+        "p95Ms": 0.228828,
+        "p99Ms": 0.265982,
+        "maxMs": 0.300853
+      },
+      "acknowledgedWatermarksDurable": true,
+      "duplicateBroadcasts": 0,
+      "exactRetriesRewroteState": false,
+      "sessions": 96,
+      "incidents": 192,
+      "unresolvedIncidents": 96,
+      "retiredSessions": 96,
+      "closureFencesDurable": true,
+      "closureAck": {
+        "count": 96,
+        "p50Ms": 0.239929,
+        "p95Ms": 0.357342,
+        "p99Ms": 0.438511,
+        "maxMs": 0.592008
+      },
+      "stateBytes": 135437
+    }
+  ],
+  "summary": {
+    "activeOnly": {
+      "baseline": {
+        "runs": 5,
+        "medianComplete384AckMs": 513.420952,
+        "completion384AckMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 513.420952,
+          "p95Ms": 530.159529,
+          "p99Ms": 530.159529,
+          "maxMs": 557.799907
+        },
+        "medianProcessToHelloMs": 52.907669,
+        "processToHelloMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 52.907669,
+          "p95Ms": 54.651109,
+          "p99Ms": 54.651109,
+          "maxMs": 65.847035
+        },
+        "medianStateBytes": 116537,
+        "allRequiredWatermarksDurable": true,
+        "retiredClosureProtectionExercised": false,
+        "allRetiredClosureFencesDurable": null,
+        "allStatePreserved": true,
+        "duplicateBroadcasts": 0,
+        "exactRetryRewrites": 0,
+        "medianOfRunP50AckMs": 1.228406,
+        "medianOfRunP95AckMs": 1.576454,
+        "medianOfRunP99AckMs": 2.290728,
+        "worstRunP99AckMs": 3.64898,
+        "worstSampleAckMs": 5.082082,
+        "medianOfRunP50ExactRetryMs": 0.13239499999999998,
+        "medianOfRunP95ExactRetryMs": 0.23752,
+        "medianOfRunP99ExactRetryMs": 0.340522,
+        "worstRunP99ExactRetryMs": 1.905669,
+        "worstSampleExactRetryMs": 3.959978
+      },
+      "candidate": {
+        "runs": 5,
+        "medianComplete384AckMs": 520.309543,
+        "completion384AckMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 520.309543,
+          "p95Ms": 570.665189,
+          "p99Ms": 570.665189,
+          "maxMs": 572.154879
+        },
+        "medianProcessToHelloMs": 53.184032,
+        "processToHelloMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 53.184032,
+          "p95Ms": 53.714999,
+          "p99Ms": 53.714999,
+          "maxMs": 54.118159
+        },
+        "medianStateBytes": 116556,
+        "allRequiredWatermarksDurable": true,
+        "retiredClosureProtectionExercised": false,
+        "allRetiredClosureFencesDurable": null,
+        "allStatePreserved": true,
+        "duplicateBroadcasts": 0,
+        "exactRetryRewrites": 0,
+        "medianOfRunP50AckMs": 1.2366540000000001,
+        "medianOfRunP95AckMs": 1.484779,
+        "medianOfRunP99AckMs": 2.403924,
+        "worstRunP99AckMs": 5.226841,
+        "worstSampleAckMs": 33.367966,
+        "medianOfRunP50ExactRetryMs": 0.1840165,
+        "medianOfRunP95ExactRetryMs": 0.266387,
+        "medianOfRunP99ExactRetryMs": 0.362389,
+        "worstRunP99ExactRetryMs": 0.726991,
+        "worstSampleExactRetryMs": 3.593519
+      }
+    },
+    "with96RetiredSessions": {
+      "baseline": {
+        "runs": 5,
+        "medianComplete384AckMs": 513.517228,
+        "completion384AckMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 513.517228,
+          "p95Ms": 518.26005,
+          "p99Ms": 518.26005,
+          "maxMs": 580.693947
+        },
+        "medianProcessToHelloMs": 54.999138,
+        "processToHelloMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 54.999138,
+          "p95Ms": 55.296975,
+          "p99Ms": 55.296975,
+          "maxMs": 59.901809
+        },
+        "medianStateBytes": 116537,
+        "allRequiredWatermarksDurable": true,
+        "retiredClosureProtectionExercised": true,
+        "allRetiredClosureFencesDurable": false,
+        "allStatePreserved": true,
+        "duplicateBroadcasts": 0,
+        "exactRetryRewrites": 0,
+        "medianOfRunP50AckMs": 1.2718775,
+        "medianOfRunP95AckMs": 1.461915,
+        "medianOfRunP99AckMs": 1.604626,
+        "worstRunP99AckMs": 4.177049,
+        "worstSampleAckMs": 7.656109,
+        "medianOfRunP50ExactRetryMs": 0.19075599999999998,
+        "medianOfRunP95ExactRetryMs": 0.265001,
+        "medianOfRunP99ExactRetryMs": 0.306687,
+        "worstRunP99ExactRetryMs": 0.594177,
+        "worstSampleExactRetryMs": 2.927847,
+        "medianOfRunP50ClosureAckMs": 0.10109850000000001,
+        "medianOfRunP95ClosureAckMs": 0.202785,
+        "medianOfRunP99ClosureAckMs": 0.30822,
+        "worstRunP99ClosureAckMs": 0.516566,
+        "worstSampleClosureAckMs": 2.443347
+      },
+      "candidate": {
+        "runs": 5,
+        "medianComplete384AckMs": 610.690813,
+        "completion384AckMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 610.690813,
+          "p95Ms": 631.72516,
+          "p99Ms": 631.72516,
+          "maxMs": 635.591841
+        },
+        "medianProcessToHelloMs": 53.053008,
+        "processToHelloMsAcrossRuns": {
+          "count": 5,
+          "p50Ms": 53.053008,
+          "p95Ms": 53.445581,
+          "p99Ms": 53.445581,
+          "maxMs": 53.99506
+        },
+        "medianStateBytes": 135437,
+        "allRequiredWatermarksDurable": true,
+        "retiredClosureProtectionExercised": true,
+        "allRetiredClosureFencesDurable": true,
+        "allStatePreserved": true,
+        "duplicateBroadcasts": 0,
+        "exactRetryRewrites": 0,
+        "medianOfRunP50AckMs": 1.4484,
+        "medianOfRunP95AckMs": 1.729346,
+        "medianOfRunP99AckMs": 2.456867,
+        "worstRunP99AckMs": 4.31757,
+        "worstSampleAckMs": 24.268761,
+        "medianOfRunP50ExactRetryMs": 0.182587,
+        "medianOfRunP95ExactRetryMs": 0.287123,
+        "medianOfRunP99ExactRetryMs": 0.441206,
+        "worstRunP99ExactRetryMs": 0.652707,
+        "worstSampleExactRetryMs": 29.859033,
+        "medianOfRunP50ClosureAckMs": 0.293702,
+        "medianOfRunP95ClosureAckMs": 0.457335,
+        "medianOfRunP99ClosureAckMs": 0.662352,
+        "worstRunP99ClosureAckMs": 2.126541,
+        "worstSampleClosureAckMs": 15.327308
+      }
+    }
+  },
+  "measurementMethod": "Five alternating baseline/candidate pairs for each of two scenarios. The second scenario first observes and closes 96 additional idle sessions, then constructs the identical 96-session/192-incident active workload. Both binaries must durably persist all 384 advancing live ordering timestamps; 384 exact retries must cause no writes or broadcasts. Each run preserves all 192 incidents, including 96 unresolved. Complete durations and every per-run p50/p95/p99/max are retained. Summary acknowledgement percentiles are medians of the five per-run percentiles, not pooled-sample percentiles; per-run tail maxima are retained separately. Percentile indices follow the harness's floor((n-1)*p), with the median for p50. Startup and completion across-run percentiles have only five samples. Fresh processes use normal OS caches on one shared Linux environment; coordinated CPU-heavy jobs were paused during timing. This does not measure Windows disk latency, physical cold caches or peak RSS.",
+  "performanceClaim": "No speedup claim. The active-only workload keeps equivalent durable live ordering and full content. With 96 retired sessions, the candidate additionally persists 96 closure fences (18,900 more saved bytes than the baseline); the measured ACK completion cost and all exact-retry timings are reported without treating small timing differences as speedups. The baseline's faster closure acknowledgements lack retired-session replay protection and are not an equivalent closure guarantee. No public limits, workload, incident content, or owner authorization is reduced for these measurements.",
+  "correctnessProof": {
+    "rawInput": {
+      "path": "logs/release-0.25.0/native/REAL-BROKER-REPLAY-REPRODUCTION.json",
+      "sha256": "57c953646dbfb59306f46e64e1c96c03c3f2b48fdb8c99bb9bfb8801b33551fe",
+      "bytes": 670
+    },
+    "harness": {
+      "path": "logs/release-0.25.0/native/reproduce_native_closure.py",
+      "sha256": "28c01b3c0325b52f4f134eaf56e2678b1803e729c0386f081a068ba2e2e113af",
+      "bytes": 2700
+    },
+    "results": [
+      {
+        "implementation": "baseline",
+        "binarySha256": "a2467b1ba3cd1afe24dfeb52f58722e484fdfb4c2a183c4e8ee9ae73b801f83f",
+        "removedSessionReopened": true,
+        "ClosureBeforeFirstEvidenceReopened": true,
+        "sessions": 2,
+        "incidents": 3
+      },
+      {
+        "implementation": "candidate",
+        "binarySha256": "dd0fbfa8010494f3394b988ae6a48bed2b3e2848e96e6e28bd6165f18f421013",
+        "removedSessionReopened": false,
+        "ClosureBeforeFirstEvidenceReopened": false,
+        "sessions": 0,
+        "incidents": 1
+      }
+    ],
+    "passed": true,
+    "conclusion": "The exact released 0.24.0 binary recreated both a removed session and a session whose closure preceded its first observation; final 0.25.0 rejects both old observations and retains the original resolved incident."
+  },
+  "unchangedLimits": {
+    "protocolVersion": 1,
+    "clients": 16,
+    "sessions": 128,
+    "incidents": 256,
+    "frameBytes": 1000000,
+    "savedStateBytes": 1000000,
+    "acceptedObservationAgeMs": 86400000,
+    "sourceClockSkewMs": 300000,
+    "newCapsOrContentEvictions": false
+  },
+  "closureRetention": "Private closure records survive client/session retirement and expire only once all observations they reject are outside the existing 24-hour accepted range. A strictly newer accepted live ordering timestamp may also supersede its tab's fence because it rejects the same older events. Fences are omitted from public snapshots, share the existing saved-state byte budget, and cause explicit rollback/error if that budget is exceeded. No unexpired fence is evicted to make room. An ordinary transport disconnect does not close the source document.",
+  "sourceClockContract": "Protocol-one remove accepts optional observedAt, validated against the same source-clock window as observations. New sensors send the actual removal clock; an older supplied removal cannot close a newer accepted document. Legacy callers that omit the field retain receive-time behavior. Automatic offline client/session retirement keeps only the last accepted source watermark, rather than inventing a newer provider timestamp from receive time. Dedicated failing-before/passing-after regressions cover delayed delivery and immediate valid new documents.",
+  "supersededExploratoryEvidence": {
+    "reason": "Final review reproduced a source-clock edge in the initial candidate's receive-time removal/retirement fence. The implementation was repaired and all final timings rerun; earlier samples, source and binary remain preserved and are not used for the final summary.",
+    "receipt": {
+      "path": "logs/release-0.25.0/native/pre-clock-fix/NATIVE-ACK-PERFORMANCE-0.25.0.json",
+      "sha256": "0ebd7af53c4f2a552cdd00ed3f7aa686c93f367b2b576620d1ab8d6677ee4ef6",
+      "bytes": 34461
+    },
+    "binary": {
+      "path": "logs/release-0.25.0/native/pre-clock-fix/constellation-monitor",
+      "sha256": "32b739b69ef806c6e66c0d5eeea297ac122b5658949428f1d672144687ecaaef",
+      "bytes": 1098128
+    },
+    "rawInputs": [
+      {
+        "path": "logs/release-0.25.0/native/pre-clock-fix/ACK-MEASUREMENT-active.json",
+        "sha256": "9a140cc7549711003b75dc172584112d44c62d7c97cab3a448787e69f8ba1dd8",
+        "bytes": 9649
+      },
+      {
+        "path": "logs/release-0.25.0/native/pre-clock-fix/ACK-MEASUREMENT-retired.json",
+        "sha256": "800d01dabb32f72c7558cef2d348678555d85babe28cd5c0c84996413d289e57",
+        "bytes": 11023
+      }
+    ],
+    "expectedFailureLogs": [
+      {
+        "path": "logs/release-0.25.0/native/remove-source-time-before.log",
+        "sha256": "da219e8098c456381e9fbc70c33a2befa4cc8e15e1ee0c0945f52ba4dad2a71b",
+        "bytes": 1177
+      },
+      {
+        "path": "logs/release-0.25.0/native/retirement-source-time-before.log",
+        "sha256": "a3b9dd9ee95847874753a3b69e0ec8b04f2e9bdd6ec2bf295477d628b10e8d61",
+        "bytes": 1113
+      }
+    ]
+  },
+  "localValidation": {
+    "nativeUnitTests": 28,
+    "nativeTransportTests": 18,
+    "functionalRunVersionMetadata": "0.25.0",
+    "qualification": "Full local native tests, strict Linux/Windows-GNU Clippy, the measured release binary, and direct real-host reproduction use final version 0.25.0 and the recorded final Rust implementation/test inputs. Local checks use cached Rust 1.99.0; actual Windows execution and pinned CI Rust 1.100.1 remain required release gates.",
+    "logs": [
+      {
+        "path": "logs/release-0.25.0/native/full-final.log",
+        "sha256": "fd77c22206483cfe13151e05a11dbf8fa4387d164ae372c785d8abbc3dd6adda",
+        "bytes": 5121
+      },
+      {
+        "path": "logs/release-0.25.0/native/clippy-linux.log",
+        "sha256": "18337fd3cb73c06f5cb578fd5a21c531e777a5335db61b8f85acc7e32baeefde",
+        "bytes": 356
+      },
+      {
+        "path": "logs/release-0.25.0/native/clippy-windows-gnu.log",
+        "sha256": "7973af1a5810e3bb7e4334ff0ffa45dbd78ac467accb4d7c73145a3611bb60de",
+        "bytes": 356
+      },
+      {
+        "path": "logs/release-0.25.0/native/release-build.log",
+        "sha256": "03efc3c32938b1a12681aecce5e01215417a09103fda2bece0f0703feaec2427",
+        "bytes": 190
+      }
+    ],
+    "nativeWindowsExecutionAtMeasurementTime": "pending-hosted-release-gate"
+  },
+  "passed": true
+}

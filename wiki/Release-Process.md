@@ -6,12 +6,12 @@ in [Windows Setup](Windows-Setup) and [Installation](Installation).
 
 ## Prepare the source
 
-Read `AGENTS.md`, the highest-versioned `brain/` checkpoint,
-`docs/CONTINUATION.md`, and the current GitHub and Drive metadata. Preserve
-unrelated changes, historical releases, original functionality and all migrated
-source. Historical Computer-Link Git bundles are currently excluded from public
-artifacts by automatic approval review; preserve the private checkpoint and
-use the exact public-ref verification fallback until specific approval is given.
+Read `AGENTS.md`, the highest-versioned `brain/` release record,
+`docs/CONTINUATION.md`, and the matching public GitHub tag, release receipt and
+hosted results. Preserve unrelated changes, historical releases, original
+functionality and all migrated source. Public artifacts are limited to the
+declared current release set. Preserve Computer-Link source provenance and
+verify it through the documented public upstream references.
 Do not reconstruct an old carrier archive over the current root.
 
 Keep root, extension, desktop, native payload and release versions aligned.
@@ -64,9 +64,10 @@ All of these reusable workflows must pass before publication:
 | --- | --- |
 | `ci.yml` | Root tests, 94 UI message contracts, complete real-browser smoke inventory, desktop tests |
 | `windows-runtime.yml` | Native Windows computer use, integrated Electron, native payload inclusion, actual packaged portable launch |
-| `windows-setup.yml` | Actual EXE install/repair/diagnostics/rollback, corrupt retained-manager repair, uninstall, setup/owner GUI, restored registry and shortcut integrations |
+| `windows-setup.yml` | Actual EXE install/repair/diagnostics/rollback, corrupt retained-manager repair, uninstall, setup/owner GUI, restored registry/shortcut integrations, junction transactions, local-agent recovery and actual Windows PowerShell 5.1 launcher exits |
 | `native-monitor.yml` | Linux and Windows Rust tests; Chromium and Firefox detector and rendering fixtures |
 | `computer-tools.yml` | Source/bundle verification, native tests and status-only MCP handshakes |
+| `chatgpt-ui-scheduler-rescue.yml` | Isolated Linux/Windows CDP fixtures, local-agent recovery, PowerShell launcher and disposable task install/uninstall |
 
 The runtime jobs upload immutable workflow artifacts. The release job downloads
 them from the same workflow run and validates version, commit, file size and
@@ -100,7 +101,7 @@ so it cannot be confused with the compact native installer.
 
 1. Merge the accepted review branch with its exact expected head SHA.
 2. Start the release workflow on that commit using the matching release branch
-   or tag. The workflow creates a GitHub prerelease for 0.24.0 because Firefox
+   or tag. The workflow creates a GitHub prerelease for 0.25.0 because Firefox
    signing, Windows publisher signing and target-account acceptance remain open.
 3. The workflow refuses to overwrite an existing release. Download the release
    assets and verify all hashes again; do not equate upload completion with
@@ -109,10 +110,9 @@ so it cannot be confused with the compact native installer.
    downloading the release assets.
 4. Synchronize `wiki/*.md` to the live GitHub Wiki and read back its remote head.
    A local wiki mirror alone is not a completed remote documentation update.
-5. Preserve the same artifacts and evidence in the versioned Drive checkpoint
-   when that integration is available. Read back sizes and hashes and update
-   ACTIVE CHECKPOINT. If the connected Drive operation fails, record the exact
-   failure without claiming a remote checkpoint was written.
+5. Preserve the public release receipts and checksums with the matching version.
+   Re-download every published asset and verify its size and hash. Record any
+   publication or readback failure without claiming completion.
 6. Verify the source commit/tree, tag, GitHub Release, receipt, live wiki and
    continuation record agree. Link the real release and identify the appropriate
    installer in the handoff.

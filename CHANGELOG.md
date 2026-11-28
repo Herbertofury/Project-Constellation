@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.25.0 — Bulk Triage and Durable Closure Recovery
+
+- Select visible incidents for acknowledgement or a 5/10/30/60-minute snooze; keep per-item results, bounded concurrency, stop controls, context invalidation and explicit unconfirmed-action deadlines.
+- Preserve profile drafts during live updates and failed or overlapping saves; search full recorded chat URLs and show exact matching per-incident delivery evidence.
+- Reuse the complete derived dashboard model within a snapshot, preserve all rendered rows and update existing mute/snooze deadlines without polling.
+- Retain source timestamps and authority through delayed full-extension reads, pushes and presentation work; weak run labels cannot manufacture a new confirmed incident.
+- Bound browser delivery API waits, group sounds by their actual attempt time, retain uncertain playback as interrupted and recover reminder persistence without unbounded rearming.
+- Persist private native closure ordering through restart and client/session retirement; reconcile offline closed documents on reconnect and keep persistence recovery retries bounded.
+- Reject linked managed data/runtime/version paths before installer staging or permission changes; preserve external targets while completing ownership-aware uninstall.
+- Read PowerShell UTF-8 BOM configuration, quote launcher paths literally, propagate runtime exit codes, bound heartbeat reads and persist recovery attempt cooldowns before side effects.
+- Add actual Windows PowerShell 5.1 launcher acceptance to the hosted setup gate; require the local recovery Linux/Windows CDP and disposable-task fixtures before release, with current Node/Playwright and Actions versions.
+- Retain every existing release/runtime family and refresh exact-source optimization, stack, Wiki and closeout evidence.
+
 ## 0.24.0 — Durable Observations and Reliable Recovery
 
 - Keep failed browser-storage writes eligible for retry; do not acknowledge unsaved in-memory observations.

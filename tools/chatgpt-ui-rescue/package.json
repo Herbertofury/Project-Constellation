@@ -11,6 +11,6 @@
     "test:cdp": "node cdp-integration-test.mjs"
   },
   "dependencies": {
-    "playwright": "1.63.0"
+    "playwright": "1.65.1"
   }
 }

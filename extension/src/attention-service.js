@@ -94,6 +94,7 @@
     let scheduledAt;
     let started=false;
     let needsPersistence=false;
+    let reminderWriteAttempt=0,reminderWriteRetryAt=0;
     const listeners = new Set();
     const enqueue = (work) => { const task = queue.then(work); queue = task.catch(() => {}); return task; };
     async function load() {
@@ -129,6 +130,7 @@
       state.sessions = [...state.sessions.filter((x) => x.status === 'closed').slice(-500), ...state.sessions.filter((x) => x.status !== 'closed')];
       await io.write?.(STORAGE_KEY, state);
       needsPersistence=false;
+      if(reminderWriteAttempt>DELIVERY_RETRY_MS.length){reminderWriteAttempt=0;reminderWriteRetryAt=0;}
       if (event) {
         for (const listener of listeners) { try { listener(copy(event)); } catch (_) {} }
         io.changed?.({ type:event.type, id:event.incident?.id || '', session:event.session ? copy(event.session) : null });
@@ -167,6 +169,7 @@
     function channelsEnabled() {
       return state.settings.notificationsEnabled || (state.settings.audioEnabled && state.settings.volume > 0);
     }
+    const persistenceRetryExhausted=()=>needsPersistence&&reminderWriteAttempt>DELIVERY_RETRY_MS.length;
     function dueAt(item) {
       if(item.resolvedAt||item.acknowledgedAt||item.suspended||item.sourceClosed)return 0;
       // A first alert deferred by mute/ownership/settings, and an explicit snooze,
@@ -180,10 +183,10 @@
     async function schedule() {
       const cfg = state.settings;
       const due = state.incidents.map(dueAt).filter((x) => x > 0);
-      if (!cfg.enabled || !owner.enabled || !channelsEnabled() || !due.length) {
+      if (!cfg.enabled || !owner.enabled || !channelsEnabled() || persistenceRetryExhausted() || !due.length) {
         if (scheduledAt !== 0) await io.clearAlarm?.(ALARM_NAME); scheduledAt=0;
       } else {
-        const target=Math.min(...due),deadline=Math.max(now(),target);
+        const target=Math.min(...due),deadline=Math.max(now(),target,reminderWriteRetryAt);
         // Keep an already-due alarm in place. Frequent snapshots must not keep
         // pushing its wake time forward; future native snoozes stay exact too.
         if(scheduledAt>0&&scheduledAt<=deadline&&target<=scheduledAt)return;
@@ -198,15 +201,16 @@
       try {await io.clearNotification?.(id);}
       catch(error){state.delivery.lastCleanupError=text(error?.message||error);}
     }
-    async function deliver(item, reason = 'new', retryOnly = false) {
+    async function deliver(item, reason = 'new', retryOnly = false, countReminder = false) {
       if (!eligible(item)) return { ok:false, skipped:true };
       const at = now();
-      const beforeClaim={notifiedAt:item.notifiedAt,snoozedUntil:item.snoozedUntil,nextReminderAt:item.nextReminderAt,delivery:item.delivery};
+      const beforeClaim={notifiedAt:item.notifiedAt,snoozedUntil:item.snoozedUntil,nextReminderAt:item.nextReminderAt,reminders:item.reminders,delivery:item.delivery};
       const previous=retryOnly ? item.delivery || {} : {};
       const attempt=retryOnly ? Number(previous.attempt||1)+1 : 1;
       const notify=state.settings.notificationsEnabled&&(!retryOnly||previous.notification==='failed');
       const sound=state.settings.audioEnabled&&state.settings.volume>0&&(!retryOnly||previous.audio==='failed');
       if(!retryOnly){
+        if(countReminder)item.reminders+=1;
         item.notifiedAt = at;
         item.snoozedUntil = 0;
         item.nextReminderAt = state.settings.reminderMinutes > 0 ? at + state.settings.reminderMinutes * 60000 : 0;
@@ -231,17 +235,18 @@
       }
       if (sound) {
         const lastSound = Number(state.delivery.lastAudioAt || 0);
-        if (at - lastSound >= 1500 || lastSound === 0) {
+        const soundAt=now();
+        if (soundAt - lastSound >= 1500 || lastSound === 0) {
           // Commit the sound claim before playback: worker restarts must not create
           // overlapping alarms for an already-announced episode.
-          state.delivery.lastAudioAt = at;
+          state.delivery.lastAudioAt = soundAt;
           item.delivery.audio='claimed';
           try {await persist();audio = await io.sound?.({kind:item.kind,severity:item.severity,volume:state.settings.volume}) || {ok:false,error:'Audio is unavailable.'}; }
           catch (error) { audio = {ok:false,error:text(error?.message || error)}; }
-          if(audio.ok!==true)state.delivery.lastAudioAt=lastSound;
+          if(audio.ok!==true&&!audio.interrupted)state.delivery.lastAudioAt=lastSound;
         } else audio = {ok:true,skipped:true,reason:'Grouped with another recent alert.'};
       }
-      if(sound)item.delivery.audio=audio.skipped?'grouped-or-disabled':audio.ok?'started':'failed';
+      if(sound)item.delivery.audio=audio.interrupted?'interrupted':audio.skipped?'grouped-or-disabled':audio.ok?'started':'failed';
       item.delivery.notificationError=text(notification.error||'');
       item.delivery.audioError=text(audio.error||'');
       const failed=item.delivery.notification==='failed'||item.delivery.audio==='failed';
@@ -281,6 +286,10 @@
         state.sessions = state.sessions.filter((x) => x.key !== row.key);
         state.sessions.push(row);
         const active = state.incidents.filter((x) => x.sessionKey === row.key && !x.resolvedAt);
+        // A fallback/probe can describe what it saw, but cannot replace current
+        // confirmed incident evidence or its owner suppression/run identity.
+        // Missing authority on older journals is conservatively confirmed.
+        if(!row.authoritative&&!row.suspended&&active.some(item=>item.authoritative!==false))row.suspended=true;
         let created = null;
         let unannounced = null;
         if (row.suspended) for (const item of active) {
@@ -288,19 +297,20 @@
           if(row.status==='closed'){item.sourceClosed=true;await clearToast(item.id);}
         }
         else if (row.incident) {
-          const recordedRun=previous?.runId||active.find((item)=>item.runId)?.runId||'';
+          const recordedRun=active.find((item)=>item.authoritative!==false&&item.runId)?.runId||
+            (previous?.authoritative!==false?previous?.runId:'')||'';
           const newRun=Boolean(row.authoritative&&row.runId&&recordedRun&&row.runId!==recordedRun);
           const same = !newRun && active.find((x) => x.kind === row.kind && x.status === row.status);
           for (const item of active) {
             item.suspended = false;
             if (item !== same) { item.resolvedAt=now(); item.resolution=newRun?'superseded-by-new-run':'state-changed'; await clearToast(item.id); }
           }
-          if (same) { same.lastSeenAt=row.observedAt; same.title=row.title; same.reason=row.reason; same.runId=row.runId||same.runId||''; same.sourceClosed=false; if(!same.notifiedAt)unannounced=same; }
+          if (same) { same.lastSeenAt=row.observedAt; same.title=row.title; same.reason=row.reason; same.runId=row.runId||same.runId||''; same.sourceClosed=false; if(row.authoritative)same.authoritative=true; if(!same.notifiedAt)unannounced=same; }
           else {
             state.sequence += 1;
             created = {id:`pc-attention:${hash(row.key)}:${state.sequence}`,sessionKey:row.key,
               sourceId:row.sourceId,tabId:row.tabId,documentId:row.documentId,runId:row.runId,url:row.url,title:row.title,
-              browser:row.browser,kind:row.kind,status:row.status,label:row.label,severity:row.severity,reason:row.reason,
+              browser:row.browser,kind:row.kind,status:row.status,label:row.label,severity:row.severity,reason:row.reason,authoritative:row.authoritative,
               firstSeenAt:now(),lastSeenAt:row.observedAt,resolvedAt:0,acknowledgedAt:0,snoozedUntil:0,
               notifiedAt:0,nextReminderAt:state.settings.reminderMinutes > 0 ? now()+state.settings.reminderMinutes*60000 : 0,reminders:0,suspended:false,sourceClosed:false};
             state.incidents.push(created);
@@ -341,14 +351,14 @@
       });
     }
     async function deliverDue(reasonOverride='') {
+      if(persistenceRetryExhausted())return;
       for(const item of state.incidents) {
         const due=dueAt(item);
         if(due>0&&eligible(item)&&now()>=due) {
           const retry=Boolean(item.notifiedAt&&!item.snoozedUntil&&item.delivery?.retryAt&&now()>=item.delivery.retryAt&&
             (!item.nextReminderAt||item.reminders>=state.settings.maxReminders||item.delivery.retryAt<=item.nextReminderAt));
           const reason=!item.notifiedAt?'deferred-first-alert':item.snoozedUntil?'snooze-ended':retry?'delivery-retry':'reminder';
-          if(reason==='reminder')item.reminders+=1;
-          await deliver(item,reasonOverride||reason,retry);
+          await deliver(item,reasonOverride||reason,retry,reason==='reminder');
         }
       }
     }
@@ -399,9 +409,28 @@
       return enqueue(async () => {
         await load();
         scheduledAt=undefined;
-        await deliverDue();
-        await schedule();
-        return {ok:true};
+        try {
+          if(needsPersistence)await persist();
+          await deliverDue();
+          reminderWriteAttempt=0;reminderWriteRetryAt=0;
+          await schedule();
+          return {ok:true};
+        } catch(error) {
+          // An alarm is one-shot. A rejected durable claim must retain the
+          // reminder budget and get a finite recovery deadline of its own.
+          if(needsPersistence){
+            const delay=DELIVERY_RETRY_MS[reminderWriteAttempt++];
+            reminderWriteRetryAt=delay?now()+delay:0;
+            state.delivery.lastError='The pending alert could not be saved. '+text(error?.message||error)+
+              (delay?` Retrying persistence in ${delay/1000} seconds.`:' Automatic persistence retries are exhausted. Check storage and use Test alert.');
+            state.delivery.lastErrorAt=now();
+            try{
+              if(delay){await io.alarm?.(ALARM_NAME,reminderWriteRetryAt);scheduledAt=reminderWriteRetryAt;}
+              else{await io.clearAlarm?.(ALARM_NAME);scheduledAt=0;}
+            }catch(_){}
+          }
+          throw error;
+        }
       });
     }
     async function focus(id) {
@@ -420,8 +449,9 @@
           // Storage is history, not proof that a browser tab is still alive. Fresh
           // provider observations or the one-shot startup reconcile restore coverage.
           for(const row of state.sessions){if(row.status==='closed')continue;row.lastKnownStatus=row.status;row.status='sensor-offline';row.kind='suspended';row.suspended=true;row.authoritative=false;for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt))item.suspended=true;}
-          if(state.sessions.length||needsPersistence)await persist({type:'reconnecting'});
+          if(state.sessions.length)needsPersistence=true;
         }
+        if(needsPersistence)await persist({type:'reconnecting'});
         await schedule();return snapshot();
       }),
       acknowledge:(id)=>changeIncident(id,'acknowledge'),snooze:(id,minutes)=>changeIncident(id,'snooze',minutes),
@@ -445,7 +475,7 @@
       closeTab:(tabId,sourceId='local',expected=null)=>enqueue(async()=>{
         await load();
         const rows=state.sessions.filter((row)=>row.tabId===Number(tabId)&&row.sourceId===sourceId&&matchesSnapshot(row,expected));
-        if(expected&&!rows.length)return {ok:true,ignored:'session-changed'};
+        if(expected&&!rows.length){if(needsPersistence){await persist();await schedule();}return {ok:true,ignored:'session-changed'};}
         for(const row of rows){
           row.observedAt=Math.max(now(),Number(row.observedAt||0));row.closedAt=row.observedAt;row.suspended=true;row.status='closed';
           for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt)){item.sourceClosed=true;await clearToast(item.id);}

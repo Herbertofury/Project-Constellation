@@ -9,7 +9,7 @@ const pluginRoot = path.join(root, 'plugin');
 const manifest = JSON.parse(await fsp.readFile(path.join(pluginRoot, 'plugin.json'), 'utf8'));
 assert.equal(manifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
 assert.equal(manifest.name, 'constellation-commander');
-assert.equal(manifest.version, '0.24.0');
+assert.equal(manifest.version, '0.25.0');
 assert.equal(manifest.skills, undefined, 'Portable Agent Plugins auto-discover skills/; the 1.0 schema forbids an extra top-level skills property.');
 assert.equal(manifest.mcpServers, undefined, 'Normal-chat package must not declare portable MCP servers (Desktop-only import route).');
 assert.equal(manifest.extensions?.com?.openai?.apps, undefined, 'App mapping is added only after a production app ID exists.');

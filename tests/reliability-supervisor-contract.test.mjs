@@ -211,8 +211,119 @@ storageFails=true;await assert.rejects(vm.runInContext('ingestBatch(projectInput
 assert.equal(dirtyMarks,1,'failed storage cannot acknowledge a new durable project');
 
 // Historical pure-policy fixtures still run; this test checks their live successor.
+// Exercise the full worker's real ingestion/Pulse functions with the durable
+// attention service. A late transport response must retain its source time all
+// the way through the journal, legacy cache, persisted transition and UI result.
+await import('../extension/src/attention-service.js');
+const attentionCore=globalThis.ProjectConstellationAttentionService;
+async function liveEvidenceFixture(){
+  let clock=90_000_000,saved={},probe=async()=>null,failWrite=false;
+  const rows=new Map(),transitions=[],events=[],presentations=[],legacyNotices=[];
+  const tab={id:91,url:'https://claude.ai/chat/evidence',title:'Current task',windowId:1};
+  const service=attentionCore.createService({now:()=>clock,read:async()=>structuredClone(saved),write:async(_key,value)=>{
+    if(failWrite){failWrite=false;throw new Error('Evidence journal unavailable');}saved=structuredClone(value);
+  }});
+  await service.settings({audioEnabled:false,notificationsEnabled:false});
+  const context=vm.createContext({console,URL,Date:{now:()=>clock},pcAttention:service,ProjectConstellationAttentionService:attentionCore,
+    LIVE_SENTINEL_VERSION:manifest.version,LIVE_CHAT_PULSE_TTL_MS:0,LIVE_CHAT_PROBE_TIMEOUT_MS:1500,LIVE_CHAT_FALLBACK_TTL_MS:120000,
+    providers:{detectProvider:()=>({id:'claude',name:'Claude'}),isLikelyChatUrl:()=>true,chatIdFromUrl:()=> 'evidence'},
+    chrome:{tabs:{query:async()=>[tab],sendMessage:async()=>null}},
+    networkStateForTab:()=>({}),livePulseBucket:state=>state.chat.status==='permission_required'?'hold':state.chat.status==='error'?'critical':state.chat.status==='idle'?'completed':'active',
+    liveTabStateByTab:rows,readPersistedLiveTransition:async()=>null,persistLiveTransition:row=>transitions.push(structuredClone(row)),
+    tabPresentationSignatures:new Map(),syncTabPresentation:async row=>presentations.push(structuredClone(row)),
+    notifyChatCritical:async()=>legacyNotices.push('critical'),notifyReviewCleared:async()=>legacyNotices.push('cleared'),notifyChatCompletion:async()=>legacyNotices.push('completed'),notifyChatAttention:async()=>legacyNotices.push('attention'),
+    stateBus:{publishCoalesced:(...args)=>events.push(args)},scheduleLiveTabReconcile:()=>{},
+    readLiveSentinelState:async()=>probe(),ensureLiveSentinel:async()=>null,probeLiveStateFromTab:async()=>null,
+    livePulseTimeout:async promise=>promise,liveGroupMap:async()=>new Map(),enrichLiveRowContext:async row=>row,canonicalLiveCatalogChatId:row=>row.chatId,renderActionBadge:async()=>{}});
+  vm.runInContext('let liveChatPulseCacheAt=0,liveChatPulseCache=null,liveChatPulseRequest=null;\n'+
+    ['sameLiveConversation','liveEvidenceTime','liveEvidenceMatchesTab','rememberLiveTabState','handleLiveChatStatePush','readLiveStateFromTab','fallbackLiveRow','withTabGroup','liveChatPulse'].map(name=>block(background,name)).join('\n'),context);
+  const state=(status,observedAt=clock,extra={})=>({ok:true,sentinel:true,source:'live-sentinel',version:manifest.version,observedAt,
+    chat:{id:'evidence',url:tab.url,title:tab.title,status},generation:{runId:'confirmed-run'},...extra});
+  return {service,context,rows,transitions,events,presentations,legacyNotices,tab,state,now:()=>clock,advance:ms=>clock+=ms,
+    failWrite:()=>{failWrite=true;},probe:fn=>{probe=fn;},read:()=>context.readLiveStateFromTab(tab),pulse:()=>context.liveChatPulse({force:true}),
+    push:(status,at=clock,extra={})=>context.handleLiveChatStatePush({state:state(status,at,extra)},{tab}),saved:()=>structuredClone(saved)};
+}
+{
+  const f=await liveEvidenceFixture();await f.push('permission_required');const latest=f.now(),writes=f.transitions.length,notices=f.legacyNotices.length,published=f.events.length;
+  f.advance(100);const reply=await f.push('running',latest-50);
+  assert.equal(reply.ignored,true);assert.equal(reply.reason,'out-of-order');
+  let snapshot=await f.service.get();assert.equal(snapshot.sessions[0].observedAt,latest);assert.equal(snapshot.incidents[0].resolvedAt,0);
+  assert.equal(f.rows.get(91).status,'permission_required');assert.equal(f.transitions.length,writes);assert.equal(f.legacyNotices.length,notices);assert.equal(f.events.length,published);
+  f.probe(async()=>f.state('running',latest-25));const read=await f.read();
+  assert.equal(read.status,'permission_required','a stale read returns the newer accepted row, never its rejected status');
+  const pulse=await f.pulse();assert.equal(pulse.recentChats[0].status,'permission_required');assert.equal(pulse.counts.hold,1);
+  assert.equal((await f.service.get()).incidents[0].resolvedAt,0);
+  for(const invalid of [undefined,null,NaN,Infinity,-1,'90000000']){
+    const ignored=await f.push('running',invalid,{observedAt:invalid});assert.equal(ignored.ignored,true,'malformed/missing push time cannot be laundered into current evidence');
+  }
+  const moved=await f.push('running',f.now(),{chat:{id:'other',url:'https://claude.ai/chat/other',status:'running'}});
+  assert.equal(moved.ignored,true,'a reply from another conversation cannot be attached to the sender tab');
+  snapshot=await f.service.get();assert.equal(snapshot.sessions[0].status,'permission_required');
+}
+{
+  const f=await liveEvidenceFixture();let answer;f.probe(()=>new Promise(resolve=>{answer=resolve;}));
+  const reading=f.read();await new Promise(setImmediate);const requestedAt=f.now();f.advance(25);await f.push('permission_required');
+  f.advance(25);answer(f.state('running',undefined,{observedAt:undefined}));
+  const result=await reading;assert.equal(result.status,'permission_required');assert.ok(result.observedAt>requestedAt);
+  assert.equal((await f.service.get()).incidents[0].resolvedAt,0,'a legacy read without a timestamp uses request-start time, not the delayed receipt time');
+}
+{
+  const f=await liveEvidenceFixture();f.failWrite();
+  await assert.rejects(f.push('permission_required'),/Evidence journal unavailable/);
+  assert.equal(f.rows.size,0);assert.equal(f.transitions.length,0);assert.equal(f.events.length,0,'failed durable acceptance cannot become a successful live push');
+  await f.push('permission_required');assert.equal(f.rows.get(91).status,'permission_required');assert.equal(f.transitions.length,1);
+  assert.equal(f.saved().sessions[0].status,'permission_required');
+}
+{
+  const f=await liveEvidenceFixture();let finishOldRead,reads=0;
+  f.context.readPersistedLiveTransition=()=>++reads===1?new Promise(resolve=>{finishOldRead=resolve;}):Promise.resolve(null);
+  const first=f.push('permission_required');for(let i=0;i<10&&!finishOldRead;i++)await new Promise(setImmediate);
+  assert.equal(typeof finishOldRead,'function');f.advance(10);await f.push('error');finishOldRead(null);const older=await first;
+  assert.equal(older.ignored,true);assert.equal(f.rows.get(91).status,'error');assert.equal(f.transitions.length,1);
+  assert.equal(f.transitions[0].status,'error','an earlier cache read completing late cannot rewrite the accepted transition');
+}
+{
+  const f=await liveEvidenceFixture();await f.push('running');f.advance(10);let finishProbe;
+  f.probe(()=>new Promise(resolve=>{finishProbe=resolve;}));const waiting=f.pulse();
+  for(let i=0;i<10&&!finishProbe;i++)await new Promise(setImmediate);assert.equal(typeof finishProbe,'function');
+  f.advance(10);await f.push('permission_required');const sourceAt=f.now();finishProbe(null);
+  const fresh=await waiting;assert.equal(fresh.partial,false);assert.equal(fresh.recentChats[0].status,'permission_required');
+  assert.equal((await f.service.get()).sessions[0].status,'permission_required','an unsuccessful read cannot suspend a push accepted while it was waiting');
+  f.probe(async()=>null);f.advance(30);const unavailable=await f.pulse();assert.equal(unavailable.partial,true);
+  let snapshot=await f.service.get();assert.equal(snapshot.sessions[0].status,'suspended');assert.equal(snapshot.sessions[0].observedAt,sourceAt);
+  assert.equal(snapshot.sessions[0].runId,'confirmed-run','derived transport loss preserves the current source context');
+  f.advance(10);await f.push('permission_required',sourceAt+5);snapshot=await f.service.get();
+  assert.equal(snapshot.sessions[0].status,'permission_required');assert.equal(snapshot.sessions[0].observedAt,sourceAt+5);
+  assert.equal(snapshot.incidents.length,1,'transport receipt time cannot hide a later provider observation or manufacture a new incident');
+}
+for(const delayedPhase of ['metadata','badge-settings']){
+  const f=await liveEvidenceFixture();await f.push('running');const observedAt=f.now();f.tab.groupId=10;
+  f.context.liveGroupMap=async()=>new Map([[10,{id:10,title:'hold',color:'blue'}]]);
+  f.context.managedGroupBucket=title=>title;
+  f.probe(async()=>f.state('running',observedAt));let release,first=true;const badgeTitles=[];
+  f.context.enrichLiveRowContext=async row=>{
+    if(delayedPhase==='metadata')await new Promise(resolve=>{release=resolve;});
+    return {...row,catalogChatId:'claude:evidence',context:{projectName:'Preserved metadata'}};
+  };
+  if(delayedPhase==='badge-settings'){
+    const badgeCfg={tabBeaconsEnabled:true,completedColor:'green',holdColor:'blue',activeColor:'purple'};
+    f.context.liveToolbarSnapshot={};f.context.attentionBadgeCount=0;f.context.scheduledGuardianAttentionCount=0;
+    f.context.pulseUxSettings=async()=>{if(first){first=false;await new Promise(resolve=>{release=resolve;});}return badgeCfg;};
+    f.context.normalizePulseUx=()=>badgeCfg;
+    f.context.chrome.action={setBadgeText:async()=>{},setBadgeBackgroundColor:async()=>{},setTitle:async({title})=>badgeTitles.push(title)};
+    vm.runInContext(block(background,'renderActionBadge'),f.context);
+  }
+  const pending=f.pulse();for(let i=0;i<10&&!release;i++)await new Promise(setImmediate);assert.equal(typeof release,'function',delayedPhase);
+  f.advance(25);await f.push('permission_required');f.presentations.length=0;release();
+  const snapshot=await pending;await new Promise(setImmediate);
+  assert.equal(snapshot.recentChats[0].status,'permission_required',`${delayedPhase} cannot publish an obsolete active row`);
+  assert.equal(snapshot.counts.hold,1);assert.equal(snapshot.counts.active,0);assert.equal(snapshot.recentChats[0].context.projectName,'Preserved metadata');
+  assert.equal(vm.runInContext('liveChatPulseCache.recentChats[0].status',f.context),'permission_required','cached results retain the newest accepted evidence too');
+  assert.equal(f.presentations.filter(row=>row.bucket==='active').length,0,'late metadata/badge work cannot force the tab back into its older group');
+  if(delayedPhase==='badge-settings')assert.ok(badgeTitles.length>0&&badgeTitles.every(title=>title.includes('on hold')),'a stale badge settings read cannot apply the earlier active title');
+}
 const testCommand=JSON.parse(read('package.json')).scripts.test;
 for(const file of ['core','brain-core','provider-core','integrity-core','knowledge-core','project-memory-core','health-core','drive-sync-policy','drive-sync-guard','live-state-policy','navigation-safety','interruption-safety','tab-group-convergence','tab-supervisor-core','reliability-supervisor-contract']) {
   assert.ok(testCommand.includes(`node tests/${file}.test.mjs`),`retain original main gate ${file}`);
 }
-console.log('reliability-supervisor-contract.test.mjs: PASS (active graph, hidden tabs, fresh ACKs, manual holds, project persistence, original inventory)');
+console.log('reliability-supervisor-contract.test.mjs: PASS (active graph, hidden tabs, source-time ordering, durable push ACKs, concurrent cache reads, Pulse reconciliation, manual holds, project persistence, original inventory)');

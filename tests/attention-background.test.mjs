@@ -74,7 +74,7 @@ chrome.tabs.query=async(query)=>{assert.deepEqual(query,{});return [
 chrome.tabs.get=async(id)=>({id,url:startupUrl,frozen:id===23});
 chrome.tabs.sendMessage=async(id,message)=>{
   startupProbes.push({id,type:message.type});
-  if(id===22&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'startup',url:startupUrl,status:'running'},generation:{active:true},observedAt:Date.now()};
+  if(id===22&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'startup',url:startupUrl,status:'running'},generation:{active:true},observedAt:Date.now()};
   return undefined;
 };
 await import('../extension/src/attention-background.js?startup-reconcile');
@@ -101,7 +101,7 @@ try {
   chrome.tabs.query=async()=>[{id:30,url:lifecycleUrl}];
   let actualTab={id:30,url:lifecycleUrl};chrome.tabs.get=async()=>({...actualTab});
   await seed({acknowledged:true});
-  chrome.tabs.sendMessage=async()=>({ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'permission_required'},generation:{runId:'new-run'},observedAt:lifecycleClock});
+  chrome.tabs.sendMessage=async()=>({ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'permission_required'},generation:{runId:'new-run'},observedAt:lifecycleClock});
   await import('../extension/src/attention-background.js?startup-new-run');await settle();
   let restored=await globalThis.pcAttention.get();
   assert.equal(restored.sessions[0].runId,'new-run','startup uses the fresh generation identity instead of the old persisted run');
@@ -114,18 +114,18 @@ try {
   lifecycleClock+=100;
   await globalThis.pcAttention.observe({sourceId:'local',tabId:30,url:lifecycleUrl,documentId:'lifecycle',runId:'current-run',status:'permission_required',observedAt:lifecycleClock});
   lifecycleClock+=100;
-  answerProbe({ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'running'},generation:{runId:'old-run'},observedAt:probeAt});
+  answerProbe({ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'running'},generation:{runId:'old-run'},observedAt:probeAt});
   await settle();restored=await globalThis.pcAttention.get();
   assert.equal(restored.sessions[0].status,'permission_required');assert.equal(restored.sessions[0].runId,'current-run');
   assert.equal(restored.counts.open,1,'a delayed startup response keeps its original evidence time and cannot clear the newer incident');
 
   await seed();const mismatchProbes=[];
-  chrome.tabs.sendMessage=async(_id,message)=>{mismatchProbes.push(message.type);return message.type==='PC_GET_LIVE_SENTINEL_STATE'?{ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'other',url:'https://chatgpt.com/c/other',status:'idle'},observedAt:lifecycleClock}:{ok:true};};
+  chrome.tabs.sendMessage=async(_id,message)=>{mismatchProbes.push(message.type);return message.type==='PC_GET_LIVE_SENTINEL_STATE'?{ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'other',url:'https://chatgpt.com/c/other',status:'idle'},observedAt:lifecycleClock}:{ok:true};};
   await import('../extension/src/attention-background.js?startup-wrong-document');await settle();
   assert.equal((await globalThis.pcAttention.get()).sessions[0].status,'sensor-offline','a reply about another conversation cannot claim restored coverage');
   assert.ok(mismatchProbes.includes('PC_MONITOR_RESCAN'));
 
-  await seed();chrome.tabs.sendMessage=async()=>({ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'permission_required'},generation:{runId:'current-run'},observedAt:lifecycleClock});
+  await seed();chrome.tabs.sendMessage=async()=>({ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'permission_required'},generation:{runId:'current-run'},observedAt:lifecycleClock});
   await import('../extension/src/attention-background.js?lifecycle-stale-events');await settle();
   const updated=tabUpdated.at(-1);
   updated(30,{url:'https://chatgpt.com/c/obsolete'},{id:30,url:'https://chatgpt.com/c/obsolete'});await settle();
@@ -162,4 +162,104 @@ oscillators.forEach((row)=>row.onended());assert.ok(oscillators.every((row)=>row
 audioContexts[0].state='suspended';sound=await globalThis.pcAttentionPlayAudio({volume:.5});assert.equal(sound.ok,false);assert.match(sound.error,/suspended/);
 audioContexts[0].state='closed';sound=await globalThis.pcAttentionPlayAudio({volume:.5});assert.equal(sound.ok,true);assert.equal(audioContexts.length,2);
 delete globalThis.AudioContext;
-console.log('attention-background.test.mjs: PASS (message boundary, offscreen retirement/race, strict audio receipt, exact-tab focus, fresh startup identity and ordering, stale lifecycle callbacks, Firefox restart, WebAudio lifecycle)');
+
+// Drive actual adapter deadlines with a deterministic clock. These are channel
+// responses from controlled browser APIs, not physical audio/OS visibility proof.
+const nativeTimers={setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout,now:Date.now};
+const channelApis={sendMessage:chrome.runtime.sendMessage,getContexts:chrome.runtime.getContexts,
+  permission:chrome.notifications.getPermissionLevel,create:chrome.notifications.create,clear:chrome.notifications.clear,query:chrome.tabs.query};
+let channelClock=70_000_000,channelTimerId=0;const channelTimers=new Map();
+const tickChannels=async(ms)=>{
+  const end=channelClock+ms;
+  for(let count=0;count<100;count++){
+    const next=[...channelTimers.entries()].filter(([,timer])=>timer.at<=end).sort((a,b)=>a[1].at-b[1].at)[0];
+    if(!next){channelClock=end;await settle();return;}
+    channelClock=next[1].at;channelTimers.delete(next[0]);next[1].fn();await settle();
+  }
+  assert.fail('channel deadline loop did not settle');
+};
+try{
+  Date.now=()=>channelClock;
+  globalThis.setTimeout=(fn,ms)=>{const id=++channelTimerId;channelTimers.set(id,{fn,at:channelClock+ms});return id;};
+  globalThis.clearTimeout=id=>channelTimers.delete(id);
+  chrome.tabs.query=async()=>[];chrome.runtime.getContexts=async()=>[{}];chrome.notifications.getPermissionLevel=async()=> 'granted';
+  const newAdapter=async(name)=>{
+    delete values.projectConstellationAttentionV1;
+    await import(`../extension/src/attention-background.js?channel-${name}`);await globalThis.pcAttention.start();return globalThis.pcAttention;
+  };
+  const event=(tabId=70)=>({tabId,url:'https://chatgpt.com/c/channel',documentId:'channel',runId:'channel-run',status:'permission_required',observedAt:channelClock});
+  {
+    let requests=0,lateReply;
+    chrome.notifications.create=async id=>id;chrome.notifications.clear=async()=>true;
+    chrome.runtime.sendMessage=()=>{requests++;return new Promise(resolve=>{lateReply=resolve;});};
+    const runtime=await newAdapter('lost-audio-reply'),pending=runtime.observe(event());await settle();assert.equal(requests,1);
+    await tickChannels(4000);await pending;
+    let snapshot=await runtime.get();assert.equal(snapshot.incidents[0].delivery.audio,'interrupted');
+    assert.match(snapshot.delivery.lastError,/outcome is uncertain/);assert.equal(snapshot.incidents[0].delivery.retryAt,0);
+    lateReply({ok:true,started:true});await settle();await tickChannels(30000);await runtime.reminders();
+    snapshot=await runtime.get();assert.equal(requests,1,'a lost response after a delivered audio request cannot cause an automatic second playback');
+    assert.equal(snapshot.incidents[0].delivery.audio,'interrupted','a late response does not invent a receipt after the deadline');
+    chrome.runtime.sendMessage=async()=>{throw new Error('The message port closed before a response was received.');};
+    await runtime.observe(event(71));assert.equal((await runtime.get()).incidents.at(-1).delivery.audio,'interrupted','a disconnected response port does not prove that playback never started');
+  }
+  {
+    let audioRequests=0,createCalls=0,finishCreate;const visible=new Map(),clears=[];
+    chrome.runtime.sendMessage=async()=>{audioRequests++;return {ok:true,started:true};};
+    chrome.notifications.create=(id,options)=>{createCalls++;return new Promise(resolve=>{finishCreate=()=>{visible.set(id,options);resolve(id);};});};
+    chrome.notifications.clear=async id=>{clears.push(id);visible.delete(id);return true;};
+    const runtime=await newAdapter('hung-notification'),pending=runtime.observe(event());await settle();
+    let readReturned=false;const queuedRead=runtime.get().then(value=>{readReturned=true;return value;});
+    await tickChannels(4000);await pending;const snapshot=await queuedRead;
+    assert.equal(readReturned,true,'a missing notification response cannot strand the observation/dashboard queue');
+    assert.equal(createCalls,1,'a timed-out create is not repeated as a capability fallback');assert.equal(audioRequests,1);
+    assert.equal(snapshot.incidents[0].delivery.notification,'failed');assert.match(snapshot.delivery.lastError,/notification delivery within four seconds/);
+    await runtime.observe({...event(),status:'running'});const clearsBefore=clears.length;
+    finishCreate();await settle();
+    assert.equal(visible.size,0,'a create completing after resolution is cleared instead of resurrecting a stale toast');
+    assert.equal(clears.length,clearsBefore+1);
+  }
+  {
+    let audioRequests=0,clearCalls=0,finishClear;const visible=new Map();
+    chrome.runtime.sendMessage=async()=>{audioRequests++;return {ok:true,started:true};};
+    chrome.notifications.create=async(id,options)=>{visible.set(id,options);return id;};
+    chrome.notifications.clear=id=>{clearCalls++;if(clearCalls===1)return new Promise(resolve=>{finishClear=()=>{visible.delete(id);resolve(true);};});visible.delete(id);return Promise.resolve(true);};
+    const runtime=await newAdapter('hung-cleanup');await runtime.observe(event());const id=(await runtime.get()).incidents[0].id;
+    const acknowledge=runtime.acknowledge(id);await settle();await tickChannels(4000);await acknowledge;
+    let snapshot=await runtime.get();assert.ok(snapshot.incidents[0].acknowledgedAt,'notification cleanup timeout cannot prevent durable owner acknowledgement');
+    assert.match(snapshot.delivery.lastCleanupError,/cleanup within four seconds/);
+    await runtime.snooze(id,1);await tickChannels(60000);await runtime.reminders();assert.equal(visible.has(id),true);
+    finishClear();await settle();
+    assert.equal(visible.has(id),true,'an older clear completing late restores the currently requested snooze reminder');
+    assert.equal(audioRequests,2,'repairing a late notification operation cannot replay sound');
+  }
+  {
+    let audioRequests=0;chrome.runtime.sendMessage=async()=>{audioRequests++;return {ok:true,started:true};};
+    chrome.notifications.create=async id=>id;chrome.notifications.clear=async()=>true;
+    chrome.runtime.getContexts=async()=>new Promise(()=>{});
+    const runtime=await newAdapter('hung-audio-discovery'),pending=runtime.observe(event());await settle();await tickChannels(4000);await pending;
+    const snapshot=await runtime.get();assert.equal(audioRequests,0);assert.equal(snapshot.incidents[0].delivery.audio,'failed');
+    assert.match(snapshot.delivery.lastError,/locating the audio surface/,'a failure before any playback request remains a safe bounded retry');
+  }
+  assert.equal(channelTimers.size,0,'finished/expired channel operations release every local deadline timer');
+}finally{
+  Date.now=nativeTimers.now;globalThis.setTimeout=nativeTimers.setTimeout;globalThis.clearTimeout=nativeTimers.clearTimeout;
+  chrome.runtime.sendMessage=channelApis.sendMessage;chrome.runtime.getContexts=channelApis.getContexts;
+  chrome.notifications.getPermissionLevel=channelApis.permission;chrome.notifications.create=channelApis.create;chrome.notifications.clear=channelApis.clear;chrome.tabs.query=channelApis.query;
+}
+
+// A native WebAudio failure after the first start is ambiguous; all allocated
+// nodes must release and the caller must not classify it as an ordinary retry.
+{
+  const nodes=[];let index=0;
+  audioContexts.at(-1).state='closed';
+  globalThis.AudioContext=class {
+    constructor(){this.state='running';this.currentTime=20;this.destination={};}
+    createGain(){return {gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}
+    createOscillator(){const current=++index,node={frequency:{setValueAtTime(){}},connect(){},start(){if(current===2)throw new Error('Device disappeared');node.started=true;},stop(){node.stopped=true;},disconnect(){node.released=true;}};nodes.push(node);return node;}
+  };
+  const result=await globalThis.pcAttentionPlayAudio({kind:'permission_required',volume:.5});
+  assert.equal(result.ok,false);assert.equal(result.interrupted,true);assert.equal(nodes.length,3);
+  assert.ok(nodes.every(node=>node.stopped&&node.released),'partial audio failure releases the entire scheduled group');
+  delete globalThis.AudioContext;
+}
+console.log('attention-background.test.mjs: PASS (message boundary, offscreen retirement/race, strict and uncertain audio receipts, bounded channel waits, late notification reconciliation, exact-tab focus, startup/lifecycle ordering, Firefox restart, WebAudio cleanup)');

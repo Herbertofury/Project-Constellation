@@ -20,18 +20,31 @@
     if(volume===0)return {ok:false,error:'Alert volume is set to zero.'};
     const tones=options.kind==='permission_required'?[659.25,830.61,987.77]:options.severity==='critical'?[783.99,587.33,783.99]:[659.25,880];
     const start=context.currentTime+0.015;
-    tones.forEach((frequency,index)=>{
-      const oscillator=context.createOscillator();
-      const gain=context.createGain();
-      const at=start+index*0.19;
-      oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,at);
-      gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(volume*0.15,at+0.018);
-      gain.gain.exponentialRampToValueAtTime(0.0001,at+0.15);
-      oscillator.connect(gain);gain.connect(context.destination);
-      active.add(oscillator);
-      oscillator.onended=()=>{active.delete(oscillator);oscillator.disconnect();gain.disconnect();};
-      oscillator.start(at);oscillator.stop(at+0.16);
-    });
+    const nodes=[];let started=0;
+    const release=node=>{
+      active.delete(node.oscillator);
+      try{node.oscillator.disconnect();}catch(_){}
+      try{node.gain?.disconnect();}catch(_){}
+    };
+    try{
+      // Build every node before starting any tone. If scheduling later fails,
+      // stop/release the complete group and retain the partial-playback ambiguity.
+      tones.forEach((frequency,index)=>{
+        const node={oscillator:context.createOscillator(),gain:null,at:start+index*0.19};nodes.push(node);
+        const {oscillator,at}=node;const gain=node.gain=context.createGain();
+        oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,at);
+        gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(volume*0.15,at+0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001,at+0.15);
+        oscillator.connect(gain);gain.connect(context.destination);
+        oscillator.onended=()=>release(node);
+      });
+      for(const node of nodes){
+        active.add(node.oscillator);node.oscillator.start(node.at);started+=1;node.oscillator.stop(node.at+0.16);
+      }
+    }catch(error){
+      for(const node of nodes){try{node.oscillator.stop();}catch(_){}release(node);}
+      return {ok:false,interrupted:started>0,error:(started?'Sound scheduling stopped after playback began. Use Test alert to check audio. ':'Sound could not be scheduled. ')+String(error?.message||error)};
+    }
     return {ok:true,started:true,backend:options.backend||'offscreen-web-audio',contextState:context.state,durationMs:tones.length*190};
   }
   globalThis.pcAttentionPlayAudio=play;

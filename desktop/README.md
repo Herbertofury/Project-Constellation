@@ -1,4 +1,4 @@
-# Project Constellation Desktop 0.24.0
+# Project Constellation Desktop 0.25.0
 
 Project Constellation is the unified desktop runtime and browser companion for authenticated ChatGPT work, project continuity, local computer tools, saved tasks, recovery, provider health, and durable project state. The normal ChatGPT experience uses the user's existing signed-in web session; it does **not** require a separate OpenAI API key.
 
@@ -27,7 +27,7 @@ Project Constellation is the unified desktop runtime and browser companion for a
 
 ### Portable Windows build
 
-Extract the complete `Project-Constellation-v0.24.0-Windows-Portable.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
+Extract the complete `Project-Constellation-v0.25.0-Windows-Portable.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
 
 Project Constellation intentionally reuses the existing Commander/Constellation application identity and persistent ChatGPT partition for upgrade continuity. Existing local settings, tasks, project state, and signed-in browser state are not intentionally reset by this upgrade.
 
@@ -87,7 +87,7 @@ The desktop retains the integrated update service. Stable updates are staged onl
 
 ## Verification contract
 
-The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.24.0 build must prove the exact source revision on Windows with:
+The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.25.0 build must prove the exact source revision on Windows with:
 
 - root regression/contract checks;
 - desktop syntax + full regression/security tests;
@@ -99,7 +99,7 @@ The authoritative Windows release gate is `../.github/workflows/windows-runtime.
 
 Browser acceptance additionally includes the complete 43-workflow smoke inventory, the installed-extension and multi-tab recovery checks, and Chromium/Firefox sensor fixtures.
 
-See `../docs/MONITOR-VERIFICATION.md`, `../docs/v0.24.0-release-notes.md` and the published runtime receipts for the current release contract. `RELEASE-MANIFEST.json` preserves historical baseline evidence.
+See `../docs/MONITOR-VERIFICATION.md`, `../docs/v0.25.0-release-notes.md` and the published runtime receipts for the current release contract. `RELEASE-MANIFEST.json` preserves historical baseline evidence.
 
 ## Compatibility notes
 

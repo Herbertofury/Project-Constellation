@@ -2,6 +2,7 @@
 ### Project Constellation
 
 - [Home](Home)
+- [0.25.0 release notes](Release-0.25.0)
 - [Installation](Installation)
 - [OAuth & provider setup](OAuth-and-Provider-Setup)
 - [AI provider support](AI-Provider-Support)

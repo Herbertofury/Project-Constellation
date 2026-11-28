@@ -16,6 +16,9 @@ on:
       - 'extension/**'
       - 'tools/build-windows-setup.py'
       - 'tools/windows-setup-acceptance.py'
+      - 'tools/chatgpt-ui-rescue/**'
+      - 'tests/local-rescue-agent.test.mjs'
+      - 'tests/test_local_rescue_installer.ps1'
       - 'tools/computer-link/**'
       - 'tools/build.mjs'
       - 'tools/build-browser-sensors.mjs'
@@ -30,6 +33,9 @@ on:
       - 'extension/**'
       - 'tools/build-windows-setup.py'
       - 'tools/windows-setup-acceptance.py'
+      - 'tools/chatgpt-ui-rescue/**'
+      - 'tests/local-rescue-agent.test.mjs'
+      - 'tests/test_local_rescue_installer.ps1'
       - 'tools/computer-link/**'
       - 'package.json'
       - '.github/workflows/windows-setup.yml'
@@ -72,6 +78,14 @@ jobs:
         with: {node-version: '26.13.1'}
       - uses: actions/setup-python@v7
         with: {python-version: '3.12'}
+      - name: Local supervisor recovery and Windows PowerShell 5.1 launcher
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($PSVersionTable.PSVersion.Major -ne 5) { throw 'Windows PowerShell 5.1 is required for this acceptance.' }
+          node --test tests/local-rescue-agent.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Local supervisor recovery tests failed.' }
+          & ./tests/test_local_rescue_installer.ps1
       - name: Install pinned native Windows Rust toolchain
         run: |
           rustup toolchain install 1.100.1 --profile minimal --component rustfmt --component clippy

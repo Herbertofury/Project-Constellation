@@ -157,12 +157,38 @@ the idle transition, rather than a timer that periodically scans for browsers.
   preserves accepted source-clock skew so a delayed clearance remains stale.
 - Document closure carries its document, run, URL and observation timestamp.
   Delayed closure or navigation work cannot retire a newer document. Actual
-  browser tab removal remains an authoritative separate operation.
+  browser tab removal remains an authoritative separate operation. The sensor
+  includes its source timestamp on that removal so transport delay cannot make
+  a legitimate later document appear stale. Legacy protocol-one `remove`
+  requests without `observedAt` retain their receive-time default.
+- Accepted closures retain private ordering records after a session disappears,
+  including when an offline client or session is retired under the existing
+  limits. These records survive restart and re-registration of the old client
+  identity, reject older observations and equal-time repeats of the closed
+  document, and allow a different document at the same timestamp. Ordinary
+  transport disconnection does not close the document. Protocol version 1 and
+  the public 16-client, 128-session, and 256-incident limits remain unchanged.
+  Automatic capacity retirement retains the last accepted source watermark;
+  it does not invent a newer provider timestamp from the broker's wall clock.
+  Closure records are omitted from public snapshots and expire only after all
+  observations they reject fall outside the existing 24-hour accepted window.
+  A strictly newer accepted live observation can also supersede its tab's
+  closure record because the live ordering timestamp rejects those old events.
+  They share the existing 1,000,000-byte saved-state budget: if that budget is
+  full, the change fails and rolls back with an explicit persistence error;
+  unexpired ordering records and incident history are not discarded to fit it.
+- Reconnection reconciles locally closed documents with the owning native
+  sessions before replaying current evidence, including closures retained over
+  a service-worker restart. Failed durable observation writes use the existing
+  finite reconnect schedule. A successful hello resets that schedule only after
+  replay succeeds, so a persistent write failure cannot cause endless retries.
 - Restarted records are marked disconnected until the browser re-observes the
   live page. A stale saved incident does not imply current monitoring coverage.
 - Suspension pauses an unresolved incident without claiming recovery. Seeing
   the same issue again resumes its existing episode and acknowledgement.
   Snoozing clears acknowledgement so that episode can remind after its deadline.
+  The browser adapter represents non-authoritative probe evidence as suspension,
+  preserving a confirmed incident rather than promoting an uncertain status.
 - Mute, sound, notification, volume, completion, and reminder preferences are
   shared by the hub. The first connecting profile supplies its existing
   preferences once; later profiles receive that durable policy. A follower's
@@ -217,16 +243,23 @@ Firefox sensors, tab routing, duplicate incident suppression, acknowledgement
 persistence, removal/recovery, malformed framing, authentication failure, and
 restart/disconnect semantics. They include an abrupt broker kill immediately
 after duplicate acknowledgement, accepted clock skew, failed-write retry and
-delayed document closure. They do not prove a live browser installation or
+delayed document closure. Closure tests also cover an abrupt restart after
+removal, closed-before-first-observation ordering, retired client identities,
+same-millisecond document replacement, and saved-state capacity rollback.
+They do not prove a live browser installation or
 native notification/audio delivery; those require the extension smoke suite
 and real target-browser acceptance.
 
 `tests/native_ack_benchmark.py` compares two release binaries using complete
 96-session/192-incident workloads, 384 advancing duplicate acknowledgements and
 384 exact retries per run. It verifies durable timestamps, unchanged incident
-identity/counts, no duplicate broadcasts and no exact-retry writes. It reports
-the cost of adding durability honestly; an older unsaved acknowledgement is
-not an equivalent-durability performance baseline.
+identity/counts, no duplicate broadcasts and no exact-retry writes in both
+implementations. `--retired-sessions 96` first closes 96 additional idle sessions
+and measures the same complete active workload with the resulting private
+ordering metadata. Closure ACK timings and durable fences are reported
+separately: an older baseline without those fences does not provide equivalent
+retired-session replay protection. Binary versions, hashes, and the harness
+hash accompany the raw samples; the additional durability is not a speedup.
 
 Lifecycle regressions use real native-host stdin EOF, multiple simultaneous
 browser processes, a final-disconnect exit, reconnect within grace, automatic

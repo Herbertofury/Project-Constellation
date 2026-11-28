@@ -7,7 +7,7 @@ const pageHook = await fsp.readFile(new URL('../../extension/src/local-work-page
 const content = await fsp.readFile(new URL('../../extension/src/local-work-content.js', import.meta.url), 'utf8');
 
 assert.equal(manifest.manifest_version, 3);
-assert.equal(manifest.version, '0.24.0');
+assert.equal(manifest.version, '0.25.0');
 assert.ok(typeof manifest.key === 'string' && manifest.key.length > 300);
 assert.match(await fsp.readFile(new URL('../src/browser-bridge.mjs', import.meta.url), 'utf8'), /geljambmkfjkhodgkpjhnmfojkpcamig/);
 assert.ok(manifest.content_scripts.length >= 2);

@@ -1,18 +1,27 @@
 name: ChatGPT Scheduled Task UI Rescue CI
 
 on:
+  workflow_call:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/chatgpt-ui-rescue/**"
+      - "tests/local-rescue-agent.test.mjs"
+      - "tests/test_local_rescue_installer.ps1"
+      - ".github/workflows/chatgpt-ui-scheduler-rescue.yml"
   push:
     branches: [main]
     paths:
       - "tools/chatgpt-ui-rescue/**"
+      - "tests/local-rescue-agent.test.mjs"
+      - "tests/test_local_rescue_installer.ps1"
       - ".github/workflows/chatgpt-ui-scheduler-rescue.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: chatgpt-scheduled-task-ui-rescue-ci
+  group: chatgpt-scheduled-task-ui-rescue-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,11 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "26.13.1"
 
       - name: Install rescue runtime
         working-directory: tools/chatgpt-ui-rescue
@@ -33,6 +42,9 @@ jobs:
       - name: Validate JavaScript syntax
         working-directory: tools/chatgpt-ui-rescue
         run: npm run check
+
+      - name: Test local agent recovery without a real profile or remote requests
+        run: node --test tests/local-rescue-agent.test.mjs
 
       - name: Install Chromium
         working-directory: tools/chatgpt-ui-rescue
@@ -55,11 +67,11 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "26.13.1"
 
       - name: Validate local agent JavaScript
         working-directory: tools/chatgpt-ui-rescue
@@ -68,6 +80,14 @@ jobs:
           npm install --no-audit --no-fund
           node --check local-agent.mjs
           node --check rescue.mjs
+
+      - name: Test local agent and generated runner in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          node --test tests/local-rescue-agent.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Local agent recovery tests failed.' }
+          & ./tests/test_local_rescue_installer.ps1
 
       - name: Install Chromium for Windows CDP test
         working-directory: tools/chatgpt-ui-rescue
@@ -85,12 +105,22 @@ jobs:
           $ErrorActionPreference = "Stop"
           $testDir = Join-Path $env:RUNNER_TEMP "ChatGPTRescueAgent"
           $taskName = "Project Constellation - ChatGPT Scheduled Rescue CI"
-          & "./tools/chatgpt-ui-rescue/install-local-agent.ps1" -InstallDir $testDir -TaskName $taskName -SkipStart
-          $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
-          if (-not $task) { throw "Installer did not register the Scheduled Task." }
-          $config = Join-Path $testDir "agent-config.json"
-          if (-not (Test-Path $config)) { throw "Installer did not create agent-config.json." }
-          & "./tools/chatgpt-ui-rescue/uninstall-local-agent.ps1" -InstallDir $testDir -TaskName $taskName -RemoveChromeProfile
+          $sourceDirectory = (Resolve-Path -LiteralPath "./tools/chatgpt-ui-rescue").Path
+          try {
+            & "./tools/chatgpt-ui-rescue/install-local-agent.ps1" -InstallDir $testDir -TaskName $taskName -SkipStart -SourceDirectory $sourceDirectory
+            foreach ($file in @("rescue.mjs", "local-agent.mjs", "package.json")) {
+              $expected = (Get-FileHash -LiteralPath (Join-Path $sourceDirectory $file) -Algorithm SHA256).Hash
+              $actual = (Get-FileHash -LiteralPath (Join-Path $testDir $file) -Algorithm SHA256).Hash
+              if ($actual -ne $expected) { throw "Installed payload differs from this checkout: $file" }
+              Write-Host "Verified exact checkout payload: $file SHA256 $actual"
+            }
+            $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+            if (-not $task) { throw "Installer did not register the Scheduled Task." }
+            $config = Join-Path $testDir "agent-config.json"
+            if (-not (Test-Path -LiteralPath $config)) { throw "Installer did not create agent-config.json." }
+          } finally {
+            & "./tools/chatgpt-ui-rescue/uninstall-local-agent.ps1" -InstallDir $testDir -TaskName $taskName -RemoveChromeProfile
+          }
           if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
             throw "Uninstaller left the test Scheduled Task registered."
           }

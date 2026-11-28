@@ -37,6 +37,9 @@ function harness(options={}) {
             sent.push(clone(value));
             if(failed){queueMicrotask(()=>port.fail());return;}
             if(options.silentOperations?.includes(value.op))return;
+            if(options.failObservations&&value.op==='observe'){
+              queueMicrotask(()=>port.emit({v:1,id:value.id,ok:false,error:{message:'Observation could not be saved',code:'persistence_failed'}}));return;
+            }
             if(value.op==='hello'){
               const client={...clone(value.client),clientId:`${value.client.browser}:${value.client.profileId}:${value.client.instanceId}`,connected:true,updatedAt:time};
               sharedSettings??=clone(value.alertSettings);
@@ -320,6 +323,110 @@ for(const browser of ['chrome','edge','opera_gx','firefox']){
   h.api.tabs.onRemoved.emit(7);await flush();
   assert.equal(h.sent.at(-1).op,'remove','actual tab removal remains authoritative');
   assert.equal(h.sent.at(-1).tabId,7);
+  assert.equal(h.sent.at(-1).observedAt,resumed.observedAt,'tab removal carries the accepted source-clock floor instead of broker receive time');
+  await h.monitor().disconnect();
+}
+
+// A locally accepted closure must reach an older owned native session after
+// reconnect, even if several other documents occupied that tab while offline.
+for(const restart of [false,true]){
+  const now=1_800_000_000_000;
+  const original={sourceId:'local',tabId:7,documentId:'first-doc',runId:'first-run',
+    url:'https://chatgpt.com/c/first',status:'error',authoritative:true,observedAt:now};
+  const native={...original,sessionId:'chrome:work:browser-session:7',clientId:'chrome:work:browser-session',connected:true};
+  const closed={...original,status:'closed',observedAt:now+1};
+  const newerClosed={...closed,documentId:'second-doc',runId:'second-run',url:'https://chatgpt.com/c/second',observedAt:now+2};
+  const h=harness({config:{enabled:restart,browser:'chrome',profileId:'work'},sessions:restart?[closed,newerClosed]:[original],
+    nativeSnapshot:{clients:[],sessions:[native],incidents:[]}});await flush();
+  if(!restart){
+    await h.monitor().connect(true);h.ports[0].fail();await flush();h.advance(2);
+    h.attention.sessions=[closed,newerClosed];
+    await h.monitor().observe(closed);await h.monitor().observe(newerClosed);
+    await h.alarm();
+  }
+  const closures=h.sent.filter(message=>message.op==='observe'&&message.event.status==='closed');
+  assert.equal(closures.length,1,'replay closes the matching native document, without reopening intermediate offline history');
+  assert.equal(closures[0].event.documentId,'first-doc');
+  assert.equal(closures[0].event.observedAt,closed.observedAt,'normal reconnect preserves the real closure time');
+  assert.equal((await h.monitor().get()).connected,true);
+  await h.monitor().disconnect();
+}
+
+// Tab removal is retained independently of an attention snapshot/read race.
+{
+  const original={sourceId:'local',tabId:7,documentId:'removed-doc',runId:'run',url:'https://chatgpt.com/c/removed',
+    status:'error',authoritative:true,observedAt:1_800_000_000_000};
+  const native={...original,sessionId:'chrome:work:browser-session:7',clientId:'chrome:work:browser-session',connected:true};
+  const h=harness({config:{browser:'chrome',profileId:'work'},nativeSnapshot:{clients:[],sessions:[native],incidents:[]}});
+  await flush();await h.monitor().connect(true);await h.monitor().observe(original);
+  h.ports[0].fail();await flush();h.advance(10);
+  h.api.tabs.onRemoved.emit(7);await flush();
+  await h.alarm();
+  const closures=h.sent.filter(message=>message.op==='observe'&&message.event.status==='closed');
+  assert.equal(closures.length,1);assert.equal(closures[0].event.documentId,'removed-doc');
+  const count=h.sent.length;
+  await h.monitor().observe({...original,observedAt:closures[0].event.observedAt});
+  assert.equal(h.sent.length,count,'an equal-time stale observation cannot replace the retained closure');
+  await h.monitor().observe({...original,documentId:'reused-tab-new-doc',observedAt:closures[0].event.observedAt});
+  assert.equal(h.sent.at(-1).event.documentId,'reused-tab-new-doc','same-millisecond tab reuse keeps a genuinely new document');
+  await h.monitor().disconnect();
+}
+
+// A service worker may resume more than a day after the authoritative closure.
+// Reconcile the matching retired document without fabricating provider data.
+{
+  const now=1_800_000_000_000;
+  const old=now-2*24*60*60*1000;
+  const closed={sourceId:'local',tabId:7,documentId:'old-doc',runId:'old-run',url:'https://chatgpt.com/c/old',status:'closed',observedAt:old};
+  const native={...closed,observedAt:old-10,status:'error',sessionId:'chrome:work:browser-session:7',clientId:'chrome:work:browser-session',connected:false};
+  const h=harness({config:{enabled:true,browser:'chrome',profileId:'work'},sessions:[closed],nativeSnapshot:{clients:[],sessions:[native],incidents:[]}});await flush();
+  const replay=h.sent.find(message=>message.op==='observe');
+  assert.equal(replay.event.status,'closed');assert.equal(replay.event.documentId,'old-doc');
+  assert.equal(replay.event.observedAt,now);assert.equal(h.attention.sessions[0].observedAt,old);
+  await h.monitor().disconnect();
+}
+
+// Weak provider evidence is represented as unavailable in protocol 1, which
+// preserves a confirmed native episode and its ACK rather than promoting it.
+{
+  const h=harness();await flush();await h.monitor().connect(true);
+  const row={sourceId:'local',tabId:7,documentId:'doc',runId:'confirmed-run',url:'https://chatgpt.com/c/authority',
+    status:'permission_required',authoritative:true,observedAt:h.now()};
+  await h.monitor().observe(row);
+  h.advance(1);
+  await h.monitor().observe({...row,status:'error',runId:'weak-run',authoritative:false,observedAt:h.now()});
+  assert.equal(h.sent.at(-1).event.status,'suspended');
+  h.advance(1);
+  await h.monitor().observe({...row,status:'running',authoritative:false,observedAt:h.now()});
+  assert.equal(h.sent.at(-1).event.status,'suspended');
+  h.advance(1);await h.monitor().observe({...row,observedAt:h.now()});
+  assert.equal(h.sent.at(-1).event.status,'permission_required');
+  h.advance(1);await h.monitor().observe({...row,status:'closed',authoritative:false,observedAt:h.now()});
+  assert.equal(h.sent.at(-1).event.status,'closed','a browser lifecycle closure retains its explicit source context');
+  await h.monitor().disconnect();
+}
+
+// A failed durable native write is retried with the retained latest row. A
+// successful hello alone cannot reset the finite reconnect budget forever.
+for(const recover of [false,true]){
+  const options={failObservations:false};
+  const h=harness(options);await flush();await h.monitor().connect(true);
+  const row={sourceId:'local',tabId:7,documentId:'retry-doc',runId:'run',url:'https://chatgpt.com/c/retry',
+    status:'error',observedAt:h.now()};
+  options.failObservations=true;await h.monitor().observe(row);await flush();
+  assert.equal((await h.monitor().get()).connected,false);
+  assert.equal(h.ports[0].disconnected,true);assert.ok(h.alarms.has(RETRY));
+  if(recover){
+    options.failObservations=false;await h.alarm();
+    assert.equal((await h.monitor().get()).connected,true);
+    assert.equal(h.sent.filter(message=>message.op==='observe'&&message.event.documentId==='retry-doc').length,2);
+    assert.equal((await h.monitor().get()).retryAttempt,0);
+  }else{
+    for(let attempt=0;attempt<3;attempt++)await h.alarm();
+    assert.equal(h.connectCount(),4);assert.equal(h.alarms.has(RETRY),false);
+    assert.equal((await h.monitor().get()).retryAttempt,3);
+    assert.equal((await h.monitor().get()).connected,false);
+  }
   await h.monitor().disconnect();
 }
 
@@ -515,11 +622,11 @@ for(const failure of ['throw','response']){
     {id:16,url:'https://chatgpt.com/c/changed'},
   ];
   const h=harness({tabs,sendTabMessage:async(id,message)=>{
-    if(id===11&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'current-doc',url:tabs[0].url,title:'Current permission',status:'blocked-approval',healthState:'blocked-approval'},generation:{active:false},observedAt:1_800_000_000_000};
+    if(id===11&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'current-doc',url:tabs[0].url,title:'Current permission',status:'blocked-approval',healthState:'blocked-approval'},generation:{active:false},observedAt:1_800_000_000_000};
     if(id===12&&message.type==='PC_MONITOR_RESCAN')return {ok:true};
     if(id===16&&message.type==='PC_GET_LIVE_SENTINEL_STATE'){
       h.tabs.set(16,{id:16,url:'https://chatgpt.com/c/reused'});
-      return {ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'changed-doc',url:tabs[5].url,status:'running'}};
+      return {ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'changed-doc',url:tabs[5].url,status:'running'}};
     }
     throw new Error('No current sensor');
   }});await flush();
@@ -532,6 +639,35 @@ for(const failure of ['throw','response']){
   assert.ok(!h.tabMessages.some(x=>x.id===14||x.id===15),'discarded and unsupported tabs receive no probes');
   assert.equal(h.timers.size,0,'completed probes release their deadlines');
 }
+// Timestamp-less legacy refresh replies retain request-start ordering. A late
+// snapshot must not clear a stronger permission observation accepted in flight.
+for(const timestamp of [undefined,null,'bad-time',0,-1,NaN,Infinity]){
+  const tab={id:11,url:'https://chatgpt.com/c/manual-refresh-race',title:'Manual refresh'};
+  let releaseReply;
+  const h=harness({realAttention:true,tabs:[tab],sendTabMessage:async(_id,message)=>{
+    if(message.type==='PC_GET_LIVE_SENTINEL_STATE')return new Promise(resolve=>{releaseReply=()=>resolve({
+      ok:true,source:'live-sentinel',version:'0.25.0',chat:{id:'refresh-doc',url:tab.url,title:tab.title,status:'running'},
+      ...(timestamp===undefined?{}:{observedAt:timestamp})});});
+    return {ok:true};
+  }});await flush();
+  const started=h.now(),work=h.send({type:'PC_MONITOR_REFRESH'});await flush();h.advance(50);
+  await h.context.pcAttentionObserve({sourceId:'local',tabId:11,documentId:'refresh-doc',url:tab.url,title:tab.title,
+    status:'permission_required',authoritative:true,observedAt:h.now()});
+  releaseReply();const response=await work;await flush();
+  const current=await h.context.pcAttentionGet();
+  assert.equal(current.sessions[0].status,'permission_required');
+  assert.equal(current.sessions[0].observedAt,h.now());
+  assert.equal(current.incidents.find(row=>row.kind==='permission_required').resolvedAt,0);
+  if(timestamp===undefined){
+    assert.equal(h.observed.at(-1).observedAt,started);
+    assert.equal(response.monitor.refresh.observed,1);
+  }else{
+    assert.equal(h.observed.length,1,'malformed timestamp cannot become a fresh observation');
+    assert.equal(response.monitor.refresh.observed,0);
+    assert.equal(response.monitor.refresh.rescanRequested,1);
+  }
+}
+
 // Unresponsive content scripts cannot hold the manual refresh indefinitely.
 {
   const h=harness({tabs:[{id:20,url:'https://chatgpt.com/c/hung'}],sendTabMessage:()=>new Promise(()=>{})});await flush();

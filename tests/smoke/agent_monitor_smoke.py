@@ -52,7 +52,7 @@ window.__monitorCalls=[]; window.__monitorEvents=[]; window.__monitorFixture=fix
 // The UI clock is fixed so unchanged nodes are tested independently of labels
 // legitimately changing from e.g. 17s to 18s during a slow hosted run.
 Date.now=()=>FIXTURE_NOW;
-window.chrome={runtime:{id:'monitor-test',getManifest:()=>({version:'0.24.0'}),
+window.chrome={runtime:{id:'monitor-test',getManifest:()=>({version:'0.25.0'}),
 onMessage:{addListener:fn=>__monitorEvents.push(fn)},sendMessage:async m=>{
   __monitorCalls.push(m);
   if(__monitorReadErrors[m.type])throw new Error(__monitorReadErrors[m.type]);
@@ -60,8 +60,8 @@ onMessage:{addListener:fn=>__monitorEvents.push(fn)},sendMessage:async m=>{
   if(m.type==='PC_MONITOR_GET')return {ok:true,monitor:structuredClone(fixture.monitor)};
   if(m.type==='PC_ATTENTION_SETTINGS'||m.type==='PC_MONITOR_ALERT_SETTINGS'){Object.assign(fixture.attention.settings,m.settings);return {ok:true,attention:fixture.attention};}
   if(m.type==='PC_MONITOR_SETTINGS'){Object.assign(fixture.monitor.config,m.settings);return {ok:true,monitor:fixture.monitor};}
-  if(m.type==='PC_MONITOR_ACK')fixture.monitor.snapshot.incidents.find(x=>x.incidentId===m.id).acknowledgedAt=Date.now();
-  if(m.type==='PC_MONITOR_SNOOZE')fixture.monitor.snapshot.incidents.find(x=>x.incidentId===m.id).snoozedUntil=Date.now()+m.minutes*60000;
+  if(m.type==='PC_MONITOR_ACK'){const row=fixture.monitor.snapshot.incidents.find(x=>x.incidentId===m.id);row.acknowledgedAt=Date.now();row.snoozedUntil=0;}
+  if(m.type==='PC_MONITOR_SNOOZE'){const row=fixture.monitor.snapshot.incidents.find(x=>x.incidentId===m.id);row.snoozedUntil=Date.now()+m.minutes*60000;row.acknowledgedAt=0;}
   if(m.type==='PC_ATTENTION_TEST'){fixture.attention.delivery.lastTest={ok:true,at:Date.now(),audio:{ok:true},notification:{ok:true}};return {ok:true,audio:{ok:true},notification:{ok:true}};}
   return {ok:true,monitor:fixture.monitor};
 }},permissions:{request:async()=>true}};
@@ -95,6 +95,7 @@ with sync_playwright() as p:
     page.evaluate('''() => {__monitorFixture.monitor.snapshot.sessions[0].title='INTA · tool library redesign';}''')
     refresh_state();page.select_option("#sortOrder", "attention")
     page.evaluate("document.querySelector('#previewBanner').hidden=false")
+    page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
     page.screenshot(path=str(OUT / "agent-monitor-desktop.png"), full_page=True)
     page.fill("#searchAgents", "noxviola")
     assert page.locator("#sessionList .session").count() == 1
@@ -124,6 +125,33 @@ with sync_playwright() as p:
     assert page.locator("#incidentList .incident").count() == 1
     assert "Athena" in page.locator("#incidentList .incident").inner_text()
     page.select_option("#inboxFilter", "all")
+    # Bulk actions use the same actual UI and structured per-incident routes.
+    # Already acknowledged rows are skipped; both remaining rows are confirmed.
+    page.locator("#selectVisibleIncidents").check()
+    assert "3 selected" in page.locator("#selectionCount").inner_text()
+    page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
+    page.screenshot(path=str(OUT / "agent-monitor-triage.png"), full_page=True)
+    page.locator("#acknowledgeSelected").click()
+    page.wait_for_function("document.querySelector('#bulkResult').textContent.includes('2 acknowledged. 0 not confirmed. 1 not sent or already handled.')")
+    assert "0 selected" in page.locator("#selectionCount").inner_text()
+    page.locator("#selectVisibleIncidents").check()
+    page.select_option("#bulkSnoozeMinutes", "30")
+    page.locator("#snoozeSelected").click()
+    page.wait_for_function("document.querySelector('#bulkResult').textContent.includes('3 snoozed for 30 minutes')")
+    assert page.evaluate("__monitorCalls.filter(m=>m.type==='PC_MONITOR_SNOOZE'&&m.minutes===30).length") == 3
+    page.locator("#selectVisibleIncidents").check()
+    page.fill("#searchAgents", "https://claude.ai/chat/athena")
+    assert page.locator("#incidentList .incident").count() == 1
+    assert "0 selected" in page.locator("#selectionCount").inner_text(), 'A narrowed view cannot keep hidden selections'
+    page.fill("#searchAgents", "")
+    page.select_option("#browserIdentity", "edge")
+    page.fill("#profileLabel", "Unsaved research profile")
+    page.locator("#searchAgents").focus();refresh_state()
+    assert page.locator("#browserIdentity").input_value() == "edge"
+    assert page.locator("#profileLabel").input_value() == "Unsaved research profile"
+    page.locator("#resetProfile").click()
+    assert page.locator("#browserIdentity").input_value() == "chrome"
+    assert page.locator("#profileLabel").input_value() == "Chrome · Work"
     # An already-unavailable incident still permits acknowledgment through a live
     # hub. Losing the hub read must disable that unchanged card's edit controls.
     page.evaluate('''() => {const row=__monitorFixture.monitor.snapshot.sessions[7];__monitorFixture.monitor.snapshot.incidents.push({incidentId:'unavailable-fixture',sessionId:row.sessionId,clientId:row.clientId,documentId:row.documentId,runId:row.runId,title:row.title,url:row.url,kind:'error',reason:'Last known issue before suspension',firstSeenAt:Date.now(),updatedAt:Date.now(),acknowledgedAt:null,snoozedUntil:null,resolvedAt:null});}''')
@@ -173,5 +201,5 @@ with sync_playwright() as p:
     page.screenshot(path=str(OUT / "agent-monitor-mobile.png"), full_page=True)
     assert not errors, errors
     print(json.dumps({"rendered": "built extension monitor", "viewports": [1512, 390], "sessions": 8, "incidents": 3,
-                      "controls": ["search", "browser filter", "status filter", "inbox triage", "cross-browser focus", "acknowledge", "snooze", "test alert", "reminders", "mute", "keyboard search"], "regressions":["unchanged DOM reuse", "focus across row updates and reordering", "unavailable-source action disablement", "failed-read inventory retention", "disconnect/reconnect retention"], "pageErrors": errors}))
+                      "controls": ["search", "browser filter", "status filter", "inbox triage", "cross-browser focus", "acknowledge", "snooze", "select visible", "bulk acknowledge", "bulk snooze", "profile draft reset", "test alert", "reminders", "mute", "keyboard search"], "regressions":["unchanged DOM reuse", "focus across row updates and reordering", "unavailable-source action disablement", "failed-read inventory retention", "disconnect/reconnect retention", "URL search and hidden selection clearing", "profile drafts across live refresh"], "pageErrors": errors}))
     browser.close()

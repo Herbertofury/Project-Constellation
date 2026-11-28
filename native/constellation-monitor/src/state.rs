@@ -4,6 +4,8 @@ use std::collections::{BTreeMap, VecDeque};
 pub const MAX_CLIENTS: usize = 16;
 pub const MAX_SESSIONS: usize = 128;
 pub const MAX_INCIDENTS: usize = 256;
+const MAX_OBSERVATION_AGE_MS: u64 = 24 * 60 * 60 * 1000;
+const MAX_SOURCE_CLOCK_SKEW_MS: u64 = 5 * 60 * 1000;
 pub const BROWSERS: &[&str] = &["chrome", "edge", "opera_gx", "firefox", "chromium"];
 // Keep every provider-core host. The two additional native adapter origins are
 // retained deliberately for compatibility; no wildcard/subdomain matching.
@@ -289,12 +291,64 @@ fn observation_time(event: &Value, now: u64) -> Result<u64, String> {
             .ok_or("observedAt must be an unsigned integer")?,
         None => now,
     };
-    if observed_at > now.saturating_add(5 * 60 * 1000)
-        || observed_at.saturating_add(24 * 60 * 60 * 1000) < now
+    if observed_at > now.saturating_add(MAX_SOURCE_CLOCK_SKEW_MS)
+        || observed_at.saturating_add(MAX_OBSERVATION_AGE_MS) < now
     {
         return Err("observedAt is outside the accepted clock range".into());
     }
     Ok(observed_at)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ClosedContext {
+    document_id: Option<String>,
+    run_id: Option<String>,
+    url: Option<String>,
+}
+
+impl ClosedContext {
+    fn from_session(session: &Session) -> Self {
+        Self {
+            document_id: Some(session.document_id.clone()),
+            run_id: Some(session.run_id.clone()),
+            url: Some(session.url.clone()),
+        }
+    }
+
+    fn matches(&self, session: &Session) -> bool {
+        self.document_id
+            .as_ref()
+            .is_none_or(|id| id == &session.document_id)
+            && self.run_id.as_ref().is_none_or(|id| id == &session.run_id)
+            && self.url.as_ref().is_none_or(|url| url == &session.url)
+    }
+
+    fn json(&self) -> Value {
+        json!({"documentId":self.document_id,"runId":self.run_id,"url":self.url})
+    }
+}
+
+#[derive(Clone, Debug)]
+struct ClosureFence {
+    client_id: String,
+    tab_id: u64,
+    observed_at: u64,
+    // Several documents may close within one clock tick. Retaining each
+    // context prevents an equal-time replay while allowing a new document.
+    contexts: Vec<ClosedContext>,
+}
+
+impl ClosureFence {
+    fn rejects(&self, session: &Session) -> bool {
+        session.observed_at < self.observed_at
+            || (session.observed_at == self.observed_at
+                && self.contexts.iter().any(|context| context.matches(session)))
+    }
+
+    fn json(&self) -> Value {
+        json!({"clientId":self.client_id,"tabId":self.tab_id,"observedAt":self.observed_at,
+            "contexts":self.contexts.iter().map(ClosedContext::json).collect::<Vec<_>>()})
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -335,6 +389,10 @@ pub struct Store {
     updated_at: u64,
     next_incident: u64,
     alert_settings: Option<AlertSettings>,
+    // Source-authoritative closures remain ordered after the public session
+    // disappears. These private records share the existing durable-state byte
+    // limit; they do not consume session/history slots or enlarge wire frames.
+    closures: BTreeMap<String, ClosureFence>,
     // Transaction-local ordering changes need durability without changing the
     // public evidence revision or broadcasting/re-alerting an existing issue.
     ordering_serial: u64,
@@ -345,8 +403,15 @@ impl Store {
         self.revision != previous.revision || self.ordering_serial != previous.ordering_serial
     }
     fn changed(&mut self, now: u64) {
+        self.prune_closures(now);
         self.revision = self.revision.saturating_add(1);
         self.updated_at = now;
+    }
+    fn prune_closures(&mut self, now: u64) {
+        // Equality is still a valid incoming observation. Only discard a
+        // fence when every event it rejects is outside the accepted window.
+        self.closures
+            .retain(|_, fence| fence.observed_at.saturating_add(MAX_OBSERVATION_AGE_MS) >= now);
     }
     pub fn hello_with_alert_settings(
         &mut self,
@@ -431,17 +496,20 @@ impl Store {
         Ok(id)
     }
     fn evict_client(&mut self, id: &str, now: u64) {
-        let ids: Vec<String> = self
+        let tabs: Vec<(u64, u64)> = self
             .sessions
             .values()
             .filter(|s| s.client_id == id)
-            .map(|s| s.id.clone())
+            .map(|s| (s.tab_id, s.observed_at))
             .collect();
-        for session_id in ids {
-            self.resolve(&session_id, now);
-            self.sessions.remove(&session_id);
+        for (tab, observed_at) in tabs {
+            // Retirement is not a new provider observation. Keep its existing
+            // source watermark without inventing a receive-time source clock.
+            self.remove_at(id, tab, observed_at, now);
         }
         self.clients.remove(id);
+        // An authenticated transport can later re-register this identity.
+        // Public client retirement must not forget still-valid closure order.
     }
     pub fn disconnect(&mut self, id: &str, now: u64) {
         let Some(client) = self.clients.get_mut(id) else {
@@ -470,6 +538,77 @@ impl Store {
     }
     pub fn remove(&mut self, client_id: &str, tab: u64, now: u64) -> bool {
         let id = format!("{client_id}:{tab}");
+        let previous = self.sessions.get(&id);
+        let observed_at = previous.map_or(now, |session| now.max(session.observed_at));
+        self.remove_at(client_id, tab, observed_at, now)
+    }
+    pub fn remove_observed(
+        &mut self,
+        client_id: &str,
+        input: &Value,
+        now: u64,
+    ) -> Result<bool, String> {
+        let tab = tab_id(input)?;
+        if input.get("observedAt").is_none() {
+            // Protocol-one callers without a source timestamp retain the
+            // original authoritative receive-time removal behavior.
+            return Ok(self.remove(client_id, tab, now));
+        }
+        let observed_at = observation_time(input, now)?;
+        Ok(self.remove_at(client_id, tab, observed_at, now))
+    }
+    fn remove_at(&mut self, client_id: &str, tab: u64, observed_at: u64, now: u64) -> bool {
+        let id = format!("{client_id}:{tab}");
+        let previous = self.sessions.get(&id);
+        if previous.is_some_and(|session| observed_at < session.observed_at) {
+            return false;
+        }
+        let context = previous.map_or(
+            ClosedContext {
+                document_id: None,
+                run_id: None,
+                url: None,
+            },
+            ClosedContext::from_session,
+        );
+        self.close_session(client_id, tab, observed_at, context, now)
+    }
+    fn close_session(
+        &mut self,
+        client_id: &str,
+        tab: u64,
+        observed_at: u64,
+        context: ClosedContext,
+        now: u64,
+    ) -> bool {
+        let id = format!("{client_id}:{tab}");
+        self.prune_closures(now);
+        let changed = match self.closures.get_mut(&id) {
+            Some(fence) if fence.observed_at > observed_at => false,
+            Some(fence) if fence.observed_at == observed_at => {
+                if fence.contexts.contains(&context) {
+                    false
+                } else {
+                    fence.contexts.push(context);
+                    true
+                }
+            }
+            _ => {
+                self.closures.insert(
+                    id.clone(),
+                    ClosureFence {
+                        client_id: client_id.into(),
+                        tab_id: tab,
+                        observed_at,
+                        contexts: vec![context],
+                    },
+                );
+                true
+            }
+        };
+        if changed {
+            self.ordering_serial = self.ordering_serial.wrapping_add(1);
+        }
         if self.sessions.remove(&id).is_some() {
             self.resolve(&id, now);
             self.changed(now);
@@ -499,24 +638,31 @@ impl Store {
                 .get("url")
                 .map(|_| chat_url(&text(input, "url", 2048, false)?))
                 .transpose()?;
-            let Some(previous) = self.sessions.get(&format!("{client_id}:{tab}")) else {
-                return Ok(false);
+            let context = ClosedContext {
+                document_id: document,
+                run_id: run,
+                url,
             };
+            let previous = self.sessions.get(&format!("{client_id}:{tab}"));
             // A document closure can arrive after navigation or newer evidence.
             // Preserve its context all the way from the browser; only explicit
             // tab removal uses the separate, intentionally unscoped remove op.
-            if observed_at < previous.observed_at
-                || document
-                    .as_ref()
-                    .is_some_and(|id| id != &previous.document_id)
-                || run.as_ref().is_some_and(|id| id != &previous.run_id)
-                || url.as_ref().is_some_and(|url| url != &previous.url)
-            {
+            if previous.is_some_and(|previous| {
+                observed_at < previous.observed_at || !context.matches(previous)
+            }) {
                 return Ok(false);
             }
-            return Ok(self.remove(client_id, tab, now));
+            let context = previous.map(ClosedContext::from_session).unwrap_or(context);
+            return Ok(self.close_session(client_id, tab, observed_at, context, now));
         }
         let session = Session::parse(client, input, now)?;
+        if self
+            .closures
+            .get(&session.id)
+            .is_some_and(|fence| fence.rejects(&session))
+        {
+            return Ok(false);
+        }
         if let Some(previous) = self.sessions.get_mut(&session.id) {
             // Drop stale in-flight observations after a newer event from the same document.
             if session.observed_at < previous.observed_at {
@@ -531,6 +677,7 @@ impl Store {
                 // remain read-only and do not repeat the durable write.
                 if previous.observed_at != session.observed_at {
                     previous.observed_at = session.observed_at;
+                    self.closures.remove(&session.id);
                     self.ordering_serial = self.ordering_serial.wrapping_add(1);
                 }
                 return Ok(false);
@@ -541,10 +688,9 @@ impl Store {
                 .values()
                 .filter(|s| !s.connected)
                 .min_by_key(|s| s.updated_at)
-                .map(|s| s.id.clone())
+                .map(|s| (s.client_id.clone(), s.tab_id, s.observed_at))
             {
-                self.resolve(&oldest, now);
-                self.sessions.remove(&oldest);
+                self.remove_at(&oldest.0, oldest.1, oldest.2, now);
             } else {
                 return Err("live session capacity reached".into());
             }
@@ -621,6 +767,13 @@ impl Store {
         if let Some(client) = self.clients.get_mut(client_id) {
             client.updated_at = now;
         }
+        if self
+            .closures
+            .get(&session.id)
+            .is_some_and(|fence| session.observed_at > fence.observed_at)
+        {
+            self.closures.remove(&session.id);
+        }
         self.sessions.insert(session.id.clone(), session);
         self.changed(now);
         Ok(true)
@@ -678,6 +831,16 @@ impl Store {
             "incidents":self.incidents.iter().map(Incident::json).collect::<Vec<_>>(),
             "limits":{"clients":MAX_CLIENTS,"sessions":MAX_SESSIONS,"incidents":MAX_INCIDENTS},
             "capabilities":{"focus":true,"sharedAlertSettings":true,"consentAutomation":false,"externalNetwork":false}})
+    }
+    pub(crate) fn persisted_snapshot(&self) -> Value {
+        let mut value = self.snapshot();
+        value["closureFences"] = json!(
+            self.closures
+                .values()
+                .map(ClosureFence::json)
+                .collect::<Vec<_>>()
+        );
+        value
     }
     pub fn restore(value: &Value, now: u64) -> Result<Self, String> {
         if value.get("protocolVersion").and_then(Value::as_u64) != Some(1) {
@@ -740,13 +903,80 @@ impl Store {
                 // Live observations permit this source-clock skew. Clamping
                 // to now after a restart would forget an accepted watermark
                 // and allow an older in-flight clearance to resolve the issue.
-                .min(now.saturating_add(5 * 60 * 1000));
+                .min(now.saturating_add(MAX_SOURCE_CLOCK_SKEW_MS));
             session.updated_at = value
                 .get("updatedAt")
                 .and_then(Value::as_u64)
                 .unwrap_or(now)
                 .min(now);
             store.sessions.insert(session.id.clone(), session);
+        }
+        if let Some(value) = value.get("closureFences") {
+            let fences = value
+                .as_array()
+                .ok_or("saved closure fences must be an array")?;
+            for value in fences {
+                let client_id = text(value, "clientId", 200, false)?;
+                let parts: Vec<_> = client_id.split(':').collect();
+                if parts.len() != 3 {
+                    return Err("invalid saved closure client identity".into());
+                }
+                Client::parse(
+                    &json!({"browser":parts[0],"profileId":parts[1],"instanceId":parts[2]}),
+                    now,
+                )?;
+                let tab_id = tab_id(value)?;
+                let observed_at = value
+                    .get("observedAt")
+                    .and_then(Value::as_u64)
+                    .ok_or("saved closure time must be an unsigned integer")?;
+                if observed_at > now.saturating_add(MAX_SOURCE_CLOCK_SKEW_MS) {
+                    return Err("saved closure time is outside the accepted clock range".into());
+                }
+                let values = value
+                    .get("contexts")
+                    .and_then(Value::as_array)
+                    .filter(|values| !values.is_empty())
+                    .ok_or("saved closure contexts are missing")?;
+                let mut contexts = Vec::new();
+                for value in values {
+                    if !value.is_object() {
+                        return Err("saved closure context must be an object".into());
+                    }
+                    let optional = |name, max| {
+                        value
+                            .get(name)
+                            .filter(|value| !value.is_null())
+                            .map(|_| text(value, name, max, true))
+                            .transpose()
+                    };
+                    let context = ClosedContext {
+                        document_id: optional("documentId", 80)?,
+                        run_id: optional("runId", 80)?,
+                        url: optional("url", 384)?
+                            .map(|url| chat_url(&url))
+                            .transpose()?,
+                    };
+                    if contexts.contains(&context) {
+                        return Err("duplicate saved closure context".into());
+                    }
+                    contexts.push(context);
+                }
+                let fence = ClosureFence {
+                    client_id: client_id.clone(),
+                    tab_id,
+                    observed_at,
+                    contexts,
+                };
+                if store
+                    .closures
+                    .insert(format!("{client_id}:{tab_id}"), fence)
+                    .is_some()
+                {
+                    return Err("duplicate saved closure fence".into());
+                }
+            }
+            store.prune_closures(now);
         }
         for value in incidents {
             let id = identifier(value, "incidentId")?;
@@ -1085,6 +1315,256 @@ mod tests {
         assert!(store.sessions.is_empty());
         assert_eq!(store.incidents[0].resolved_at, Some(1015));
         assert_eq!(store.incidents[0].acknowledged_at, Some(1011));
+    }
+
+    #[test]
+    fn accepted_removal_rejects_replayed_evidence_without_blocking_new_documents() {
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), 1000).unwrap();
+        store.observe(&client, &event("error", 1010), 1010).unwrap();
+        store.acknowledge("incident-1", 1011).unwrap();
+        assert!(store.remove(&client, 3, 1020));
+        let closed = store.snapshot();
+        for status in ["error", "running", "suspended"] {
+            assert!(!store.observe(&client, &event(status, 1015), 1021).unwrap());
+            assert!(!store.observe(&client, &event(status, 1020), 1021).unwrap());
+            assert_eq!(store.snapshot(), closed);
+        }
+        let mut next = event("permission_required", 1020);
+        next["documentId"] = json!("new-document");
+        assert!(store.observe(&client, &next, 1021).unwrap());
+        assert_eq!(
+            store.sessions[&format!("{client}:3")].document_id,
+            "new-document"
+        );
+        assert_eq!(store.incidents.len(), 2);
+        assert_eq!(store.incidents[0].acknowledged_at, Some(1011));
+        assert_eq!(store.incidents[0].resolved_at, Some(1020));
+    }
+
+    #[test]
+    fn closure_before_first_evidence_is_ordered_and_disconnection_is_not_closure() {
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), 1000).unwrap();
+        assert!(
+            !store
+                .observe(&client, &event("closed", 1020), 1021)
+                .unwrap()
+        );
+        assert!(!store.observe(&client, &event("error", 1010), 1022).unwrap());
+        assert!(store.sessions.is_empty());
+        assert!(store.incidents.is_empty());
+        assert!(store.observe(&client, &event("error", 1030), 1030).unwrap());
+        store.disconnect(&client, 1031);
+        store.hello(&hello("chrome"), 1032).unwrap();
+        assert!(store.observe(&client, &event("error", 1030), 1032).unwrap());
+        assert_eq!(store.incidents.len(), 1);
+        assert_eq!(store.incidents[0].resolved_at, None);
+    }
+
+    #[test]
+    fn closure_fences_restore_privately_preserve_equal_time_contexts_and_expire_safely() {
+        let clock = 1_800_000_000_000;
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), clock).unwrap();
+        let other = store.hello(&hello("firefox"), clock).unwrap();
+        let mut first = event("closed", clock + 60_000);
+        assert!(!store.observe(&client, &first, clock).unwrap());
+        let mut second = event("error", clock + 60_000);
+        second["documentId"] = json!("second");
+        assert!(store.observe(&client, &second, clock).unwrap());
+        second["status"] = json!("closed");
+        assert!(store.observe(&client, &second, clock).unwrap());
+        assert!(store.snapshot().get("closureFences").is_none());
+        let saved = store.persisted_snapshot();
+        assert_eq!(
+            saved["closureFences"][0]["contexts"]
+                .as_array()
+                .unwrap()
+                .len(),
+            2
+        );
+        let mut restored = Store::restore(&saved, clock + 1).unwrap();
+        restored.hello(&hello("chrome"), clock + 2).unwrap();
+        restored.hello(&hello("firefox"), clock + 2).unwrap();
+        first["status"] = json!("error");
+        second["status"] = json!("error");
+        assert!(!restored.observe(&client, &first, clock + 2).unwrap());
+        assert!(!restored.observe(&client, &second, clock + 2).unwrap());
+        assert!(restored.observe(&other, &first, clock + 2).unwrap());
+        let mut unrelated_tab = first.clone();
+        unrelated_tab["tabId"] = json!(4);
+        unrelated_tab["observedAt"] = json!(clock);
+        assert!(
+            restored
+                .observe(&client, &unrelated_tab, clock + 2)
+                .unwrap()
+        );
+
+        // The oldest accepted timestamp is inclusive. A save at that exact
+        // boundary must keep the fence, including through another restart.
+        let expiry = clock + 60_000 + MAX_OBSERVATION_AGE_MS;
+        restored
+            .set_alert_settings(&json!({"volume":0.3}), false, expiry)
+            .unwrap();
+        let mut boundary = Store::restore(&restored.persisted_snapshot(), expiry).unwrap();
+        boundary.hello(&hello("chrome"), expiry).unwrap();
+        assert!(!boundary.observe(&client, &first, expiry).unwrap());
+        assert_eq!(
+            boundary.persisted_snapshot()["closureFences"]
+                .as_array()
+                .unwrap()
+                .len(),
+            1
+        );
+        boundary
+            .set_alert_settings(&json!({"volume":0.4}), false, expiry + 1)
+            .unwrap();
+        assert!(
+            boundary.persisted_snapshot()["closureFences"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
+        assert!(boundary.observe(&client, &first, expiry + 1).is_err());
+        first["observedAt"] = json!(expiry + 1);
+        assert!(boundary.observe(&client, &first, expiry + 1).unwrap());
+        assert_eq!(
+            boundary.snapshot()["limits"],
+            json!({"clients":16,"sessions":128,"incidents":256})
+        );
+    }
+
+    #[test]
+    fn closure_metadata_requires_durability_but_exact_retries_are_read_only() {
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), 1000).unwrap();
+        let before = store.clone();
+        assert!(
+            !store
+                .observe(&client, &event("closed", 1010), 1011)
+                .unwrap()
+        );
+        assert!(store.needs_persistence_since(&before));
+        assert_eq!(store.snapshot(), before.snapshot());
+        let saved = store.clone();
+        assert!(
+            !store
+                .observe(&client, &event("closed", 1010), 1012)
+                .unwrap()
+        );
+        assert!(!store.needs_persistence_since(&saved));
+        assert_eq!(store.persisted_snapshot(), saved.persisted_snapshot());
+        let mut next = event("error", 1010);
+        next["documentId"] = json!("new");
+        assert!(store.observe(&client, &next, 1012).unwrap());
+        next["observedAt"] = json!(1013);
+        assert!(!store.observe(&client, &next, 1013).unwrap());
+        assert!(
+            store.persisted_snapshot()["closureFences"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
+        assert!(!store.observe(&client, &event("error", 1010), 1014).unwrap());
+        // Version-one snapshots without the new private field still load.
+        assert!(Store::restore(&store.snapshot(), 1015).is_ok());
+        let mut invalid = saved.persisted_snapshot();
+        invalid["closureFences"][0]["contexts"] = json!([]);
+        assert!(Store::restore(&invalid, 1015).is_err());
+        invalid = saved.persisted_snapshot();
+        invalid["closureFences"][0]["observedAt"] = json!("unknown");
+        assert!(Store::restore(&invalid, 1015).is_err());
+        invalid["closureFences"][0]["observedAt"] = json!(u64::MAX);
+        assert!(Store::restore(&invalid, 1015).is_err());
+    }
+
+    #[test]
+    fn client_retirement_and_capacity_eviction_do_not_forget_unexpired_closures() {
+        for capacity_eviction in [false, true] {
+            for active_before_retirement in [false, true] {
+                let mut store = Store::default();
+                let client = store.hello(&hello("chrome"), 1000).unwrap();
+                store
+                    .observe(
+                        &client,
+                        &event(
+                            if active_before_retirement {
+                                "error"
+                            } else {
+                                "closed"
+                            },
+                            1010,
+                        ),
+                        1010,
+                    )
+                    .unwrap();
+                store.disconnect(&client, 1011);
+                if capacity_eviction {
+                    for number in 0..MAX_CLIENTS {
+                        store
+                            .hello(
+                                &json!({"browser":"firefox","profileId":format!("profile-{number}"),
+                        "instanceId":"session"}),
+                                1012,
+                            )
+                            .unwrap();
+                    }
+                } else {
+                    let mut replacement = hello("chrome");
+                    replacement["instanceId"] = json!("replacement");
+                    store.hello(&replacement, 1012).unwrap();
+                }
+                assert!(!store.clients.contains_key(&client));
+                let mut restored = Store::restore(&store.persisted_snapshot(), 1013).unwrap();
+                restored.hello(&hello("chrome"), 1014).unwrap();
+                assert!(
+                    !restored
+                        .observe(&client, &event("error", 1010), 1014)
+                        .unwrap()
+                );
+                assert!(restored.sessions.is_empty());
+                if active_before_retirement {
+                    assert_eq!(restored.incidents.len(), 1);
+                    assert_eq!(restored.incidents[0].resolved_at, Some(1012));
+                } else {
+                    assert!(restored.incidents.is_empty());
+                }
+                assert!(
+                    restored
+                        .observe(&client, &event("error", 1015), 1015)
+                        .unwrap()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn offline_session_capacity_retirement_retains_ordering_without_a_new_session_limit() {
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), 1000).unwrap();
+        for tab in 0..MAX_SESSIONS {
+            let mut row = event("idle", 1010);
+            row["tabId"] = json!(tab);
+            store.observe(&client, &row, 1010).unwrap();
+        }
+        store.disconnect(&client, 1011);
+        let other = store.hello(&hello("firefox"), 1012).unwrap();
+        store.observe(&other, &event("error", 1013), 1013).unwrap();
+        assert_eq!(store.sessions.len(), MAX_SESSIONS);
+        let retired = store.persisted_snapshot()["closureFences"][0]["tabId"]
+            .as_u64()
+            .unwrap();
+        store.hello(&hello("chrome"), 1014).unwrap();
+        let mut late = event("error", 1010);
+        late["tabId"] = json!(retired);
+        let before = store.snapshot();
+        assert!(!store.observe(&client, &late, 1014).unwrap());
+        assert_eq!(store.snapshot(), before);
+        late["documentId"] = json!("new-document");
+        late["observedAt"] = json!(1011);
+        assert!(store.observe(&client, &late, 1014).unwrap());
+        assert_eq!(store.sessions.len(), MAX_SESSIONS);
     }
 
     #[test]

@@ -181,6 +181,31 @@ impl Runtime {
         )
         .unwrap()
     }
+    fn start_daemon(&self) -> Child {
+        let mut daemon = Command::new(env!("CARGO_BIN_EXE_constellation-monitor"))
+            .arg("daemon")
+            .arg("--data-dir")
+            .arg(&self.directory)
+            .env("CONSTELLATION_IDLE_GRACE_MS", "5000")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::inherit())
+            .spawn()
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(4);
+        while !self.directory.join("endpoint.json").exists() {
+            assert!(
+                daemon.try_wait().unwrap().is_none(),
+                "broker exited during startup"
+            );
+            assert!(
+                Instant::now() < deadline,
+                "broker did not publish its endpoint"
+            );
+            thread::sleep(Duration::from_millis(10));
+        }
+        daemon
+    }
     fn wait_stopped(&self) {
         let end = Instant::now() + Duration::from_secs(5);
         loop {
@@ -655,6 +680,252 @@ fn duplicate_ordering_write_failure_rolls_back_and_can_be_retried() {
 }
 
 #[test]
+fn accepted_closures_survive_abrupt_restart_and_do_not_block_other_browser_or_new_document() {
+    let runtime = Runtime::new();
+    let mut daemon = runtime.start_daemon();
+    let mut chrome = Sensor::new(&runtime);
+    chrome.hello("chrome");
+    let mut firefox = Sensor::new(&runtime);
+    firefox.hello("firefox");
+    let now = now_ms();
+    let mut event = json!({"tabId":42,"documentId":"original","runId":"run",
+        "url":"https://chatgpt.com/c/closure","status":"error","observedAt":now+60_000});
+    chrome.send(json!({"v":1,"id":"initial","op":"observe","event":event}));
+    assert_eq!(chrome.response("initial")["ok"], true);
+    chrome.send(json!({"v":1,"id":"ack","op":"ack","incidentId":"incident-1"}));
+    assert_eq!(chrome.response("ack")["ok"], true);
+    chrome.send(json!({"v":1,"id":"remove","op":"remove","tabId":42}));
+    assert_eq!(chrome.response("remove")["data"]["changed"], true);
+    event["tabId"] = json!(43);
+    event["status"] = json!("closed");
+    chrome.send(json!({"v":1,"id":"unseen-close","op":"observe","event":event}));
+    let response = chrome.response("unseen-close");
+    assert_eq!(response["ok"], true);
+    assert_eq!(response["data"]["changed"], false);
+    let saved: Value = serde_json::from_slice(
+        &platform::read_private(&runtime.directory.join("state.json"), 1_000_000).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(saved["closureFences"].as_array().unwrap().len(), 2);
+    assert_eq!(saved["closureFences"][0]["observedAt"], now + 60_000);
+    assert!(chrome.snapshot().get("closureFences").is_none());
+    daemon.kill().unwrap();
+    daemon.wait().unwrap();
+    chrome.close_pipe();
+    firefox.close_pipe();
+
+    let mut reopened = Sensor::new(&runtime);
+    reopened.hello("chrome");
+    for tab in [42, 43] {
+        event["tabId"] = json!(tab);
+        event["status"] = json!("error");
+        for timestamp in [now + 30_000, now + 60_000] {
+            event["observedAt"] = json!(timestamp);
+            reopened.send(json!({"v":1,"id":"replay","op":"observe","event":event}));
+            let response = reopened.response("replay");
+            assert_eq!(response["ok"], true);
+            assert_eq!(response["data"]["changed"], false);
+        }
+    }
+    let closed = reopened.snapshot();
+    assert!(closed["sessions"].as_array().unwrap().is_empty());
+    assert_eq!(closed["incidents"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        closed["incidents"][0]["acknowledgedAt"],
+        saved["incidents"][0]["acknowledgedAt"]
+    );
+    assert_eq!(
+        closed["incidents"][0]["resolvedAt"],
+        saved["incidents"][0]["resolvedAt"]
+    );
+    let mut other = Sensor::new(&runtime);
+    other.hello("firefox");
+    event["tabId"] = json!(42);
+    other.send(json!({"v":1,"id":"other","op":"observe","event":event}));
+    assert_eq!(other.response("other")["data"]["changed"], true);
+    event["documentId"] = json!("new-document");
+    reopened.send(json!({"v":1,"id":"new","op":"observe","event":event}));
+    assert_eq!(reopened.response("new")["data"]["changed"], true);
+    let final_state = reopened.snapshot();
+    assert_eq!(final_state["sessions"].as_array().unwrap().len(), 2);
+    assert_eq!(final_state["incidents"].as_array().unwrap().len(), 3);
+}
+
+#[test]
+fn source_timed_removal_allows_a_new_document_observed_before_delayed_broker_delivery() {
+    let runtime = Runtime::new();
+    let mut sensor = Sensor::new(&runtime);
+    sensor.hello("chrome");
+    let source = now_ms() - 1000;
+    let mut event = json!({"tabId":42,"documentId":"before","runId":"run",
+        "url":"https://chatgpt.com/c/source-time","status":"error","observedAt":source});
+    sensor.send(json!({"v":1,"id":"initial","op":"observe","event":event}));
+    assert_eq!(sensor.response("initial")["ok"], true);
+    sensor.send(json!({"v":1,"id":"remove","op":"remove","tabId":42,"observedAt":source+100}));
+    assert_eq!(sensor.response("remove")["data"]["changed"], true);
+    event["documentId"] = json!("new-document");
+    event["observedAt"] = json!(source + 101);
+    sensor.send(json!({"v":1,"id":"new-document","op":"observe","event":event}));
+    assert_eq!(
+        sensor.response("new-document")["data"]["changed"],
+        true,
+        "broker receive time must not turn a later source document into stale evidence"
+    );
+    let before = sensor.snapshot();
+    for timestamp in [
+        json!(source + 100),
+        json!("invalid"),
+        json!(now_ms() + 600_000),
+    ] {
+        sensor
+            .send(json!({"v":1,"id":"bad-remove","op":"remove","tabId":42,"observedAt":timestamp}));
+        let response = sensor.response("bad-remove");
+        if timestamp.is_string() || timestamp.as_u64().unwrap() > now_ms() + 300_000 {
+            assert_eq!(response["error"]["code"], "invalid_request");
+        } else {
+            assert_eq!(response["data"]["changed"], false);
+        }
+    }
+    let after = sensor.snapshot();
+    assert_eq!(after["revision"], before["revision"]);
+    assert_eq!(after["sessions"], before["sessions"]);
+    assert_eq!(after["incidents"], before["incidents"]);
+}
+
+#[test]
+fn closure_write_failure_rolls_back_visible_and_private_state_and_exact_retry_needs_no_write() {
+    let runtime = Runtime::new();
+    let mut sensor = Sensor::new(&runtime);
+    sensor.hello("chrome");
+    sensor.observe("error");
+    let before = sensor.snapshot();
+    let state_path = runtime.directory.join("state.json");
+    let saved_path = runtime.directory.join("saved-state.json");
+    fs::rename(&state_path, &saved_path).unwrap();
+    fs::create_dir(&state_path).unwrap();
+    sensor.send(json!({"v":1,"id":"failed-remove","op":"remove","tabId":42}));
+    assert_eq!(
+        sensor.response("failed-remove")["error"]["code"],
+        "persistence_failed"
+    );
+    let event = json!({"tabId":43,"documentId":"unseen","status":"closed","observedAt":now_ms()});
+    sensor.send(json!({"v":1,"id":"failed-unseen","op":"observe","event":event}));
+    assert_eq!(
+        sensor.response("failed-unseen")["error"]["code"],
+        "persistence_failed"
+    );
+    let after = sensor.snapshot();
+    assert_eq!(after["revision"], before["revision"]);
+    assert_eq!(after["sessions"], before["sessions"]);
+    assert_eq!(after["incidents"], before["incidents"]);
+    fs::remove_dir(&state_path).unwrap();
+    fs::rename(&saved_path, &state_path).unwrap();
+    sensor.send(json!({"v":1,"id":"retry-unseen","op":"observe","event":event}));
+    assert_eq!(sensor.response("retry-unseen")["ok"], true);
+    let saved: Value =
+        serde_json::from_slice(&platform::read_private(&state_path, 1_000_000).unwrap()).unwrap();
+    assert_eq!(saved["closureFences"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        saved["closureFences"][0]["tabId"], 43,
+        "failed removal left no private fence"
+    );
+    fs::rename(&state_path, &saved_path).unwrap();
+    fs::create_dir(&state_path).unwrap();
+    sensor.send(json!({"v":1,"id":"exact-close","op":"observe","event":event}));
+    let response = sensor.response("exact-close");
+    assert_eq!(
+        response["ok"], true,
+        "an exact durable closure retry must be read-only"
+    );
+    assert_eq!(response["data"]["changed"], false);
+    fs::remove_dir(&state_path).unwrap();
+    fs::rename(&saved_path, &state_path).unwrap();
+}
+
+#[test]
+fn closure_growth_obeys_existing_storage_limit_without_evicting_history_or_forgetting_fences() {
+    let runtime = Runtime::new();
+    platform::secure_directory(&runtime.directory).unwrap();
+    let now = now_ms();
+    let mut store = constellation_monitor::state::Store::default();
+    let client = store
+        .hello(
+            &json!({"browser":"chrome","profileId":"work","instanceId":"session"}),
+            now,
+        )
+        .unwrap();
+    let mut seed = store.snapshot();
+    seed["closureFences"] = json!([]);
+    let mut bytes = serde_json::to_vec(&seed).unwrap().len();
+    let mut fences = Vec::new();
+    for tab in 0..10_000 {
+        let fence = json!({"clientId":client,"tabId":tab,"observedAt":now,
+            "contexts":[{"documentId":null,"runId":null,"url":null}]});
+        let additional =
+            serde_json::to_vec(&fence).unwrap().len() + usize::from(!fences.is_empty());
+        if bytes + additional > constellation_monitor::wire::MAX_FRAME - 300 {
+            break;
+        }
+        bytes += additional;
+        fences.push(fence);
+    }
+    let retained = fences.len();
+    seed["closureFences"] = json!(fences);
+    let seed = serde_json::to_vec(&seed).unwrap();
+    assert_eq!(seed.len(), bytes);
+    assert!(
+        retained > 1000,
+        "exercise private metadata beyond the public history capacity"
+    );
+    let state_path = runtime.directory.join("state.json");
+    platform::atomic_write(&state_path, &seed).unwrap();
+    let mut sensor = Sensor::new(&runtime);
+    sensor.hello("chrome");
+    let before = sensor.snapshot();
+    let before_bytes = platform::read_private(&state_path, 1_000_000).unwrap();
+    let event = json!({"tabId":20_000,"status":"closed","documentId":"d".repeat(80),
+        "runId":"r".repeat(80),"url":format!("https://chatgpt.com/{}", "x".repeat(384 - "https://chatgpt.com/".len())),"observedAt":now});
+    sensor.send(json!({"v":1,"id":"full","op":"observe","event":event}));
+    let response = sensor.response("full");
+    assert_eq!(
+        response["error"]["code"], "persistence_failed",
+        "{response}"
+    );
+    let after = sensor.snapshot();
+    assert_eq!(after["revision"], before["revision"]);
+    assert_eq!(after["sessions"], before["sessions"]);
+    assert_eq!(after["incidents"], before["incidents"]);
+    assert_eq!(after["limits"], before["limits"]);
+    assert_eq!(after["health"]["persistence"], "error");
+    assert_eq!(
+        platform::read_private(&state_path, 1_000_000).unwrap(),
+        before_bytes
+    );
+    // A smaller legitimate record still fits. If failed growth survived in
+    // memory, this retry would either keep its context or fail the same bound.
+    sensor.send(json!({"v":1,"id":"small","op":"observe","event":{
+        "tabId":20_000,"status":"closed","observedAt":now}}));
+    assert_eq!(sensor.response("small")["ok"], true);
+    let saved: Value =
+        serde_json::from_slice(&platform::read_private(&state_path, 1_000_000).unwrap()).unwrap();
+    assert_eq!(
+        saved["closureFences"].as_array().unwrap().len(),
+        retained + 1
+    );
+    let newest = saved["closureFences"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["tabId"] == 20_000)
+        .unwrap();
+    assert_eq!(
+        newest["contexts"],
+        json!([{"documentId":null,"runId":null,"url":null}])
+    );
+    assert_eq!(sensor.snapshot()["health"]["persistence"], "ok");
+}
+
+#[test]
 fn follower_alert_settings_merge_broadcast_and_survive_broker_restart() {
     let runtime = Runtime::new();
     let mut chrome = Sensor::new(&runtime);
@@ -764,8 +1035,21 @@ fn reconnect_in_grace_cancels_the_old_deadline_without_a_new_broker() {
     first.hello("chrome");
     let pid = runtime.endpoint()["pid"].clone();
     first.close_pipe();
-    let idle = broker::admin_request(&runtime.directory, "snapshot").unwrap();
-    assert_eq!(idle["data"]["health"]["lifecycle"]["state"], "idle_grace");
+    // Native EOF exits the child before the broker necessarily finishes its
+    // disconnect persistence and writer cleanup, then releases the lease.
+    let idle_deadline = Instant::now() + Duration::from_secs(3);
+    loop {
+        let idle = broker::admin_request(&runtime.directory, "snapshot").unwrap();
+        let lifecycle = &idle["data"]["health"]["lifecycle"];
+        if lifecycle["state"] == "idle_grace" && lifecycle["connectedNativeHosts"] == 0 {
+            break;
+        }
+        assert!(
+            Instant::now() < idle_deadline,
+            "broker did not release its last native lease after EOF: {idle}"
+        );
+        thread::sleep(Duration::from_millis(10));
+    }
     let mut reconnected = Sensor::new(&runtime);
     reconnected.hello("chrome");
     thread::sleep(Duration::from_millis(runtime.idle_grace_ms + 100));

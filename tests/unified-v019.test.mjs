@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const manifest=JSON.parse(fs.readFileSync('extension/manifest.json','utf8'));
-assert.equal(manifest.version,'0.24.0');
+assert.equal(manifest.version,'0.25.0');
 assert.ok(manifest.host_permissions.includes('http://127.0.0.1:47721/*'));
 assert.ok(manifest.content_scripts.some(x=>x.js?.includes('src/local-work-page-hook.js')&&x.world==='MAIN'));
 assert.ok(manifest.content_scripts.some(x=>x.js?.includes('src/local-work-content.js')&&x.js?.includes('src/scheduled-task-recovery-page.js')));
@@ -10,7 +10,7 @@ assert.match(entry,/local-work-controller\.js/); assert.match(entry,/scheduled-t
 const bridge=fs.readFileSync('desktop/src/browser-bridge.mjs','utf8');
 assert.match(bridge,/geljambmkfjkhodgkpjhnmfojkpcamig/); assert.doesNotMatch(bridge,/khfbmdpkpnaghpfnacidbjfaaikfmanh/);
 const pkg=JSON.parse(fs.readFileSync('desktop/package.json','utf8'));
-assert.equal(pkg.version,'0.24.0'); assert.equal(pkg.build.productName,'Project Constellation');
+assert.equal(pkg.version,'0.25.0'); assert.equal(pkg.build.productName,'Project Constellation');
 const companionDir='desktop/browser-companion';
 assert.ok(fs.existsSync(companionDir));
 assert.deepEqual(fs.readdirSync(companionDir).sort(),['page-hook.js']);

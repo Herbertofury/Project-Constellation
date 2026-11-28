@@ -115,24 +115,39 @@ fn linked_entry(metadata: &fs::Metadata) -> bool {
     }
 }
 
-pub fn reject_links(path: &Path) -> io::Result<()> {
+fn first_link(path: &Path) -> io::Result<Option<PathBuf>> {
     // Check every existing ancestor; Windows junctions are reparse points but
-    // are not necessarily reported by is_symlink().
-    for ancestor in path.ancestors() {
+    // are not necessarily reported by is_symlink(). Start at the root so even
+    // metadata lookups never traverse an earlier linked directory.
+    for ancestor in path.ancestors().collect::<Vec<_>>().into_iter().rev() {
         match fs::symlink_metadata(ancestor) {
             Ok(meta) => {
                 if linked_entry(&meta) {
-                    return Err(invalid(format!(
-                        "Setup does not follow symbolic links or junctions: {}",
-                        ancestor.display()
-                    )));
+                    return Ok(Some(ancestor.to_path_buf()));
                 }
             }
             Err(error) if error.kind() == io::ErrorKind::NotFound => {}
             Err(error) => return Err(error),
         }
     }
+    Ok(None)
+}
+
+pub fn reject_links(path: &Path) -> io::Result<()> {
+    if let Some(link) = first_link(path)? {
+        return Err(invalid(format!(
+            "Setup does not follow symbolic links or junctions: {}",
+            link.display()
+        )));
+    }
     Ok(())
+}
+
+fn validate_managed_paths(options: &Options) -> io::Result<()> {
+    // These paths are created or assigned private permissions during install.
+    // Check their full ancestry before staging, shortcut or registry changes.
+    reject_links(&options.root.join("data/monitor"))?;
+    reject_links(&options.root.join("versions"))
 }
 
 fn canonical_root(path: &Path) -> io::Result<PathBuf> {
@@ -389,7 +404,13 @@ fn verified_bytes(base: &Path, file: &OwnedFile) -> io::Result<Vec<u8>> {
 }
 
 fn remove_owned(base: &Path, files: &[OwnedFile], notes: &mut Vec<String>) -> io::Result<()> {
-    reject_links(base)?;
+    if let Some(link) = first_link(base)? {
+        // A relocated runtime is no longer ours to clean. Preserve the entry
+        // and its whole target, just as we preserve individually changed files,
+        // so uninstall or recovery can finish without a permanent receipt trap.
+        notes.push(format!("Preserved linked directory: {}", link.display()));
+        return Ok(());
+    }
     let mut dirs = BTreeSet::new();
     for record in files {
         let file = base.join(&record.path);
@@ -499,6 +520,7 @@ fn stop_owned_monitor(
     receipt: &Receipt,
     system: &mut dyn System,
 ) -> io::Result<()> {
+    reject_links(&options.root.join("data/monitor"))?;
     let executable =
         verified_release_executable(options, receipt, "runtime/constellation-monitor.exe")?;
     system.stop_monitor(&executable, &options.root.join("data/monitor"))
@@ -1195,6 +1217,7 @@ pub fn install(
 ) -> io::Result<Outcome> {
     let (options, _lock) = prepare(options)?;
     let notes = recover(&options, system)?;
+    validate_managed_paths(&options)?;
     let before = read_receipt(&options)?;
     if let Some(previous) = &before {
         let current = previous
@@ -1304,6 +1327,7 @@ pub fn install(
 pub fn rollback(options: &Options, system: &mut dyn System) -> io::Result<Outcome> {
     let (options, _lock) = prepare(options)?;
     let notes = recover(&options, system)?;
+    validate_managed_paths(&options)?;
     let before = read_receipt(&options)?
         .ok_or_else(|| invalid("There is no installed release to roll back."))?;
     let position = before
@@ -1416,6 +1440,9 @@ pub fn verify(options: &Options) -> io::Result<serde_json::Value> {
         .find(|r| r.directory == receipt.active)
         .unwrap();
     let mut changed = Vec::new();
+    if let Err(error) = validate_managed_paths(options) {
+        changed.push(error.to_string());
+    }
     let mut checked_files = release.files.len() + receipt.browser_files.len();
     for file in &release.files {
         if let Err(error) = verified_bytes(&options.root.join(&release.directory), file) {

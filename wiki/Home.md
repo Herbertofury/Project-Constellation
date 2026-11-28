@@ -2,17 +2,20 @@
 
 Project Constellation is a privacy-first Chrome extension that preserves ChatGPT conversations, turns them into durable local knowledge, and helps recover safely when long chats or browser sessions become fragile.
 
-Version **0.24.0** adds durable restart ordering, failed-storage recovery, scoped browser lifecycle handling, interrupted-alert diagnostics, complete Windows pipe reads and clearer external scheduler recovery. It combines the original project, conversation and desktop tools
-with durable attention alerts, explicit cross-browser monitoring, a Rust hub
-that follows browser lifetime, a compact Windows installer and the complete
-Computer-Link native toolkit. Use the [Windows setup guide](Windows-Setup),
-[Agent Monitor guide](Agent-Monitor) and [Computer Tools migration map](Computer-Tools).
+Version **0.25.0** adds scoped bulk incident triage, persistent profile drafts,
+exact delivery details, source-time/authority repairs and native closure recovery
+across offline work and restart. Setup protects linked managed directories;
+the optional local recovery agent preserves Windows launcher failures and crash
+cooldowns. Existing project, capture, desktop and Computer Tools workflows stay
+available. Read [what changed](Release-0.25.0), the
+[Windows setup guide](Windows-Setup), [Agent Monitor guide](Agent-Monitor) and
+[Computer Tools migration map](Computer-Tools).
 
 The compact installer includes native tools and stages browser sensors. Enable
 a sensor in every browser/profile you want to monitor. The full desktop shell
 also ships separately as an installer and portable ZIP. The release is a
 prerelease while Firefox signing, Windows publisher signing and owner account
-acceptance remain open. Check the actual [GitHub release and runtime receipts](https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.24.0)
+acceptance remain open. Check the actual [GitHub release and runtime receipts](https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.25.0)
 for executed evidence.
 ## Start here
 
@@ -38,4 +41,4 @@ for executed evidence.
 
 The canonical source is [Herbertofury/Project-Constellation](https://github.com/Herbertofury/Project-Constellation). ProjectDump is retained only as historical provenance; Project Constellation no longer depends on it.
 
-Before enabling remote sync, read the [privacy policy](Privacy-Policy). Maintainers should use the [production release process](Release-Process) so the source, packaged artifacts, Wiki, and Drive checkpoint remain one verified state.
+Before enabling remote sync, read the [privacy policy](Privacy-Policy). Maintainers should use the [production release process](Release-Process) so the public source, packaged artifacts, Wiki and release receipts remain one verified state.
