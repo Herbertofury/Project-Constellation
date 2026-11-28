@@ -1035,8 +1035,21 @@ fn reconnect_in_grace_cancels_the_old_deadline_without_a_new_broker() {
     first.hello("chrome");
     let pid = runtime.endpoint()["pid"].clone();
     first.close_pipe();
-    let idle = broker::admin_request(&runtime.directory, "snapshot").unwrap();
-    assert_eq!(idle["data"]["health"]["lifecycle"]["state"], "idle_grace");
+    // Native EOF exits the child before the broker necessarily finishes its
+    // disconnect persistence and writer cleanup, then releases the lease.
+    let idle_deadline = Instant::now() + Duration::from_secs(3);
+    loop {
+        let idle = broker::admin_request(&runtime.directory, "snapshot").unwrap();
+        let lifecycle = &idle["data"]["health"]["lifecycle"];
+        if lifecycle["state"] == "idle_grace" && lifecycle["connectedNativeHosts"] == 0 {
+            break;
+        }
+        assert!(
+            Instant::now() < idle_deadline,
+            "broker did not release its last native lease after EOF: {idle}"
+        );
+        thread::sleep(Duration::from_millis(10));
+    }
     let mut reconnected = Sensor::new(&runtime);
     reconnected.hello("chrome");
     thread::sleep(Duration::from_millis(runtime.idle_grace_ms + 100));

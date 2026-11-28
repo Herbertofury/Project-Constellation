@@ -69,7 +69,10 @@
     "bytes": 11300
   },
   "candidateRegressionInput": {
-    "path": "native/constellation-monitor/tests/native_roundtrip.rs",
+    "path": "logs/release-0.25.0/native/idle-grace-sync/native_roundtrip.measured.rs",
+    "sourcePath": "native/constellation-monitor/tests/native_roundtrip.rs",
+    "publishedSourceReference": "https://github.com/Herbertofury/Project-Constellation/blob/7a77c4bc039f018ddb0e077ba0ab31c649fcb471/native/constellation-monitor/tests/native_roundtrip.rs",
+    "provenance": "Archived byte-for-byte regression input present when these measurements were captured. The published reference has the same bytes; it is not the benchmark checkout. A later test-only correction waits for broker lease release before asserting idle grace. Measured production sources, workloads, binaries and performance results are unchanged.",
     "sha256": "d63652815cfe99e4e776ad0bcb04a06811a97facf3080fedbe8193f2d214e773",
     "bytes": 46726
   },
