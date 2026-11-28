@@ -1,3 +1,13 @@
+## 0.22.0 native components
+
+The browser sensor reports bounded observations to an authenticated local Rust
+hub. Native-messaging leases follow normal browser windows and the hub exits
+after the final lease's reconnect grace period. A sensor is required in every
+monitored browser; no profile scraping or silent extension injection occurs.
+The desktop's optional Computer Tools adapter verifies installed receipts and
+binary hashes before an explicit owner launch or status-only MCP check. These
+tools retain their own local grants and owned process lifetime.
+
 # Architecture
 
 Project Constellation is a Chrome Manifest V3 extension with four runtime surfaces.

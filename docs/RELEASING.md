@@ -1,62 +1,117 @@
-# Production release runbook
+# Release runbook
 
-This runbook is for maintainers publishing Project Constellation. User installation and upgrades are documented in [Installation](INSTALLATION.md). OAuth provisioning is documented in the [production acceptance checklist](OAUTH-PROVISIONING-CHECKLIST.md).
+The owner requests a GitHub release at closeout. Release only exact, committed
+source with matching artifacts and executed evidence. Installation is described
+in [Windows Setup](WINDOWS-SETUP.md) and [Installation](INSTALLATION.md).
 
-## Release invariants
+## Prepare the source
 
-- `main` is clean and pushed to `Herbertofury/Project-Constellation`.
-- `package.json` and `extension/manifest.json` contain the same version.
-- The manifest `key` still produces extension ID `geljambmkfjkhodgkpjhnmfojkpcamig`.
-- Both public OAuth client IDs are supplied through the environment or GitHub Actions secrets.
-- No access token, refresh token, client secret, browser profile, or chat export is tracked.
-- `npm run verify` is green locally and in GitHub Actions.
-- Real signed-in Google Drive and GitHub acceptance is recorded; mocks alone are not release evidence.
-- README, changelog, release notes, wiki, checksums, receipt, GitHub Release, and Drive checkpoint all describe the same commit and version.
+Read `AGENTS.md`, the highest-versioned `brain/` checkpoint,
+`docs/CONTINUATION.md`, and the current GitHub and Drive metadata. Preserve
+unrelated changes, historical releases, original functionality and all migrated
+source. Historical Computer-Link Git bundles are currently excluded from public
+artifacts by automatic approval review; preserve the private checkpoint and
+use the exact public-ref verification fallback until specific approval is given.
+Do not reconstruct an old carrier archive over the current root.
 
-## Prepare
+Keep root, extension, desktop, native payload and release versions aligned.
+Preserve the stable manifest key and extension ID
+`geljambmkfjkhodgkpjhnmfojkpcamig`. Update README, changelog, current notes,
+installation docs, wiki and continuation together. Complete the pinned Athena
+shrink-anything, fast-anything and rust-anything assessments in isolation and
+retain only demonstrated zero-loss improvements.
 
-1. Read `AGENTS.md`, `docs/CONTINUATION.md`, the latest release receipt, and `brain/v0.13.0` state.
-2. Reconcile the local branch with `origin/main`, the GitHub Wiki, and the latest Google Drive checkpoint.
-3. Update version, changelog, release notes, README, docs, and wiki together.
-4. Run `git diff --check`, review every tracked change, and commit it.
-5. Run `npm ci` and `npm run verify`.
+Run `npm run verify`, the native Rust/Computer Tools checks and the desktop
+checks. Record any local environment restriction. A restricted local renderer
+cannot replace installed-extension or Windows runtime acceptance. Commit the
+coherent source without unrelated user edits, publish a review branch, inspect
+hosted results and fix the causes of failures before proceeding.
 
-## Production build
+## Production configuration
 
-```powershell
-$env:PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID = '<google-client-id>.apps.googleusercontent.com'
-$env:PROJECT_CONSTELLATION_GITHUB_CLIENT_ID = '<github-client-id>'
-npm run build
-Get-Content -Raw build/build-info.json
-npm run package
+Supply public OAuth client IDs through the environment or Actions secrets:
+`PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID` and
+`PROJECT_CONSTELLATION_GITHUB_CLIENT_ID`. Never commit tokens, client secrets,
+profiles or user chat exports. The normal production build is `npm run build`.
+
+A monitoring prerelease may explicitly use:
+
+```sh
+node tools/build.mjs --mode=production --allow-unprovisioned-oauth
 ```
 
-`build/build-info.json` must report production mode, both OAuth entries `true`, and stable extension identity. Packaging refuses a dirty tracked tree or an incomplete production build.
+Its `build/build-info.json` must truthfully record each missing provider.
+Do not advertise signed-in backup acceptance for an unprovisioned build, or
+replace a known provisioned installation without explaining that difference.
+The build metadata must report the matching version, production mode and stable
+extension identity in either case.
 
-Independently compare each artifact with `releases/vX.Y.Z/SHA256SUMS.txt` and inspect `RELEASE-RECEIPT.json` for the expected source commit, version, mode, and OAuth booleans.
+## Hosted release gates
 
-## Acceptance
+`.github/workflows/release.yml` is triggered by a `release/vX.Y.Z` branch, a
+matching version tag, or an explicit workflow dispatch. The branch route lets
+an authorized maintainer publish through the supported GitHub app without
+placing a personal access token in the workspace. The workflow checks that its
+requested version is the source version. A pre-existing tag must point to that
+same source commit.
 
-Load the packaged build—not the source directory—and exercise:
+All of these reusable workflows must pass before publication:
 
-- extension startup, service-worker restart, storage persistence, and upgrade from the previous release;
-- Google connect, scope grant verification, Drive `about`, sync, readback/restore, 401 recovery, revoke, and reconnect;
-- GitHub device flow, `/user`, repository selection, sync, refresh-token rotation, 401 retry, revoke, and reconnect;
-- ChatGPT capture/navigation plus the supported provider smoke matrix;
-- recovery export/import and proof that OAuth tokens are excluded;
-- reduced motion, constrained performance mode, keyboard navigation, contrast, and all owned UI surfaces.
+| Workflow | Required evidence |
+| --- | --- |
+| `ci.yml` | Root tests, 94 UI message contracts, complete real-browser smoke inventory, desktop tests |
+| `windows-runtime.yml` | Native Windows computer use, integrated Electron, native payload inclusion, actual packaged portable launch |
+| `windows-setup.yml` | Actual EXE install/repair/rollback/uninstall, setup and owner GUI checks, restored registry and shortcut integrations |
+| `native-monitor.yml` | Linux and Windows Rust tests; Chromium and Firefox detector and rendering fixtures |
+| `computer-tools.yml` | Source/bundle verification, native tests and status-only MCP handshakes |
 
-Record failures truthfully. Do not convert a mocked check, UI render, or successful token acquisition into a claim of end-to-end sync success.
+The runtime jobs upload immutable workflow artifacts. The release job downloads
+them from the same workflow run and validates version, commit, file size and
+SHA-256. The Windows setup receipt must explicitly reject acceptance-fixture
+status and carry all seven mandatory real-Windows checks. Compiler success
+alone is insufficient. No artifact is selected through a loose version glob.
 
-## Publish
+## Artifact assembly
 
-1. Ensure GitHub Actions contains `PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID` and `PROJECT_CONSTELLATION_GITHUB_CLIENT_ID`.
-2. Create the annotated `vX.Y.Z` tag on the accepted source commit and push it.
-3. Confirm the Production release workflow passes and the GitHub Release contains the unpacked ZIP, source ZIP, `SHA256SUMS.txt`, and `RELEASE-RECEIPT.json`.
-4. Download the published assets and independently verify their hashes and receipt.
-5. Push the matching `wiki/` tree to the repository's `.wiki.git` remote.
-6. Upload the same full artifacts and evidence to a versioned Google Drive release folder.
-7. Re-read/download the Drive objects, verify byte sizes and SHA-256 values, and update the native ACTIVE CHECKPOINT.
-8. Confirm local `HEAD`, `origin/main`, tag, GitHub Release receipt, wiki, and Drive checkpoint all agree.
+`tools/package-unified-release.mjs` requires clean committed source, matching
+production extension metadata and verified receipts. Its generated output is
+`build/releases/vX.Y.Z/`; the historical `releases/` directory is never erased.
 
-If any acceptance or remote reconciliation step fails, leave the tag/release unpublished or mark it as a prerelease and record the exact external gate.
+The release contains:
+
+- the compact `Constellation-X.Y.Z-Windows-Setup.exe` for the Rust hub, sensors
+  and Computer Tools;
+- the full desktop portable ZIP and desktop installer;
+- the full Chromium extension, Firefox sensor and Linux browser hub;
+- an exact Git source archive, release notes, executed runtime receipts and
+  a unified receipt identifying source commit and tree;
+- SHA256SUMS covering every published data artifact, including the unified
+  receipt itself.
+
+The full desktop installer uses `Windows-Desktop-Setup` in its release filename
+so it cannot be confused with the compact native installer.
+
+## Publish and verify
+
+1. Merge the accepted review branch with its exact expected head SHA.
+2. Start the release workflow on that commit using the matching release branch
+   or tag. The workflow creates a GitHub prerelease for 0.22.0 because Firefox
+   signing, Windows publisher signing and target-account acceptance remain open.
+3. The workflow refuses to overwrite an existing release. Download the release
+   assets and verify all hashes again; do not equate upload completion with
+   byte-level verification.
+4. Synchronize `wiki/*.md` to the live GitHub Wiki and read back its remote head.
+   A local wiki mirror alone is not a completed remote documentation update.
+5. Preserve the same artifacts and evidence in the versioned Drive checkpoint
+   when that integration is available. Read back sizes and hashes and update
+   ACTIVE CHECKPOINT. If the connected Drive operation fails, record the exact
+   failure without claiming a remote checkpoint was written.
+6. Verify the source commit/tree, tag, GitHub Release, receipt, live wiki and
+   continuation record agree. Link the real release and identify the appropriate
+   installer in the handoff.
+
+Physical sound, notification visibility, enrollment in the owner's actual
+browsers and signed-in Google/GitHub round trips require target-machine
+acceptance. Preserve those boundaries in release notes and receipts. A real
+external failure should be documented and repaired when possible; it must not
+be hidden by marking a failed or skipped check as passed.

@@ -1,0 +1,31 @@
+COMPUTER-LINK LOCAL PREVIEW: EXPERIMENTAL, NOT A CONNECTED PRODUCT
+
+This setup places the local Windows owner/client/MCP preview in a NEW folder.
+Setup requests no elevation (it does not demote an already elevated launch).
+No service, autostart, browser extension, firewall change, remote endpoint,
+account registration or PC-access grant is created. Launch is optional.
+It does not connect ChatGPT/dot or control browsers, chats, keyboard or mouse.
+
+The local GUI supports explicitly consented status and bounded captured text/window
+inventory sharing with a separately approved local process. Window titles can be
+private. Review them before Keep, then approve only the intended local client.
+The bundled MCP sibling enables local-only snapshot diagnostics and a user-triggered
+status session; no remote destination or model is connected. Disconnect/Exit stops
+owned session workers, not unrelated applications.
+
+A selected bounded captured text snapshot may be exported to one NEW file in a
+user-selected trusted local folder after exact preview and explicit Create approval.
+Existing files are never overwritten. This is not arbitrary write/edit/delete/admin
+access. Use trusted, quiescent local NTFS roots and synthetic/nonprivate data only;
+hostile directory/reparse changes during initial admission are not proven safe.
+Cancel/Disconnect before admission prevents export; after admission a write may finish.
+Closing is not rollback. If forced exit occurs during I/O, inspect the destination
+before retrying because completion can be uncertain.
+
+The installer refuses existing destination folders rather than upgrading/overwriting.
+An uninstaller lives inside the chosen folder; no Add/Remove Programs registry entry
+is added. Uninstall removes recorded installed paths, even if their bytes were later
+replaced. Only differently named unrelated files are expected to remain. The new-folder
+check is not atomic against hostile directory/reparse changes; use a trusted folder.
+This is unsigned. Do not bypass operating-system security warnings.
+This is not production-ready or a full computer/browser control installation.

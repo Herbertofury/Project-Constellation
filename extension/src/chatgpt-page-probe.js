@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.12';
+  const VERSION = '0.18.1';
   const REQUEST_SOURCE = 'project-constellation';
   const RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
   const REQUEST_KIND = 'chatgpt-transcript-request';
@@ -10,6 +10,18 @@
   const CACHE_TTL_MS = 700;
   const AUTH_TTL_MS = 4 * 60 * 1000;
   const MAX_MAPPING_NODES = 10000;
+
+  // ChatGPT serves file previews/downloads from same-host backend-api URLs that can
+  // execute in sandboxed/opaque-origin documents. This transcript probe is only
+  // useful on the actual ChatGPT UI, never on API/content documents.
+  if (/^\/(?:backend-api|api)\//i.test(String(location.pathname || ''))) return;
+
+  // Messages never leave this window and consumers verify event.source, source, kind,
+  // and nonce. Using '*' avoids DOMException on sandboxed/opaque-origin windows where
+  // location.origin can look normal while the active document origin is actually null.
+  const postSelf = (payload) => {
+    try { window.postMessage(payload, '*'); return true; } catch (_) { return false; }
+  };
 
   const prior = globalThis.ProjectConstellationChatGPTPageProbe;
   if (prior?.version === VERSION) return;
@@ -400,7 +412,7 @@
     if (!nonce || !requestedId) return;
     readTranscript(requestedId, Boolean(data.force)).then((state) => {
       if (disposed) return;
-      window.postMessage({ source:RESPONSE_SOURCE, kind:RESPONSE_KIND, version:VERSION, nonce, conversationId:requestedId, state }, location.origin === 'null' ? '*' : location.origin);
+      postSelf({ source:RESPONSE_SOURCE, kind:RESPONSE_KIND, version:VERSION, nonce, conversationId:requestedId, state });
     });
   };
 
@@ -418,5 +430,5 @@
     }
   };
   globalThis.ProjectConstellationChatGPTPageProbe = api;
-  window.postMessage({ source:RESPONSE_SOURCE, kind:READY_KIND, version:VERSION }, location.origin === 'null' ? '*' : location.origin);
+  postSelf({ source:RESPONSE_SOURCE, kind:READY_KIND, version:VERSION });
 })();

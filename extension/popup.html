@@ -1,9 +1,10 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"><link rel="stylesheet" href="popup-pulse.css"></head>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="popup.css"><link rel="stylesheet" href="popup-pulse.css"><link rel="stylesheet" href="popup-organizer.css"><link rel="stylesheet" href="popup-qol.css"></head>
 <body><main class="panel">
   <div class="hero"><div><div class="brand-line"><span class="brand-mark">✦</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Performance Engine</h1></div><span id="pressure" class="badge">offline</span></div>
   <p class="status" id="status">Performance protection and continuity monitoring.</p>
   <div class="launch-actions">
+    <a class="monitor-launch" href="agent-monitor.html" target="_blank">✦ Open Agent Monitor <span>Alerts · sound · all connected browsers ↗</span></a>
     <button id="openHome" class="primary">Open Project Constellation</button>
     <button id="openConstellation">Open Command Center</button>
     <button id="openAccounts">Accounts & Connections</button>
@@ -11,6 +12,8 @@
   <section class="chat-pulse" id="chatPulse" aria-label="Chat status overview">
     <div class="section-head"><span>CHAT PULSE</span><small>live open tabs</small></div>
     <div class="chat-grid">
+      <button class="chat-card critical" id="criticalSummary" data-chat-bucket="critical"><span>Critical</span><strong id="criticalCount">0</strong><small id="criticalLatest">No critical chats</small></button>
+      <button class="chat-card hold" id="holdSummary" data-chat-bucket="hold"><span>🛡️ On hold</span><strong id="holdCount">0</strong><small id="holdLatest">No review holds</small></button>
       <button class="chat-card active" id="activeSummary" data-chat-bucket="active"><span>Active</span><strong id="activeCount">0</strong><small id="activeLatest">No active chats</small></button>
       <button class="chat-card stale" id="staleSummary" data-chat-bucket="stale"><span>Stale</span><strong id="staleCount">0</strong><small id="staleLatest">No stale chats</small></button>
       <button class="chat-card complete" id="completedSummary" data-chat-bucket="completed"><span>Completed</span><strong id="completedCount">0</strong><small id="completedLatest">No completed chats</small></button>
@@ -31,6 +34,8 @@
     </div>
     <label class="beacon-group-mode"><span>Group tabs by</span><select id="tabGroupingMode"><option value="project-status">Project + state</option><option value="status">State only</option></select></label>
     <div class="beacon-status-grid">
+      <div class="beacon-status-row critical"><strong>Critical</strong><input id="criticalEmoji" class="emoji-input" maxlength="12" aria-label="Critical emoji"><input id="criticalColor" type="color" aria-label="Critical color"><select id="criticalGroupColor" aria-label="Critical group color"></select></div>
+      <div class="beacon-status-row hold"><strong>🛡️ On hold</strong><input id="holdEmoji" class="emoji-input" maxlength="12" aria-label="On hold emoji"><input id="holdColor" type="color" aria-label="On hold color"><select id="holdGroupColor" aria-label="On hold group color"></select></div>
       <div class="beacon-status-row active"><strong>Active</strong><input id="activeEmoji" class="emoji-input" maxlength="12" aria-label="Active emoji"><input id="activeColor" type="color" aria-label="Active color"><select id="activeGroupColor" aria-label="Active group color"></select></div>
       <div class="beacon-status-row stale"><strong>Attention</strong><input id="staleEmoji" class="emoji-input" maxlength="12" aria-label="Attention emoji"><input id="staleColor" type="color" aria-label="Attention color"><select id="staleGroupColor" aria-label="Attention group color"></select></div>
       <div class="beacon-status-row complete"><strong>Done</strong><input id="completedEmoji" class="emoji-input" maxlength="12" aria-label="Completed emoji"><input id="completedColor" type="color" aria-label="Completed color"><select id="completedGroupColor" aria-label="Completed group color"></select></div>
@@ -46,13 +51,15 @@
     <label class="row"><span><strong>Performance engine</strong><small>Long-task pressure governor and jank protection</small></span><input id="enabled" type="checkbox"></label>
     <label class="row"><span><strong>Responsive scrolling</strong><small>Prevent smooth-scroll frame pileups</small></span><input id="responsiveScrolling" type="checkbox"></label>
     <label class="row"><span><strong>Adaptive motion relief</strong><small>Decorative-only relief during measured pressure</small></span><input id="adaptiveMotionRelief" type="checkbox"></label>
-    <label class="row"><span><strong>Chat status on pin</strong><small>Show Active, Stale, and Completed chat counts on the pinned menu and collapsed Pulse</small></span><input id="statusPinEnabled" type="checkbox"></label>
-    <label class="row"><span><strong>Review branched chats before send</strong><small>Prefill the continuation so you can edit it; Enter sends and Shift+Enter adds a line</small></span><input id="branchReviewBeforeSend" type="checkbox"></label>
-    <label class="row"><span><strong>Chat completion notifications</strong><small>Notify when a tab transitions from actively working to completed</small></span><input id="completionNotificationsEnabled" type="checkbox"></label>
+    <label class="row"><span><strong>Chat status on pin</strong><small>Compact Pulse shows Active, Needs, and Done; Needs combines Critical, 🛡️ On Hold, and Stale without losing the detailed state</small></span><input id="statusPinEnabled" type="checkbox"></label>
+    <label class="row"><span><strong>Provider write safety lock</strong><small>Branch handoffs and approved project context may be staged for review, but Constellation never presses Send.</small></span><input id="branchReviewBeforeSend" type="checkbox" checked disabled></label>
+    <label class="row"><span><strong>Chat completion notifications</strong><small>Notify immediately when a live chat transitions into Completed</small></span><input id="completionNotificationsEnabled" type="checkbox"></label>
+    <label class="row"><span><strong>Critical notifications</strong><small>Notify immediately when a chat crosses into the red Critical state</small></span><input id="criticalNotificationsEnabled" type="checkbox"></label>
+    <label class="row"><span><strong>Review-cleared notifications</strong><small>Notify when ChatGPT's On Hold / review banner disappears and the chat is actionable again</small></span><input id="reviewReleaseNotificationsEnabled" type="checkbox"></label>
     <label class="row"><span><strong>Stall & runway alerts</strong><small>One-shot alert when a chat truly stalls or crosses a proactive conversation-capacity threshold</small></span><input id="attentionNotificationsEnabled" type="checkbox"></label>
     <label class="row"><span><strong>Output Vault warnings</strong><small>Keep saved/page mismatch warnings secondary to chat health</small></span><input id="outputWarningsEnabled" type="checkbox"></label>
     <label class="row select-row"><span><strong>Output warning sensitivity</strong><small>Balanced ignores low-confidence tool/activity-card churn</small></span><select id="outputWarningStrictness"><option value="relaxed">Relaxed</option><option value="balanced">Balanced</option><option value="strict">Strict</option></select></label>
   </section>
   <section class="metrics"><div><span>Provider</span><strong id="provider">—</strong></div><div><span>Chat state</span><strong id="chatState">—</strong></div><div><span>Long tasks</span><strong id="longTasks">0</strong></div><div><span>Max task</span><strong id="maxTask">0 ms</strong></div></section>
   <button id="resetMetrics">Reset session metrics</button>
-</main><script src="popup.js"></script></body></html>
+</main><script src="src/chat-vault-core.js"></script><script src="popup.js"></script><script src="popup-organizer.js"></script><script src="src/ui-qol.js"></script><script src="src/popup-attention-qol.js"></script></body></html>

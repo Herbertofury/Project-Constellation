@@ -14,26 +14,32 @@
     outputWarningStrictness:'balanced',
     branchReviewBeforeSend:true,
     completionNotificationsEnabled:true,
+    criticalNotificationsEnabled:true,
+    reviewReleaseNotificationsEnabled:true,
     attentionNotificationsEnabled:true,
     tabBeaconsEnabled:true,
     tabTitleStatusEnabled:true,
     tabFaviconStatusEnabled:true,
     tabGroupingEnabled:true,
     tabGroupingMode:'project-status',
-    activeEmoji:'🟣', staleEmoji:'⚠️', completedEmoji:'✅',
-    activeColor:'#8b5cf6', staleColor:'#e0a458', completedColor:'#45bd8c',
-    activeGroupColor:'purple', staleGroupColor:'orange', completedGroupColor:'green'
+    criticalEmoji:'🔴', holdEmoji:'🛡️', activeEmoji:'🟣', staleEmoji:'⚠️', completedEmoji:'✅',
+    criticalColor:'#ff5c64', holdColor:'#4fa3ff', activeColor:'#8b5cf6', staleColor:'#e0a458', completedColor:'#45bd8c',
+    criticalGroupColor:'red', holdGroupColor:'blue', activeGroupColor:'purple', staleGroupColor:'orange', completedGroupColor:'green'
   };
   const NATIVE_GROUP_COLORS = ['grey','blue','red','yellow','green','pink','purple','cyan','orange'];
   const ACTIVE_STATUSES = new Set(['running']);
-  const STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+  const HOLD_STATUSES = new Set(['provider-review']);
+  const CRITICAL_STATUSES = new Set(['blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required']);
+  const CRITICAL_HEALTH_STATES = new Set([...CRITICAL_STATUSES,'dead','tool-dead','capacity-reached','degraded','stale-page']);
+  const STALE_HEALTH_STATES = new Set(['rate-limited','auth-required','unavailable','stalled','request-stalled','tool-stalled','capacity-watch','capacity-handoff']);
+  const STALE_STATUSES = new Set(['paused','waiting-user','rate-limited','errored','stalled','auth-required','unavailable']);
 
   const ids = [
     'enabled','responsiveScrolling','adaptiveMotionRelief','pressure','status','longTasks','maxTask','provider','chatState','resetMetrics',
-    'openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','activeSummary','staleSummary','completedSummary','activeCount','staleCount','completedCount',
-    'activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled',
-    'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor',
-    'activeGroupColor','staleGroupColor','completedGroupColor','customTabTag','applyTabTag','clearTabTag','tabTagHint','tagPresets','chatListPanel','chatListEyebrow','chatListTitle','chatList','closeChatList'
+    'openHome','openConstellation','openAccounts','chatPulse','chatPulseHint','criticalSummary','holdSummary','activeSummary','staleSummary','completedSummary','criticalCount','holdCount','activeCount','staleCount','completedCount',
+    'criticalLatest','holdLatest','activeLatest','staleLatest','completedLatest','statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','criticalNotificationsEnabled','reviewReleaseNotificationsEnabled','attentionNotificationsEnabled',
+    'tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','criticalEmoji','holdEmoji','activeEmoji','staleEmoji','completedEmoji','criticalColor','holdColor','activeColor','staleColor','completedColor',
+    'criticalGroupColor','holdGroupColor','activeGroupColor','staleGroupColor','completedGroupColor','customTabTag','applyTabTag','clearTabTag','tabTagHint','tagPresets','chatListPanel','chatListEyebrow','chatListTitle','chatList','closeChatList'
   ];
   const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
   let currentSettings = { ...DEFAULTS };
@@ -44,11 +50,11 @@
   let selectedChatBucket = '';
 
   const safe = (value, max = 90) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
-  const statusBucket = (status = 'idle') => ACTIVE_STATUSES.has(status) ? 'active' : STALE_STATUSES.has(status) ? 'stale' : 'completed';
-  const primaryChatLabel = (status = 'idle') => statusBucket(status) === 'completed' ? 'complete' : statusBucket(status) === 'stale' ? 'needs attention' : status.replaceAll('-', ' ');
+  const statusBucket = (status = 'idle', healthState = '') => CRITICAL_STATUSES.has(status) || CRITICAL_HEALTH_STATES.has(healthState) ? 'critical' : HOLD_STATUSES.has(status) || healthState === 'provider-review' ? 'hold' : STALE_STATUSES.has(status) || STALE_HEALTH_STATES.has(healthState) ? 'stale' : ACTIVE_STATUSES.has(status) || ['working','tool-running','tool-quiet','quiet-working','uncertain-working'].includes(healthState) ? 'active' : 'completed';
+  const primaryChatLabel = (status = 'idle') => statusBucket(status) === 'completed' ? 'complete' : statusBucket(status) === 'critical' ? 'critical' : statusBucket(status) === 'hold' ? '🛡️ on hold' : statusBucket(status) === 'stale' ? 'needs attention' : status.replaceAll('-', ' ');
   const groupLabel = (value) => value[0].toUpperCase() + value.slice(1);
 
-  for (const id of ['activeGroupColor','staleGroupColor','completedGroupColor']) {
+  for (const id of ['criticalGroupColor','holdGroupColor','activeGroupColor','staleGroupColor','completedGroupColor']) {
     for (const value of NATIVE_GROUP_COLORS) {
       const option = document.createElement('option');
       option.value = value;
@@ -59,10 +65,10 @@
 
   function renderSettings() {
     for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].checked = Boolean(currentSettings[key]);
-    for (const key of ['statusPinEnabled','outputWarningsEnabled','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled']) els[key].checked = pulseSettings[key] !== false;
+    for (const key of ['statusPinEnabled','outputWarningsEnabled','branchReviewBeforeSend','completionNotificationsEnabled','criticalNotificationsEnabled','reviewReleaseNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled']) els[key].checked = pulseSettings[key] !== false;
     els.outputWarningStrictness.value = ['relaxed','balanced','strict'].includes(pulseSettings.outputWarningStrictness) ? pulseSettings.outputWarningStrictness : 'balanced';
     els.tabGroupingMode.value = ['project-status','status'].includes(pulseSettings.tabGroupingMode) ? pulseSettings.tabGroupingMode : 'project-status';
-    for (const key of ['activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].value = pulseSettings[key] || PULSE_DEFAULTS[key];
+    for (const key of ['criticalEmoji','holdEmoji','activeEmoji','staleEmoji','completedEmoji','criticalColor','holdColor','activeColor','staleColor','completedColor','criticalGroupColor','holdGroupColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].value = pulseSettings[key] || PULSE_DEFAULTS[key];
     els.chatPulse.hidden = pulseSettings.statusPinEnabled === false;
   }
 
@@ -87,6 +93,11 @@
   function rowDetail(row, bucket) {
     if (!row) return `No ${bucket} chats`;
     const generation = row.generation || {};
+    if (bucket === 'critical') {
+      const failure = row.failure?.active ? row.failure : null;
+      return `${safe(row.title || 'Critical chat', 45)} · ${failure?.title ? safe(failure.title, 34) : safe(row.healthState || row.status || 'critical', 24).replaceAll('-', ' ')}${failure?.retryAvailable ? ' · Retry ready' : ''}`;
+    }
+    if (bucket === 'hold') return `${safe(row.title || 'Chat on hold', 45)} · provider review`;
     if (bucket === 'active') {
       const title = safe(row.title || 'Active chat', 42);
       const phase = safe(generation.phase || generation.toolPhase || 'working', 24).replaceAll('-', ' ');
@@ -101,8 +112,8 @@
     return safe(row.title || 'Completed chat', 58);
   }
 
-  const bucketTitle = (bucket) => bucket === 'active' ? 'Active chats' : bucket === 'stale' ? 'Needs attention' : 'Completed chats';
-  const bucketEmoji = (bucket) => bucket === 'active' ? (pulseSettings.activeEmoji || '🟣') : bucket === 'stale' ? (pulseSettings.staleEmoji || '⚠️') : (pulseSettings.completedEmoji || '✅');
+  const bucketTitle = (bucket) => bucket === 'critical' ? 'Critical chats' : bucket === 'hold' ? '🛡️ On hold / review' : bucket === 'active' ? 'Active chats' : bucket === 'stale' ? 'Needs attention' : 'Completed chats';
+  const bucketEmoji = (bucket) => bucket === 'critical' ? (pulseSettings.criticalEmoji || '🔴') : bucket === 'hold' ? (pulseSettings.holdEmoji || '🛡️') : bucket === 'active' ? (pulseSettings.activeEmoji || '🟣') : bucket === 'stale' ? (pulseSettings.staleEmoji || '⚠️') : (pulseSettings.completedEmoji || '✅');
   function relativeAge(value) {
     const ms = Math.max(0, Date.now() - Number(value || 0));
     if (!value) return '';
@@ -119,7 +130,7 @@
     if (task && task.toLowerCase() !== title) return `${bucket === 'completed' ? 'Last task' : 'Task'} · ${task}`;
     if (live && !/^(working|thinking|complete|reconnecting|called tool)$/i.test(live)) return `${bucket === 'completed' ? 'Last activity' : 'Working on'} · ${live}`;
     const project = safe(context.projectName || '', 80);
-    return project ? `Project · ${project}` : '';
+    return project ? `${safe(context.projectIcon || '✦', 16)} Project · ${project}` : '';
   }
 
   function renderChatList() {
@@ -137,20 +148,21 @@
       const empty = document.createElement('div'); empty.className = 'chat-list-empty'; empty.textContent = `No ${bucketTitle(selectedChatBucket).toLowerCase()} right now.`; els.chatList.appendChild(empty); return;
     }
     for (const row of rows) {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'chat-list-row'; button.dataset.tabId = String(row.tabId || ''); button.dataset.windowId = String(row.windowId || ''); button.dataset.url = row.url || '';
+      const context = row.context || {};
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'chat-list-row'; if (/^#[0-9a-f]{6}$/i.test(String(context.projectColor || ''))) button.style.setProperty('--project-color', context.projectColor); button.dataset.tabId = String(row.tabId || ''); button.dataset.windowId = String(row.windowId || ''); button.dataset.url = row.url || '';
       const dot = document.createElement('span'); dot.className = `chat-list-dot ${selectedChatBucket}`;
       const body = document.createElement('span'); body.className = 'chat-list-copy';
       const title = document.createElement('strong'); title.textContent = safe(row.title || row.providerName || 'AI chat', 90);
       const contextLine = document.createElement('span'); contextLine.className = 'chat-list-context'; contextLine.textContent = chatContextLine(row, selectedChatBucket); contextLine.hidden = !contextLine.textContent;
       const meta = document.createElement('span'); meta.className = 'chat-list-meta';
       const generation = row.generation || {};
-      const context = row.context || {};
       const pieces = [];
-      if (context.projectName) pieces.push(`Project: ${safe(context.projectName, 34)}`);
+      if (context.projectName) pieces.push(`Project: ${safe(context.projectIcon || '✦', 16)} ${safe(context.projectName, 34)}`);
       if (selectedChatBucket === 'active' && context.liveActivity && safe(context.liveActivity, 90).toLowerCase() !== safe(context.taskHint, 90).toLowerCase()) pieces.push(`Now: ${safe(context.liveActivity, 34)}`);
       pieces.push(safe(row.providerName || row.providerId || 'AI', 24));
       if (selectedChatBucket === 'active') pieces.push(safe(generation.phase || generation.toolPhase || 'working', 24).replaceAll('-', ' '));
-      else if (selectedChatBucket === 'stale') { const failure = row.failure?.active ? row.failure : null; pieces.push(row.reconnecting ? 'reconnecting' : failure?.title ? safe(failure.title, 30) : safe(row.status || 'attention', 22).replaceAll('-', ' ')); if (failure?.retryAvailable) pieces.push(`${safe(failure.retryLabel || 'Retry', 18)} available`); }
+      else if (selectedChatBucket === 'hold') pieces.push('provider review');
+      else if (['critical','stale'].includes(selectedChatBucket)) { const failure = row.failure?.active ? row.failure : null; pieces.push(row.reconnecting ? 'reconnecting' : failure?.title ? safe(failure.title, 30) : safe(row.status || 'attention', 22).replaceAll('-', ' ')); if (failure?.retryAvailable) pieces.push(`${safe(failure.retryLabel || 'Retry', 18)} available`); }
       else pieces.push('complete');
       if (generation.modelSlug) pieces.push(safe(generation.modelSlug, 24));
       if (row.tabGroup?.title) pieces.push(row.tabGroup.managed ? 'PC sorted' : `Group: ${safe(row.tabGroup.title, 30)}`);
@@ -166,7 +178,7 @@
       const shell = document.createElement('div'); shell.className = 'chat-list-row-shell';
       shell.appendChild(button);
       const failure = row.failure?.active ? row.failure : null;
-      if (selectedChatBucket === 'stale' && failure?.retryAvailable) {
+      if (['critical','stale'].includes(selectedChatBucket) && failure?.retryAvailable) {
         const retry = document.createElement('button');
         retry.type = 'button';
         retry.className = 'chat-list-retry';
@@ -193,7 +205,7 @@
 
   function selectChatBucket(bucket) {
     selectedChatBucket = selectedChatBucket === bucket ? '' : bucket;
-    for (const key of ['active','stale','completed']) {
+    for (const key of ['critical','hold','active','stale','completed']) {
       const card = els[key === 'completed' ? 'completedSummary' : `${key}Summary`];
       card.classList.toggle('selected', selectedChatBucket === key);
       card.setAttribute('aria-expanded', selectedChatBucket === key ? 'true' : 'false');
@@ -206,14 +218,14 @@
     if (els.chatPulse.hidden) return;
     const snapshot = brainOverview || {};
     const groups = snapshot.groups && typeof snapshot.groups === 'object'
-      ? { active:[...(snapshot.groups.active || [])], stale:[...(snapshot.groups.stale || [])], completed:[...(snapshot.groups.completed || [])] }
-      : { active:[], stale:[], completed:[] };
-    if (!snapshot.groups) for (const chat of (Array.isArray(snapshot.recentChats) ? snapshot.recentChats : [])) groups[statusBucket(String(chat?.status || 'idle'))].push(chat);
+      ? { critical:[...(snapshot.groups.critical || [])], hold:[...(snapshot.groups.hold || [])], active:[...(snapshot.groups.active || [])], stale:[...(snapshot.groups.stale || [])], completed:[...(snapshot.groups.completed || [])] }
+      : { critical:[], hold:[], active:[], stale:[], completed:[] };
+    if (!snapshot.groups) for (const chat of (Array.isArray(snapshot.recentChats) ? snapshot.recentChats : [])) groups[statusBucket(String(chat?.status || 'idle'), String(chat?.healthState || chat?.liveHealthState || ''))].push(chat);
     const totals = snapshot.counts && typeof snapshot.counts === 'object'
-      ? { active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0) }
-      : { active:groups.active.length, stale:groups.stale.length, completed:groups.completed.length };
+      ? { critical:Number(snapshot.counts.critical || 0), hold:Number(snapshot.counts.hold || 0), active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0) }
+      : { critical:groups.critical.length, hold:groups.hold.length, active:groups.active.length, stale:groups.stale.length, completed:groups.completed.length };
 
-    for (const bucket of ['active','stale','completed']) {
+    for (const bucket of ['critical','hold','active','stale','completed']) {
       const latest = groups[bucket][0] || null;
       els[`${bucket}Count`].textContent = String(totals[bucket] || 0);
       els[`${bucket}Latest`].textContent = rowDetail(latest, bucket);
@@ -225,13 +237,13 @@
       card.disabled = totals[bucket] <= 0;
       card.title = totals[bucket] > 0 ? `Browse all ${totals[bucket]} ${bucket === 'stale' ? 'attention' : bucket} chat${totals[bucket] === 1 ? '' : 's'}` : `No ${bucket} chat is available`;
     }
-    const open = Number(snapshot.openChatTabs || totals.active + totals.stale + totals.completed);
+    const open = Number(snapshot.openChatTabs || totals.critical + totals.hold + totals.active + totals.stale + totals.completed);
     const partial = Boolean(snapshot.partial);
     const transcriptActive = groups.active.filter((row) => row?.generation?.transcriptProof).length;
     els.chatPulseHint.textContent = partial
       ? `${open} open AI chat tab${open === 1 ? '' : 's'} detected · a tab is still reconnecting to Constellation.`
-      : totals.active || totals.stale
-        ? `${open} open AI tab${open === 1 ? '' : 's'} · ${transcriptActive ? `${transcriptActive} active with ChatGPT transcript proof · ` : ''}live state, not catalog history.`
+      : totals.critical || totals.hold || totals.active || totals.stale
+        ? `${open} open AI tab${open === 1 ? '' : 's'} · ${totals.critical ? `${totals.critical} critical · ` : ''}${totals.hold ? `${totals.hold} on hold · ` : ''}${transcriptActive ? `${transcriptActive} active with ChatGPT transcript proof · ` : ''}live state, not catalog history.`
         : `${open} open AI chat tab${open === 1 ? '' : 's'} · nothing is currently running or stuck.`;
     renderChatList();
   }
@@ -284,19 +296,28 @@
       statusPinEnabled:els.statusPinEnabled.checked,
       outputWarningsEnabled:els.outputWarningsEnabled.checked,
       outputWarningStrictness:['relaxed','balanced','strict'].includes(els.outputWarningStrictness.value) ? els.outputWarningStrictness.value : 'balanced',
-      branchReviewBeforeSend:els.branchReviewBeforeSend.checked,
+      branchReviewBeforeSend:true,
       completionNotificationsEnabled:els.completionNotificationsEnabled.checked,
+      criticalNotificationsEnabled:els.criticalNotificationsEnabled.checked,
+      reviewReleaseNotificationsEnabled:els.reviewReleaseNotificationsEnabled.checked,
+      attentionNotificationsEnabled:els.attentionNotificationsEnabled.checked,
       tabBeaconsEnabled:els.tabBeaconsEnabled.checked,
       tabTitleStatusEnabled:els.tabTitleStatusEnabled.checked,
       tabFaviconStatusEnabled:els.tabFaviconStatusEnabled.checked,
       tabGroupingEnabled:els.tabGroupingEnabled.checked,
       tabGroupingMode:els.tabGroupingMode.value,
+      criticalEmoji:safe(els.criticalEmoji.value, 12) || PULSE_DEFAULTS.criticalEmoji,
+      holdEmoji:safe(els.holdEmoji.value, 12) || PULSE_DEFAULTS.holdEmoji,
       activeEmoji:safe(els.activeEmoji.value, 12) || PULSE_DEFAULTS.activeEmoji,
       staleEmoji:safe(els.staleEmoji.value, 12) || PULSE_DEFAULTS.staleEmoji,
       completedEmoji:safe(els.completedEmoji.value, 12) || PULSE_DEFAULTS.completedEmoji,
+      criticalColor:els.criticalColor.value || PULSE_DEFAULTS.criticalColor,
+      holdColor:els.holdColor.value || PULSE_DEFAULTS.holdColor,
       activeColor:els.activeColor.value || PULSE_DEFAULTS.activeColor,
       staleColor:els.staleColor.value || PULSE_DEFAULTS.staleColor,
       completedColor:els.completedColor.value || PULSE_DEFAULTS.completedColor,
+      criticalGroupColor:els.criticalGroupColor.value,
+      holdGroupColor:els.holdGroupColor.value,
       activeGroupColor:els.activeGroupColor.value,
       staleGroupColor:els.staleGroupColor.value,
       completedGroupColor:els.completedGroupColor.value
@@ -313,13 +334,13 @@
   }
 
   for (const key of ['enabled','responsiveScrolling','adaptiveMotionRelief']) els[key].addEventListener('change', savePerformance);
-  for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','branchReviewBeforeSend','completionNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','activeEmoji','staleEmoji','completedEmoji','activeColor','staleColor','completedColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
+  for (const key of ['statusPinEnabled','outputWarningsEnabled','outputWarningStrictness','completionNotificationsEnabled','criticalNotificationsEnabled','reviewReleaseNotificationsEnabled','attentionNotificationsEnabled','tabBeaconsEnabled','tabTitleStatusEnabled','tabFaviconStatusEnabled','tabGroupingEnabled','tabGroupingMode','criticalEmoji','holdEmoji','activeEmoji','staleEmoji','completedEmoji','criticalColor','holdColor','activeColor','staleColor','completedColor','criticalGroupColor','holdGroupColor','activeGroupColor','staleGroupColor','completedGroupColor']) els[key].addEventListener('change', savePulseUx);
 
-  for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click', () => {
-    const bucket = card.dataset.chatBucket || (card === els.completedSummary ? 'completed' : card === els.staleSummary ? 'stale' : 'active');
+  for (const card of [els.criticalSummary,els.holdSummary,els.activeSummary,els.staleSummary,els.completedSummary]) card.addEventListener('click', () => {
+    const bucket = card.dataset.chatBucket || (card === els.completedSummary ? 'completed' : card === els.staleSummary ? 'stale' : card === els.holdSummary ? 'hold' : card === els.criticalSummary ? 'critical' : 'active');
     selectChatBucket(bucket);
   });
-  els.closeChatList?.addEventListener('click', () => { selectedChatBucket = ''; renderChatList(); for (const card of [els.activeSummary,els.staleSummary,els.completedSummary]) { card.classList.remove('selected'); card.setAttribute('aria-expanded','false'); } });
+  els.closeChatList?.addEventListener('click', () => { selectedChatBucket = ''; renderChatList(); for (const card of [els.criticalSummary,els.holdSummary,els.activeSummary,els.staleSummary,els.completedSummary]) { card.classList.remove('selected'); card.setAttribute('aria-expanded','false'); } });
 
   els.tagPresets.addEventListener('click', (event) => { const tag = event.target?.closest?.('button[data-tag]')?.dataset?.tag; if (tag) applyTag(tag).catch(() => {}); });
   els.applyTabTag.addEventListener('click', () => applyTag(els.customTabTag.value).catch(() => {}));
@@ -334,6 +355,7 @@
     const stored = await chrome.storage.local.get([STORAGE_KEY,PULSE_UX_KEY]);
     currentSettings = { ...DEFAULTS, ...(stored[STORAGE_KEY] || {}) };
     pulseSettings = { ...PULSE_DEFAULTS, ...(stored[PULSE_UX_KEY] || {}) };
+    if (!stored[PULSE_UX_KEY]?.holdEmoji || stored[PULSE_UX_KEY]?.holdEmoji === '🔵') pulseSettings.holdEmoji = PULSE_DEFAULTS.holdEmoji;
     renderSettings();
     await Promise.all([refresh(), refreshBrainOverview()]);
   })();

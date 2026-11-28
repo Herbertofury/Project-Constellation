@@ -48,7 +48,7 @@ with sync_playwright() as p:
     page2.evaluate("""() => {
       const main=document.getElementById('main');
       main.innerHTML='<section data-testid="conversation-turn-1"><div data-message-author-role="user" data-message-id="u1">Keep working.</div></section><div id="progress" class="text-token-text-tertiary">Inspecting ModForge source and report formats</div>';
-      __hud('10','tool-stalled');
+      __hud('12','tool-stalled');
     }""")
     before=page2.evaluate("document.getElementById('projectConstellationHealthHud').shadowRoot.getElementById('pcHealthTitle').textContent")
     page2.add_script_tag(content=health); page2.add_script_tag(content=sentinel); page2.wait_for_timeout(220)

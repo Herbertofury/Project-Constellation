@@ -1,0 +1,57 @@
+name: Computer Tools migration and native acceptance
+
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - 'computer-link/**'
+      - 'recovery/computer-link/**'
+      - 'tools/computer-link/**'
+      - 'desktop/src/computer-link.mjs'
+      - 'desktop/tests/computer-link.test.mjs'
+      - '.github/workflows/computer-tools.yml'
+  push:
+    branches: [main, 'upgrade/**']
+    paths:
+      - 'computer-link/**'
+      - 'recovery/computer-link/**'
+      - 'tools/computer-link/**'
+      - 'desktop/src/computer-link.mjs'
+      - 'desktop/tests/computer-link.test.mjs'
+      - '.github/workflows/computer-tools.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - name: Use pinned Rust and available host tools
+        shell: bash
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal
+          rustup override set 1.99.0
+          node --version
+          python --version
+      - name: Verify exact original source through read-only public refs
+        run: node tools/computer-link/verify-import.mjs --source upstream
+      - name: Run original capabilities and build integrated payload
+        run: node tools/computer-link/build.mjs --test
+      - name: Exercise actual native MCP through desktop adapter
+        run: node --test desktop/tests/computer-link.test.mjs
+      - name: Verify standalone Constellation native status command
+        run: node tools/computer-link/run.mjs mcp-status
+
+# Disposable hosted fixtures only. No public artifact/release upload, signing,
+# machine enrollment, persistent grants, endpoint, browser profile or owner-PC UI.
+# This gate has not been run remotely for the local 0.22.0 candidate.

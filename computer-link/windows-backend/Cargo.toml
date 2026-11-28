@@ -1,0 +1,5 @@
+[package]
+name = "athena-owned-windows-workers"
+version = "0.1.0"
+edition = "2024"
+publish = false

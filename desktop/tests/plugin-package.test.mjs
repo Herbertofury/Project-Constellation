@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import fsp from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '..');
+const pluginRoot = path.join(root, 'plugin');
+const manifest = JSON.parse(await fsp.readFile(path.join(pluginRoot, 'plugin.json'), 'utf8'));
+assert.equal(manifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
+assert.equal(manifest.name, 'constellation-commander');
+assert.equal(manifest.version, '0.22.0');
+assert.equal(manifest.skills, undefined, 'Portable Agent Plugins auto-discover skills/; the 1.0 schema forbids an extra top-level skills property.');
+assert.equal(manifest.mcpServers, undefined, 'Normal-chat package must not declare portable MCP servers (Desktop-only import route).');
+assert.equal(manifest.extensions?.com?.openai?.apps, undefined, 'App mapping is added only after a production app ID exists.');
+const entries = await fsp.readdir(pluginRoot);
+assert.equal(entries.includes('mcp.json'), false, 'mcp.json would force Desktop-only import behavior.');
+assert.equal(entries.includes('.mcp.json'), false, '.mcp.json would force Desktop-only import behavior.');
+const skill = await fsp.readFile(path.join(pluginRoot, 'skills', 'constellation-commander', 'SKILL.md'), 'utf8');
+assert.match(skill, /Do not hand .*ChatGPT Work/i);
+assert.match(skill, /never enforce.*tool-call quota/i);
+assert.match(skill, /PC_BUDDY_CALL/);
+assert.match(skill, /PROJECT CONSTELLATION LOCAL CONTEXT/);
+assert.match(skill, /browser companion/i);
+console.log('plugin-package.test.mjs: PASS');

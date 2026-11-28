@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const source=fs.readFileSync(new URL('../extension/src/project-identity-core.js',import.meta.url),'utf8');
+const context={globalThis:{}};context.globalThis=context;vm.createContext(context);vm.runInContext(source,context);
+const p=context.ProjectConstellationProjectIdentity;
+assert.ok(p,'project identity core should install');
+assert.equal(p.normalizeIcon('  x  '),'x');
+assert.equal(p.normalizeIcon(''),p.DEFAULT_ICON);
+assert.equal(p.normalizeColor('#FF5C64'),'#ff5c64');
+assert.equal(p.normalizeColor('red'),p.DEFAULT_COLOR);
+assert.ok(p.VECTOR_KEYS.length >= 24,'project-style vector picker should have a useful icon library');
+assert.equal(p.semanticIcon('Combat Compatibility'),'pc:dumbbell');
+assert.equal(p.semanticIcon('Curseforge Patcher'),'pc:wrench');
+assert.equal(p.semanticIcon('Minecraft Texture Pack Catalogue'),'pc:cube');
+assert.equal(p.semanticIcon('Spellbrook Mod'),'pc:sparkles');
+assert.equal(p.preferredIcon({name:'Spellbrook Mod',icon:'x'}),'x');
+assert.equal(p.preferredIcon({name:'Spellbrook Mod',icon:'*'}),'pc:sparkles');
+assert.ok(p.iconMarkup('pc:sparkles').includes('<svg'));
+assert.ok(p.sameFamily('Spellbrook Mod','Spellbrook Animation Lab'));
+assert.ok(!p.sameFamily('Spellbrook Mod','Curseforge Patcher'));
+const identity=p.identity({name:'Charmsy Mod',icon:'pc:gem',color:'#45BD8C'});
+assert.equal(identity.icon,'pc:gem');
+assert.equal(identity.color,'#45bd8c');
+assert.match(identity.foreground,/^#[0-9a-f]{6}$/i);
+console.log('project-identity-core.test.mjs: PASS');

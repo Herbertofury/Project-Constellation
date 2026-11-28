@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "productVersion": "0.22.0",
+  "sourceRepository": "Herbertofury/Computer-Link",
+  "sourceCommit": "5a5798b41252a4027dfa97209d34819858752ec4",
+  "sourceRecovery": {
+    "importedFiles": 123,
+    "restoredBranchTrees": 26,
+    "reachableCommits": 92,
+    "completeGitBundles": 2,
+    "documentedDeltas": 7,
+    "verified": true,
+    "bundleStorage": "private-local-only; excluded from public source and artifacts",
+    "publicHistoryMigration": "pending specific archive-publication approval and durable verification"
+  },
+  "tests": {
+    "pythonPassed": 23,
+    "linuxRustPassed": 46,
+    "nodeAdapterPassed": 10,
+    "nodeAdapterSkipped": 0,
+    "actualNativeMcpStatus": true,
+    "windowsRustCratesLinked": 6,
+    "windowsRuntimeExecuted": false,
+    "remoteCiRun": false,
+    "desktopTaskPassed": 22,
+    "desktopCombinedPassed": 79,
+    "renderedDesktopWorkflowsPassed": 27
+  },
+  "payload": {
+    "directory": "build/computer-link/windows-x64",
+    "files": 50,
+    "bytes": 11640178,
+    "binaries": [
+      {
+        "name": "computer-link-owner-proof.exe",
+        "bytes": 2161623,
+        "sha256": "e6960524d17d43cf057275cd3d25309c5898c109d045dea3d9f9b3a1d03eb013"
+      },
+      {
+        "name": "local-client.exe",
+        "bytes": 1545739,
+        "sha256": "773110cee35211a46939c2ea04c836d7b538fd0fa0b41e4e11661f8ef7428579"
+      },
+      {
+        "name": "local-window-focus.exe",
+        "bytes": 1698350,
+        "sha256": "d7b7c532aff9ede7bb2c7b27a03bc1dc26bb335e16e1f9df731c20558d2b1f6b"
+      },
+      {
+        "name": "computer-link-mcp-session.exe",
+        "bytes": 1651622,
+        "sha256": "fd419beab153fb8d2b431ea72b1caa735cfabb7eeeb8fb80a93718c9319bd827"
+      },
+      {
+        "name": "computer-link-workspace-candidate.exe",
+        "bytes": 1507596,
+        "sha256": "127a7ec90e663e7ca67b4584c58658a8eb5208f852fe76ecc57f040e2f12baf4"
+      },
+      {
+        "name": "owned-worker.exe",
+        "bytes": 1249796,
+        "sha256": "88299f078bb11fe7482a6f71f208c172e0861146f4671696aca99c4aec4db949"
+      }
+    ],
+    "externalDlls": "Windows system DLLs only; see PE-IMPORTS.json"
+  },
+  "remainingGates": [
+    "Execute exact integrated Windows native GUI/pipe/export/focus/job tests.",
+    "Install/uninstall and launch the final Constellation installer on Windows.",
+    "Supported client admission and explicitly destination-aware forwarding remain separate; no account integration claimed.",
+    "Durably verify separately authorized complete original-history preservation before deleting Computer-Link."
+  ],
+  "publication": "Active executable capability migration is authorized for Constellation publication. Automatic approval review rejected the full-history archive; both Git bundles remain private and excluded from public source/artifacts. No original repository deletion. Public CI verifies exact upstream history in disposable read-only fetches."
+}

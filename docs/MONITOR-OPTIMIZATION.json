@@ -1,0 +1,513 @@
+{
+  "schema": "constellation-monitor-optimization-v1",
+  "assessment_date": "2026-11-28",
+  "candidate_version": "0.21.0",
+  "status": "assessments_completed_no_optimization_retained",
+  "retained_optimization": false,
+  "performance_claim": null,
+  "scope": {
+    "execution": "Disposable repository copy; no production credentials, external agents, global setup, source deletion or source upload. Reports/profiler data remained in scratch.",
+    "excluded_inputs": [
+      ".git",
+      "node_modules",
+      "target",
+      "logs",
+      "build",
+      "__pycache__",
+      "*.pyc"
+    ],
+    "source_manifest_sha256": "280f4d1ce638cc2c20d08bf77de1eee2283b5705b4604e4cf29bc5ab7e37dda2",
+    "source_file_sha256": {
+      "extension/agent-monitor.css": "96a8191b91d52a1586c1f2e83ad369afe8d3dccd02c14a24ff175f6e96bc40e8",
+      "extension/agent-monitor.html": "cb477691401b167d832be04d35824b0c8ed9b74b6ba90747afaed75cef8b01d9",
+      "extension/agent-monitor.js": "4de6b6b90fdba1f842af5c965fa74b0e89b260960f042759a9c4002040ad9820",
+      "extension/assets/attention-icon.png": "4f4f34c09a59b24ce0893963a86d14e185860f58501b4e20cea046769b182ca4",
+      "extension/assets/constellation-field.svg": "670380c1748bcf546eb831991c50ff2bf661dc5997c4964d545e59b4d8d92b87",
+      "extension/background-entry.js": "b3f839fa6c94d7084893f70e06b160e943cbcac644e744ee57dc2326cfba956e",
+      "extension/background.js": "c5030107a03125dcf1a273dbf355bff23e4532d575dbcf8a3fac9486747064cf",
+      "extension/chat-vault.css": "e0f3a70e4f5d1a014c6dfea85e3b935df594c0ddbc121df6f03bb7d1b4e421b7",
+      "extension/chat-vault.html": "7a124b4f52e481b919330f681b53da7083a601b298a527e4c7fb725c8b0086c8",
+      "extension/chat-vault.js": "75df8edbef199bed97e259778b8a61f28d248b64f74f5dfc3910918f5c5588b1",
+      "extension/home.css": "3d42be4fdbbe0691f53008e7be477ddb6351d3e7b62807c56b3c6dc772b3cf3b",
+      "extension/home.html": "799cb7ed1cd9aac22bcb3d63fa1cd9d049b86e17b7b837ed58d4a20ac44ff6bc",
+      "extension/home.js": "2722da8e1a619359d097acb495b8dc573f3c32776b54620607e5ed0d3e920e01",
+      "extension/manifest.json": "dbed872f366a7052b524dbf3a105b7f757089fafadb0ff5b7512a7bdba435fdb",
+      "extension/offscreen.html": "c9f1dcf55020e1c8b92574bf5c3970b8fb9d658e6a1983275ec020ffebd2e938",
+      "extension/offscreen.js": "0f8d9837b50b5a6d29f7af2477dbaf792bb42117a8d85dd8ff7fc5ebf319cbb1",
+      "extension/popup-organizer.css": "8e541d0a36c8b1239733e450d51bec654c8699cb6b0ca14f5f179c5e3f979b23",
+      "extension/popup-organizer.js": "1cce1b6f8e6af55f25fcdf4d58645c2f9dda215938063af8927d63ef2bd0799a",
+      "extension/popup-pulse.css": "e7cabad5181571a6eb2e0084a78652fc5391d0be614ddf97de4e40a68d987b07",
+      "extension/popup-qol.css": "954117a785e22ff457b4c11465b1283ff50aaa016bc6ca3a5adc1100db3a9103",
+      "extension/popup.css": "7d85945016f552f4474c60c8f983e1b36c2551d5a5ae242129482d18e5286df0",
+      "extension/popup.html": "262427d371b3e55425550c2da08bc20e66d644ad644258b799df7698499db21c",
+      "extension/popup.js": "bce65ef7a1b626942495dc4f3cb5b74f90f0925b9719629c12096c3bb926d94e",
+      "extension/sensor-background.js": "32bf886690aa53282ffd893b59c5c6fde937ebf551fba7be9a91ca7a8881249b",
+      "extension/service-worker.js": "df30c862b3fbb6363efbd3da0e515ef710322505b0c816b20e031cfacf2d4707",
+      "extension/sidepanel.css": "9d6da1b23ac4bc3b0ab84c370a3ee59b993172f956c38e62d4e9f0916a2a766c",
+      "extension/sidepanel.html": "6bbf891c3f64ab322f743fa9c3153bf1a9d1b5a0a24b2d8f35c3e45b13f436d6",
+      "extension/sidepanel.js": "01296f8709eb2399e16fcfbe390bf48ad0d120ae292e17e7476237a9ff5bdc7d",
+      "extension/src/approval-supervisor-background.js": "b9f5ea8dd30f821e5135ed58910d6a4199d3f8b34f6b2b997474c82be9c94a9a",
+      "extension/src/attention-audio.js": "63196105e476d49ddd3dc1a134c0023dfd9806686d64cbb35680a0e837943802",
+      "extension/src/attention-background.js": "290b892fabbaf3ea72dfd47bf9b538ffd9ae5995d75a30b42ab9201a6977bab1",
+      "extension/src/attention-service.js": "92ab3b4da46fa18fb31b17347c738be4d429c8cc09bf6efd69fa726125494748",
+      "extension/src/background-message-router-core.js": "f9b227e75572501053d09cd6da61c5ce37d041b19f5c8baffa3a1dd0c741ca55",
+      "extension/src/brain-core.js": "26f5912a97d1178740f5580909e6a9721bec2d868169f1a3dace8dbbfc900b2e",
+      "extension/src/brain-db-core.js": "35ed818b89c1772dbf90d5001558b88ed81c07d24439d03c33f02a3b883b031b",
+      "extension/src/browser-monitor-sensor.js": "85485bf27670744bd8b5966205f674efd58af9c67427d4cdae62d5adf2abd13f",
+      "extension/src/chat-guardian-core.js": "298129d2c0dd7ee4bb341f75444fc9ce5e2ae8aab98f373e64096fb60bb16834",
+      "extension/src/chat-organizer.css": "7f99cfebc87b2f7122267b93be352bccb15d767acc3d4b005a7e964db9bb612e",
+      "extension/src/chat-organizer.js": "ed0a5e73240eafdf4c186aad655c52ec2ce2a840a36595a05fe11b2c242dc9f6",
+      "extension/src/chat-vault-core.js": "a929c89894c7ae0d72a286e742ec43da6ceec5b4c2552e875077ab73d4e9c9c2",
+      "extension/src/chatgpt-page-probe.js": "ccb55211e5e4158e8a9568b864a4ef3ba2428c9b364bd170e318b06a4312b721",
+      "extension/src/closed-chat-vault-bridge.js": "f10d0d35d938dd73f7beb979d700bee1aba96388bd354953fd3f91418b3d05a1",
+      "extension/src/closed-chat-watch-core.js": "6381d882e2014b99c450f23b359bc9f37ef2ab035b115bc06b2739ab01877477",
+      "extension/src/closed-chat-watch-ui.js": "2cfc8b848cfb0f1a1d7a02732bd605aa9376324787e59e1ddca9f430b3da543b",
+      "extension/src/closed-chat-watch.js": "8324ac146345f6a9e136f4b97085718ef765335662774cf15f2e6d1650073beb",
+      "extension/src/command-center-action-core.js": "be7d7ae5b26f8b9750cea937b42c68fd359ab8ee6291d74d32dd16f910b9001d",
+      "extension/src/command-center-actions.js": "b54d3ef6e149f0abedeabb8ed896a8a55e2d9bcfefc2cf3005162dc837dade1c",
+      "extension/src/content.js": "7de9a54eccfbf3894396b91422761f6109ebdd876283b2cc3e75ee2873a41b8f",
+      "extension/src/core.js": "55b5f1445f2616ee5a02e42aa2b5b8ed9ab2cd60eaa30e43f3e484c4ddab781b",
+      "extension/src/drive-sync-guard.js": "4d7737f14000bdb4b6535d5fe9cb8592c2a18153cb6cc528111d8603fa11d10d",
+      "extension/src/drive-sync-policy.js": "0aac8942100f07c0ff0888158c4d92738846dd71ba86171eae75c9564c371936",
+      "extension/src/health-core.js": "11fe914539a29a64569c8a78fcb56ce73fe57d4e32a3a5af5f399e2f9e4a1a83",
+      "extension/src/incident-brain-core.js": "4e9396ff17db22b202fc7832a264ea6fbce18efe959d8aa05ea2604649060aa2",
+      "extension/src/integrity-core.js": "e48a4649b086f120844325a0b3df98820ceaf5193f9fd545fa98e4f3994b4ec4",
+      "extension/src/knowledge-core.js": "6d082359af00d88ae052f0fa1382f016440ee340eb101e565acbe7de3f973d4a",
+      "extension/src/live-sentinel.js": "b3d2e399ac62318801dac36615a5b2c9236e2943cae85754137687f55f30a79f",
+      "extension/src/local-work-content.js": "0c22646d13fbac9f3e5ab39ec5d1ed8a86402006082990aa579913723e008108",
+      "extension/src/local-work-controller.js": "f2b111ec1936d64ad0e2cb56370291cdec30899224aa66a0837693facc6c3c13",
+      "extension/src/local-work-page-hook.js": "98a99d04f4fd2da995c882484a4b774824887de28c74cb7ccc96624259dd2394",
+      "extension/src/native-monitor-bridge.js": "86506883bcdfe958a6f625f3d07056fb96221977c82bf5b85c67344ad9af00d1",
+      "extension/src/notification-repair.js": "675ef78a580fb5a9ad0558273025af1af111a20250fb7cfa5ffda3be26e1e243",
+      "extension/src/popup-attention-qol.js": "4eac4b4ea18528a963abaca33f34e4169e39e79ef30232a1e946f4a50153a6af",
+      "extension/src/project-identity-core.js": "cbf3fbc2fc685f8b0b1a910ddbda7cbb307111f14aff3b674b7119337f122fad",
+      "extension/src/project-intelligence-core.js": "0d1e7fd1bbe042a512ecdbd42316d98d625a161b5aa50e0bba6f7c9893a55d8f",
+      "extension/src/project-memory-core.js": "560f33e82a596d763658a67a7db185124ceed6a0d5cf87d0735971238733832e",
+      "extension/src/project-router-core.js": "20e7eb8d4d65b2721990e7af3fe65c067d101051daf00e4be8c6084e4712e9bb",
+      "extension/src/provider-core.js": "5510a61c9975d344e8028f340717deb6bc7d0c686e6234e5432830f3a83c13c7",
+      "extension/src/provider-health-core.js": "3b3d8c9fc41a9cd084c74ffb81faf71dea31eedf858a6d5be43c9de1348e6699",
+      "extension/src/pulse-ux.js": "045ceef64583ca88ccb99448365d915355970165d70dfbdacdef0b7424d3528b",
+      "extension/src/route-observer.js": "a67d8463aa6d74bd4365c9d5555fa60af002d19db4c9b54a5a38224baf42d04f",
+      "extension/src/scheduled-task-guardian-core.js": "921347b7f485d7ed98ac7a92ef94bee98802203374a8e10cc72ea1c86620fdc0",
+      "extension/src/scheduled-task-observer.js": "564f5f5df7e7149d8bdc7448bd9230ac424845e7e5e4b52a8f3923359d8dc254",
+      "extension/src/scheduled-task-page-probe.js": "961b2453e9495983c9f425a040f4d734efd10f63b2976bdff262504060f2a283",
+      "extension/src/scheduled-task-recovery-controller.js": "876f020cdefef03d2270979e7c0d6eeeb7ab7455dd4054617b3c320398268111",
+      "extension/src/scheduled-task-recovery-page.js": "8aed6da590d61ba535bdb9e24d722576f57a30bc9f4242e70d750d384ab29b00",
+      "extension/src/scheduled-task-recovery-policy.js": "4cacd156eec1d33eedfc3844b72c09d61c04466608edf436461b8b1691161e50",
+      "extension/src/sensor-api.js": "b77d1db22a294d01a497b52b1ccbaab0246116fb64c6c96d51da81276417af10",
+      "extension/src/state-event-bus-core.js": "6c408fe138ae3680334fadb8cde9959510e1b4993c9cb87b81f82ff4d3ecd37f",
+      "extension/src/styles.css": "b54ec8c1311c5965fdd7f3cf596d29ca60b526267f198a658c00965958111b3f",
+      "extension/src/tab-beacon.js": "3e58fadc4aed723fdd9ab2585e504cf1627afef442919f5f55e6c2c67fe4cc52",
+      "extension/src/tab-supervisor-background.js": "be81700a7ebd14b2da4bd2665d20f5e79c8c5cd99364497d7f1ddbc5bfc5987b",
+      "extension/src/tab-supervisor-core.js": "1137c0f499dafce886ccc1da670a7485eeb9ffb9bc4597749533cf7cb28866a1",
+      "extension/src/tab-supervisor.js": "e0fcad9840030dbbf2c3d987811b0096af6fdf9f574429103b5bbb436c034f62",
+      "extension/src/ui-qol.js": "9b6e92f954b29c367dfb9aa028203b0743e32961ca446e2469c42e795dd7e34c",
+      "tests/agent-monitor-ui-logic.test.mjs": "6cb3cff71fafb08e7b300f849946287c1707a09c3bc3ad78073b6ebc673e23af",
+      "tests/attention-background.test.mjs": "cff3d00b13700872006a6fd9c0d5ee300cf85e4fa08abb70c182b86bb7f7a7cf",
+      "tests/attention-service.test.mjs": "890eba67df39a0cbe0b4fa9e1716a372be711d03d2d0a9d8c0885ac1f27a38d2",
+      "tests/background-message-router-core.test.mjs": "431f83be58e5c342fc2e52ba0a362ceb2136a6e0b918fe4ae0a0acf16f38d455",
+      "tests/brain-core.test.mjs": "e516b7dfaa7877c29a6f93057f04817406cc910e5f7e7b3045a31f3e9b3e1807",
+      "tests/brain-db-v11-static.test.mjs": "9f33a3e379a0c2880265a829d1cdb987c5ccce11b4ad00e22b804be467d8510b",
+      "tests/chat-guardian-core.test.mjs": "8a9a4f9a5bed07b5c3847a7c47c6e653ef8698788e02a41b1f7c0b1df439f3a9",
+      "tests/chat-guardian-runtime-static.test.mjs": "48374910f7f7183a400b06f98622c01ce2f5b097ef74814b6cb1dfa927ba1804",
+      "tests/chat-organizer-project-qol.test.mjs": "16d12b0e7ab6298d483acca1b79d68469b196e69eb829ac76f35bfadd3687e9a",
+      "tests/chat-vault-core.test.mjs": "4bc37ba41327c018132356d0a4ad45249b542c90ae7e633bc54c3e148edbe9b4",
+      "tests/chat-vault-static.test.mjs": "9de6b3bd106bbecc231e816012095b8b25894f3d63e70c0cbe5ca82257fb7943",
+      "tests/closed-chat-vault-bridge-static.test.mjs": "4f4479f9abeefec85070d9e9686073ca8ded34e095a7529cc682be9a008625aa",
+      "tests/closed-chat-watch-core.test.mjs": "c9814b4d2b2efe2807906198b81082215a787163b29586a2ff2534ac375ff927",
+      "tests/closed-chat-watch-runtime-static.test.mjs": "75dedc6c9b636abe0e61f60b95e8a376236a6ff87112ac9dcce51d2a44d1e16d",
+      "tests/command-center-action-core.test.mjs": "7dc9fc056d1066b1d69fa4a89f35d0d41f93b7a7710cb1cdb5aa5b0b41657a6a",
+      "tests/command-center-actions-runtime.test.mjs": "43bec8c62de794583e36b23793a118c876bd61726e50fbf9eb4a8bdcbe31201d",
+      "tests/core.test.mjs": "31862ec937f931e4fc0a8d30f95d893624a7a3eef6fb9a9916cc5ffb3f4588e5",
+      "tests/drive-sync-guard.test.mjs": "ae9cde7debd576da3e65b2f7d164efeb8bd1105d36cbccede7e723003f576c26",
+      "tests/drive-sync-policy.test.mjs": "e58b88737d9c0bb51cde08ecd254fcd8cabf6a76916ef343dc8c825648ee6c10",
+      "tests/full-permissions-regression.test.mjs": "432144d4d89bea53f2ffb574c98ba7c537c1c6cdf6e65365a302576f8c7c3fa4",
+      "tests/health-core.test.mjs": "d7160efc4b341499c00c332c21a4e90b17e1f13820337ee9f78f556ddeac8fa0",
+      "tests/incident-brain-core.test.mjs": "ef522e74f874fc7eb9acafbf0d12cbda5b7657bf1464f29c825c85166c69ac3d",
+      "tests/integrity-core.test.mjs": "074f87a15b50089fa3abc57ec17d2a19f5fb48f87d1b8ce41a76f8e51b434c77",
+      "tests/interruption-safety.test.mjs": "8d38d5d504a26794570853e1dda5e1efa2fce4bdc2ee38f37af791e7b9a97afb",
+      "tests/knowledge-core.test.mjs": "fcbeb900924a9b8219654fd445778bdf7c5e0dc9d780687bbfb0c1694b4de698",
+      "tests/live-state-policy.test.mjs": "5503816ca75c168eef24fa28ef56c52b88a0e69e2ed80c46f00d1977683b8ff3",
+      "tests/monitor-sensor.test.mjs": "567d3d33722e41e8dce79e9651f9cbd5856353c091a8a43695149999bc37a164",
+      "tests/native-monitor-bridge.test.mjs": "71594e3e1caabd383735d673d54d3bb8cc678c8956642a6ef96b95ef50820c1d",
+      "tests/navigation-safety.test.mjs": "431b64bd6a1759eaaf73859dec919627beeab1b9b99c4dc44574540cc93831d0",
+      "tests/no-fixed-polling.test.mjs": "dafbc44e863baa8576bd291da996a012dffa483f0bb84454137b245d32d337ac",
+      "tests/output-integrity-semantic.test.mjs": "3faf2103980d341d82cb3293b798f1267d172101fee1ac225185dd68f5973a4d",
+      "tests/popup-attention-qol.test.mjs": "05322f9480522faf70febc05b22d4bf323b6891f04445b614989372ffbca7ff2",
+      "tests/project-identity-core.test.mjs": "e34a19957eb407730cb357d5fc6b2d6094e23479f102b2f402f3b6904f8db91a",
+      "tests/project-intelligence-core.test.mjs": "1feb05d3fb509c8cddb5da706a5a94eff17960660e47ea1be8b825189631e4be",
+      "tests/project-memory-core.test.mjs": "b73f16dd43af556be328c21d08f7b18232d882a2e929ad2e6cf6e657b5bbb4c5",
+      "tests/project-router-core.test.mjs": "6fcb7f8b470c0da5757920e8bcd5302965b85d75191740d1b0c3532b5073d87c",
+      "tests/project-scale.test.mjs": "aebe283c3b83b020b80751c10a82236d0a3cc34208f44a1c05bc68ba278c7c73",
+      "tests/provider-core.test.mjs": "098126788ecba96cb7cbfde79c586242ec04550549ae4185baa004bd5d5e9e79",
+      "tests/provider-health-core.test.mjs": "4e4caa9d55a4afdf875054d56ffd619ed3eba09c024f0f6bcc26bbcb517f1390",
+      "tests/provider-health-runtime-static.test.mjs": "8c6488e7d5dfeae138db7200ce2773d91fdda5ff972cca68e9e1a4575a6feb10",
+      "tests/recovery-polling-regression.test.mjs": "92c23dd3bf6dbdfedaf19b2eafdf7b3907008e6810e8d314821c87fd6148e045",
+      "tests/reliability-supervisor-contract.test.mjs": "d453766e32dde84e0977c7ccfcc4009d10252ba80c36283a34564aab5c0b723e",
+      "tests/runtime-error-hardening.test.mjs": "26db4737ccf7e934352882699ec5a571b1b3e1a8d64b7c6891edd482c22011d4",
+      "tests/scheduled-task-guardian.test.mjs": "954afb84469179f213bd33d06d048a7c0746970d6c11945f85501eb425e52521",
+      "tests/smoke/agent_monitor_smoke.py": "777f12679f3095676ec2dd7a344858cfdbf000fb5ad52f284f92c4d484ef50d6",
+      "tests/smoke/approval_background_smoke.py": "a88e26509fe6f331094fd7529c11c6aa6a3205f2ec341bcd41336fede9584e8e",
+      "tests/smoke/approval_home_smoke.py": "9d978fbfd4dfd8ca7cdb740468ca2d96f0ce44209f0044401e1e4a87d234f4d4",
+      "tests/smoke/approval_recovery_smoke.py": "523b97525817f3ef249b63712515fa97da956d098d4205ed457769bb5010e938",
+      "tests/smoke/approval_supervisor_schedule_smoke.py": "1eba2259e984bbca9c5f38069319cc15996fcad3ed9e9eec3937ee74abd6a6ec",
+      "tests/smoke/attention_detection_smoke.py": "f225cb9fbee96525499a5834d725f8b887b568f393fbf3dc48b07f0ecaa65bac",
+      "tests/smoke/auth_backend_smoke.py": "1eda7f6f3b212ac8ab96794a4497c93d698d95eb4dfec45c98b71cd8082fc7ae",
+      "tests/smoke/background_smoke.py": "a9a334fd4cb0603624de08bbdd81b8a1189999a702da3a0b4c92da641b4e85b0",
+      "tests/smoke/branch_continue_smoke.py": "34de60cfd011de0695b1acdcc7e100a0f93b1c9630b111d7f34ae8cf7c21d22f",
+      "tests/smoke/browser_monitor_sensor_smoke.py": "d8b040c4ea8a043c1197673ea9423954c38815a4b69a80d0dcb32bc870edbcf0",
+      "tests/smoke/chat_guardian_multitab_smoke.py": "64d95933eed1f9c1eba7c59bf9bb6630e3e9493ddbd358dd4f428f7c67b3f868",
+      "tests/smoke/chat_organizer_project_ui_smoke.py": "917919fb9ddb0a1d13d092a64c8c25f7e9e321ea5cb9809bdcf8bf1d31708d9d",
+      "tests/smoke/chatgpt_current_dom_smoke.py": "beeb0e341cce4802e86e39be3d0b90b9038cd92dfad859b1a0ea5ab316c236f8",
+      "tests/smoke/chatgpt_transcript_probe_smoke.py": "604b7d8fd62d70ae33b1b96f216be6aa661518268ce5b0de424e0f60e965077b",
+      "tests/smoke/content_smoke.py": "bb20fefde47a0299a99ab7642a2e2d2ba5f75cc5f50f8bb6add6107c8c3e7cab",
+      "tests/smoke/drive_autosync_smoke.py": "b7a26f1697c83b997682d1405d1ed27b95353e6e4ba7b41505f917f321e22d42",
+      "tests/smoke/extension_load_smoke.py": "bb9ce6b1adff84336d7a880c4ea886cab162d538053174aa10e615dc34895ad7",
+      "tests/smoke/full_capture_smoke.py": "aebfc061f8059e69f7f63b191908c266915d4d18d6074a0a8588da3a8caae295",
+      "tests/smoke/home_smoke.py": "797a81bf6de186d7d135d486037cf7a16820d2ee5921ea566f9f497499bbb6c9",
+      "tests/smoke/interruption_guardian_smoke.py": "367b6c0971e83bdfa8a63e579a2228a2a0f3d30c0fe4a9428dd17854504b7e04",
+      "tests/smoke/live_chat_state_smoke.py": "410a0805064edb01fe21f214bb07425bcf6cc205900f5654a279f84007dc6a13",
+      "tests/smoke/live_health_smoke.py": "52b4420f7c99afc9eaf86e02ed09cae32d329a5a2dd194c4ced04de33083be8c",
+      "tests/smoke/live_health_state_stability_smoke.py": "aa10dbc61520241147363650d0bf1497c0e2455bb89e9c2f0f3537e7ff5319de",
+      "tests/smoke/live_sentinel_observer_scope_smoke.py": "b8cc36583e8a8acb093ab5993840d4780ba7b901b772c7733b22bd32eaf25365",
+      "tests/smoke/live_sentinel_smoke.py": "a7555b8a2ff190192ff1b1cc0ff015062db8709ce3413e1b80d47c45055b344e",
+      "tests/smoke/multitab_reliability_smoke.py": "ced7ad579f9446d504cc01b394e5d6d42d28ae9e975c1396eec9079da74104b0",
+      "tests/smoke/offscreen_smoke.py": "ae56d518549f386ea487850d1b1e1f91205edfb8d62823366d847b5b4963f259",
+      "tests/smoke/organization_home_smoke.py": "7c16ae645440b3816910d9b8210b233c528ef4f50f2118d34713383362a1aae3",
+      "tests/smoke/popup_smoke.py": "29537952ed1c6b8f7fd7a9a4e4ce2661e8d59050e5b8fe3d87cf2b51a59e978d",
+      "tests/smoke/project_context_staging_smoke.py": "7b465c59abde55ce7dc2dcf72d16697bdceae8786a985e99603efbf08f2b5353",
+      "tests/smoke/provider_dom_smoke.py": "c41e8c6369228fb9b17b5390d21b8e1d381163348133a44ad42ed568b3a810cd",
+      "tests/smoke/pulse_ux_smoke.py": "a87c228168afd2547c0a37950d4436b72e788a2b839c216574dc8a847784c10b",
+      "tests/smoke/review_hold_smoke.py": "3f82ca25225a780b2cd0d210e071e0fdc73d0267367993d473f00811a15cafb9",
+      "tests/smoke/runway_sentinel_hot_upgrade_smoke.py": "6d8fd7d51987b4e8b309a7c8d5e3f1a74d01b6a9acb72e3fbea8522746ba1e7f",
+      "tests/smoke/scheduled_task_guardian_observer_smoke.py": "87486b4d7b7a558ff35090cc99d98331f89e8f57ef73b4e32745b74c722dc6db",
+      "tests/smoke/scheduled_task_guardian_smoke.py": "d551c8a99bbcaa95619aff5a24a9b3e02d61fae70a73fa895084563f54b0638a",
+      "tests/smoke/scheduled_task_recovery_smoke.py": "9a304f9114d9b39d0e1dae4379a3b7ca8ea3ff9a6f3b70ca9c3c82dcccd6c6ec",
+      "tests/smoke/sidepanel_smoke.py": "52cb98694b66f4ffc42aaa3b05d4146e7573174ccf8b2dec0121db57d298a023",
+      "tests/smoke/state_convergence_smoke.py": "1a2d55b2b24ea382199d4074f3f1aff772229ddd67d959e64c663627adad74f6",
+      "tests/smoke/tab_beacon_smoke.py": "f01dde47bf62bb9b894aa8b329a0fcc27487b008900615e17c47b4727dd2a9cb",
+      "tests/smoke/terminal_surface_smoke.py": "e92e2a9e3ad49f049dd8e1dc271c13cec4d659ea652fdcf4e85180cf4ec0e8e1",
+      "tests/smoke/workbench_smoke.py": "1860f32a3af4b9e76fe268ee1d447e4b7bb8dc627a5eba44c511c809b2fc5d3b",
+      "tests/source-archive-static.test.mjs": "946314b1f09d1d60a7c9adf5bb0d8de5478b5fbe5a51f38f841bc9580c4e5a38",
+      "tests/state-event-bus-core.test.mjs": "e47cb42ec6eeb40708c06449de52392f8fb03edbf12ad4d778d0dcb99b096ce6",
+      "tests/tab-group-convergence.test.mjs": "b3bbafa115b2662cf5de896fac581cfd09c300af23dcbf28ac247a69860ce857",
+      "tests/tab-supervisor-core.test.mjs": "01efe248a83ce8863ff2612daa0ca5af849a4458b9bab62bc00f84310eb0c106",
+      "tests/ui-qol-static.test.mjs": "ddf0952858326f27a5de2e28e257b967e7e1d93fd9f15a355c0b067692a4d297",
+      "tests/unified-v019.test.mjs": "898dbdec9c562dda96bf4ed632f0d52295f3163961dbbfb9069f8f5d468bb5c4",
+      "tools/build-browser-sensors.mjs": "400e6d34a5fca653c21a4d75f237336d800f0c24d49d7b6a7c63345b3c1c9b37",
+      "tools/build.mjs": "bb2edddbeea10fd53302b7351ba5e69e5c113fb13f81143f900dedc66697c8d7",
+      "tools/chatgpt-ui-rescue/.gitignore": "38468b78c3a7c2ca3232030783e2f759c20d06760580e7c159aed93f514ba57b",
+      "tools/chatgpt-ui-rescue/README.md": "523cf8c2fbc30fb15fa9e230ca15c456f676a0ab57fdead227c588ba37089d1f",
+      "tools/chatgpt-ui-rescue/bootstrap-auth.ps1": "5d5728403c044834898652fa84978c31ef4518bd97f90d908b3c10d1501951f6",
+      "tools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1": "93f05813b40efd96b1d872c9cb5d7a7d62ed0b357c038e11394245235f196771",
+      "tools/chatgpt-ui-rescue/capture-auth.mjs": "4a18b8cf9e68a877d4724d3dda32893703ea376b13a9870e45f47e8c428fae29",
+      "tools/chatgpt-ui-rescue/capture-existing-chrome.mjs": "2884d8394b753d823ea4047c1ff6ca9d4d452187ca233457a9ad6c517278da75",
+      "tools/chatgpt-ui-rescue/cdp-integration-test.mjs": "383d93264505ee395c2351cdeaff0f38c3db39deb76571ba0c366a15d70f4c0d",
+      "tools/chatgpt-ui-rescue/install-local-agent.ps1": "56d934935abe67752370c50fd0146c54c1f8ccbaef1c250cfc849c50b20f9e0f",
+      "tools/chatgpt-ui-rescue/local-agent.mjs": "af26b8bef268f4ac7a6cb6039c0fadcc6ea78f6fc4595c5d318c17fbff3e4d46",
+      "tools/chatgpt-ui-rescue/package.json": "56b891f131d0855f21826363c2c0ccb5f02b0e6801e582a95f49115244fa2741",
+      "tools/chatgpt-ui-rescue/rescue.mjs": "a46a055495ae9dca1c3a0f389ca48965612b5f8bd3f51e29f6cbd47c7f41ad4d",
+      "tools/chatgpt-ui-rescue/status-local-agent.ps1": "1d7f985c4b35b03cfbcba69a1a955bbe1c84b3e16ea9a9567e1c49bd4235d10b",
+      "tools/chatgpt-ui-rescue/uninstall-local-agent.ps1": "815a2b235720f264c6707c049f07850dad635e396fccb5210c071e24049fbd95",
+      "tools/live_browser_acceptance.py": "1010dcc9c08046046c78be6d0fcf928a4f11b5207a70a7b3555a8fec54879ae0",
+      "tools/message-contract.mjs": "fe17fc4e8fe36c9c1cb9ae67c8602b49f275da21c702c8f2c48c52fb89d493e8",
+      "tools/package-agent-monitor.py": "50881dd9779861e1ee156d457224e0f67139d6e5434f3cc0edc5dfa4ae59cd87",
+      "tools/package-release.mjs": "61b0e38a946ab1fb5875868469e74811c0361242c0a9dadcffc135d721685ec9",
+      "tools/package-unified-release.mjs": "d96dc7c6c424d38fcb946e3788f31f606522f9d38336bfe5ba57dbd5c0c0d3e6",
+      "tools/run-smokes.mjs": "43d7ec2dae06aed2b3e988c0bc6b2089b269791a95260599710f9ab8cef9129e",
+      "tools/source-archive.mjs": "4dd4ce0fe802de329cfd964aa6dc2143d10d13abf925d30237dd236ae90e987e",
+      "tools/ui-contract.mjs": "c6274c824ac848a73a4769b6962bfeeb55ae3beb7e25ba90b9ed6d0fd345615d",
+      "tools/validate.mjs": "d87dd3d8d3a5b1ace2d6a983c8bf40b93d2ab4a8aec10718720dc0db4269ec45",
+      "native/constellation-monitor/.gitignore": "28966a0791d7395d4eb2a48513f036bfc2079639b93f08188752b27f6194a8f5",
+      "native/constellation-monitor/Cargo.lock": "9179dd20f23396156c15378ed698e5773a986ee198a495d5594b6d44f81b816d",
+      "native/constellation-monitor/Cargo.toml": "68ee5003f5e3492326ce65ad341b6b8092b74d46a4ea835e63f05ec9c5cc88a1",
+      "native/constellation-monitor/PROTOCOL.md": "37802a4957326263b42a96a9990d72a03afdb9c5ade187e299ac691b9b62270b",
+      "native/constellation-monitor/README.md": "177b11830a79f7f7ac1574628c42999bb28918d38a2f9f57c806f273da9d5bd1",
+      "native/constellation-monitor/src/broker.rs": "c89a704446605b57ddf91a4c32834b4ce878083690f3c17c4fd1a88a3dd2f5c2",
+      "native/constellation-monitor/src/install.rs": "ad06d89cab3895b2e3b6d62e5d79c7173afc723c2dd0d8f320facc3c419dd4a5",
+      "native/constellation-monitor/src/lib.rs": "eb0734cb3671f6bcfab60c8b82cf70674dbeceb1538b9d4184fdda48ddb9be3b",
+      "native/constellation-monitor/src/main.rs": "33b6261185fad0a4b3870728b560f7aaba8d1db53a3b3cb64a1547bf7df26960",
+      "native/constellation-monitor/src/platform.rs": "a270cb91f5db3a81d296b4e342c5d4623359cd7160df5e4915fa0686f9ea1509",
+      "native/constellation-monitor/src/state.rs": "49cb29e660903f4a370514f73e89bced9d009bbdbb675f954e0d2956b5799be3",
+      "native/constellation-monitor/src/wire.rs": "6f8d6174d6cf7051cc783e29faacb3ac20c2bb991df0c20c3558cd42105e7543",
+      "native/constellation-monitor/tests/chromium_native_smoke.py": "8529c7d8ad762e6e147072a3d10475f08b6d42ad87a62206de1a295a367a1433",
+      "native/constellation-monitor/tests/native_roundtrip.rs": "76b5edd9ed5548ed06b3245d4116ea8ade3bc23600e940bb60c680bd80f4f926"
+    },
+    "drift_at_receipt": []
+  },
+  "tools": {
+    "shrink-anything": {
+      "version": "0.1.1",
+      "upstream": "https://github.com/EL4CTEO/shrink-anything",
+      "source_commit": "ea0c07e9f33611adaf03a5c47142c31a200d3ac2",
+      "binary_sha256": "a9f4607fc8c3f001e6877bc13b71ebc3ef07a557e1bafc7c63a5d7a48f4e3a55",
+      "license": "MIT",
+      "commands": [
+        {
+          "argv": [
+            "shrink-anything",
+            "doctor"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shrink-anything",
+            "scan",
+            "--json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shrink-anything",
+            "weigh",
+            "build/unpacked",
+            "build/firefox-sensor"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shrink-anything",
+            "verify",
+            "--",
+            "node",
+            "tests/agent-monitor-ui-logic.test.mjs"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shrink-anything",
+            "report"
+          ],
+          "exit_code": 1,
+          "result": "Upstream refuses a cut report because no cut exists; no report pass claimed."
+        }
+      ],
+      "outcome": "no_safe_win",
+      "candidate_count": 10,
+      "duplicate_groups": 192,
+      "findings": [
+        "Read-only attribution completed. Removal suggestions included immutable recovery/release evidence; none were applied.",
+        "No source, feature, content, test or asset was removed. No destructive cut route executed."
+      ]
+    },
+    "fast-anything": {
+      "version": "0.9.0",
+      "upstream": "https://github.com/EL4CTEO/fast-anything",
+      "source_commit": "e3d8635b6d11849f235f7d11447823a9aa604267",
+      "binary_sha256": "cb5a5cc4bd42e85ff7c3273c871e64d2c27fc109bfe2180f71915fbc011b9763",
+      "license": "MIT",
+      "commands": [
+        {
+          "argv": [
+            "fast-anything",
+            "doctor",
+            "--json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-service.test.mjs"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/agent-monitor-ui-logic.test.mjs"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "outcome": "no_safe_win",
+      "attention_hotspots": 14,
+      "attention_portable_hotspots": 0,
+      "ui_hotspots": 4,
+      "ui_portable_hotspots": 0,
+      "findings": [
+        "only 36.1% of the run is in your own named functions; the rest went to node:internal 32%, top-level / anonymous code 9%, garbage collection 7%",
+        "this profiler samples the stack instead of counting calls, so there are no call counts",
+        "your biggest function takes only 30% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up",
+        "Fixture profiling does not measure real browser rendering, speaker output, OS notifications or the user PC. No bridge, port or enable operation was applied."
+      ]
+    },
+    "rust-anything": {
+      "version": "5.0.1",
+      "upstream": "https://github.com/erkamyaman/rust-anything",
+      "source_commit": "a1e9509b31bd89e0cbf039e86a39ca338d2c67fe",
+      "binary_sha256": "a9210243b30877b06d3fe4ed0ed60be58ca8fe3fbcf1b7005aab44f751ccc097",
+      "license": "MIT OR Apache-2.0",
+      "commands": [
+        {
+          "argv": [
+            "rust-anything",
+            "analyze",
+            ".",
+            "--lang",
+            "ts",
+            "--json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-service.test.mjs"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "outcome": "no_safe_win",
+      "analysis": {
+        "packages": 3,
+        "source_files": 132,
+        "test_files": 72,
+        "ui_files": 0,
+        "loc": 36674,
+        "units": 32,
+        "ready": 19,
+        "caution": 12,
+        "blocked": 1,
+        "keep": 0,
+        "parse_errors": 0
+      },
+      "findings": [
+        "The new broker is native Rust, so no Rust-to-Rust migration applies.",
+        "The JS profiler labels some async delivery/persistence closures portable, but this is not browser API, asynchronous callback, native-messaging or full workload compatibility evidence. Fast-anything independently marks the measured functions nonportable.",
+        "Directory-level migration suggestions do not prove end-to-end parity or faster execution; no port, bridge, enable, source removal or performance improvement is claimed."
+      ]
+    }
+  },
+  "tool_provisioning": {
+    "method": "Locally pinned npm packages with --ignore-scripts --no-audit --no-fund; upstream source, licenses, package metadata and entrypoint/dispatch behavior reviewed.",
+    "npm_versions": {
+      "@el4cteo/shrink-anything": "0.1.1",
+      "@el4cteo/fast-anything": "0.9.0",
+      "rust-anything": "5.0.1"
+    },
+    "lockfile_sha256": "27ffc9b4b410086013d53a16bef354ea060ba767090d5b99fcb41d89b7a4c26b"
+  },
+  "validation": {
+    "new_ui_logic_test": "passed; actual dashboard code with independent minimal DOM. Includes cross-browser/document/run identity, unknown legacy history, focus routing, unavailable sources, Firefox promise API, truthful refresh/diagnostics, follower shared policy routing/display and standalone settings, and no silent local fallback on failed shared mute.",
+    "source_preservation": {
+      "recovered_v0201_files": 323,
+      "missing": 0,
+      "historical_main_test_files": 46,
+      "missing_historical_tests": 0
+    },
+    "packaging": {
+      "unpacked": {
+        "file_count": 84,
+        "monitor_html_reference_errors": [],
+        "static_module_import_errors": [],
+        "included_doc_reference_errors": [],
+        "included_docs_sha256": {
+          "AGENT-MONITOR.md": "88884e92849f3f6ab08579850203ba6658e477eee0d0e381cedb1d920fa625c6",
+          "MONITOR-VERIFICATION.md": "7c822654265eb78ec3de4a491ca8b90906131be9e6ecddf27eb84f15135af88a"
+        },
+        "setup_guide_requires_publication": false
+      },
+      "firefox-sensor": {
+        "file_count": 17,
+        "monitor_html_reference_errors": [],
+        "static_module_import_errors": [],
+        "included_doc_reference_errors": [],
+        "included_docs_sha256": {
+          "AGENT-MONITOR.md": "88884e92849f3f6ab08579850203ba6658e477eee0d0e381cedb1d920fa625c6",
+          "MONITOR-VERIFICATION.md": "7c822654265eb78ec3de4a491ca8b90906131be9e6ecddf27eb84f15135af88a"
+        },
+        "setup_guide_requires_publication": false
+      }
+    },
+    "runtime_acceptance": "Separate from optimizer assessment. Real Chromium rendering/control fixtures were exercised; final production UI and native browser acceptance evidence belongs in MONITOR-VERIFICATION.md. No live-account, native-registration, speaker/OS-notification or remote-OAuth claim is inferred from profiling.",
+    "packaging_script": "Latest production-only packager parsed successfully; includes clean per-platform staging, Windows all-in-one kit, bundled local setup/verification docs, explicit binary digests and no runtime-acceptance claim from packaging.",
+    "shared_alert_policy": {
+      "commands": [
+        [
+          "node",
+          "tests/agent-monitor-ui-logic.test.mjs"
+        ],
+        [
+          "node",
+          "tests/attention-service.test.mjs"
+        ],
+        [
+          "node",
+          "tests/native-monitor-bridge.test.mjs"
+        ],
+        [
+          "npm",
+          "run",
+          "validate"
+        ]
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "verified": [
+        "Follower mute/volume/unmute routes to the shared hub; standalone settings stay local.",
+        "Connected UI displays native policy over stale local values; failed shared mute never silently falls back locally.",
+        "Policy is applied before elected-owner delivery; acknowledgements and absolute snooze deadlines are mirrored before ownership transfer.",
+        "Unchanged snapshots do not repeatedly toggle the owner or rewrite settings; 25 ownership transitions at 200 ms intervals cannot starve a due snooze.",
+        "A 10-second remaining absolute snooze deadline is preserved and repeated source timestamps do not replay delivery.",
+        "Mirroring requires matching document, URL and known run; disconnected remote sources become unavailable before standalone delivery resumes."
+      ],
+      "limits": "Node dashboard/bridge fixtures and real attention-service logic; these checks do not prove installed nativeMessaging, real browser accounts, speaker output or OS notification delivery."
+    }
+  },
+  "raw_report_sha256": {
+    "review-build.log": "09f7dce1f25c70fc168b6d11be6cc8e602d8bfa210314a5657d09e8bcf3caa8f",
+    "review-sensor-build.log": "369aafbf227fbfab107cef745acfe3e410892ff59972184c1cf2a69bc5e18177",
+    "review-shrink-doctor.log": "b44bacad61cfb1374e314d6783a584515de0fcffb0847c549a67909657bad0f9",
+    "review-shrink-scan.json": "ea497b5bc926be3a77a28e1a4d7d9794c9eafc34a830769cbb1a217014ea1af0",
+    "review-shrink-weigh.log": "2108635b1ed0ee8475599099f4a905dde4175bd6141e894edaaf75358f04c95f",
+    "review-shrink-verify.log": "17510b8d1774d46e2090656954b91864662d6267051adf7f6cc579514675a9ab",
+    "review-shrink-report.log": "b50c41e9f0031f6f977b62dbcc39a400759c519d19806e90848c707e339766c0",
+    "review-fast-doctor.json": "d4615975f4d819f2bc73bdf829df704a9bbb9a1cd0431e9a1343c97bf2d263a6",
+    "review-fast-scan.json": "db2977fcbd6ea8f0ea5d452bff670503c40c49e7d05c6f017020762ff2f23cea",
+    "review-fast-ui-scan.json": "5cb234063664a7c11b66a29733196055065ac793a2b56bc221c809630e087a0b",
+    "review-rust-analyze.json": "98054a108dbb8cd91085b43305e325bbcb73d54f2b066d49709ae52de297ebc9",
+    "review-rust-profile.json": "fb13c2bbddbc0d22bf28e4ee661ff219c91cbf86092e256bcd2104ca5dbe0cdc"
+  },
+  "limitations": [
+    "No benchmark-based speedup is claimed.",
+    "No live browser accounts, real user profiles or remote OAuth round trips were exercised by these assessments.",
+    "v0.20.2 source remains incomplete; baseline source is verified v0.20.1.",
+    "Drive metadata search did not return; no current Drive checkpoint assertion."
+  ],
+  "browser_runtime_provenance": {
+    "npm_package": "@sparticuz/chromium",
+    "version": "158.0.0",
+    "upstream": "https://github.com/Sparticuz/chromium",
+    "source_commit": "8fdcb7b0a4a2a80b91ea70f79fb9a123cebdca53",
+    "source_tag": "v158.0.0",
+    "license": "MIT",
+    "npm_integrity": "sha512-Rm/Jg2u7SVYAz/GTqAg4IqGoa1VDZEuqW8OPIe92T/vUa32r+Y5nIM7MnkFIXmjkBBEj/4OezoUnU+rsLxYz/g==",
+    "executable_sha256": "1f698044a68e18c1ce0cce74be25413f176806f19f15a44de5bb02cd578996af",
+    "installation": "npm install --prefix browser-runtime --ignore-scripts --no-audit --no-fund --fetch-timeout=30000 --fetch-retries=0 @sparticuz/chromium@158.0.0",
+    "inspection": "Official tagged package source, license, API and extraction behavior reviewed before invocation. Default broad Chromium flags were not used; isolated temporary profiles only."
+  }
+}

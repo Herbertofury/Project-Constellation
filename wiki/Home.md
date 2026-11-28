@@ -2,8 +2,18 @@
 
 Project Constellation is a privacy-first Chrome extension that preserves ChatGPT conversations, turns them into durable local knowledge, and helps recover safely when long chats or browser sessions become fragile.
 
-Version **0.14.0 “Nightfall”** is the production upgrade from the canonical v0.13.0 source. It adds a cohesive midnight, violet, and electric-blue identity; refresh-safe provider authentication; current ChatGPT.com compatibility; lower-cost DOM monitoring; deterministic recovery; and a standalone build, test, release, and documentation system. Execution Pulse now includes the permanent **⇄ Output Vault**, which retains richer assistant revisions and recovers text, code, links, media, files, and builds if a refreshed provider page drops or shortens its previous output.
+Version **0.22.0** combines the original project, conversation and desktop tools
+with durable attention alerts, explicit cross-browser monitoring, a Rust hub
+that follows browser lifetime, a compact Windows installer and the complete
+Computer-Link native toolkit. Use the [Windows setup guide](Windows-Setup),
+[Agent Monitor guide](Agent-Monitor) and [Computer Tools migration map](Computer-Tools).
 
+The compact installer includes native tools and stages browser sensors. Enable
+a sensor in every browser/profile you want to monitor. The full desktop shell
+also ships separately as an installer and portable ZIP. The release is a
+prerelease while Firefox signing, Windows publisher signing and owner account
+acceptance remain open. Check the actual [GitHub release and runtime receipts](https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.22.0)
+for executed evidence.
 ## Start here
 
 - [Install Project Constellation](Installation)

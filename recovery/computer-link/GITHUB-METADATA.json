@@ -1,0 +1,372 @@
+{
+  "schema": 1,
+  "observedUtc": "2026-11-28",
+  "repository": "Herbertofury/Computer-Link",
+  "branches": [
+    {
+      "name": "build/sse-nif-optimizer-3.2.2",
+      "commit": {
+        "sha": "4bf4c7b4bbc0f83ea04608a573e59032c25b28b3",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/4bf4c7b4bbc0f83ea04608a573e59032c25b28b3"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/adapter-error-boundary",
+      "commit": {
+        "sha": "ac6eb64a0cd42a5b9494b96b9dd467e627884cab",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/ac6eb64a0cd42a5b9494b96b9dd467e627884cab"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/adapter-exception-isolation",
+      "commit": {
+        "sha": "3e1ef7d6e5e5fb1d43f0afd09d23d07275fafa1c",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/3e1ef7d6e5e5fb1d43f0afd09d23d07275fafa1c"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/adapter-output-isolation",
+      "commit": {
+        "sha": "e9670d635f5a45db4285e36408a8368e29b13cc0",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/e9670d635f5a45db4285e36408a8368e29b13cc0"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/adapter-registration-contract",
+      "commit": {
+        "sha": "75216de30aacd52cc9e2a0f7240ea8e5f175996d",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/75216de30aacd52cc9e2a0f7240ea8e5f175996d"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/bounded-request-lines",
+      "commit": {
+        "sha": "b83d6030ae7e95f0e790703a5815c5c7b02dc8f3",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/b83d6030ae7e95f0e790703a5815c5c7b02dc8f3"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/strict-request-json",
+      "commit": {
+        "sha": "cbfd822e467f7b112f1b73b394c3afe0a4a143e3",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/cbfd822e467f7b112f1b73b394c3afe0a4a143e3"
+      },
+      "protected": false
+    },
+    {
+      "name": "fix/utf8-line-recovery",
+      "commit": {
+        "sha": "ee52beec403d567fc582a47a9f30ac4f903a65e7",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/ee52beec403d567fc582a47a9f30ac4f903a65e7"
+      },
+      "protected": false
+    },
+    {
+      "name": "foundation/diagnostics-20261114",
+      "commit": {
+        "sha": "9a9bcd9f11a64c549cf3556a1dd523b6afee67a9",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/9a9bcd9f11a64c549cf3556a1dd523b6afee67a9"
+      },
+      "protected": false
+    },
+    {
+      "name": "main",
+      "commit": {
+        "sha": "4523fd6cb1ca65817b5bbca81fa2f5ee5411533b",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/4523fd6cb1ca65817b5bbca81fa2f5ee5411533b"
+      },
+      "protected": false
+    },
+    {
+      "name": "research/mcp-sdk-20261114",
+      "commit": {
+        "sha": "8aca5307b819ffcd60bbe7ad7288497e98e3cd86",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/8aca5307b819ffcd60bbe7ad7288497e98e3cd86"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/rust-owned-workers",
+      "commit": {
+        "sha": "f55e056a7c0f20ce5e368b1cc82ddc7f2ea7b685",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/f55e056a7c0f20ce5e368b1cc82ddc7f2ea7b685"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-integrated-setup",
+      "commit": {
+        "sha": "b7245ef938232e81edb088dc770330ce449877ac",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/b7245ef938232e81edb088dc770330ce449877ac"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-inventory",
+      "commit": {
+        "sha": "ab51d9516eca346761156cfc469340a7e55a792d",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/ab51d9516eca346761156cfc469340a7e55a792d"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-keyboard-focus",
+      "commit": {
+        "sha": "5a5798b41252a4027dfa97209d34819858752ec4",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/5a5798b41252a4027dfa97209d34819858752ec4"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-local-export",
+      "commit": {
+        "sha": "3d0847742d3efeaa6fbc548a1e354a7306859b49",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/3d0847742d3efeaa6fbc548a1e354a7306859b49"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-local-export-ui",
+      "commit": {
+        "sha": "63e27beda253665fa57f988b8400c01e20346c5f",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/63e27beda253665fa57f988b8400c01e20346c5f"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-local-focus",
+      "commit": {
+        "sha": "dffbf02b49302b4a39da60a88a356dcd71dca666",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/dffbf02b49302b4a39da60a88a356dcd71dca666"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-owned-focus",
+      "commit": {
+        "sha": "8d94765189f0bb0d2e54f1290d67738f0cc9ff4a",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/8d94765189f0bb0d2e54f1290d67738f0cc9ff4a"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-owned-focus-installed",
+      "commit": {
+        "sha": "03b4923051573175e96a7a2435b3b820bcf66955",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/03b4923051573175e96a7a2435b3b820bcf66955"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-selection",
+      "commit": {
+        "sha": "7f02098b49adbab23ea3b4f219f0055992e02e5f",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/7f02098b49adbab23ea3b4f219f0055992e02e5f"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-setup",
+      "commit": {
+        "sha": "fe7568882a0cad2f069a229136e5c14b6f9ac05d",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/fe7568882a0cad2f069a229136e5c14b6f9ac05d"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-status-revocation",
+      "commit": {
+        "sha": "c480f6968ca8ca47618dba3be3a0b67dc994062a",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/c480f6968ca8ca47618dba3be3a0b67dc994062a"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-transport",
+      "commit": {
+        "sha": "92adf6df82f9f33d760b59942db08ee53f0ea450",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/92adf6df82f9f33d760b59942db08ee53f0ea450"
+      },
+      "protected": false
+    },
+    {
+      "name": "review/windows-workspace",
+      "commit": {
+        "sha": "fa1d749ed6d65d29c8e04ae17e3bd36dfbb58b3e",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/fa1d749ed6d65d29c8e04ae17e3bd36dfbb58b3e"
+      },
+      "protected": false
+    },
+    {
+      "name": "test/sse-nif-3.2.2-fixtures",
+      "commit": {
+        "sha": "272aa60053b31fd14337b2135a73851e4abbdc32",
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/commits/272aa60053b31fd14337b2135a73851e4abbdc32"
+      },
+      "protected": false
+    }
+  ],
+  "releases": [],
+  "issuesAndPullRequests": [
+    {
+      "number": 9,
+      "title": "Qualify current MCP SDK compatibility foundation",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/9",
+      "body": "Bounded competitive/reuse research refresh, adding the official pinned Python SDK v2.3.0 as an optional transport candidate, not an adopted dependency. Documents current-versus-legacy protocol acceptance, license and measurable comparison gates.\n\nVerification: official release, pinned package/license/README and current protocol sources reviewed. Local source/tests match main 5c215f9; 23 unit tests pass. Actual CLI JSON-RPC rejection followed by successful native discovery verified. Exact research blob read back after upload. No SDK installed, capabilities added, network listener enabled, credentials created, Windows or client acceptance claimed.",
+      "created_at": "2026-11-14T23:15:02Z",
+      "updated_at": "2026-11-14T23:55:17Z",
+      "closed_at": "2026-11-14T23:55:16Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/9",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/9",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/9.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/9.patch",
+        "merged_at": "2026-11-14T23:55:16Z"
+      }
+    },
+    {
+      "number": 8,
+      "title": "Keep discovery usable after invalid optional adapter registration",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/8",
+      "body": "A malformed optional capability could enter the registry with a non-string name and break sorted discovery for every adapter, or reserve an unusable name with a noncallable handler. Validate nonempty string name, callable handler and read/write string effect before mutation. Corrected registration remains possible afterward.\n\nBaseline regression reproduced7 failed assertions/4 errors across invalid registrations. All23 local tests pass, including actual JSON-lines subprocess discovery+diagnostics after rejected optional registrations. Existing Windows/Ubuntu Python3.11/3.13 CI retained. No new adapters, effects, grants, listeners, data access or dependency changes. This is accidental contract validation, not sandboxing trusted Python code or native desktop acceptance.",
+      "created_at": "2026-11-14T20:01:23Z",
+      "updated_at": "2026-11-14T20:02:44Z",
+      "closed_at": "2026-11-14T20:02:44Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/8",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/8",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/8.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/8.patch",
+        "merged_at": "2026-11-14T20:02:44Z"
+      }
+    },
+    {
+      "number": 7,
+      "title": "Recover local transport after malformed UTF-8 lines",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/7",
+      "body": "## Causal repair\nA malformed UTF-8 byte under strict stdin decoding previously raised before request handling, terminating the process and losing subsequent buffered valid requests. Explicit UTF-8 surrogateescape decoding retains invalid bytes only until their bounded line is rejected as invalid JSON. Invalid raw bytes never dispatch/echo; valid escaped JSON strings and Unicode identities still work. Existing Unicode-character budget/draining unchanged.\n\n## Evidence\nBaseline actual-subprocess regression reproduced UnicodeDecodeError termination. All21 tests now pass locally, including three malformed byte patterns followed by Unicode diagnostics, oversized invalid bytes followed by a valid escaped JSON ID under an ASCII-strict environment, and all prior privacy/adapter independence/serialization regressions. Existing CI tests Python3.11/3.13 on Windows/Ubuntu.\n\nNo new adapters, listeners, credentials, permissions, file content access, MCP or dot integration. Hosted OS results pending, not Windows desktop/client acceptance.",
+      "created_at": "2026-11-14T19:52:22Z",
+      "updated_at": "2026-11-14T19:53:49Z",
+      "closed_at": "2026-11-14T19:53:48Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/7",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/7",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/7.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/7.patch",
+        "merged_at": "2026-11-14T19:53:48Z"
+      }
+    },
+    {
+      "number": 6,
+      "title": "Keep optional adapter validation exception text private",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/6",
+      "body": "Handler ValueError/PermissionError previously leaked arbitrary text as trusted request diagnostics. Normalize those failures at the registry handler boundary; preserve registry-owned unsupported/parameter/read-only messages, subsequent diagnostics, OSError handling and shutdown signals.\n\nTwo privacy regressions failed before;19tests pass after. Bounded equivalent successful diagnostic timing retained; no speedup claimed. No credentials, listener, persistent grant or native/client acceptance. Hosted CI pending.",
+      "created_at": "2026-11-14T09:41:21Z",
+      "updated_at": "2026-11-14T09:43:14Z",
+      "closed_at": "2026-11-14T09:43:13Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/6",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/6",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/6.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/6.patch",
+        "merged_at": "2026-11-14T09:43:13Z"
+      }
+    },
+    {
+      "number": 5,
+      "title": "Reject duplicate JSON fields before capability dispatch",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/5",
+      "body": "## Regression\nDuplicate method/id/params fields silently used their last value and dispatched an ambiguous request. Reject duplicate members at every object depth before dispatch; preserve subsequent valid requests and independent adapters.\n\n## Evidence\nActual subprocess fixture previously called its probe4 times rather than1. All17 tests now pass. Twenty cold diagnostic subprocess samples each: median36.15ms before /34.90ms after on this Linux worker; no speedup claim or Windows acceptance. No safe separate optimization identified.\n\nNo network listener, credentials, persistent grant, MCP or dot integration. Hosted CI pending.",
+      "created_at": "2026-11-14T09:31:41Z",
+      "updated_at": "2026-11-14T09:33:33Z",
+      "closed_at": "2026-11-14T09:33:33Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/5",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/5",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/5.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/5.patch",
+        "merged_at": "2026-11-14T09:33:33Z"
+      }
+    },
+    {
+      "number": 4,
+      "title": "Bound diagnostics request memory without losing session recovery",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/4",
+      "body": "The current diagnostics transport read an arbitrarily large line into memory before parsing. Introduce a documented 65,536-character line budget (newline included), drain oversized input using bounded reads, emit one error without dispatching any truncated prefix, and preserve the next complete request.\n\nThis is a no-payload transport budget, not a content/catalog cap. Bulk adapters will need a dedicated streaming contract; no new listener/grant/adapter.\n\nTwo regression cases fail before. All 16 tests pass after, including real process oversized-to-valid recovery, EOF, exact boundary and instrumentation that every read has a bounded size. CI checks Python3.11/3.13 on Windows/Linux. No native PC or dot acceptance claimed.",
+      "created_at": "2026-11-14T07:21:04Z",
+      "updated_at": "2026-11-14T07:22:29Z",
+      "closed_at": "2026-11-14T07:22:28Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/4",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/4",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/4.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/4.patch",
+        "merged_at": "2026-11-14T07:22:28Z"
+      }
+    },
+    {
+      "number": 3,
+      "title": "Recover local session from invalid adapter output",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/3",
+      "body": "A distinct follow-up to exception isolation: a handler can return successfully but its result can crash JSON serialization (object/cycle), or emit nonstandard NaN/Infinity. Encode fully before writing; replace invalid output with a generic correlated error and continue subsequent diagnostics.\n\nRegression failed before fix. All 13 tests pass locally, including actual subprocess calls returning an unsupported object, cycle, NaN, +/-Infinity then successful diagnostics. No partial response or traceback; no new persistent access, adapters or transport claims. CI validates Linux/Windows Python 3.11/3.13.",
+      "created_at": "2026-11-14T07:10:54Z",
+      "updated_at": "2026-11-14T07:12:24Z",
+      "closed_at": "2026-11-14T07:12:24Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/3",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/3",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/3.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/3.patch",
+        "merged_at": "2026-11-14T07:12:24Z"
+      }
+    },
+    {
+      "number": 2,
+      "title": "Keep diagnostics usable after optional adapter failure",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/2",
+      "body": "## Fix\nA RuntimeError in a trusted optional adapter currently terminates the JSON-lines process, breaking later independent diagnostics. Return a generic request-correlated error instead, without exposing arbitrary exception text. KeyboardInterrupt/SystemExit remain unswallowed.\n\n## Verification\nTwo reproductions failed before repair. All 12 local Python tests pass after, including an actual subprocess failed-call → diagnostics → capability-list recovery and shutdown propagation. No network listener, credentials, persistent grants, or new adapter. This is local transport coverage, not dot/MCP/native desktop acceptance. CI checks Linux/Windows Python 3.11/3.13.",
+      "created_at": "2026-11-14T07:01:36Z",
+      "updated_at": "2026-11-14T07:03:19Z",
+      "closed_at": "2026-11-14T07:03:19Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/2",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/2",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/2.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/2.patch",
+        "merged_at": "2026-11-14T07:03:19Z"
+      }
+    },
+    {
+      "number": 1,
+      "title": "Add independent diagnostics core and source-led computer bridge research",
+      "state": "closed",
+      "html_url": "https://github.com/Herbertofury/Computer-Link/pull/1",
+      "body": "Implements a deterministic local JSON-line diagnostics foundation with independent capability registry, optional selected-volume capacity, and 8 tests. Adds research/architecture/acceptance docs, real local skill and pinned Agent-Foundry guidance. Live Home wiki created separately and verified. No network listener, grants, desktop installation or actual dot integration configured. This is not MCP or a completed remote-control product. Linux tests passed; hosted Windows/Linux matrix must pass before integration.",
+      "created_at": "2026-11-14T04:45:24Z",
+      "updated_at": "2026-11-14T04:47:37Z",
+      "closed_at": "2026-11-14T04:47:15Z",
+      "pull_request": {
+        "url": "https://api.github.com/repos/Herbertofury/Computer-Link/pulls/1",
+        "html_url": "https://github.com/Herbertofury/Computer-Link/pull/1",
+        "diff_url": "https://github.com/Herbertofury/Computer-Link/pull/1.diff",
+        "patch_url": "https://github.com/Herbertofury/Computer-Link/pull/1.patch",
+        "merged_at": "2026-11-14T04:47:15Z"
+      }
+    }
+  ],
+  "scope": "Read-only repository metadata. No remote modification. PR review threads, Actions artifacts and owner machine state are not exported."
+}

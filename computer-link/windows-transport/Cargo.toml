@@ -1,0 +1,8 @@
+[package]
+name = "computer-link-local-transport"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[target.'cfg(windows)'.dependencies]
+computer-link-workspace-candidate = { path = "../windows-workspace" }

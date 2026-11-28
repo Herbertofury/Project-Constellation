@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+await import('../extension/src/incident-brain-core.js');
+const core=globalThis.ProjectConstellationIncidentBrainCore;
+assert(core);
+const first=core.normalize({kind:'provider-capability',scope:'chatgpt',signature:'composer-missing',environment:'https://chatgpt.com/c/abc'},100);
+const second=core.merge(first,{kind:'provider-capability',scope:'chatgpt',signature:'composer-missing',environment:'https://chatgpt.com/c/abc'},200);
+assert.equal(second.occurrences,2);
+assert.equal(second.fingerprint,first.fingerprint);
+assert.throws(()=>core.resolve(second,{recipe:{type:'retry'}},300),/verification/i);
+const resolved=core.resolve(second,{recipe:{type:'adapter-refresh'},verification:'Healthy capability report observed after refresh.',invalidationConditions:'DOM changes again.'},300);
+assert.equal(resolved.status,'resolved');
+assert(core.bestMatch([resolved],{kind:'provider-capability',scope:'chatgpt',signature:'composer-missing',environment:'https://chatgpt.com/c/abc'}));
+console.log('incident-brain-core.test.mjs: PASS');

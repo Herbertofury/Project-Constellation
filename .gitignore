@@ -20,9 +20,15 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 output/playwright/
+native/**/target/
 
 # Generated release payloads live locally and as GitHub Release/Drive assets.
 releases/v*/Project-Constellation-*-unpacked.zip
 releases/v*/Project-Constellation-*-source.zip
 releases/v*/SHA256SUMS.txt
 releases/v*/RELEASE-RECEIPT.json
+
+# Private historical archives: public upload is blocked by automatic review.
+# Verify against supplied local bundles or the recorded public upstream refs.
+recovery/computer-link/Computer-Link-all-history.bundle
+recovery/computer-link/Computer-Link-wiki-history.bundle

@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(OptimizerFixtureVerifier LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+add_subdirectory(nifly)
+add_executable(inspect_nif inspect_nif.cpp)
+target_link_libraries(inspect_nif PRIVATE nifly)

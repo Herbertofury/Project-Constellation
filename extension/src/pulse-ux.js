@@ -10,10 +10,16 @@
     outputWarningStrictness: 'balanced',
     branchReviewBeforeSend: true,
     completionNotificationsEnabled: true,
+    criticalNotificationsEnabled: true,
+    reviewReleaseNotificationsEnabled: true,
     attentionNotificationsEnabled: true
   });
   const ACTIVE_STATUSES = new Set(['running']);
-  const STALE_STATUSES = new Set(['paused', 'waiting-user', 'blocked-approval', 'delivery-timeout', 'connection-interrupted', 'response-interrupted', 'send-failed', 'refresh-required', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
+  const HOLD_STATUSES = new Set(['provider-review']);
+  const CRITICAL_STATUSES = new Set(['blocked-approval', 'delivery-timeout', 'connection-interrupted', 'response-interrupted', 'send-failed', 'refresh-required']);
+  const CRITICAL_HEALTH_STATES = new Set([...CRITICAL_STATUSES, 'dead', 'tool-dead', 'capacity-reached', 'degraded', 'stale-page']);
+  const STALE_STATUSES = new Set(['paused', 'waiting-user', 'rate-limited', 'errored', 'stalled', 'auth-required', 'unavailable']);
+  const STALE_HEALTH_STATES = new Set([...STALE_STATUSES, 'request-stalled', 'tool-stalled', 'capacity-watch', 'capacity-handoff']);
   const COMPLETED_STATUSES = new Set(['idle', 'archived']);
   const STRICTNESS = new Set(['relaxed', 'balanced', 'strict']);
 
@@ -37,24 +43,29 @@
     next.statusPinEnabled = next.statusPinEnabled !== false;
     next.outputWarningsEnabled = next.outputWarningsEnabled !== false;
     next.completionNotificationsEnabled = next.completionNotificationsEnabled !== false;
+    next.criticalNotificationsEnabled = next.criticalNotificationsEnabled !== false;
+    next.reviewReleaseNotificationsEnabled = next.reviewReleaseNotificationsEnabled !== false;
     next.attentionNotificationsEnabled = next.attentionNotificationsEnabled !== false;
     next.outputWarningStrictness = STRICTNESS.has(String(next.outputWarningStrictness || '')) ? String(next.outputWarningStrictness) : DEFAULTS.outputWarningStrictness;
     return next;
   };
 
-  function statusBucket(status = 'idle') {
+  function statusBucket(status = 'idle', healthState = '') {
     const value = String(status || 'idle');
-    if (ACTIVE_STATUSES.has(value)) return 'active';
-    if (STALE_STATUSES.has(value)) return 'stale';
+    const healthValue = String(healthState || '');
+    if (CRITICAL_STATUSES.has(value) || CRITICAL_HEALTH_STATES.has(healthValue)) return 'critical';
+    if (HOLD_STATUSES.has(value) || healthValue === 'provider-review') return 'hold';
+    if (STALE_STATUSES.has(value) || STALE_HEALTH_STATES.has(healthValue)) return 'stale';
+    if (ACTIVE_STATUSES.has(value) || ['working','tool-running','tool-quiet','quiet-working','uncertain-working'].includes(healthValue)) return 'active';
     if (COMPLETED_STATUSES.has(value)) return 'completed';
     return value === 'running' ? 'active' : 'completed';
   }
 
   function countsFromSnapshot(snapshot = {}) {
-    if (snapshot.counts && typeof snapshot.counts === 'object') return { active:number(snapshot.counts.active), stale:number(snapshot.counts.stale), completed:number(snapshot.counts.completed) };
+    if (snapshot.counts && typeof snapshot.counts === 'object') return { critical:number(snapshot.counts.critical), hold:number(snapshot.counts.hold), active:number(snapshot.counts.active), stale:number(snapshot.counts.stale), completed:number(snapshot.counts.completed) };
     const counts = snapshot.statusCounts || {};
     const sum = (statuses) => [...statuses].reduce((total, status) => total + number(counts[status]), 0);
-    return { active:sum(ACTIVE_STATUSES), stale:sum(STALE_STATUSES), completed:sum(COMPLETED_STATUSES) };
+    return { critical:sum(CRITICAL_STATUSES), hold:sum(HOLD_STATUSES), active:sum(ACTIVE_STATUSES), stale:sum(STALE_STATUSES), completed:sum(COMPLETED_STATUSES) };
   }
 
   async function refreshCounts(force = false) {
@@ -139,7 +150,9 @@
 
   function stateDescriptor(chat = {}) {
     const status = String(chat?.status || 'idle');
-    const bucket = statusBucket(status);
+    const bucket = statusBucket(status, chat?.healthState || chat?.liveHealthState || '');
+    if (bucket === 'critical') return { bucket, title: 'Chat critical', detail: safeText(chat?.statusDetail) || `The provider reports ${status.replaceAll('-', ' ')} and this chat needs intervention before continuing.` };
+    if (bucket === 'hold') return { bucket, title: 'Chat on hold', detail: safeText(chat?.statusDetail) || 'The provider is holding this response for additional review. Constellation will alert you when the hold clears.' };
     if (bucket === 'active') {
       if (status === 'paused') return { bucket, title: 'Chat paused', detail: safeText(chat?.statusDetail) || 'The provider has a paused response ready to resume.' };
       if (status === 'waiting-user') return { bucket, title: 'Waiting for you', detail: safeText(chat?.statusDetail) || 'The provider is waiting for your input.' };
@@ -156,8 +169,19 @@
   }
 
   function rowsForBucket(snapshot = {}, bucket = 'active') {
+    if (bucket === 'attention') {
+      return ['critical','hold','stale']
+        .flatMap((state) => rowsForBucket(snapshot, state).map((row) => ({ ...row, __pcxDetailBucket:state })))
+        .sort((a, b) => Number(b?.lastActivityAt || b?.observedAt || 0) - Number(a?.lastActivityAt || a?.observedAt || 0));
+    }
     if (snapshot?.groups && Array.isArray(snapshot.groups[bucket])) return snapshot.groups[bucket];
-    return (Array.isArray(snapshot?.recentChats) ? snapshot.recentChats : []).filter((row) => statusBucket(row?.status) === bucket);
+    return (Array.isArray(snapshot?.recentChats) ? snapshot.recentChats : []).filter((row) => statusBucket(row?.status, row?.healthState || row?.liveHealthState || '') === bucket);
+  }
+
+  function detailBucket(row = {}, selectedBucket = 'active') {
+    return selectedBucket === 'attention'
+      ? String(row?.__pcxDetailBucket || statusBucket(row?.status, row?.healthState || row?.liveHealthState || '') || 'stale')
+      : selectedBucket;
   }
 
   function pinRowContext(row = {}, bucket = 'active') {
@@ -167,17 +191,19 @@
     const title = safeText(row.title || '', 118).toLowerCase();
     if (task && task.toLowerCase() !== title) return `${bucket === 'completed' ? 'Last task' : 'Task'} · ${task}`;
     if (live && !/^(working|thinking|complete|reconnecting|called tool)$/i.test(live)) return `${bucket === 'completed' ? 'Last activity' : 'Working on'} · ${live}`;
-    return context.projectName ? `Project · ${safeText(context.projectName, 80)}` : '';
+    return context.projectName ? `${safeText(context.projectIcon || '✦', 16)} Project · ${safeText(context.projectName, 80)}` : '';
   }
 
   function pinRowMeta(row = {}, bucket = 'active') {
     const generation = row.generation || {};
     const context = row.context || {};
     const bits = [];
-    if (context.projectName) bits.push(`Project: ${safeText(context.projectName, 32)}`);
+    if (context.projectName) bits.push(`Project: ${safeText(context.projectIcon || '✦', 16)} ${safeText(context.projectName, 32)}`);
     if (bucket === 'active' && context.liveActivity && safeText(context.liveActivity, 90).toLowerCase() !== safeText(context.taskHint, 90).toLowerCase()) bits.push(`Now: ${safeText(context.liveActivity, 32)}`);
     bits.push(safeText(row.providerName || row.providerId || 'AI', 22));
     if (bucket === 'active') bits.push(safeText(generation.phase || generation.toolPhase || 'working', 22).replaceAll('-', ' '));
+    else if (bucket === 'hold') bits.push('provider review');
+    else if (bucket === 'critical') bits.push(row.failure?.title ? safeText(row.failure.title, 30) : safeText(row.healthState || row.status || 'critical', 22).replaceAll('-', ' '));
     else if (bucket === 'stale') bits.push(row.reconnecting ? 'reconnecting' : safeText(row.status || 'attention', 22).replaceAll('-', ' '));
     else bits.push('complete');
     if (generation.modelSlug) bits.push(safeText(generation.modelSlug, 22));
@@ -190,19 +216,20 @@
     const rows = rowsForBucket(snapshot || {}, bucket);
     const heading = list.querySelector('.pcx-chat-list-title');
     const body = list.querySelector('.pcx-chat-list-body');
-    if (heading) heading.textContent = `${bucket === 'stale' ? 'Needs attention' : bucket === 'completed' ? 'Completed chats' : 'Active chats'} · ${rows.length}`;
+    if (heading) heading.textContent = `${bucket === 'attention' ? 'Needs attention' : bucket === 'completed' ? 'Completed chats' : 'Active chats'} · ${rows.length}`;
     if (!body) return;
     body.replaceChildren();
     if (!rows.length) {
       const empty = document.createElement('div'); empty.className = 'pcx-chat-list-empty'; empty.textContent = 'No chats in this state right now.'; body.appendChild(empty); return;
     }
     for (const row of rows.slice(0, 50)) {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'pcx-chat-list-row';
-      const dot = document.createElement('i'); dot.className = `pcx-list-dot ${bucket}`;
+      const rowBucket = detailBucket(row, bucket);
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'pcx-chat-list-row'; if (/^#[0-9a-f]{6}$/i.test(String(row.context?.projectColor || ''))) button.style.setProperty('--pc-project-color', row.context.projectColor);
+      const dot = document.createElement('i'); dot.className = `pcx-list-dot ${rowBucket}`; dot.textContent = rowBucket === 'hold' ? '🛡️' : '';
       const copy = document.createElement('span'); copy.className = 'pcx-list-copy';
       const title = document.createElement('strong'); title.textContent = safeText(row.title || row.providerName || 'AI chat', 92);
-      const context = document.createElement('span'); context.className = 'pcx-list-context'; context.textContent = pinRowContext(row, bucket); context.hidden = !context.textContent;
-      const meta = document.createElement('span'); meta.className = 'pcx-list-meta'; meta.textContent = pinRowMeta(row, bucket);
+      const context = document.createElement('span'); context.className = 'pcx-list-context'; context.textContent = pinRowContext(row, rowBucket); context.hidden = !context.textContent;
+      const meta = document.createElement('span'); meta.className = 'pcx-list-meta'; meta.textContent = pinRowMeta(row, rowBucket);
       const arrow = document.createElement('b'); arrow.textContent = '↗';
       copy.append(title, context, meta); button.append(dot, copy, arrow);
       button.addEventListener('click', async () => {
@@ -237,15 +264,15 @@
         .pcx-chat-chip:hover,.pcx-chat-chip[aria-expanded="true"]{background:rgba(102,118,208,.16)!important;border-color:rgba(135,130,235,.38)!important}
         .pcx-chat-chip i{width:5px;height:5px;border-radius:50%;display:inline-block;background:#7e8aa8;box-shadow:0 0 8px rgba(126,138,168,.32)}
         .pcx-chat-chip.active i{background:#67b7ff;box-shadow:0 0 8px rgba(103,183,255,.48)}
-        .pcx-chat-chip.stale i{background:#efb45f;box-shadow:0 0 8px rgba(239,180,95,.48)}
+        .pcx-chat-chip.attention i{background:#efb45f;box-shadow:0 0 8px rgba(239,180,95,.48)}
         .pcx-chat-chip.complete i{background:#63d6a7;box-shadow:0 0 8px rgba(99,214,167,.42)}
         .pcx-chat-list{display:none;position:absolute;z-index:2147483647;right:6px;top:calc(100% + 8px);width:min(360px,calc(100vw - 24px));border:1px solid rgba(129,141,224,.3);border-radius:13px;background:linear-gradient(155deg,rgba(13,18,48,.985),rgba(8,12,32,.99));box-shadow:0 20px 60px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden;color:#eaf0ff}
         .pcx-chat-list[data-visible="1"]{display:block}
         .pcx-chat-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px solid rgba(123,139,205,.15);background:linear-gradient(90deg,rgba(113,77,223,.1),rgba(60,125,218,.05))}
         .pcx-chat-list-title{font:800 9px/1.2 system-ui;color:#e9edff}.pcx-chat-list-close{width:24px!important;min-width:24px!important;min-height:24px!important;border:0!important;border-radius:7px!important;background:transparent!important;color:#8994ba!important;font-size:15px!important;cursor:pointer}
         .pcx-chat-list-body{display:grid;gap:4px;padding:6px;max-height:380px;overflow:auto;scrollbar-width:thin;scrollbar-color:#3d4775 transparent}
-        .pcx-chat-list-row{width:100%!important;min-height:59px!important;display:grid!important;grid-template-columns:8px minmax(0,1fr) 14px!important;align-items:center!important;gap:7px!important;padding:8px!important;border:1px solid rgba(126,145,210,.12)!important;border-radius:9px!important;background:rgba(255,255,255,.022)!important;color:#eef2ff!important;text-align:left!important;cursor:pointer!important}
-        .pcx-chat-list-row:hover{background:rgba(90,105,190,.12)!important;border-color:rgba(136,127,235,.3)!important}.pcx-list-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 9px currentColor}.pcx-list-dot.active{background:#67b7ff;color:#67b7ff}.pcx-list-dot.stale{background:#efb45f;color:#efb45f}.pcx-list-dot.completed{background:#63d6a7;color:#63d6a7}
+        .pcx-chat-list-row{width:100%!important;min-height:59px!important;display:grid!important;grid-template-columns:8px minmax(0,1fr) 14px!important;align-items:center!important;gap:7px!important;padding:8px!important;border:1px solid rgba(126,145,210,.12)!important;border-left:2px solid var(--pc-project-color,rgba(126,145,210,.12))!important;border-radius:9px!important;background:rgba(255,255,255,.022)!important;color:#eef2ff!important;text-align:left!important;cursor:pointer!important}
+        .pcx-chat-list-row:hover{background:rgba(90,105,190,.12)!important;border-color:rgba(136,127,235,.3)!important}.pcx-list-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 9px currentColor}.pcx-list-dot.critical{background:#ff5c64;color:#ff5c64}.pcx-list-dot.hold{width:auto;height:auto;border-radius:0;background:none;box-shadow:none;color:#8bc6ff;font-style:normal;font-size:10px;line-height:1}.pcx-list-dot.active{background:#67b7ff;color:#67b7ff}.pcx-list-dot.stale{background:#efb45f;color:#efb45f}.pcx-list-dot.completed{background:#63d6a7;color:#63d6a7}
         .pcx-list-copy{min-width:0;display:grid;gap:2px}.pcx-list-copy strong{font:750 9px/1.15 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-list-copy span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcx-list-copy .pcx-list-context{font:650 7.5px/1.25 system-ui;color:#bac5ec}.pcx-list-copy .pcx-list-meta{font:600 6.9px/1.2 system-ui;color:#7883aa}.pcx-chat-list-row>b{color:#6875a4;font:700 10px/1 system-ui}.pcx-chat-list-empty{padding:18px 12px;text-align:center;color:#7f89ad;font:650 8px/1.4 system-ui}
         .pcx-vault-signal{display:none;align-items:center;gap:6px;border:1px solid rgba(239,180,95,.38);border-radius:8px;background:rgba(137,91,22,.12);color:#f2ca8b;padding:6px 8px;font:700 8px/1.1 system-ui;cursor:pointer}
         .pcx-vault-signal[data-visible="1"]{display:inline-flex}
@@ -253,6 +280,8 @@
         :host([data-collapsed="1"][data-pcx-status-pin="1"]) .pcx-chat-pin{display:flex}
         :host([data-collapsed="1"][data-pcx-status-pin="1"]) .substate{display:none}
         :host([data-collapsed="1"][data-pcx-status-pin="1"]) .brand{max-width:112px}
+        :host([data-pcx-output-secondary="1"][data-pcx-main-state="critical"]){--pc-level:#ff5c64!important}
+        :host([data-pcx-output-secondary="1"][data-pcx-main-state="hold"]){--pc-level:#4fa3ff!important}
         :host([data-pcx-output-secondary="1"][data-pcx-main-state="active"]){--pc-level:#67b7ff!important}
         :host([data-pcx-output-secondary="1"][data-pcx-main-state="stale"]){--pc-level:#efb45f!important}
         :host([data-pcx-output-secondary="1"][data-pcx-main-state="completed"]){--pc-level:#63d6a7!important}
@@ -267,8 +296,9 @@
       pin = document.createElement('div'); pin.id = 'pcxChatPin'; pin.className = 'pcx-chat-pin'; pin.setAttribute('role','group'); pin.setAttribute('aria-label','Chat status filters');
       const tools = shadow.querySelector('.tools'); tools?.parentNode?.insertBefore(pin, tools);
     }
-    if (!pin.querySelector('[data-bucket="active"]')) {
-      pin.innerHTML = `<button type="button" class="pcx-chat-chip active" data-bucket="active" aria-expanded="false" title="Browse active chats"><i></i><b class="label">Active</b><em data-count>0</em></button><button type="button" class="pcx-chat-chip stale" data-bucket="stale" aria-expanded="false" title="Browse chats needing attention"><i></i><b class="label">Stale</b><em data-count>0</em></button><button type="button" class="pcx-chat-chip complete" data-bucket="completed" aria-expanded="false" title="Browse completed chats"><i></i><b class="label">Done</b><em data-count>0</em></button>`;
+    if (pin.dataset.pcxLayout !== 'compact-attention-v1') {
+      pin.dataset.pcxLayout = 'compact-attention-v1';
+      pin.innerHTML = `<button type="button" class="pcx-chat-chip active" data-bucket="active" aria-expanded="false" title="Browse active chats"><i></i><b class="label">Active</b><em data-count>0</em></button><button type="button" class="pcx-chat-chip attention" data-bucket="attention" aria-expanded="false" title="Needs attention · Critical + 🛡️ On hold + Stale"><i></i><b class="label">Needs</b><em data-count>0</em></button><button type="button" class="pcx-chat-chip complete" data-bucket="completed" aria-expanded="false" title="Browse completed chats"><i></i><b class="label">Done</b><em data-count>0</em></button>`;
     }
     let list = shadow.getElementById('pcxChatList');
     if (!list) {
@@ -300,12 +330,18 @@
   function renderPin(pin, snapshot) {
     if (!pin) return;
     const counts = countsFromSnapshot(snapshot || {});
-    for (const [bucket, count] of Object.entries(counts)) {
+    const compactCounts = {
+      active:counts.active,
+      attention:counts.critical + counts.hold + counts.stale,
+      completed:counts.completed
+    };
+    for (const [bucket, count] of Object.entries(compactCounts)) {
       const chip = pin.querySelector(`[data-bucket="${bucket}"]`); const node = chip?.querySelector('[data-count]');
       if (node && node.textContent !== String(count)) node.textContent = String(count);
       if (chip) chip.disabled = count <= 0;
     }
-    pin.title = `Active ${counts.active} · Stale ${counts.stale} · Completed ${counts.completed}`;
+    const needs = compactCounts.attention;
+    pin.title = `Active ${counts.active} · Needs attention ${needs} (Critical ${counts.critical}, 🛡️ On hold ${counts.hold}, Stale ${counts.stale}) · Completed ${counts.completed}`;
     const list = pin.getRootNode()?.getElementById?.('pcxChatList');
     if (list?.dataset.visible === '1') renderPinList(list, snapshot || {}, list.dataset.bucket || 'active');
   }
@@ -447,19 +483,36 @@
     scheduleDecorate(0);
   });
 
-  const documentObserver = new MutationObserver(() => scheduleDecorate(50));
+  function mutationTouchesConstellationSurface(mutation) {
+    const nodes = [...(mutation.addedNodes || []), ...(mutation.removedNodes || [])];
+    return nodes.some((node) => {
+      const element = node?.nodeType === 1 ? node : node?.parentElement;
+      if (!element) return false;
+      if (['projectConstellationHealthHud','projectConstellationOutputVault'].includes(element.id)) return true;
+      return Boolean(element.querySelector?.('#projectConstellationHealthHud,#projectConstellationOutputVault'));
+    });
+  }
+
+  // The provider can mutate the conversation DOM dozens of times per second while
+  // streaming. Pulse only needs document-level observation to discover its own HUD/Vault
+  // surfaces; their internals already have dedicated observers. Ignore unrelated chat DOM.
+  const documentObserver = new MutationObserver((mutations) => {
+    if (mutations.some(mutationTouchesConstellationSurface)) scheduleDecorate(50);
+  });
   documentObserver.observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) { countFetchedAt = 0; contextFetchedAt = 0; scheduleDecorate(0); }
   });
   window.addEventListener('focus', () => { countFetchedAt = 0; contextFetchedAt = 0; scheduleDecorate(0); }, { passive: true });
 
-  setInterval(() => {
-    const hud = document.getElementById('projectConstellationHealthHud');
-    if (document.hidden || !settings.statusPinEnabled || !hud || hud.dataset.collapsed !== '1') return;
+  chrome.runtime?.onMessage?.addListener?.((message) => {
+    if (message?.type !== 'PC_STATE_EVENT') return;
+    const topic = String(message?.event?.topic || '');
+    if (!['live.chat.changed','brain.event','provider.health.changed','incident.changed','settings.changed'].includes(topic)) return;
     countFetchedAt = 0;
-    refreshCounts(true).then(() => scheduleDecorate(0)).catch(() => {});
-  }, 7000);
+    if (topic === 'brain.event' || topic === 'provider.health.changed' || topic === 'incident.changed') contextFetchedAt = 0;
+    scheduleDecorate(90);
+  });
 
   loadSettings().then(() => {
     refreshCounts().catch(() => {});

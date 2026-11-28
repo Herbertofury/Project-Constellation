@@ -1,0 +1,40 @@
+name: SSE delivered binary fixture conversion
+on:
+  push:
+    branches: [test/sse-nif-3.2.2-fixtures]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  convert:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 44637071326 --repo Herbertofury/Computer-Link --name SSE-NIF-Optimizer-3.2.2-Windows-x64 --dir delivered
+          if ($LASTEXITCODE -ne 0) { throw 'Artifact download failed' }
+      - shell: pwsh
+        run: |
+          git clone https://github.com/ousnius/nifly.git nifly
+          if ($LASTEXITCODE -ne 0) { throw 'Clone failed' }
+          git -C nifly checkout --detach 846518b3fdfc6c81cddc49188aff77ad7006456a
+          if ($LASTEXITCODE -ne 0) { throw 'Pin failed' }
+          cmake -S . -B parser-build -A x64 -DBUILD_TESTING=OFF
+          if ($LASTEXITCODE -ne 0) { throw 'Configure failed' }
+          cmake --build parser-build --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Parser build failed' }
+          python verify_conversion.py
+          if ($LASTEXITCODE -ne 0) { throw 'Conversion verification failed' }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: SSE-3.2.2-fixture-evidence
+          path: evidence/*
+          if-no-files-found: warn
+          retention-days: 7

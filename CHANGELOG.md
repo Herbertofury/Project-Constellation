@@ -1,29 +1,181 @@
 # Changelog
 
-## 0.16.0 — Browser-wide Reliability Supervisor
+## 0.22.0 — Windows Setup and Computer Tools
 
-### Added
+- Add a self-contained Rust Windows installer with current-user registration, native setup controls, repair, rollback, recovery journals and ownership-aware uninstall.
+- Stop the shared native hub after the last browser disconnects; reopen on demand, including browsers left in background-app mode. Protect replacement connections from delayed old-reader cleanup.
+- Integrate Computer-Link native inventory, snapshots, export, focus, local MCP, workspace and owned-worker tools; preserve all 26 branch trees, 92 commits, original diagnostics and independent utilities.
+- Add desktop native-tool status, local launch/stop controls and connector diagnostics; keep optional tools independent from ordinary desktop operations.
+- Make paused/connecting hub state visible and allow disabling a pending or paused connection. Do not report a generic acknowledgement as a successful connection.
+- Require matching source, version and artifact hashes when assembling a release; publish native setup, browser packages, desktop packages, source, receipts and checksums together.
 
-- Adds a service-worker Reliability Supervisor that enumerates every already-open ChatGPT tab instead of depending on the foreground tab, with a bounded one-minute wake heartbeat and hot-bootstrap support after extension startup/update.
-- Adds a lightweight per-tab supervisor that continues observing failure, capacity, project, approval, and continuation state while `document.hidden` is true.
-- Adds opt-in bounded reload-and-continue recovery for explicit delivery/connection/response/send failures, corroborated dead/stalled states, and unfinished turns with no meaningful progress for two hours.
-- Adds a continuity-safe automatic resume prompt that preserves exact objectives, decisions, project/repository/file/Drive/GitHub identities, paths, hashes, run/job IDs, verified tests, blockers, no-repeat history, and the exact unfinished next action while requiring verification of a possibly-partial final side effect before repeating it.
-- Adds browser-wide concurrent Approval Autopilot fan-out across all open ChatGPT tabs while retaining the existing tested in-page permission handler as the single click owner.
-- Adds ChatGPT `/g/g-p-*` project-route and visible project-sidebar discovery so newly encountered provider projects are mirrored into the Constellation catalog from any open ChatGPT tab.
-- Adds a real two-tab Chromium reliability smoke that keeps one ChatGPT tab in the background and requires both stale unfinished tabs to reload and actually submit the continuation prompt.
 
-### Safety / resilience
+## 0.21.0 — Agent Monitor (candidate)
 
-- Automatic recovery still requires the existing Refresh Recovery switch. Completed idle chats, auth-required/rate-limited/unavailable states, and approval-blocked chats are excluded from blind reload recovery.
-- Recovery is bounded by per-chat cooldown and attempt caps, reloads only the affected already-open conversation, never creates/focuses a missing chat, and never overwrites a non-empty composer.
-- Visible chat state is checkpointed before reload, and provider failures remain explicit states rather than being collapsed into generic activity.
-- Supersedes the v0.14.8–v0.15 “No Surprise Navigation” prohibition only for this user-enabled, bounded recovery of an already-open unfinished ChatGPT tab; ordinary passive monitoring still does not create, focus, or arbitrarily navigate provider pages.
+- Recover the verified complete v0.20.1 source into the canonical root; test the
+  current tree in CI while retaining historical release evidence.
+- Add compact responsive Agent Monitor, persisted incident inbox, audible and OS
+  alerts, exact-tab review, acknowledge/snooze, filters and connection diagnostics.
+- Add a Rust cross-browser hub with native messaging, portable durable state,
+  safe focus routing, current-user registrations, CLI and Linux/Windows tests.
+- Add Firefox sensor packaging and actual-browser detector fixtures.
+- Preserve manual permission decisions, drafts, suspended/disconnected truth and
+  browser-specific identities; remove automatic consent clicking.
+- Record candidate acceptance and deployment gaps in docs/MONITOR-VERIFICATION.md.
 
-### Verification / documentation
 
-- Adds unit/contract coverage for stale-running rescue, unanswered-user rescue, completed-idle exclusion, approval exclusion, cooldowns, failure classification, capacity boundaries, all-tab enumeration, background wakeups, project discovery, single-owner approval execution, packaging, and continuation invariants.
-- Changes extension browser smoke execution to Chromium's extension-capable new headless mode and makes service-worker load a hard assertion instead of silently accepting zero loaded workers.
-- Updates README, Recovery docs, release notes, and tracked wiki mirrors to describe the v0.16 recovery contract and safety boundaries.
+## 0.20.1 — All-Tab Chat Guardian Hotfix
+
+- Added an event-first Chat Guardian that independently supervises every open ChatGPT conversation tab and keeps recoverable tabs resident without stealing focus.
+- Added semantic handling for ChatGPT’s new stream-recovery timeout/error wording, including `ChatGPT stream recovery polling timed out`, plus recovery-control-anchored fallback detection so future current-turn failure copy can change without breaking recovery.
+- Automatically sends the separate safe continuation turn `Continue the unfinished task.` when a current task is demonstrably unfinished, instead of replaying ChatGPT’s native Retry control or duplicating prior tool side effects.
+- Uses `Promise.allSettled` across all open ChatGPT tabs so one broken, discarded, frozen, or non-responsive tab cannot block recovery of the others; Chrome frozen/discarded transitions are tracked and reconciled immediately when the tab becomes runnable again.
+- Preserves user drafts and non-bypassable provider-review, approval, authentication, rate-limit, unavailable, and conversation-capacity holds.
+- Adds one bounded reload fallback only when an explicit terminal failure cannot be continued because the composer/send surface is unavailable; reload attempts are fingerprinted and capped.
+- Replaces fixed guardian polling with state-transition triggers plus adaptive one-shot fallback alarms, and persists bounded per-chat recovery history for deduplication.
+- Added unit, static-contract, real-browser DOM, and background integration regressions for multi-tab recovery, new provider error wording, healthy-tab non-interference, and native-Retry non-activation.
+
+## 0.20.0 — Reliability Foundation
+
+- Added a cross-surface state-event bus and removed fixed polling loops from key UI/route/recovery paths, including the legacy one-minute stall watchdog.
+- Added provider capability health and a reusable Incident Brain with verified recovery recipes.
+- Migrated the Project Brain to DB v11 with shared IndexedDB connection management and migration receipts.
+- Added modular background message routing for new services.
+- Added the desktop Update Center with SHA-256 staging, rollback backups, and one-shot startup checks.
+- Unified user-facing desktop branding under Project Constellation while preserving migration-sensitive Commander state/CLI identities.
+- Updated Electron to 44.4.4 stable and added a Windows-native build/runtime gate plus a unified immutable release workflow.
+- Fixed Windows process execution with a short-lived PowerShell wrapper plus a structured-argv fast path for explicit simple native calls, preserving embedded quotes, exit codes, partial output, and large output without weakening real PowerShell semantics; Windows PowerShell 5.1 remains a compatibility fallback. Packaged the canonical ChatGPT page hook with byte-for-byte drift protection.
+- Made the integrated Electron acceptance gate wait for shell-runtime proof before closing on the first tool result, removing a Windows-only timing race from release validation.
+- Upgraded GitHub Actions to the current Node-24 action line and made Windows native-command failures fail the gate immediately.
+- Made source archives reproducible from raw committed Git blobs so release ZIP contents cannot drift through export-time line-ending conversion.
+- Made Linux desktop Chromium acceptance use the Playwright-managed browser installed by CI and made unified extension ZIP packaging sorted/file-only so verified extension bytes reproduce deterministically.
+- Added regression protection for broad Project Constellation permissions/host access; no provider or permission coverage was reduced.
+
+## 0.19.1 - Recovery Efficiency Hotfix
+
+- Replace Scheduled self-healing's fixed one-minute polling alarm with adaptive one-shot fallback checks.
+- Debounce and fingerprint Scheduled DOM recovery signals so unchanged streaming/UI churn does not retrigger inspections.
+- Coalesce in-flight recovery invalidations instead of chaining duplicate cycles.
+- Replace the Home approval-recovery 1.1-second refresh loop with storage-change-driven UI updates.
+- Preserve manual recovery responsiveness and every permission/security/user-draft hold.
+
+## 0.18.0 - Smart Project Icons + Chat Menu QOL
+
+
+## 0.18.1 - Runtime Error Hardening
+
+- Fixed ChatGPT page-probe `postMessage` failures in sandboxed/opaque-origin estuary/content documents.
+- Skip transcript-probe startup on `/backend-api/*` and `/api/*` documents where it has no work to do.
+- Harden Scheduled Task bridge `postMessage` calls for opaque-origin frames.
+- Restored the missing `maybeStartAutomaticCatalog()` maintenance entrypoint so the hourly catalog alarm cannot throw `ReferenceError`.
+- Added regression coverage for both reported extension-error classes.
+
+- Add native-style vector project icons and semantic icon suggestions to Command Center and side-panel project creation.
+- Make ChatGPT sidebar chats inherit confirmed/matched project identity automatically, including related-project badges for split project families.
+- Add Constellation actions to the native ChatGPT chat menu for appearance, smart project matching, favorite, pin, and Command Center navigation.
+- Keep project assignment explicit while preserving every v0.17.9 Scheduled Task, closed-chat heartbeat, notification, and safety invariant.
+
+## 0.17.9
+
+- Forward-port the AI Command Center, verified Gather/Smart Collapse/Stash actions, native ChatGPT rename/styling, adaptive closed-chat heartbeat, durable notifications, and no-dead-button QOL onto the verified v0.17.8 Scheduled Task Command Center baseline.
+- Preserve v0.17.8 Scheduled Task Guardian, Scheduled Task Command Center, project intelligence, privacy/safety invariants, provider coverage, and scale behavior.
+
+## 0.17.8 — Scheduled Task Command Center
+
+- Upgrades Scheduled Task Guardian into a premium **Scheduled Task Command Center** with native Chrome popups for observed run completions, failures, pauses, action/approval-needed states, and resumptions.
+- Adds transition-aware deduplication so combined states such as a completed run that immediately becomes paused produce one useful alert instead of notification spam.
+- Adds **Open Scheduled** and **Mute 1 hour** actions to Guardian notifications, plus a real **Test popup** control, task-health badge count, bounded recent-activity history, and Home/side-panel health metrics.
+- Adds opt-in controls for task-state observation, desktop popups, successful-run alerts, and state-change alerts while preserving existing keep-warm, auto-repair, and cadence controls.
+- Observes only bounded task-health metadata (IDs/titles/status/timestamps/run identity/attention flags) and explicitly excludes prompts, instructions, messages, task results, output, bodies, and page HTML from Guardian persistence.
+- Uses passive resource metadata plus bounded authenticated refreshes instead of monkeypatching ChatGPT fetch/network behavior; first observation establishes a baseline and never fabricates a run-complete transition from elapsed time.
+- Canonicalizes Scheduled navigation to `https://chatgpt.com/scheduled` while accepting older `/schedules` and `/tasks` aliases as safe inputs.
+- Keeps every v0.17.7 safety invariant: no inactive/minimized ChatGPT tabs/windows, no existing-tab navigation hijack, no new Chrome permissions, and cloud-task execution is never attributed to the hidden browser workspace.
+
+## 0.17.7 — Scheduled Task Guardian
+
+- Adds a premium-designated **Scheduled Task Guardian** for ChatGPT Scheduled at `https://chatgpt.com/schedules`.
+- Reuses Constellation's single existing MV3 offscreen document instead of spawning hidden/minimized ChatGPT tabs or windows.
+- Keeps an opt-in 1px Scheduled workspace warm when ChatGPT permits framing; detects frame-blocking response headers and automatically falls back to a lighter authenticated reachability heartbeat.
+- Uses a bounded 15/30/60/180-minute alarm cadence (30 minutes by default), Chrome-startup repair, single-flight probes, and no offscreen polling loop.
+- Adds Home + side-panel controls for enable/disable, embedded-workspace mode, auto-repair, cadence, manual repair, and explicit foreground **Open Scheduled** navigation.
+- Treats Scheduled tasks truthfully as ChatGPT cloud jobs: Guardian protects the browser/session/management surface but never claims a hidden page itself executes the task.
+- Adds URL confinement, frame-header classification, auth/degraded-state classification, UI/message ownership, and no-hidden-navigation regression coverage.
+
+
+## 0.17.6 — Terminal State Truth Guard
+
+- Fixed plain-DOM bottom-of-chat timeout/error cards being missed when ChatGPT omits ARIA/error semantics.
+- Added bounded Retry-anchored and bottom-tail terminal detection for provider failures and hard conversation limits.
+- Provider hard failures and maximum-length exhaustion now outrank stale running/network/completion evidence and surface as red Critical.
+- Long-chat status sampling now prefers newest controls and rejects historical/quoted terminal text.
+- Pulse/Popup critical bucketing now respects health-state-only terminal signals such as `capacity-reached`.
+- Added exact screenshot-shape terminal regressions and Critical Pulse rows for delivery timeout + maxed conversation.
+- Fixed current ChatGPT connector permission sheets that say `Allow access to drive.google.com` / `github.com`: Approval Autopilot now recognizes host-shaped prompts, opens split-button menus, selects `Allow all` when available, and confirms the sheet actually cleared before reporting recovery.
+- Added explicit Google Drive + GitHub `Allow all` browser regressions while preserving fallback Allow-once and never-auto-Retry safety.
+
+
+## 0.17.5 — Project Identity + Semantic Output Guard
+
+- Adds a shared ChatGPT-style project identity picker with emoji, native color wheel, hex entry, presets, live preview, and one persisted identity used across Pulse, Projects, Project Rooms, Popup context, and managed project/state grouping.
+- Makes Output Vault warnings semantic instead of raw-DOM literal: transient Thinking/tool/search/build progress can disappear normally without becoming a false “saved output is missing” alarm, while actual substantive truncation and lost resources remain protected.
+- Tightens UI ownership validation so merely mentioning a button ID no longer passes the contract.
+- Adds a process-tree smoke watchdog, exact workflow matching/resume, direct-to-log browser execution, and Linux Chromium teardown hardening.
+- Adds dedicated project-identity and semantic-output regression coverage.
+
+## 0.17.4 — Chrome Stability Guard
+
+- Fixes a crash-class presentation feedback loop by making repeated Tab Beacon applications idempotent and skipping already-correct native tab-group writes.
+- Prevents Constellation-owned group update events from globally invalidating every tab-presentation signature, eliminating self-amplifying group/beacon churn across many open chats.
+- Narrows title, Pulse, and Live Sentinel MutationObservers so provider streaming/class churn does not wake unrelated Constellation work.
+- Deduplicates live-transition session writes and unchanged Sentinel presentation syncs while preserving 🛡️ On Hold / Review, Critical/completion/review-cleared alerts, user-created group ownership, and no-automatic-provider-action safety.
+- Stops auto-collapsing Completed native Chrome groups. A one-time migration reopens groups collapsed by older Constellation builds, then group collapse/expand remains entirely user-controlled.
+- Restores the compact in-page Pulse navigator to three chips — **Active · Needs · Done** — with Critical + 🛡️ On Hold + Stale rolled into the yellow Needs count only on that compact surface; opening Needs still shows each chat's true detailed state.
+- Regression benchmarks: 10,000 identical hold presentations drop from 20,001 DOM mutations to 0 extra after initial setup; 1,000 stable group reconciliations drop from 1,000 Chrome group updates to 0.
+
+## 0.17.3 — Shield Hold
+
+- Replaces the default On Hold / Review marker from 🔵 to 🛡️ while preserving the blue hold color and native Chrome blue group.
+- Migrates the legacy default hold emoji to 🛡️, updates title/group/Pulse presentation, and renders the hold favicon as a blue vector shield instead of the generic status circle.
+
+## 0.17.2 — Review Hold + Instant Alerts
+
+- Adds a dedicated blue **On Hold / Review** state for ChatGPT's explicit provider-review banner instead of misclassifying it as a stall or Critical failure.
+- Adds 🔵 title/favicon beacons, a blue native Chrome On Hold group, Chat Pulse/Pulse-pin counts, and toolbar priority below Critical but above Active.
+- Adds one-shot **Review cleared** notifications when the hold surface disappears, plus immediate Project Constellation local notifications when a live chat completes or crosses into Critical.
+- Persists compact per-tab transition state in `chrome.storage.session` so Manifest V3 background suspension does not cause completion/Critical/review-release notifications to be missed; chat identity guards prevent cross-chat false alerts when a tab navigates.
+- Keeps all notification actions passive: clicking an alert only focuses the exact existing tab; no retry, reload, provider navigation, context injection, or Send action is automatic.
+- Adds exact banner appearance/disappearance browser coverage and extends blue hold coverage across Popup, in-page Pulse, tab beacons, and native tab-group convergence.
+
+## 0.17.1 — Critical Redline
+
+- Added a dedicated red Critical chat state for hard-stop conditions such as message-delivery timeout, interrupted/failed sends, refresh-required blocks, dead tool/chat states, and conversation capacity reached.
+- Critical chats now get a red tab favicon/title beacon and their own native Chrome tab group (`PC ✦ 🔴 … · Critical`) without stealing user-created groups.
+- Chat Pulse and the collapsed Pulse status pin now show Critical separately from ordinary Needs Attention, and the extension badge prioritizes red critical counts.
+
+# Changelog
+
+## 0.17.0 — Dependency Brain + Guarded Autopilot
+
+- Adds a bounded Dependency Brain that relates source-backed decisions, procedures, versions, artifacts, files, and cross-chat work, and marks downstream evidence as possibly stale when a newer observed dependency/version supersedes it.
+- Adds version awareness across project knowledge and artifact families, preserving literal observed labels and separating current-observed from older-observed evidence without deleting history.
+- Adds cross-chat handoff proposals and duplicate-work prevention for concurrent project chats, with direct source/chat provenance and conservative inferred-overlap wording.
+- Adds **What changed** project deltas with an explicit caught-up watermark, so Project Rooms can summarize meaningful changes since the user last acknowledged them.
+- Adds Guarded Project Autopilot: it may detect, prepare, and propose stale-dependency reviews, handoffs, duplicate-work reviews, and fresh context, but it cannot send provider messages or silently inject context.
+- Adds per-chat Context Packets that select bounded task-relevant evidence while still including reusable project-wide lessons (for example performance, workflow, validation, compatibility, and recovery patterns) from the giant Project Brain.
+- Makes provider writing approval-gated and hash-checked: exact text must be reviewed/approved before it can be staged into an already-open exact chat; staging never opens/navigates a provider and never presses Send. Legacy Branch & Continue is also locked to review/stage only; automatic Send is removed.
+- Adds a prominent **Current Chat → Add to Project** Pulse action that detects the exact active supported chat, lists user-created Constellation projects, supports **Create + add**, change/remove, and re-checks active tab/chat identity before saving.
+- Preserves local bounded execution and the 500-project / 10,000-chat scale gate so Dependency Brain/Autopilot work stays outside the live provider-capture critical path.
+- Hardens release builds by copying the complete runtime `src/` closure and failing the build when a relative module import or manifest-referenced runtime file is missing, preventing source-green/package-broken releases.
+
+## 0.16.0 — Living Project Rooms + Safe Router
+
+- Adds a confirmation-only local Project Router that ranks likely project homes without ever auto-assigning a chat; every assignment still requires an explicit user Confirm or Move action, and dismissed matches stay suppressed for that exact evidence fingerprint.
+- Upgrades the selected-project surface into a Living Project Room with next actions, decisions, live project work, curated memory, project evidence, latest artifacts, and exact source navigation.
+- Adds bounded multi-chat coordination signals so simultaneous active/attention chats can surface shared focus, parallel-work overlap, and handoff risk without pretending an inferred overlap is a proven conflict.
+- Extends universal search with project-scoped retrieval across chats, source turns, knowledge, files, artifacts, and indexed standalone evidence, plus direct source/chat actions and Project Room command-palette entry points.
+- Adds a 500-project / 10,000-chat scale torture test and optimizes router scoring to vectorize each chat once before project comparison; representative local routing fell from about 5.2 s to about 1.1 s while keeping the benchmark unchanged.
+- Keeps router and coordination computation local and bounded, outside live provider capture; preserves v0.15 Project Brain, native project/state grouping, user-created group ownership, and all v0.14 safety/recovery invariants.
+- Hardens organizer drag/drop with a standards-compatible `text/plain` fallback while retaining the Constellation-specific MIME payload.
 
 ## 0.15.0 — Project Atlas + Compounding Brain
 

@@ -7,7 +7,8 @@
   const brain = globalThis.ProjectConstellationBrainCore;
   const providers = globalThis.ProjectConstellationProviders;
   const health = globalThis.ProjectConstellationHealthCore;
-  if (!perf || !brain || !providers || !health) return;
+  const providerHealth = globalThis.ProjectConstellationProviderHealthCore;
+  if (!perf || !brain || !providers || !health || !providerHealth) return;
 
   const provider = providers.detectProvider(location.href);
   if (!provider) return;
@@ -40,6 +41,13 @@
   const seenFileHashes = new Map();
   const embeddedMediaQueued = new Set();
   const seenChats = new Map();
+  // Provider projects used to be discovered by the retired tab supervisor. Keep
+  // that capture in the canonical content lane, with persistence ACKs before dedup.
+  const seenProviderProjects = new Map();
+  const pendingProviderProjects = new Map();
+  let providerProjectFlushTimer = 0;
+  let providerProjectFlushBusy = false;
+  let providerProjectRetryMs = 0;
   const pendingRoots = new Set();
   let performanceObserver = null;
   let captureObserver = null;
@@ -76,6 +84,9 @@
   let lastOutputObservationFingerprint = '';
   let lastOutputObservationAt = 0;
   let navCleanup = null;
+  let providerHealthTimer = 0;
+  let lastProviderHealthFingerprint = '';
+  const providerPageStartedAt = Date.now();
   let transientChatId = '';
   let lastSemanticActivityAt = Date.now();
   let lastStatus = 'idle';
@@ -293,7 +304,79 @@
     return String(node?.innerText || node?.textContent || '').replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{4,}/g, '\n\n\n').trim().slice(0, max);
   }
 
+  function providerProjectFromUrl(value) {
+    if (provider.id !== 'chatgpt') return null;
+    try {
+      const url = new URL(String(value || ''), location.href);
+      if (!['chatgpt.com','chat.openai.com'].includes(url.hostname) || url.protocol !== 'https:') return null;
+      const match = url.pathname.match(/(?:^|\/)g\/(g-p-[a-zA-Z0-9_-]+)(?:\/|$)/);
+      return match ? { id:`chatgpt:project:${match[1]}`, providerProjectId:match[1], url:`${url.origin}/g/${match[1]}` } : null;
+    } catch (_) { return null; }
+  }
+
+  function providerProjectName(value) {
+    const name = brain.normalizeText(value || '', 180);
+    return /^(projects?|chats?|new project|show more|show less)$/i.test(name) ? '' : name;
+  }
+
+  function scheduleProviderProjectFlush(delay = 160) {
+    if (providerProjectFlushTimer || providerProjectFlushBusy || !pendingProviderProjects.size) return;
+    providerProjectFlushTimer = setTimeout(() => { providerProjectFlushTimer = 0; void flushProviderProjects(); }, delay);
+  }
+
+  async function flushProviderProjects() {
+    if (providerProjectFlushBusy || !pendingProviderProjects.size) return;
+    const batch = [...pendingProviderProjects.values()].slice(0, 120);
+    providerProjectFlushBusy = true;
+    let captureDisabled = false;
+    try {
+      // The canonical ingest opens/migrates the brain before it acknowledges writes.
+      const response = await chrome.runtime.sendMessage({ type:'PC_BRAIN_INGEST_BATCH',
+        payload:batch.map(({ project }) => ({ type:'PROJECT_UPSERT', data:project })) });
+      captureDisabled = response?.ignored === true;
+      if (captureDisabled) return;
+      if (response?.ok !== true || Number(response?.counts?.projects || 0) < batch.length) throw new Error('Provider project persistence was not acknowledged.');
+      for (const { project, signature } of batch) {
+        seenProviderProjects.set(project.id, signature);
+        if (pendingProviderProjects.get(project.id)?.signature === signature) pendingProviderProjects.delete(project.id);
+      }
+      providerProjectRetryMs = 0;
+    } catch (_) {
+      providerProjectRetryMs = Math.min(30_000, Math.max(750, providerProjectRetryMs * 2 || 750));
+    } finally {
+      providerProjectFlushBusy = false;
+      if (!captureDisabled && pendingProviderProjects.size) scheduleProviderProjectFlush(providerProjectRetryMs || 160);
+    }
+  }
+
+  function captureProviderProjects(scope = document) {
+    if (provider.id !== 'chatgpt') return;
+    const candidates = new Map();
+    const current = providerProjectFromUrl(location.href);
+    if (current) {
+      const anchor = document.querySelector(`a[href*="/g/${current.providerProjectId}"]`);
+      const name = providerProjectName(anchor?.innerText || anchor?.textContent || anchor?.getAttribute?.('aria-label'));
+      candidates.set(current.id, { ...current, name:name || `ChatGPT Project ${current.providerProjectId.slice(-8)}` });
+    }
+    for (const anchor of nodesWithin(scope, 'a[href*="/g/g-p-"]')) {
+      const project = providerProjectFromUrl(anchor.href);
+      const name = providerProjectName(anchor.innerText || anchor.textContent || anchor.getAttribute?.('aria-label'));
+      if (project && name) candidates.set(project.id, { ...project, name });
+    }
+    for (const project of candidates.values()) {
+      const signature = `${project.name}|${project.url}`;
+      if (seenProviderProjects.get(project.id) === signature) continue;
+      pendingProviderProjects.set(project.id, { signature, project:{ ...project, providerId:'chatgpt', sourceType:'provider', updatedAt:Date.now() } });
+    }
+    scheduleProviderProjectFlush();
+  }
+
   function projectHintFromAnchor(anchor) {
+    const routed = providerProjectFromUrl(anchor?.href || location.href);
+    if (routed) {
+      const projectAnchor = document.querySelector(`a[href*="/g/${routed.providerProjectId}"]`);
+      return { ...routed, name:providerProjectName(projectAnchor?.innerText || projectAnchor?.textContent || projectAnchor?.getAttribute?.('aria-label')) || `ChatGPT Project ${routed.providerProjectId.slice(-8)}` };
+    }
     if (!anchor || typeof anchor.closest !== 'function') return { id: `${provider.id}:inbox`, name: 'Inbox' };
     const section = anchor.closest('nav section, aside section, [data-testid*="project"], [class*="project"], [class*="sidebar"]');
     const heading = section?.querySelector('h1,h2,h3,[role="heading"],[data-testid*="title"]');
@@ -320,6 +403,7 @@
   }
 
   function scanChats(scope = document) {
+    captureProviderProjects(scope);
     for (const anchor of nodesWithin(scope, 'a[href]')) {
       if (providers.isLikelyChatUrl(anchor.href, provider.id)) captureChat(anchor);
     }
@@ -561,10 +645,50 @@
     }
   }
 
+  function providerTerminalText(node) {
+    const text = elementLabel(node, 2200);
+    if (!text) return '';
+    const failure = health?.classifyProviderFailure?.(text, {});
+    const capacity = health?.classifyProviderCapacity?.(text);
+    return failure?.active || capacity?.explicitLimitSignal || capacity?.nearLimitSignal ? text : '';
+  }
+
+  function terminalStatusNodes() {
+    const out = [];
+    const seen = new Set();
+    const turns = turnNodes(document);
+    const latestUser = [...turns].reverse().find((node) => roleForTurn(node) === 'user') || null;
+    const add = (node) => {
+      if (!(node instanceof Element) || seen.has(node) || !isUsableControl(node)) return;
+      // Terminal provider UI is only authoritative for the current conversation
+      // frontier. Old timeout/limit cards can remain mounted far above the latest
+      // prompt in long ChatGPT threads and must not poison boundedStatusText().
+      if (latestUser) {
+        if (node === latestUser || node.contains?.(latestUser) || !nodeFollows(node, latestUser)) return;
+      }
+      const text = providerTerminalText(node);
+      if (!text) return;
+      const owner = node.closest?.('[data-testid^="conversation-turn-"],[data-message-author-role][data-message-id],[data-author][data-message-id],[data-role="user"],[data-role="assistant"]');
+      if (owner && roleForTurn(owner) === 'assistant' && !node.matches?.('[role="alert"],[aria-live],[data-testid*="error" i],[data-testid*="warning" i]') && !node.closest?.('[role="alert"],[aria-live],[data-testid*="error" i],[data-testid*="warning" i]')) return;
+      seen.add(node); out.push(node);
+    };
+    for (const node of [...document.querySelectorAll('[role="alert"],[role="status"],[aria-live],[data-testid*="error" i],[data-testid*="warning" i]')].slice(-120).reverse()) add(node);
+    for (const control of [...document.querySelectorAll('button,[role="button"]')].slice(-120).reverse()) {
+      if (!/^(?:retry|try again|regenerate(?: response)?|resend(?: message)?|reconnect|start new chat|new chat|branch(?: & continue)?|continue in a new chat)$/i.test(elementLabel(control, 120))) continue;
+      let cursor = control.parentElement;
+      for (let depth = 0; cursor && cursor !== document.body && depth < 6; depth += 1, cursor = cursor.parentElement) add(cursor);
+    }
+    const root = document.querySelector('main') || document.body || document.documentElement;
+    for (const node of [...root.querySelectorAll('div,section,p,span')].slice(-260).reverse()) add(node);
+    return out;
+  }
+
   function boundedStatusText() {
     const selectors = '[role="alert"],[role="dialog"],[aria-live="assertive"],[aria-live="polite"],button,[role="button"],[data-testid*="error"],[data-testid*="toast"]';
-    const nodes = [...document.querySelectorAll(selectors)].slice(0, 240);
-    return brain.normalizeText(nodes.map((node) => node.textContent || node.getAttribute?.('aria-label') || '').join(' | '), 12000);
+    const nodes = [...document.querySelectorAll(selectors)].slice(-240);
+    const terminal = terminalStatusNodes().slice(0, 12);
+    const merged = [...nodes, ...terminal];
+    return brain.normalizeText([...new Set(merged.map((node) => node.textContent || node.getAttribute?.('aria-label') || '').filter(Boolean))].join(' | '), 12000);
   }
 
 
@@ -583,17 +707,30 @@
   const APPROVAL_CONTROL_SELECTOR = 'button,[role="button"],[role="menuitem"],[role="option"],label,input[type="checkbox"]';
 
   function isMainAllowControl(node) {
-    return node instanceof Element && /^allow(?: once)?$/i.test(elementLabel(node, 120)) && isUsableControl(node);
+    return node instanceof Element && /^allow(?: once|(?: [a-z0-9 ._-]{1,80})? for this (?:conversation|chat))?$/i.test(elementLabel(node, 120)) && isUsableControl(node);
   }
 
   function isDenyControl(node) {
     return node instanceof Element && /^(?:deny|cancel)$/i.test(elementLabel(node, 120)) && isUsableControl(node);
   }
 
+  const TRUSTED_APPROVAL_CONNECTORS = Object.freeze([
+    { id:'google-drive', label:'Google Drive', host:'drive.google.com', pattern:/\b(?:drive\.google\.com|google drive)\b/i },
+    { id:'github', label:'GitHub', host:'github.com', pattern:/\b(?:github\.com|api\.github\.com|github)\b/i }
+  ]);
+
+  function trustedApprovalConnector(text = '') {
+    const normalized = brain.normalizeText(text, 5000);
+    return TRUSTED_APPROVAL_CONNECTORS.find((entry) => entry.pattern.test(normalized)) || null;
+  }
+
   function approvalPromptLike(text = '') {
+    const trusted = trustedApprovalConnector(text);
     return /\ballow\s+chatgpt\s+to\s+(?:use|access)\b/i.test(text)
-      || /\ballow\b.{0,120}\b(?:github|google drive|onedrive|dropbox|sharepoint|notion|slack|connector|connected app|plugin)\b/i.test(text)
-      || /\b(?:github|google drive|onedrive|dropbox|sharepoint|notion|slack|connector|connected app|plugin)\b.{0,180}\b(?:allow|permission|access)\b/i.test(text);
+      || /\ballow\s+access\s+to\s+(?:drive\.google\.com|(?:api\.)?github\.com)\b/i.test(text)
+      || /\ballow\b.{0,120}\b(?:github(?:\.com)?|google drive|drive\.google\.com|onedrive|dropbox|sharepoint|notion|slack|connector|connected app|plugin)\b/i.test(text)
+      || /\b(?:github(?:\.com)?|google drive|drive\.google\.com|onedrive|dropbox|sharepoint|notion|slack|connector|connected app|plugin)\b.{0,180}\b(?:allow|permission|access)\b/i.test(text)
+      || Boolean(trusted && /\b(?:allow|permission|access)\b/i.test(text));
   }
 
   function approvalCardForAllow(mainAllow) {
@@ -634,6 +771,8 @@
 
   function connectorNameFromApproval(surface) {
     const text = elementLabel(surface, 3000);
+    const trusted = trustedApprovalConnector(text);
+    if (trusted) return trusted.label;
     const patterns = [
       /allow\s+chatgpt\s+to\s+use\s+([^?\n|]{1,100})/i,
       /allow\s+(.{1,80}?)\s+(?:connector|plugin|app)\s+to\b/i,
@@ -643,287 +782,11 @@
     return '';
   }
 
-  function approvalControls(surface = approvalSurface()) {
-    if (!surface) return { surface: null, mainAllow: null, persistent: null, dropdown: null, checkbox: null };
-    const all = [...document.querySelectorAll(APPROVAL_CONTROL_SELECTOR)].filter(isUsableControl);
-    const within = [...surface.querySelectorAll(APPROVAL_CONTROL_SELECTOR)].filter(isUsableControl);
-    const persistentPattern = /(?:^|\b)(always allow|never ask|allow all|allow.*(?:this )?(?:conversation|chat))(?:\b|$)/i;
-    const persistent = all.find((node) => persistentPattern.test(elementLabel(node, 260)) && !/low[- ]risk/i.test(elementLabel(node, 260))) || null;
-    const checkbox = within.find((node) => {
-      const label = node.matches?.('label') ? elementLabel(node, 300) : elementLabel(node.closest?.('label') || node.parentElement, 300);
-      return /always allow|allow all|never ask|conversation|this chat/i.test(label) && (node.matches?.('input[type="checkbox"]') || node.querySelector?.('input[type="checkbox"]'));
-    }) || null;
-    const mainAllow = within.find(isMainAllowControl) || null;
-    const buttonControls = within.filter((node) => node.matches?.('button,[role="button"]'));
-    const mainIndex = buttonControls.indexOf(mainAllow);
-    let dropdown = null;
-    let dropdownScore = -1;
-    for (let index = 0; index < buttonControls.length; index += 1) {
-      const node = buttonControls[index];
-      if (node === mainAllow || isDenyControl(node) || persistentPattern.test(elementLabel(node, 260))) continue;
-      const label = elementLabel(node, 180);
-      let score = 0;
-      if (/^(?:menu|listbox)$/.test(node.getAttribute('aria-haspopup') || '')) score += 120;
-      if (node.hasAttribute('aria-expanded')) score += 80;
-      if (/allow|more|option|menu/i.test(label)) score += 60;
-      if (node.querySelector('svg')) score += 45;
-      if (label.length <= 3) score += 35;
-      if (mainAllow && node.parentElement === mainAllow.parentElement) score += 110;
-      else if (mainAllow && node.parentElement?.parentElement === mainAllow.parentElement?.parentElement) score += 55;
-      if (mainIndex >= 0 && Math.abs(index - mainIndex) === 1) score += 65;
-      const a = mainAllow?.getBoundingClientRect?.(); const b = node.getBoundingClientRect?.();
-      if (a && b && (a.width || a.height) && (b.width || b.height)) {
-        const gap = Math.hypot((a.right + a.left - b.right - b.left) / 2, (a.bottom + a.top - b.bottom - b.top) / 2);
-        if (gap < 100) score += 70; else if (gap < 180) score += 30;
-      }
-      if (score > dropdownScore) { dropdown = node; dropdownScore = score; }
-    }
-    if (dropdownScore < 60) dropdown = null;
-    return { surface, mainAllow, persistent, dropdown, checkbox };
-  }
-
-  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  function waitForDom(predicate, timeoutMs = 2600) {
-    return new Promise((resolve) => {
-      let done = false;
-      const finish = (value) => { if (done) return; done = true; observer.disconnect(); clearTimeout(timer); resolve(value); };
-      const probe = () => { try { const value = predicate(); if (value) finish(value); } catch (_) {} };
-      const observer = new MutationObserver(probe);
-      observer.observe(document.documentElement || document, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-expanded','data-state','disabled','aria-disabled'] });
-      const timer = setTimeout(() => finish(null), timeoutMs);
-      probe();
-    });
-  }
-
-  async function confirmApprovalCleared(timeoutMs = 3600) {
-    return Boolean(await waitForDom(() => !approvalSurface() ? true : null, timeoutMs));
-  }
-
-  async function settlePersistentApproval(strategy) {
-    // Some ChatGPT builds make the persistent menu item approve immediately;
-    // others first set the preference and leave the current Allow button active.
-    // Support both without double-clicking a completed action.
-    await wait(120);
-    const remaining = approvalSurface();
-    if (remaining) {
-      const controls = approvalControls(remaining);
-      if (controls.mainAllow) { controls.mainAllow.click(); strategy = `${strategy}+allow`; }
-    }
-    return { strategy, confirmed: await confirmApprovalCleared() };
-  }
-
-  async function clickApprovalPersistentOption(surface, options) {
-    let controls = approvalControls(surface);
-    if (controls.checkbox) {
-      const input = controls.checkbox.matches?.('input[type="checkbox"]') ? controls.checkbox : controls.checkbox.querySelector?.('input[type="checkbox"]');
-      if (input && !input.checked) controls.checkbox.click();
-      await wait(80);
-      controls = approvalControls(surface);
-      if (controls.mainAllow) {
-        controls.mainAllow.click();
-        const confirmed = await confirmApprovalCleared();
-        return confirmed ? { action: 'always-allow', strategy: 'checkbox+allow' } : { action: 'failed', strategy: 'checkbox+allow-unconfirmed', reason: 'The approval card remained open after clicking Allow.' };
-      }
-    }
-    if (controls.persistent) {
-      controls.persistent.click();
-      const settled = await settlePersistentApproval('direct-persistent');
-      return settled.confirmed ? { action: 'always-allow', strategy: settled.strategy } : { action: 'failed', strategy: `${settled.strategy}-unconfirmed`, reason: 'The approval card remained open after selecting the persistent option.' };
-    }
-    if (controls.dropdown) {
-      controls.dropdown.click();
-      const persistent = await waitForDom(() => approvalControls(approvalSurface() || surface).persistent, 3200);
-      controls = approvalControls(approvalSurface() || surface);
-      if (persistent || controls.persistent) {
-        (persistent || controls.persistent).click();
-        const settled = await settlePersistentApproval('dropdown-persistent');
-        return settled.confirmed ? { action: 'always-allow', strategy: settled.strategy } : { action: 'failed', strategy: `${settled.strategy}-unconfirmed`, reason: 'The approval card remained open after selecting the conversation-wide option.' };
-      }
-    }
-    if (options.fallbackAllowOnce !== false && controls.mainAllow) {
-      controls.mainAllow.click();
-      const confirmed = await confirmApprovalCleared();
-      return confirmed ? { action: 'allow-once', strategy: 'allow-fallback' } : { action: 'failed', strategy: 'allow-fallback-unconfirmed', reason: 'The approval card remained open after clicking Allow.' };
-    }
-    return { action: 'none', strategy: 'persistent-option-unavailable' };
-  }
-
-  function scheduledTaskPage() {
-    return /^\/schedules(?:\/|$)/i.test(location.pathname || '');
-  }
-
-  const SCHEDULED_TASK_BLOCKER_PATTERN = /(?:this task needs your attention|needs attention|follow[- ]?up|permission required|approval required|action required|task paused|\bpaused\b|\bdisabled\b)/i;
-  const SCHEDULED_TASK_TOMBSTONE_PATTERN = /^(?:REPLACED|RETIRED|LEGACY)\s*[—-]/i;
-  const SCHEDULED_TASK_OPEN_PATTERN = /^(?:follow[- ]?up|review|review access|review permission|grant access|open|view details|details)$/i;
-  const SCHEDULED_TASK_RESUME_PATTERN = /^(?:resume|retry|continue|run now|try again|enable|turn on)$/i;
-
-  function scheduledTaskTitle(card) {
-    if (!(card instanceof Element)) return '';
-    const headings = [...card.querySelectorAll('h1,h2,h3,h4,[role="heading"],[data-testid*="title" i]')];
-    for (const heading of headings) {
-      const label = elementLabel(heading, 300);
-      if (label && !SCHEDULED_TASK_BLOCKER_PATTERN.test(label)) return label;
-    }
-    const lines = elementLabel(card, 1200).split(/\n+/).map((line) => brain.normalizeText(line, 260)).filter(Boolean);
-    return lines.find((line) => !SCHEDULED_TASK_BLOCKER_PATTERN.test(line) && !/^(?:follow[- ]?up|review|resume|retry|continue|run now|enable|turn on)$/i.test(line)) || '';
-  }
-
-  function scheduledTaskCardForMarker(marker) {
-    let node = marker instanceof Element ? marker : marker?.parentElement;
-    let fallback = null;
-    for (let depth = 0; node && node !== document.body && depth < 10; depth += 1, node = node.parentElement) {
-      const controls = [...node.querySelectorAll?.('button,[role="button"],a[href]') || []].filter(isUsableControl);
-      if (!controls.length) continue;
-      const text = elementLabel(node, 5000);
-      if (!SCHEDULED_TASK_BLOCKER_PATTERN.test(text)) continue;
-      if (!fallback) fallback = node;
-      const structural = node.matches?.('article,li,section,[role="article"],[data-testid*="task" i],[data-testid*="schedule" i],[class*="card" i]');
-      if (structural) return node;
-    }
-    return fallback;
-  }
-
-  function scheduledBlockedTasks() {
-    const root = document.querySelector('main') || document.body || document.documentElement;
-    const candidates = [...root.querySelectorAll('[role="alert"],[role="status"],h1,h2,h3,h4,p,span,div,button,[role="button"]')].slice(-1800);
-    const out = [];
-    const seen = new Set();
-    for (const marker of candidates) {
-      if (!isUsableControl(marker)) continue;
-      const label = elementLabel(marker, 420);
-      if (!label || label.length > 360 || !SCHEDULED_TASK_BLOCKER_PATTERN.test(label)) continue;
-      const card = scheduledTaskCardForMarker(marker);
-      if (!card || seen.has(card)) continue;
-      const title = scheduledTaskTitle(card);
-      if (SCHEDULED_TASK_TOMBSTONE_PATTERN.test(title)) continue;
-      seen.add(card);
-      out.push({ card, title, marker, label });
-    }
-    return out;
-  }
-
-  function scheduledControl(scope, pattern) {
-    if (!(scope instanceof Element || scope === document)) return null;
-    const controls = [...scope.querySelectorAll('button,[role="button"],a[href]')].filter(isUsableControl);
-    return controls.find((node) => pattern.test(elementLabel(node, 180))) || null;
-  }
-
-  function scheduledDialogResumeControl() {
-    const scopes = [...document.querySelectorAll('[role="dialog"],[role="alertdialog"],[data-state="open"],[data-testid*="dialog" i],[class*="modal" i],[class*="drawer" i]')]
-      .filter(isUsableControl)
-      .reverse();
-    for (const scope of scopes) {
-      const control = scheduledControl(scope, SCHEDULED_TASK_RESUME_PATTERN);
-      if (control) return control;
-    }
-    return null;
-  }
-
-  async function runScheduledTaskRecoveryScan(options = {}) {
-    const allowed = options.scheduledTaskRepair === true || scheduledTaskPage();
-    if (!allowed) return { ok:true, action:'none', scheduled:false, reason:'Not on the Scheduled tasks surface.' };
-
-    const repaired = [];
-    const attempted = new Set();
-
-    for (let pass = 0; pass < 8; pass += 1) {
-      const surface = approvalSurface();
-      if (surface) {
-        const connector = connectorNameFromApproval(surface);
-        const result = await clickApprovalPersistentOption(surface, {
-          ...options,
-          alwaysAllow:true,
-          fallbackAllowOnce:true
-        });
-        if (result.action === 'failed') {
-          return { ok:false, action:'failed', scheduled:true, connector, strategy:result.strategy, repaired, reason:result.reason || 'Scheduled-task approval remained blocked.' };
-        }
-        if (result.action === 'always-allow' || result.action === 'allow-once') {
-          repaired.push({ kind:'approval', connector, action:result.action, strategy:result.strategy });
-          approvalAutopilotLastAt = Date.now();
-          await wait(220);
-          continue;
-        }
-      }
-
-      const blocked = scheduledBlockedTasks();
-      if (!blocked.length) {
-        return {
-          ok:true,
-          action:repaired.length ? 'scheduled-task-recovered' : 'none',
-          scheduled:true,
-          repaired,
-          reason:repaired.length ? 'Blocked Scheduled task controls were cleared.' : 'No blocked Scheduled task card was found.'
-        };
-      }
-
-      const task = blocked[0];
-      const signature = `${task.title}|${task.label}`;
-      const direct = scheduledControl(task.card, SCHEDULED_TASK_RESUME_PATTERN);
-      if (direct) {
-        direct.click();
-        repaired.push({ kind:'task-resume', title:task.title, label:elementLabel(direct, 160) });
-        approvalAutopilotLastAt = Date.now();
-        await wait(260);
-        continue;
-      }
-
-      const dialogResume = scheduledDialogResumeControl();
-      if (dialogResume) {
-        const label = elementLabel(dialogResume, 160);
-        dialogResume.click();
-        repaired.push({ kind:'dialog-resume', title:task.title, label });
-        approvalAutopilotLastAt = Date.now();
-        await wait(260);
-        continue;
-      }
-
-      const open = scheduledControl(task.card, SCHEDULED_TASK_OPEN_PATTERN);
-      if (open && !attempted.has(signature)) {
-        attempted.add(signature);
-        open.click();
-        repaired.push({ kind:'open-blocker', title:task.title, label:elementLabel(open, 160) });
-        await wait(320);
-        continue;
-      }
-
-      if (!attempted.has(signature)) {
-        attempted.add(signature);
-        const link = task.card.querySelector('a[href]');
-        if (link && isUsableControl(link)) {
-          link.click();
-          repaired.push({ kind:'open-task', title:task.title, label:elementLabel(link, 160) });
-          await wait(320);
-          continue;
-        }
-      }
-
-      return {
-        ok:false,
-        action:'failed',
-        scheduled:true,
-        repaired,
-        remaining:blocked.map((row) => row.title || row.label).slice(0, 12),
-        reason:`Scheduled task remains blocked: ${task.title || task.label || 'unknown task'}`
-      };
-    }
-
-    const remaining = scheduledBlockedTasks();
-    return {
-      ok:remaining.length === 0,
-      action:remaining.length === 0 && repaired.length ? 'scheduled-task-recovered' : 'failed',
-      scheduled:true,
-      repaired,
-      remaining:remaining.map((row) => row.title || row.label).slice(0, 12),
-      reason:remaining.length ? 'Scheduled-task recovery reached its bounded retry limit.' : 'Scheduled-task recovery completed.'
-    };
-  }
+  // Permission controls are observed and revealed for the user. No consent
+  // click executor is retained, including for previously saved Autopilot settings.
 
   function findResumeControl() {
-    const patterns = scheduledTaskPage()
-      ? [/^continue generating$/i,/^resume(?: response| generation)?$/i,/^continue response$/i,/^continue$/i,SCHEDULED_TASK_RESUME_PATTERN]
-      : [/^continue generating$/i,/^resume(?: response| generation)?$/i,/^continue response$/i,/^continue$/i];
+    const patterns = [/^continue generating$/i,/^resume(?: response| generation)?$/i,/^continue response$/i,/^continue$/i];
     return [...document.querySelectorAll('button,[role="button"]')].filter(isUsableControl).find((node) => patterns.some((pattern) => pattern.test(elementLabel(node, 160)))) || null;
   }
 
@@ -977,7 +840,10 @@
     const turns = turnNodes(document);
     const latestUser = [...turns].reverse().find((node) => roleForTurn(node) === 'user') || null;
     const latestAssistant = latestUser ? [...turns].reverse().find((node) => roleForTurn(node) === 'assistant' && nodeFollows(node, latestUser)) || null : null;
-    const candidates = [...document.querySelectorAll('[role="alert"],[role="status"],[aria-live],[data-testid*="error" i],[data-testid*="warning" i]')].slice(-120).reverse();
+    const candidates = [...new Set([
+      ...[...document.querySelectorAll('[role="alert"],[role="status"],[aria-live],[data-testid*="error" i],[data-testid*="warning" i]')].slice(-120).reverse(),
+      ...terminalStatusNodes()
+    ])];
     for (const node of candidates) {
       if (!isUsableControl(node) || (latestUser && !nodeFollows(node, latestUser) && !latestUser.contains?.(node))) continue;
       const label = elementLabel(node, 1600);
@@ -1023,10 +889,6 @@
     if (approvalAutopilotBusy) return { ok: true, action: 'busy', reason: 'Approval recovery is already running.' };
     approvalAutopilotBusy = true;
     try {
-      if (options.scheduledTaskRepair === true || scheduledTaskPage()) {
-        const scheduled = await runScheduledTaskRecoveryScan(options);
-        if (scheduled?.action !== 'none' || scheduled?.ok === false) return scheduled;
-      }
       const failure = providerFailureSurface();
       if (failure?.active) {
         return {
@@ -1053,24 +915,8 @@
       if (surface) {
         const connector = connectorNameFromApproval(surface);
         const prompt = elementLabel(surface, 1800);
-        let result = { action: 'none', strategy: 'disabled' };
-        if (options.alwaysAllow !== false) result = await clickApprovalPersistentOption(surface, options);
-        else {
-          const controls = approvalControls(surface);
-          if (options.fallbackAllowOnce !== false && controls.mainAllow) {
-            controls.mainAllow.click();
-            const confirmed = await confirmApprovalCleared();
-            result = confirmed ? { action: 'allow-once', strategy: 'allow' } : { action: 'failed', strategy: 'allow-unconfirmed', reason: 'The approval card remained open after clicking Allow.' };
-          }
-        }
-        if (result.action === 'always-allow' || result.action === 'allow-once') {
-          approvalAutopilotLastAt = Date.now();
-          await wait(220);
-          sendBrain('STATUS_EVENT', { providerId: provider.id, chatId: currentChatId(), status: 'idle', detail: `Approval recovered automatically (${result.action})${connector ? ` · ${connector}` : ''}`, url: location.href, approvalConnector: connector, updatedAt: Date.now() });
-          sendBrain('CHAT_UPSERT', { id: currentChatId(), providerId: provider.id, url: location.href, approvalRecoveredAt: Date.now(), approvalRecoveryAction: result.action, approvalConnector: connector, updatedAt: Date.now() });
-          await drainBrainOutbox().catch(() => {});
-        }
-        return { ok: result.action !== 'failed', action: result.action, strategy: result.strategy, connector, prompt: prompt.slice(0, 1200), reason: result.reason || (result.action === 'none' ? 'No persistent or current Allow control was available.' : '') };
+        sendBrain('STATUS_EVENT', {providerId:provider.id,chatId:currentChatId(),status:'blocked-approval',detail:'Permission requires your review in the provider.',url:location.href,approvalConnector:connector,updatedAt:Date.now()});
+        return {ok:true,action:'manual-review',strategy:'review-in-provider',connector,prompt:prompt.slice(0,1200),retryForbidden:true,automaticRetryForbidden:true,reason:'Open this chat and choose the permission scope yourself. Constellation does not grant permissions.'};
       }
       if (options.recoverPaused !== false) {
         const resume = findResumeControl();
@@ -1094,7 +940,7 @@
       if (!(node instanceof Element)) return false;
       if (isMainAllowControl(node) || isDenyControl(node)) return true;
       const text = elementLabel(node, 1800);
-      if (/\ballow\b/i.test(text) && /\b(?:deny|chatgpt|github|google drive|for this conversation|for this chat|connector|connected app|plugin)\b/i.test(text)) return true;
+      if (/\ballow\b/i.test(text) && /\b(?:deny|chatgpt|github(?:\.com)?|google drive|drive\.google\.com|for this conversation|for this chat|connector|connected app|plugin)\b/i.test(text)) return true;
       const controls = [...node.querySelectorAll?.('button,[role="button"]') || []].slice(-24);
       return controls.some(isMainAllowControl) && (controls.some(isDenyControl) || approvalPromptLike(text));
     };
@@ -1116,7 +962,7 @@
       if (promptKey !== approvalAutopilotPromptKey) { approvalAutopilotPromptKey = promptKey; approvalAutopilotRetryCount = 0; }
       if (approvalAutopilotBusy || Date.now() - approvalAutopilotLastAt < 800) { scheduleApprovalAutopilotScan(300); return; }
       const result = await runApprovalRecoveryScan({ alwaysAllow: approvalSettings.alwaysAllow !== false, fallbackAllowOnce: approvalSettings.fallbackAllowOnce !== false, recoverPaused: approvalSettings.autoRecoverPaused !== false }).catch((error) => ({ ok:false, action:'failed', error:String(error?.message || error) }));
-      if (result?.action === 'always-allow' || result?.action === 'allow-once') { approvalAutopilotRetryCount = 0; approvalAutopilotPromptKey = ''; return; }
+      if (result?.action === 'manual-review' || result?.action === 'always-allow' || result?.action === 'allow-once') { approvalAutopilotRetryCount = 0; approvalAutopilotPromptKey = ''; return; }
       if (approvalSurface() && approvalAutopilotRetryCount < 6) {
         approvalAutopilotRetryCount += 1;
         scheduleApprovalAutopilotScan(Math.min(2400, 220 * (2 ** approvalAutopilotRetryCount)));
@@ -1164,11 +1010,12 @@
       const links = structuredTurnLinks(node);
       const code = structuredCodeBlocks(node);
       const assets = structuredTurnAssets(node);
-      const fingerprint = brain.turnFingerprint({ role, text, links, codeBlocks:code, assets });
+      const formattedText = role === 'assistant' ? structuredTurnFormattedText(node) : '';
+      const integrity = brain.outputIntegrityProjection({ role, text, formattedText, links, codeBlocks:code, assets });
       turns.push({
-        id:brain.turnKey(chatId, messageId, role, ordinal), messageId, role, ordinal, fingerprint,
-        score:brain.turnRichnessScore({ role, text, links, codeBlocks:code, assets }), textLength:text.length,
-        excerpt:text.slice(0, 6000), links:links.map(({ href, text:label }) => ({ href, text:label })),
+        id:brain.turnKey(chatId, messageId, role, ordinal), messageId, role, ordinal, fingerprint:integrity.fingerprint,
+        score:integrity.score, textLength:integrity.text.length, rawTextLength:text.length, transientOnly:integrity.transientOnly, substantive:integrity.substantive,
+        excerpt:integrity.text.slice(0, 6000), links:links.map(({ href, text:label }) => ({ href, text:label })),
         assets:assets.map(({ kind, url, alt }) => ({ kind, url, alt })), codeBlocks:code.length
       });
     }
@@ -1179,6 +1026,9 @@
     const now = Date.now();
     if (outputCompareBusy || document.hidden || currentChatId().endsWith(':home') || lastStatus === 'running') return null;
     if (!force && now - lastOutputObservationAt < 10000) return null;
+    // Provider UIs often remove Thinking/tool-progress rows for a short moment after generation ends.
+    // Give that ordinary DOM settling time to finish before comparing durable output.
+    if (now - Number(healthEvidence.lastStatusChangeAt || 0) < 2400) return null;
     const hydrated = now - routeStartedAt >= Number(liveHealthSettings.hydrationGraceMs || health.DEFAULTS.hydrationGraceMs);
     const atBottom = isConversationBottom();
     if (!hydrated || !atBottom || document.readyState !== 'complete') return null;
@@ -1352,9 +1202,8 @@
   }
 
   function conversationCapacityEvidence(context = {}) {
-    const statusText = String(healthEvidence.lastStatusText || '');
-    const explicitMatch = statusText.match(/(?:you(?:'|’)?ve reached the maximum length for this conversation|maximum length for this conversation|maximum conversation length(?:.{0,40}(?:reached|exceeded))?|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|keep talking by starting a new chat|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
-    const nearLimitMatch = explicitMatch ? null : statusText.match(/(?:(?:approaching|close to|near|nearing|almost at).{0,80}(?:conversation|context).{0,40}(?:limit|maximum)|(?:conversation|context).{0,50}(?:approaching|nearing|close to).{0,40}(?:limit|maximum)|start a new chat soon|consider starting a new chat)/i);
+    const statusText = `${String(healthEvidence.lastStatusText || '')} | ${boundedStatusText()}`.slice(-12000);
+    const classifiedCapacity = health?.classifyProviderCapacity?.(statusText) || {};
     const sentinel = liveSentinelState(false);
     const generation = sentinel?.ok && sentinel.source === 'live-sentinel' ? (sentinel.generation || {}) : {};
     const storedRecentAverage = Math.max(0, Number(context.capacity?.recentAverageChars || 0));
@@ -1372,10 +1221,10 @@
       transcriptChars: Math.max(0, Number(generation.conversationChars || 0)),
       recentAverageChars: Math.max(storedRecentAverage, transcriptRecentAverage),
       transcriptRecentAverageChars: transcriptRecentAverage,
-      explicitLimitSignal: Boolean(explicitMatch),
-      explicitLimitText: explicitMatch ? brain.normalizeText(explicitMatch[0], 220) : '',
-      nearLimitSignal: Boolean(nearLimitMatch),
-      nearLimitText: nearLimitMatch ? brain.normalizeText(nearLimitMatch[0], 220) : ''
+      explicitLimitSignal: Boolean(classifiedCapacity.explicitLimitSignal || generation.capacityState === 'reached'),
+      explicitLimitText: brain.normalizeText(classifiedCapacity.explicitLimitText || (generation.capacityState === 'reached' ? 'Provider hard conversation limit detected.' : ''), 220),
+      nearLimitSignal: Boolean(classifiedCapacity.nearLimitSignal || generation.capacityState === 'handoff'),
+      nearLimitText: brain.normalizeText(classifiedCapacity.nearLimitText || (generation.capacityState === 'handoff' ? 'Provider conversation runway warning detected.' : ''), 220)
     };
   }
 
@@ -1818,39 +1667,15 @@
       let status = 'failed';
       if (composer && fillBranchComposer(composer, claim.prompt)) {
         await sleep(350);
-        if (pulseUxSettings.branchReviewBeforeSend !== false) {
-          status = 'prefilled';
-          composer.dataset.projectConstellationBranchReady = '1';
-          const onBranchEnter = (event) => {
-            if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
-            const send = branchSendButton(composer);
-            if (!send) return;
-            event.preventDefault(); event.stopPropagation();
-            composer.removeEventListener('keydown', onBranchEnter, true);
-            delete composer.dataset.projectConstellationBranchReady;
-            send.click();
-          };
-          composer.addEventListener('keydown', onBranchEnter, true);
-          showBranchTransferToast('Continuation ready to edit', 'Edit anything you want, then press Enter to send. Shift+Enter still adds a new line.', 'ready');
-        } else {
-          let send = null;
-          for (let attempt = 0; attempt < 24 && !send; attempt += 1) { send = branchSendButton(composer); if (!send) await sleep(250); }
-          if (send) {
-            send.click();
-            for (let attempt = 0; attempt < 32; attempt += 1) {
-              await sleep(250);
-              if (!composer.isConnected || branchComposerText(composer).length < 8 || !currentChatId().endsWith(':home')) { status = 'sent'; break; }
-            }
-          }
-          if (status !== 'sent') status = 'prefilled';
-        }
+        status = 'prefilled';
+        composer.dataset.projectConstellationBranchReady = '1';
+        showBranchTransferToast('Continuation ready to review', 'Constellation staged the approved handoff only. Review it, edit it, then use the provider Send control yourself.', 'ready');
       } else {
         try { await copyHandoffText(claim.prompt); status = 'copied'; } catch (_) { status = 'failed'; }
       }
       await chrome.runtime.sendMessage({ type:'PC_BRANCH_CONTINUATION_COMPLETE', branchId:claim.branchId, status, url:location.href }).catch(() => null);
-      if (status === 'sent') { showBranchTransferToast('Continuation sent', 'The new chat is now linked to its parent checkpoint.', 'ready'); await resolveBranchLineage(); }
-      else if (status === 'prefilled' && pulseUxSettings.branchReviewBeforeSend === false) showBranchTransferToast('Continuation ready', 'Context is in the composer. Press Send when you are ready.', 'ready');
-      else if (status === 'copied') showBranchTransferToast('Continuation copied', 'The provider composer changed. Paste the recovered context to continue.', 'error');
+      if (status === 'prefilled') showBranchTransferToast('Continuation staged', 'Review the context in the composer, then send it yourself if it is correct.', 'ready');
+      else if (status === 'copied') showBranchTransferToast('Continuation copied', 'The provider composer changed. Paste the recovered context only if you approve it.', 'error');
       else showBranchTransferToast('Could not transfer context', 'Return to the parent chat and choose Branch & continue again.', 'error');
     } finally { branchResumeBusy = false; }
   }
@@ -2123,7 +1948,9 @@
       const health = sentinel.health || {};
       return { ...snapshot, state:sentinelHealthState, level:health.level || snapshot.level, title:health.title || snapshot.title, detail:health.detail || snapshot.detail, recommendedAction:health.recommendedAction || snapshot.recommendedAction, activity:null };
     }
-    const level = ['errored','refresh-required','rate-limited','unavailable','delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(status) ? 'danger' : 'warning';
+    const level = ['errored','refresh-required','unavailable','delivery-timeout','connection-interrupted','response-interrupted','send-failed'].includes(status)
+      ? 'critical'
+      : status === 'rate-limited' ? 'danger' : 'warning';
     return { ...snapshot, state:status, level, title:`Chat ${status.replaceAll('-', ' ')}`, detail:'Live Sentinel detected a current chat attention state.', activity:null };
   }
 
@@ -2385,6 +2212,48 @@
     captureHandle = 0; captureHandleKind = '';
   }
 
+  function providerCapabilitySnapshot() {
+    const composer = document.querySelector('#prompt-textarea,textarea,[contenteditable="true"][role="textbox"],[data-testid*="composer" i],[class*="composer" i] [contenteditable="true"]');
+    const sendControl = document.querySelector('button[data-testid*="send" i],button[aria-label*="send" i],[role="button"][aria-label*="send" i]');
+    const messageSurface = document.querySelector('[data-message-id],[data-testid^="conversation-turn-"],[data-message-author-role],main article,[class*="message" i]');
+    const chatId = currentChatId();
+    const chatExpected = Boolean(chatId || /\/(?:c|chat|conversation|search|page|app)\//i.test(location.pathname));
+    const projectExpected = /\/(?:g|project|projects)\//i.test(location.pathname) || Boolean(document.querySelector('[data-testid*="project" i],[aria-label*="project" i]'));
+    const live = liveSentinelState(false);
+    return {
+      providerId:provider.id,
+      url:location.href,
+      ageMs:Date.now()-providerPageStartedAt,
+      chatExpected,
+      projectExpected,
+      capabilities:{
+        providerDetected:true,
+        routeDetected:Boolean(location.pathname || location.search),
+        chatDetected:chatExpected ? Boolean(chatId || messageSurface || composer) : true,
+        composerDetected:Boolean(composer),
+        sendControlDetected:Boolean(sendControl || composer),
+        messageSurfaceDetected:chatExpected ? Boolean(messageSurface) : true,
+        streamingSignalObserved:Boolean(live?.generation?.active || live?.chat?.status === 'running'),
+        projectContextDetected:projectExpected ? Boolean(document.querySelector('[data-testid*="project" i],[aria-label*="project" i],[href*="/project" i],[href*="/g/" i]')) : true
+      }
+    };
+  }
+
+  async function reportProviderHealth(force = false) {
+    providerHealthTimer = 0;
+    const raw = providerCapabilitySnapshot();
+    const evaluated = providerHealth.evaluate(raw, { providerId:provider.id });
+    const transitionKey = `${evaluated.status}:${evaluated.fingerprint}`;
+    if (!force && transitionKey === lastProviderHealthFingerprint) return;
+    lastProviderHealthFingerprint = transitionKey;
+    try { await chrome.runtime.sendMessage({ type:'PC_PROVIDER_CAPABILITY_REPORT', report:raw }); } catch (_) {}
+  }
+
+  function scheduleProviderHealth(delay = 900, force = false) {
+    if (providerHealthTimer) clearTimeout(providerHealthTimer);
+    providerHealthTimer = setTimeout(() => { void reportProviderHealth(force); }, Math.max(60, Number(delay || 0)));
+  }
+
   function setupCaptureObserver() {
     captureObserver?.disconnect();
     captureObserver = new MutationObserver((mutations) => {
@@ -2398,6 +2267,7 @@
           if (node.matches?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],.loading-shimmer-tertiary,[class*="text-token-text-tertiary"],[aria-busy],[data-state]') || node.querySelector?.('[data-testid*="tool" i],[aria-label*="tool" i],[class*="tool" i],.loading-shimmer-tertiary,[class*="text-token-text-tertiary"],[aria-busy],[data-state]')) toolEvidenceDirty = true;
         }
       }
+      scheduleProviderHealth(1200);
     });
     captureObserver.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['href','data-message-id','data-testid','aria-label','aria-busy','data-is-streaming'] });
     scheduleCapture(document);
@@ -2418,6 +2288,7 @@
     resolveBranchLineage().catch(() => {});
     scheduleCapture(document);
     scheduleApprovalAutopilotScan(180);
+    scheduleProviderHealth(700, true);
   }
 
   function setupNavigationTracking() {
@@ -2772,7 +2643,26 @@
     if (message?.type === 'PC_MANUAL_FULL_CAPTURE') { manualFullCapture(message.options || {}).then(sendResponse).catch((error) => sendResponse({ ok: false, error: String(error?.message || error) })); return true; }
     if (message?.type === 'PC_MANUAL_CAPTURE_CONTROL') { manualCaptureCommand = message.action === 'pause' ? 'pause' : message.action === 'stop' ? 'stop' : 'run'; sendResponse({ ok: true, command: manualCaptureCommand }); return false; }
     if (message?.type === 'PC_GET_PROVIDER') { sendResponse({ ok: true, provider }); return false; }
+    if (message?.type === 'PC_ATTENTION_REVEAL_PERMISSION') {
+      const surface=approvalSurface();
+      if(surface)surface.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+      sendResponse({ok:Boolean(surface),action:'review-in-provider'});return false;
+    }
     if (message?.type === 'PC_APPROVAL_RECOVERY_SCAN') { runApprovalRecoveryScan(message.options || {}).then(sendResponse).catch((error) => sendResponse({ ok: false, action: 'failed', error: String(error?.message || error) })); return true; }
+    if (message?.type === 'PC_STAGE_APPROVED_PROJECT_CONTEXT') {
+      (async()=>{
+        const approval=message.approval||{}; const content=String(message.content||'');
+        if(approval.approved!==true||!approval.fingerprint||!approval.contentHash||!approval.token||!content){sendResponse({ok:false,error:'Project context is missing an explicit approval token.'});return;}
+        if(brain.hashString(content)!==approval.contentHash){sendResponse({ok:false,error:'Approved project context changed after review.'});return;}
+        let composer=null;for(let attempt=0;attempt<20&&!composer;attempt+=1){composer=branchComposer();if(!composer)await sleep(150);}
+        if(!composer){sendResponse({ok:false,error:'Provider composer is not available.'});return;}
+        if(!fillBranchComposer(composer,content)){sendResponse({ok:false,error:'Composer already contains unrelated text. Constellation refused to overwrite it.'});return;}
+        composer.dataset.projectConstellationApprovedContext=approval.fingerprint;
+        showBranchTransferToast('Approved context staged', 'Nothing was sent. Review or edit the composer, then use the provider Send control yourself.', 'ready');
+        sendResponse({ok:true,state:'staged',fingerprint:approval.fingerprint,contentHash:approval.contentHash});
+      })().catch((error)=>sendResponse({ok:false,error:String(error?.message||error)}));
+      return true;
+    }
     if (message?.type === 'PC_RETRY_CURRENT_FAILURE') { sendResponse(retryFailure()); return false; }
     return false;
   });
@@ -2808,13 +2698,15 @@
   sendBrain('ROUTE_EVENT', { providerId: provider.id, chatId: currentChatId(), url: location.href, title: document.title, updatedAt: Date.now() });
   scheduleStatusPulse(1800);
   scheduleLiveHealthPulse(2200);
+  scheduleProviderHealth(1600, true);
+  setTimeout(() => scheduleProviderHealth(0, true), 9000);
   setTimeout(() => resumePendingBranch().catch(() => {}), 900);
   setTimeout(() => resolveBranchLineage().catch(() => {}), 1600);
 
   window.addEventListener('pagehide', () => {
     stopPerformanceObserver(); captureObserver?.disconnect(); approvalObserver?.disconnect(); navCleanup?.(); closeOutputVault();
     window.removeEventListener(LIVE_SENTINEL_STATE_EVENT, onLiveSentinelStateEvent);
-    if (recoveryTimer) clearTimeout(recoveryTimer); if (statusTimer) clearTimeout(statusTimer); if (liveHealthTimer) clearTimeout(liveHealthTimer); if (approvalAutopilotTimer) clearTimeout(approvalAutopilotTimer);
+    if (recoveryTimer) clearTimeout(recoveryTimer); if (statusTimer) clearTimeout(statusTimer); if (liveHealthTimer) clearTimeout(liveHealthTimer); if (approvalAutopilotTimer) clearTimeout(approvalAutopilotTimer); if (providerHealthTimer) clearTimeout(providerHealthTimer);
     cancelCapture(); cancelPendingPersist(); void flushRescueJournal(); flushBrainOutbox();
     chrome.storage.local.set({ [METRICS_KEY]: { ...metrics } }).catch(() => {});
   }, { once: true });

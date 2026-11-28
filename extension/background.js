@@ -3,17 +3,37 @@ import './src/provider-core.js';
 import './src/integrity-core.js';
 import './src/knowledge-core.js';
 import './src/project-memory-core.js';
+import './src/project-router-core.js';
+import './src/project-intelligence-core.js';
 import './src/health-core.js';
+import './src/scheduled-task-guardian-core.js';
+import './src/chat-guardian-core.js';
+import './src/state-event-bus-core.js';
+import './src/provider-health-core.js';
+import './src/incident-brain-core.js';
+import './src/brain-db-core.js';
+import './src/background-message-router-core.js';
+import './src/attention-service.js';
 
 const brain = globalThis.ProjectConstellationBrainCore;
 const providers = globalThis.ProjectConstellationProviders;
 const integrity = globalThis.ProjectConstellationIntegrityCore;
 const knowledge = globalThis.ProjectConstellationKnowledgeCore;
 const projectMemory = globalThis.ProjectConstellationProjectMemoryCore;
+const projectRouter = globalThis.ProjectConstellationProjectRouterCore;
+const projectIntelligence = globalThis.ProjectConstellationProjectIntelligenceCore;
 const health = globalThis.ProjectConstellationHealthCore;
+const scheduledGuardian = globalThis.ProjectConstellationScheduledTaskGuardianCore;
+const chatGuardian = globalThis.ProjectConstellationChatGuardianCore;
+const stateBus = globalThis.ProjectConstellationStateEventBusCore;
+const providerHealth = globalThis.ProjectConstellationProviderHealthCore;
+const incidentBrain = globalThis.ProjectConstellationIncidentBrainCore;
+const brainDbCore = globalThis.ProjectConstellationBrainDbCore;
+const backgroundMessageRouterCore = globalThis.ProjectConstellationBackgroundMessageRouterCore;
+const backgroundMessageRouter = backgroundMessageRouterCore.createRouter();
 
 const DB_NAME = 'project-constellation-brain';
-const DB_VERSION = 10;
+const DB_VERSION = 11;
 const SETTINGS_KEY = 'projectConstellationBrainSettings';
 const GITHUB_SECRET_KEY = 'projectConstellationGithubSecret';
 const GITHUB_REFRESH_KEY = 'projectConstellationGithubRefresh';
@@ -38,6 +58,11 @@ const INTEGRITY_DEBOUNCE_ALARM = 'project-constellation-integrity-debounce';
 const INTEGRITY_MAINTENANCE_ALARM = 'project-constellation-integrity-maintenance';
 const KNOWLEDGE_INDEX_ALARM = 'project-constellation-knowledge-index';
 const KNOWLEDGE_BACKFILL_KEY = 'projectConstellationKnowledgeBackfill';
+const SCHEDULE_GUARDIAN_STATE_KEY = 'projectConstellationScheduledTaskGuardianState';
+const SCHEDULE_GUARDIAN_TASK_STATE_KEY = 'projectConstellationScheduledTaskGuardianTasks';
+const SCHEDULE_GUARDIAN_ALARM = 'project-constellation-scheduled-task-guardian';
+const CHAT_GUARDIAN_STATE_KEY = 'projectConstellationChatGuardianState';
+const CHAT_GUARDIAN_ALARM = 'project-constellation-chat-guardian';
 const LIVE_HEALTH_CONTEXT_TTL_MS = 5000;
 const CAPACITY_STATS_TTL_MS = 15000;
 const LIVE_NETWORK_TTL_MS = 10 * 60 * 1000;
@@ -52,12 +77,13 @@ const HEALTH_CORE_FILE = 'src/health-core.js';
 const LIVE_SENTINEL_FILE = 'src/live-sentinel.js';
 const CHATGPT_PAGE_PROBE_FILE = 'src/chatgpt-page-probe.js';
 const TAB_BEACON_FILE = 'src/tab-beacon.js';
-const LIVE_SENTINEL_VERSION = '0.14.12';
-const CHATGPT_PAGE_PROBE_VERSION = '0.14.12';
-const TAB_BEACON_VERSION = '0.14.4';
+const LIVE_SENTINEL_VERSION = '0.22.0';
+const CHATGPT_PAGE_PROBE_VERSION = '0.18.1';
+const TAB_BEACON_VERSION = '0.17.6';
 const TAB_GROUP_PREFIX = 'PC ✦';
 const liveNetworkByTab = new Map();
 const liveTabStateByTab = new Map();
+const liveTransitionPersistSignatures = new Map();
 const liveNetworkReconcileTimers = new Map();
 let tabGroupSyncQueue = Promise.resolve();
 let liveChatPulseCache = null;
@@ -73,7 +99,8 @@ const tabPresentationRepairTimers = new Map();
 let pulseUxCache = null;
 let tabTagsCache = null;
 let attentionBadgeCount = 0;
-let liveToolbarSnapshot = { active:0, stale:0, completed:0, open:0 };
+let scheduledGuardianAttentionCount = 0;
+let liveToolbarSnapshot = { critical:0, hold:0, active:0, stale:0, completed:0, open:0 };
 
 const CAPACITY_PROFILE_VERSION = 2;
 const LEGACY_CAPACITY_DEFAULTS = Object.freeze({ capacityWarningTurns:180, capacityHandoffTurns:260, capacityWarningChars:240000, capacityHandoffChars:400000 });
@@ -118,6 +145,8 @@ const defaultBrainSettings = Object.freeze({
   projectIntegrity: { enabled: true, autoScan: true, scanIntervalMinutes: 15, lastScanAt: 0, latestSeverity: 'healthy' },
   knowledge: { enabled: true, extractionBatchSize: 28, activeExtractionBatchSize: 6, backfillBatchSize: 180, idleBackfillOnly: true, lastBackfillAt: 0, extractionVersion: knowledge.VERSION },
   liveHealth: { ...health.DEFAULTS },
+  scheduledTaskGuardian: { ...scheduledGuardian.DEFAULTS },
+  chatGuardian: { ...chatGuardian.DEFAULTS },
   approvalAutopilot: {
     enabled: false, acknowledged: false, alwaysAllow: true, fallbackAllowOnce: true, autoRecoverPaused: true,
     backgroundRecovery: false, attentionNavigationIntervalMs: 4500, fullSweepNavigationIntervalMs: 8000, autoRescanFreshMs: 24 * 60 * 60 * 1000, lastSweepAt: 0, lastRecoveredAt: 0, recoveredCount: 0, failedCount: 0
@@ -156,7 +185,10 @@ const STORE_DEFS = Object.freeze({
   integrityFindings: [['updatedAt','updatedAt'],['projectId','projectId'],['severity','severity'],['type','type'],['resolved','resolved']],
   knowledgeItems: [['updatedAt','updatedAt'],['chatId','chatId'],['providerId','providerId'],['projectId','projectId'],['workspaceProjectId','workspaceProjectId'],['kind','kind'],['sourceTurnId','sourceTurnId'],['canonicalKey','canonicalKey'],['kindUpdatedAt',['kind','updatedAt']],['projectUpdatedAt',['projectId','updatedAt']],['workspaceProjectUpdatedAt',['workspaceProjectId','updatedAt']]],
   knowledgeSources: [['updatedAt','updatedAt'],['chatId','chatId'],['status','status'],['statusUpdatedAt',['status','updatedAt']]],
-  projectContinuity: [['updatedAt','updatedAt'],['projectId','projectId']]
+  projectContinuity: [['updatedAt','updatedAt'],['projectId','projectId']],
+  providerHealth: [['updatedAt','updatedAt'],['providerId','providerId'],['status','status']],
+  incidentRecipes: [['updatedAt','updatedAt'],['fingerprint','fingerprint'],['status','status'],['kind','kind'],['statusUpdatedAt',['status','updatedAt']]],
+  migrationReceipts: [['updatedAt','updatedAt'],['version','version']]
 });
 
 const SEARCH_STORE = 'searchDocs';
@@ -206,47 +238,43 @@ function searchDoc(entityType, record = {}) {
 }
 
 
-function openDb() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (event) => {
-      const db = request.result;
-      const oldVersion = Number(event?.oldVersion || 0);
-      for (const [name, indexes] of Object.entries(STORE_DEFS)) {
-        let store;
-        if (!db.objectStoreNames.contains(name)) store = db.createObjectStore(name, { keyPath: 'id' });
-        else store = request.transaction.objectStore(name);
-        for (const [indexName, keyPath, options = {}] of indexes) {
-          if (store.indexNames.contains(indexName) && oldVersion > 0) {
-            const existing = store.index(indexName);
-            if (JSON.stringify(existing.keyPath) !== JSON.stringify(keyPath)) store.deleteIndex(indexName);
-          }
-          if (!store.indexNames.contains(indexName)) store.createIndex(indexName, keyPath, options);
-        }
+function prepareBrainDbUpgrade({ event, request, db }) {
+  const oldVersion = Number(event?.oldVersion || 0);
+  for (const [name, indexes] of Object.entries(STORE_DEFS)) {
+    let store;
+    if (!db.objectStoreNames.contains(name)) store = db.createObjectStore(name, { keyPath: 'id' });
+    else store = request.transaction.objectStore(name);
+    for (const [indexName, keyPath, options = {}] of indexes) {
+      if (store.indexNames.contains(indexName) && oldVersion > 0) {
+        const existing = store.index(indexName);
+        if (JSON.stringify(existing.keyPath) !== JSON.stringify(keyPath)) store.deleteIndex(indexName);
       }
-      let searchStore;
-      if (!db.objectStoreNames.contains(SEARCH_STORE)) searchStore = db.createObjectStore(SEARCH_STORE, { keyPath: 'id' });
-      else searchStore = request.transaction.objectStore(SEARCH_STORE);
-      for (const [indexName, keyPath, options] of [
-        ['updatedAt','updatedAt',{}], ['entityType','entityType',{}], ['chatId','chatId',{}], ['providerId','providerId',{}], ['terms','terms',{ multiEntry: true }]
-      ]) if (!searchStore.indexNames.contains(indexName)) searchStore.createIndex(indexName, keyPath, options);
-      if (oldVersion > 0 && oldVersion < 9) {
-        for (const storeName of Object.keys(VALID_FLAG_INDEX_KEYS)) {
-          const store = request.transaction.objectStore(storeName);
-          const cursorRequest = store.openCursor();
-          cursorRequest.onsuccess = () => {
-            const cursor = cursorRequest.result;
-            if (!cursor) return;
-            cursor.update(withValidFlagIndexKeys(storeName, cursor.value));
-            cursor.continue();
-          };
-        }
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+      if (!store.indexNames.contains(indexName)) store.createIndex(indexName, keyPath, options);
+    }
+  }
+  let searchStore;
+  if (!db.objectStoreNames.contains(SEARCH_STORE)) searchStore = db.createObjectStore(SEARCH_STORE, { keyPath: 'id' });
+  else searchStore = request.transaction.objectStore(SEARCH_STORE);
+  for (const [indexName, keyPath, options] of [
+    ['updatedAt','updatedAt',{}], ['entityType','entityType',{}], ['chatId','chatId',{}], ['providerId','providerId',{}], ['terms','terms',{ multiEntry: true }]
+  ]) if (!searchStore.indexNames.contains(indexName)) searchStore.createIndex(indexName, keyPath, options);
+  if (oldVersion > 0 && oldVersion < 9) {
+    for (const storeName of Object.keys(VALID_FLAG_INDEX_KEYS)) {
+      const store = request.transaction.objectStore(storeName);
+      const cursorRequest = store.openCursor();
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor) return;
+        cursor.update(withValidFlagIndexKeys(storeName, cursor.value));
+        cursor.continue();
+      };
+    }
+  }
 }
+
+const brainDb = brainDbCore.createSharedConnection({ name: DB_NAME, version: DB_VERSION, onUpgrade: prepareBrainDbUpgrade });
+function openDb() { return brainDb.open(); }
+function releaseDb(db) { brainDb.release(db); }
 
 function requestResult(request) {
   return new Promise((resolve, reject) => {
@@ -272,7 +300,7 @@ function indexedDbOnly(value, context = 'IndexedDB query') {
 async function getOne(storeName, id) {
   const db = await openDb();
   try { return await requestResult(db.transaction(storeName, 'readonly').objectStore(storeName).get(id)); }
-  finally { db.close(); }
+  finally { releaseDb(db); }
 }
 
 async function getManyInOrder(storeName, ids = []) {
@@ -282,13 +310,13 @@ async function getManyInOrder(storeName, ids = []) {
   try {
     const store = db.transaction(storeName, 'readonly').objectStore(storeName);
     return await Promise.all(keys.map((id) => requestResult(store.get(id))));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function getAll(storeName) {
   const db = await openDb();
   try { return await requestResult(db.transaction(storeName, 'readonly').objectStore(storeName).getAll()); }
-  finally { db.close(); }
+  finally { releaseDb(db); }
 }
 
 
@@ -311,7 +339,7 @@ async function getRecent(storeName, limit = 50, offset = 0) {
       };
       request.onerror = () => reject(request.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function getByIndex(storeName, indexName, value, limit = 250) {
@@ -322,7 +350,7 @@ async function getByIndex(storeName, indexName, value, limit = 250) {
     if (!store.indexNames.contains(indexName)) return [];
     const rows = await requestResult(store.index(indexName).getAll(indexedDbOnly(value, `${storeName}.${indexName}`), Math.max(1, Math.min(Number(limit) || 250, 2000))));
     return rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function getAllByIndex(storeName, indexName, value) {
@@ -333,7 +361,7 @@ async function getAllByIndex(storeName, indexName, value) {
     if (!store.indexNames.contains(indexName)) return [];
     const rows = await requestResult(store.index(indexName).getAll(indexedDbOnly(value, `${storeName}.${indexName}`)));
     return rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function latestTurnsForChat(chatId, limit = 5) {
@@ -360,7 +388,7 @@ async function latestTurnsForChat(chatId, limit = 5) {
       request.onerror = () => reject(request.error);
     });
     return out;
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function conversationCapacityStats(chatId) {
@@ -402,7 +430,7 @@ async function conversationCapacityStats(chatId) {
     const value = { storedTurns, storedChars, recentAverageChars };
     capacityStatsCache.set(id, { at:now, value });
     return value;
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function recentTurnRecordsForChat(chatId, limit = 12) {
@@ -426,7 +454,7 @@ async function recentTurnRecordsForChat(chatId, limit = 12) {
       request.onerror = () => reject(request.error);
     });
     return out;
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function latestUserTaskForChat(chatId, scanLimit = 12) {
@@ -452,7 +480,7 @@ async function latestUserTaskForChat(chatId, scanLimit = 12) {
       };
       request.onerror = () => reject(request.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 function networkStateForTab(tabId) {
@@ -509,7 +537,8 @@ function boundedOutputObservation(message = {}) {
     textLength:Math.max(0, Number(turn?.textLength || 0)), excerpt:String(turn?.excerpt || '').slice(0, 6000),
     links:(Array.isArray(turn?.links) ? turn.links : []).slice(0, 64).map((item) => ({ href:String(item?.href || '').slice(0,8000), text:brain.normalizeText(item?.text || '',320) })).filter((item)=>item.href),
     assets:(Array.isArray(turn?.assets) ? turn.assets : []).slice(0, 32).map((item) => ({ kind:brain.normalizeText(item?.kind || 'media',32), url:String(item?.url || '').slice(0,8000), alt:brain.normalizeText(item?.alt || '',320) })).filter((item)=>item.url),
-    codeBlocks:Math.max(0, Number(turn?.codeBlocks || 0))
+    codeBlocks:Math.max(0, Number(turn?.codeBlocks || 0)), transientOnly:Boolean(turn?.transientOnly), substantive:turn?.substantive !== false,
+    rawTextLength:Math.max(0, Number(turn?.rawTextLength || turn?.textLength || 0))
   })).filter((turn) => turn.id);
   return {
     chatId, providerId:String(message.providerId || '').slice(0,80), url:String(message.url || '').slice(0,8000),
@@ -527,7 +556,12 @@ function compareObservedOutput(storedTurns = [], observation = {}) {
   const observedOrdinals = observed.map((turn) => Number(turn.ordinal || 0));
   const observedMin = observedOrdinals.length ? Math.min(...observedOrdinals) : Number.MAX_SAFE_INTEGER;
   const observedMax = observedOrdinals.length ? Math.max(...observedOrdinals) : -1;
-  const relevant = storedTurns.filter((turn) => turn.role === 'assistant' && (Number(turn.ordinal || 0) >= observedMin || Number(turn.ordinal || 0) > observedMax));
+  const relevant = storedTurns.filter((turn) => {
+    if (turn.role !== 'assistant') return false;
+    const projection = brain.outputIntegrityProjection(turn);
+    if (!projection.substantive || projection.transientOnly) return false;
+    return Number(turn.ordinal || 0) >= observedMin || Number(turn.ordinal || 0) > observedMax;
+  });
   const missingTurns = [];
   const changedTurns = [];
   let missingAssets = 0;
@@ -535,16 +569,17 @@ function compareObservedOutput(storedTurns = [], observation = {}) {
   let missingCodeBlocks = 0;
   for (const saved of relevant) {
     const current = observedById.get(saved.id) || observedByOrdinal.get(outputTurnKey(saved));
-    const savedFingerprint = String(saved.bestRevisionFingerprint || saved.contentFingerprint || brain.turnFingerprint(saved));
-    const savedScore = Number(saved.bestRevisionScore || saved.richnessScore || brain.turnRichnessScore(saved));
+    const savedProjection = brain.outputIntegrityProjection(saved);
+    const savedFingerprint = String(savedProjection.fingerprint || '');
+    const savedScore = Number(savedProjection.score || 0);
     if (!current) {
-      missingTurns.push({ turnId:saved.id, ordinal:Number(saved.ordinal || 0), savedFingerprint, savedScore, textLength:String(saved.text || '').length, assetCount:(saved.assets || []).length, linkCount:(saved.links || []).length, codeBlocks:(saved.codeBlocks || []).length });
+      missingTurns.push({ turnId:saved.id, ordinal:Number(saved.ordinal || 0), savedFingerprint, savedScore, textLength:savedProjection.text.length, rawTextLength:String(saved.text || '').length, assetCount:(saved.assets || []).length, linkCount:(saved.links || []).length, codeBlocks:(saved.codeBlocks || []).length, semantic:true });
       missingAssets += (saved.assets || []).length; missingLinks += (saved.links || []).length; missingCodeBlocks += (saved.codeBlocks || []).length;
       continue;
     }
     const currentScore = Number(current.score || 0);
     const fingerprintChanged = Boolean(current.fingerprint && current.fingerprint !== savedFingerprint);
-    const meaningfulLoss = savedScore - currentScore >= Math.max(180, Math.round(savedScore * 0.08));
+    const meaningfulLoss = savedScore - currentScore >= Math.max(180, Math.round(savedScore * 0.1));
     if (fingerprintChanged && meaningfulLoss) {
       const currentAssets = new Set((current.assets || []).map((item) => item.url));
       const currentLinks = new Set((current.links || []).map((item) => item.href));
@@ -552,16 +587,17 @@ function compareObservedOutput(storedTurns = [], observation = {}) {
       const lostLinks = (saved.links || []).filter((item) => !currentLinks.has(item.href)).length;
       const lostCode = Math.max(0, (saved.codeBlocks || []).length - Number(current.codeBlocks || 0));
       missingAssets += lostAssets; missingLinks += lostLinks; missingCodeBlocks += lostCode;
-      changedTurns.push({ turnId:saved.id, ordinal:Number(saved.ordinal || 0), savedFingerprint, currentFingerprint:current.fingerprint, savedScore, currentScore, savedTextLength:String(saved.text || '').length, currentTextLength:current.textLength, currentExcerpt:current.excerpt || '', lostAssets, lostLinks, lostCode });
+      changedTurns.push({ turnId:saved.id, ordinal:Number(saved.ordinal || 0), savedFingerprint, currentFingerprint:current.fingerprint, savedScore, currentScore, savedTextLength:savedProjection.text.length, savedRawTextLength:String(saved.text || '').length, currentTextLength:current.textLength, currentRawTextLength:current.rawTextLength, currentExcerpt:current.excerpt || '', lostAssets, lostLinks, lostCode, semantic:true });
     }
   }
   const active = Boolean(missingTurns.length || changedTurns.length);
+  const ignoredTransient = storedTurns.filter((turn) => turn.role === 'assistant' && brain.outputIntegrityProjection(turn).transientOnly).length;
   const parts = [];
   if (missingTurns.length) parts.push(`${missingTurns.length} missing response${missingTurns.length === 1 ? '' : 's'}`);
   if (changedTurns.length) parts.push(`${changedTurns.length} shortened response${changedTurns.length === 1 ? '' : 's'}`);
   if (missingAssets) parts.push(`${missingAssets} media item${missingAssets === 1 ? '' : 's'}`);
   if (missingLinks) parts.push(`${missingLinks} link${missingLinks === 1 ? '' : 's'}`);
-  return { active, missingTurns, changedTurns, missingAssets, missingLinks, missingCodeBlocks, title:active ? 'Saved output is missing from this page' : 'Output matches the saved vault', detail:active ? parts.join(' · ') : `${observed.length} mounted turn${observed.length === 1 ? '' : 's'} match the durable capture.` };
+  return { active, missingTurns, changedTurns, missingAssets, missingLinks, missingCodeBlocks, ignoredTransient, title:active ? 'Saved output is missing from this page' : 'Output matches the saved vault', detail:active ? parts.join(' · ') : `${observed.length} mounted turn${observed.length === 1 ? '' : 's'} match the durable capture${ignoredTransient ? ` · ${ignoredTransient} transient progress row${ignoredTransient === 1 ? '' : 's'} ignored` : ''}.` };
 }
 
 async function pruneOutputSnapshots(chatId, limit = 24) {
@@ -675,7 +711,7 @@ async function putMany(storeName, records) {
       writeTx.onerror = () => reject(writeTx.error);
     });
     return merged;
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 function boundedTurnForVault(record = {}) {
@@ -773,6 +809,17 @@ async function putManyChunked(storeName, records, chunkSize = 500) {
 
 async function upsert(storeName, record) { return (await putMany(storeName, [record]))[0] || null; }
 
+async function ensureBrainMigrationReceipt() {
+  const manifest=chrome.runtime.getManifest();
+  const id=`brain-db:v${DB_VERSION}`;
+  const existing=await getOne('migrationReceipts',id);
+  if(existing)return existing;
+  const row={id,version:DB_VERSION,extensionVersion:manifest.version||'',status:'applied',details:'Shared IndexedDB connection + provider health + reusable incident recipe stores.',updatedAt:Date.now()};
+  await upsert('migrationReceipts',row);
+  stateBus.publish('brain.migration.applied',{id,version:DB_VERSION,extensionVersion:manifest.version||''},{source:'brain-db'});
+  return row;
+}
+
 async function putSearchDocs(records) {
   const docs = records.filter(Boolean);
   if (!docs.length) return;
@@ -785,7 +832,7 @@ async function putSearchDocs(records) {
       tx.oncomplete = resolve;
       tx.onerror = () => reject(tx.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function clearStore(storeName) {
@@ -795,7 +842,7 @@ async function clearStore(storeName) {
       const tx = db.transaction(storeName, 'readwrite'); tx.objectStore(storeName).clear();
       tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function indexStoreIntoSearch(sourceStore, entityType) {
@@ -814,7 +861,7 @@ async function indexStoreIntoSearch(sourceStore, entityType) {
       };
       tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
   return count;
 }
 
@@ -861,7 +908,7 @@ async function searchBrain(query, limit = 60) {
       const start = Math.max(0, firstTermAt - 160);
       return { ...doc, score, matchCount: matched.size, queryTermCount: terms.length, excerpt: brain.normalizeText(String(doc.text || '').slice(start, start + 760), 760), terms: undefined, text: undefined };
     }).sort((a,b)=>b.score-a.score || (b.updatedAt||0)-(a.updatedAt||0)).slice(0, Math.min(Number(limit)||60, SEARCH_RESULT_LIMIT));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 
@@ -877,12 +924,78 @@ async function deleteAllStores() {
         transaction.onerror = () => reject(transaction.error);
       });
     }
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function addEvent(type, entityType, entityId, chatId, data = {}) {
   const now = Date.now();
   await upsert('events', { id: `${now}:${crypto.randomUUID()}`, type, entityType, entityId: entityId || '', chatId: chatId || '', data, createdAt: now, updatedAt: now });
+  stateBus.publishCoalesced('brain.event', { type, entityType, entityId: entityId || '', chatId: chatId || '' }, { source:'brain', key:`${entityType}:${entityId || chatId || ''}`, delayMs:120 });
+}
+
+async function recordIncident(input = {}) {
+  const normalized = incidentBrain.normalize(input);
+  const existing = await getOne('incidentRecipes', normalized.id);
+  const row = existing ? incidentBrain.merge(existing, input) : normalized;
+  await upsert('incidentRecipes', row);
+  stateBus.publishCoalesced('incident.changed', { id:row.id, fingerprint:row.fingerprint, kind:row.kind, scope:row.scope, status:row.status, occurrences:row.occurrences }, { source:'incident-brain', key:row.id, delayMs:100 });
+  return row;
+}
+
+async function resolveIncident(input = {}) {
+  const id = String(input.id || (input.fingerprint ? `incident:${input.fingerprint}` : ''));
+  if (!id) throw new Error('Incident id or fingerprint is required.');
+  const existing = await getOne('incidentRecipes', id);
+  if (!existing) throw new Error('Incident not found.');
+  const row = incidentBrain.resolve(existing, input);
+  await upsert('incidentRecipes', row);
+  stateBus.publish('incident.changed', { id:row.id, fingerprint:row.fingerprint, kind:row.kind, scope:row.scope, status:row.status }, { source:'incident-brain' });
+  return row;
+}
+
+async function incidentSummary() {
+  const rows = await getRecent('incidentRecipes', 300);
+  const open = rows.filter((row) => row.status === 'open');
+  const resolved = rows.filter((row) => row.status === 'resolved');
+  return { total:rows.length, open:open.length, resolved:resolved.length, recent:rows.slice(0,24).map((row)=>({ id:row.id, fingerprint:row.fingerprint, kind:row.kind, scope:row.scope, signature:row.signature, status:row.status, occurrences:row.occurrences, updatedAt:row.updatedAt, verification:row.verification || '', recipeAvailable:Boolean(row.recipe && row.verification) })) };
+}
+
+async function lookupIncident(input = {}) {
+  const rows = await getRecent('incidentRecipes', 500);
+  return incidentBrain.bestMatch(rows, input);
+}
+
+async function providerHealthSummary() {
+  const rows = await getRecent('providerHealth', 120);
+  const latest = new Map();
+  for (const row of rows) if (row?.providerId && !latest.has(row.providerId)) latest.set(row.providerId, row);
+  const providersList = [...latest.values()].sort((a,b)=>String(a.providerId).localeCompare(String(b.providerId)));
+  const counts = providersList.reduce((out,row)=>{ out[row.status]=(out[row.status]||0)+1; return out; },{});
+  return { counts, providers:providersList };
+}
+
+async function handleProviderCapabilityReport(message, sender) {
+  const input = message?.report || {};
+  const detected = providers.detectProvider(sender?.tab?.url || input.url || '') || providers.byId?.[input.providerId] || null;
+  if (!detected) return { ok:false, error:'Unknown provider.' };
+  const providerId = detected.id;
+  const next = providerHealth.evaluate({ ...input, providerId, url:sender?.tab?.url || input.url || '', observedAt:Date.now() }, { providerId });
+  const id = `provider-health:${providerId}`;
+  const previous = await getOne('providerHealth', id);
+  const row = { ...next, id, tabId:Number(sender?.tab?.id || 0), title:String(sender?.tab?.title || '').slice(0,220), updatedAt:Date.now() };
+  await upsert('providerHealth', row);
+  const transition = providerHealth.transition(previous, row);
+  if (transition.changed) stateBus.publish('provider.health.changed', { providerId, status:row.status, score:row.score, missing:row.missing, fingerprint:row.fingerprint }, { source:'provider-health' });
+  if (transition.degraded) {
+    await recordIncident({ kind:'provider-capability', scope:providerId, signature:`${row.status}:${row.missing.join(',')}`, environment:`provider:${providerId}`, cause:'Provider surface capabilities no longer match the last healthy observation.' });
+  } else if (transition.recovered) {
+    const fp = incidentBrain.fingerprint({ kind:'provider-capability', scope:providerId, signature:`${previous.status}:${(previous.missing || []).join(',')}`, environment:`provider:${providerId}` });
+    const existing = await getOne('incidentRecipes', `incident:${fp}`);
+    if (existing && existing.status === 'open') {
+      await resolveIncident({ id:existing.id, cause:'Provider capability surface recovered.', recipe:{ type:'provider-adapter-refresh', providerId }, verification:`Provider returned healthy with score ${row.score} at ${new Date(row.updatedAt).toISOString()}.`, invalidationConditions:'Provider DOM or navigation contracts change again.', regressionProtection:'Provider capability health monitor remains active.' });
+    }
+  }
+  return { ok:true, health:row, transition };
 }
 
 async function pruneEvents() {
@@ -899,7 +1012,7 @@ async function pruneEvents() {
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 function deepMergeSettings(stored = {}) {
@@ -913,6 +1026,8 @@ function deepMergeSettings(stored = {}) {
     projectIntegrity: { ...defaultBrainSettings.projectIntegrity, ...(stored.projectIntegrity || {}) },
     knowledge: { ...defaultBrainSettings.knowledge, ...(stored.knowledge || {}) },
     liveHealth: health.normalizeSettings({ ...defaultBrainSettings.liveHealth, ...migratedLiveHealth }),
+    scheduledTaskGuardian: scheduledGuardian.normalizeSettings({ ...defaultBrainSettings.scheduledTaskGuardian, ...(stored.scheduledTaskGuardian || {}) }),
+    chatGuardian: chatGuardian.normalizeSettings({ ...defaultBrainSettings.chatGuardian, ...(stored.chatGuardian || {}) }),
     approvalAutopilot: { ...defaultBrainSettings.approvalAutopilot, ...(stored.approvalAutopilot || {}) }
   };
 }
@@ -925,6 +1040,7 @@ async function settings() {
 async function saveSettings(next) {
   const merged = deepMergeSettings(next);
   await chrome.storage.local.set({ [SETTINGS_KEY]: merged });
+  stateBus.publishCoalesced('settings.changed', { updatedAt:Date.now() }, { source:'settings', key:'settings', delayMs:80 });
   return merged;
 }
 
@@ -947,6 +1063,7 @@ async function patchSettings(patch) {
       projectIntegrity: { ...current.projectIntegrity, ...(patch.projectIntegrity || {}) },
       knowledge: { ...current.knowledge, ...(patch.knowledge || {}) },
       liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(patch.liveHealth || {}) }),
+      chatGuardian: chatGuardian.normalizeSettings({ ...current.chatGuardian, ...(patch.chatGuardian || {}) }),
       approvalAutopilot: { ...current.approvalAutopilot, ...(patch.approvalAutopilot || {}) }
     });
   });
@@ -1131,7 +1248,7 @@ function defaultApprovalRecoveryState() {
     status: 'idle', mode: 'attention', queue: [], index: 0, startedAt: 0, updatedAt: 0, finishedAt: 0,
     currentChatId: '', currentUrl: '', windowId: 0, tabId: 0, ownsWindow: false, stage: 'idle', autoTriggered: false,
     itemStartedAt: 0, itemAttempts: 0, itemRefreshes: 0,
-    scanned: 0, recovered: 0, alwaysAllowed: 0, allowedOnce: 0, resumed: 0, refreshed: 0, unchanged: 0, failed: 0,
+    scanned: 0, recovered: 0, manualReview: 0, alwaysAllowed: 0, allowedOnce: 0, resumed: 0, refreshed: 0, unchanged: 0, failed: 0,
     lastResult: null, error: ''
   };
 }
@@ -1151,7 +1268,7 @@ function publicApprovalRecoveryState(state) {
   const s = { ...defaultApprovalRecoveryState(), ...(state || {}) };
   return {
     status: s.status, mode: s.mode, index: s.index, total: s.queue.length, scanned: s.scanned, recovered: s.recovered,
-    alwaysAllowed: s.alwaysAllowed, allowedOnce: s.allowedOnce, resumed: s.resumed, refreshed: s.refreshed, unchanged: s.unchanged, failed: s.failed,
+    manualReview:s.manualReview, alwaysAllowed: s.alwaysAllowed, allowedOnce: s.allowedOnce, resumed: s.resumed, refreshed: s.refreshed, unchanged: s.unchanged, failed: s.failed,
     currentChatId: s.currentChatId, currentUrl: s.currentUrl, autoTriggered: s.autoTriggered, startedAt: s.startedAt,
     itemAttempts: s.itemAttempts, itemRefreshes: s.itemRefreshes, updatedAt: s.updatedAt, finishedAt: s.finishedAt, lastResult: s.lastResult, error: s.error
   };
@@ -1266,10 +1383,8 @@ async function finishApprovalRecovery(state, status = 'completed', error = '') {
 }
 
 async function startApprovalRecovery({ mode = 'attention', autoTriggered = false } = {}) {
-  const cfg = await settings();
-  if (!cfg.approvalAutopilot.enabled || !cfg.approvalAutopilot.acknowledged) {
-    throw new Error('Approval Autopilot is not enabled and acknowledged in Project Constellation.');
-  }
+  // A user-triggered scan only inspects existing tabs and optional paused-response controls.
+  // Provider consent is always reviewed directly by the user.
   const existing = await approvalRecoveryState();
   if (existing.status === 'running') return { ok: true, state: publicApprovalRecoveryState(existing), alreadyRunning: true };
   const queue = await buildApprovalRecoveryQueue(mode, { autoTriggered });
@@ -1289,7 +1404,8 @@ async function stopApprovalRecovery() {
 async function advanceApprovalRecovery(state, item, result = {}) {
   let action = String(result?.action || 'none');
   if (action === 'refresh-required') action = 'needs-refresh';
-  const recovered = ['always-allow','allow-once','resume'].includes(action);
+  if (['always-allow','allow-once'].includes(action)) action='manual-review';
+  const recovered = action === 'resume';
   const patch = {
     id: item.id,
     approvalRecoveryLastAttemptAt: Date.now(),
@@ -1297,6 +1413,7 @@ async function advanceApprovalRecovery(state, item, result = {}) {
     approvalRecoveryLastResult: result?.reason || result?.error || '',
     updatedAt: Date.now()
   };
+  if (action==='manual-review') {patch.status='blocked-approval';patch.statusDetail='Permission requires your review in the provider.';}
   if (recovered) {
     patch.status = 'idle';
     patch.statusDetail = `Recovered by Project Constellation (${action})`;
@@ -1310,6 +1427,7 @@ async function advanceApprovalRecovery(state, item, result = {}) {
     index: state.index + 1,
     scanned: state.scanned + 1,
     recovered: state.recovered + (recovered ? 1 : 0),
+    manualReview: Number(state.manualReview||0) + (action === 'manual-review' ? 1 : 0),
     alwaysAllowed: state.alwaysAllowed + (action === 'always-allow' ? 1 : 0),
     allowedOnce: state.allowedOnce + (action === 'allow-once' ? 1 : 0),
     resumed: state.resumed + (action === 'resume' ? 1 : 0),
@@ -1351,8 +1469,8 @@ async function processApprovalRecoveryStep() {
     result = await chrome.tabs.sendMessage(tab.id, {
       type: 'PC_APPROVAL_RECOVERY_SCAN',
       options: {
-        alwaysAllow: cfg.approvalAutopilot.alwaysAllow !== false,
-        fallbackAllowOnce: cfg.approvalAutopilot.fallbackAllowOnce !== false,
+        alwaysAllow: false,
+        fallbackAllowOnce: false,
         recoverPaused: cfg.approvalAutopilot.autoRecoverPaused !== false
       }
     });
@@ -1409,7 +1527,7 @@ async function getMany(storeName, ids = []) {
     const tx = db.transaction(storeName, 'readonly'); const store = tx.objectStore(storeName);
     const rows = await Promise.all(unique.map((id) => requestResult(store.get(id))));
     return rows.filter(Boolean);
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function deleteSearchDocs(ids = []) {
@@ -1420,7 +1538,7 @@ async function deleteSearchDocs(ids = []) {
       const tx = db.transaction(SEARCH_STORE, 'readwrite'); const store = tx.objectStore(SEARCH_STORE);
       unique.forEach((id) => store.delete(id)); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function countByIndex(storeName, indexName, value) {
@@ -1430,7 +1548,7 @@ async function countByIndex(storeName, indexName, value) {
     const store = db.transaction(storeName, 'readonly').objectStore(storeName);
     if (!store.indexNames.contains(indexName)) return 0;
     return Number(await requestResult(store.index(indexName).count(indexedDbOnly(value, `${storeName}.${indexName}`))) || 0);
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function recentByCompoundIndex(storeName, indexName, prefix, limit = 80, offset = 0) {
@@ -1444,7 +1562,7 @@ async function recentByCompoundIndex(storeName, indexName, prefix, limit = 80, o
       request.onsuccess = () => { const cursor = request.result; if (!cursor || out.length >= safeLimit) { resolve(out); return; } if (skipped < safeOffset) skipped += 1; else out.push(cursor.value); cursor.continue(); };
       request.onerror = () => reject(request.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function updateProjectContinuity(items = [], chat = null) {
@@ -1473,7 +1591,7 @@ async function deleteOneRecord(storeName, id) {
       tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
     });
     return true;
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function rebuildWorkspaceContinuity(projectId) {
@@ -1482,6 +1600,9 @@ async function rebuildWorkspaceContinuity(projectId) {
   if (!project || project.deletedAt) { await deleteOneRecord('projectContinuity', projectId); return null; }
   const existingContinuity=await getOne('projectContinuity',projectId)||{};
   const memoryPolicyLedger=existingContinuity.memoryPolicyLedger&&typeof existingContinuity.memoryPolicyLedger==='object'?existingContinuity.memoryPolicyLedger:{};
+  const autopilotLedger=existingContinuity.autopilotLedger&&typeof existingContinuity.autopilotLedger==='object'?existingContinuity.autopilotLedger:{};
+  const contextApprovalLedger=existingContinuity.contextApprovalLedger&&typeof existingContinuity.contextApprovalLedger==='object'?existingContinuity.contextApprovalLedger:{};
+  const changeWatermarkAt=Math.max(0,Number(existingContinuity.changeWatermarkAt||0));
   const [items, files, projectChats] = await Promise.all([
     recentByCompoundIndex('knowledgeItems', 'workspaceProjectUpdatedAt', projectId, 320, 0),
     getAllByIndex('files', 'workspaceProjectId', projectId),
@@ -1492,7 +1613,7 @@ async function rebuildWorkspaceContinuity(projectId) {
   const effectiveItems=items.map((item)=>{const policy=memoryPolicyLedger[item.canonicalKey||item.id];return policy?{...item,memoryDisposition:policy.disposition||'active',memoryPinned:Boolean(policy.pinned),memoryUpdatedAt:Number(policy.updatedAt||0)}:item;});
   const chatIds = [...new Set([...effectiveItems.map((item)=>item.chatId), ...files.map((file)=>file.chatId)].filter(Boolean))];
   const chats = new Map((await getMany('chats', chatIds)).map((chat)=>[chat.id, chat]));
-  const row = { id: projectId, projectId, projectName: project.name || 'Project', memoryPolicyLedger, updatedAt: 0, lastKnowledgeAt: 0, lastArtifactAt: 0 };
+  const row = { id: projectId, projectId, projectName: project.name || 'Project', memoryPolicyLedger, autopilotLedger, contextApprovalLedger, changeWatermarkAt, updatedAt: 0, lastKnowledgeAt: 0, lastArtifactAt: 0 };
   const fieldMap = { recommendation: 'latestRecommendation', decision: 'latestDecision', 'follow-up': 'latestFollowUp', idea: 'latestIdea', code: 'latestCode', command: 'latestCode', version: 'latestVersion', repository: 'latestReference', mod: 'latestReference', package: 'latestReference', document: 'latestReference', link: 'latestReference', media: 'latestReference', reference: 'latestReference' };
   for (const item of effectiveItems) {
     if(projectMemory.disposition(item)!=='active')continue;
@@ -1510,7 +1631,10 @@ async function rebuildWorkspaceContinuity(projectId) {
   const latestChat=latestCandidates.length?chats.get(latestCandidates[0].chatId):null;
   if (latestChat) { row.providerId=latestChat.providerId||''; row.latestChatId=latestChat.id; row.latestChatTitle=latestChat.title||''; row.latestChatUrl=latestChat.url||''; }
   const compiled=projectMemory.compileProjectBrain({project,chats:projectChats,items:effectiveItems,files});
-  row.compiledBrain=compiled; row.compiledBrainVersion=projectMemory.VERSION; row.compiledBrainFingerprint=compiled.fingerprint; row.brainDirtyAt=0; row.updatedAt=Math.max(row.updatedAt,compiled.compiledAt||0);
+  const compiledIntelligence=projectIntelligence.compileProjectIntelligence({project,chats:projectChats,items:effectiveItems,files,brain:compiled,ledger:autopilotLedger,watermarkAt:changeWatermarkAt});
+  row.compiledBrain=compiled; row.compiledBrainVersion=projectMemory.VERSION; row.compiledBrainFingerprint=compiled.fingerprint;
+  row.compiledIntelligence=compiledIntelligence; row.compiledIntelligenceVersion=projectIntelligence.VERSION; row.compiledIntelligenceFingerprint=compiledIntelligence.fingerprint;
+  row.brainDirtyAt=0; row.updatedAt=Math.max(row.updatedAt,compiled.compiledAt||0,compiledIntelligence.compiledAt||0);
   await upsert('projectContinuity', row); return row;
 }
 
@@ -1580,7 +1704,7 @@ async function pendingKnowledgeSources(limit = 28) {
       request.onsuccess = () => { const cursor = request.result; if (!cursor || out.length >= safeLimit) { resolve(out); return; } out.push(cursor.value); cursor.continue(); };
       request.onerror = () => reject(request.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function knowledgeBackfillState() {
@@ -1610,7 +1734,7 @@ async function nextTurnBackfillChunk(afterKey = '', limit = 180) {
       request.onsuccess = () => { const cursor = request.result; if (!cursor || out.length >= limit) { resolve(out); return; } out.push(cursor.value); cursor.continue(); };
       request.onerror = () => reject(request.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 let knowledgeProcessing = false;
@@ -1667,7 +1791,7 @@ async function knowledgeKindCounts(kinds = []) {
     const index = db.transaction('knowledgeItems', 'readonly').objectStore('knowledgeItems').index('kind');
     const counts = await Promise.all(kinds.map((kind) => requestResult(index.count(indexedDbOnly(kind, 'knowledgeItems.kind')))));
     return Object.fromEntries(kinds.map((kind, index) => [kind, Number(counts[index] || 0)]));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function knowledgeSummary(limit = 24) {
@@ -1700,8 +1824,8 @@ async function knowledgeList(filters = {}) {
 
 async function projectBrainGet(projectId, { rebuild = false } = {}) {
   const id=String(projectId||''); if(!id)throw new Error('Project id is required.');
-  let row=await getOne('projectContinuity',id); if(rebuild||!row?.compiledBrain||Number(row.compiledBrainVersion||0)!==Number(projectMemory.VERSION)||Number(row.brainDirtyAt||0)>Number(row.compiledBrain?.compiledAt||0))row=await rebuildWorkspaceContinuity(id);
-  if(!row){const project=await getOne('projects',id);if(!project)throw new Error('Project not found.');return {projectId:id,projectName:project.name||'Project',compiledBrain:projectMemory.compileProjectBrain({project,chats:[],items:[],files:[]})};}
+  let row=await getOne('projectContinuity',id); if(rebuild||!row?.compiledBrain||Number(row.compiledBrainVersion||0)!==Number(projectMemory.VERSION)||!row?.compiledIntelligence||Number(row.compiledIntelligenceVersion||0)!==Number(projectIntelligence.VERSION)||Number(row.brainDirtyAt||0)>Math.min(Number(row.compiledBrain?.compiledAt||0),Number(row.compiledIntelligence?.compiledAt||0)))row=await rebuildWorkspaceContinuity(id);
+  if(!row){const project=await getOne('projects',id);if(!project)throw new Error('Project not found.');const compiledBrain=projectMemory.compileProjectBrain({project,chats:[],items:[],files:[]});return {projectId:id,projectName:project.name||'Project',compiledBrain,compiledIntelligence:projectIntelligence.compileProjectIntelligence({project,chats:[],items:[],files:[],brain:compiledBrain})};}
   return row;
 }
 
@@ -1720,12 +1844,110 @@ async function projectMemoryGate(itemId, action) {
   return {item:(updates.find((row)=>row.id===item.id)||item),projectId,brain:projectId?(await getOne('projectContinuity',projectId))?.compiledBrain||null:null};
 }
 
+
+async function projectIntelligenceInputs(projectId) {
+  const id=String(projectId||''); if(!id)throw new Error('Project id is required.');
+  const project=await getOne('projects',id); if(!project||project.deletedAt)throw new Error('Project not found.');
+  const [items,files,chats]=await Promise.all([
+    recentByCompoundIndex('knowledgeItems','workspaceProjectUpdatedAt',id,520,0),
+    getAllByIndex('files','workspaceProjectId',id),
+    getAllByIndex('chats','workspaceProjectId',id)
+  ]);
+  const continuity=await getOne('projectContinuity',id)||{};
+  const ledger=continuity.memoryPolicyLedger&&typeof continuity.memoryPolicyLedger==='object'?continuity.memoryPolicyLedger:{};
+  const effectiveItems=items.map((item)=>{const policy=ledger[item.canonicalKey||item.id];return policy?{...item,memoryDisposition:policy.disposition||'active',memoryPinned:Boolean(policy.pinned),memoryUpdatedAt:Number(policy.updatedAt||0)}:item;});
+  return {project,items:effectiveItems,files,chats,continuity};
+}
+
+async function projectChatContextGet(projectId, chatId) {
+  const id=String(projectId||''), cid=String(chatId||''); if(!id||!cid)throw new Error('Project and chat are required.');
+  const {project,items,files,chats,continuity}=await projectIntelligenceInputs(id);
+  const chat=chats.find((row)=>row.id===cid); if(!chat)throw new Error('Chat is not assigned to this project.');
+  const brain=continuity.compiledBrain||projectMemory.compileProjectBrain({project,chats,items,files});
+  const intelligence=continuity.compiledIntelligence||projectIntelligence.compileProjectIntelligence({project,chats,items,files,brain,ledger:continuity.autopilotLedger||{},watermarkAt:continuity.changeWatermarkAt||0});
+  const packet=projectIntelligence.compileChatContext({project,chat,chats,items,files,brain,intelligence});
+  return {packet,markdown:projectIntelligence.contextMarkdown(packet),approval:continuity.contextApprovalLedger?.[packet.fingerprint]||null};
+}
+
+async function projectContextReview(projectId, chatId, action, fingerprint, editedText='') {
+  const id=String(projectId||''), cid=String(chatId||''), verb=String(action||'');
+  const current=await projectChatContextGet(id,cid); if(String(fingerprint||'')!==current.packet.fingerprint)throw new Error('Context changed. Review the refreshed packet before approving it.');
+  const continuity=await getOne('projectContinuity',id)||{id,projectId:id}; const ledger={...(continuity.contextApprovalLedger||{})}; const at=Date.now();
+  if(verb==='reset')delete ledger[current.packet.fingerprint];
+  else if(verb==='approve'||verb==='deny')ledger[current.packet.fingerprint]={fingerprint:current.packet.fingerprint,status:verb==='approve'?'approved':'denied',editedText:verb==='approve'?String(editedText||current.markdown).slice(0,30000):'',contentHash:verb==='approve'?projectIntelligence.hashString(String(editedText||current.markdown)):'',reviewedAt:at,chatId:cid};
+  else throw new Error('Unsupported context review action.');
+  await upsert('projectContinuity',{id,contextApprovalLedger:ledger,updatedAt:Math.max(Number(continuity.updatedAt||0),at)});
+  await addEvent('project-context-review','chat',cid,cid,{projectId:id,action:verb,fingerprint:current.packet.fingerprint}); markDriveDirty().catch(()=>{});
+  return {fingerprint:current.packet.fingerprint,status:ledger[current.packet.fingerprint]?.status||'pending'};
+}
+
+async function projectAutopilotReview(projectId, fingerprint, action, editedText='') {
+  const id=String(projectId||''), fp=String(fingerprint||''), verb=String(action||''); if(!id||!fp)throw new Error('Project and proposal are required.');
+  let continuity=await projectBrainGet(id,{rebuild:false}); const proposal=continuity.compiledIntelligence?.autopilot?.proposals?.find((row)=>row.fingerprint===fp);
+  if(!proposal&&verb!=='reset')throw new Error('Autopilot proposal changed or is no longer current.');
+  const ledger={...(continuity.autopilotLedger||{})}; const at=Date.now();
+  if(verb==='reset')delete ledger[fp];
+  else if(verb==='approve'||verb==='deny')ledger[fp]={fingerprint:fp,status:verb==='approve'?'approved':'denied',editedText:verb==='approve'?String(editedText||proposal.preview||'').slice(0,30000):'',contentHash:verb==='approve'?projectIntelligence.hashString(String(editedText||proposal.preview||'')):'',reviewedAt:at,targetChatId:proposal.targetChatId||'',type:proposal.type||''};
+  else throw new Error('Unsupported Autopilot review action.');
+  await upsert('projectContinuity',{id,autopilotLedger:ledger,brainDirtyAt:at,updatedAt:Math.max(Number(continuity.updatedAt||0),at)});
+  continuity=await rebuildWorkspaceContinuity(id);
+  await addEvent('project-autopilot-review','project',id,proposal?.targetChatId||'',{projectId:id,action:verb,fingerprint:fp,type:proposal?.type||''}); markDriveDirty().catch(()=>{});
+  return {fingerprint:fp,status:ledger[fp]?.status||'pending',continuity};
+}
+
+async function projectChangesAck(projectId) {
+  const id=String(projectId||''); if(!id)throw new Error('Project is required.'); const at=Date.now(); const current=await getOne('projectContinuity',id)||{id,projectId:id};
+  await upsert('projectContinuity',{id,changeWatermarkAt:at,brainDirtyAt:at,updatedAt:Math.max(Number(current.updatedAt||0),at)}); const continuity=await rebuildWorkspaceContinuity(id);
+  await addEvent('project-changes-ack','project',id,'',{projectId:id,changeWatermarkAt:at}); markDriveDirty().catch(()=>{}); return {changeWatermarkAt:at,continuity};
+}
+
+async function findOpenChatTab(chat) {
+  const providerId=chat?.providerId||providers.detectProvider(chat?.url||'')?.id||''; const tabs=await chrome.tabs.query({});
+  return tabs.find((tab)=>{if(!tab?.id||!tab.url)return false;const detected=providerId||providers.detectProvider(tab.url)?.id||'';return providers.chatIdFromUrl(tab.url,detected)===chat.id;})||null;
+}
+
+async function stageApprovedProjectContext(projectId, chatId, fingerprint, source='context') {
+  const id=String(projectId||''),cid=String(chatId||''),fp=String(fingerprint||''); if(!id||!cid||!fp)throw new Error('Project, chat, and approved context are required.');
+  const continuity=await getOne('projectContinuity',id); if(!continuity)throw new Error('Project continuity is unavailable.');
+  let approval=null,content='';
+  if(source==='autopilot'){approval=continuity.autopilotLedger?.[fp]||null;content=String(approval?.editedText||'');}
+  else {approval=continuity.contextApprovalLedger?.[fp]||null;content=String(approval?.editedText||'');}
+  if(!approval||approval.status!=='approved'||approval.chatId&&approval.chatId!==cid||approval.targetChatId&&approval.targetChatId!==cid)throw new Error('This context has not been explicitly approved for this chat.');
+  if(!content||projectIntelligence.hashString(content)!==approval.contentHash)throw new Error('Approved context no longer matches its reviewed content.');
+  const chat=await getOne('chats',cid); if(!chat||chat.workspaceProjectId!==id)throw new Error('Target chat is not assigned to this project.');
+  const tab=await findOpenChatTab(chat); if(!tab)return {ok:false,state:'chat-not-open',chatId:cid,url:chat.url||'',message:'Open the exact chat, then choose Stage again. Constellation will never open and write to a provider chat on its own.'};
+  const approvalToken=projectIntelligence.hashString(`${fp}:${approval.contentHash}:${Date.now()}:${tab.id}`);
+  const result=await chrome.tabs.sendMessage(tab.id,{type:'PC_STAGE_APPROVED_PROJECT_CONTEXT',content,approval:{approved:true,fingerprint:fp,contentHash:approval.contentHash,token:approvalToken,source}}).catch((error)=>({ok:false,error:String(error?.message||error)}));
+  if(!result?.ok)return {ok:false,state:'stage-failed',error:result?.error||'The approved context could not be staged.'};
+  await addEvent('project-context-staged','chat',cid,cid,{projectId:id,fingerprint:fp,source,tabId:tab.id,contentHash:approval.contentHash});
+  return {ok:true,state:'staged',chatId:cid,tabId:tab.id,contentHash:approval.contentHash};
+}
+
 async function resetKnowledgeIndex() {
   await Promise.all([clearStore('knowledgeSources')]);
-  const continuities=await getAll('projectContinuity');for(const row of continuities)await upsert('projectContinuity',{...row,brainDirtyAt:Date.now(),compiledBrain:null,compiledBrainFingerprint:'',compiledBrainVersion:0});
+  const continuities=await getAll('projectContinuity');for(const row of continuities)await upsert('projectContinuity',{...row,brainDirtyAt:Date.now(),compiledBrain:null,compiledBrainFingerprint:'',compiledBrainVersion:0,compiledIntelligence:null,compiledIntelligenceFingerprint:'',compiledIntelligenceVersion:0});
   await saveKnowledgeBackfillState({ active: true, lastKey: '', queued: 0, startedAt: Date.now(), completedAt: 0 });
   await chrome.alarms.create(KNOWLEDGE_INDEX_ALARM, { when: Date.now() + 300 });
   return { ok: true, state: await knowledgeBackfillState() };
+}
+
+async function ensureStallWatchAlarm(options = {}) {
+  const cfg = options.settings || await settings();
+  const now = Number(options.now || Date.now());
+  const threshold = Math.max(30000, Number(cfg.stallThresholdMs || 120000));
+  const running = Array.isArray(options.running) ? options.running : await getAllByIndex('chats', 'status', 'running');
+  const dueTimes = running.map((chat) => {
+    const activity = Math.max(Number(chat.lastActivityAt || 0), Number(chat.lastTurnAt || 0));
+    return activity > 0 ? activity + threshold : 0;
+  }).filter(Boolean);
+  if (!dueTimes.length) {
+    if (typeof chrome.alarms?.clear === 'function') await chrome.alarms.clear(STALL_ALARM).catch(() => false);
+    return { scheduled:false, running:0, when:0 };
+  }
+  const when = Math.max(now + 1500, Math.min(...dueTimes));
+  const current = typeof chrome.alarms?.get === 'function' ? await chrome.alarms.get(STALL_ALARM).catch(() => null) : null;
+  if (!current?.scheduledTime || Math.abs(Number(current.scheduledTime) - when) > 1500) await chrome.alarms.create(STALL_ALARM, { when });
+  return { scheduled:true, running:running.length, when };
 }
 
 async function watchForStalls() {
@@ -1747,7 +1969,8 @@ async function watchForStalls() {
   // warn, notify and update attention UI, but must never start approval recovery,
   // open/focus ChatGPT, create a popup, navigate a saved URL, or reload a tab.
   await updateAttentionBadge();
-  return { stalled: stale.length };
+  const next = await ensureStallWatchAlarm({ settings:cfg, now });
+  return { stalled: stale.length, next };
 }
 
 function normalizeRecoveredChatState(record = {}) {
@@ -1818,6 +2041,10 @@ async function ingestBatch(items) {
     const type = item?.type;
     const data = item?.data || {};
     if (type === 'PROVIDER_SEEN' && data.id) providerRecords.push({ ...data, updatedAt: data.updatedAt || now });
+    else if (type === 'PROJECT_UPSERT' && data.id && data.name) projects.push({
+      ...data, id:String(data.id).slice(0, 220), name:brain.normalizeText(data.name, 180),
+      sourceType:'provider', updatedAt:data.updatedAt || now
+    });
     else if (type === 'CHAT_UPSERT' && data.id) {
       chats.push(normalizeRecoveredChatState({ ...data, updatedAt: data.updatedAt || now }));
       const projectId = data.projectId || `${data.providerId || 'unknown'}:inbox`;
@@ -1904,15 +2131,18 @@ async function ingestBatch(items) {
     if (route.chatId && !route.chatId.endsWith(':home')) await addEvent('route', 'chat', route.chatId, route.chatId, { providerId: route.providerId || '', url: route.url || '', title: route.title || '' });
   }
 
-  if (chats.length || turns.length || files.length || statusEvents.length) {
+  if (projects.length || chats.length || turns.length || files.length || statusEvents.length) {
     for (const row of chats) if (row?.id) { liveRowContextCache.delete(String(row.id)); liveHealthContextCache.delete(String(row.id)); }
     for (const turn of canonicalTurns) if (turn?.chatId) { liveRowContextCache.delete(String(turn.chatId)); liveHealthContextCache.delete(String(turn.chatId)); }
-    await addEvent('capture-batch', 'brain', '', chats.at(-1)?.id || turns.at(-1)?.chatId || files.at(-1)?.chatId || '', { chats: chats.length, turns: turns.length, files: files.length, statuses: statusEvents.length });
+    await addEvent('capture-batch', 'brain', '', chats.at(-1)?.id || turns.at(-1)?.chatId || files.at(-1)?.chatId || '', { projects:projects.length, chats: chats.length, turns: turns.length, files: files.length, statuses: statusEvents.length });
     markDriveDirty().catch(() => {});
     scheduleIntegrityScan(5000).catch(() => {});
   }
   pruneEvents().catch(() => {});
-  if (statusEvents.length) updateAttentionBadge().catch(() => {});
+  if (statusEvents.length) {
+    updateAttentionBadge().catch(() => {});
+    ensureStallWatchAlarm().catch(() => {});
+  }
   return { ok: true, counts: { providers: providerRecords.length, projects: projects.length, chats: chats.length, turns: turns.length, turnRevisions: preserved.revisions.length, files: files.length, statuses: statusEvents.length } };
 }
 
@@ -1922,7 +2152,7 @@ async function ingest(payload) { return ingestBatch([payload]); }
 async function countStore(storeName) {
   const db = await openDb();
   try { return await requestResult(db.transaction(storeName, 'readonly').objectStore(storeName).count()); }
-  finally { db.close(); }
+  finally { releaseDb(db); }
 }
 
 async function localStorageHealth() {
@@ -1941,11 +2171,10 @@ async function ensurePersistentStorage() {
 }
 
 async function dashboard() {
-  const [providerRecords, projects, chats, files, events, checkpoints, syncReceipts, catalogRuns, cfg, catalog, fullCapture, turnCount, searchDocCount, approvalRecovery, governor, integrityState, knowledgeState] = await Promise.all([
-    getAll('providers'), getAll('projects'), getAll('chats'), getAll('files'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), settings(), catalogState(), fullCaptureState(), countStore('turns'), countStore(SEARCH_STORE), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(12)
+  const [providerRecords, projects, chats, files, events, checkpoints, syncReceipts, catalogRuns, cfg, catalog, fullCapture, turnCount, searchDocCount, approvalRecovery, governor, integrityState, knowledgeState, scheduleGuardianRuntime, scheduleTaskTelemetry] = await Promise.all([
+    getAll('providers'), getAll('projects'), getAll('chats'), getAll('files'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), settings(), catalogState(), fullCaptureState(), countStore('turns'), countStore(SEARCH_STORE), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(12), scheduledGuardianState(), scheduledTaskTelemetryState()
   ]);
-  const localStorage = await localStorageHealth();
-  const organization = await organizationSummary();
+  const [localStorage, organization, providerHealthState, incidents] = await Promise.all([localStorageHealth(), organizationSummary(), providerHealthSummary(), incidentSummary()]);
   const sortedEvents = events.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 600);
   const statusCounts = Object.fromEntries(brain.CHAT_STATUSES.map((status) => [status, chats.filter((chat) => chat.status === status).length]));
   return {
@@ -1955,8 +2184,8 @@ async function dashboard() {
     catalogRuns: catalogRuns.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50), catalog: publicCatalogState(catalog), fullCapture: publicFullCaptureState(fullCapture),
     summary: { providers: providerRecords.length, projects: projects.length, chats: chats.length, turns: turnCount, files: files.length, knowledge: knowledgeState.total || 0, searchDocs: searchDocCount, statusCounts },
     localStorage,
-    organization, integrity: integrityState, knowledge: knowledgeState, requestGovernor: publicRequestGovernor(governor),
-    projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
+    organization, providerHealth:providerHealthState, incidents, integrity: integrityState, knowledge: knowledgeState, requestGovernor: publicRequestGovernor(governor),
+    projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, scheduledTaskGuardian: { ...cfg.scheduledTaskGuardian, runtime:publicScheduledGuardianState(scheduleGuardianRuntime), telemetry:publicScheduledTaskTelemetryState(scheduleTaskTelemetry) }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
     sync: { drive: { ...cfg.drive, oauthProvisioned: googleOAuthProvisioned() }, github: { ...cfg.github, configured: Boolean(cfg.github.owner && cfg.github.repo) } }
   };
 }
@@ -1982,7 +2211,7 @@ async function organizationProjectMetrics(projectIds = []) {
       for(const chat of projectChats||[]){const lane=projectMemory.bucket(chat);if(lane==='active')counts.activeCount+=1;else if(lane==='attention')counts.attentionCount+=1;else if(lane==='archived')counts.archivedCount+=1;else counts.completedCount+=1;}
       return [id,{chatCount:(projectChats||[]).length,fileCount:Number(fileCount||0),...counts}];
     })); return new Map(entries);
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function organizationTagCounts(limit=100) {
@@ -1990,7 +2219,7 @@ async function organizationTagCounts(limit=100) {
   try { return await new Promise((resolve,reject)=>{
     const tx=db.transaction('chats','readonly'); const index=tx.objectStore('chats').index('tags'); const out=[]; const request=index.openKeyCursor(null,'nextunique');
     request.onsuccess=()=>{const cursor=request.result;if(!cursor||out.length>=limit){resolve(out.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)));return;}const name=String(cursor.key||'');const countReq=index.count(indexedDbOnly(cursor.key, 'chats.tags'));countReq.onsuccess=()=>{out.push({name,count:Number(countReq.result||0)});cursor.continue();};countReq.onerror=()=>reject(countReq.error);};request.onerror=()=>reject(request.error);
-  }); } finally { db.close(); }
+  }); } finally { releaseDb(db); }
 }
 
 async function organizationSummary() {
@@ -2046,7 +2275,7 @@ async function updateOrganizationEntity(kind, id, patch = {}) {
   const next = { id, updatedAt: Date.now() };
   for (const key of allowed) if (Object.prototype.hasOwnProperty.call(patch,key)) next[key] = ['name','description','notes','query','icon','color'].includes(key) ? brain.normalizeText(patch[key], key==='notes'?4000:key==='description'?1200:600) : patch[key];
   const merged = await upsert(store, next); await putSearchDocs([searchDoc(kind, merged)]);
-  if (kind === 'project' && (Object.prototype.hasOwnProperty.call(patch,'name') || Object.prototype.hasOwnProperty.call(patch,'groupId'))) {
+  if (kind === 'project' && ['name','groupId','icon','color'].some((key)=>Object.prototype.hasOwnProperty.call(patch,key))) {
     const chats = await getAllByIndex('chats','workspaceProjectId',id);
     const chatUpdates = chats.map((chat)=>({id:chat.id,workspaceProjectName:merged.name||'',workspaceGroupId:merged.groupId||'',updatedAt:Date.now()}));
     const mergedChats = await putManyChunked('chats',chatUpdates); await putSearchDocs(mergedChats.map((record)=>searchDoc('chat',record)));
@@ -2097,7 +2326,7 @@ async function patchChatOrganization(chatIds = [], patch = {}) {
   for (const id of ids) {
     const old=await getOne('chats',id); if(!old)continue; if(old.workspaceProjectId)oldWorkspaceProjects.add(old.workspaceProjectId);
     const next={id,updatedAt:now};
-    if(Object.prototype.hasOwnProperty.call(patch,'workspaceProjectId')){next.workspaceProjectId=project?.id||'';next.workspaceProjectName=project?.name||'';next.workspaceGroupId=project?.groupId||'';}
+    if(Object.prototype.hasOwnProperty.call(patch,'workspaceProjectId')){next.workspaceProjectId=project?.id||'';next.workspaceProjectName=project?.name||'';next.workspaceGroupId=project?.groupId||'';next.projectAssignmentConfirmed=Boolean(project?.id);next.projectAssignmentMethod=project?.id?'manual':'';next.projectAssignmentConfirmedAt=project?.id?now:0;next.projectRouteSuppressed=false;}
     if(Object.prototype.hasOwnProperty.call(patch,'tags')) next.tags=normalizeTags(patch.tags);
     if(Object.prototype.hasOwnProperty.call(patch,'addTags')) next.tags=normalizeTags([...(old.tags||[]),...normalizeTags(patch.addTags)]);
     if(Object.prototype.hasOwnProperty.call(patch,'removeTag')) next.tags=normalizeTags(old.tags).filter((tag)=>tag!==String(patch.removeTag||'').toLocaleLowerCase());
@@ -2122,6 +2351,155 @@ async function patchChatOrganization(chatIds = [], patch = {}) {
     scheduleIntegrityScan(1600).catch(()=>{});
   }
   await addEvent('organization-chat-update','chat',ids[0],ids[0],{count:merged.length,projectId:project?.id||'',fields:Object.keys(patch)}); markDriveDirty().catch(()=>{}); return merged;
+}
+
+
+async function pulseActiveChatContext({ ensureRecord = true } = {}) {
+  let tab = (await chrome.tabs.query({ active:true, lastFocusedWindow:true }).catch(()=>[]))[0] || null;
+  if (!tab?.id || !tab.url) tab = (await chrome.tabs.query({ active:true, currentWindow:true }).catch(()=>[]))[0] || null;
+  if (!tab?.id || !tab.url) return { supported:false, state:'no-active-tab', tabId:0, chatId:'', providerId:'', title:'No active browser tab', url:'', workspaceProjectId:'', workspaceProjectName:'' };
+  const provider = providers.detectProvider(tab.url);
+  if (!provider || !providers.isLikelyChatUrl(tab.url,provider.id)) return { supported:false, state:'not-a-supported-chat', tabId:Number(tab.id), chatId:'', providerId:provider?.id||'', title:brain.normalizeText(tab.title||'Current tab',240), url:providers.canonicalChatUrl(tab.url,provider?.id||'')||String(tab.url||''), workspaceProjectId:'', workspaceProjectName:'' };
+  const chatId = providers.chatIdFromUrl(tab.url,provider.id);
+  if (!chatId) return { supported:false, state:'chat-id-unavailable', tabId:Number(tab.id), chatId:'', providerId:provider.id, title:brain.normalizeText(tab.title||'Current chat',240), url:providers.canonicalChatUrl(tab.url,provider.id)||String(tab.url||''), workspaceProjectId:'', workspaceProjectName:'' };
+  let chat = await getOne('chats',chatId);
+  if (!chat && ensureRecord) {
+    const now=Date.now();
+    chat=await upsert('chats',{id:chatId,providerId:provider.id,title:brain.normalizeText(tab.title||'Untitled chat',240),url:providers.canonicalChatUrl(tab.url,provider.id)||String(tab.url||''),source:'active-tab',updatedAt:now,lastActivityAt:now});
+    await putSearchDocs([searchDoc('chat',chat)]);
+    await addEvent('active-chat-discovered','chat',chatId,chatId,{providerId:provider.id,source:'pulse-project-action'});
+  }
+  const projectId=String(chat?.workspaceProjectId||'');
+  const project=projectId?await getOne('projects',projectId):null;
+  return { supported:true, state:projectId?'assigned':'unassigned', tabId:Number(tab.id), chatId, providerId:provider.id, title:brain.normalizeText(chat?.title||tab.title||'Untitled chat',240), url:providers.canonicalChatUrl(chat?.url||tab.url,provider.id)||String(tab.url||''), workspaceProjectId:projectId, workspaceProjectName:brain.normalizeText(project?.name||chat?.workspaceProjectName||'',160), project:project&&project.sourceType==='workspace'&&!project.deletedAt?project:null, captured:Boolean(chat) };
+}
+
+async function pulseSetCurrentChatProject(input = {}) {
+  const active=await pulseActiveChatContext({ensureRecord:true});
+  if(!active.supported||!active.chatId)throw new Error('Open a supported AI conversation before changing its Constellation project.');
+  if(input.chatId&&String(input.chatId)!==active.chatId)throw new Error('The active chat changed. Reopen Add to Project so Constellation never files the wrong conversation.');
+  if(input.tabId&&Number(input.tabId)!==Number(active.tabId))throw new Error('The active browser tab changed. Reopen Add to Project before assigning anything.');
+  let project=null; let created=false;
+  const requestedName=brain.normalizeText(input.newProjectName||'',160).trim();
+  if(requestedName){ project=await createWorkspaceProject({name:requestedName,icon:input.newProjectIcon||'✦',color:input.newProjectColor||'#7d92ff'}); created=true; }
+  else if(input.remove===true){ project=null; }
+  else {
+    const target=String(input.projectId||'');
+    if(!target)throw new Error('Choose an existing project or enter a new project name.');
+    project=await getOne('projects',target);
+    if(!project||project.sourceType!=='workspace'||project.deletedAt||project.archived)throw new Error('That Constellation project is unavailable. Refresh and choose another project.');
+  }
+  await patchChatOrganization([active.chatId],{workspaceProjectId:project?.id||''});
+  const now=Date.now();
+  const merged=await upsert('chats',{id:active.chatId,projectAssignmentConfirmed:Boolean(project),projectAssignmentMethod:project?'pulse-manual':'pulse-manual-unassign',projectAssignmentConfirmedAt:project?now:0,projectRouteLastReviewedAt:now,updatedAt:now});
+  await putSearchDocs([searchDoc('chat',merged)]);
+  await addEvent(project?'pulse-project-assigned':'pulse-project-unassigned','chat',active.chatId,active.chatId,{projectId:project?.id||'',created,source:'explicit-user-action'});
+  markDriveDirty().catch(()=>{});
+  return { context:await pulseActiveChatContext({ensureRecord:false}), project, created, removed:!project };
+}
+
+async function projectRouteSuggestions({ projectId = '', limit = 24 } = {}) {
+  const [projects, recentChats] = await Promise.all([getAll('projects'), getRecent('chats', 1200)]);
+  const workspaceProjects = projects.filter((row)=>row?.sourceType==='workspace' && !row.deletedAt && !row.archived);
+  const rows = projectRouter.suggestions({ projects:workspaceProjects, chats:recentChats, limit:Math.max(1,Math.min(Number(limit)||24,80)), projectId:String(projectId||'') });
+  return rows;
+}
+
+function publicOrganizerProject(project = {}) {
+  return {
+    id:String(project.id || ''),
+    name:brain.normalizeText(project.name || 'Untitled project', 160),
+    description:brain.normalizeText(project.description || '', 600),
+    icon:brain.normalizeText(project.icon || '', 32),
+    color:/^#[0-9a-f]{6}$/i.test(String(project.color || '')) ? String(project.color).toLowerCase() : '#7d92ff',
+    groupId:String(project.groupId || ''),
+    pinned:Boolean(project.pinned),
+    archived:Boolean(project.archived),
+    updatedAt:Number(project.updatedAt || 0)
+  };
+}
+
+async function chatOrganizerContext(chatId) {
+  const id=String(chatId || '').trim();
+  if(!id) return { chat:null, assignedProject:null, projects:[], suggestions:[] };
+  const [chat,projects,recentChats]=await Promise.all([getOne('chats',id),getAll('projects'),getRecent('chats',1200)]);
+  const workspaceProjects=projects.filter((row)=>row?.sourceType==='workspace'&&!row.deletedAt&&!row.archived);
+  const byId=new Map(workspaceProjects.map((row)=>[row.id,row]));
+  const assigned=chat?.workspaceProjectId?byId.get(chat.workspaceProjectId)||null:null;
+  let suggestions=[];
+  if(chat && !chat.projectRouteSuppressed){
+    const profiles=projectRouter.projectProfiles(workspaceProjects,recentChats.filter((row)=>row.workspaceProjectId));
+    const candidateChat={...chat,workspaceProjectId:''};
+    const rows=projectRouter.routeChat(candidateChat,profiles,{limit:5});
+    const dismissed=Array.isArray(chat.projectRouteDismissals)?chat.projectRouteDismissals:[];
+    suggestions=rows.filter((candidate)=>{
+      const fp=projectRouter.fingerprint(candidateChat,candidate);
+      return !dismissed.some((row)=>row?.projectId===candidate.projectId&&row?.fingerprint===fp);
+    }).map((candidate)=>({ ...candidate, fingerprint:projectRouter.fingerprint(candidateChat,candidate), project:publicOrganizerProject(byId.get(candidate.projectId)||{}) }));
+  }
+  return {
+    chat:chat?{
+      id:chat.id,title:brain.normalizeText(chat.title||'Untitled chat',240),url:String(chat.url||''),providerId:String(chat.providerId||''),
+      projectId:String(chat.projectId||''),projectName:brain.normalizeText(chat.projectName||'',160),
+      workspaceProjectId:String(chat.workspaceProjectId||''),workspaceProjectName:brain.normalizeText(chat.workspaceProjectName||'',160),
+      pinned:Boolean(chat.pinned),favorite:Boolean(chat.favorite),organizedArchived:Boolean(chat.organizedArchived),updatedAt:Number(chat.updatedAt||0)
+    }:null,
+    assignedProject:assigned?publicOrganizerProject(assigned):null,
+    projects:workspaceProjects.map(publicOrganizerProject).sort((a,b)=>Number(b.pinned)-Number(a.pinned)||a.name.localeCompare(b.name)).slice(0,240),
+    suggestions
+  };
+}
+
+async function chatOrganizerProjectSet(chatId, projectId = '') {
+  const id=String(chatId||'').trim();
+  if(!id)throw new Error('Chat is required.');
+  const chat=await getOne('chats',id);
+  if(!chat)throw new Error('Chat not found. Open the chat once so Constellation can capture it.');
+  const target=String(projectId||'').trim();
+  let project=null;
+  if(target){
+    project=await getOne('projects',target);
+    if(!project||project.sourceType!=='workspace'||project.deletedAt||project.archived)throw new Error('That Constellation project is unavailable.');
+  }
+  await patchChatOrganization([id],{workspaceProjectId:project?.id||''});
+  const stamp=Date.now();
+  const merged=await upsert('chats',{id,projectAssignmentConfirmed:Boolean(project),projectAssignmentMethod:project?'chat-menu-manual':'chat-menu-manual-unassign',projectAssignmentConfirmedAt:project?stamp:0,projectRouteLastReviewedAt:stamp,updatedAt:stamp});
+  await putSearchDocs([searchDoc('chat',merged)]);
+  await addEvent(project?'chat-menu-project-assigned':'chat-menu-project-unassigned','chat',id,id,{projectId:project?.id||'',source:'explicit-user-action'});
+  markDriveDirty().catch(()=>{});
+  return { chat:merged, project:project?publicOrganizerProject(project):null, removed:!project };
+}
+
+async function projectRouteReview(chatId, projectId, action, fingerprint = '') {
+  const id=String(chatId||''); const target=String(projectId||''); const verb=String(action||'');
+  if(!id)throw new Error('Chat is required.');
+  const chat=await getOne('chats',id); if(!chat)throw new Error('Chat not found.');
+  const now=Date.now();
+  if(verb==='confirm'){
+    if(!target)throw new Error('Project is required.');
+    const project=await getOne('projects',target); if(!project||project.sourceType!=='workspace'||project.deletedAt)throw new Error('Target Constellation project not found.');
+    await patchChatOrganization([id],{workspaceProjectId:target});
+    const merged=await upsert('chats',{id,projectAssignmentConfirmed:true,projectAssignmentMethod:'router-confirmed',projectAssignmentConfirmedAt:now,projectRouteLastReviewedAt:now,projectRouteLastFingerprint:String(fingerprint||''),updatedAt:now});
+    await putSearchDocs([searchDoc('chat',merged)]);
+    await addEvent('project-route-confirmed','chat',id,id,{projectId:target,fingerprint:String(fingerprint||'')});
+    markDriveDirty().catch(()=>{});
+    return {chat:merged,confirmed:true,projectId:target};
+  }
+  if(verb==='dismiss'){
+    if(!target)throw new Error('Project is required.');
+    const prior=Array.isArray(chat.projectRouteDismissals)?chat.projectRouteDismissals:[];
+    const next=[...prior.filter((row)=>row?.projectId!==target||row?.fingerprint!==String(fingerprint||'')),{projectId:target,fingerprint:String(fingerprint||''),dismissedAt:now}].slice(-32);
+    const merged=await upsert('chats',{id,projectRouteDismissals:next,projectRouteLastReviewedAt:now,updatedAt:now});
+    await putSearchDocs([searchDoc('chat',merged)]);
+    await addEvent('project-route-dismissed','chat',id,id,{projectId:target,fingerprint:String(fingerprint||'')});
+    markDriveDirty().catch(()=>{});
+    return {chat:merged,dismissed:true,projectId:target};
+  }
+  if(verb==='reconsider'){
+    const merged=await upsert('chats',{id,projectRouteDismissals:[],projectRouteSuppressed:false,projectRouteLastReviewedAt:now,updatedAt:now});
+    await putSearchDocs([searchDoc('chat',merged)]); markDriveDirty().catch(()=>{}); return {chat:merged,reconsidered:true};
+  }
+  throw new Error('Unsupported route review action.');
 }
 
 async function organizationChats(filters = {}) {
@@ -2170,7 +2548,7 @@ async function deleteByIndex(storeName, indexName, value) {
       for (const row of rows) if (row?.id) store.delete(row.id);
       tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
     });
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function projectIntegrityInput(projectId, { maxChats = 240, maxTurnsPerChat = 80 } = {}) {
@@ -2185,7 +2563,7 @@ async function projectIntegrityInput(projectId, { maxChats = 240, maxTurnsPerCha
     const turnIndex = turnStore.index('chatId');
     const chunks = await Promise.all(selected.map((chat) => requestResult(turnIndex.getAll(indexedDbOnly(chat.id, 'turns.chatId'), Math.max(1, maxTurnsPerChat))).catch(() => [])));
     return { chats, files, turns: chunks.flat() };
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 function integrityFingerprint(project, input) {
@@ -2242,10 +2620,11 @@ async function scheduleIntegrityScan(delay = 5000) {
 }
 
 async function homeSummary() {
-  const [providerCount, projectCount, chatCount, turnCount, fileCount, knowledgeCount, recentChats, recentFiles, recentProjects, recentEvents, topicChats, historyGranted, cfg, catalog, fullCapture, organization, approvalRecovery, governor, integrityState, knowledgeState] = await Promise.all([
+  const [providerCount, projectCount, chatCount, turnCount, fileCount, knowledgeCount, recentChats, recentFiles, recentProjects, recentEvents, topicChats, historyGranted, cfg, catalog, fullCapture, organization, approvalRecovery, governor, integrityState, knowledgeState, scheduleGuardianRuntime, scheduleTaskTelemetry] = await Promise.all([
     countStore('providers'), countStore('projects'), countStore('chats'), countStore('turns'), countStore('files'), countStore('knowledgeItems'),
-    getRecent('chats', 18), getRecent('files', 18), getRecent('projects', 18), getRecent('events', 24), getRecent('chats', 500), hasHistoryPermission(), settings(), catalogState(), fullCaptureState(), organizationSummary(), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(18)
+    getRecent('chats', 18), getRecent('files', 18), getRecent('projects', 18), getRecent('events', 24), getRecent('chats', 500), hasHistoryPermission(), settings(), catalogState(), fullCaptureState(), organizationSummary(), approvalRecoveryState(), requestGovernorState(), integritySummary(), knowledgeSummary(18), scheduledGuardianState(), scheduledTaskTelemetryState()
   ]);
+  const [providerHealthState, incidents] = await Promise.all([providerHealthSummary(), incidentSummary()]);
   const attentionStatuses = ['blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable'];
   const liveStatuses = ['running','paused','waiting-user'];
   const attentionGroups = await Promise.all(attentionStatuses.map((status) => getByIndex('chats','status',status,10)));
@@ -2256,7 +2635,7 @@ async function homeSummary() {
   try {
     const tx = db.transaction('chats','readonly'); const index = tx.objectStore('chats').index('status');
     await Promise.all(brain.CHAT_STATUSES.map(async (status) => { statusCounts[status] = await requestResult(index.count(indexedDbOnly(status, 'chats.status'))); }));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
   return {
     counts: { providers: providerCount, projects: projectCount, chats: chatCount, turns: turnCount, files: fileCount, knowledge: knowledgeCount }, statusCounts,
     recentChats, recentFiles, recentProjects, recentEvents,
@@ -2264,8 +2643,8 @@ async function homeSummary() {
     live: liveGroups.flat().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,30),
     topics: buildTopicHints(topicChats, recentProjects),
     catalog: publicCatalogState(catalog), fullCapture: publicFullCaptureState(fullCapture), discovery: { browserHistoryGranted: historyGranted, mode: 'zero-tab-default', hiddenTabs: false, manualFullCapture: true },
-    organization, integrity: integrityState, knowledge: knowledgeState, requestGovernor: publicRequestGovernor(governor),
-    projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
+    organization, providerHealth:providerHealthState, incidents, integrity: integrityState, knowledge: knowledgeState, requestGovernor: publicRequestGovernor(governor),
+    projectIntegrity: { ...cfg.projectIntegrity }, liveHealth: { ...cfg.liveHealth }, scheduledTaskGuardian: { ...cfg.scheduledTaskGuardian, runtime:publicScheduledGuardianState(scheduleGuardianRuntime), telemetry:publicScheduledTaskTelemetryState(scheduleTaskTelemetry) }, approvalAutopilot: { ...cfg.approvalAutopilot }, approvalRecovery: publicApprovalRecoveryState(approvalRecovery), refreshRecovery: { ...cfg.refreshRecovery, runtime: publicRefreshRecoveryState(await refreshRecoveryState()) },
     sync: { drive: { ...cfg.drive, oauthProvisioned: googleOAuthProvisioned() }, github: { ...cfg.github, configured: Boolean(cfg.github.owner && cfg.github.repo) } }
   };
 }
@@ -2285,7 +2664,7 @@ async function listBrainEntities(entityType, limit = 80, offset = 0) {
   return getRecent(store, limit, offset);
 }
 
-async function groupedHomeSearch(query, limit = 40) {
+async function groupedHomeSearch(query, limit = 40, workspaceProjectId = '') {
   const hits = await searchBrain(query, 120);
   const groups = new Map();
   const standalone = [];
@@ -2299,18 +2678,21 @@ async function groupedHomeSearch(query, limit = 40) {
   for (const group of [...groups.values()].sort((a,b)=>b.score-a.score).slice(0, Math.min(Number(limit)||40,60))) {
     const [chat, files] = await Promise.all([getOne('chats', group.chatId), getByIndex('files','chatId',group.chatId,40)]);
     if (!chat) continue;
+    if (workspaceProjectId && chat.workspaceProjectId !== workspaceProjectId) continue;
     enriched.push({
       chat, score: group.score,
       matches: group.hits.slice(0,8).map((hit) => ({ entityType: hit.entityType, title: hit.title, excerpt: hit.excerpt, updatedAt: hit.updatedAt, kind: hit.kind || '', url: hit.url || '' })),
       files: files.slice(0,12)
     });
   }
-  return { groups: enriched, standalone: standalone.slice(0,20), totalHits: hits.length };
+  const scopedStandalone=workspaceProjectId?standalone.filter((hit)=>hit.workspaceProjectId===workspaceProjectId||(hit.entityType==='project'&&hit.entityId===workspaceProjectId)):standalone;
+  const totalHits=enriched.reduce((sum,row)=>sum+Number(row.matches?.length||0),0)+scopedStandalone.length;
+  return { groups: enriched, standalone: scopedStandalone.slice(0,20), totalHits, workspaceProjectId:workspaceProjectId||'' };
 }
 
 async function snapshot() {
-  const [providerRecords, groups, projects, smartCollections, chats, turns, turnRevisions, outputSnapshots, files, knowledgeItems, knowledgeSources, projectContinuity, events, checkpoints, syncReceipts, catalogRuns, baselines, integrityFindings, governor, cfg, dirty] = await Promise.all([
-    getAll('providers'), getAll('groups'), getAll('projects'), getAll('smartCollections'), getAll('chats'), getAll('turns'), getAll('turnRevisions'), getAll('outputSnapshots'), getAll('files'), getAll('knowledgeItems'), getAll('knowledgeSources'), getAll('projectContinuity'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), getAll('projectBaselines'), getAll('integrityFindings'), requestGovernorState(), settings(), chrome.storage.local.get(DIRTY_KEY)
+  const [providerRecords, groups, projects, smartCollections, chats, turns, turnRevisions, outputSnapshots, files, knowledgeItems, knowledgeSources, projectContinuity, events, checkpoints, syncReceipts, catalogRuns, baselines, integrityFindings, providerHealthRows, incidentRows, migrationRows, governor, cfg, dirty] = await Promise.all([
+    getAll('providers'), getAll('groups'), getAll('projects'), getAll('smartCollections'), getAll('chats'), getAll('turns'), getAll('turnRevisions'), getAll('outputSnapshots'), getAll('files'), getAll('knowledgeItems'), getAll('knowledgeSources'), getAll('projectContinuity'), getAll('events'), getAll('checkpoints'), getAll('syncReceipts'), getAll('catalogRuns'), getAll('projectBaselines'), getAll('integrityFindings'), getAll('providerHealth'), getAll('incidentRecipes'), getAll('migrationReceipts'), requestGovernorState(), settings(), chrome.storage.local.get(DIRTY_KEY)
   ]);
   const manifest = chrome.runtime.getManifest();
   const out = brain.makeSnapshot({
@@ -2323,7 +2705,7 @@ async function snapshot() {
       performanceEngine: 'Project Constellation Performance Engine'
     }
   });
-  out.groups = groups; out.smartCollections = smartCollections; out.projectBaselines = baselines; out.integrityFindings = integrityFindings;
+  out.groups = groups; out.smartCollections = smartCollections; out.projectBaselines = baselines; out.integrityFindings = integrityFindings; out.providerHealth = providerHealthRows; out.incidentRecipes = incidentRows; out.migrationReceipts = migrationRows;
   out.summary.groups = groups.filter((g)=>!g.deletedAt).length; out.summary.integrityFindings = integrityFindings.filter((row)=>!row.resolved).length;
   out.summary.smartCollections = smartCollections.filter((c)=>!c.deletedAt).length;
   return out;
@@ -2676,7 +3058,7 @@ async function restoreFromDrive({ interactive = false } = {}) {
     const recovered = full.parsed;
     if (recovered?.schema !== 'project-constellation' || !Number(recovered.schemaVersion)) throw new Error('Remote file is not a valid Project Constellation snapshot.');
 
-    const storeNames = ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'];
+    const storeNames = ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings','providerHealth','incidentRecipes','migrationReceipts'];
     const counts = Object.fromEntries(storeNames.map((name) => [name, 0]));
     for (const storeName of storeNames) {
       counts[storeName] += await mergeRemoteNewer(storeName, Array.isArray(recovered[storeName]) ? recovered[storeName] : []);
@@ -2758,11 +3140,11 @@ async function getUpdatedSince(storeName, since) {
     if (!store.indexNames.contains('updatedAt')) return await requestResult(store.getAll());
     const range = IDBKeyRange.lowerBound(Number(since || 0), true);
     return await requestResult(store.index('updatedAt').getAll(range));
-  } finally { db.close(); }
+  } finally { releaseDb(db); }
 }
 
 async function deltaSnapshotSince(since) {
-  const names = ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'];
+  const names = ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings','providerHealth','incidentRecipes','migrationReceipts'];
   const values = await Promise.all(names.map((name) => getUpdatedSince(name, since)));
   const delta = Object.fromEntries(names.map((name, index) => [name, values[index]]));
   return { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: since, exportedAt: new Date().toISOString(), ...delta };
@@ -2781,7 +3163,7 @@ async function uploadDriveIndex({ cfg, folderId, summary, snapshotMeta, journalM
 }
 
 function recordCountFromDelta(delta) {
-  return ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings'].reduce((sum, key) => sum + (Array.isArray(delta[key]) ? delta[key].length : 0), 0);
+  return ['providers','groups','projects','smartCollections','chats','turns','turnRevisions','outputSnapshots','files','knowledgeItems','knowledgeSources','projectContinuity','events','checkpoints','syncReceipts','catalogRuns','projectBaselines','integrityFindings','providerHealth','incidentRecipes','migrationReceipts'].reduce((sum, key) => sum + (Array.isArray(delta[key]) ? delta[key].length : 0), 0);
 }
 
 async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
@@ -2830,7 +3212,7 @@ async function driveSync({ interactive = false, forceRoundtrip = false } = {}) {
 
     // Reset the cumulative journal to the new full-checkpoint boundary. Subsequent automatic
     // syncs replace it with all records changed since this full checkpoint.
-    const emptyJournal = { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: now, exportedAt: new Date(now).toISOString(), providers: [], groups: [], projects: [], smartCollections: [], chats: [], turns: [], turnRevisions: [], outputSnapshots: [], files: [], knowledgeItems: [], knowledgeSources: [], projectContinuity: [], events: [], checkpoints: [], syncReceipts: [], catalogRuns: [], projectBaselines: [], integrityFindings: [] };
+    const emptyJournal = { schema: 'project-constellation-delta', schemaVersion: 1, baseFullSyncAt: now, exportedAt: new Date(now).toISOString(), providers: [], groups: [], projects: [], smartCollections: [], chats: [], turns: [], turnRevisions: [], outputSnapshots: [], files: [], knowledgeItems: [], knowledgeSources: [], projectContinuity: [], events: [], checkpoints: [], syncReceipts: [], catalogRuns: [], projectBaselines: [], integrityFindings: [], providerHealth: [], incidentRecipes: [], migrationReceipts: [] };
     const journalPacked = await gzipText(JSON.stringify(emptyJournal) + '\n');
     const journalSha256 = await sha256Blob(journalPacked.blob);
     const journalDescription = `Project Constellation cumulative journal; sha256=${journalSha256}; baseFullSyncAt=${now}; exportedAt=${emptyJournal.exportedAt}`;
@@ -2945,8 +3327,8 @@ async function ensureOffscreenParser() {
   if (!offscreenCreatePromise) {
     offscreenCreatePromise = chrome.offscreen.createDocument({
       url: OFFSCREEN_PATH,
-      reasons: ['DOM_PARSER'],
-      justification: 'Parse authenticated provider HTML and exported conversation documents without opening visible or hidden browser tabs.'
+      reasons: ['DOM_PARSER', 'AUDIO_PLAYBACK'],
+      justification: 'Parse provider HTML, host the opt-in Scheduled Task Guardian, and play user-configured chat attention alerts.'
     }).finally(() => { offscreenCreatePromise = null; });
   }
   await offscreenCreatePromise;
@@ -2956,6 +3338,314 @@ async function ensureOffscreenParser() {
 async function parseProviderHtml(providerId, url, html) {
   await ensureOffscreenParser();
   return chrome.runtime.sendMessage({ type: 'PC_OFFSCREEN_PARSE_HTML', target: 'pc-offscreen-parser', payload: { providerId, url, html } });
+}
+
+function defaultScheduledGuardianState() {
+  return {
+    status:'disabled', level:'offline', mode:'offscreen', premiumFeature:true, featureId:scheduledGuardian.PREMIUM_FEATURE_ID,
+    title:'Guardian off', detail:'Scheduled Task Guardian is disabled.', frameReady:false, frameBlocked:false, frameBlockReason:'',
+    httpStatus:0, finalUrl:scheduledGuardian.SCHEDULE_URL, authRequired:false, lastCheckedAt:0, lastHealthyAt:0, lastFrameReadyAt:0,
+    lastFrameBlockAt:0, repairCount:0, failureCount:0, updatedAt:0, error:''
+  };
+}
+
+async function scheduledGuardianState() {
+  const stored=(await chrome.storage.local.get(SCHEDULE_GUARDIAN_STATE_KEY))[SCHEDULE_GUARDIAN_STATE_KEY];
+  return { ...defaultScheduledGuardianState(), ...(stored || {}) };
+}
+
+async function saveScheduledGuardianState(next = {}) {
+  const state={ ...defaultScheduledGuardianState(), ...(next || {}), premiumFeature:true, featureId:scheduledGuardian.PREMIUM_FEATURE_ID, updatedAt:Date.now() };
+  await chrome.storage.local.set({ [SCHEDULE_GUARDIAN_STATE_KEY]:state });
+  return state;
+}
+
+function publicScheduledGuardianState(state = {}) {
+  const s={ ...defaultScheduledGuardianState(), ...(state || {}) };
+  return { status:s.status, level:s.level, mode:s.mode, premiumFeature:true, featureId:s.featureId, title:s.title, detail:s.detail, frameReady:Boolean(s.frameReady), frameBlocked:Boolean(s.frameBlocked), frameBlockReason:s.frameBlockReason || '', httpStatus:Number(s.httpStatus || 0), finalUrl:scheduledGuardian.normalizeScheduleUrl(s.finalUrl), authRequired:Boolean(s.authRequired), lastCheckedAt:Number(s.lastCheckedAt || 0), lastHealthyAt:Number(s.lastHealthyAt || 0), lastFrameReadyAt:Number(s.lastFrameReadyAt || 0), lastFrameBlockAt:Number(s.lastFrameBlockAt || 0), repairCount:Number(s.repairCount || 0), failureCount:Number(s.failureCount || 0), updatedAt:Number(s.updatedAt || 0), error:String(s.error || '').slice(0,500) };
+}
+
+async function ensureScheduledGuardianAlarm(cfg = null) {
+  const next=scheduledGuardian.normalizeSettings(cfg || (await settings()).scheduledTaskGuardian);
+  await chrome.alarms.clear(SCHEDULE_GUARDIAN_ALARM).catch(() => {});
+  if (!next.enabled) return false;
+  await chrome.alarms.create(SCHEDULE_GUARDIAN_ALARM, { periodInMinutes:next.cadenceMinutes });
+  return true;
+}
+
+async function stopScheduledGuardianOffscreen() {
+  try {
+    await ensureOffscreenParser();
+    await chrome.runtime.sendMessage({ type:'PC_SCHEDULE_GUARDIAN_STOP', target:'pc-scheduled-task-guardian' });
+  } catch (_) {}
+}
+
+async function scheduleGuardianReachabilityProbe() {
+  const started=Date.now();
+  try {
+    const response=await fetch(scheduledGuardian.SCHEDULE_URL, { method:'GET', credentials:'include', cache:'no-store', redirect:'follow', headers:{ 'Accept':'text/html,application/xhtml+xml' } });
+    try { await response.body?.cancel?.(); } catch (_) {}
+    return { ok:response.ok, status:Number(response.status || 0), finalUrl:String(response.url || scheduledGuardian.SCHEDULE_URL), elapsedMs:Date.now()-started, error:'' };
+  } catch (error) {
+    return { ok:false, status:0, finalUrl:scheduledGuardian.SCHEDULE_URL, elapsedMs:Date.now()-started, error:String(error?.message || error) };
+  }
+}
+
+let scheduledGuardianRunPromise=null;
+async function runScheduledGuardian({ forceFrame=false, manualRepair=false } = {}) {
+  if (scheduledGuardianRunPromise) return scheduledGuardianRunPromise;
+  scheduledGuardianRunPromise=(async()=>{
+    const cfg=scheduledGuardian.normalizeSettings((await settings()).scheduledTaskGuardian);
+    let state=await scheduledGuardianState();
+    if (!cfg.enabled) {
+      await chrome.alarms.clear(SCHEDULE_GUARDIAN_ALARM).catch(() => {});
+      await stopScheduledGuardianOffscreen();
+      state=await saveScheduledGuardianState({ ...state, status:'disabled', level:'offline', title:'Guardian off', detail:'Scheduled Task Guardian is disabled.', frameReady:false, error:'' });
+      return { ok:true, state:publicScheduledGuardianState(state) };
+    }
+    await ensureOffscreenParser();
+    const retryAfter=Math.max(1,Number(cfg.frameRetryHours || 24))*60*60*1000;
+    const frameRetryAllowed=forceFrame || !state.frameBlocked || !state.lastFrameBlockAt || Date.now()-Number(state.lastFrameBlockAt || 0)>=retryAfter;
+    const canRepairFrame=Boolean(cfg.autoRepair || manualRepair || forceFrame);
+    if (cfg.keepEmbeddedWorkspace && frameRetryAllowed && canRepairFrame) {
+      const frame=await chrome.runtime.sendMessage({ type:'PC_SCHEDULE_GUARDIAN_START', target:'pc-scheduled-task-guardian', payload:{ url:scheduledGuardian.SCHEDULE_URL, force:Boolean(forceFrame) } }).catch((error)=>({ ok:false,error:String(error?.message || error) }));
+      if (frame?.ok) state={ ...state, frameReady:Boolean(frame.frameReady), lastFrameReadyAt:Number(frame.lastFrameReadyAt || state.lastFrameReadyAt || 0), error:'' };
+      else if (frame?.error) state={ ...state, frameReady:false, error:String(frame.error).slice(0,500) };
+    } else if (!cfg.keepEmbeddedWorkspace) {
+      await chrome.runtime.sendMessage({ type:'PC_SCHEDULE_GUARDIAN_STOP', target:'pc-scheduled-task-guardian' }).catch(() => {});
+      state={ ...state, frameReady:false };
+    } else {
+      const ping=await chrome.runtime.sendMessage({ type:'PC_SCHEDULE_GUARDIAN_PING', target:'pc-scheduled-task-guardian' }).catch(()=>null);
+      state={ ...state, frameReady:Boolean(ping?.frameReady), lastFrameReadyAt:Number(ping?.lastFrameReadyAt || state.lastFrameReadyAt || 0) };
+    }
+    const probe=await scheduleGuardianReachabilityProbe();
+    // The offscreen sub-frame response can race this reachability request. Re-read
+    // persisted state so an observed X-Frame-Options/CSP fallback always wins over
+    // an older in-flight snapshot instead of being silently cleared.
+    const observedState=await scheduledGuardianState();
+    if (Number(observedState.lastFrameBlockAt || 0) > Number(state.lastFrameBlockAt || 0)) {
+      state={ ...state, ...observedState };
+    } else if (Number(observedState.lastFrameReadyAt || 0) > Number(state.lastFrameReadyAt || 0)) {
+      state={ ...state, frameReady:Boolean(observedState.frameReady), lastFrameReadyAt:Number(observedState.lastFrameReadyAt || 0) };
+    }
+    const auth=scheduledGuardian.authRequired({ status:probe.status, finalUrl:probe.finalUrl });
+    const derived=scheduledGuardian.deriveRuntime({ settings:cfg, httpStatus:probe.status, status:probe.status, finalUrl:probe.finalUrl, authRequired:auth, frameReady:state.frameReady, frameBlocked:state.frameBlocked, error:probe.error || state.error });
+    const healthy=['embedded','heartbeat','reachable'].includes(derived.status);
+    state=await saveScheduledGuardianState({ ...state, ...derived, httpStatus:probe.status, finalUrl:scheduledGuardian.normalizeScheduleUrl(probe.finalUrl), authRequired:auth, lastCheckedAt:Date.now(), lastHealthyAt:healthy?Date.now():Number(state.lastHealthyAt || 0), repairCount:Number(state.repairCount || 0)+(manualRepair?1:0), failureCount:Number(state.failureCount || 0)+(healthy?0:1), error:probe.error || (healthy?'':state.error || '') });
+    if (cfg.observeTaskState) requestScheduledTaskSyncFromOpenChatGPT().catch(() => {});
+    return { ok:true, state:publicScheduledGuardianState(state) };
+  })().finally(()=>{ scheduledGuardianRunPromise=null; });
+  return scheduledGuardianRunPromise;
+}
+
+async function openScheduledTasksPage() {
+  const tab=await chrome.tabs.create({ url:scheduledGuardian.SCHEDULE_URL, active:true });
+  return { ok:true, tabId:Number(tab?.id || 0), url:scheduledGuardian.SCHEDULE_URL };
+}
+
+function defaultScheduledTaskTelemetryState() {
+  return {
+    version:1, initialized:false, syncedAt:0, source:'', sourceUrl:'', mutedUntil:0,
+    tasks:{}, events:[], lastSyncEndpoint:'',
+    counts:{ total:0, active:0, paused:0, attention:0, completed:0, failed:0 }
+  };
+}
+
+function scheduledTaskTelemetryCounts(tasks = {}) {
+  const counts={ total:0, active:0, paused:0, attention:0, completed:0, failed:0 };
+  for (const row of Object.values(tasks || {})) {
+    if (!row?.id) continue;
+    const task=scheduledGuardian.normalizeObservedTask(row); const healthState=scheduledGuardian.taskHealth(task);
+    counts.total += 1;
+    if (healthState.paused) counts.paused += 1;
+    else if (healthState.completed) counts.completed += 1;
+    else counts.active += 1;
+    if (healthState.attention) counts.attention += 1;
+    if (healthState.runFailed) counts.failed += 1;
+  }
+  return counts;
+}
+
+async function scheduledTaskTelemetryState() {
+  const stored=(await chrome.storage.local.get(SCHEDULE_GUARDIAN_TASK_STATE_KEY))[SCHEDULE_GUARDIAN_TASK_STATE_KEY];
+  const state={ ...defaultScheduledTaskTelemetryState(), ...(stored || {}) };
+  state.tasks=state.tasks && typeof state.tasks === 'object' ? state.tasks : {};
+  state.events=Array.isArray(state.events) ? state.events : [];
+  state.counts=scheduledTaskTelemetryCounts(state.tasks);
+  scheduledGuardianAttentionCount=Math.max(0,Number(state.counts.attention || 0),Number(state.counts.paused || 0));
+  return state;
+}
+
+function publicScheduledTaskTelemetryState(input = {}) {
+  const state={ ...defaultScheduledTaskTelemetryState(), ...(input || {}) };
+  const tasks=Object.values(state.tasks || {}).map((row)=>({
+    ...scheduledGuardian.normalizeObservedTask(row), lastSeenAt:Number(row?.lastSeenAt || 0), source:String(row?.source || '').slice(0,40)
+  })).sort((a,b)=>{
+    const ah=scheduledGuardian.taskHealth(a), bh=scheduledGuardian.taskHealth(b);
+    return Number(bh.attention||bh.paused)-Number(ah.attention||ah.paused) || Number(b.lastSeenAt||0)-Number(a.lastSeenAt||0);
+  }).slice(0,60);
+  const counts=scheduledTaskTelemetryCounts(Object.fromEntries(tasks.map((row)=>[row.id,row])));
+  return {
+    initialized:Boolean(state.initialized), syncedAt:Number(state.syncedAt || 0), source:String(state.source || '').slice(0,40), sourceUrl:String(state.sourceUrl || '').slice(0,260),
+    mutedUntil:Number(state.mutedUntil || 0), lastSyncEndpoint:String(state.lastSyncEndpoint || '').slice(0,260), counts,
+    tasks, events:(state.events || []).slice(0,40).map((event)=>({ id:String(event.id||''), type:String(event.type||''), level:String(event.level||''), taskId:String(event.taskId||''), title:String(event.title||'').slice(0,180), message:String(event.message||'').slice(0,320), at:Number(event.at||0), important:Boolean(event.important) }))
+  };
+}
+
+async function saveScheduledTaskTelemetryState(next = {}) {
+  const state={ ...defaultScheduledTaskTelemetryState(), ...(next || {}) };
+  state.tasks=state.tasks && typeof state.tasks === 'object' ? state.tasks : {};
+  state.events=Array.isArray(state.events) ? state.events.slice(0,80) : [];
+  state.counts=scheduledTaskTelemetryCounts(state.tasks);
+  scheduledGuardianAttentionCount=Math.max(0,Number(state.counts.attention || 0),Number(state.counts.paused || 0));
+  await chrome.storage.local.set({ [SCHEDULE_GUARDIAN_TASK_STATE_KEY]:state });
+  await renderActionBadge().catch(() => {});
+  chrome.runtime.sendMessage({ type:'PC_SCHEDULE_GUARDIAN_TELEMETRY_UPDATED', telemetry:publicScheduledTaskTelemetryState(state) }).catch(() => {});
+  return state;
+}
+
+function scheduledGuardianEventAllowed(cfg, state, event) {
+  if (!cfg.enabled || !cfg.desktopNotifications || Number(state.mutedUntil || 0) > Date.now()) return false;
+  if (event.type === 'run-completed' && cfg.notifyRunCompleted === false) return false;
+  if (event.type !== 'run-completed' && cfg.notifyStateChanges === false) return false;
+  return true;
+}
+
+async function notifyScheduledGuardianEvent(event = {}, task = {}, state = null, cfg = null) {
+  const settingsCfg=scheduledGuardian.normalizeSettings(cfg || (await settings()).scheduledTaskGuardian);
+  const telemetry=state || await scheduledTaskTelemetryState();
+  if (!scheduledGuardianEventAllowed(settingsCfg, telemetry, event) || !chrome.notifications?.create) return false;
+  const presentation=scheduledGuardian.eventPresentation(event, task);
+  try {
+    await chrome.notifications.create(`pc-schedule:${event.id}`, {
+      type:'basic', iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
+      title:String(presentation.title || 'Scheduled Task Guardian').slice(0,120),
+      message:String(presentation.message || 'A scheduled task changed state.').slice(0,320),
+      contextMessage:'Project Constellation · Scheduled Guardian',
+      buttons:[{ title:'Open Scheduled' },{ title:'Mute 1 hour' }],
+      requireInteraction:Boolean(presentation.important), priority:presentation.important ? 2 : 0
+    });
+    return true;
+  } catch (_) { return false; }
+}
+
+function scheduledEventRecord(raw = {}, task = {}) {
+  const presentation=scheduledGuardian.eventPresentation(raw, task);
+  return {
+    id:`${Date.now().toString(36)}-${crypto.randomUUID().slice(0,8)}`, type:String(raw.type || 'state-change'), level:String(raw.level || 'info'),
+    taskId:String(raw.taskId || task.id || ''), title:String(presentation.title || raw.title || 'Scheduled Task Guardian').slice(0,180),
+    message:String(presentation.message || raw.message || '').slice(0,320), important:Boolean(presentation.important), runKey:String(raw.runKey || ''), at:Number(raw.at || Date.now()),
+    fingerprint:`${String(raw.taskId || task.id || '')}|${String(raw.type || '')}|${String(raw.runKey || '')}|${String(task.status || '')}|${String(task.enabled)}`
+  };
+}
+
+function mergeObservedScheduledTask(previous, incoming, source) {
+  const normalized=scheduledGuardian.normalizeObservedTask(incoming);
+  const before=previous ? { ...scheduledGuardian.normalizeObservedTask(previous), lastSeenAt:Number(previous.lastSeenAt||0), source:previous.source||'' } : null;
+  const runOnly=incoming?.recordKind === 'run';
+  if (runOnly && before) {
+    return {
+      ...before,
+      lastRunId:normalized.lastRunId || before.lastRunId,
+      lastRunAt:normalized.lastRunAt || before.lastRunAt,
+      lastRunStatus:normalized.lastRunStatus || normalized.status || before.lastRunStatus,
+      requiresAttention:Boolean(before.requiresAttention || normalized.requiresAttention),
+      attentionReason:normalized.attentionReason || before.attentionReason,
+      lastSeenAt:Date.now(), source:String(source || before.source || '').slice(0,40)
+    };
+  }
+  return { ...before, ...normalized, lastSeenAt:Date.now(), source:String(source || before?.source || '').slice(0,40) };
+}
+
+async function ingestScheduledTaskSnapshot(snapshot = {}, sender = null) {
+  const cfg=scheduledGuardian.normalizeSettings((await settings()).scheduledTaskGuardian);
+  if (!cfg.enabled || !cfg.observeTaskState) return { ok:true, ignored:true, reason:'task-observation-disabled' };
+  const senderUrl=String(sender?.url || sender?.tab?.url || '');
+  if (senderUrl) {
+    try {
+      const u=new URL(senderUrl);
+      if (!['chatgpt.com','chat.openai.com'].includes(u.hostname)) return { ok:false, error:'Scheduled telemetry rejected from an untrusted origin.' };
+    } catch (_) { return { ok:false, error:'Scheduled telemetry sender URL was invalid.' }; }
+  }
+  const rows=Array.isArray(snapshot.tasks) ? snapshot.tasks.slice(0,120) : [];
+  if (!rows.length) return { ok:true, ignored:true, reason:'empty-snapshot' };
+  let state=await scheduledTaskTelemetryState();
+  const wasInitialized=Boolean(state.initialized);
+  const tasks={ ...(state.tasks || {}) };
+  const newEvents=[];
+  const existingFingerprints=new Set((state.events || []).map((event)=>String(event.fingerprint || '')).filter(Boolean));
+  const source=String(snapshot.source || '').slice(0,40);
+  const sourceUrl=String(snapshot.sourceUrl || '').slice(0,260);
+
+  for (const observed of rows) {
+    const normalized=scheduledGuardian.normalizeObservedTask(observed);
+    if (!normalized.id) continue;
+    let key=normalized.id;
+    let previous=tasks[key] || null;
+    if (!previous && normalized.title && !key.startsWith('dom:')) {
+      const domEntry=Object.entries(tasks).find(([candidateId,candidate])=>candidateId.startsWith('dom:') && String(candidate?.title || '').toLowerCase() === normalized.title.toLowerCase());
+      if (domEntry) { previous=domEntry[1]; delete tasks[domEntry[0]]; }
+    } else if (!previous && key.startsWith('dom:')) {
+      const canonicalEntry=Object.entries(tasks).find(([candidateId,candidate])=>!candidateId.startsWith('dom:') && String(candidate?.title || '').toLowerCase() === normalized.title.toLowerCase());
+      if (canonicalEntry) { key=canonicalEntry[0]; previous=canonicalEntry[1]; normalized.id=key; }
+    }
+    const current=mergeObservedScheduledTask(previous, { ...observed, id:key }, source);
+    tasks[key]=current;
+    if (!wasInitialized || !previous) continue;
+    for (const raw of scheduledGuardian.deriveTaskEvents(previous,current)) {
+      const event=scheduledEventRecord(raw,current);
+      if (!existingFingerprints.has(event.fingerprint)) { existingFingerprints.add(event.fingerprint); newEvents.push({ event, task:current }); }
+    }
+  }
+
+  const counts=scheduledTaskTelemetryCounts(tasks);
+  if (!wasInitialized && (counts.paused || counts.attention)) {
+    const raw={ type:'baseline-attention', level:'warning', taskId:'', runKey:'', at:Date.now(), message:`${counts.paused} paused · ${counts.attention} needing attention across ${counts.total} observed scheduled task${counts.total===1?'':'s'}.` };
+    const event=scheduledEventRecord(raw,{}); event.message=raw.message; event.fingerprint=`baseline|${counts.paused}|${counts.attention}|${counts.total}`;
+    if (!existingFingerprints.has(event.fingerprint)) newEvents.push({ event, task:{} });
+  }
+
+  const endpoint = source === 'network' && /^\/(?:backend-api|api)\//.test(sourceUrl) ? sourceUrl : String(state.lastSyncEndpoint || '');
+  state=await saveScheduledTaskTelemetryState({ ...state, initialized:true, tasks, events:[...newEvents.map((row)=>row.event), ...(state.events || [])].slice(0,80), syncedAt:Number(snapshot.observedAt || Date.now()), source, sourceUrl, lastSyncEndpoint:endpoint || state.lastSyncEndpoint || '' });
+  for (const row of newEvents) await notifyScheduledGuardianEvent(row.event,row.task,state,cfg);
+  return { ok:true, telemetry:publicScheduledTaskTelemetryState(state), events:newEvents.length };
+}
+
+async function muteScheduledGuardianNotifications(minutes = 60) {
+  const cfg=scheduledGuardian.normalizeSettings((await settings()).scheduledTaskGuardian);
+  const state=await scheduledTaskTelemetryState();
+  const duration=Math.max(15,Math.min(720,Number(minutes || cfg.notificationMuteMinutes || 60)));
+  const next=await saveScheduledTaskTelemetryState({ ...state, mutedUntil:Date.now()+duration*60*1000 });
+  return { ok:true, telemetry:publicScheduledTaskTelemetryState(next) };
+}
+
+async function clearScheduledGuardianEvents() {
+  const state=await scheduledTaskTelemetryState();
+  const next=await saveScheduledTaskTelemetryState({ ...state, events:[] });
+  return { ok:true, telemetry:publicScheduledTaskTelemetryState(next) };
+}
+
+async function testScheduledGuardianNotification() {
+  const state=await scheduledTaskTelemetryState();
+  const event=scheduledEventRecord({ type:'needs-attention', level:'danger', taskId:'test', at:Date.now() }, { id:'test', title:'Scheduled Guardian test', status:'needs-attention', requiresAttention:true });
+  event.message='Desktop alerts are working. This is a Project Constellation test notification; no scheduled task was changed.';
+  const cfg=scheduledGuardian.normalizeSettings((await settings()).scheduledTaskGuardian);
+  if (!cfg.desktopNotifications) return { ok:false, error:'Desktop popups are disabled in Scheduled Task Guardian settings.' };
+  if (Number(state.mutedUntil || 0) > Date.now()) return { ok:false, error:'Scheduled Task Guardian alerts are currently muted.' };
+  const shown=await notifyScheduledGuardianEvent(event,{ id:'test', title:'Scheduled Guardian test', status:'needs-attention' },state,cfg);
+  return shown ? { ok:true } : { ok:false, error:'Chrome did not accept the test notification.' };
+}
+
+async function requestScheduledTaskSyncFromOpenChatGPT() {
+  const cfg=scheduledGuardian.normalizeSettings((await settings()).scheduledTaskGuardian);
+  if (!cfg.enabled || !cfg.observeTaskState) return { ok:false, reason:'disabled' };
+  const state=await scheduledTaskTelemetryState();
+  if (!state.lastSyncEndpoint) return { ok:false, reason:'endpoint-not-discovered' };
+  const tabs=await chrome.tabs.query({ url:['https://chatgpt.com/*','https://chat.openai.com/*'] }).catch(()=>[]);
+  const tab=tabs.find((row)=>Number(row?.id)>0 && !row.discarded);
+  if (!tab?.id) return { ok:false, reason:'no-open-chatgpt-tab' };
+  const response=await chrome.tabs.sendMessage(Number(tab.id), { type:'PC_SCHEDULE_GUARDIAN_REFRESH_FROM_PAGE', endpoint:state.lastSyncEndpoint }, { frameId:0 }).catch((error)=>({ ok:false,error:String(error?.message||error) }));
+  return response || { ok:false, reason:'no-response' };
 }
 
 const providerRequestLocks = new Map();
@@ -3157,7 +3847,7 @@ async function prepareCatalogQueue(provider, chats, { autoTriggered = false } = 
 
 async function catalogState() { return (await chrome.storage.local.get(CATALOG_STATE_KEY))[CATALOG_STATE_KEY] || null; }
 function publicCatalogState(state) { if (!state) return null; const { queue, ...rest } = state; return { ...rest, queueLength: Array.isArray(queue) ? queue.length : 0 }; }
-async function saveCatalogState(state) { state.updatedAt = Date.now(); await chrome.storage.local.set({ [CATALOG_STATE_KEY]: state }); if (state.id) await upsert('catalogRuns', { ...state, queue: undefined, updatedAt: state.updatedAt }); return state; }
+async function saveCatalogState(state) { state.updatedAt = Date.now(); await chrome.storage.local.set({ [CATALOG_STATE_KEY]: state }); if (state.id) await upsert('catalogRuns', { ...state, queue: undefined, updatedAt: state.updatedAt }); stateBus.publishCoalesced('catalog.changed',{id:state.id||'',status:state.status||'',stage:state.stage||'',updatedAt:state.updatedAt},{source:'catalog',key:state.id||'catalog',delayMs:100}); return state; }
 async function scheduleCatalogStep(delay = 600) { await chrome.alarms.create(CATALOG_ALARM, { when: Date.now() + delay }); }
 
 async function startCatalog(providerIds = [], options = {}) {
@@ -3173,6 +3863,31 @@ async function startCatalog(providerIds = [], options = {}) {
   await addEvent('catalog-start', 'catalog', state.id, '', { providers: selected, mode: 'zero-tab' });
   await scheduleCatalogStep(100);
   return { ok: true, state };
+}
+
+async function maybeStartAutomaticCatalog() {
+  const cfg = await settings();
+  const catalogCfg = cfg?.catalog || {};
+  if (!catalogCfg.autoSweep) return { ok:true, started:false, reason:'disabled' };
+
+  const current = await catalogState();
+  if (current?.status === 'running' || current?.status === 'paused') {
+    return { ok:true, started:false, reason:'catalog-busy', state:publicCatalogState(current) };
+  }
+
+  const intervalHours = Math.max(1, Number(catalogCfg.intervalHours || 24));
+  const intervalMs = intervalHours * 60 * 60 * 1000;
+  const lastAutoSweepAt = Math.max(0, Number(catalogCfg.lastAutoSweepAt || 0));
+  const now = Date.now();
+  if (lastAutoSweepAt && now - lastAutoSweepAt < intervalMs) {
+    return { ok:true, started:false, reason:'not-due', dueAt:lastAutoSweepAt + intervalMs };
+  }
+
+  const providerIds = Array.isArray(catalogCfg.providerIds)
+    ? [...new Set(catalogCfg.providerIds.filter((id) => providers.byId[id]))]
+    : [];
+  const result = await startCatalog(providerIds, { autoTriggered:true });
+  return { ...result, started:true, reason:'due' };
 }
 
 async function pauseCatalog() { const state = await catalogState(); if (!state) return { ok: true, state: null }; state.status = 'paused'; await saveCatalogState(state); await chrome.alarms.clear(CATALOG_ALARM); return { ok: true, state }; }
@@ -3291,6 +4006,7 @@ async function saveFullCaptureState(state) {
   state.updatedAt = Date.now();
   await chrome.storage.local.set({ [FULL_CAPTURE_STATE_KEY]: state });
   if (state.id) await upsert('catalogRuns', { ...state, queue: undefined, updatedAt: state.updatedAt });
+  stateBus.publishCoalesced('capture.changed',{id:state.id||'',status:state.status||'',stage:state.stage||'',providerIndex:Number(state.providerIndex||0),chatIndex:Number(state.chatIndex||0),updatedAt:state.updatedAt},{source:'full-capture',key:state.id||'capture',delayMs:120});
   return state;
 }
 
@@ -3578,26 +4294,32 @@ chrome.runtime.onInstalled.addListener(async () => {
   await ensureLiveHealthCapacityProfileMigration().catch(() => false);
   await stopLegacyApprovalNavigation('v0.14.8 disabled legacy hidden ChatGPT navigation.').catch(() => {});
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
-  await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
+  await ensureStallWatchAlarm();
   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });
   const cfg = await settings();
   if (cfg.projectIntegrity.enabled && cfg.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(cfg.projectIntegrity.scanIntervalMinutes || 15)) });
+  await ensureScheduledGuardianAlarm(cfg.scheduledTaskGuardian);
+  if (cfg.scheduledTaskGuardian.enabled) await runScheduledGuardian({ forceFrame:true }).catch(() => {});
   await ensurePersistentStorage();
   await ensureSearchIndex();
   await startKnowledgeBackfillIfNeeded();
   await updateAttentionBadge();
   await ensureTabTagMenus().catch(() => {});
+  await expandLegacyAutoCollapsedCompletedGroupsOnce().catch(() => false);
   await installLiveSentinelIntoOpenTabs().catch(() => {});
+  await runChatGuardian({ trigger:'installed' }).catch(() => {});
   await refreshAllTabPresentations().catch(() => {});
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await ensureLiveHealthCapacityProfileMigration().catch(() => false);
   await stopLegacyApprovalNavigation('Background ChatGPT navigation remains disabled.').catch(() => {});
-  await chrome.alarms.create(STALL_ALARM, { periodInMinutes: 1 });
+  await ensureStallWatchAlarm();
   await chrome.alarms.create(CATALOG_MAINTENANCE_ALARM, { periodInMinutes: 60 });
   const integrityCfg = await settings();
   if (integrityCfg.projectIntegrity.enabled && integrityCfg.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(integrityCfg.projectIntegrity.scanIntervalMinutes || 15)) });
+  await ensureScheduledGuardianAlarm(integrityCfg.scheduledTaskGuardian);
+  if (integrityCfg.scheduledTaskGuardian.enabled) await runScheduledGuardian({ forceFrame:false }).catch(() => {});
   await ensurePersistentStorage();
   await ensureSearchIndex();
   await startKnowledgeBackfillIfNeeded();
@@ -3610,7 +4332,9 @@ chrome.runtime.onStartup.addListener(async () => {
   const cfg = await settings();
   if (dirty && cfg.drive.autoSync && googleOAuthProvisioned()) await chrome.alarms.create(DRIVE_SYNC_ALARM, { when: Date.now() + 3000 });
   await ensureTabTagMenus().catch(() => {});
+  await expandLegacyAutoCollapsedCompletedGroupsOnce().catch(() => false);
   await installLiveSentinelIntoOpenTabs().catch(() => {});
+  await runChatGuardian({ trigger:'startup' }).catch(() => {});
   await refreshAllTabPresentations().catch(() => {});
 });
 
@@ -3623,6 +4347,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   else if (alarm.name === INTEGRITY_DEBOUNCE_ALARM) runProjectIntegrityScan({ force: false }).catch(() => {});
   else if (alarm.name === INTEGRITY_MAINTENANCE_ALARM) runProjectIntegrityScan({ force: false }).catch(() => {});
   else if (alarm.name === KNOWLEDGE_INDEX_ALARM) processKnowledgeWork().catch(() => {});
+  else if (alarm.name === SCHEDULE_GUARDIAN_ALARM) runScheduledGuardian().catch(() => {});
+  else if (alarm.name === CHAT_GUARDIAN_ALARM) runChatGuardian({ trigger:'fallback-alarm' }).catch(() => {});
   else if (alarm.name === DRIVE_SYNC_ALARM) driveSync({ interactive: false }).catch(async () => {
     const dirty = (await chrome.storage.local.get(DIRTY_KEY))[DIRTY_KEY];
     if (dirty) chrome.alarms.create(DRIVE_SYNC_ALARM, { when: Date.now() + 30 * 60 * 1000 });
@@ -3814,8 +4540,20 @@ async function resolveBranchLineage(message = {}, sender = {}) {
   return { ok:true, sourceChatId:row.sourceChatId, childChatId, checkpointId:row.checkpointId };
 }
 
+backgroundMessageRouter
+  .register('PC_PROVIDER_CAPABILITY_REPORT', ({ message, sender }) => handleProviderCapabilityReport(message, sender))
+  .register('PC_PROVIDER_HEALTH_SUMMARY', async () => ({ ok:true, providerHealth:await providerHealthSummary() }))
+  .register('PC_INCIDENT_RECORD', async ({ message }) => ({ ok:true, incident:await recordIncident(message.incident || message) }))
+  .register('PC_INCIDENT_RESOLVE', async ({ message }) => ({ ok:true, incident:await resolveIncident(message.incident || message) }))
+  .register('PC_INCIDENT_LOOKUP', async ({ message }) => ({ ok:true, incident:await lookupIncident(message.incident || message) }))
+  .register('PC_INCIDENT_SUMMARY', async () => ({ ok:true, incidents:await incidentSummary() }))
+  .register('PC_STATE_EVENT', async () => ({ ok:true }));
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (/^PC_(?:ATTENTION|MONITOR)_/.test(String(message?.type || ''))) return false;
   (async () => {
+    const routed = await backgroundMessageRouter.dispatch(message?.type, { message, sender });
+    if (routed.matched) return routed.value;
     switch (message?.type) {
       case 'PC_BRAIN_INGEST': return ingest(message.payload);
       case 'PC_BRAIN_INGEST_BATCH': return ingestBatch(message.payload || []);
@@ -3825,12 +4563,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_BRAIN_SEARCH': return { ok: true, results: await searchBrain(message.query || '', message.limit || 60) };
       case 'PC_BRAIN_COUNTS': return { ok: true, counts: await brainCounts() };
       case 'PC_HOME_SUMMARY': return { ok: true, home: await homeSummary() };
-      case 'PC_HOME_SEARCH': return { ok: true, result: await groupedHomeSearch(message.query || '', message.limit || 40) };
+      case 'PC_HOME_SEARCH': return { ok: true, result: await groupedHomeSearch(message.query || '', message.limit || 40, message.workspaceProjectId || '') };
       case 'PC_KNOWLEDGE_SUMMARY': return { ok: true, knowledge: await knowledgeSummary(message.limit || 24) };
       case 'PC_KNOWLEDGE_LIST': return { ok: true, items: await knowledgeList(message.filters || {}) };
       case 'PC_KNOWLEDGE_REINDEX': return resetKnowledgeIndex();
       case 'PC_PROJECT_BRAIN_GET': return { ok:true, continuity:await projectBrainGet(message.projectId,{rebuild:Boolean(message.rebuild)}) };
       case 'PC_PROJECT_MEMORY_GATE': return { ok:true, result:await projectMemoryGate(message.itemId,message.action) };
+      case 'PC_PROJECT_ROUTE_SUGGESTIONS': return { ok:true, items:await projectRouteSuggestions({projectId:message.projectId||'',limit:message.limit||24}) };
+      case 'PC_CHAT_ORGANIZER_CONTEXT': return { ok:true, context:await chatOrganizerContext(message.chatId||providers.chatIdFromUrl(message.url||sender?.tab?.url||'','chatgpt')) };
+      case 'PC_CHAT_ORGANIZER_PROJECT_SET': return { ok:true, result:await chatOrganizerProjectSet(message.chatId||providers.chatIdFromUrl(message.url||sender?.tab?.url||'','chatgpt'),message.projectId||'') };
+      case 'PC_PROJECT_ROUTE_REVIEW': return { ok:true, result:await projectRouteReview(message.chatId,message.projectId,message.action,message.fingerprint||'') };
+      case 'PC_PROJECT_CHAT_CONTEXT_GET': return { ok:true, ...(await projectChatContextGet(message.projectId,message.chatId)) };
+      case 'PC_PROJECT_CONTEXT_REVIEW': return { ok:true, result:await projectContextReview(message.projectId,message.chatId,message.action,message.fingerprint||'',message.editedText||'') };
+      case 'PC_PROJECT_AUTOPILOT_REVIEW': return { ok:true, result:await projectAutopilotReview(message.projectId,message.fingerprint||'',message.action,message.editedText||'') };
+      case 'PC_PROJECT_CHANGES_ACK': return { ok:true, result:await projectChangesAck(message.projectId) };
+      case 'PC_PROJECT_CONTEXT_STAGE': return stageApprovedProjectContext(message.projectId,message.chatId,message.fingerprint||'',message.source||'context');
+      case 'PC_PULSE_ACTIVE_CHAT': return { ok:true, context:await pulseActiveChatContext({ensureRecord:message.ensureRecord!==false}) };
+      case 'PC_PULSE_CHAT_PROJECT_SET': return { ok:true, result:await pulseSetCurrentChatProject(message.input||{}) };
       case 'PC_ORG_SUMMARY': return { ok: true, organization: await organizationSummary() };
       case 'PC_ORG_CHATS': return { ok: true, items: await organizationChats(message.filters || {}) };
       case 'PC_ORG_GROUP_CREATE': return { ok: true, item: await createGroup(message.input || {}) };
@@ -3847,15 +4596,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_BRAIN_SETTINGS_GET': {
         const cfg = await settings();
         const hasGithubToken = Boolean((await chrome.storage.local.get(GITHUB_SECRET_KEY))[GITHUB_SECRET_KEY]);
-        return { ok: true, settings: cfg, hasGithubToken, drive: await driveConnectionStatus(), catalog: publicCatalogState(await catalogState()) };
+        return { ok: true, settings: cfg, hasGithubToken, drive: await driveConnectionStatus(), catalog: publicCatalogState(await catalogState()), scheduledTaskGuardian:publicScheduledGuardianState(await scheduledGuardianState()), scheduledTaskTelemetry:publicScheduledTaskTelemetryState(await scheduledTaskTelemetryState()) };
       }
       case 'PC_BRAIN_SETTINGS_SET': {
         return mutateSettings(async () => {
           const current = await settings();
-          const next = await saveSettings({ ...current, ...(message.settings || {}), github: { ...current.github, ...(message.settings?.github || {}) }, drive: { ...current.drive, ...(message.settings?.drive || {}) }, catalog: { ...current.catalog, ...(message.settings?.catalog || {}) }, refreshRecovery: { ...current.refreshRecovery, ...(message.settings?.refreshRecovery || {}) }, projectIntegrity: { ...current.projectIntegrity, ...(message.settings?.projectIntegrity || {}) }, knowledge: { ...current.knowledge, ...(message.settings?.knowledge || {}) }, liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(message.settings?.liveHealth || {}) }), approvalAutopilot: { ...current.approvalAutopilot, ...(message.settings?.approvalAutopilot || {}) } });
+          const next = await saveSettings({ ...current, ...(message.settings || {}), github: { ...current.github, ...(message.settings?.github || {}) }, drive: { ...current.drive, ...(message.settings?.drive || {}) }, catalog: { ...current.catalog, ...(message.settings?.catalog || {}) }, refreshRecovery: { ...current.refreshRecovery, ...(message.settings?.refreshRecovery || {}) }, projectIntegrity: { ...current.projectIntegrity, ...(message.settings?.projectIntegrity || {}) }, knowledge: { ...current.knowledge, ...(message.settings?.knowledge || {}) }, liveHealth: health.normalizeSettings({ ...current.liveHealth, ...(message.settings?.liveHealth || {}) }), scheduledTaskGuardian: scheduledGuardian.normalizeSettings({ ...current.scheduledTaskGuardian, ...(message.settings?.scheduledTaskGuardian || {}) }), chatGuardian: chatGuardian.normalizeSettings({ ...current.chatGuardian, ...(message.settings?.chatGuardian || {}) }), approvalAutopilot: { ...current.approvalAutopilot, ...(message.settings?.approvalAutopilot || {}) } });
           if (message.settings?.projectIntegrity) {
             await chrome.alarms.clear(INTEGRITY_MAINTENANCE_ALARM).catch(() => {});
             if (next.projectIntegrity.enabled && next.projectIntegrity.autoScan) await chrome.alarms.create(INTEGRITY_MAINTENANCE_ALARM, { periodInMinutes: Math.max(5, Number(next.projectIntegrity.scanIntervalMinutes || 15)) });
+          }
+          if (message.settings?.scheduledTaskGuardian) {
+            await ensureScheduledGuardianAlarm(next.scheduledTaskGuardian);
+            if (next.scheduledTaskGuardian.enabled) runScheduledGuardian({ forceFrame:true }).catch(() => {});
+            else stopScheduledGuardianOffscreen().catch(() => {});
           }
           if (typeof message.githubToken === 'string' && message.githubToken) {
             await chrome.storage.local.set({ [GITHUB_SECRET_KEY]: message.githubToken, [GITHUB_TOKEN_META_KEY]: { accessExpiresAt: 0, refreshExpiresAt: 0, tokenType: 'bearer', connectedAt: Date.now() } });
@@ -3873,6 +4627,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_CONNECTIONS_STATUS': return connectionsStatus({ network: Boolean(message.network), verifyRemote: Boolean(message.verifyRemote), providerNetwork: Boolean(message.providerNetwork) });
       case 'PC_PROVIDER_SESSION_STATUS': return providerSessionStatus(message.providerId, { network: Boolean(message.network) });
       case 'PC_PROVIDER_LOGIN_OPEN': return openProviderLogin(message.providerId);
+      case 'PC_SCHEDULE_GUARDIAN_STATUS': return { ok:true, settings:(await settings()).scheduledTaskGuardian, state:publicScheduledGuardianState(await scheduledGuardianState()), telemetry:publicScheduledTaskTelemetryState(await scheduledTaskTelemetryState()) };
+      case 'PC_SCHEDULE_GUARDIAN_TASK_STATUS': return { ok:true, telemetry:publicScheduledTaskTelemetryState(await scheduledTaskTelemetryState()) };
+      case 'PC_SCHEDULE_GUARDIAN_TASK_SNAPSHOT': return ingestScheduledTaskSnapshot(message.snapshot || {}, sender);
+      case 'PC_SCHEDULE_GUARDIAN_MUTE': return muteScheduledGuardianNotifications(message.minutes || 60);
+      case 'PC_SCHEDULE_GUARDIAN_CLEAR_EVENTS': return clearScheduledGuardianEvents();
+      case 'PC_SCHEDULE_GUARDIAN_TEST_NOTIFICATION': return testScheduledGuardianNotification();
+      case 'PC_SCHEDULE_GUARDIAN_REPAIR': return runScheduledGuardian({ forceFrame:true, manualRepair:true });
+      case 'PC_SCHEDULE_GUARDIAN_OPEN': return openScheduledTasksPage();
       case 'PC_PROVIDER_CAPTURE_START': return startFullCapture([message.providerId], { speed: message.speed || 'balanced' });
       case 'PC_DRIVE_CONNECT': {
         await googleToken(true);
@@ -3916,6 +4678,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_OUTPUT_OBSERVE': return observeOutput({ ...message, chatId:message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt') });
       case 'PC_OUTPUT_COMPARE': return outputVaultReport(message.chatId || providers.chatIdFromUrl(sender?.tab?.url || message.url || '', providers.detectProvider(sender?.tab?.url || message.url || '')?.id || 'chatgpt'), { offset:message.offset, limit:message.limit });
       case 'PC_OUTPUT_TURN_REVISIONS': return outputTurnRevisions(message.turnId);
+      case 'PC_CHAT_VAULT_OPEN': {
+        const params=new URLSearchParams();
+        if(message.chatId)params.set('chat',String(message.chatId).slice(0,200));
+        const suffix=params.toString()?`?${params.toString()}`:'';
+        const tab=await chrome.tabs.create({url:chrome.runtime.getURL(`chat-vault.html${suffix}`),active:true});
+        return {ok:true,tabId:tab?.id||null};
+      }
       case 'PC_OPEN_CONSTELLATION_PAGE': {
         const allowedViews = new Set(['overview','search','knowledge','projects','chats','files','integrity','attention','connections','sources','durability']);
         const view = allowedViews.has(String(message.view || '')) ? String(message.view) : 'overview';
@@ -3925,6 +4694,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return { ok: true, tabId: tab?.id || null };
       }
       case 'PC_LIVE_CHAT_PULSE': return liveChatPulse({ force:Boolean(message.force) });
+      case 'PC_CHAT_GUARDIAN_RUN': return runChatGuardian({ trigger:'manual-message' });
+      case 'PC_CHAT_GUARDIAN_STATUS': return { ok:true, settings:(await settings()).chatGuardian, state:await chatGuardianState() };
       case 'PC_FOCUS_LIVE_CHAT': return focusLiveChat(message);
       case 'PC_RETRY_LIVE_CHAT_FAILURE': return retryLiveChatFailure(message.tabId || sender?.tab?.id);
       case 'PC_LIVE_CHAT_STATE_PUSH': return handleLiveChatStatePush(message, sender);
@@ -3935,7 +4706,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'PC_INTEGRITY_SCAN': return runProjectIntegrityScan({ projectIds: Array.isArray(message.projectIds) ? message.projectIds : [], force: message.force !== false });
       case 'PC_INTEGRITY_STATUS': return { ok: true, integrity: await integritySummary() };
       case 'PC_REQUEST_GOVERNOR_STATUS': return { ok: true, requestGovernor: publicRequestGovernor(await requestGovernorState()) };
-      case 'PC_BRAIN_CLEAR': await deleteAllStores(); await chrome.storage.local.remove([CATALOG_STATE_KEY, FULL_CAPTURE_STATE_KEY, APPROVAL_RECOVERY_STATE_KEY, REFRESH_RECOVERY_KEY, REQUEST_GOVERNOR_KEY, KNOWLEDGE_BACKFILL_KEY, DIRTY_KEY, BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await transientStorage().remove([BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await chrome.alarms.clear(KNOWLEDGE_INDEX_ALARM).catch(() => {}); await updateAttentionBadge(); return { ok: true };
+      case 'PC_BRAIN_CLEAR': await deleteAllStores(); await chrome.storage.local.remove([CATALOG_STATE_KEY, FULL_CAPTURE_STATE_KEY, APPROVAL_RECOVERY_STATE_KEY, REFRESH_RECOVERY_KEY, CHAT_GUARDIAN_STATE_KEY, REQUEST_GOVERNOR_KEY, KNOWLEDGE_BACKFILL_KEY, SCHEDULE_GUARDIAN_STATE_KEY, SCHEDULE_GUARDIAN_TASK_STATE_KEY, DIRTY_KEY, BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await transientStorage().remove([BRANCH_CONTINUATION_KEY, BRANCH_LINEAGE_KEY]); await chrome.alarms.clear(KNOWLEDGE_INDEX_ALARM).catch(() => {}); await updateAttentionBadge(); return { ok: true };
       default: return { ok: false, error: 'Unknown message' };
     }
   })().then(sendResponse).catch((error) => sendResponse({ ok: false, error: String(error?.message || error) }));
@@ -3943,14 +4714,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 
+void ensureBrainMigrationReceipt().catch(()=>{});
+
+
 const LIVE_ACTIVE_HEALTH_STATES = new Set(['working','tool-running','tool-quiet','quiet-working','uncertain-working']);
-const LIVE_STALE_HEALTH_STATES = new Set([...FAILURE_STATUSES,'refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page','capacity-watch','capacity-handoff','capacity-reached']);
+const LIVE_HOLD_STATUSES = new Set(['provider-review']);
+const LIVE_HOLD_HEALTH_STATES = new Set(['provider-review']);
+// Critical is reserved for hard-stop states where the current chat cannot safely continue
+// without explicit user intervention. It intentionally outranks ordinary Needs Attention.
+const LIVE_CRITICAL_STATUSES = new Set([...FAILURE_STATUSES,'refresh-required','blocked-approval']);
+const LIVE_CRITICAL_HEALTH_STATES = new Set([...FAILURE_STATUSES,'refresh-required','blocked-approval','dead','tool-dead','capacity-reached','degraded','stale-page']);
+const LIVE_STALE_HEALTH_STATES = new Set(['rate-limited','auth-required','unavailable','stalled','request-stalled','tool-stalled','capacity-watch','capacity-handoff']);
 const LIVE_NOTIFY_ATTENTION_STATES = new Set([...FAILURE_STATUSES,'stalled','dead','request-stalled','tool-stalled','tool-dead','capacity-watch','capacity-handoff','capacity-reached']);
-const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','blocked-approval',...FAILURE_STATUSES,'refresh-required','rate-limited','errored','stalled','auth-required','unavailable']);
+const LIVE_STALE_STATUSES = new Set(['paused','waiting-user','rate-limited','errored','stalled','auth-required','unavailable']);
 
 function livePulseBucket(state = {}, network = {}) {
   const status = String(state?.chat?.status || state?.status || 'idle');
   const healthState = String(state?.chat?.healthState || state?.healthState || state?.chat?.health?.state || '');
+  if (LIVE_CRITICAL_STATUSES.has(status) || LIVE_CRITICAL_HEALTH_STATES.has(healthState)) return 'critical';
+  if (LIVE_HOLD_STATUSES.has(status) || LIVE_HOLD_HEALTH_STATES.has(healthState)) return 'hold';
   if (LIVE_STALE_STATUSES.has(status) || LIVE_STALE_HEALTH_STATES.has(healthState)) return 'stale';
   // Provider traffic is useful timeline evidence, but it is not authoritative chat-state
   // evidence. ChatGPT performs background POSTs and auxiliary requests after a response
@@ -3962,6 +4744,8 @@ function livePulseBucket(state = {}, network = {}) {
 
 const TAB_BEACON_DEFAULTS = Object.freeze({
   completionNotificationsEnabled:true,
+  criticalNotificationsEnabled:true,
+  reviewReleaseNotificationsEnabled:true,
   attentionNotificationsEnabled:true,
   branchReviewBeforeSend:true,
   tabBeaconsEnabled:true,
@@ -3969,12 +4753,18 @@ const TAB_BEACON_DEFAULTS = Object.freeze({
   tabFaviconStatusEnabled:true,
   tabGroupingEnabled:true,
   tabGroupingMode:'project-status',
+  criticalEmoji:'🔴',
+  holdEmoji:'🛡️',
   activeEmoji:'🟣',
   staleEmoji:'⚠️',
   completedEmoji:'✅',
+  criticalColor:'#ff5c64',
+  holdColor:'#4fa3ff',
   activeColor:'#8b5cf6',
   staleColor:'#e0a458',
   completedColor:'#45bd8c',
+  criticalGroupColor:'red',
+  holdGroupColor:'blue',
   activeGroupColor:'purple',
   staleGroupColor:'orange',
   completedGroupColor:'green'
@@ -3993,14 +4783,23 @@ function normalizePulseUx(input = {}) {
   next.tabTitleStatusEnabled = next.tabTitleStatusEnabled !== false;
   next.tabFaviconStatusEnabled = next.tabFaviconStatusEnabled !== false;
   next.tabGroupingEnabled = next.tabGroupingEnabled !== false;
+  next.completionNotificationsEnabled = next.completionNotificationsEnabled !== false;
+  next.criticalNotificationsEnabled = next.criticalNotificationsEnabled !== false;
+  next.reviewReleaseNotificationsEnabled = next.reviewReleaseNotificationsEnabled !== false;
+  next.attentionNotificationsEnabled = next.attentionNotificationsEnabled !== false;
+  next.branchReviewBeforeSend = true;
   next.tabGroupingMode = ['project-status','status'].includes(next.tabGroupingMode) ? next.tabGroupingMode : TAB_BEACON_DEFAULTS.tabGroupingMode;
+  next.criticalEmoji = String(next.criticalEmoji || TAB_BEACON_DEFAULTS.criticalEmoji).trim().slice(0, 12);
+  next.holdEmoji = String(!input?.holdEmoji || input?.holdEmoji === '🔵' ? TAB_BEACON_DEFAULTS.holdEmoji : input.holdEmoji).trim().slice(0, 12);
   next.activeEmoji = String(next.activeEmoji || TAB_BEACON_DEFAULTS.activeEmoji).trim().slice(0, 12);
   next.staleEmoji = String(next.staleEmoji || TAB_BEACON_DEFAULTS.staleEmoji).trim().slice(0, 12);
   next.completedEmoji = String(next.completedEmoji || TAB_BEACON_DEFAULTS.completedEmoji).trim().slice(0, 12);
+  next.criticalColor = normalizeHexColor(next.criticalColor, TAB_BEACON_DEFAULTS.criticalColor);
+  next.holdColor = normalizeHexColor(next.holdColor, TAB_BEACON_DEFAULTS.holdColor);
   next.activeColor = normalizeHexColor(next.activeColor, TAB_BEACON_DEFAULTS.activeColor);
   next.staleColor = normalizeHexColor(next.staleColor, TAB_BEACON_DEFAULTS.staleColor);
   next.completedColor = normalizeHexColor(next.completedColor, TAB_BEACON_DEFAULTS.completedColor);
-  for (const key of ['activeGroupColor','staleGroupColor','completedGroupColor']) if (!NATIVE_GROUP_COLORS.has(next[key])) next[key] = TAB_BEACON_DEFAULTS[key];
+  for (const key of ['criticalGroupColor','holdGroupColor','activeGroupColor','staleGroupColor','completedGroupColor']) if (!NATIVE_GROUP_COLORS.has(next[key])) next[key] = TAB_BEACON_DEFAULTS[key];
   return next;
 }
 
@@ -4060,6 +4859,8 @@ async function setTabTag(tabId, tag) {
 }
 
 function bucketPresentation(bucket, cfg) {
+  if (bucket === 'critical') return { emoji:cfg.criticalEmoji, color:cfg.criticalColor, groupColor:cfg.criticalGroupColor, label:'Critical' };
+  if (bucket === 'hold') return { emoji:cfg.holdEmoji, color:cfg.holdColor, groupColor:cfg.holdGroupColor, label:'On hold' };
   if (bucket === 'active') return { emoji:cfg.activeEmoji, color:cfg.activeColor, groupColor:cfg.activeGroupColor, label:'Active' };
   if (bucket === 'stale') return { emoji:cfg.staleEmoji, color:cfg.staleColor, groupColor:cfg.staleGroupColor, label:'Needs attention' };
   return { emoji:cfg.completedEmoji, color:cfg.completedColor, groupColor:cfg.completedGroupColor, label:'Completed' };
@@ -4079,6 +4880,8 @@ async function ensureTabBeacon(tabId) {
 function managedGroupBucket(title = '') {
   const value = String(title || '').trim();
   if (!value.startsWith(`${TAB_GROUP_PREFIX} `)) return '';
+  if (/\sCritical$/i.test(value)) return 'critical';
+  if (/\s(?:On hold|Review hold)$/i.test(value)) return 'hold';
   if (/\sActive$/i.test(value)) return 'active';
   if (/\s(?:Needs attention|Attention)$/i.test(value)) return 'stale';
   if (/\sCompleted$/i.test(value)) return 'completed';
@@ -4089,7 +4892,9 @@ function compactGroupProjectName(value = '') { return String(value || '').replac
 
 function tabGroupProjectName(row = {}, cfg = {}) {
   if (cfg.tabGroupingMode !== 'project-status') return '';
-  return compactGroupProjectName(row?.context?.projectName || row?.workspaceProjectName || '');
+  const name=String(row?.context?.projectName || row?.workspaceProjectName || '').trim();
+  const icon=String(row?.context?.projectIcon || '').replace(/\s+/g,' ').trim().slice(0,16);
+  return compactGroupProjectName(`${icon ? `${icon} ` : ''}${name}`);
 }
 
 function managedGroupTitle(bucket, cfg, projectName = '') {
@@ -4105,7 +4910,13 @@ async function managedGroupFor(windowId, bucket, cfg, projectName = '') {
   const found = groups.find((group) => String(group.title || '').trim() === title);
   if (!found) return null;
   const presentation = bucketPresentation(bucket, cfg);
-  await chrome.tabGroups.update(found.id, { title, color:presentation.groupColor, collapsed:bucket === 'completed' }).catch(() => {});
+  const patch = {};
+  if (String(found.title || '').trim() !== title) patch.title = title;
+  if (String(found.color || '') !== String(presentation.groupColor || '')) patch.color = presentation.groupColor;
+  // Chrome tab-group writes are surprisingly expensive and emit onUpdated. Never
+  // write an already-correct group just to reaffirm its state. Collapse/expand is
+  // always the user's choice; Constellation never fights Chrome's manual group state.
+  if (Object.keys(patch).length) await chrome.tabGroups.update(found.id, patch).catch(() => {});
   return found.id;
 }
 
@@ -4151,7 +4962,9 @@ async function syncTabGroupNow(row, cfg) {
       const groupId = await chrome.tabs.group({ tabIds:[tab.id] });
       if (groupId === null || groupId === undefined) return { ok:false, error:'managed-group-create-failed' };
       const presentation = bucketPresentation(bucket, cfg);
-      await chrome.tabGroups.update(groupId, { title:managedGroupTitle(bucket,cfg,projectName), color:presentation.groupColor, collapsed:bucket === 'completed' });
+      // New Chrome groups are expanded by default. Do not set collapsed here: a state
+      // transition into Completed must never make the user's tabs disappear from view.
+      await chrome.tabGroups.update(groupId, { title:managedGroupTitle(bucket,cfg,projectName), color:presentation.groupColor });
       target = groupId;
     } else if (currentGroupId !== target) {
       await chrome.tabs.group({ groupId:target, tabIds:[tab.id] });
@@ -4160,6 +4973,20 @@ async function syncTabGroupNow(row, cfg) {
   } catch (error) {
     return { ok:false, error:String(error?.message || error || 'group-sync-failed') };
   }
+}
+
+const COMPLETED_GROUP_EXPAND_MIGRATION_KEY = 'projectConstellationCompletedGroupExpandMigrationV0174';
+async function expandLegacyAutoCollapsedCompletedGroupsOnce() {
+  if (!chrome.storage?.local?.get || !chrome.storage?.local?.set || !chrome.tabGroups?.query || !chrome.tabGroups?.update) return false;
+  const stored = await chrome.storage.local.get(COMPLETED_GROUP_EXPAND_MIGRATION_KEY).catch(() => ({}));
+  if (stored?.[COMPLETED_GROUP_EXPAND_MIGRATION_KEY]) return false;
+  const groups = await chrome.tabGroups.query({}).catch(() => []);
+  for (const group of groups) {
+    if (managedGroupBucket(group?.title || '') !== 'completed' || !group?.collapsed) continue;
+    await chrome.tabGroups.update(group.id, { collapsed:false }).catch(() => {});
+  }
+  await chrome.storage.local.set({ [COMPLETED_GROUP_EXPAND_MIGRATION_KEY]:true }).catch(() => {});
+  return true;
 }
 
 function syncTabGroup(row, cfg) {
@@ -4225,13 +5052,18 @@ async function refreshAllTabPresentations() {
 }
 
 async function renderActionBadge(snapshot = null) {
-  if (snapshot?.counts) liveToolbarSnapshot = { active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0), open:Number(snapshot.openChatTabs || 0) };
+  if (snapshot?.counts) liveToolbarSnapshot = { critical:Number(snapshot.counts.critical || 0), hold:Number(snapshot.counts.hold || 0), active:Number(snapshot.counts.active || 0), stale:Number(snapshot.counts.stale || 0), completed:Number(snapshot.counts.completed || 0), open:Number(snapshot.openChatTabs || 0) };
   const cfg = await pulseUxSettings().catch(() => normalizePulseUx());
+  const critical = Number(liveToolbarSnapshot.critical || 0);
+  const hold = Number(liveToolbarSnapshot.hold || 0);
   const active = Number(liveToolbarSnapshot.active || 0);
   const stale = Number(liveToolbarSnapshot.stale || 0);
   const attention = Math.max(stale, Number(attentionBadgeCount || 0));
   let text = '', color = cfg.completedColor, title = 'Project Constellation';
-  if (cfg.tabBeaconsEnabled && active) { text = active > 99 ? '99+' : String(active); color = cfg.activeColor; title = `Project Constellation · ${active} active chat${active === 1 ? '' : 's'}`; }
+  if (cfg.tabBeaconsEnabled && critical) { text = critical > 99 ? '99+' : String(critical); color = cfg.criticalColor; title = `Project Constellation · ${critical} critical chat${critical === 1 ? '' : 's'}`; }
+  else if (scheduledGuardianAttentionCount) { const count=Math.min(99,scheduledGuardianAttentionCount); text=`S${count}`; color=cfg.staleColor; title=`Project Constellation · ${scheduledGuardianAttentionCount} scheduled task${scheduledGuardianAttentionCount===1?'':'s'} need attention`; }
+  else if (cfg.tabBeaconsEnabled && hold) { text = hold > 99 ? '99+' : String(hold); color = cfg.holdColor; title = `Project Constellation · 🛡️ ${hold} chat${hold === 1 ? '' : 's'} on hold for provider review`; }
+  else if (cfg.tabBeaconsEnabled && active) { text = active > 99 ? '99+' : String(active); color = cfg.activeColor; title = `Project Constellation · ${active} active chat${active === 1 ? '' : 's'}`; }
   else if (attention) { text = attention > 99 ? '99+' : String(attention); color = cfg.staleColor; title = `Project Constellation · ${attention} chat${attention === 1 ? '' : 's'} need attention`; }
   else if (cfg.tabBeaconsEnabled && liveToolbarSnapshot.open) { text = '✓'; color = cfg.completedColor; title = `Project Constellation · ${liveToolbarSnapshot.completed} completed chat${liveToolbarSnapshot.completed === 1 ? '' : 's'}`; }
   try { await chrome.action?.setBadgeText?.({ text }); } catch (_) {}
@@ -4249,6 +5081,7 @@ async function ensureTabTagMenus() {
 }
 
 async function notifyChatCompletion(row) {
+  if (globalThis.pcAttention) return;
   const cfg = await pulseUxSettings();
   if (cfg.completionNotificationsEnabled === false || !chrome.notifications?.create) return;
   const notificationId = `pc-chat-complete:${Number(row.tabId || 0)}:${Date.now()}`;
@@ -4256,14 +5089,112 @@ async function notifyChatCompletion(row) {
     await chrome.notifications.create(notificationId, {
       type:'basic',
       iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
-      title:'Chat finished',
-      message:String(row.title || row.providerName || 'AI chat').slice(0, 180),
-      contextMessage:'Project Constellation'
+      title:'Chat completed',
+      message:`${String(row.title || row.providerName || 'AI chat').slice(0, 170)} is ready to check.`,
+      contextMessage:'Project Constellation · Completed'
     });
   } catch (_) {}
 }
 
+async function notifyChatCritical(row, { releasedFromHold = false } = {}) {
+  if (globalThis.pcAttention) return; // One durable alert owner; no duplicate legacy toast.
+  const cfg = await pulseUxSettings();
+  if (cfg.criticalNotificationsEnabled === false || !chrome.notifications?.create) return;
+  const failure = row?.failure?.active ? row.failure : null;
+  const healthState = String(row?.healthState || row?.status || 'critical');
+  const title = failure?.title || (healthState === 'capacity-reached' ? 'Conversation limit reached' : healthState === 'dead' || healthState === 'tool-dead' ? 'Chat needs intervention' : 'Chat went Critical');
+  const task = String(row?.title || row?.providerName || 'AI chat').slice(0, 170);
+  const detail = failure?.retryAvailable
+    ? `${failure.retryLabel || 'Retry'} is available in the existing tab. Constellation will never trigger it automatically.`
+    : releasedFromHold
+      ? 'The provider review hold cleared, but the chat moved directly into a Critical state.'
+      : 'Constellation detected a hard-stop state. Open the existing tab to review it.';
+  const notificationId = `pc-chat-critical:${Number(row?.tabId || 0)}:${Date.now()}`;
+  try {
+    await chrome.notifications.create(notificationId, {
+      type:'basic',
+      iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
+      title:String(title).slice(0, 120),
+      message:`${task} · ${detail}`.slice(0, 320),
+      contextMessage:'Project Constellation · Critical'
+    });
+  } catch (_) {}
+}
+
+async function notifyReviewCleared(row) {
+  if (globalThis.pcAttention) return;
+  const cfg = await pulseUxSettings();
+  if (cfg.reviewReleaseNotificationsEnabled === false || !chrome.notifications?.create) return;
+  const completed = row?.bucket === 'completed';
+  const notificationId = `pc-chat-review-cleared:${Number(row?.tabId || 0)}:${Date.now()}`;
+  try {
+    await chrome.notifications.create(notificationId, {
+      type:'basic',
+      iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
+      title:completed ? 'Review cleared · chat completed' : 'Review cleared · check this chat',
+      message:`${String(row?.title || row?.providerName || 'AI chat').slice(0, 170)} ${completed ? 'finished while it was on hold.' : 'is no longer on hold and is actionable again.'}`,
+      contextMessage:'Project Constellation · On hold released'
+    });
+  } catch (_) {}
+}
+
+const LIVE_TRANSITION_SESSION_PREFIX = 'projectConstellationLiveTransition:';
+
+function liveTransitionSessionKey(tabId) { return `${LIVE_TRANSITION_SESSION_PREFIX}${Number(tabId || 0)}`; }
+
+function compactLiveTransitionState(row = {}) {
+  return {
+    tabId:Number(row.tabId || 0),
+    bucket:String(row.bucket || ''),
+    status:String(row.status || ''),
+    healthState:String(row.healthState || ''),
+    chatId:String(row.chatId || ''),
+    url:String(row.url || ''),
+    observedAt:Number(row.observedAt || Date.now())
+  };
+}
+
+function sameLiveConversation(previous = {}, current = {}) {
+  const previousChatId = String(previous.chatId || '');
+  const currentChatId = String(current.chatId || '');
+  if (previousChatId && currentChatId) return previousChatId === currentChatId;
+  const previousUrl = String(previous.url || '').split('#')[0];
+  const currentUrl = String(current.url || '').split('#')[0];
+  return Boolean(previousUrl && currentUrl && previousUrl === currentUrl);
+}
+
+async function readPersistedLiveTransition(tabId) {
+  if (!chrome.storage?.session?.get) return null;
+  const key = liveTransitionSessionKey(tabId);
+  try {
+    const stored = await chrome.storage.session.get(key);
+    const value = stored?.[key];
+    return value && typeof value === 'object' ? value : null;
+  } catch (_) { return null; }
+}
+
+function persistLiveTransition(row = {}) {
+  if (!chrome.storage?.session?.set) return;
+  const tabId = Number(row.tabId || 0);
+  if (!tabId) return;
+  const compact = compactLiveTransitionState(row);
+  const signature = JSON.stringify(compact);
+  if (liveTransitionPersistSignatures.get(tabId) === signature) return;
+  liveTransitionPersistSignatures.set(tabId, signature);
+  chrome.storage.session.set({ [liveTransitionSessionKey(tabId)]:compact }).catch?.(() => {
+    if (liveTransitionPersistSignatures.get(tabId) === signature) liveTransitionPersistSignatures.delete(tabId);
+  });
+}
+
+function clearPersistedLiveTransition(tabId) {
+  const id = Number(tabId || 0);
+  liveTransitionPersistSignatures.delete(id);
+  if (!chrome.storage?.session?.remove) return;
+  chrome.storage.session.remove(liveTransitionSessionKey(id)).catch?.(() => {});
+}
+
 async function notifyChatAttention(row) {
+  if (globalThis.pcAttention) return; // Attention episodes, receipts and reminders live in one service.
   const cfg = await pulseUxSettings();
   const healthState = String(row?.healthState || '');
   if (cfg.attentionNotificationsEnabled === false || !LIVE_NOTIFY_ATTENTION_STATES.has(healthState) || !chrome.notifications?.create) return;
@@ -4288,20 +5219,40 @@ async function notifyChatAttention(row) {
       iconUrl:chrome.runtime.getURL('assets/constellation-field.svg'),
       title,
       message:`${task} · ${suffix}`.slice(0, 320),
-      contextMessage:'Project Constellation · Needs Attention'
+      contextMessage:`Project Constellation · ${row?.bucket === 'critical' ? 'Critical' : 'Needs Attention'}`
     });
   } catch (_) {}
 }
 
-function rememberLiveTabState(row, { notify = true } = {}) {
+async function rememberLiveTabState(row, { notify = true } = {}) {
+  if (globalThis.pcAttention) await globalThis.pcAttention.observe(row).catch((error) => console.warn('Constellation attention observation failed:', String(error?.message || error)));
   const tabId = Number(row?.tabId || 0);
   if (!tabId) return;
-  const previous = liveTabStateByTab.get(tabId);
+  const inMemoryPrevious = liveTabStateByTab.get(tabId) || null;
+  let previous = inMemoryPrevious;
+  if (!previous) previous = await readPersistedLiveTransition(tabId);
+  const comparablePrevious = previous && sameLiveConversation(previous, row) ? previous : null;
   liveTabStateByTab.set(tabId, { ...row, observedAt:Number(row.observedAt || Date.now()) });
+  persistLiveTransition(row);
   liveChatPulseCacheAt = 0;
-  syncTabPresentation(row).catch(() => {});
-  if (notify && previous?.bucket === 'active' && row.bucket === 'completed') notifyChatCompletion(row).catch(() => {});
-  if (notify && row.bucket === 'stale' && previous?.healthState !== row.healthState && LIVE_NOTIFY_ATTENTION_STATES.has(String(row.healthState || ''))) notifyChatAttention(row).catch(() => {});
+  const presentationChanged = !inMemoryPrevious
+    || !sameLiveConversation(inMemoryPrevious, row)
+    || String(inMemoryPrevious.bucket || '') !== String(row.bucket || '')
+    || String(inMemoryPrevious?.context?.projectName || '') !== String(row?.context?.projectName || '')
+    || !tabPresentationSignatures.has(tabId);
+  if (presentationChanged) syncTabPresentation(row).catch(() => {});
+  if (!notify || !comparablePrevious) return;
+  const releasedFromHold = comparablePrevious.bucket === 'hold' && row.bucket !== 'hold';
+  if (row.bucket === 'critical' && comparablePrevious.bucket !== 'critical') {
+    await notifyChatCritical(row, { releasedFromHold });
+    return;
+  }
+  if (releasedFromHold) {
+    await notifyReviewCleared(row);
+    return;
+  }
+  if (row.bucket === 'completed' && comparablePrevious.bucket !== 'completed') await notifyChatCompletion(row);
+  if (row.bucket === 'stale' && comparablePrevious.healthState !== row.healthState && LIVE_NOTIFY_ATTENTION_STATES.has(String(row.healthState || ''))) await notifyChatAttention(row);
 }
 
 function livePulseDomProbe() {
@@ -4351,7 +5302,8 @@ async function readLiveSentinelState(tabId) {
     // During a hot upgrade an old content-world listener can answer for a few milliseconds
     // before its dispose path completes. Never let a stale Sentinel become canonical merely
     // because it won the message-response race; force the normal reinjection/reconcile path.
-    return state?.ok && state?.source === 'live-sentinel' && state?.version === LIVE_SENTINEL_VERSION ? state : null;
+    return state?.ok && state?.source === 'live-sentinel' && state?.version === LIVE_SENTINEL_VERSION &&
+      typeof state?.chat?.status === 'string' && Boolean(state.chat.status) ? state : null;
   } catch (_) { return null; }
 }
 
@@ -4433,6 +5385,9 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
     try { state = await chrome.tabs.sendMessage(tabId, { type:'PC_GET_LIVE_CHAT_STATE' }); }
     catch (_) { state = null; }
   }
+  // Message delivery alone is not fresh supervision. A generic ACK must not
+  // become an invented idle/completed conversation through the fallback path.
+  if (state?.ok && (typeof state?.chat?.status !== 'string' || !state.chat.status)) state = null;
   if (!state?.ok && allowInject) state = await probeLiveStateFromTab(tabId);
   if (!state?.ok) return null;
   const network = networkStateForTab(tabId);
@@ -4449,16 +5404,19 @@ async function readLiveStateFromTab(tab, { allowInject = true } = {}) {
     rawStatus:String(state?.chat?.rawStatus || state?.chat?.status || 'idle'),
     healthState:String(state?.chat?.healthState || state?.chat?.health?.state || ''),
     bucket,
+    critical:bucket === 'critical',
+    hold:bucket === 'hold',
     active:bucket === 'active',
     stale:bucket === 'stale',
     completed:bucket === 'completed',
     failure:state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null,
     generation:state?.generation || null,
+    health:state?.health || null, source:String(state?.source || ''), discarded:Boolean(tab.discarded), frozen:Boolean(tab.frozen),
     network:{ pending:Number(network.pending || 0), streamLikely:Boolean(network.streamLikely), lastStartAt:Number(network.lastStartAt || 0), lastCompleteAt:Number(network.lastCompleteAt || 0) },
     lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0), Number(network.lastStartAt || 0), Number(network.lastResponseAt || 0), Number(network.lastCompleteAt || 0)),
     observedAt:Date.now()
   };
-  rememberLiveTabState(row);
+  await rememberLiveTabState(row);
   return row;
 }
 
@@ -4468,6 +5426,193 @@ function livePulseTimeout(promise, timeoutMs = LIVE_CHAT_PROBE_TIMEOUT_MS) {
     Promise.resolve(promise),
     new Promise((resolve) => { timer = setTimeout(() => resolve(null), Math.max(100, Number(timeoutMs || LIVE_CHAT_PROBE_TIMEOUT_MS))); })
   ]).finally(() => { if (timer) clearTimeout(timer); });
+}
+
+let chatGuardianRunPromise = null;
+let chatGuardianSweepTimer = 0;
+
+function defaultChatGuardianState() {
+  return { version:1, chats:{}, sweeps:0, continuations:0, reloadRecoveries:0, failures:0, lastSweepAt:0, lastContinuationAt:0, updatedAt:0 };
+}
+
+async function chatGuardianState() {
+  const stored = (await chrome.storage.local.get(CHAT_GUARDIAN_STATE_KEY))?.[CHAT_GUARDIAN_STATE_KEY];
+  return { ...defaultChatGuardianState(), ...(stored || {}), chats:{ ...(stored?.chats || {}) } };
+}
+
+async function saveChatGuardianState(state = {}) {
+  const chats = { ...(state?.chats || {}) };
+  const entries = Object.entries(chats);
+  if (entries.length > 500) {
+    entries.sort((a, b) => Number(b[1]?.updatedAt || b[1]?.lastResultAt || 0) - Number(a[1]?.updatedAt || a[1]?.lastResultAt || 0));
+    for (const [key] of entries.slice(500)) delete chats[key];
+  }
+  const next = { ...defaultChatGuardianState(), ...(state || {}), chats, updatedAt:Date.now() };
+  await chrome.storage.local.set({ [CHAT_GUARDIAN_STATE_KEY]:next });
+  stateBus.publishCoalesced('chat.guardian.changed', { sweeps:next.sweeps, continuations:next.continuations, failures:next.failures, updatedAt:next.updatedAt }, { source:'chat-guardian', key:'runtime', delayMs:120 });
+  return next;
+}
+
+async function armChatGuardianFallback(delayMs = null) {
+  const cfg = (await settings()).chatGuardian;
+  if (!cfg?.enabled) {
+    await chrome.alarms.clear(CHAT_GUARDIAN_ALARM).catch(() => false);
+    return false;
+  }
+  const delay = Math.max(30_000, Number(delayMs || cfg.activeFallbackMs || 60_000));
+  await chrome.alarms.create(CHAT_GUARDIAN_ALARM, { when:Date.now() + delay });
+  return true;
+}
+
+function scheduleChatGuardianSweep(delay = 450) {
+  if (chatGuardianSweepTimer) clearTimeout(chatGuardianSweepTimer);
+  chatGuardianSweepTimer = setTimeout(() => {
+    chatGuardianSweepTimer = 0;
+    runChatGuardian({ trigger:'event' }).catch(() => {});
+  }, Math.max(80, Number(delay || 0)));
+}
+
+async function keepChatGptTabResident(tab) {
+  if (!tab?.id) return false;
+  try { await chrome.tabs.update(Number(tab.id), { autoDiscardable:false }); } catch (_) {}
+  if (!tab.discarded) return true;
+  try {
+    await chrome.tabs.reload(Number(tab.id), { bypassCache:false });
+    return false;
+  } catch (_) { return false; }
+}
+
+async function runChatGuardian({ trigger = 'manual' } = {}) {
+  if (chatGuardianRunPromise) return chatGuardianRunPromise;
+  chatGuardianRunPromise = (async () => {
+    const cfg = (await settings()).chatGuardian;
+    if (!cfg?.enabled) {
+      await chrome.alarms.clear(CHAT_GUARDIAN_ALARM).catch(() => false);
+      return { ok:true, enabled:false, tabs:0, candidates:0, continued:0 };
+    }
+
+    const tabs = (await chrome.tabs.query({})).filter((tab) => {
+      const provider = providers.detectProvider(tab.url || '');
+      return Boolean(tab?.id && provider?.id === 'chatgpt' && providers.isLikelyChatUrl(tab.url || '', provider.id));
+    });
+    if (!tabs.length) {
+      await chrome.alarms.clear(CHAT_GUARDIAN_ALARM).catch(() => false);
+      const emptyState = await chatGuardianState();
+      emptyState.sweeps = Number(emptyState.sweeps || 0) + 1;
+      emptyState.lastSweepAt = Date.now();
+      await saveChatGuardianState(emptyState);
+      return { ok:true, enabled:true, tabs:0, candidates:0, continued:0 };
+    }
+
+    // User-requested all-tab reliability means ChatGPT tabs are not allowed to silently
+    // fall out of supervision because Chrome discarded a background tab. Keep them
+    // non-discardable and wake any already-discarded tab without focusing it.
+    await Promise.allSettled(tabs.map((tab) => keepChatGptTabResident(tab)));
+
+    // Chrome 132+ can freeze background tabs. Frozen pages cannot execute content-script
+    // event handlers or timers, and extension messages are queued until the tab is
+    // unfrozen. Do not pile duplicate guardian probes onto a frozen tab. onUpdated and
+    // onActivated below trigger an immediate sweep when Chrome makes it runnable again.
+    // Discarded tabs are similarly reloaded above and re-enter through the load event.
+    const deferredTabs = tabs.filter((tab) => Boolean(tab.frozen || tab.discarded));
+    const probeTabs = tabs.filter((tab) => !tab.frozen && !tab.discarded);
+    const settled = await Promise.allSettled(probeTabs.map((tab) => livePulseTimeout(readLiveStateFromTab(tab, { allowInject:true }), Math.max(3000, LIVE_CHAT_PROBE_TIMEOUT_MS * 2))));
+    const rows = settled.map((result, index) => ({ tab:probeTabs[index], row:result.status === 'fulfilled' ? result.value : null })).filter((entry) => entry.row);
+    let state = await chatGuardianState();
+    const now = Date.now();
+    const candidates = [];
+    for (const { tab, row } of rows) {
+      const key = String(row.chatId || `tab:${tab.id}`);
+      const history = state.chats[key] || {};
+      const decision = chatGuardian.shouldAttempt(row, history, cfg, now);
+      if (!decision.recover) continue;
+      const same = String(history.fingerprint || '') === String(decision.fingerprint || '');
+      const nextHistory = same ? { ...history } : { fingerprint:decision.fingerprint, attempts:0, reloads:0, continuations:0 };
+      nextHistory.fingerprint = decision.fingerprint;
+      nextHistory.attempts = Number(decision.attempts || 0) + 1;
+      nextHistory.lastAttemptAt = now;
+      nextHistory.lastReason = decision.reason;
+      nextHistory.lastTabId = Number(tab.id || 0);
+      nextHistory.lastUrl = String(tab.url || row.url || '');
+      nextHistory.lastResult = 'attempting';
+      nextHistory.updatedAt = now;
+      state.chats[key] = nextHistory;
+      candidates.push({ tab, row, key, decision });
+    }
+    state.sweeps = Number(state.sweeps || 0) + 1;
+    state.lastSweepAt = now;
+    await saveChatGuardianState(state);
+
+    const attempts = await Promise.allSettled(candidates.map(async ({ tab, row, key, decision }) => {
+      const response = await livePulseTimeout(chrome.tabs.sendMessage(Number(tab.id), {
+        type:'PC_LIVE_SENTINEL_CONTINUE_UNFINISHED',
+        expectedChatId:String(row.chatId || ''),
+        reason:String(decision.reason || ''),
+        fingerprint:String(decision.fingerprint || ''),
+        prompt:String(decision.prompt || cfg.prompt || 'Continue the unfinished task.')
+      }), 16_000);
+      return { tab, row, key, decision, response:response || { ok:false, action:'timeout', error:'Chat Guardian continuation timed out.' } };
+    }));
+
+    state = await chatGuardianState();
+    let continued = 0;
+    let reloaded = 0;
+    let failed = 0;
+    for (let index = 0; index < attempts.length; index += 1) {
+      const meta = candidates[index];
+      const result = attempts[index];
+      if (!meta) continue;
+      const response = result.status === 'fulfilled' ? result.value?.response || {} : { ok:false, action:'failed', error:String(result.reason?.message || result.reason || 'Continuation call failed.') };
+      const history = { ...(state.chats[meta.key] || {}) };
+      history.lastResult = String(response.action || (response.ok ? 'sent-continue' : 'failed'));
+      history.lastError = String(response.error || '').slice(0, 320);
+      history.lastResultAt = Date.now();
+      history.updatedAt = history.lastResultAt;
+      if (response.ok === true && response.action === 'sent-continue') {
+        continued += 1;
+        history.continuations = Number(history.continuations || 0) + 1;
+        history.lastContinuationAt = history.lastResultAt;
+        state.continuations = Number(state.continuations || 0) + 1;
+        state.lastContinuationAt = history.lastResultAt;
+        await addEvent('chat-guardian-continue', 'chat', meta.row.chatId || meta.key, meta.row.chatId || '', { trigger, reason:meta.decision.reason, tabId:Number(meta.tab.id || 0), fingerprint:meta.decision.fingerprint, prompt:String(meta.decision.prompt || cfg.prompt || '') }).catch(() => {});
+        scheduleLiveTabReconcile(Number(meta.tab.id), 260);
+      } else {
+        const safeReloadActions = new Set(['composer-unavailable','send-unavailable','stage-failed']);
+        const sameFingerprint = String(history.fingerprint || '') === String(meta.decision.fingerprint || '');
+        const reloads = sameFingerprint ? Number(history.reloads || 0) : 0;
+        if (meta.decision.severity === 'failure' && safeReloadActions.has(String(response.action || '')) && reloads < 1) {
+          try {
+            await chrome.tabs.reload(Number(meta.tab.id), { bypassCache:false });
+            reloaded += 1;
+            history.reloads = reloads + 1;
+            history.lastReloadAt = Date.now();
+            history.lastAttemptAt = 0;
+            history.lastResult = 'reload-for-continuation';
+            state.reloadRecoveries = Number(state.reloadRecoveries || 0) + 1;
+            scheduleChatGuardianSweep(2200);
+          } catch (error) {
+            failed += 1;
+            history.lastError = String(error?.message || error || 'Reload failed.').slice(0, 320);
+          }
+        } else if (!['not-unfinished','already-complete','still-running','blocked-hold','composer-busy','deduped'].includes(String(response.action || ''))) {
+          failed += 1;
+        }
+      }
+      state.chats[meta.key] = history;
+    }
+    state.failures = Number(state.failures || 0) + failed;
+    await saveChatGuardianState(state);
+
+    const policyDelay = chatGuardian.nextFallbackMs(rows.map((entry) => entry.row), cfg);
+    const nextDelay = deferredTabs.length ? Math.min(policyDelay, Number(cfg.activeFallbackMs || 60_000)) : policyDelay;
+    await armChatGuardianFallback(nextDelay);
+    return {
+      ok:true, enabled:true, tabs:tabs.length, responsive:rows.length, deferred:deferredTabs.length,
+      frozen:deferredTabs.filter((tab) => Boolean(tab.frozen)).length, discarded:deferredTabs.filter((tab) => Boolean(tab.discarded)).length,
+      candidates:candidates.length, continued, reloaded, failed, nextCheckMs:nextDelay
+    };
+  })().finally(() => { chatGuardianRunPromise = null; });
+  return chatGuardianRunPromise;
 }
 
 function fallbackLiveRow(tab, cached = null) {
@@ -4481,9 +5626,9 @@ function fallbackLiveRow(tab, cached = null) {
   }
   return {
     tabId:Number(tab?.id || 0), windowId:Number(tab?.windowId || 0), providerId:provider.id, providerName:provider.name,
-    title:String(tab?.title || provider.name || 'AI chat').replace(/^\s*[✅🟢🟡🔴🟣⚠️]+\s*/u,'').slice(0,220),
+    title:String(tab?.title || provider.name || 'AI chat').replace(/^\s*[✅🟢🟡🔴🟣🔵🛡️⚠️]+\s*/u,'').slice(0,220),
     url:String(tab?.url || ''), chatId:String(providers.chatIdFromUrl(tab?.url || '', provider.id) || ''),
-    status:'unavailable', rawStatus:'unavailable', healthState:'unavailable', bucket:'stale', active:false, stale:true, completed:false,
+    status:'unavailable', rawStatus:'unavailable', healthState:'unavailable', bucket:'stale', critical:false, hold:false, active:false, stale:true, completed:false,
     generation:{ active:false, transcriptProof:false, phase:'reconnecting' }, network:{ pending:0, streamLikely:false, lastStartAt:0, lastCompleteAt:0 },
     lastActivityAt:Number(cached?.lastActivityAt || 0), observedAt:now, responsive:false, reconnecting:true
   };
@@ -4551,8 +5696,12 @@ async function liveCatalogContext(row = {}) {
   const providerProject = !/^inbox$/i.test(String(chat?.projectName || '').trim()) ? String(chat?.projectName || '') : '';
   const projectName = brain.normalizeText(chat?.workspaceProjectName || providerProject || '', 120);
   const projectId = String(chat?.workspaceProjectId || (providerProject ? chat?.projectId || '' : '') || '');
+  let projectIdentity = null;
+  if (chat?.workspaceProjectId) { try { projectIdentity = await getOne('projects', String(chat.workspaceProjectId)); } catch (_) {} }
+  const projectIcon = brain.normalizeText(projectIdentity?.icon || '', 16);
+  const projectColor = /^#[0-9a-f]{6}$/i.test(String(projectIdentity?.color || '')) ? String(projectIdentity.color).toLowerCase() : '';
   const taskHint = compactLiveTaskHint(chat?.lastUserExcerpt || fallbackUserText || '', 132);
-  const value = { catalogChatId, projectId, projectName, taskHint, taskSource:taskHint ? 'latest-user-turn' : '' };
+  const value = { catalogChatId, projectId, projectName, projectIcon, projectColor, taskHint, taskSource:taskHint ? 'latest-user-turn' : '' };
   liveRowContextCache.set(catalogChatId, { at:now, value });
   if (liveRowContextCache.size > 240) {
     const entries = [...liveRowContextCache.entries()].sort((a,b) => Number(a[1]?.at || 0) - Number(b[1]?.at || 0));
@@ -4615,7 +5764,10 @@ async function liveChatPulse({ force = false } = {}) {
       const tab = tabs[index];
       let row = result.status === 'fulfilled' && result.value ? result.value : null;
       if (row) responsiveTabs += 1;
-      if (!row) row = fallbackLiveRow(tab, liveTabStateByTab.get(Number(tab?.id || 0)));
+      if (!row) {
+        row = fallbackLiveRow(tab, liveTabStateByTab.get(Number(tab?.id || 0)));
+        void globalThis.pcAttention?.observe({...row,status:'sensor-offline',healthState:'sensor-offline',authoritative:false,observedAt:Date.now()}).catch(()=>{});
+      }
       return withTabGroup(row, tab, groupMap);
     }).filter(Boolean);
     const enrichedRows = await Promise.all(baseRows.map(async (row) => {
@@ -4623,14 +5775,14 @@ async function liveChatPulse({ force = false } = {}) {
       catch (_) { return { ...row, catalogChatId:canonicalLiveCatalogChatId(row), context:{ projectId:'', projectName:'', taskHint:'', taskSource:'', liveActivity:specificLiveActivity(row) } }; }
     }));
     const rows = enrichedRows.sort((a,b) => Number(b.lastActivityAt || b.observedAt || 0) - Number(a.lastActivityAt || a.observedAt || 0));
-    const groups = { active:[], stale:[], completed:[] };
+    const groups = { critical:[], hold:[], active:[], stale:[], completed:[] };
     for (const row of rows) groups[row.bucket]?.push(row);
     const snapshot = {
       ok:true,
       generatedAt:Date.now(),
       openChatTabs:tabs.length,
       responsiveTabs,
-      counts:{ active:groups.active.length, stale:groups.stale.length, completed:groups.completed.length },
+      counts:{ critical:groups.critical.length, hold:groups.hold.length, active:groups.active.length, stale:groups.stale.length, completed:groups.completed.length },
       groups,
       recentChats:rows,
       statusCounts:rows.reduce((out,row)=>{out[row.status]=(out[row.status]||0)+1;return out;},{}),
@@ -4670,10 +5822,16 @@ async function handleLiveChatStatePush(message, sender) {
     tabId:Number(tab.id), windowId:Number(tab.windowId || 0), providerId:provider.id, providerName:provider.name,
     title:String(tab.title || state?.chat?.title || provider.name).slice(0,220), url:String(tab.url), chatId:String(state?.chat?.id || providers.chatIdFromUrl(tab.url, provider.id) || ''),
     status:String(state?.chat?.status || 'idle'), rawStatus:String(state?.chat?.rawStatus || state?.chat?.status || 'idle'), healthState:String(state?.chat?.healthState || ''), bucket,
-    active:bucket==='active', stale:bucket==='stale', completed:bucket==='completed', failure:state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null, generation:state?.generation || null,
+    critical:bucket==='critical', hold:bucket==='hold', active:bucket==='active', stale:bucket==='stale', completed:bucket==='completed', failure:state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null, generation:state?.generation || null,
+    health:state?.health || null, source:String(state?.source || ''), discarded:Boolean(tab.discarded), frozen:Boolean(tab.frozen),
     network:{pending:Number(network.pending || 0),streamLikely:Boolean(network.streamLikely)}, lastActivityAt:Math.max(Number(state?.chat?.lastActivityAt || 0),Number(network.lastStartAt || 0),Number(network.lastResponseAt || 0),Number(network.lastCompleteAt || 0)), observedAt:Date.now()
   };
-  rememberLiveTabState(row);
+  await rememberLiveTabState(row);
+  stateBus.publishCoalesced('live.chat.changed', { tabId:row.tabId, chatId:row.chatId, providerId:row.providerId, status:row.status, healthState:row.healthState, bucket }, { source:'live-sentinel', key:String(row.tabId), delayMs:120 });
+  if (provider.id === 'chatgpt') {
+    const tokens = chatGuardian.stateTokens(row);
+    if (tokens.some((token) => chatGuardian.FAILURE_STATES.has(token) || chatGuardian.HARD_STOP_STATES.has(token) || chatGuardian.STALL_STATES.has(token))) scheduleChatGuardianSweep(2200);
+  }
   return { ok:true, bucket };
 }
 
@@ -4793,6 +5951,24 @@ function noteNetworkDone(details, failed = false) {
   row.updatedAt = now;
 }
 
+if (chrome.webRequest?.onHeadersReceived) {
+  chrome.webRequest.onHeadersReceived.addListener((details) => {
+    if (Number(details.tabId) >= 0) return;
+    if (String(details.url || '').split(/[?#]/)[0].replace(/\/$/,'') !== scheduledGuardian.SCHEDULE_URL) return;
+    const reason=scheduledGuardian.frameBlockReason(details.responseHeaders || []);
+    scheduledGuardianState().then(async(state)=>{
+      const next={ ...state, httpStatus:Number(details.statusCode || state.httpStatus || 0) };
+      if (reason) {
+        next.frameBlocked=true; next.frameReady=false; next.frameBlockReason=reason; next.lastFrameBlockAt=Date.now(); next.mode='heartbeat'; next.status='heartbeat'; next.level='healthy'; next.title='Protected by heartbeat'; next.detail='ChatGPT blocks extension framing, so Guardian switched to the lighter authenticated reachability path instead of keeping a full hidden page alive.';
+        await chrome.runtime.sendMessage({ type:'PC_SCHEDULE_GUARDIAN_STOP', target:'pc-scheduled-task-guardian' }).catch(() => {});
+      } else {
+        next.frameBlocked=false; next.frameBlockReason='';
+      }
+      await saveScheduledGuardianState(next);
+    }).catch(() => {});
+  }, { urls:['https://chatgpt.com/scheduled*','https://chatgpt.com/schedules*','https://chatgpt.com/tasks*'], types:['sub_frame'] }, ['responseHeaders']);
+}
+
 if (chrome.webRequest?.onBeforeRequest) {
   const liveUrls = [...new Set(providers.PROVIDERS.flatMap((row) => (row.hosts || []).map((host) => `https://${host}/*`)))];
   const filter = { urls: liveUrls, types: ['xmlhttprequest','other'] };
@@ -4801,12 +5977,44 @@ if (chrome.webRequest?.onBeforeRequest) {
   chrome.webRequest.onCompleted.addListener((details) => noteNetworkDone(details, false), filter);
   chrome.webRequest.onErrorOccurred.addListener((details) => noteNetworkDone(details, true), filter);
 }
-if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; });
-if (chrome.tabs?.onCreated) chrome.tabs.onCreated.addListener(() => { liveChatPulseCacheAt = 0; });
-if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo) => { if (changeInfo?.url || changeInfo?.status || changeInfo?.title) { liveChatPulseCacheAt = 0; if (changeInfo?.url) { liveTabStateByTab.delete(Number(tabId)); tabPresentationSignatures.delete(Number(tabId)); } } });
+if (chrome.tabs?.onRemoved) chrome.tabs.onRemoved.addListener((tabId) => { const id=Number(tabId); liveNetworkByTab.delete(id); liveTabStateByTab.delete(id); clearPersistedLiveTransition(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const timer=liveNetworkReconcileTimers.get(id); if(timer)clearTimeout(timer); liveNetworkReconcileTimers.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; });
+if (chrome.tabs?.onCreated) chrome.tabs.onCreated.addListener((tab) => {
+  liveChatPulseCacheAt = 0;
+  const provider = providers.detectProvider(tab?.url || '');
+  if (provider?.id === 'chatgpt') scheduleChatGuardianSweep(1200);
+});
+if (chrome.tabs?.onActivated) chrome.tabs.onActivated.addListener(({ tabId }) => {
+  liveChatPulseCacheAt = 0;
+  chrome.tabs.get(Number(tabId)).then((tab) => {
+    const provider = providers.detectProvider(tab?.url || '');
+    if (provider?.id === 'chatgpt') scheduleChatGuardianSweep(120);
+  }).catch(() => {});
+});
+if (chrome.tabs?.onUpdated) chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  const id = Number(tabId);
+  // Constellation itself changes tab titles for beacons. Title-only updates must not
+  // invalidate the live-pulse cache or they become a feedback source.
+  if (changeInfo?.url || changeInfo?.status || changeInfo?.groupId !== undefined || changeInfo?.frozen !== undefined || changeInfo?.discarded !== undefined) liveChatPulseCacheAt = 0;
+  if (changeInfo?.url) {
+    liveTabStateByTab.delete(id);
+    clearPersistedLiveTransition(id);
+    tabPresentationSignatures.delete(id);
+  }
+  if (changeInfo?.groupId !== undefined) {
+    tabPresentationSignatures.delete(id);
+    const row = liveTabStateByTab.get(id);
+    if (row) scheduleTabPresentationRepair(id, 260);
+  }
+  if (changeInfo?.title) {
+    const row = liveTabStateByTab.get(id);
+    if (row) row.title = String(changeInfo.title || row.title || '').replace(/^\s*[✅🟢🟡🔴🟣🔵🛡️⚠️]+\s*/u,'').slice(0,220);
+  }
+  const provider = providers.detectProvider(tab?.url || changeInfo?.url || '');
+  if (provider?.id === 'chatgpt' && (changeInfo?.url || changeInfo?.status === 'complete' || changeInfo?.frozen === false || changeInfo?.discarded === false)) scheduleChatGuardianSweep(changeInfo?.status === 'complete' ? 500 : changeInfo?.frozen === false ? 120 : 1100);
+});
 if (chrome.tabs?.onReplaced) chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => { const id=Number(removedTabId); liveTabStateByTab.delete(id); tabPresentationSignatures.delete(id); tabPresentationPendingSignatures.delete(id); const repairTimer=tabPresentationRepairTimers.get(id); if(repairTimer)clearTimeout(repairTimer); tabPresentationRepairTimers.delete(id); liveChatPulseCacheAt = 0; void addedTabId; });
-if (chrome.tabGroups?.onUpdated) chrome.tabGroups.onUpdated.addListener(() => { liveChatPulseCacheAt = 0; tabPresentationSignatures.clear(); });
-if (chrome.tabGroups?.onRemoved) chrome.tabGroups.onRemoved.addListener(() => { liveChatPulseCacheAt = 0; tabPresentationSignatures.clear(); });
+if (chrome.tabGroups?.onUpdated) chrome.tabGroups.onUpdated.addListener(() => { liveChatPulseCacheAt = 0; });
+if (chrome.tabGroups?.onRemoved) chrome.tabGroups.onRemoved.addListener(() => { liveChatPulseCacheAt = 0; });
 
 if (chrome.contextMenus?.onClicked) chrome.contextMenus.onClicked.addListener((info, tab) => {
   const id = String(info?.menuItemId || '');
@@ -4822,7 +6030,13 @@ chrome.storage?.onChanged?.addListener?.((changes, area) => {
 });
 
 if (chrome.notifications?.onClicked) chrome.notifications.onClicked.addListener(async (notificationId) => {
-  const match = String(notificationId || '').match(/^pc-chat-complete:(\d+):/);
+  const id=String(notificationId || '');
+  if (id.startsWith('pc-schedule:')) {
+    await openScheduledTasksPage().catch(() => {});
+    await chrome.notifications.clear(notificationId).catch(() => {});
+    return;
+  }
+  const match = id.match(/^pc-chat-(?:complete|critical|review-cleared):(\d+):/);
   if (!match) return;
   const tabId = Number(match[1]);
   try {
@@ -4831,6 +6045,12 @@ if (chrome.notifications?.onClicked) chrome.notifications.onClicked.addListener(
     if (tab?.windowId) await chrome.windows?.update?.(tab.windowId, { focused:true });
     await chrome.notifications.clear(notificationId).catch(() => {});
   } catch (_) {}
+});
+if (chrome.notifications?.onButtonClicked) chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+  if (!String(notificationId || '').startsWith('pc-schedule:')) return;
+  if (Number(buttonIndex) === 0) await openScheduledTasksPage().catch(() => {});
+  else if (Number(buttonIndex) === 1) await muteScheduledGuardianNotifications(60).catch(() => {});
+  await chrome.notifications.clear(notificationId).catch(() => {});
 });
 
 

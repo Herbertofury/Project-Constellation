@@ -4,17 +4,22 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag, for example v0.20.1
+        description: Release tag, for example v0.22.0
         required: true
-        default: v0.20.1
+        default: v0.22.0
   push:
     tags: ['v*']
+    branches: ['release/v*']
+
+concurrency:
+  group: constellation-release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 env:
-  VERSION: 0.20.1
+  VERSION: 0.22.0
 
 jobs:
   verify-linux:
@@ -22,11 +27,24 @@ jobs:
 
   windows-release:
     uses: ./.github/workflows/windows-runtime.yml
+    secrets: inherit
+
+  windows-setup:
+    uses: ./.github/workflows/windows-setup.yml
+    secrets: inherit
+
+  native-monitor:
+    uses: ./.github/workflows/native-monitor.yml
+    secrets: inherit
+
+  computer-tools:
+    uses: ./.github/workflows/computer-tools.yml
+    secrets: inherit
 
   publish:
-    needs: [verify-linux, windows-release]
+    needs: [verify-linux, windows-release, windows-setup, native-monitor, computer-tools]
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
@@ -37,6 +55,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -f "$GITHUB_WORKSPACE/native/constellation-monitor/Cargo.toml" ]]; then
+            [[ "$(node -p "require('./package.json').version")" == "$VERSION" ]]
+            echo "PC_SOURCE_ROOT=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+            echo "PC_CANONICAL_SOURCE_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+            echo "PC_CANONICAL_SOURCE_TREE=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_ENV"
+            exit 0
+          fi
           manifest="$GITHUB_WORKSPACE/releases/v0.20.1/SOURCE-MANIFEST.json"
           test -f "$manifest"
           baseline=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(m.baseline.artifact)" "$manifest")
@@ -69,8 +94,18 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: Project-Constellation-v0.20.1-Windows
-          path: windows-dist
+          name: Project-Constellation-Windows
+          path: build/release-downloads/windows
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: Constellation-Windows-Setup
+          path: build/release-downloads/setup
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: constellation-monitor-ubuntu-latest
+          path: build/release-downloads/monitor
 
       - name: Build exact extension and unified release set
         env:
@@ -80,19 +115,76 @@ jobs:
         run: |
           set -euo pipefail
           cd "$PC_SOURCE_ROOT"
-          mkdir -p desktop/dist-electron
-          find "$GITHUB_WORKSPACE/windows-dist" -maxdepth 2 -type f -exec cp -f {} desktop/dist-electron/ \;
+          mkdir -p desktop/dist-electron build/windows-setup-download build/linux-monitor-download
+          find "$GITHUB_WORKSPACE/build/release-downloads/windows" -maxdepth 2 -type f -exec cp -f {} desktop/dist-electron/ \;
+          find "$GITHUB_WORKSPACE/build/release-downloads/setup" -maxdepth 5 -type f -exec cp -f {} build/windows-setup-download/ \;
+          find "$GITHUB_WORKSPACE/build/release-downloads/monitor" -maxdepth 5 -type f -path '*/monitor-artifacts/*' -exec cp -f {} build/linux-monitor-download/ \;
+          # Some artifact layouts use the common monitor-artifacts directory as root.
+          if [[ ! -f build/linux-monitor-download/artifact-receipt.json ]]; then
+            find "$GITHUB_WORKSPACE/build/release-downloads/monitor" -maxdepth 1 -type f -exec cp -f {} build/linux-monitor-download/ \;
+          fi
           npm ci --no-audit --no-fund
           if [[ -n "$PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID" && -n "$PROJECT_CONSTELLATION_GITHUB_CLIENT_ID" ]]; then npm run build; else node tools/build.mjs --mode=production --allow-unprovisioned-oauth; fi
           node tools/package-unified-release.mjs
 
-      - name: Publish immutable GitHub Release
+      - name: Validate release target and staged bytes
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${REQUESTED_TAG:-${GITHUB_REF_NAME#release/}}"
+          [[ "$tag" == "v${VERSION}" ]]
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            [[ "$(git rev-parse "$tag^{commit}")" == "$GITHUB_SHA" ]]
+          fi
+          echo "PC_RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          cd "$PC_SOURCE_ROOT/build/releases/v${VERSION}"
+          sha256sum --check "SHA256SUMS-v${VERSION}.txt"
+
+      - name: Preserve exact staged release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: Project-Constellation-Release-${{ env.VERSION }}
+          path: ${{ env.PC_SOURCE_ROOT }}/build/releases/v${{ env.VERSION }}/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish immutable GitHub prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ inputs.tag || github.ref_name }}"
-          test "$TAG" = "v${VERSION}"
-          if gh release view "$TAG" >/dev/null 2>&1; then echo "Release $TAG already exists; refusing to mutate immutable published bytes." >&2; exit 1; fi
-          gh release create "$TAG" "$PC_SOURCE_ROOT"/releases/v${VERSION}/* --verify-tag --title "Project Constellation $TAG" --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
+          if gh release view "$PC_RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $PC_RELEASE_TAG already exists; refusing to mutate published bytes." >&2
+            exit 1
+          fi
+          gh release create "$PC_RELEASE_TAG" "$PC_SOURCE_ROOT"/build/releases/v${VERSION}/* \
+            --target "$GITHUB_SHA" --prerelease --latest=false \
+            --title "Project Constellation $PC_RELEASE_TAG — Windows setup and unified computer tools" \
+            --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
+          mkdir -p "$RUNNER_TEMP/release-readback"
+          gh release download "$PC_RELEASE_TAG" --dir "$RUNNER_TEMP/release-readback"
+          cd "$RUNNER_TEMP/release-readback"
+          sha256sum --check "SHA256SUMS-v${VERSION}.txt"
+
+      - name: Synchronize live GitHub Wiki
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          wiki_dir="$RUNNER_TEMP/constellation-wiki"
+          git clone "https://github.com/${GITHUB_REPOSITORY}.wiki.git" "$wiki_dir"
+          cp "$PC_SOURCE_ROOT"/wiki/*.md "$wiki_dir/"
+          git -C "$wiki_dir" config user.name 'Project Constellation Release'
+          git -C "$wiki_dir" config user.email 'actions@users.noreply.github.com'
+          git -C "$wiki_dir" add -- '*.md'
+          if ! git -C "$wiki_dir" diff --cached --quiet; then
+            git -C "$wiki_dir" commit -m "Document Project Constellation $PC_RELEASE_TAG"
+            git -C "$wiki_dir" push origin HEAD
+          fi
+          git -C "$wiki_dir" fetch origin
+          [[ "$(git -C "$wiki_dir" rev-parse HEAD)" == "$(git -C "$wiki_dir" rev-parse '@{u}')" ]]

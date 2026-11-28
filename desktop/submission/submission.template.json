@@ -1,0 +1,11 @@
+{
+  "display_name": "Constellation Commander",
+  "version": "0.7.2",
+  "mcp_endpoint": "https://REPLACE-WITH-STABLE-HOST/mcp",
+  "authentication": "oauth_2_1_pkce_s256",
+  "plugin_side_quota_enforced": false,
+  "requires_openai_api_key": false,
+  "requires_chatgpt_work": false,
+  "repository": "https://github.com/Herbertofury/Project-Constellation",
+  "review_notes": "Use a dedicated review device and temporary relay owner password. The Windows device agent connects outbound to the relay; no inbound workstation port is required."
+}

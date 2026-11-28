@@ -1,0 +1,19 @@
+{
+  "northpoint": "Make agent work observable, audible, recoverable and manageable from one installable Constellation application.",
+  "pillars": [
+    "Preserve existing project, capture, desktop and continuity capabilities",
+    "Rust native coordination and persistence with required browser API bindings",
+    "Event-driven observation with explicit unavailable states and no idle polling loops",
+    "Durable incident deduplication and tested sound/notification channels",
+    "Direct human permission decisions; never auto-click consent",
+    "One native hub with a sensor in each monitored browser/profile; no false single-extension cross-browser claim",
+    "Preserve every Computer-Link capability, branch, commit, notice and optional diagnostic route",
+    "Install per user with repair, rollback, ownership-aware uninstall and native on-demand lifetime",
+    "Close out accepted upgrades with a versioned GitHub release and verified published bytes"
+  ],
+  "lineage": {
+    "verifiedBaseVersion": "0.20.1",
+    "verifiedBaseTree": "89b711f46672830e786ba3afcdf0d1973325a896",
+    "incomplete0202": "Preserved as historical fragments, not recovered"
+  }
+}

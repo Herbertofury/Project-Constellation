@@ -1,3 +1,4 @@
+- [Agent Monitor](Agent-Monitor)
 ### Project Constellation
 
 - [Home](Home)
@@ -18,3 +19,6 @@
 - [Privacy policy](Privacy-Policy)
 - [FAQ](FAQ)
 - [Contributor continuation](Contributor-and-Agent-Continuation)
+
+- [Windows quick setup](Windows-Setup)
+- [Computer Tools](Computer-Tools)

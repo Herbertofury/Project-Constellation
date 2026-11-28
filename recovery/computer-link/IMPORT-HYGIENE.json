@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "source": "Herbertofury/Computer-Link",
+  "objects": {
+    "commit": 92,
+    "tree": 346,
+    "blob": 283
+  },
+  "scannedBlobs": 283,
+  "scannedBytes": 1763168,
+  "credentialPatternMatches": [],
+  "method": "Read all unique reachable Git blobs; scan common private-key, GitHub-token, AWS-key and OpenAI-key formats; inspect imported tracked filenames for profiles/credentials. Synthetic token tests remain intact. This is a bounded source hygiene check, not a guarantee that arbitrary secrets can be recognized.",
+  "profileOrCredentialFiles": [],
+  "privateMachineStateImported": false
+}

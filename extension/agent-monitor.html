@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Agent Monitor · Project Constellation</title>
+  <link rel="stylesheet" href="agent-monitor.css">
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to agents</a>
+  <div id="previewBanner" class="preview-banner" hidden>Design preview · synthetic sessions. No real chats are connected.</div>
+  <div class="app">
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <a class="brand" href="agent-monitor.html"><span class="brand-symbol ui-icon icon-star" aria-hidden="true"></span><span>constellation<small>AGENT WORKSPACE</small></span></a>
+      <div class="nav-label">WORKSPACE</div>
+      <nav>
+        <a class="nav-link selected" href="agent-monitor.html" aria-current="page"><span class="ui-icon icon-monitor" aria-hidden="true"></span>Agent monitor<span class="nav-count" id="navCount">0</span></a>
+        <a class="nav-link" href="home.html"><span class="ui-icon icon-grid" aria-hidden="true"></span>Command center</a>
+        <a class="nav-link" href="chat-vault.html"><span class="ui-icon icon-vault" aria-hidden="true"></span>Chat vault</a>
+        <a class="nav-link" href="home.html#connections"><span class="ui-icon icon-open" aria-hidden="true"></span>Accounts & connections</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="local-note"><span class="status-dot"></span><div>Local by design<small>Monitoring stays on this PC.</small></div></div>
+        <a href="https://github.com/Herbertofury/Project-Constellation" target="_blank" rel="noreferrer">Project & documentation <span class="ui-icon icon-open" aria-hidden="true"></span></a>
+      </div>
+    </aside>
+    <main id="workspace" class="workspace">
+      <header class="topbar"><div><span class="eyebrow">MISSION CONTROL</span><span class="divider">/</span><span>Agent monitor</span></div><span id="monitorState" class="connection-chip"><span class="status-dot"></span>Connecting to this browser</span></header>
+      <div class="page-heading"><div><h1>Every agent. In view.</h1><p>Catch blocked work, hear the alert, pick up where it matters.</p></div><div class="heading-actions"><button id="refreshMonitor" class="button quiet" aria-label="Refresh this browser" title="Request a fresh observation from tabs in this browser"><span class="ui-icon icon-refresh" aria-hidden="true"></span> <span>Refresh</span></button><button id="testAlert" class="button accent" title="Tests sound and notifications in this browser even while alerts are muted or disabled. Uses your volume setting."><span class="ui-icon icon-sound" aria-hidden="true"></span> Test alert</button></div></div>
+      <div id="loadError" class="error-banner" role="alert" hidden></div>
+      <section class="stats" aria-label="Agent overview">
+        <button class="stat" data-filter="all"><span>Observed chats</span><strong id="totalCount">0</strong><small id="totalHint">Waiting for observations</small></button>
+        <button class="stat attention" data-filter="attention"><span><i></i>Needs attention</span><strong id="attentionCount">0</strong><small id="attentionHint">No open incidents</small></button>
+        <button class="stat active" data-filter="running"><span><i></i>Working</span><strong id="runningCount">0</strong><small>Observable activity</small></button>
+        <button class="stat complete" data-filter="completed"><span><i></i>Completed</span><strong id="completedCount">0</strong><small>Latest observed state</small></button>
+      </section>
+      <div class="workspace-columns">
+        <div class="primary-column">
+          <section class="incident-section" aria-labelledby="inboxTitle">
+            <div class="section-heading"><div><h2 id="inboxTitle">Attention inbox <span id="inboxCount" class="count-badge">0</span></h2><p>One incident per problem. Clear evidence and a direct next step.</p></div><button id="showResolved" class="text-button" aria-pressed="false">Show resolved</button></div>
+            <div id="incidentList" class="incident-list" aria-live="polite"></div>
+          </section>
+          <section class="session-section" aria-labelledby="sessionsTitle">
+            <div class="section-heading"><div><h2 id="sessionsTitle">Agent activity</h2><p id="activityHint">Live observations from your connected browsers.</p></div><label class="sort-label">Sort <select id="sortOrder"><option value="attention">Attention first</option><option value="recent">Most recent</option><option value="title">Title</option></select></label></div>
+            <div class="toolbar"><label class="search-box"><span class="ui-icon icon-search" aria-hidden="true"></span><input id="searchAgents" type="search" placeholder="Find a chat, browser or issue…" aria-label="Search observed agents"><kbd>/</kbd></label><label class="browser-filter"><span class="sr-only">Browser</span><select id="browserFilter"><option value="all">All browsers</option><option value="chrome">Chrome</option><option value="firefox">Firefox</option><option value="opera_gx">Opera GX</option><option value="edge">Edge</option><option value="chromium">Chromium</option></select></label></div>
+            <div class="filter-tabs" role="group" aria-label="Filter agents"><button data-filter="all" class="active" aria-pressed="true">All activity</button><button data-filter="attention" aria-pressed="false">Needs attention</button><button data-filter="running" aria-pressed="false">Working</button><button data-filter="completed" aria-pressed="false">Completed</button><button data-filter="unavailable" aria-pressed="false">Unavailable</button></div>
+            <div class="table-heading" aria-hidden="true"><span>CHAT / SOURCE</span><span>STATUS</span><span>LAST OBSERVED</span><span></span></div>
+            <div id="sessionList" class="session-list"></div>
+          </section>
+          <footer class="workspace-footer"><span id="lastUpdated">No observations yet</span><button id="exportDiagnostics" class="text-button">Export monitoring diagnostics <span class="ui-icon icon-open" aria-hidden="true"></span></button></footer>
+        </div>
+        <aside class="inspector" aria-label="Monitor settings and browser coverage">
+          <section class="inspector-card coverage-card">
+            <div class="section-heading"><h2>Browser coverage</h2><span id="coverageCount" class="count-badge">0 / 4</span></div>
+            <p class="muted">One view for your connected browsers.</p>
+            <div id="browserCoverage" class="browser-coverage"></div>
+            <div id="nativeStatus" class="native-status">This browser works on its own. Connect the Rust companion to combine other browsers.</div>
+            <button id="connectNative" class="button full accent">Connect browser hub</button>
+            <button id="disconnectNative" class="button full quiet" hidden>Disconnect browser hub</button>
+            <details class="setup-details"><summary>Set up another browser</summary><ol><li>Run the portable Rust companion’s <code>install</code> command once.</li><li>Load the Chromium extension in Chrome, Edge or Opera GX. Add the Firefox sensor in Firefox.</li><li>Connect each browser here. Give each profile a useful name.</li></ol><p>A sensor is required in each browser/profile. Installation in Chrome alone cannot observe Firefox’s hidden tabs.</p><a href="docs/AGENT-MONITOR.md" target="_blank" rel="noreferrer">Open included setup guide <span class="ui-icon icon-open" aria-hidden="true"></span></a></details>
+            <label class="field-label" for="browserIdentity">This browser</label><select id="browserIdentity"><option value="chrome">Google Chrome</option><option value="edge">Microsoft Edge</option><option value="opera_gx">Opera GX</option><option value="firefox">Firefox</option><option value="chromium">Chromium</option></select>
+            <label class="field-label" for="profileLabel">Profile name</label><div class="profile-row"><input id="profileLabel" maxlength="80" placeholder="e.g. Chrome · Work"><button id="saveProfile" class="button quiet">Save</button></div>
+          </section>
+          <section class="inspector-card" id="alertSettings">
+            <div class="section-heading"><h2>Alert controls</h2><span id="alertScope" class="tiny-label">THIS BROWSER</span></div>
+            <label class="toggle-row"><span>Automatic alerts<small>Keep observing while delivery is off</small></span><input id="alertsEnabled" type="checkbox" role="switch"></label>
+            <label class="toggle-row"><span>Sound alerts<small>Distinct tone when a chat needs you</small></span><input id="soundEnabled" type="checkbox" role="switch"></label>
+            <label class="volume-row" for="soundVolume"><span>Volume</span><input id="soundVolume" type="range" min="0" max="100" step="5" value="65"><output id="volumeValue">65%</output></label>
+            <label class="toggle-row"><span>Desktop notifications<small>Open the affected chat from the alert</small></span><input id="notificationsEnabled" type="checkbox" role="switch"></label>
+            <label class="toggle-row"><span>Completion alerts<small>Also notify when observed work finishes</small></span><input id="completionEnabled" type="checkbox" role="switch"></label>
+            <label class="field-label" for="reminderMinutes">Repeat unresolved alerts</label><select id="reminderMinutes"><option value="0">Once per incident</option><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option></select>
+            <div class="quiet-controls"><button id="quietHour" class="button quiet">Mute for 1 hour</button><button id="unmute" class="text-button" hidden>Unmute</button></div>
+            <div id="alertDelivery" class="delivery-note" role="status">Use Test alert to check sound and notifications.</div>
+          </section>
+          <section class="inspector-card review-note"><span class="review-icon ui-icon icon-open" aria-hidden="true"></span><div><h3>Approvals stay in your hands</h3><p>Permission prompts are detected and highlighted. Open the chat to select “Allow for this conversation” yourself.</p></div></section>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="agent-monitor.js"></script>
+</body>
+</html>

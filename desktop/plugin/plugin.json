@@ -1,0 +1,44 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "constellation-commander",
+  "version": "0.22.0",
+  "description": "Use an authorized computer through the integrated Constellation Commander Electron ChatGPT workspace; browser-extension and hosted MCP transports are optional fallbacks.",
+  "author": {
+    "name": "Herbertofury",
+    "url": "https://github.com/Herbertofury"
+  },
+  "homepage": "https://github.com/Herbertofury/Project-Constellation",
+  "repository": "https://github.com/Herbertofury/Project-Constellation",
+  "license": "MIT",
+  "keywords": [
+    "desktop",
+    "computer",
+    "files",
+    "terminal",
+    "development",
+    "mcp",
+    "remote",
+    "computer-use",
+    "automation",
+    "screenshot"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Constellation Commander",
+        "shortDescription": "ChatGPT desktop workspace with visible local-agent controls and full Windows computer use.",
+        "longDescription": "Use ChatGPT inside the Constellation Commander desktop app with a visible local-agent control plane: connection health, local-tool mode, workspace access roots, Emergency Lock, live activity, diagnostics, screenshots, mouse, keyboard, windows, clipboard, UI Automation, files, terminal and processes. The primary Electron path needs no Chrome extension, ChatGPT Work handoff, OpenAI API key, or Commander-side tool-call quota.",
+        "developerName": "Herbertofury / Project Constellation",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://github.com/Herbertofury/Project-Constellation",
+        "privacyPolicyURL": "https://github.com/Herbertofury/Project-Constellation/blob/feature/constellation-commander-v0.7.4/docs/CONSTELLATION-COMMANDER-PRIVACY.md",
+        "termsOfServiceURL": "https://github.com/Herbertofury/Project-Constellation/blob/feature/constellation-commander-v0.7.4/docs/CONSTELLATION-COMMANDER-TERMS.md",
+        "defaultPrompt": "Use Constellation Commander to help me work with my computer."
+      }
+    }
+  }
+}

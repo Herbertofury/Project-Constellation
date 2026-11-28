@@ -14,3 +14,8 @@ body[data-atmosphere="static"]::before,body[data-atmosphere="static"]::after{ani
 @keyframes pc-popup-stars{to{transform:translate3d(18px,-25px,0)}}@keyframes pc-popup-twinkle{from{opacity:.13}to{opacity:.23}}@keyframes pc-popup-constellations{from{transform:translate3d(-4px,5px,0) scale(1)}to{transform:translate3d(9px,-7px,0) scale(1.025)}}@keyframes pc-popup-constellation-breathe{0%,100%{opacity:.16}50%{opacity:.27}}
 @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important;will-change:auto!important}}
 .beacon-group-mode{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft)}.beacon-group-mode span{font-size:10px;color:var(--muted)}.beacon-group-mode select{min-width:140px}
+
+/* v0.17.5 project identity propagation. */
+.chat-list-row{border-left:2px solid var(--project-color,transparent)}
+
+.monitor-launch{display:block;padding:13px 14px;border:1px solid #66517c;border-radius:10px;background:#231a32;color:#e8dbff;text-decoration:none;font-weight:650;grid-column:1/-1}.monitor-launch span{display:block;font-size:11px;font-weight:400;color:#b3a5c5;margin-top:4px}.monitor-launch:focus-visible{outline:2px solid #bca4ff;outline-offset:3px}

@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Project Constellation",
-  "version": "0.16.1",
+  "version": "0.22.0",
   "minimum_chrome_version": "116",
-  "description": "Multi-tab AI reliability workspace with hidden-tab supervision, stale/dead chat rescue, continuation recovery, Approval Autopilot, project tracking, Capacity Guard, Knowledge Vault, durable lineage, and verified remote checkpoints.",
+  "description": "Agent monitoring with durable trouble alerts, sound, a shared Rust browser hub, manual approval review, and the Constellation project workspace.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuxe+EqYwnjRBK7y4124H3AlyvctU66snpSYtMs/XW2mlJ4cpVCwNNii6Zb7HwmrPRLGplQmM36kjJoKw5+HNJCSy9QySJ/ZLB83xBNMIzMaA0Ur0NnAcfE+ffylf0nJTgOKDoCNxgsRzC3YhpitOz0YO86ys3kH28H4sVJ3XkQI/74hqZxpC5Dd/PoKw6pnswYaFqoAFMcOAKpQBC0F9ShytmMAMm9tjVgOOOCVtZD7HpKHyY+DR6NeadK/yiIQYwRaYiZMcYCnUxgwfzynjjpZqfT2z0Zdv2FTBt1Q6k+gmulYbxpwm1Snx4wwYWq+bCK8KoC+5axmOK2/t2HNp6wIDAQAB",
   "permissions": [
     "storage",
@@ -22,7 +22,8 @@
   ],
   "optional_permissions": [
     "downloads",
-    "history"
+    "history",
+    "nativeMessaging"
   ],
   "optional_host_permissions": [
     "https://api.github.com/*",
@@ -53,7 +54,9 @@
     "https://www.you.com/*",
     "https://pi.ai/*",
     "https://www.pi.ai/*",
-    "https://duck.ai/*"
+    "https://duck.ai/*",
+    "http://127.0.0.1:47721/*",
+    "http://localhost:47721/*"
   ],
   "oauth2": {
     "client_id": "PROJECT_CONSTELLATION_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
@@ -62,11 +65,11 @@
     ]
   },
   "background": {
-    "service_worker": "service-worker.js",
+    "service_worker": "background-entry.js",
     "type": "module"
   },
   "action": {
-    "default_title": "Project Constellation",
+    "default_title": "Constellation \u00b7 Agent Monitor",
     "default_popup": "popup.html"
   },
   "side_panel": {
@@ -79,10 +82,45 @@
         "https://chat.openai.com/*"
       ],
       "js": [
+        "src/route-observer.js",
+        "src/local-work-page-hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
         "src/chatgpt-page-probe.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/scheduled-task-page-probe.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/scheduled-task-observer.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
     },
     {
       "matches": [
@@ -115,18 +153,44 @@
         "src/core.js",
         "src/brain-core.js",
         "src/provider-core.js",
+        "src/provider-health-core.js",
         "src/health-core.js",
         "src/live-sentinel.js",
         "src/tab-beacon.js",
         "src/content.js",
-        "src/pulse-ux.js",
-        "src/tab-supervisor-core.js",
-        "src/tab-supervisor.js"
+        "src/pulse-ux.js"
       ],
       "css": [
         "src/styles.css"
       ],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/project-identity-core.js",
+        "src/chat-vault-core.js",
+        "src/chat-organizer.js"
+      ],
+      "css": [
+        "src/chat-organizer.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/local-work-content.js",
+        "src/scheduled-task-recovery-page.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ]
 }

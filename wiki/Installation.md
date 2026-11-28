@@ -1,5 +1,10 @@
 # Installation
 
+## Windows 0.22.0 quick setup
+
+Use the self-contained Windows Setup executable from the matching GitHub release. It stages sensors, registers the Rust hub and includes Computer Tools. Browser enablement remains one step per profile. See [Windows setup](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/WINDOWS-SETUP.md) for the complete install, repair, rollback and lifecycle guide.
+
+
 ## Release install
 
 1. Download the unpacked ZIP and `SHA256SUMS.txt` from the matching GitHub Release.

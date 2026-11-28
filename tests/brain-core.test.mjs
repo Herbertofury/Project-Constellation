@@ -12,3 +12,13 @@ assert.deepEqual(Array.from(b.searchTerms('Google Drive drive RECOVERY recovery'
 assert.deepEqual(Array.from(b.searchTerms('项目 Constellation 数据库', 10)), ['项目','constellation','数据库']);
 
 console.log('brain-core.test.mjs: PASS');
+
+assert.equal(b.transientOutputLine('Thinking'),true);
+assert.equal(b.transientOutputLine('Called tool'),true);
+assert.equal(b.transientOutputLine('Searched Files for exact title'),true);
+assert.equal(b.transientOutputLine('The completed release is saved and verified.'),false);
+assert.equal(b.transientOutputLine('Built v0.17.5 and verified all tests.'),false);
+const transientProjection=b.outputIntegrityProjection({role:'assistant',text:'Thinking\nCalled tool\nSearching Files for exact title'});
+assert.equal(transientProjection.transientOnly,true);assert.equal(transientProjection.substantive,false);assert.equal(transientProjection.text,'');
+const mixedProjection=b.outputIntegrityProjection({role:'assistant',text:'Thinking\nCalled tool\nThe completed release is saved and verified with all regression tests passing.'});
+assert.equal(mixedProjection.transientOnly,false);assert.equal(mixedProjection.substantive,true);assert.match(mixedProjection.text,/completed release is saved/);
