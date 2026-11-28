@@ -93,6 +93,16 @@ transports, removes its endpoint, and exits. Diagnostic `doctor`/`snapshot`
 connections and unauthenticated sockets never extend that grace. A broker
 started manually with `daemon` also exits after the grace if no sensor connects.
 
+Windows Job limits remain authoritative. When the launching process belongs to
+a Job that permits breakaway, the hub can obtain independent lifetime. When a
+Job forbids it, the hub starts inside that Job instead of failing with Access
+Denied or trying to change the policy. Its owner may terminate it sooner than
+the native sensor lease deadline. The surviving sensors can reconnect and
+restore saved state. `doctor` and `health.processLifetime` report whether the
+process is Job-managed, whether breakaway is allowed, and whether closing the
+Job ends its processes. The shared sensor lease and idle shutdown rules apply
+within those OS limits.
+
 The browser adapter listens for normal-window creation/removal. It disconnects
 when that profile's last normal browser window closes, even if the browser
 keeps its background process running. Popups, offscreen audio and extension
@@ -235,7 +245,10 @@ system DLLs only, so that build needs no separate MinGW runtime DLL. Linking and
 inspecting the PE file does not establish that registration, ACLs, browser job
 breakaway, or native ports have been exercised on a Windows machine. The
 Windows CI suite includes a regression that repairs a copied private file's
-explicit Everyone ACL before reading or reopening it.
+explicit Everyone ACL before reading or reopening it. Another actual child
+process test creates a Job with breakaway forbidden, verifies that the launched
+broker remains in that Job, and checks native hello, idle exit, restart and
+durable incident restoration. It leaves the hosted runner's own Job unchanged.
 
 ### Actual Chromium native-messaging smoke
 

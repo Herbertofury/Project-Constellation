@@ -22,6 +22,148 @@ struct Runtime {
     directory: PathBuf,
     idle_grace_ms: u64,
 }
+
+#[cfg(windows)]
+#[test]
+fn windows_native_start_honors_a_job_that_forbids_breakaway() {
+    // The helper owns its restrictive Job for its entire process lifetime.
+    // Do not assign the shared Rust test runner to a Job or relax the CI Job.
+    let mut child = Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "windows_restrictive_job_helper",
+            "--ignored",
+            "--nocapture",
+        ])
+        .env("CONSTELLATION_WINDOWS_JOB_TEST", "1")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let end = Instant::now() + Duration::from_secs(25);
+    while child.try_wait().unwrap().is_none() {
+        if Instant::now() >= end {
+            let _ = child.kill();
+            let output = child.wait_with_output().unwrap();
+            panic!(
+                "restrictive Job regression timed out: {} {}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "restrictive Job regression failed: {} {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[cfg(windows)]
+#[test]
+#[ignore = "run in an isolated child by windows_native_start_honors_a_job_that_forbids_breakaway"]
+fn windows_restrictive_job_helper() {
+    assert_eq!(
+        std::env::var("CONSTELLATION_WINDOWS_JOB_TEST").as_deref(),
+        Ok("1")
+    );
+    type Handle = *mut std::ffi::c_void;
+    #[repr(C)]
+    #[derive(Default)]
+    struct BasicLimits {
+        process_time: i64,
+        job_time: i64,
+        flags: u32,
+        minimum_working_set: usize,
+        maximum_working_set: usize,
+        active_processes: u32,
+        affinity: usize,
+        priority: u32,
+        scheduling: u32,
+    }
+    #[repr(C)]
+    #[derive(Default)]
+    struct ExtendedLimits {
+        basic: BasicLimits,
+        io: [u64; 6],
+        process_memory: usize,
+        job_memory: usize,
+        peak_process_memory: usize,
+        peak_job_memory: usize,
+    }
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn CreateJobObjectW(attributes: Handle, name: *const u16) -> Handle;
+        fn SetInformationJobObject(job: Handle, class: u32, info: Handle, size: u32) -> i32;
+        fn AssignProcessToJobObject(job: Handle, process: Handle) -> i32;
+        fn GetCurrentProcess() -> Handle;
+        fn OpenProcess(access: u32, inherit: i32, pid: u32) -> Handle;
+        fn IsProcessInJob(process: Handle, job: Handle, inside: *mut i32) -> i32;
+        fn CloseHandle(handle: Handle) -> i32;
+    }
+    let job = unsafe { CreateJobObjectW(std::ptr::null_mut(), std::ptr::null()) };
+    assert!(!job.is_null(), "{}", std::io::Error::last_os_error());
+    let mut limits = ExtendedLimits::default();
+    limits.basic.flags = 0x2000; // KILL_ON_JOB_CLOSE, deliberately no breakaway permission.
+    assert_ne!(
+        unsafe {
+            SetInformationJobObject(
+                job,
+                9,
+                (&mut limits as *mut ExtendedLimits).cast(),
+                std::mem::size_of::<ExtendedLimits>() as u32,
+            )
+        },
+        0,
+        "{}",
+        std::io::Error::last_os_error()
+    );
+    assert_ne!(
+        unsafe { AssignProcessToJobObject(job, GetCurrentProcess()) },
+        0,
+        "{}",
+        std::io::Error::last_os_error()
+    );
+    // Intentionally retain this one handle until the isolated helper exits.
+    // Closing it here would terminate this helper too. Windows closes it on
+    // helper exit and contains any descendants even if a test assertion fails.
+    let runtime = Runtime::new();
+    let mut sensor = Sensor::new(&runtime);
+    sensor.hello("chrome");
+    sensor.observe("error");
+    let snapshot = sensor.snapshot();
+    assert_eq!(snapshot["health"]["processLifetime"]["jobManaged"], true);
+    assert_eq!(
+        snapshot["health"]["processLifetime"]["breakawayAllowed"],
+        false
+    );
+    assert_eq!(
+        snapshot["health"]["processLifetime"]["killOnJobClose"],
+        true
+    );
+    let broker = unsafe {
+        OpenProcess(
+            0x1000,
+            0,
+            runtime.endpoint()["pid"].as_u64().unwrap() as u32,
+        )
+    };
+    assert!(!broker.is_null(), "{}", std::io::Error::last_os_error());
+    let mut inside = 0;
+    assert_ne!(unsafe { IsProcessInJob(broker, job, &mut inside) }, 0);
+    unsafe { CloseHandle(broker) };
+    assert_eq!(inside, 1, "broker escaped the owning restrictive Job");
+    sensor.close_pipe();
+    runtime.wait_stopped();
+    let mut reopened = Sensor::new(&runtime);
+    reopened.hello("edge");
+    assert_eq!(reopened.snapshot()["incidents"][0]["kind"], "error");
+    reopened.close_pipe();
+    runtime.wait_stopped();
+}
 impl Runtime {
     fn new() -> Self {
         let directory = std::env::temp_dir().join(format!(

@@ -12,10 +12,10 @@ a prepared workflow is not recorded here as an executed pass.
 | Root regression tests | 50 scripts, including artifact source/hash/acceptance validation |
 | Source, UI and message contracts | Pass; 94 UI message types owned by the service-worker module graph |
 | Rust browser hub | 18 unit and 11 real subprocess/transport tests passed; Linux and Windows-target strict Clippy |
-| Native setup transaction engine | 19 Rust transaction tests and 7 Python builder tests passed; Linux and Windows-GNU strict Clippy; separate from Windows GUI acceptance |
+| Native setup transaction engine | 22 Rust transaction tests and 7 Python builder tests passed; Linux and Windows-GNU strict Clippy; separate from Windows GUI acceptance |
 | Computer-Link source migration | 26 branch trees and 92 commits restored; 123 active imported files mapped; full bundles pass strict Git checks |
 | Original Constellation preservation | All 323 reconstructed original files and all 46 historical test files retained |
-| Desktop and native adapter | See desktop tests and hosted WINDOWS-RUNTIME-RECEIPT.json; native availability remains optional |
+| Desktop and native adapter | 22 task + 81 combined tests, 13 other portable scripts and 27 real rendered UI workflows passed locally; native availability remains optional |
 | Optimizer assessments | Pinned shrink-anything, fast-anything and rust-anything assessed in isolation; see RELEASE-OPTIMIZATION-0.22.0.json |
 | Full local npm run verify | Stops at installed-extension acceptance; no full-green local claim |
 

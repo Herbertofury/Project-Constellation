@@ -167,6 +167,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/release-readback"
           gh release download "$PC_RELEASE_TAG" --dir "$RUNNER_TEMP/release-readback"
           cd "$RUNNER_TEMP/release-readback"
+          cmp "$PC_SOURCE_ROOT/build/releases/v${VERSION}/SHA256SUMS-v${VERSION}.txt" "SHA256SUMS-v${VERSION}.txt"
           sha256sum --check "SHA256SUMS-v${VERSION}.txt"
 
       - name: Synchronize live GitHub Wiki

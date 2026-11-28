@@ -1,5 +1,7 @@
 # Windows setup and background lifecycle
 
+Open **Project Constellation Setup** from the Windows Start menu to return to the native installer and repair controls. The full desktop app keeps its separate **Project Constellation** entry.
+
 Download **Constellation-0.22.0-Windows-Setup.exe** and its checksum from the
 matching Project Constellation GitHub release. This compact installer contains
 the Rust browser hub, Chromium extension, Firefox sensor and native Computer

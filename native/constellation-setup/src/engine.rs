@@ -15,6 +15,8 @@ use std::{
 };
 
 pub const RECEIPT: &str = "constellation-install.json";
+pub const SHORTCUT_NAME: &str = "Project Constellation Setup.lnk";
+const LEGACY_SHORTCUT_NAME: &str = "Project Constellation.lnk";
 const JOURNAL: &str = ".constellation-transaction.json";
 const MARKER: &str = ".constellation-owned";
 const PRODUCT: &str = "project-constellation";
@@ -89,6 +91,8 @@ struct Journal {
     next: Receipt,
     registry_before: Vec<RegistryEntry>,
     shortcut_before: Option<Vec<u8>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    retired_shortcuts: Vec<Shortcut>,
     browser_backup: String,
     browser_stage: String,
     had_browsers: bool,
@@ -225,6 +229,33 @@ fn validate_registry(entries: &[RegistryEntry]) -> io::Result<()> {
     Ok(())
 }
 
+fn legacy_shortcut_path(options: &Options) -> Option<PathBuf> {
+    options.shortcut.as_ref().and_then(|path| {
+        (path.file_name().is_some_and(|name| name == SHORTCUT_NAME))
+            .then(|| path.with_file_name(LEGACY_SHORTCUT_NAME))
+    })
+}
+
+fn validate_shortcut(shortcut: &Shortcut, options: &Options) -> io::Result<()> {
+    if (options.shortcut.as_ref() != Some(&shortcut.path)
+        && legacy_shortcut_path(options).as_ref() != Some(&shortcut.path))
+        || shortcut
+            .original
+            .as_ref()
+            .is_some_and(|v| v.len() > 1024 * 1024)
+        || shortcut.installed_sha256.len() != 64
+        || !shortcut
+            .installed_sha256
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit())
+    {
+        return Err(invalid(
+            "Shortcut receipt is outside the expected current-user Start Menu location.",
+        ));
+    }
+    Ok(())
+}
+
 fn validate_receipt(receipt: &Receipt, options: &Options) -> io::Result<()> {
     if receipt.schema != 1
         || receipt.product != PRODUCT
@@ -257,16 +288,8 @@ fn validate_receipt(receipt: &Receipt, options: &Options) -> io::Result<()> {
     {
         return Err(invalid("Invalid browser ownership record."));
     }
-    if let Some(shortcut) = &receipt.shortcut
-        && (options.shortcut.as_ref() != Some(&shortcut.path)
-            || shortcut
-                .original
-                .as_ref()
-                .is_some_and(|v| v.len() > 1024 * 1024))
-    {
-        return Err(invalid(
-            "Shortcut receipt is outside the expected current-user Start Menu location.",
-        ));
+    if let Some(shortcut) = &receipt.shortcut {
+        validate_shortcut(shortcut, options)?;
     }
     Ok(())
 }
@@ -405,7 +428,7 @@ fn remove_owned(base: &Path, files: &[OwnedFile], notes: &mut Vec<String>) -> io
     Ok(())
 }
 
-fn registry_for(options: &Options, release: &Release) -> Vec<RegistryEntry> {
+fn registry_for(options: &Options, release: &Release, setup: &Path) -> Vec<RegistryEntry> {
     let folder = options.root.join(&release.directory);
     let mut entries = Vec::new();
     for (vendor, browser) in [
@@ -426,7 +449,6 @@ fn registry_for(options: &Options, release: &Release) -> Vec<RegistryEntry> {
             )),
         });
     }
-    let setup = folder.join("Constellation-Setup.exe");
     let command = format!(
         "\"{}\" uninstall --dir \"{}\"",
         setup.display(),
@@ -646,6 +668,20 @@ fn restore_shortcut(path: &Path, bytes: Option<&[u8]>) -> io::Result<()> {
 }
 
 fn clean_backup(options: &Options, journal: &Journal, notes: &mut Vec<String>) -> io::Result<()> {
+    // Retire the old shared desktop name only after the new receipt commits.
+    // A desktop installation that replaced it owns its bytes and stays intact.
+    for shortcut in &journal.retired_shortcuts {
+        if let Some(bytes) = read_optional(&shortcut.path, 1024 * 1024)? {
+            if hash(&bytes) == shortcut.installed_sha256 {
+                restore_shortcut(&shortcut.path, shortcut.original.as_deref())?;
+                notes.push("Moved Setup to its separate Start Menu entry; restored the previous desktop entry.".to_owned());
+            } else {
+                notes.push(
+                    "Preserved the desktop Start Menu entry changed outside Setup.".to_owned(),
+                );
+            }
+        }
+    }
     let backup = options.root.join(&journal.browser_backup);
     if backup.exists() {
         if let Some(before) = &journal.before {
@@ -699,7 +735,7 @@ fn undo(options: &Options, journal: &Journal, system: &mut dyn System) -> io::Re
             ));
         }
     }
-    if let Some(shortcut) = &options.shortcut {
+    if let Some(shortcut) = journal.next.shortcut.as_ref().map(|s| &s.path) {
         let actual = read_optional(shortcut, 1024 * 1024)?;
         if actual != journal.shortcut_before {
             let next_hash = journal
@@ -797,6 +833,21 @@ fn recover(options: &Options, system: &mut dyn System) -> io::Result<Vec<String>
         validate_receipt(before, options)?;
     }
     validate_registry(&journal.registry_before)?;
+    if journal.retired_shortcuts.len() > 32 {
+        return Err(invalid("Invalid retired shortcut receipt."));
+    }
+    for shortcut in &journal.retired_shortcuts {
+        validate_shortcut(shortcut, options)?;
+        if legacy_shortcut_path(options).as_ref() != Some(&shortcut.path)
+            || journal
+                .next
+                .shortcut
+                .as_ref()
+                .is_some_and(|s| s.path == shortcut.path)
+        {
+            return Err(invalid("Invalid retired shortcut location."));
+        }
+    }
     if journal.browser_backup != format!(".browser-backup-{}", journal.id)
         || journal.browser_stage != format!(".browser-stage-{}", journal.id)
     {
@@ -850,7 +901,25 @@ fn activate(
     for file in &release.files {
         verified_bytes(&release_root, file)?;
     }
-    let current_registry = registry_for(options, &release);
+    // Keep management on the latest installed manager during a payload
+    // rollback. An older candidate manager cannot interpret a migrated entry.
+    let manager_release = if introduced {
+        &release
+    } else {
+        before
+            .as_ref()
+            .and_then(|r| r.releases.last())
+            .unwrap_or(&release)
+    };
+    let manager_root = options.root.join(&manager_release.directory);
+    let manager_record = manager_release
+        .files
+        .iter()
+        .find(|file| file.path == "Constellation-Setup.exe")
+        .ok_or_else(|| invalid("The latest installed release has no management executable."))?;
+    verified_bytes(&manager_root, manager_record)?;
+    let manager = manager_root.join("Constellation-Setup.exe");
+    let current_registry = registry_for(options, &release, &manager);
     let mut registry_before = Vec::new();
     for entry in &current_registry {
         registry_before.push(RegistryEntry {
@@ -872,6 +941,7 @@ fn activate(
     let mut original_shortcut = before
         .as_ref()
         .and_then(|r| r.shortcut.as_ref())
+        .filter(|s| options.shortcut.as_ref() == Some(&s.path))
         .map(|s| s.original.clone())
         .unwrap_or_else(|| shortcut_before.clone());
     if before.is_none() {
@@ -902,6 +972,7 @@ fn activate(
                 }
             }
             if let Some(shortcut) = &predecessor.shortcut
+                && options.shortcut.as_ref() == Some(&shortcut.path)
                 && shortcut_before
                     .as_ref()
                     .is_some_and(|bytes| hash(bytes) == shortcut.installed_sha256)
@@ -911,7 +982,7 @@ fn activate(
         }
     }
     let shortcut_bytes = if options.shortcut.is_some() {
-        Some(system.shortcut_bytes(&release_root.join("Constellation-Setup.exe"), &options.root)?)
+        Some(system.shortcut_bytes(&manager, &options.root)?)
     } else {
         None
     };
@@ -940,6 +1011,13 @@ fn activate(
         }),
         browser_files,
     };
+    let retired_shortcuts = before
+        .iter()
+        .chain(predecessors.iter().map(|(_, receipt)| receipt))
+        .filter_map(|receipt| receipt.shortcut.as_ref())
+        .filter(|shortcut| legacy_shortcut_path(options).as_ref() == Some(&shortcut.path))
+        .cloned()
+        .collect();
     let journal = Journal {
         schema: 1,
         id,
@@ -947,6 +1025,7 @@ fn activate(
         next: next.clone(),
         registry_before,
         shortcut_before,
+        retired_shortcuts,
         browser_backup: format!(".browser-backup-{}", next.transaction_id),
         browser_stage: stage_name,
         had_browsers: options.root.join("browsers").exists(),

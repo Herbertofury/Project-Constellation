@@ -311,6 +311,7 @@ pub fn doctor(directory: &Path) -> Value {
     };
     json!({"hostName":HOST_NAME,"version":env!("CARGO_PKG_VERSION"),"dataDirectory":directory,
         "brokerConnected":broker.is_ok(),"brokerError":broker.as_ref().err().map(|e|e.to_string()),
+        "processLifetime":platform::process_lifetime(),
         "state":persisted,"discovery":discovery,"snapshot":broker.ok().and_then(|v|v.get("data").cloned()),
         "permissions":"Manual approval only; the host cannot click permission prompts",
         "transport":"Authenticated 127.0.0.1 TCP; no external network, polling, or remote debugging"})

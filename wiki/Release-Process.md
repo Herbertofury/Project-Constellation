@@ -2,7 +2,7 @@
 
 The owner requests a GitHub release at closeout. Release only exact, committed
 source with matching artifacts and executed evidence. Installation is described
-in [Windows Setup](WINDOWS-SETUP.md) and [Installation](INSTALLATION.md).
+in [Windows Setup](Windows-Setup) and [Installation](Installation).
 
 ## Prepare the source
 

@@ -63,7 +63,7 @@ impl Hub {
         let mut result = self.store.snapshot();
         result["health"] = json!({"persistence":if self.persistence_error.is_some(){"error"}else{"ok"},
             "message":self.persistence_error,"connectedBrowsers":self.peers.len(),
-            "lifecycle":self.lifecycle.snapshot()});
+            "lifecycle":self.lifecycle.snapshot(),"processLifetime":platform::process_lifetime()});
         result["capabilities"]["browserBoundLifecycle"] = json!(true);
         result
     }
@@ -548,11 +548,22 @@ pub fn connect(directory: &Path, admin: bool) -> io::Result<TcpStream> {
 }
 
 pub fn ensure_connected(directory: &Path) -> io::Result<TcpStream> {
-    platform::secure_directory(directory)?;
+    platform::secure_directory(directory).map_err(|error| {
+        io::Error::new(
+            error.kind(),
+            format!("Cannot prepare the private hub data directory: {error}"),
+        )
+    })?;
     if let Ok(stream) = connect(directory, false) {
         return Ok(stream);
     }
-    let startup_lock = platform::open_private(&directory.join("startup.lock"), false)?;
+    let startup_lock =
+        platform::open_private(&directory.join("startup.lock"), false).map_err(|error| {
+            io::Error::new(
+                error.kind(),
+                format!("Cannot open the private hub startup lock: {error}"),
+            )
+        })?;
     let deadline = Instant::now() + Duration::from_secs(5);
     let mut elected = false;
     let mut launched = false;

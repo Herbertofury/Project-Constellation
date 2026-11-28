@@ -23,19 +23,31 @@ commits and one Home page.
 | `review/windows-workspace` | `fa1d749ed6d65d29c8e04ae17e3bd36dfbb58b3e` | Workspace implementation incorporated in cumulative tree; unique integration note retained |
 | `build/sse-nif-optimizer-3.2.2` | `4bf4c7b4bbc0f83ea04608a573e59032c25b28b3` | Independent pinned optimizer build recipe under `computer-link/utilities/sse-nif-build` |
 | `test/sse-nif-3.2.2-fixtures` | `272aa60053b31fd14337b2135a73851e4abbdc32` | Independent mesh conversion verifier and fixture tooling under `computer-link/utilities/sse-nif-fixtures` |
-| Wiki `master` | `127117242908f78111dee2b7afe7772d575e6698` | Exact page mirror and complete wiki history bundle |
+| Wiki `master` | `127117242908f78111dee2b7afe7772d575e6698` | Exact page mirror; complete wiki history preserved privately |
 
 All branch heads and per-branch file trees are listed in
 `recovery/computer-link/SOURCE-MANIFEST.json`. Complete Git bundles preserve the
-original authors, commit graph, messages, source and prior failures. A restoration
-test clones the bundle locally and checks every one of the 26 restored trees.
-For every imported file, its original Git blob and SHA-256 are checked against
-the recovered object, including the few files intentionally integrated afterward.
+original authors, commit graph, messages, source and prior failures **in private
+local recovery only**. Automatic approval review rejected publication of the
+full-history archive. Both `.bundle` files are excluded from public source and
+release artifacts; this migration does not re-encode or upload their bytes by
+another route. Durable publication of the complete original history remains
+pending specific approval and verification.
 
-No repository deletion or remote publication occurred. Hosted Actions logs,
-expired build artifacts, pull-request discussion threads and private machine
-state are not claimed as exported. The source/history checkpoint and native
-acceptance must be durably verified before retiring the original repository.
+`node tools/computer-link/verify-import.mjs` checks private bundles when present.
+A public checkout instead fetches the recorded public branch heads and wiki into
+an automatically removed temporary bare repository. Both routes enforce the same
+exact commit/tree identities, reachable commit counts, original source path/blob
+and byte identities, and Git object integrity checks. `--source upstream` requires
+the public fetch route; `--source bundles --bundle-dir ABSOLUTE_DIR` verifies a
+separately supplied private recovery copy. Fetching validates upstream history;
+it neither publishes it nor makes Constellation independent of upstream history
+availability. Missing, changed or inaccessible recorded refs fail verification.
+
+The source repository has not been deleted. Hosted Actions logs, expired build
+artifacts, pull-request discussion threads and private machine state are not
+claimed as exported. The source/history checkpoint and native acceptance must be
+durably verified before retiring the original repository.
 
 ## Complete capability map
 
@@ -70,7 +82,8 @@ The cumulative Windows branch includes `windows-transport`, `windows-inventory`,
 `windows-workspace` Rust functions/tests have no unique function missing from the
 active combined tree; the separate workspace integration note was copied too.
 Diagnostic fix branches are represented by the later hardened main implementation
-and all original commit objects. Historical variations remain recoverable.
+and the privately preserved original commit objects. Historical variations are
+verified through those private bundles or the exact recorded public refs.
 
 ## Integration contracts
 
@@ -134,6 +147,7 @@ Commands from the Constellation root:
 
 ```sh
 node tools/computer-link/verify-import.mjs
+node tools/computer-link/verify-import.mjs --source upstream
 node tools/computer-link/build.mjs --test
 node --test desktop/tests/computer-link.test.mjs
 node tools/computer-link/run.mjs mcp-status
@@ -142,10 +156,28 @@ node tools/computer-link/build.mjs --target x86_64-pc-windows-gnu
 
 Observed in this integration: all 123 source-file identities recover correctly,
 all 26 branch trees restore, both Git bundles verify as complete, 23 Python tests,
-46 Linux Rust tests and nine Node adapter tests pass. The actual Linux Rust MCP
+46 Linux Rust tests and ten Node adapter tests pass. These recovery assertions
+also run through the public-fetch route without distributing a history archive.
+The actual Linux Rust MCP
 executable completes the Constellation status exchange. All six Windows binaries
 build/link, and the Windows test targets of all six original Rust crates compile
 and link. Windows binaries were not executed in this Linux session.
+
+Desktop validation passes all 22 task tests, 81 combined boundary/adapter/process
+tests and the full remaining smoke suite, with the Windows computer-use check
+explicitly skipped on Linux. A real isolated Chromium renderer passes 27 desktop
+and chat workflows, including an actual Rust MCP status exchange, real file and
+process operations, and native-card failure/retry states. Windows owner UI states
+in that renderer are labeled fixtures; they do not replace native Windows proof.
+The desktop adapter checks trusted IPC, late permission revocation, launch/stop
+ordering and quit cleanup. Managed process Stop waits for observed exit and
+output drain; failed cleanup keeps the application open instead of claiming
+termination. The standalone MCP CLI now also stops its owned process tree and
+drains task/search/audit work before closing. Actual parent/descendant processes
+were checked after MCP shutdown and POSIX SIGTERM; Windows forced termination is
+not represented as a catchable POSIX signal. Windows packaging validates all six binaries before and after the
+resource copy, then the Windows gate probes the bundled MCP executable from a
+freshly extracted portable Electron app.
 
 Original Windows GUI/pipe/filesystem/worker/export/focus tests remain the native
 acceptance gate. The new worker CLI has Windows tests for successful contained

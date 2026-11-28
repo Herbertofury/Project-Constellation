@@ -37,7 +37,7 @@ export function verifyWindowsDesktop(directory, {version, sourceCommit}) {
   requireValue(receipt.schema === 'project-constellation-windows-runtime-v1', 'Unknown Windows runtime receipt schema');
   sameSource(receipt, version, sourceCommit);
   requireValue(/^windows-/.test(receipt.platform || ''), 'Windows runtime was not executed on Windows');
-  for (const check of ['nativeComputerUse', 'integratedElectron', 'packagedPortable']) {
+  for (const check of ['nativeComputerUse', 'nativeComputerTools', 'integratedElectron', 'packagedPortable', 'gracefulShutdown']) {
     requireValue(receipt[check] === 'PASS', `Windows runtime check did not pass: ${check}`);
   }
   const verify = (prefix, extension) => {
@@ -47,6 +47,20 @@ export function verifyWindowsDesktop(directory, {version, sourceCommit}) {
     return verifyArtifact(directory, {file: name, bytes: receipt[`${prefix}Size`], sha256: receipt[`${prefix}Sha256`]});
   };
   return {receipt, receiptFile, portable: verify('portable', '.zip'), setup: verify('setup', '.exe')};
+}
+
+export function stageWindowsDesktop(directory, verified, version) {
+  const portableFile = `Project-Constellation-v${version}-Windows-Portable.zip`;
+  const setupFile = `Project-Constellation-v${version}-Windows-Desktop-Setup.exe`;
+  fs.copyFileSync(verified.portable, path.join(directory, portableFile));
+  fs.copyFileSync(verified.setup, path.join(directory, setupFile));
+  fs.copyFileSync(verified.receiptFile, path.join(directory, 'WINDOWS-RUNTIME-BUILD-RECEIPT.json'));
+  const receipt = {...verified.receipt, portableFile, setupFile,
+    buildArtifacts: {portableFile: verified.receipt.portableFile, setupFile: verified.receipt.setupFile},
+    buildReceipt: 'WINDOWS-RUNTIME-BUILD-RECEIPT.json'};
+  fs.writeFileSync(path.join(directory, 'WINDOWS-RUNTIME-RECEIPT.json'), JSON.stringify(receipt, null, 2) + '\n');
+  // Prove that the receipt describes the filenames actually being shipped.
+  return verifyWindowsDesktop(directory, {version, sourceCommit: receipt.sourceCommit});
 }
 
 export function verifyWindowsSetup(directory, {version, sourceCommit}) {

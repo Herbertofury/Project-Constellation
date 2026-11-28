@@ -4,7 +4,7 @@ import process from 'node:process';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {writeDirectoryFilesZip, writeExactGitSourceZip} from './source-archive.mjs';
-import {readReceipt, sha256, verifyWindowsDesktop, verifyWindowsSetup, verifyLinuxMonitor} from './release-artifacts.mjs';
+import {readReceipt, sha256, verifyWindowsDesktop, verifyWindowsSetup, verifyLinuxMonitor, stageWindowsDesktop} from './release-artifacts.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = readReceipt(path.join(root, 'package.json'));
@@ -46,11 +46,9 @@ try {
   const copy = (file, name = path.basename(file)) => fs.copyFileSync(file, path.join(staging, name));
   writeDirectoryFilesZip({source: path.join(root, 'build', 'unpacked'), target: path.join(staging, `Project-Constellation-v${version}-Extension.zip`)});
   writeExactGitSourceZip({repoRoot: root, commit, target: path.join(staging, `Project-Constellation-v${version}-source.zip`)});
-  copy(desktop.portable, `Project-Constellation-v${version}-Windows-Portable.zip`);
-  copy(desktop.setup, `Project-Constellation-v${version}-Windows-Desktop-Setup.exe`);
+  const publishedDesktop = stageWindowsDesktop(staging, desktop, version);
   copy(setup.setup);
   copy(notesSource);
-  copy(desktop.receiptFile);
   copy(setup.receiptFile);
   copy(setup.acceptanceFile);
   copy(monitor.receiptFile, 'MONITOR-ARTIFACT-RECEIPT.json');
@@ -62,7 +60,7 @@ try {
     extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig', extensionBuild: buildInfo,
     desktop: {electron: desktopPkg.devDependencies.electron, electronBuilder: desktopPkg.devDependencies['electron-builder']},
     artifacts,
-    verification: {sourceClean: true, artifactBytesVerified: true, windowsRuntime: desktop.receipt, windowsSetupAcceptance: setup.acceptance},
+    verification: {sourceClean: true, artifactBytesVerified: true, windowsRuntime: publishedDesktop.receipt, windowsSetupAcceptance: setup.acceptance},
     limitations: {prerelease: true, firefoxSigned: false, windowsCodeSigned: setup.receipt.signed === true, physicalAudioAndOwnerAccountsRequireAcceptance: true},
     createdAt: new Date().toISOString(),
   };

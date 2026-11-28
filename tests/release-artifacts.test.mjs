@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {sha256, verifyArtifact, verifyWindowsDesktop, verifyWindowsSetup, verifyLinuxMonitor} from '../tools/release-artifacts.mjs';
+import {sha256, verifyArtifact, verifyWindowsDesktop, verifyWindowsSetup, verifyLinuxMonitor, stageWindowsDesktop} from '../tools/release-artifacts.mjs';
 
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'constellation-release-'));
 const expected = {version: '0.22.0', sourceCommit: 'a'.repeat(40)};
@@ -16,7 +16,7 @@ try {
   const desktopSetup = artifact('Project-Constellation-Desktop-0.22.0-x64.exe');
   const desktop = {
     schema: 'project-constellation-windows-runtime-v1', ...expected,
-    platform: 'windows-latest', nativeComputerUse: 'PASS', integratedElectron: 'PASS', packagedPortable: 'PASS',
+    platform: 'windows-latest', nativeComputerUse: 'PASS', nativeComputerTools: 'PASS', integratedElectron: 'PASS', packagedPortable: 'PASS', gracefulShutdown: 'PASS',
     portableFile: portable.file, portableSize: portable.bytes, portableSha256: portable.sha256,
     setupFile: desktopSetup.file, setupSize: desktopSetup.bytes, setupSha256: desktopSetup.sha256,
   };
@@ -32,7 +32,16 @@ try {
   assert.throws(() => verifyWindowsDesktop(directory, expected), /source/);
   write(desktopReceipt, {...desktop, packagedPortable: 'SKIPPED'});
   assert.throws(() => verifyWindowsDesktop(directory, expected), /did not pass/);
+  write(desktopReceipt, {...desktop, nativeComputerTools: 'FAIL'});
+  assert.throws(() => verifyWindowsDesktop(directory, expected), /nativeComputerTools/);
   write(desktopReceipt, desktop);
+  const published = path.join(directory, 'published');
+  fs.mkdirSync(published);
+  const staged = stageWindowsDesktop(published, verifyWindowsDesktop(directory, expected), expected.version);
+  assert.equal(path.basename(staged.portable), 'Project-Constellation-v0.22.0-Windows-Portable.zip');
+  assert.equal(path.basename(staged.setup), 'Project-Constellation-v0.22.0-Windows-Desktop-Setup.exe');
+  assert.equal(staged.receipt.buildArtifacts.portableFile, portable.file);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(published, staged.receipt.buildReceipt), 'utf8').replace(/^\uFEFF/, '')).portableFile, portable.file);
   write(portable.file, 'x'.repeat(portable.bytes));
   assert.throws(() => verifyWindowsDesktop(directory, expected), /SHA-256/);
   for (const name of ['../outside.zip', '..\\outside.zip', '/tmp/a.zip', 'C:a.zip', 'valid.zip ']) {

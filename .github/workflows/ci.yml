@@ -68,7 +68,9 @@ jobs:
           set -euo pipefail
           cd "$PC_SOURCE_ROOT"
           npm ci --no-audit --no-fund
-          npm run verify
+          # The multitab acceptance asserts actual document.hidden state.
+          # Use an isolated display, never the owner's active desktop.
+          xvfb-run --auto-servernum env PROJECT_CONSTELLATION_HEADFUL=1 npm run verify
       - name: Desktop portable-runtime tests (non-native Windows paths)
         shell: bash
         run: |

@@ -295,7 +295,9 @@ pub fn default_root() -> io::Result<PathBuf> {
 pub fn shortcut_path() -> io::Result<PathBuf> {
     std::env::var_os("APPDATA")
         .map(|v| {
-            PathBuf::from(v).join("Microsoft/Windows/Start Menu/Programs/Project Constellation.lnk")
+            PathBuf::from(v)
+                .join("Microsoft/Windows/Start Menu/Programs")
+                .join(engine::SHORTCUT_NAME)
         })
         .ok_or_else(|| io::Error::other("Current-user Start Menu location is unavailable."))
 }

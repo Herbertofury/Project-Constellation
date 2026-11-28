@@ -41,5 +41,25 @@
     "privateArchivePreserved": true,
     "privateArchiveSha256": "b68067e47225b63c23713c6effa7b35fd9095731181ea9abb3022a0a4708df2f",
     "publicSourceVerification": "Use local bundles when available, otherwise verify exact recorded public upstream refs; no validation skip."
+  },
+  "desktop": {
+    "taskTests": 22,
+    "combinedTests": 81,
+    "portableScripts": 13,
+    "renderedWorkflows": 27
+  },
+  "initialHostedEvidence": {
+    "reviewPullRequest": 49,
+    "sourceCommit": "d3eeb62f402c7cdfdef959944e3e2ef4b4dcf3eb",
+    "passed": [
+      "Computer Tools source/native/MCP checks on Windows and Linux",
+      "Chromium and Firefox monitor fixtures",
+      "Actual installed extension startup and Drive guard",
+      "Windows Electron and computer-use regression"
+    ],
+    "issuesBeingCorrected": [
+      "Hub startup denied under restrictive Windows Job",
+      "Multitab visibility acceptance needs isolated headful browser"
+    ]
   }
 }

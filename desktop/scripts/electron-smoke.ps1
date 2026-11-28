@@ -27,6 +27,9 @@ if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.o
   $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }
   throw "Electron integrated-chat smoke failed: $(Get-Content $Output -Raw)`nTRACE:`n$trace`nSTDOUT:`n$out`nSTDERR:`n$err"
 }
-try { Wait-Process -Id $proc.Id -Timeout 8 -ErrorAction SilentlyContinue } catch {}
-try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+if (-not $proc.WaitForExit(10000)) {
+  try { Stop-Process -Id $proc.Id -Force } catch {}
+  throw 'Integrated Electron smoke produced a result but did not confirm graceful application shutdown.'
+}
+if ($proc.ExitCode -ne 0) { throw "Integrated Electron smoke exited with code $($proc.ExitCode)." }
 Write-Host 'Project Constellation integrated Electron ChatGPT smoke: PASS'

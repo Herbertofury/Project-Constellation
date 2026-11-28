@@ -4,6 +4,8 @@ import { loadConfig, APP_NAME, VERSION } from './config.mjs';
 import { createRuntimeState } from './state.mjs';
 import { createToolHandler } from './tools.mjs';
 import { toolDefinitions } from './tool-definitions.mjs';
+import { stopManagedProcess } from './process-manager.mjs';
+import { closeComputerUseHelper } from './computer-use.mjs';
 
 const SUPPORTED = ['2026-07-28','2025-06-18','2025-03-26','2024-11-05'];
 const jsonHeaders = { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store' };
@@ -15,7 +17,36 @@ async function readBody(req){ const chunks=[]; for await (const c of req) chunks
 
 export async function createCommanderServer(overrides={}) {
   const loaded=await loadConfig(); const config=Object.assign(loaded.config,overrides.config||{}); const state=createRuntimeState(loaded.dir); const sessions=new Set(); let server;
-  const shutdown=()=>server?.close(()=>{});
+  let closing;
+  const shutdown=async()=>{
+    if(closing)return closing;
+    state.shuttingDown=true;
+    for(const job of state.searches.values())job.cancelled=true;
+    closing=(async()=>{
+      let timer;
+      const serverClosed=new Promise((resolve,reject)=>{
+        if(!server?.listening)return resolve();
+        server.close(error=>error?reject(error):resolve());
+      });
+      const cleanup=(async()=>{
+        const operations=[
+          closeComputerUseHelper().then(result=>{if(result?.stopped===false)throw new Error(result.reason);}),
+          ...[...state.processes.values()].filter(session=>session.child).map(session=>stopManagedProcess(session)),
+          ...[...state.tasks.jobs.values()].map(task=>task._run).filter(Boolean),
+          ...[...state.searches.values()].map(job=>job.promise).filter(Boolean),
+          serverClosed,
+        ];
+        const results=await Promise.allSettled(operations);
+        const failures=results.filter(result=>result.status==='rejected').map(result=>result.reason);
+        if(failures.length)throw new AggregateError(failures,'Owned CLI work did not confirm cleanup.');
+        await state.recordQueue;
+        return {stopped:true};
+      })();
+      try{return await Promise.race([cleanup,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('CLI shutdown cleanup is unconfirmed after ten seconds.')),10000);})]);}
+      finally{clearTimeout(timer);}
+    })();
+    try{return await closing;}finally{closing=null;}
+  };
   const callTool=createToolHandler({config,configPath:loaded.configPath,state,onShutdown:shutdown});
   const mcpPath=`/${config.endpointToken}/mcp`;
 
@@ -63,5 +94,5 @@ export async function createCommanderServer(overrides={}) {
   };
 
   server=http.createServer(handler);
-  return { server, config, state, mcpPath, healthPath:`/${config.endpointToken}/healthz`, listen:()=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(config.port,config.host,()=>resolve(server.address()));}), close:()=>new Promise(r=>server.close(()=>r())) };
+  return { server, config, state, mcpPath, healthPath:`/${config.endpointToken}/healthz`, listen:()=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(config.port,config.host,()=>resolve(server.address()));}), close:shutdown };
 }

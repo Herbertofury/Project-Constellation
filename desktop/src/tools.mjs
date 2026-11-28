@@ -332,7 +332,11 @@ export function createToolHandler({ config, configPath, state, onShutdown }) {
         case 'get_usage_stats': {
           let stats={totalCalls:0,byTool:{},errors:0}; try{stats=JSON.parse(await fsp.readFile(state.statsPath,'utf8'));}catch{} result={...stats,quotaEnforced:false,quota:null,message:'Local counters only; Project Constellation does not impose a tool-call quota.'}; break;
         }
-        case 'shutdown': { result={shutting_down:true}; void closeComputerUseHelper(); setTimeout(()=>onShutdown?.(),100).unref(); break; }
+        case 'shutdown': {
+          state.shuttingDown=true;result={shutting_down:true};
+          setTimeout(()=>{void Promise.resolve(onShutdown?onShutdown():closeComputerUseHelper()).catch(error=>{state.shutdownError=String(error.message);console.error(`Project Constellation shutdown failed: ${error.message}`);});},100).unref();
+          break;
+        }
         default: throw new Error(`Unknown tool: ${name}`);
       }
       await recordCall(state,{tool:name,ok:true,durationMs:Date.now()-started,argsSummary:Object.keys(args||{})});

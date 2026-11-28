@@ -325,17 +325,126 @@ pub fn spawn_daemon(data_dir: &Path) -> io::Result<()> {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        // Break away from the browser's native-host job so another browser can
-        // keep the shared broker alive. Fail visibly if OS policy disallows it.
-        command.creation_flags(0x00000008 | 0x00000200 | 0x01000000);
+        const DETACHED: u32 = 0x00000008 | 0x00000200;
+        const BREAKAWAY: u32 = 0x01000000;
+        // Some browsers allow an independent native broker; managed launchers
+        // and CI runners can forbid breakaway. Asking for it unconditionally
+        // makes CreateProcess fail with ACCESS_DENIED before native hello.
+        // Query the existing Job policy and preserve its containment when it
+        // forbids breakaway. Never modify Job limits or route around them.
+        let allowed = windows_job_limits()
+            .ok()
+            .flatten()
+            .is_some_and(|limits| limits.flags & 0x800 != 0);
+        command.creation_flags(DETACHED | if allowed { BREAKAWAY } else { 0 });
+        match command.spawn() {
+            Ok(_) => return Ok(()),
+            Err(error) if allowed && error.raw_os_error() == Some(5) => {
+                // An outer Job in a nested hierarchy can be more restrictive
+                // than the queried immediate Job. Retry inside those limits.
+                command.creation_flags(DETACHED);
+            }
+            Err(error) => {
+                return Err(io::Error::new(
+                    error.kind(),
+                    format!(
+                        "Windows could not launch the native hub within its process limits: {error}"
+                    ),
+                ));
+            }
+        }
     }
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
         command.process_group(0);
     }
-    command.spawn()?;
+    command.spawn().map_err(|error| {
+        io::Error::new(
+            error.kind(),
+            format!("Native hub process launch failed: {error}"),
+        )
+    })?;
     Ok(())
+}
+
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Default)]
+struct WindowsJobLimits {
+    process_time: i64,
+    job_time: i64,
+    flags: u32,
+    minimum_working_set: usize,
+    maximum_working_set: usize,
+    active_processes: u32,
+    affinity: usize,
+    priority: u32,
+    scheduling: u32,
+}
+
+#[cfg(windows)]
+fn windows_job_limits() -> io::Result<Option<WindowsJobLimits>> {
+    type Handle = *mut std::ffi::c_void;
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn GetCurrentProcess() -> Handle;
+        fn IsProcessInJob(process: Handle, job: Handle, inside: *mut i32) -> i32;
+        fn QueryInformationJobObject(
+            job: Handle,
+            class: u32,
+            output: Handle,
+            length: u32,
+            returned: *mut u32,
+        ) -> i32;
+    }
+    let mut inside = 0;
+    if unsafe { IsProcessInJob(GetCurrentProcess(), std::ptr::null_mut(), &mut inside) } == 0 {
+        return Err(io::Error::last_os_error());
+    }
+    if inside == 0 {
+        return Ok(None);
+    }
+    let mut limits = WindowsJobLimits::default();
+    if unsafe {
+        QueryInformationJobObject(
+            std::ptr::null_mut(),
+            2,
+            (&mut limits as *mut WindowsJobLimits).cast(),
+            std::mem::size_of::<WindowsJobLimits>() as u32,
+            std::ptr::null_mut(),
+        )
+    } == 0
+    {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(Some(limits))
+}
+
+/// OS ownership can end a process independently of native sensor leases. Expose
+/// it instead of promising cross-browser independence from a restrictive Job.
+pub fn process_lifetime() -> serde_json::Value {
+    #[cfg(windows)]
+    {
+        match windows_job_limits() {
+            Ok(None) => {
+                serde_json::json!({"platform":"windows","jobManaged":false,"mode":"sensor_leases"})
+            }
+            Ok(Some(limits)) => serde_json::json!({
+                "platform":"windows","jobManaged":true,"mode":"sensor_leases_with_job_limits",
+                "breakawayAllowed":limits.flags & 0x1800 != 0,
+                "explicitBreakawayAllowed":limits.flags & 0x800 != 0,
+                "silentBreakawayAllowed":limits.flags & 0x1000 != 0,
+                "killOnJobClose":limits.flags & 0x2000 != 0,
+                "note":"The hub honors the enclosing Windows Job. Its owner can end the process before the last browser disconnects; a surviving sensor can reconnect and restore saved state."
+            }),
+            Err(error) => {
+                serde_json::json!({"platform":"windows","mode":"sensor_leases_with_unknown_job_limits","diagnosticError":error.to_string()})
+            }
+        }
+    }
+    #[cfg(not(windows))]
+    serde_json::json!({"platform":std::env::consts::OS,"mode":"sensor_leases"})
 }
 
 #[cfg(all(test, windows))]

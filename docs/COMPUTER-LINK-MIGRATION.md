@@ -163,7 +163,7 @@ executable completes the Constellation status exchange. All six Windows binaries
 build/link, and the Windows test targets of all six original Rust crates compile
 and link. Windows binaries were not executed in this Linux session.
 
-Desktop validation passes all 22 task tests, 79 combined boundary/adapter/process
+Desktop validation passes all 22 task tests, 81 combined boundary/adapter/process
 tests and the full remaining smoke suite, with the Windows computer-use check
 explicitly skipped on Linux. A real isolated Chromium renderer passes 27 desktop
 and chat workflows, including an actual Rust MCP status exchange, real file and
@@ -172,7 +172,10 @@ in that renderer are labeled fixtures; they do not replace native Windows proof.
 The desktop adapter checks trusted IPC, late permission revocation, launch/stop
 ordering and quit cleanup. Managed process Stop waits for observed exit and
 output drain; failed cleanup keeps the application open instead of claiming
-termination. Windows packaging validates all six binaries before and after the
+termination. The standalone MCP CLI now also stops its owned process tree and
+drains task/search/audit work before closing. Actual parent/descendant processes
+were checked after MCP shutdown and POSIX SIGTERM; Windows forced termination is
+not represented as a catchable POSIX signal. Windows packaging validates all six binaries before and after the
 resource copy, then the Windows gate probes the bundled MCP executable from a
 freshly extracted portable Electron app.
 

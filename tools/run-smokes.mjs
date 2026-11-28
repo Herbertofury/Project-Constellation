@@ -56,5 +56,16 @@ async function runSmoke(script) {
   console.log(`${script}: PASS`);
 }
 
-for (const script of scripts) await runSmoke(script);
+const failures = [];
+for (const script of scripts) {
+  try { await runSmoke(script); }
+  catch (error) {
+    failures.push(error);
+    console.error(error.message);
+    const log = path.join(logRoot, `${path.basename(script, '.py')}.log`);
+    if (fs.existsSync(log)) console.error(fs.readFileSync(log, 'utf8').split('\n').slice(-45).join('\n'));
+    if (process.env.PROJECT_CONSTELLATION_SMOKE_FAIL_FAST === '1') break;
+  }
+}
+if (failures.length) throw new AggregateError(failures, `${failures.length}/${scripts.length} smoke workflows failed. Evidence: ${logRoot}`);
 console.log(`run-smokes.mjs: PASS (${scripts.length}/${allScripts.length} workflows${match?' matched':''}${from?' resumed':''})`);

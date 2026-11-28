@@ -40,8 +40,10 @@ async function restore(bundleName, repository, entries, destination) {
   if (source !== 'upstream' && present) {
     const actual = await fs.readFile(file);
     if (actual.length !== bundle.bytes || sha256(actual) !== bundle.sha256) throw new Error(`Bundle identity changed: ${bundleName}`);
-    await git(['bundle', 'verify', file]);
     await git(['clone', '--mirror', file, destination]);
+    // A source ZIP has no .git of its own. Verify inside the disposable restored
+    // repository so privately supplied complete bundles remain usable there.
+    await git(['bundle', 'verify', file], destination);
     sources.push({ repository, mode: 'private-local-bundle', verifiedBundle: bundleName });
   } else {
     if (source === 'bundles') throw new Error(`Private history bundle is not supplied: ${bundleName}`);

@@ -81,7 +81,7 @@ sensor observations; it does not bypass browser isolation.
 
 Setup registers the native host for your Windows user and provides diagnostics,
 repair, rollback and uninstall. Its **Computer Tools** button opens the migrated
-native desktop application. See [Windows setup](WINDOWS-SETUP.md) for portable
+native desktop application. See [Windows setup](Windows-Setup) for portable
 paths, updating, and which actions remain in the browser.
 
 The ZIP/CLI route remains available: extract the Browser Hub ZIP, run
@@ -162,7 +162,7 @@ embedded source archive.
 Synthetic sensor tests prove transport and state behavior; they are not proof
 of the user's live Chrome/Firefox/Edge/Opera GX installation. The exact verified
 commands and unresolved acceptance items are recorded in
-[`MONITOR-VERIFICATION.md`](MONITOR-VERIFICATION.md). Real signed-in providers,
+[`MONITOR-VERIFICATION.md`](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/MONITOR-VERIFICATION.md). Real signed-in providers,
 OS notification behavior, Firefox signing, and browser-specific native host
 setup require target-environment evidence.
 

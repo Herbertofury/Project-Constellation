@@ -202,8 +202,10 @@ class Integrations:
         import winreg
         self.registry = winreg
         self.before = {slot: self.read(*slot) for slot in SLOTS}
-        self.shortcut = Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs/Project Constellation.lnk"
+        self.shortcut = Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs/Project Constellation Setup.lnk"
         self.shortcut_before = self.shortcut.read_bytes() if self.shortcut.is_file() else None
+        self.desktop_shortcut = self.shortcut.with_name("Project Constellation.lnk")
+        self.desktop_shortcut_before = self.desktop_shortcut.read_bytes() if self.desktop_shortcut.is_file() else None
 
     def read(self, key, name):
         try:
@@ -213,8 +215,10 @@ class Integrations:
             return None
 
     def matches(self):
-        return all(self.read(*slot) == value for slot, value in self.before.items()) and (
-            self.shortcut.read_bytes() if self.shortcut.is_file() else None) == self.shortcut_before
+        return all(self.read(*slot) == value for slot, value in self.before.items()) and all(
+            (path.read_bytes() if path.is_file() else None) == before
+            for path, before in ((self.shortcut, self.shortcut_before),
+                                 (self.desktop_shortcut, self.desktop_shortcut_before)))
 
     def restore(self):
         # Emergency cleanup is limited to the exact fixed slots captured above.
@@ -229,11 +233,13 @@ class Integrations:
             else:
                 with self.registry.CreateKeyEx(self.registry.HKEY_CURRENT_USER, key, 0, self.registry.KEY_SET_VALUE) as handle:
                     self.registry.SetValueEx(handle, name, 0, value[1], value[0])
-        if self.shortcut_before is None:
-            self.shortcut.unlink(missing_ok=True)
-        else:
-            self.shortcut.parent.mkdir(parents=True, exist_ok=True)
-            self.shortcut.write_bytes(self.shortcut_before)
+        for path, before in ((self.shortcut, self.shortcut_before),
+                             (self.desktop_shortcut, self.desktop_shortcut_before)):
+            if before is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(before)
 
     def check_installed(self, root, receipt):
         for key in HOST_KEYS:
@@ -246,6 +252,8 @@ class Integrations:
         require(Path(self.read(APPS_KEY, "InstallLocation")[0]) == root, "Apps and Features points at another install")
         require(self.shortcut.is_file(), "Start Menu entry was not created")
         require(sha(self.shortcut.read_bytes()) == receipt["shortcut"]["installedSha256"], "Start Menu shortcut differs from installation receipt")
+        require((self.desktop_shortcut.read_bytes() if self.desktop_shortcut.is_file() else None) == self.desktop_shortcut_before,
+                "Setup changed the separate desktop dashboard entry")
 
 
 class NativeSensor:
@@ -403,7 +411,7 @@ class Acceptance:
         require(state.read_bytes() == good_state, "Uninstall changed preserved monitor state")
         self.check("uninstall", installedManagerHelper=True, dataPreserved=True)
         require(self.integrations.matches(), "Uninstall did not restore all registry and shortcut baselines")
-        self.check("integrations-restored", registrySlots=len(SLOTS), shortcutRestored=True)
+        self.check("integrations-restored", registrySlots=len(SLOTS), shortcutRestored=True, desktopShortcutPreserved=True)
 
     def gui(self, receipt):
         process = subprocess.Popen([str(self.args.setup), "manage", "--dir", str(self.root), "--quiet"],

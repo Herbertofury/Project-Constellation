@@ -49,8 +49,11 @@ def fixture_html(kind):
       });
     </script></body></html>'''.replace('KIND',kind).replace('SURFACE',surface).replace('DRAFT',draft).replace('DELAY',str(delay))
 
+# Headless Chromium can expose every tab as visible. This acceptance requires
+# real tab visibility; hosted Linux runs it in a private Xvfb display.
+headful = os.environ.get('PROJECT_CONSTELLATION_HEADFUL') == '1'
 with tempfile.TemporaryDirectory(prefix='project-constellation-multitab-') as profile, sync_playwright() as p:
-    context=p.chromium.launch_persistent_context(profile,channel='chromium',headless=True,
+    context=p.chromium.launch_persistent_context(profile,channel='chromium',headless=not headful,
         args=[f'--disable-extensions-except={root}',f'--load-extension={root}','--no-sandbox'],
         executable_path=os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None)
     admin=context.new_page();admin.goto(f'chrome-extension://{extension_id}/popup.html',wait_until='domcontentloaded')

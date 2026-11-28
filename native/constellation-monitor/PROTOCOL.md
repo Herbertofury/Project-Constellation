@@ -173,6 +173,18 @@ Admin/diagnostic and unauthenticated sockets are excluded. Lifecycle `state` is
 5000 milliseconds by default. Lifecycle health is runtime metadata, not saved
 chat state, and does not increment the persisted revision by itself.
 
+`health.processLifetime` describes the operating-system ownership around those
+leases. On Windows, `jobManaged:true` reports an enclosing Job;
+`breakawayAllowed` and `killOnJobClose` reflect its current limits;
+`explicitBreakawayAllowed` and `silentBreakawayAllowed` distinguish whether a
+child must request breakaway or receives it automatically. A constrained
+broker reports mode `sensor_leases_with_job_limits` and remains subject to that
+Job's termination even while other sensors are connected. An unconstrained
+broker reports mode `sensor_leases`. The launcher never changes Job limits;
+it requests independent lifetime only when allowed. Surviving sensors can
+reconnect after an owning Job ends and recover saved state. `doctor` includes
+the calling process's limits and, when connected, the broker snapshot's limits.
+
 An authenticated transport acquires its lifetime lease before the native host
 receives authentication success. The last disconnect starts one cancellable
 deadline. A new lease cancels it; once shutdown has been committed, new leases

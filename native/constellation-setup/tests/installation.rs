@@ -344,6 +344,223 @@ fn explicit_rollback_restores_previous_code_and_registration() {
 }
 
 #[test]
+fn legacy_shortcut_migration_preserves_desktop_and_keeps_new_manager_after_rollback() {
+    use constellation_setup::system::UNINSTALL_KEY;
+
+    for desktop_was_present in [false, true] {
+        for desktop_replaced_legacy in [false, true] {
+            let f = Fixture::new();
+            let mut s = FakeSystem::default();
+            let desktop = f.dir.join("Start Menu/Project Constellation.lnk");
+            let setup = f.dir.join("Start Menu/Project Constellation Setup.lnk");
+            fs::create_dir_all(desktop.parent().unwrap()).unwrap();
+            let desktop_baseline =
+                desktop_was_present.then_some(b"original desktop shortcut".as_slice());
+            if let Some(bytes) = desktop_baseline {
+                fs::write(&desktop, bytes).unwrap();
+            }
+            let setup_baseline = b"independent setup shortcut baseline";
+            fs::write(&setup, setup_baseline).unwrap();
+            let legacy = Options {
+                shortcut: Some(desktop.clone()),
+                ..f.options.clone()
+            };
+            fs::write(&legacy.setup_exe, b"legacy setup manager").unwrap();
+            let a = f.payload("0.21.0");
+            engine::install(&legacy, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+            let old = engine::read_receipt(&legacy).unwrap().unwrap();
+            let later_desktop = b"desktop reinstalled after legacy setup";
+            if desktop_replaced_legacy {
+                fs::write(&desktop, later_desktop).unwrap();
+            }
+            let expected_desktop = if desktop_replaced_legacy {
+                Some(later_desktop.as_slice())
+            } else {
+                desktop_baseline
+            };
+            let current = Options {
+                shortcut: Some(setup.clone()),
+                ..legacy.clone()
+            };
+            fs::write(&current.setup_exe, b"current setup manager").unwrap();
+            let b = f.payload("0.22.0");
+            engine::install(&current, &Payload::parse(&b).unwrap(), &mut s).unwrap();
+            let upgraded = engine::read_receipt(&current).unwrap().unwrap();
+            let owned_shortcut = upgraded.shortcut.as_ref().unwrap();
+            assert_eq!(owned_shortcut.path, setup);
+            assert_eq!(
+                owned_shortcut.original.as_deref(),
+                Some(setup_baseline.as_slice())
+            );
+            assert_eq!(fs::read(&desktop).ok().as_deref(), expected_desktop);
+            let manager = current
+                .root
+                .join(&upgraded.active)
+                .join("Constellation-Setup.exe");
+            let new_link = s.shortcut_bytes(&manager, &current.root).unwrap();
+            assert_eq!(fs::read(&setup).unwrap(), new_link);
+            let apps_before: BTreeMap<_, _> =
+                ["DisplayIcon", "UninstallString", "QuietUninstallString"]
+                    .into_iter()
+                    .map(|name| {
+                        let key = (UNINSTALL_KEY.to_owned(), name.to_owned());
+                        (key.clone(), s.values[&key].clone())
+                    })
+                    .collect();
+            assert!(apps_before.values().all(|value| {
+                value
+                    .as_string()
+                    .unwrap()
+                    .contains(&manager.to_string_lossy().to_string())
+            }));
+
+            engine::rollback(&current, &mut s).unwrap();
+            let rolled_back = engine::read_receipt(&current).unwrap().unwrap();
+            assert_eq!(rolled_back.active, old.active);
+            assert_eq!(rolled_back.version, "0.21.0");
+            assert_eq!(
+                fs::read(&setup).unwrap(),
+                new_link,
+                "payload rollback must retain the newer manager shortcut"
+            );
+            for (key, value) in apps_before {
+                assert_eq!(
+                    s.values.get(&key),
+                    Some(&value),
+                    "payload rollback must retain its current manager registration"
+                );
+            }
+            let native_host_key = (
+                r"Software\Google\Chrome\NativeMessagingHosts\com.project_constellation.monitor"
+                    .to_owned(),
+                String::new(),
+            );
+            assert_eq!(
+                s.values[&native_host_key].as_string().unwrap(),
+                current
+                    .root
+                    .join(&old.active)
+                    .join("hosts/chrome.json")
+                    .to_string_lossy()
+            );
+            assert_eq!(fs::read(&manager).unwrap(), b"current setup manager");
+            assert!(engine::verify(&current).unwrap()["ok"].as_bool().unwrap());
+            assert_eq!(fs::read(&desktop).ok().as_deref(), expected_desktop);
+
+            engine::uninstall(&current, &mut s).unwrap();
+            assert_eq!(
+                fs::read(&desktop).ok().as_deref(),
+                expected_desktop,
+                "uninstall must not replace or remove the desktop shortcut"
+            );
+            assert_eq!(
+                fs::read(&setup).unwrap(),
+                setup_baseline,
+                "the new shortcut has its own original baseline"
+            );
+            assert!(s.values.is_empty());
+            assert!(!manager.exists());
+        }
+    }
+}
+
+#[test]
+fn failed_legacy_shortcut_migration_preserves_both_shortcut_paths() {
+    for desktop_replaced_legacy in [false, true] {
+        let f = Fixture::new();
+        let mut s = FakeSystem::default();
+        let desktop = f.dir.join("Start Menu/Project Constellation.lnk");
+        let setup = f.dir.join("Start Menu/Project Constellation Setup.lnk");
+        fs::create_dir_all(desktop.parent().unwrap()).unwrap();
+        fs::write(&desktop, b"original desktop shortcut").unwrap();
+        fs::write(&setup, b"independent setup shortcut baseline").unwrap();
+        let legacy = Options {
+            shortcut: Some(desktop.clone()),
+            ..f.options.clone()
+        };
+        let a = f.payload("0.21.0");
+        engine::install(&legacy, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+        if desktop_replaced_legacy {
+            fs::write(&desktop, b"later desktop shortcut").unwrap();
+        }
+        let old_desktop = fs::read(&desktop).unwrap();
+        let old_setup = fs::read(&setup).unwrap();
+        let receipt = fs::read(legacy.root.join(RECEIPT)).unwrap();
+        let registry = s.values.clone();
+        let current = Options {
+            shortcut: Some(setup.clone()),
+            ..legacy.clone()
+        };
+        let b = f.payload("0.22.0");
+        s.fail_at = Some(s.writes + 3);
+        let error = engine::install(&current, &Payload::parse(&b).unwrap(), &mut s).unwrap_err();
+        assert!(error.to_string().contains("restored"), "{error}");
+        assert_eq!(fs::read(&desktop).unwrap(), old_desktop);
+        assert_eq!(fs::read(&setup).unwrap(), old_setup);
+        assert_eq!(fs::read(current.root.join(RECEIPT)).unwrap(), receipt);
+        assert_eq!(s.values, registry);
+        assert!(engine::verify(&current).unwrap()["ok"].as_bool().unwrap());
+        assert!(
+            !current
+                .root
+                .join(".constellation-transaction.json")
+                .exists()
+        );
+    }
+}
+
+#[test]
+fn legacy_journal_recovery_uses_its_recorded_shortcut_path() {
+    let f = Fixture::new();
+    let mut s = FakeSystem::default();
+    let desktop = f.dir.join("Start Menu/Project Constellation.lnk");
+    let setup = f.dir.join("Start Menu/Project Constellation Setup.lnk");
+    fs::create_dir_all(desktop.parent().unwrap()).unwrap();
+    fs::write(&desktop, b"original desktop shortcut").unwrap();
+    fs::write(&setup, b"independent setup shortcut baseline").unwrap();
+    let legacy = Options {
+        shortcut: Some(desktop.clone()),
+        ..f.options.clone()
+    };
+    let a = f.payload("0.21.0");
+    engine::install(&legacy, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+    let b = f.payload("0.22.0");
+    s.fail_after = Some(s.writes + 3);
+    assert!(engine::install(&legacy, &Payload::parse(&b).unwrap(), &mut s).is_err());
+    let journal_path = legacy.root.join(".constellation-transaction.json");
+    let journal: Value = serde_json::from_slice(&fs::read(&journal_path).unwrap()).unwrap();
+    // Represent interruption after the old setup had written its shortcut but
+    // before committing its receipt. Recovery must address this journal's path,
+    // even when invoked by a manager with the new default shortcut name.
+    let interrupted_manager = legacy
+        .root
+        .join(journal["next"]["active"].as_str().unwrap())
+        .join("Constellation-Setup.exe");
+    let interrupted_shortcut = s
+        .shortcut_bytes(&interrupted_manager, &legacy.root)
+        .unwrap();
+    assert_eq!(
+        hash(&interrupted_shortcut),
+        journal["next"]["shortcut"]["installedSha256"]
+    );
+    fs::write(&desktop, interrupted_shortcut).unwrap();
+    s.fail_after = None;
+    let current = Options {
+        shortcut: Some(setup.clone()),
+        ..legacy
+    };
+    engine::uninstall(&current, &mut s).unwrap();
+    assert_eq!(fs::read(&desktop).unwrap(), b"original desktop shortcut");
+    assert_eq!(
+        fs::read(&setup).unwrap(),
+        b"independent setup shortcut baseline"
+    );
+    assert!(s.values.is_empty());
+    assert!(!journal_path.exists());
+    assert!(!current.root.join(RECEIPT).exists());
+}
+
+#[test]
 fn uninstall_restores_prior_values_and_preserves_user_changes_and_data() {
     let f = Fixture::new();
     let mut s = FakeSystem::default();

@@ -12,6 +12,9 @@ The default folder is `%LOCALAPPDATA%\Project Constellation`; the folder field
 and `--dir` option support a different writable local drive folder. Installation
 is per Windows user and requests no administrator elevation.
 
+Open **Project Constellation Setup** from Start to return to this manager.
+The desktop dashboard keeps its separate **Project Constellation** entry.
+
 ## Finish browser setup
 
 1. Click **Install / Repair**. Setup verifies and writes its embedded payload,
@@ -62,6 +65,13 @@ normal browser window closes, including when the browser remains in background
 mode. Opening a normal window reconnects using the saved opt-in. Other connected
 browsers and profiles continue to keep the shared hub alive.
 
+On Windows, an enclosing Job can impose an earlier process lifetime. The hub
+requests independent lifetime only when that Job permits it; otherwise it runs
+inside the existing limits. Setup diagnostics and the hub health snapshot show
+this condition. If that Job's owner ends the hub, surviving browser sensors can
+reconnect and recover the saved incident history. Setup never changes Job limits
+or bypasses a managed process restriction.
+
 **Computer Tools** explicitly opens the migrated owner application. Its local
 session and grant controls remain in that owner window. Merely installing or
 opening it creates no computer-control session and grants no permission. The
@@ -104,6 +114,13 @@ installation. If another managed folder already owns a value, the new install
 inherits its original pre-Constellation baseline rather than creating a chain
 that could later restore a deleted installation. Apps & Features ownership is
 checked using the installation path and uninstall command as a group.
+
+An older local Setup candidate's shared Start Menu name is migrated after the
+new installation commits. Its previous desktop shortcut is restored only when
+the old link still matches Setup's recorded bytes; a desktop link installed
+later is preserved. Recovery retains that comparison and does not undo a later
+desktop installation. Rollback restores the previous browser hub and sensors
+while keeping the latest verified manager for Setup and uninstall.
 
 **Roll back** selects the previous installed release and restores its native
 host registration and browser files. Settings and incident history remain in

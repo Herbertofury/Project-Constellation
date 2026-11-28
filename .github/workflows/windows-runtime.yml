@@ -163,7 +163,7 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           $desktop = Join-Path $env:PC_SOURCE_ROOT 'desktop'
           Set-Location $desktop
-          $artifact = "Project-Constellation-Desktop-$env:PC_SOURCE_VERSION-x64"
+          $artifact = "Project-Constellation-Desktop-$($env:PC_SOURCE_VERSION)-x64"
           $zip = Get-Item "dist-electron/$artifact.zip"
           $setup = Get-Item "dist-electron/$artifact.exe"
           if (-not $zip) { throw 'Portable ZIP not produced.' }
@@ -196,10 +196,14 @@ jobs:
             throw 'Packaged Computer Tools native handshake failed or unexpectedly activated owner access.'
           }
           if ($env:CONSTELLATION_REQUIRE_NATIVE_TOOLS -eq '1') {
-            $expectedNative = Join-Path $exe.DirectoryName 'resources/computer-link/computer-link-mcp-session.exe'
+            $expectedNative = [System.IO.Path]::GetFullPath((Join-Path $exe.DirectoryName 'resources/computer-link/computer-link-mcp-session.exe'))
             if ($proof.detail.shellRuntime.nativeTools.command -ne $expectedNative) { throw 'Packaged native tool discovery selected a different installation.' }
           }
-          try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+          if (-not $proc.WaitForExit(10000)) {
+            try { Stop-Process -Id $proc.Id -Force } catch {}
+            throw 'Packaged portable produced a result but did not confirm graceful application shutdown.'
+          }
+          if ($proc.ExitCode -ne 0) { throw "Packaged portable exited with code $($proc.ExitCode)." }
 
           $receipt = [ordered]@{
             schema='project-constellation-windows-runtime-v1'
@@ -211,6 +215,7 @@ jobs:
             nativeComputerUse='PASS'
             integratedElectron='PASS'
             packagedPortable='PASS'
+            gracefulShutdown='PASS'
             nativeComputerTools=if ($env:CONSTELLATION_REQUIRE_NATIVE_TOOLS -eq '1') { 'PASS' } else { 'NOT_APPLICABLE_HISTORICAL_SOURCE' }
             portableFile=$zip.Name
             portableSize=$zip.Length
@@ -228,7 +233,7 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           $source = Join-Path $env:PC_SOURCE_ROOT 'desktop\dist-electron'
           New-Item -ItemType Directory -Force 'windows-dist' | Out-Null
-          $artifact = "Project-Constellation-Desktop-$env:PC_SOURCE_VERSION-x64"
+          $artifact = "Project-Constellation-Desktop-$($env:PC_SOURCE_VERSION)-x64"
           Copy-Item (Join-Path $source "$artifact.zip") 'windows-dist' -Force
           Copy-Item (Join-Path $source "$artifact.exe") 'windows-dist' -Force
           Copy-Item (Join-Path $source 'WINDOWS-RUNTIME-RECEIPT.json') 'windows-dist' -Force
