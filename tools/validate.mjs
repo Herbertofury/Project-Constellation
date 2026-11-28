@@ -27,7 +27,15 @@ for (const forbiddenAssignment of ['CLIENT_SECRET=', 'ACCESS_TOKEN=', 'REFRESH_T
   if (oauthTemplate.includes(forbiddenAssignment)) throw new Error(`OAuth template must never contain ${forbiddenAssignment}`);
 }
 const oauthChecklist = fs.readFileSync(path.join(repoRoot, 'docs/OAUTH-PROVISIONING-CHECKLIST.md'), 'utf8');
-for (const marker of ['project-constellation-506518', 'geljambmkfjkhodgkpjhnmfojkpcamig', 'drive.file', 'PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID', 'PROJECT_CONSTELLATION_GITHUB_CLIENT_ID', 'real signed-in']) {
+// Require portable setup guidance, without coupling public docs to one account or cloud project.
+for (const [requirement, pattern] of [
+  ['product-project selection', /select\s+the\s+existing\s+product\s+project/i],
+  ['Chrome Extension client configuration', /Chrome\s+Extension\s+OAuth\s+client\s+uses\s+the\s+stable\s+extension\s+ID/i],
+  ['authorized acceptance test users', /accounts\s+authorized\s+for\s+the\s+acceptance\s+run\s+as\s+test\s+users/i]
+]) {
+  if (!pattern.test(oauthChecklist)) throw new Error(`OAuth provisioning checklist missing ${requirement}`);
+}
+for (const marker of ['geljambmkfjkhodgkpjhnmfojkpcamig', 'drive.file', 'PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID', 'PROJECT_CONSTELLATION_GITHUB_CLIENT_ID', 'real signed-in']) {
   if (!oauthChecklist.includes(marker)) throw new Error(`OAuth provisioning checklist missing ${marker}`);
 }
 const updatingGuide = fs.readFileSync(path.join(repoRoot, 'wiki/Updating.md'), 'utf8');

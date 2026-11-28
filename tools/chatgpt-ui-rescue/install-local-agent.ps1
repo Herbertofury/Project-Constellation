@@ -53,14 +53,19 @@ function Get-AgentPayloadSources([string]$Directory) {
     throw "SourceDirectory must name a local directory containing rescue.mjs, local-agent.mjs and package.json."
   }
   $Source = Get-Item -LiteralPath $Directory -Force -ErrorAction Stop
-  if ($Source.PSProvider.Name -ne "FileSystem" -or -not $Source.PSIsContainer) {
+  if ($null -eq $Source -or $Source.PSProvider.Name -ne "FileSystem" -or -not $Source.PSIsContainer) {
     throw "SourceDirectory must name a filesystem directory: $Directory"
   }
   $Payload = @()
   foreach ($Name in @("rescue.mjs", "local-agent.mjs", "package.json")) {
-    $File = Get-Item -LiteralPath (Join-Path $Source.FullName $Name) -Force -ErrorAction Stop
-    if ($File.PSIsContainer -or ($File.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-      throw "SourceDirectory payload must be a regular file: $($File.FullName)"
+    $PayloadPath = Join-Path $Source.FullName $Name
+    $File = Get-Item -LiteralPath $PayloadPath -Force -ErrorAction Stop
+    # Windows PowerShell 5.1 can return no item for a missing literal child
+    # without an error. Reject that result before any payload can be copied.
+    if ($null -eq $File -or $File.PSIsContainer -or
+        ($File.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+        -not [IO.File]::Exists($PayloadPath)) {
+      throw "SourceDirectory payload must be an existing regular file: $PayloadPath"
     }
     $Payload += $File
   }

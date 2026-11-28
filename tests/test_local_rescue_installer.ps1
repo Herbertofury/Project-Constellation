@@ -40,7 +40,16 @@ try {
   # A missing final payload must not partially overwrite an existing install.
   [IO.File]::WriteAllText((Join-Path $SourceDir "rescue.mjs"), "different candidate bytes")
   [IO.File]::Delete((Join-Path $SourceDir "package.json"))
+  if ([IO.File]::Exists((Join-Path $SourceDir "package.json"))) {
+    throw "The incomplete-source fixture still has package.json."
+  }
   foreach ($InvalidSource in @("", (Join-Path $Fixture "missing-source"), $SourceDir)) {
+    # Exercise the same preflight called before the installer creates profiles
+    # or installs tools. It must reject a missing Get-Item result on PS 5.1.
+    $Rejected = $false
+    try { Get-AgentPayloadSources -Directory $InvalidSource | Out-Null }
+    catch { $Rejected = $true }
+    if (-not $Rejected) { throw "An incomplete local source passed preflight: $InvalidSource" }
     $Rejected = $false
     try { Copy-LocalAgentPayload -SourceDirectory $InvalidSource -InstallDirectory $AgentDir }
     catch { $Rejected = $true }
