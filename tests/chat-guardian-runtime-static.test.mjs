@@ -19,7 +19,7 @@ assert.doesNotMatch(background, /chrome\.alarms\.create\(CHAT_GUARDIAN_ALARM,\s*
 assert.match(background, /scheduleChatGuardianSweep\(2200\)/, 'explicit terminal state changes trigger an event-first recovery check');
 assert.match(background, /safeReloadActions = new Set\(\['composer-unavailable','send-unavailable','stage-failed'\]\)/, 'a failed continuation can use one bounded reload fallback without looping');
 
-assert.match(sentinel, /const VERSION = '0\.22\.0'/, 'hot-injected sentinel version must advance so already-open tabs receive the fix');
+assert.match(sentinel, /const VERSION = '0\.23\.0'/, 'hot-injected sentinel version must advance so already-open tabs receive the fix');
 assert.match(sentinel, /PC_LIVE_SENTINEL_CONTINUE_UNFINISHED/, 'sentinel must expose the guarded continuation operation');
 assert.match(sentinel, /Continue the unfinished task\./, 'automatic recovery sends a simple continuation turn');
 assert.match(sentinel, /composer-busy/, 'guardian must never overwrite a user draft');

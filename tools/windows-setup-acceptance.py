@@ -380,6 +380,26 @@ class Acceptance:
         require((self.root / rolled_back["active"] / "docs/ACCEPTANCE-FIXTURE.txt").is_file(), "Rollback fixture marker missing")
         require(self.cli(self.args.setup, "verify")["ok"] is True, "Rolled-back bytes failed verification")
         self.check("rollback", fixtureFromSameSource=True, earlierPayloadRestored=True)
+        # Rollback retains the latest setup manager even while the older payload
+        # is active. Verify must check that separate manager, and Repair from the
+        # active payload must recover without running or overwriting changed bytes.
+        retained_manager = self.root / rolled_back["releases"][-1]["directory"] / "Constellation-Setup.exe"
+        retained_manager.write_bytes(b"Deliberately changed inactive-release manager acceptance probe")
+        report = self.cli(self.args.fixture, "verify", False)
+        require(report["ok"] is False and any("management executable" in entry for entry in report["changed"]),
+                "Verification concealed the corrupt retained setup manager after rollback")
+        require(self.cli(self.args.fixture, "install")["ok"] is True,
+                "Same-payload repair could not recover its separate setup manager")
+        manager_repair = self.receipt()
+        require(manager_repair["payloadSha256"] == fixture_receipt["payloadSha256"],
+                "Manager repair unexpectedly changed the selected payload")
+        require(self.cli(self.args.fixture, "verify")["ok"] is True,
+                "Repaired setup manager failed verification")
+        require(retained_manager.read_bytes() == b"Deliberately changed inactive-release manager acceptance probe",
+                "Manager repair overwrote preserved changed bytes")
+        self.integrations.check_installed(self.root, manager_repair)
+        self.check("rollback-manager-repair", inactiveManagerChecked=True, samePayloadRepair=True,
+                   changedBytesPreserved=True)
         self.cli(self.args.setup, "install")
         final = self.receipt()
         require(final["payloadSha256"] == final_receipt["payloadSha256"], "Final payload was not restored after rollback")

@@ -125,7 +125,7 @@ export async function getComputerLinkStatus(options = {}) {
 }
 
 const statusTranscript = [
-  { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'Project Constellation', version: '0.22.0' } } },
+  { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'Project Constellation', version: '0.23.0' } } },
   { jsonrpc: '2.0', method: 'notifications/initialized' },
   { jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} },
   { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'connection_status', arguments: {} } },

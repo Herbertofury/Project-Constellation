@@ -197,7 +197,7 @@
     window.dispatchEvent(new CustomEvent('commander-snapshot',{detail:next}));
     const chat = next.chat || {};
     const config = next.config || {};
-    $('version').textContent = `v${next.version || '0.22.0'}`;
+    $('version').textContent = `v${next.version || '0.23.0'}`;
     document.body.classList.toggle('sidebar-collapsed', Boolean(next.shellCollapsed));
     $('controls').textContent = 'Computer access';$('controls').setAttribute('aria-expanded',String(!next.shellCollapsed));
     const off=config.localToolMode==='off';

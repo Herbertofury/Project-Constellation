@@ -1,6 +1,6 @@
 [package]
 name = "constellation-monitor"
-version = "0.1.0"
+version = "0.23.0"
 edition = "2024"
 rust-version = "1.89"
 description = "Local event-driven native messaging hub for Project Constellation"
@@ -8,7 +8,7 @@ license = "MIT"
 
 [dependencies]
 serde_json = "=1.0.154"
-url = "=2.5.8"
+url = "=2.5.9"
 
 [profile.release]
 lto = "thin"

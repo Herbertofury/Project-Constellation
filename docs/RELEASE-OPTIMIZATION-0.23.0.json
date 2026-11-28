@@ -1,0 +1,858 @@
+{
+  "assessment_utc": "2026-11-28T07:16:50.289276+00:00",
+  "candidate_version": "0.23.0",
+  "core_tools": {
+    "fast-anything": {
+      "binary_sha256": "cb5a5cc4bd42e85ff7c3273c871e64d2c27fc109bfe2180f71915fbc011b9763",
+      "commands": [
+        {
+          "command": [
+            "fast-anything",
+            "doctor",
+            "--json"
+          ],
+          "elapsed_seconds": 0.11554,
+          "exit_code": 0,
+          "label": "fast-doctor",
+          "log_sha256": "b9c3827040df9ac986e8fd8a5331cfefb827e1d8c1f15f82c4a7941e97c53b40",
+          "raw_log": "logs/optimization-0.23/fast-doctor.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-service.test.mjs"
+          ],
+          "elapsed_seconds": 0.264681,
+          "exit_code": 0,
+          "label": "fast-attention",
+          "log_sha256": "a8cea894edecb4ee793ad639156b753e1f4dd7d12462d6b3dc90c53b4c418f72",
+          "raw_log": "logs/optimization-0.23/fast-attention.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-background.test.mjs"
+          ],
+          "elapsed_seconds": 0.215828,
+          "exit_code": 0,
+          "label": "fast-alert-runtime",
+          "log_sha256": "290e1130468b02b80360f28af948fc7919c69b00e2d7667da0f9c8efb0cda60c",
+          "raw_log": "logs/optimization-0.23/fast-alert-runtime.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/native-monitor-bridge.test.mjs"
+          ],
+          "elapsed_seconds": 0.314839,
+          "exit_code": 0,
+          "label": "fast-bridge",
+          "log_sha256": "3865ec3a102ec0ee5be918e4f97c0dd1923d45fc293c1ed8d3d894418c133b9f",
+          "raw_log": "logs/optimization-0.23/fast-bridge.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/monitor-sensor.test.mjs"
+          ],
+          "elapsed_seconds": 0.319891,
+          "exit_code": 0,
+          "label": "fast-sensor",
+          "log_sha256": "f6d5da201422770bc1573f04b832a256624237d2e56cc04ed92f3fefcb2176d7",
+          "raw_log": "logs/optimization-0.23/fast-sensor.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/agent-monitor-ui-logic.test.mjs"
+          ],
+          "elapsed_seconds": 0.315031,
+          "exit_code": 0,
+          "label": "fast-monitor-ui",
+          "log_sha256": "fd92aafe2e19f962c349bca11fa6e58baf604f1279719cd8548caa82f52a5e43",
+          "raw_log": "logs/optimization-0.23/fast-monitor-ui.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "native/constellation-setup/tests",
+            "-p",
+            "test_*.py"
+          ],
+          "elapsed_seconds": 0.214494,
+          "exit_code": 0,
+          "label": "fast-setup-python",
+          "log_sha256": "e5837395b4a2f835f699ac70e492844899e82c6404ebde534cba6ac8270cd6e3",
+          "raw_log": "logs/optimization-0.23/fast-setup-python.log"
+        }
+      ],
+      "findings": {
+        "decision": "No eligible portable hotspot was identified in these representative regression workloads. The hottest attention paths perform asynchronous persistence and delivery; browser APIs, state ownership, live callbacks and native-port lifecycle must remain intact. No unmeasured bridge or rewrite was retained.",
+        "limits": "Node VM/DOM API fixtures profile exact production logic with synthetic adapters; they do not measure installed-browser DOM rendering, real speaker latency or target-machine startup. Diagnostic profile totals are not before/after speed claims.",
+        "profiled_workloads": {
+          "fast-alert-runtime": {
+            "hotspots": 11,
+            "notes": [
+              "only 8.2% of the run is in your own named functions; the rest went to node:internal 31%, top-level / anonymous code 9%, V8 / native 5%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 3% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-attention": {
+            "hotspots": 15,
+            "notes": [
+              "only 44.3% of the run is in your own named functions; the rest went to node:internal 16%, top-level / anonymous code 12%, garbage collection 10%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 38% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-bridge": {
+            "hotspots": 10,
+            "notes": [
+              "only 2.0% of the run is in your own named functions; the rest went to node:internal 26%, node:vm 19%, garbage collection 5%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 24% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-monitor-ui": {
+            "hotspots": 9,
+            "notes": [
+              "only 2.6% of the run is in your own named functions; the rest went to node:vm 21%, node:internal 14%, garbage collection 7%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 27% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-sensor": {
+            "hotspots": 10,
+            "notes": [
+              "only 4.3% of the run is in your own named functions; the rest went to node:internal 29%, top-level / anonymous code 22%, garbage collection 15%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 26% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-setup-python": {
+            "hotspots": 17,
+            "notes": [
+              "your biggest function takes only 3% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          }
+        }
+      },
+      "launcher_sha256": "754961f4cb78a72697cfd5a0b4c928098e37aa89e8a9f4573992767cf671b98b",
+      "license": "MIT",
+      "license_sha256": {
+        "LICENSE": "d81d0037e3a29a01ccfefaae420d5ba73e905cabf3995700e9075c7205c06cc5"
+      },
+      "npm_package_json_sha256": "4fda84290d53b8b5fa206f2828a0a2972a604150c48fbb9f9c9851b9b230acef",
+      "source_clean": true,
+      "source_commit": "e3d8635b6d11849f235f7d11447823a9aa604267",
+      "source_lock_sha256": "7a4d2bbe7a1c8b0500cbd65dde91d691734f9c92579102ec6b0e52468fa77000",
+      "status": "no_safe_win",
+      "tool_version": "0.9.0",
+      "upstream": "https://github.com/EL4CTEO/fast-anything",
+      "version": "0.9.0"
+    },
+    "rust-anything": {
+      "binary_sha256": "a9210243b30877b06d3fe4ed0ed60be58ca8fe3fbcf1b7005aab44f751ccc097",
+      "commands": [
+        {
+          "command": [
+            "rust-anything",
+            "analyze",
+            ".",
+            "--lang",
+            "ts",
+            "--json"
+          ],
+          "elapsed_seconds": 0.216495,
+          "exit_code": 0,
+          "label": "rust-analyze-ts",
+          "log_sha256": "348b5eeccc872cb71c976bcafe6f0c5ccafff25ab1442b11914624c4d222aab4",
+          "raw_log": "logs/optimization-0.23/rust-analyze-ts.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "analyze",
+            ".",
+            "--lang",
+            "python",
+            "--json"
+          ],
+          "elapsed_seconds": 0.164741,
+          "exit_code": 0,
+          "label": "rust-analyze-python",
+          "log_sha256": "25af0366f223ed69876503619083c97a754fc063d13a71d74c1902d3884c3977",
+          "raw_log": "logs/optimization-0.23/rust-analyze-python.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-service.test.mjs"
+          ],
+          "elapsed_seconds": 0.417121,
+          "exit_code": 0,
+          "label": "rust-profile-attention",
+          "log_sha256": "dc3cbbf2dec5dbe2becae91bf31d92916970c19954582c146ab3cdb86c8ba005",
+          "raw_log": "logs/optimization-0.23/rust-profile-attention.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/native-monitor-bridge.test.mjs"
+          ],
+          "elapsed_seconds": 0.418628,
+          "exit_code": 0,
+          "label": "rust-profile-bridge",
+          "log_sha256": "69830b4e5941a6ad05ad08a1d226583bf2fdd3acf6c2abae244bad72700574fc",
+          "raw_log": "logs/optimization-0.23/rust-profile-bridge.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/agent-monitor-ui-logic.test.mjs"
+          ],
+          "elapsed_seconds": 0.620592,
+          "exit_code": 0,
+          "label": "rust-profile-monitor-ui",
+          "log_sha256": "95e6155e5861d9b54ba922349fef4805c9b6bf98284bd9d3f6f5b1a3b29e301c",
+          "raw_log": "logs/optimization-0.23/rust-profile-monitor-ui.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "python",
+            "--json",
+            "--",
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "native/constellation-setup/tests",
+            "-p",
+            "test_*.py"
+          ],
+          "elapsed_seconds": 0.422633,
+          "exit_code": 0,
+          "label": "rust-profile-setup-python",
+          "log_sha256": "d7664e48b53cc02195dbd23e96d72924953a99f74ef5f9ebb24a09e2cd05e0f2",
+          "raw_log": "logs/optimization-0.23/rust-profile-setup-python.log"
+        }
+      ],
+      "findings": {
+        "decision": "Static readiness alone is insufficient. Browser DOM/API and asynchronous native-message glue cannot be moved into a transparent portable compute kernel without changing the host boundary. Setup packaging/acceptance Python mainly performs tool, filesystem, PE and platform integration work. No port candidate has demonstrated equivalent end-to-end improvement.",
+        "native_scope": "The changed browser hub state, transport/backpressure and installer transaction engine already run in Rust; Rust-to-Rust conversion is inapplicable. Native correctness and target runtime gates remain separate, mandatory project checks.",
+        "profiles": {
+          "rust-profile-attention": {
+            "command": [
+              "node",
+              "tests/attention-service.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 60.6741573033708,
+            "total_ms": 97.699
+          },
+          "rust-profile-bridge": {
+            "command": [
+              "node",
+              "tests/native-monitor-bridge.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 3.896103896103896,
+            "total_ms": 95.23
+          },
+          "rust-profile-monitor-ui": {
+            "command": [
+              "node",
+              "tests/agent-monitor-ui-logic.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 11.173184357541901,
+            "total_ms": 220.442
+          },
+          "rust-profile-setup-python": {
+            "command": [
+              "python3",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "native/constellation-setup/tests",
+              "-p",
+              "test_*.py"
+            ],
+            "language": "python",
+            "repo_pct": 0.34445317144436494,
+            "total_ms": 155.806375
+          }
+        },
+        "python_analysis": {
+          "blocked": 0,
+          "caution": 1,
+          "keep": 0,
+          "loc": 1658,
+          "packages": 1,
+          "parse_errors": 0,
+          "ready": 4,
+          "source_files": 10,
+          "test_files": 49,
+          "ui_files": 0,
+          "units": 5
+        },
+        "typescript_analysis": {
+          "blocked": 1,
+          "caution": 12,
+          "keep": 0,
+          "loc": 37889,
+          "packages": 3,
+          "parse_errors": 0,
+          "ready": 22,
+          "source_files": 140,
+          "test_files": 78,
+          "ui_files": 0,
+          "units": 35
+        }
+      },
+      "launcher_sha256": "994278bb3653dd492c25903435c493a5ad57e20ed90fa7766a98351595267afa",
+      "license": "MIT OR Apache-2.0",
+      "license_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "f7c6d76768cf5bdcd8fbc9f4df6b040789ed9802707e49987dd8357a6bd92759"
+      },
+      "npm_package_json_sha256": "358cc82dc6e68bf51f389b442b3d73ce9d0ac90b1dc15ea10e8b0922eda624f7",
+      "source_clean": true,
+      "source_commit": "a1e9509b31bd89e0cbf039e86a39ca338d2c67fe",
+      "source_lock_sha256": "4970b2b134519066e27eaa70b2aeed5fb62fad6be45e1351748cfee25618f517",
+      "status": "no_safe_win",
+      "tool_version": "5.0.1",
+      "upstream": "https://github.com/erkamyaman/rust-anything",
+      "version": "5.0.1"
+    },
+    "shrink-anything": {
+      "binary_sha256": "a9f4607fc8c3f001e6877bc13b71ebc3ef07a557e1bafc7c63a5d7a48f4e3a55",
+      "commands": [
+        {
+          "command": [
+            "shrink-anything",
+            "doctor"
+          ],
+          "elapsed_seconds": 0.064094,
+          "exit_code": 0,
+          "label": "shrink-doctor",
+          "log_sha256": "f4100abaa9cbb4aca4f8a5c21a6223e5df370af3cfd7481f9d376daaa477b984",
+          "raw_log": "logs/optimization-0.23/shrink-doctor.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "scan",
+            "--json"
+          ],
+          "elapsed_seconds": 0.317299,
+          "exit_code": 0,
+          "label": "shrink-scan",
+          "log_sha256": "af605bff00cb0c36957d23b08400d8c04998ed75cfa91007db8abf8b98c025fe",
+          "raw_log": "logs/optimization-0.23/shrink-scan.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "weigh",
+            "build/unpacked",
+            "build/firefox-sensor"
+          ],
+          "elapsed_seconds": 0.063987,
+          "exit_code": 0,
+          "label": "shrink-weigh",
+          "log_sha256": "90e4926cb913d92e82b244bf21f91e7276fd5d399cd9ee474e404144523016cf",
+          "raw_log": "logs/optimization-0.23/shrink-weigh.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "verify",
+            "--",
+            "npm",
+            "test"
+          ],
+          "elapsed_seconds": 2.325236,
+          "exit_code": 0,
+          "label": "shrink-verify",
+          "log_sha256": "2d3d5671cb863c6e93ee57b199ec099f4fb8507204c4c709848d3e8949ea8391",
+          "raw_log": "logs/optimization-0.23/shrink-verify.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "report"
+          ],
+          "elapsed_seconds": 0.064134,
+          "exit_code": 1,
+          "label": "shrink-report",
+          "log_sha256": "b50c41e9f0031f6f977b62dbcc39a400759c519d19806e90848c707e339766c0",
+          "raw_log": "logs/optimization-0.23/shrink-report.log"
+        }
+      ],
+      "findings": {
+        "candidate_count": 8,
+        "cut_only_report": "The report command exits 1 because upstream requires a prior destructive cut. The mandatory read-only assessment, artifact weighing and full npm-test verification completed. No cut was permitted or executed, and this report refusal is not recorded as a successful command.",
+        "decision": "Retain all files, exports, source archives, tests, assets and independent browser packages. Reported duplicate page hooks are intentionally packaged byte-identical mirrors; recovery copies are immutable history. Static lexical suggestions do not establish unused dynamic browser/Electron behavior.",
+        "duplicate_groups": 196,
+        "parser_metrics": {
+          "asset_bytes": 3727690,
+          "assets": 19,
+          "bytes": 4457242,
+          "code_lines": 58391,
+          "deps": 15,
+          "files": 336,
+          "lines": 64844
+        },
+        "size_scope": "Combined Chromium extension and Firefox sensor directories intentionally duplicate their independent runtime files. These are full uncompressed production package directories, not final release ZIPs or installed native/desktop artifacts. No baseline size-reduction claim is made.",
+        "weighed_artifacts": {
+          "build/firefox-sensor": {
+            "bytes": 185126,
+            "files": 17,
+            "manifest_sha256": "a7029d5425e106bb96d6086912b26924cf878489d2730395fa7822e2b6ffc7c5"
+          },
+          "build/unpacked": {
+            "bytes": 1940374,
+            "files": 84,
+            "manifest_sha256": "f8d1fc12a588a8669af5f23b5f2a1b5c87fb62c38e36702a702017e296e26344"
+          }
+        }
+      },
+      "launcher_sha256": "c72f6eb244bf09ebcc783aae5e0eb0c4730bcd384314ae48acec306c4bf7bbae",
+      "license": "MIT",
+      "license_sha256": {
+        "LICENSE": "d81d0037e3a29a01ccfefaae420d5ba73e905cabf3995700e9075c7205c06cc5"
+      },
+      "npm_package_json_sha256": "18655ad19e578e69c060c7bd33e761668139dd70415d3c00ce87619fd118aef8",
+      "source_clean": true,
+      "source_commit": "ea0c07e9f33611adaf03a5c47142c31a200d3ac2",
+      "source_lock_sha256": "ea0303312b0737468db6e9b4e804ba58d4932a8d4ee467f8d83c9c8e02cfdcdd",
+      "status": "no_safe_win",
+      "tool_version": "0.1.1",
+      "upstream": "https://github.com/EL4CTEO/shrink-anything",
+      "version": "0.1.1"
+    }
+  },
+  "execution": {
+    "assessment_command_count": 20,
+    "assessment_elapsed_seconds": 7.001552,
+    "assessor_script_sha256": "4881ca07abeeaa682c163f282ffdf40a5c01daccfbd554fe983e04d0ab59bbe5",
+    "environment": {
+      "node": "v24.22.3",
+      "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "python": "3.12.14"
+    },
+    "isolation": "Complete disposable source copy; original source hashes compared before/after. Read-only analysis/profile commands; no cut, cleanup, port, enable, external agent, upload or globally installed tool.",
+    "npm_runtime_lock_sha256": "27ffc9b4b410086013d53a16bef354ea060ba767090d5b99fcb41d89b7a4c26b",
+    "preparation_commands": [
+      {
+        "command": [
+          "node",
+          "tools/build.mjs",
+          "--mode=production",
+          "--allow-unprovisioned-oauth"
+        ],
+        "elapsed_seconds": 0.114338,
+        "exit_code": 0,
+        "label": "build-production-extension",
+        "log_sha256": "cf8ab086d094fd1825582ab84cf0acbd99c075fb162e363dadef50218ff96517",
+        "raw_log": "logs/optimization-0.23/build-production-extension.log"
+      },
+      {
+        "command": [
+          "node",
+          "tools/build-browser-sensors.mjs"
+        ],
+        "elapsed_seconds": 0.03195,
+        "exit_code": 0,
+        "label": "build-browser-sensors",
+        "log_sha256": "c259fe10b26b1b4af2ac8c8b9e2a09aa697156f0e38db6a7c1f1ac41b1a4bc9b",
+        "raw_log": "logs/optimization-0.23/build-browser-sensors.log"
+      }
+    ],
+    "provenance_review": "Reused exact independently reviewed local distributions from 0.22.0. Rehashed native executables and launchers, verified clean pinned upstream Git checkouts, inspected package metadata, licenses, local process dispatch, profile/analyze routes and install/dependency behavior. No dependency install scripts or external agent capabilities were invoked.",
+    "raw_reports": "Local logs/optimization-0.23 contains the exact outputs identified below. This receipt publishes sanitized summaries and hashes; local reports are not represented as public release assets."
+  },
+  "lane": "high-risk",
+  "policy": {
+    "read_from_current_main": true,
+    "sha256": "5155ee916c0753cc0127af8d26d2b15f2253d2cb0c49d352b4be85d332a05924",
+    "url": "https://github.com/Herbertofury/Athena/blob/7d335a740ea92a66674bf4412c48f5e03faf6e9f/guidance/PRE_RELEASE_OPTIMIZATION.md"
+  },
+  "preservation": {
+    "all_rows_rendered": "Dashboard optimization must preserve every record and row; no pagination, record cap, virtualization, culling, sampling, skipped work, prewarming or shifted completion cost is accepted.",
+    "coverage_reduced": false,
+    "destructive_operations": 0,
+    "full_npm_test_via_shrink_verify": "passed",
+    "source_files_deleted": 0,
+    "source_mutations_by_tools": 0
+  },
+  "release_boundaries": [
+    "Not a GitHub publication or final runtime acceptance receipt.",
+    "Final shipping stack and Windows/installed-extension results belong to the exact-source hosted release gates.",
+    "Refresh changed applicable scopes before release; unchanged scope hashes permit explicit evidence reuse.",
+    "Final source commit/tree and live Wiki readback are recorded by release closeout to avoid self-referential receipt commits."
+  ],
+  "retained_optimization": true,
+  "retained_tool_optimization": false,
+  "runtime_optimization": {
+    "baseline_commit": "4fe8980f8caad979eb42dd47d64fa33190d25a2b",
+    "benchmark_script": "tools/benchmark-agent-monitor.py",
+    "benchmark_script_sha256": "82ab4d6d5e132fb7c1eb4fe607c73fb2dc948ffd5670c044b0649258f14e8572",
+    "captured_source_sha256": {
+      "baseline": {
+        "css": "96a8191b91d52a1586c1f2e83ad369afe8d3dccd02c14a24ff175f6e96bc40e8",
+        "html": "cb477691401b167d832be04d35824b0c8ed9b74b6ba90747afaed75cef8b01d9",
+        "js": "e5646a6deff84632bda3d408ba78a36c8602369b563dd8f64b685498094de0b1"
+      },
+      "candidate": {
+        "css": "23968bbfc6bd4e83218143e57a75f65ab0b4a1d703b54413c6135b0ba858ed33",
+        "html": "6e302d2c890193405f3a25cfc053d11bda625b451b3ca917d6d48182fb3d934a",
+        "js": "a6faa0ec3fc35ba9198808501040e3cc1f3a27173f31cedf99dc5bfbd730ceab"
+      }
+    },
+    "change": "Indexed lookups and incremental DOM replacement for changed rows; all rows remain rendered and full layout completes before readiness.",
+    "command": [
+      "python3",
+      "tools/benchmark-agent-monitor.py",
+      "--samples",
+      "11",
+      "--output",
+      "logs/agent-monitor-benchmark-final.json"
+    ],
+    "evidence": "docs/AGENT-MONITOR-PERFORMANCE-0.23.0.json",
+    "evidence_sha256": "5c066977f1581a4150972c02993e9ac92167996930cb24792e34aa2d3b902c93",
+    "identity_note": "The candidate was uncommitted when measured; its captured file hashes, independently compared with this snapshot, bind the result. The old candidateHead value is not labelled the eventual release commit.",
+    "independent_review": {
+      "additionalBehaviorEvidence": "Actual Chromium smoke verifies retained keyboard focus across row replacement/reordering, failed-read status retention and action disablement, restoration, inbox triage, and disconnect/reconnect; no page errors at desktop and 390px mobile widths.",
+      "allRowsIndependentlyVerified": true,
+      "baselineCommitVerified": "4fe8980f8caad979eb42dd47d64fa33190d25a2b",
+      "candidateSourceHashesIndependentlyVerified": true,
+      "changedNodeRetention": "Exactly one changed session and one changed incident node replaced; every other row remains rendered and retained in every candidate sample.",
+      "coldScope": "Cold measurement includes script evaluation, complete status-reply cloning, row construction and forced layout in a fresh page. Browser process startup, extension installation, disk/network loads and live account startup are excluded. Cold median is not uniformly faster: the 1000-session candidate is 147.5 ms versus 141.5 ms baseline, with nearly identical p95.",
+      "completeTimedWorkloads": 198,
+      "hardwareLimits": "Shared Linux container/virtualized execution environment. Other team CPU-heavy local jobs were paused during this bounded run. These timings are not measurements of the destination Windows PC, Chrome/Edge/Opera/Firefox installations or physical hardware.",
+      "memoryLimits": "CDP JSHeapUsedSize after explicit garbage collection; not renderer/process RSS, native heap, GPU memory, peak allocation or operating-system footprint. The candidate adds about 54 KB at 100 sessions and 26 KB at 1000 sessions, and uses about 34 KB less at 2000 sessions. Do not claim a universal memory reduction.",
+      "percentileDefinition": "Median for p50; nearest-rank p95 (with 11 samples this is the maximum). These are finite synthetic measurements, not a population latency guarantee.",
+      "reviewer": "Separate browser/alert reviewer; dashboard implementation by the coordinating agent",
+      "runtime": "Real isolated headless Chromium with the shipped dashboard JavaScript, HTML and CSS; synthetic metadata and extension APIs. This is not an installed extension or live account acceptance result.",
+      "sampling": "11 fresh-page samples per variant at each of 100/50, 1000/500 and 2000/1000 sessions/incidents. Baseline/candidate order alternates per sample. Each page measures cold, unchanged and changed refreshes. No failed or slow samples are removed.",
+      "status": "accepted-with-explicit-scope",
+      "unchangedNodeRetention": "Every session and incident node retained on unchanged candidate refreshes in every sample.",
+      "window": {
+        "allDocumentRowsLaidOut": true,
+        "headless": true,
+        "viewportHeight": 1120,
+        "viewportWidth": 1512
+      },
+      "workPreservation": "Both variants receive complete structured-cloned state replies, process every session/incident and materialize the complete DOM layout before timing ends. No row limit, pagination, virtualization, viewport culling, transcript truncation, or reduced dataset is used.",
+      "workShifting": "No work is transferred to a worker, delayed background task or later frame to obtain the reported result. Synchronous full-document layout is forced. Browser paint, GPU rasterization and OS window compositing are outside the timing scope for both variants."
+    },
+    "limits": "Fresh-page script/status/DOM/layout only; not browser process startup, extension installation, disk/network/account startup, paint/GPU/OS compositing or destination Windows acceptance. Memory is post-GC JS heap, not peak/process RSS/GPU/native footprint. No CPU/power claims.",
+    "method": "11 fresh-page samples per baseline/candidate and workload, alternating order; each measures cold, complete unchanged and complete two-row-changed refresh plus forced document layout. All 198 timed workloads preserve every session and incident.",
+    "percentiles": "p50 median; p95/p99 nearest rank. With only 11 samples each tail is the observed maximum, not a robust population percentile guarantee.",
+    "resource_decision": "Refresh gains are material. Cold-render medians are similar within the observed variation; at 1000 sessions median grows 141.5 to 147.5 ms with almost identical p95. JS heap rises 54372 bytes / 26344 bytes at 100 / 1000 sessions and falls 34420 bytes at 2000. Preserve these small fixed-index costs; do not claim universal memory or startup improvements.",
+    "results": [
+      {
+        "incidents": 50,
+        "js_heap_after_gc_bytes_p50": 1065040,
+        "latency_ms": {
+          "changed": {
+            "p50": 17.7,
+            "p95": 31.4,
+            "p99": 31.4
+          },
+          "cold": {
+            "p50": 28.8,
+            "p95": 45,
+            "p99": 45
+          },
+          "unchanged": {
+            "p50": 17.1,
+            "p95": 34.2,
+            "p99": 34.2
+          }
+        },
+        "sessions": 100,
+        "variant": "baseline"
+      },
+      {
+        "incidents": 50,
+        "js_heap_after_gc_bytes_p50": 1119412,
+        "latency_ms": {
+          "changed": {
+            "p50": 2.7,
+            "p95": 7.5,
+            "p99": 7.5
+          },
+          "cold": {
+            "p50": 28.6,
+            "p95": 39.8,
+            "p99": 39.8
+          },
+          "unchanged": {
+            "p50": 3,
+            "p95": 3.9,
+            "p99": 3.9
+          }
+        },
+        "sessions": 100,
+        "variant": "candidate"
+      },
+      {
+        "incidents": 500,
+        "js_heap_after_gc_bytes_p50": 2523076,
+        "latency_ms": {
+          "changed": {
+            "p50": 139.9,
+            "p95": 201.5,
+            "p99": 201.5
+          },
+          "cold": {
+            "p50": 141.5,
+            "p95": 224.2,
+            "p99": 224.2
+          },
+          "unchanged": {
+            "p50": 179.8,
+            "p95": 305.9,
+            "p99": 305.9
+          }
+        },
+        "sessions": 1000,
+        "variant": "baseline"
+      },
+      {
+        "incidents": 500,
+        "js_heap_after_gc_bytes_p50": 2549420,
+        "latency_ms": {
+          "changed": {
+            "p50": 11.6,
+            "p95": 21.4,
+            "p99": 21.4
+          },
+          "cold": {
+            "p50": 147.5,
+            "p95": 223.7,
+            "p99": 223.7
+          },
+          "unchanged": {
+            "p50": 9.3,
+            "p95": 16.1,
+            "p99": 16.1
+          }
+        },
+        "sessions": 1000,
+        "variant": "candidate"
+      },
+      {
+        "incidents": 1000,
+        "js_heap_after_gc_bytes_p50": 4092060,
+        "latency_ms": {
+          "changed": {
+            "p50": 387.6,
+            "p95": 649.3,
+            "p99": 649.3
+          },
+          "cold": {
+            "p50": 301.2,
+            "p95": 469.8,
+            "p99": 469.8
+          },
+          "unchanged": {
+            "p50": 315.7,
+            "p95": 495.1,
+            "p99": 495.1
+          }
+        },
+        "sessions": 2000,
+        "variant": "baseline"
+      },
+      {
+        "incidents": 1000,
+        "js_heap_after_gc_bytes_p50": 4057640,
+        "latency_ms": {
+          "changed": {
+            "p50": 21,
+            "p95": 29.5,
+            "p99": 29.5
+          },
+          "cold": {
+            "p50": 298.9,
+            "p95": 429.2,
+            "p99": 429.2
+          },
+          "unchanged": {
+            "p50": 15.8,
+            "p95": 22.9,
+            "p99": 22.9
+          }
+        },
+        "sessions": 2000,
+        "variant": "candidate"
+      }
+    ],
+    "retained_optimization": true,
+    "runtime": {
+      "chromium": "158.0.8127.0",
+      "chromium_selection": "PROJECT_CONSTELLATION_CHROMIUM=/workspace/scratch/9d0e7bd88c53/lineage-audit/browser-runtime/extracted/chromium",
+      "playwright": "1.62.0",
+      "python": "3.12.14"
+    },
+    "status": "adopted-with-explicit-scope"
+  },
+  "schema": "project-constellation/optimization-assessment@2",
+  "scope": {
+    "baseline_commit": "4fe8980f8caad979eb42dd47d64fa33190d25a2b",
+    "component_manifests": {
+      ".github/": {
+        "files": 14,
+        "manifest_sha256": "d1693b6d1d3ffdcedeb3cf151bc1cdbb090c57271bc2954a52cc24f955385b14"
+      },
+      "computer-link/": {
+        "files": 127,
+        "manifest_sha256": "a9955c654f81b8c5a26033edd26a281d097617c73a11683f9b3fbc9822c0817b"
+      },
+      "desktop/": {
+        "files": 92,
+        "manifest_sha256": "299568c7e2c907f80cb4fe753a0b073f0a15145bf11175a43ee1c084ac2d4b31"
+      },
+      "extension/": {
+        "files": 84,
+        "manifest_sha256": "1643cd11c948f28c312c2c9af037989be764435f3c8892b4653e29e9c876d2fe"
+      },
+      "native/": {
+        "files": 29,
+        "manifest_sha256": "bd1fd65fbb3a4d127ab6569e371dc48b0c1cff634ee21f8ddb254fbb0a3182a2"
+      },
+      "tests/": {
+        "files": 94,
+        "manifest_sha256": "0a09c9e0398d6a5fc3f42c86c018512dc9c63a45d19b6787397d2b6dd9f925aa"
+      },
+      "tools/": {
+        "files": 31,
+        "manifest_sha256": "a50926434d0991e36e6d50aed0aca964a6a1bb98b224f64e0fc1fb5a6130e223"
+      }
+    },
+    "final_reconciled_source_bytes": 14780618,
+    "final_reconciled_source_files": 930,
+    "final_reconciled_source_manifest_sha256": "50f7c54ddb197210fab6206167826c5bd6e02ae2759b7209a9df220d5f01411f",
+    "final_source_drift": {
+      "added": [],
+      "changed": [
+        "desktop/README.md",
+        "docs/RELEASE-STACK-0.23.0.json"
+      ],
+      "removed": []
+    },
+    "inventory": "Sorted Git-tracked and nonignored files, including tests, documentation, complete recovery evidence and historical releases. Gitignored generated build/log/cache output and this self-referential receipt are excluded; tracked build/README.md and logs/README.md are preserved.",
+    "manifest_format": "UTF-8 JSON with sorted keys, indent 2 and one terminal newline; mapping of repository-relative path to {bytes, sha256}.",
+    "post_assessment_documentation_updates": {
+      "desktop/README.md": {
+        "assessed_sha256": "37a2a132e5de5643873393eb5b166fc4ea827f6ce64899ad4b8f274c3620fafc",
+        "final_sha256": "c0b8b8a6331dc165fa2318990a9966e04e4115ac35d1bd6e7674b5554849c38c",
+        "review": "Corrected the documented complete browser smoke inventory count from 42 workflows to 43. This one-word documentation correction changes no executable source, dependency/configuration, test or benchmark input."
+      },
+      "docs/RELEASE-STACK-0.23.0.json": {
+        "assessed_sha256": "ddc870a2a1965bc2503777e25e054974b324ea3c4061382aaa959cf511e61e22",
+        "final_sha256": "68884522551df051f42e47bf3470577ec5b8e919229ff4487722858b3ee90441",
+        "review": "Appended workflow-pin, YAML/source review and setup-acceptance evidence. No executable source, dependency/configuration, test, benchmark input or shipped package file changed."
+      }
+    },
+    "selected_inputs": {
+      "desktop/package.json": "048f2df6f3f8e1092ed4b6b98322fff8c7b4236c7b1ea363bfbc9c473a5203cc",
+      "extension/agent-monitor.css": "23968bbfc6bd4e83218143e57a75f65ab0b4a1d703b54413c6135b0ba858ed33",
+      "extension/agent-monitor.html": "6e302d2c890193405f3a25cfc053d11bda625b451b3ca917d6d48182fb3d934a",
+      "extension/agent-monitor.js": "a6faa0ec3fc35ba9198808501040e3cc1f3a27173f31cedf99dc5bfbd730ceab",
+      "extension/src/attention-service.js": "da02e5064cd2e589908286722860e4f1924a36ef0238436b6c747506edb0eb4c",
+      "extension/src/browser-monitor-sensor.js": "1eec871677c083e10a8ba71c7404b9e6762bddb2371fa51037d74f7f89467b54",
+      "extension/src/native-monitor-bridge.js": "97eb58e7d25b8ddb78d2b62077ac58ab4022950e9e08dc38209e6ea6f08c8b84",
+      "native/constellation-monitor/src/broker.rs": "d53e7ec10d8a7b10902beb1211b6d3f434529959c78d29d8d02c8a0c8e614db6",
+      "native/constellation-monitor/src/state.rs": "08e4ef05844f1922c03b490b9ddc0acd7e718af5f898ffe5f9f16e799f29981a",
+      "native/constellation-setup/src/engine.rs": "2988585a7c63e03e5cf1ebc11b787dc530fa848bcebdf512eb30fa51356b0c7c",
+      "package.json": "00b6aea3be8f0efa7de59bedc7bf14c04a5e8b6734897bcdd56690eaf434fc1c",
+      "requirements-dev.txt": "f80e8471ad2dcf39cddc4fba6af2606e2547e355d9a4c8bbc3428586ef018ea0",
+      "tools/benchmark-agent-monitor.py": "82ab4d6d5e132fb7c1eb4fe607c73fb2dc948ffd5670c044b0649258f14e8572",
+      "tools/windows-setup-acceptance.py": "3d207c61f103bf0bfeeb9a0322891675bcaf86fb9939b9561a66c43f7e222fde"
+    },
+    "snapshot": "candidate-003",
+    "source_bytes": 14778297,
+    "source_files": 930,
+    "source_manifest_sha256": "2c8efe668932fc805f7765711d19a66470eb31a2ffba1c72d1f8a56fa3d5a6e9",
+    "source_unchanged_by_tools": true,
+    "unreconciled_source_drift": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    }
+  },
+  "status": "completed-assessments-runtime-matched-documentation-reconciled"
+}

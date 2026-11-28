@@ -34,13 +34,13 @@ try {
   assert.equal(staleHealth.body.companionVersionMatch, false);
 
   const hello = await json(`${base}/v1/companion/hello`, {
-    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify({ version: '0.22.0', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' })
+    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify({ version: '0.23.0', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' })
   });
   assert.equal(hello.status, 200);
   assert.equal(hello.body.ok, true);
   const healthAfterHello = await json(`${base}/health`);
   assert.equal(healthAfterHello.body.companionConnected, true);
-  assert.equal(healthAfterHello.body.companionVersion, '0.22.0');
+  assert.equal(healthAfterHello.body.companionVersion, '0.23.0');
   assert.equal(healthAfterHello.body.companionVersionMatch, true);
   assert.equal(healthAfterHello.body.companionExtensionId, 'geljambmkfjkhodgkpjhnmfojkpcamig');
 

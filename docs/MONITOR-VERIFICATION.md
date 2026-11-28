@@ -1,97 +1,69 @@
-# Project Constellation 0.22.0 — verification record
+# Project Constellation 0.23.0 — verification record
 
-This source checkpoint was checked on 2026-11-27 (America/Denver). Published
-runtime receipts are authoritative for the exact release commit. The prepared
-Windows workflows below must actually pass before a GitHub release is created;
-a prepared workflow is not recorded here as an executed pass.
+This source checkpoint records local candidate evidence. The matching published
+release receipt and successful GitHub workflow are authoritative for the final
+source SHA, executed Windows/browser acceptance and published bytes. A prepared
+workflow is never recorded here as an executed pass.
 
-## Local evidence
+## Regression evidence
 
-| Check | Result and scope |
+| Area | Local evidence and scope |
 | --- | --- |
-| Root regression tests | 50 scripts, including artifact source/hash/acceptance validation |
-| Source, UI and message contracts | Pass; 94 UI message types owned by the service-worker module graph |
-| Rust browser hub | 18 unit and 11 real subprocess/transport tests passed; Linux and Windows-target strict Clippy |
-| Native setup transaction engine | 22 Rust transaction tests and 7 Python builder tests passed; Linux and Windows-GNU strict Clippy; separate from Windows GUI acceptance |
-| Computer-Link source migration | 26 branch trees and 92 commits restored; 123 active imported files mapped; full bundles pass strict Git checks |
-| Original Constellation preservation | All 323 reconstructed original files and all 46 historical test files retained |
-| Desktop and native adapter | 22 task + 81 combined tests, 13 other portable scripts and 27 real rendered UI workflows passed locally; native availability remains optional |
-| Optimizer assessments | Pinned shrink-anything, fast-anything and rust-anything assessed in isolation; see RELEASE-OPTIMIZATION-0.22.0.json |
-| Full local npm run verify | Installed-extension gates remain blocked locally; no full-green local claim |
-| Delayed continuation revalidation | 13 real DOM race cases passed; the old source failed 10 of the initial 11 cases. Background tests preserve all six safe abort responses without reload or focus changes. |
+| Root regressions | 50 existing npm test scripts retained; targeted changed alert, sensor, bridge, UI and release-artifact checks pass |
+| Source/UI/message contracts | Existing 94 UI message contracts retained; no added content-script network or provider actions |
+| Full browser smoke inventory | 40 real DOM workflows passed with the available Chromium headless shell; three installed-MV3 workflows failed for the documented local capability boundary |
+| Native hub | 21 unit and 12 actual process/transport tests, including a 96-tab burst and resumed paused reader; strict Linux/Windows-GNU Clippy |
+| Installer | 26 transaction tests, a digest vector test and seven payload-builder tests; four new recovery failures were reproduced against the prior engine before repair |
+| Dashboard | Actual rendered desktop/narrow layouts; triage/search, stale-read recovery, unavailable-source retention, complete inventory, stable focus and action routing |
+| Browser regression proof | The released baseline fails the new observation-retry, run-identity and failed-delivery deadline cases; the candidate passes |
+| Stack migration | Official release evidence, causal repair records and exact validation versions in RELEASE-STACK-0.23.0.json |
+| Optimization assessments | Fresh pinned shrink-anything, fast-anything and rust-anything assessments in isolation; see RELEASE-OPTIMIZATION-0.23.0.json |
 
-The local runtime has a real Chromium renderer and supports content-script,
-DOM, layout and mock-API fixtures. It does not provide a working installed MV3
-extension service worker. The installed-extension tests require an actual worker,
-correct extension identity and a real runtime response. A browser opening with
-an empty worker list is now a failure, not a passing startup check.
+The three local installed-worker failures are `drive_autosync_smoke.py`,
+`extension_load_smoke.py` and `multitab_reliability_smoke.py`. Full Chromium
+startup requires a Unix socket denied by this local execution environment;
+the available headless shell supplies real DOM rendering but no installed MV3
+service worker. No passing status is inferred from missing workers. Local
+`npm run verify` is therefore not reported as fully green.
 
-The recorded complete local baseline evaluated 42 workflows: **39 passed**, with
-**3 installed-extension workflows blocked** (`drive_autosync_smoke.py`,
-`extension_load_smoke.py`, and `multitab_reliability_smoke.py`). Firefox runtime
-acceptance runs in the hosted browser job; it was not executed locally.
-The final inventory adds the separately passing 13-case continuation-race
-workflow, for 43 workflows. The multitab acceptance now attaches to its own
-fresh-profile Chromium without Playwright focus emulation and still requires
-genuine hidden-tab state; its final installed-browser result is a hosted gate.
+Raw local evidence is under `logs/release-0.23.0`, `logs/alerts-browser`,
+`logs/setup-0.23`, `logs/optimization-0.23` and `logs/smoke`.
+The renderer benchmark report in AGENT-MONITOR-PERFORMANCE-0.23.0.json uses complete identical datasets and forces full layout;
+its source hashes and results are linked by the optimization receipt. Nothing
+is hidden or capped to manufacture timings. Historical 0.22 evidence remains
+in MONITOR-VERIFICATION-0.22.0.md and its published immutable receipts.
 
-The authoritative local log set is under `logs/release-0.22.0` and `logs/smoke`.
-These are generated evidence, not source. The previous candidate's complete
-record is preserved in [MONITOR-VERIFICATION-0.21.0.md](MONITOR-VERIFICATION-0.21.0.md).
-Do not use that historical candidate's publication state or test counts as the
-current release result.
+## Required hosted gates
 
-## Hosted gates required before publication
+1. **Verify:** root regressions/contracts, complete installed-browser smoke
+   inventory and desktop regressions with the selected tool versions.
+2. **Windows runtime:** actual native computer use, integrated Electron and
+   launch/exit of the exact packaged portable application.
+3. **Windows setup:** real install, repair, diagnostics, rollback,
+   retained-manager corruption/repair, uninstall, setup/owner UI and restored
+   registry/shortcut integrations. Fixtures are never publishable artifacts.
+4. **Native monitor:** formatting, strict Clippy and native transport tests on
+   Linux/Windows; Chromium and Firefox detector/rendered fixtures.
+5. **Computer Tools:** unchanged source/history provenance, supported native
+   tests and real status-only MCP handshakes.
 
-The unified release workflow requires all five reusable jobs:
+The unified release checks clean committed source, exact versions and hashes,
+production build metadata and all nine named Windows setup acceptance routes.
+It refuses an existing immutable release, verifies its tag target before and
+after publication, downloads all published bytes, verifies checksums and
+synchronizes the live Wiki. Source snapshots remain truthful about evidence
+obtained before the hosted release job; attached runtime receipts establish
+which target-platform gates actually executed for the final SHA.
 
-1. **Project Constellation Verify:** root regressions and contracts, the complete
-   browser smoke inventory with installed extension support, and desktop tests.
-2. **Windows runtime:** actual native computer use, integrated Electron launch,
-   native tool packaging, extraction and launch of the produced portable app.
-3. **Windows setup:** actual install, repair, rollback, uninstall, rendered setup
-   and owner windows, restored registrations and shortcuts. An intentionally
-   altered acceptance fixture exercises rollback; it is never publishable.
-4. **Native monitor:** Rust formatting, strict Clippy, real native transport tests
-   on Linux and Windows, plus Chromium and Firefox detector/rendering fixtures.
-5. **Computer Tools:** source/bundle verification, native tests and status-only
-   MCP handshakes on the supported hosted platforms.
+## Target-machine and distribution acceptance
 
-Packaging rejects stale versions, source commits, hashes, incomplete receipts,
-failed acceptance or acceptance fixtures. It writes generated output under
-`build/releases/v0.22.0`, leaves historical `releases/` evidence untouched and
-includes the final receipt itself in SHA256SUMS. Publication refuses to replace
-an existing release and downloads the published assets to verify their bytes.
+The owner still needs to verify physical speakers, OS notification visibility,
+Chrome/Edge/Opera GX/Firefox profile enrollment and signed-in account backup,
+restore and revocation. Firefox's sensor is unsigned/temporary and Windows
+executables lack publisher signing. These remain explicit prerelease boundaries.
+The browser can report accepted audio/notification calls without proving sound
+from a physical speaker or visibility through OS focus settings.
 
-## Installation and target-machine boundaries
-
-The compact Rust EXE installs the hub, browser sensor folders and native
-Computer Tools. The full desktop shell is provided as its own installer and
-portable ZIP. Browser enablement remains a direct user action. Every monitored
-browser/profile needs a sensor. Installed browser executables alone do not
-prove connected coverage.
-
-The shared hub starts through native messaging, exits after the final sensor
-lease and a five-second reconnect grace period, and starts again on demand.
-The bridge releases its lease when the last normal window closes, including
-Chromium background mode. Native Computer Tools have a separate explicit
-lifetime and local session controls.
-
-Still required on the destination computer:
-
-- physical speaker playback and visible operating-system notifications;
-- real Chrome, Edge, Opera GX and Firefox profile enrollment and reconnection;
-- account-specific Google Drive/GitHub sign-in, backup, restore and revocation;
-- permanent Mozilla-signed Firefox distribution and Windows publisher signing.
-
-The Firefox sensor is currently unsigned and temporary. Public OAuth client IDs
-are injected only when supplied through release secrets; build metadata records
-which providers were provisioned. No account round trip is inferred from that
-configuration. The release remains a prerelease while these acceptance and
-distribution gaps are open.
-
-## Reproduce
-
-Run `npm run verify` from the repository root. Follow the native monitor,
-Windows setup and Computer Tools READMEs for their pinned native commands.
-`docs/RELEASING.md` describes exact artifact assembly and GitHub closeout.
+Run `npm run verify` from the root, the documented native checks and the desktop
+commands. See RELEASING.md for exact artifact assembly and publication; use the
+matching published receipt for the completed source commit and runtime evidence.

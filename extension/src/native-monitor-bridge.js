@@ -86,11 +86,21 @@
   }
   function request(op,fields={}) {
     if(!port)return Promise.reject(new Error('The browser hub is disconnected.'));
+    const sourcePort=port;
     const id=`${Date.now().toString(36)}-${++sequence}`;
     return new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{pending.delete(id);reject(new Error(`The browser hub did not answer ${op}.`));},8000);
+      const timer=setTimeout(()=>{
+        pending.delete(id);const error=new Error(`The browser hub did not answer ${op}.`);reject(error);
+        // A connected pipe is not proof of a responsive hub. Retire a hung
+        // established connection, reject its other requests and use the same
+        // bounded reconnect path as an actual disconnect. The hello setup
+        // path owns its own failure cleanup; never retire a replacement port.
+        if(status.connected&&port===sourcePort&&op!=='bye'){
+          port=null;sourcePort.disconnect();void lost(error.message);
+        }
+      },8000);
       pending.set(id,{resolve,reject,timer});
-      try{port.postMessage({v:1,id,op,...fields});}catch(error){clearTimeout(timer);pending.delete(id);reject(error);}
+      try{sourcePort.postMessage({v:1,id,op,...fields});}catch(error){clearTimeout(timer);pending.delete(id);reject(error);}
     });
   }
   async function observe(row) {
@@ -150,10 +160,13 @@
       if(row.clientId===status.clientId)continue;
       const value=signature(row);
       if(remoteSignatures.get(row.sessionId)===value)continue;
-      remoteSignatures.set(row.sessionId,value);
-      await globalThis.pcAttentionObserve({sourceId:'native:'+row.clientId,tabId:row.tabId,documentId:row.documentId,runId:row.runId,
+      const imported=await globalThis.pcAttentionObserve({sourceId:'native:'+row.clientId,tabId:row.tabId,documentId:row.documentId,runId:row.runId,
         url:row.url,title:row.title,browser:row.browser,status:row.connected?row.status:'sensor-offline',reason:row.reason,
         observedAt:row.observedAt,authoritative:row.connected});
+      if(imported?.ok===false)throw new Error(imported.error||'Could not import the browser observation.');
+      // Failed imports must remain retryable on the next authoritative
+      // snapshot. Do not cache success before storage has accepted the row.
+      if(current())remoteSignatures.set(row.sessionId,value);
     }
     local=await globalThis.pcAttentionGet();
     if(!current())return;
@@ -344,7 +357,7 @@
       try{
         if(tab.discarded||tab.frozen){result.suspended++;return;}
         const state=await ask(tab.id,'PC_GET_LIVE_SENTINEL_STATE');
-        if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.22.0'&&canonical(state.chat?.url)===canonical(tab.url)){
+        if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.23.0'&&canonical(state.chat?.url)===canonical(tab.url)){
           const current=await api.tabs.get(tab.id);
           if(current.discarded||current.frozen){result.suspended++;return;}
           if(canonical(current.url)!==canonical(tab.url)){result.unavailable++;return;}

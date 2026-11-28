@@ -33,7 +33,7 @@ async def main():
     await asyncio.sleep(.1)
    raise AssertionError('Snapshot condition not met: '+json.dumps(snapshot))
   await wait_shell_expr('window.commanderShell!==undefined')
-  snap=await shell.evaluate('window.commanderShell.snapshot()');assert snap['version']=='0.22.0',snap
+  snap=await shell.evaluate('window.commanderShell.snapshot()');assert snap['version']=='0.23.0',snap
   assert snap['toolCount']==56,snap;results.append('real Electron shell, sandboxed preload bridge, production tool catalog')
   await chat.wait_for_function('window.fixture!==undefined')
   await chat.wait_for_timeout(500)
@@ -154,7 +154,7 @@ async def main():
   results.append('Off remains enforced and consistent across all status indicators')
   await shell.click('.rail-button[data-view="workspace"]')
   await shell.screenshot(path=str(out/'shell.png'));await shell.click('.rail-button[data-view="activity"]');await shell.screenshot(path=str(out/'tasks.png'));await chat.screenshot(path=str(out/'chat-fixture.png'))
-  (out/'native-results.json').write_text(json.dumps({'passed':results,'failed':[],'runtime':'Electron 44.4.4 Linux; real application main, IPC, preloads, CSP and filesystem; simulated ChatGPT server, not authenticated account','chromiumSandboxNote':'--no-sandbox used only for root Linux test host; production webPreferences isolation retained'},indent=2));print(json.dumps(results,indent=2))
+  (out/'native-results.json').write_text(json.dumps({'passed':results,'failed':[],'runtime':'Electron 45.5.0 Linux; real application main, IPC, preloads, CSP and filesystem; simulated ChatGPT server, not authenticated account','chromiumSandboxNote':'--no-sandbox used only for root Linux test host; production webPreferences isolation retained'},indent=2));print(json.dumps(results,indent=2))
 try:asyncio.run(main())
 except Exception as e:
  (out/'native-results.json').write_text(json.dumps({'passed':results,'failed':[repr(e)]},indent=2));raise

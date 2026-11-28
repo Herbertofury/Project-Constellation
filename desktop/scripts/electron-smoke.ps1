@@ -21,7 +21,7 @@ if (-not (Test-Path $Output)) {
   throw "Electron integrated-chat smoke timed out.`nTRACE:`n$trace`nSTDOUT:`n$out`nSTDERR:`n$err"
 }
 $data = Get-Content $Output -Raw | ConvertFrom-Json
-if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false -or $data.detail.shellRuntime.ok -ne $true -or $data.detail.shellRuntime.version -ne '0.22.0' -or $data.detail.shellRuntime.toolCount -lt 45 -or $data.detail.shellRuntime.singleInstanceOwner -ne $true -or $data.detail.shellRuntime.health.ok -ne $true) {
+if ($data.ok -ne $true -or $data.event -ne 'tool-result-sent' -or $data.detail.ok -ne $true -or $data.detail.pong -ne $true -or $data.detail.visibleLeak -ne $false -or $data.detail.shellRuntime.ok -ne $true -or $data.detail.shellRuntime.version -ne '0.23.0' -or $data.detail.shellRuntime.toolCount -lt 45 -or $data.detail.shellRuntime.singleInstanceOwner -ne $true -or $data.detail.shellRuntime.health.ok -ne $true) {
   $out = if (Test-Path $Stdout) { Get-Content $Stdout -Raw } else { '' }
   $err = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { '' }
   $trace = if (Test-Path $Trace) { Get-Content $Trace -Raw } else { '' }

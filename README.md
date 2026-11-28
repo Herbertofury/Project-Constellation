@@ -1,6 +1,10 @@
 # Project Constellation
 
-## 0.22.0 — Windows setup and native computer tools
+## 0.23.0 — Reliable alerts and resilient monitoring
+
+This update fixes silent alert-delivery failures, late observations that could clear a newer problem, and native connection loss during bursts. Failed sound or notification channels retry independently; acknowledged and snoozed incidents stay under your control. Agent Monitor retains unavailable browser sessions, adds inbox triage, and updates unchanged rows in place while keeping the full list rendered. Setup now detects and repairs a damaged management executable after rollback and preserves changed browser files during recovery.
+
+The desktop runs Electron 45.5.0 with electron-builder 26.18.1. Current release jobs use Node 26.13.1, Rust 1.100.1 and Playwright 1.65.2; actual packaged Windows acceptance and published hashes remain mandatory.
 
 **Start with the Windows Setup executable in [GitHub Releases](https://github.com/Herbertofury/Project-Constellation/releases).** It installs the Rust browser hub, stages the browser extensions, and includes Constellation Computer Tools migrated from Computer-Link. Setup has Repair, diagnostics, rollback and uninstall controls. Enable a sensor in each browser/profile you want to monitor.
 
@@ -13,7 +17,7 @@ Permission prompts remain visible for direct user review. Constellation does not
 - [Windows installation and lifecycle](docs/WINDOWS-SETUP.md)
 - [Agent Monitor guide](docs/AGENT-MONITOR.md)
 - [Computer-Link capability and source migration](docs/COMPUTER-LINK-MIGRATION.md)
-- [0.22.0 release notes](docs/v0.22.0-release-notes.md)
+- [0.23.0 release notes](docs/v0.23.0-release-notes.md)
 - [Verification and remaining acceptance](docs/MONITOR-VERIFICATION.md)
 - [Rust companion CLI](native/constellation-monitor/README.md)
 
@@ -58,7 +62,7 @@ Supported surfaces currently include ChatGPT, Claude, Gemini, Grok, DeepSeek, Pe
 
 For a published release:
 
-1. Download the latest `Project-Constellation-v*-unpacked.zip` and `SHA256SUMS.txt` from the GitHub Release.
+1. Download `Project-Constellation-v0.23.0-Extension.zip` and `SHA256SUMS-v0.23.0.txt` from the matching GitHub Release.
 2. Verify the archive checksum.
 3. Extract the archive to a permanent folder.
 4. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder.

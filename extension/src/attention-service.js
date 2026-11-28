@@ -5,6 +5,9 @@
   // by the existing provider sensors; it never infers a stalled agent from elapsed time.
   const STORAGE_KEY = 'projectConstellationAttentionV1';
   const ALARM_NAME = 'project-constellation-attention-reminder';
+  // Recovery deadlines belong to a failed delivery, never an idle polling loop.
+  // Persist them so a suspended/restarted worker keeps the same bounded budget.
+  const DELIVERY_RETRY_MS = Object.freeze([2000, 10000, 30000]);
   const DEFAULTS = Object.freeze({ enabled:true, audioEnabled:true, notificationsEnabled:true,
     volume:0.45, reminderMinutes:0, maxReminders:3, muteUntil:0, completionEnabled:false });
   const STATES = Object.freeze({
@@ -55,7 +58,7 @@
   }
   function observation(input = {}, at = Date.now()) {
     const tabId = Math.trunc(Number(input.tabId || 0));
-    if (tabId < 1) return null;
+    if (!Number.isSafeInteger(tabId) || tabId < 1) return null;
     const url = canonicalUrl(input.url || input.chat?.url);
     if (!url) return null;
     const candidates=[input.status,input.chat?.status,input.healthState,input.chat?.healthState].filter(Boolean);
@@ -132,8 +135,10 @@
       if(item.resolvedAt||item.acknowledgedAt||item.suspended||item.sourceClosed)return 0;
       // A first alert deferred by mute/ownership/settings, and an explicit snooze,
       // are delivery deadlines even when automatic repeat reminders are disabled.
+      const retryAt=Number(item.delivery?.retryAt||0);
+      const reminderAt=item.reminders<state.settings.maxReminders ? Number(item.nextReminderAt||0) : 0;
       let due=!item.notifiedAt ? Number(item.firstSeenAt||item.lastSeenAt||state.updatedAt||1) : item.snoozedUntil>0 ? item.snoozedUntil :
-        item.reminders<state.settings.maxReminders ? Number(item.nextReminderAt||0) : 0;
+        retryAt>0&&reminderAt>0 ? Math.min(retryAt,reminderAt) : retryAt||reminderAt;
       return due>0 ? Math.max(due,Number(item.snoozedUntil||0),Number(state.settings.muteUntil||0)) : 0;
     }
     async function schedule() {
@@ -157,39 +162,58 @@
       try {await io.clearNotification?.(id);}
       catch(error){state.delivery.lastCleanupError=text(error?.message||error);}
     }
-    async function deliver(item, reason = 'new') {
+    async function deliver(item, reason = 'new', retryOnly = false) {
       if (!eligible(item)) return { ok:false, skipped:true };
       const at = now();
-      item.notifiedAt = at;
-      item.snoozedUntil = 0;
-      item.nextReminderAt = state.settings.reminderMinutes > 0 ? at + state.settings.reminderMinutes * 60000 : 0;
-      item.delivery = { at, reason, notification:'pending', audio:'pending' };
+      const beforeClaim={notifiedAt:item.notifiedAt,snoozedUntil:item.snoozedUntil,nextReminderAt:item.nextReminderAt,delivery:item.delivery};
+      const previous=retryOnly ? item.delivery || {} : {};
+      const attempt=retryOnly ? Number(previous.attempt||1)+1 : 1;
+      const notify=state.settings.notificationsEnabled&&(!retryOnly||previous.notification==='failed');
+      const sound=state.settings.audioEnabled&&state.settings.volume>0&&(!retryOnly||previous.audio==='failed');
+      if(!retryOnly){
+        item.notifiedAt = at;
+        item.snoozedUntil = 0;
+        item.nextReminderAt = state.settings.reminderMinutes > 0 ? at + state.settings.reminderMinutes * 60000 : 0;
+      }
+      item.delivery = { at, reason, attempt, retryAt:0, retryExhausted:false,
+        notification:notify?'pending':retryOnly&&previous.notification==='accepted'?'accepted':'disabled',
+        audio:sound?'pending':retryOnly&&['started','grouped-or-disabled'].includes(previous.audio)?previous.audio:'grouped-or-disabled' };
       // Persist the episode before contacting the OS. Stable notification identifiers
       // let a retry replace the toast instead of multiplying it.
-      await persist();
+      try {await persist();}
+      catch(error){
+        // No channel has been contacted yet. A failed durable claim cannot
+        // mark this untouched episode as announced and silence a later retry.
+        Object.assign(item,beforeClaim);throw error;
+      }
       let notification = { ok:true, skipped:true };
       let audio = { ok:true, skipped:true };
-      if (state.settings.notificationsEnabled) {
+      if (notify) {
         try { notification = await io.notify?.(copy(item)) || {ok:false,error:'Notifications are unavailable.'}; }
         catch (error) { notification = {ok:false,error:text(error?.message || error)}; }
+        item.delivery.notification=notification.skipped?'disabled':notification.ok?'accepted':'failed';
       }
-      if (state.settings.audioEnabled && state.settings.volume > 0) {
+      if (sound) {
         const lastSound = Number(state.delivery.lastAudioAt || 0);
         if (at - lastSound >= 1500 || lastSound === 0) {
           // Commit the sound claim before playback: worker restarts must not create
           // overlapping alarms for an already-announced episode.
           state.delivery.lastAudioAt = at;
-          await persist();
-          try { audio = await io.sound?.({kind:item.kind,severity:item.severity,volume:state.settings.volume}) || {ok:false,error:'Audio is unavailable.'}; }
+          try {await persist();audio = await io.sound?.({kind:item.kind,severity:item.severity,volume:state.settings.volume}) || {ok:false,error:'Audio is unavailable.'}; }
           catch (error) { audio = {ok:false,error:text(error?.message || error)}; }
           if(audio.ok!==true)state.delivery.lastAudioAt=lastSound;
         } else audio = {ok:true,skipped:true,reason:'Grouped with another recent alert.'};
       }
-      item.delivery = {at,reason,notification:notification.skipped ? 'disabled' : notification.ok ? 'accepted' : 'failed',
-        audio:audio.skipped ? 'grouped-or-disabled' : audio.ok ? 'started' : 'failed',
-        notificationError:text(notification.error || ''),audioError:text(audio.error || '')};
+      if(sound)item.delivery.audio=audio.skipped?'grouped-or-disabled':audio.ok?'started':'failed';
+      item.delivery.notificationError=text(notification.error||'');
+      item.delivery.audioError=text(audio.error||'');
+      const failed=item.delivery.notification==='failed'||item.delivery.audio==='failed';
+      const retryDelay=DELIVERY_RETRY_MS[attempt-1];
+      item.delivery.retryAt=failed&&retryDelay ? now()+retryDelay : 0;
+      item.delivery.retryExhausted=failed&&!retryDelay;
       state.delivery.lastResult = copy(item.delivery);
       state.delivery.lastError = [item.delivery.notificationError,item.delivery.audioError].filter(Boolean).join(' ');
+      if(failed)state.delivery.lastError += item.delivery.retryExhausted ? ' Automatic delivery retries are exhausted. Check the alert channels and use Test alert.' : ` Retrying the failed alert channel in ${retryDelay/1000} seconds (${attempt}/${DELIVERY_RETRY_MS.length}).`;
       state.delivery.lastErrorAt = state.delivery.lastError ? at : 0;
       await persist({type:'delivery',incident:item});
       return {ok:notification.ok && audio.ok,notification,audio};
@@ -199,6 +223,9 @@
         await load();
         const row = observation(input, now());
         if (!row) return {ok:false,error:'A valid open HTTPS chat tab is required.'};
+        const currentTab=state.sessions.filter((x)=>x.sourceId===row.sourceId&&x.tabId===row.tabId)
+          .reduce((latest,item)=>!latest||item.observedAt>latest.observedAt?item:latest,null);
+        if(currentTab&&row.observedAt<currentTab.observedAt)return {ok:true,ignored:'out-of-order'};
         const previous = state.sessions.find((x) => x.key === row.key);
         if (previous && row.observedAt < previous.observedAt) return {ok:true,ignored:'out-of-order'};
         // A tab's document may navigate. Old unresolved incidents retain evidence,
@@ -206,7 +233,7 @@
         for (const prior of state.sessions) {
           if (prior.sourceId === row.sourceId && prior.tabId === row.tabId && prior.key !== row.key) {
             prior.suspended = true; prior.status = 'closed';
-            for (const item of state.incidents.filter((x) => x.sessionKey === prior.key && !x.resolvedAt)) item.sourceClosed = true;
+            for (const item of state.incidents.filter((x) => x.sessionKey === prior.key && !x.resolvedAt)) {item.sourceClosed = true;await clearToast(item.id);}
           }
         }
         state.sessions = state.sessions.filter((x) => x.key !== row.key);
@@ -266,9 +293,11 @@
       for(const item of state.incidents) {
         const due=dueAt(item);
         if(due>0&&eligible(item)&&now()>=due) {
-          const reason=!item.notifiedAt?'deferred-first-alert':item.snoozedUntil?'snooze-ended':'reminder';
+          const retry=Boolean(item.notifiedAt&&!item.snoozedUntil&&item.delivery?.retryAt&&now()>=item.delivery.retryAt&&
+            (!item.nextReminderAt||item.reminders>=state.settings.maxReminders||item.delivery.retryAt<=item.nextReminderAt));
+          const reason=!item.notifiedAt?'deferred-first-alert':item.snoozedUntil?'snooze-ended':retry?'delivery-retry':'reminder';
           if(reason==='reminder')item.reminders+=1;
-          await deliver(item,reasonOverride||reason);
+          await deliver(item,reasonOverride||reason,retry);
         }
       }
     }

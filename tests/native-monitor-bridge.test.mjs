@@ -36,6 +36,7 @@ function harness(options={}) {
           postMessage(value){
             sent.push(clone(value));
             if(failed){queueMicrotask(()=>port.fail());return;}
+            if(options.silentOperations?.includes(value.op))return;
             if(value.op==='hello'){
               const client={...clone(value.client),clientId:`${value.client.browser}:${value.client.profileId}:${value.client.instanceId}`,connected:true,updatedAt:time};
               sharedSettings??=clone(value.alertSettings);
@@ -81,6 +82,10 @@ function harness(options={}) {
     pcAttentionSetAudioOwner:async value=>{ownerCalls.push(clone(value));timeline.push({type:'owner',...clone(value),settings:clone(attention.settings)});},
     pcAttentionObserve:async row=>{
       observed.push(clone(row));
+      if(options.failRemoteObservation&&row.sourceId.startsWith('native:')){
+        if(options.failRemoteObservation==='throw')throw new Error('Local observation storage failed');
+        return {ok:false,error:'Local observation storage failed'};
+      }
       timeline.push({type:'observe',sourceId:row.sourceId,status:row.status});
       const index=attention.sessions.findIndex(x=>x.tabId===row.tabId&&x.sourceId===row.sourceId);
       if(index<0)attention.sessions.push(clone(row));else attention.sessions[index]={...attention.sessions[index],...clone(row)};
@@ -311,6 +316,23 @@ for(const browser of ['chrome','edge','opera_gx','firefox']){
   await h.monitor().disconnect();
 }
 
+// A temporary local persistence failure cannot mark an unimported remote row
+// as synchronized forever. Both thrown and structured failures are visible and
+// the next unchanged authoritative snapshot retries that row successfully.
+for(const failure of ['throw','response']){
+  const options={failRemoteObservation:failure};const h=harness(options);await flush();await h.monitor().connect(true);
+  const own=(await h.monitor().get()).clientId,remote='firefox:work:session';
+  const row={sessionId:`${remote}:7`,clientId:remote,browser:'firefox',tabId:7,documentId:'doc',runId:'run',url:'https://chatgpt.com/c/retry-import',title:'Retry import',status:'error',connected:true,observedAt:h.now()};
+  const snapshot={revision:2,clients:[{clientId:own,connected:true},{clientId:remote,connected:true}],sessions:[row],incidents:[]};
+  await h.snapshot(snapshot);
+  assert.equal(h.attention.sessions.length,0);assert.match((await h.monitor().get()).error,/observation storage failed/);
+  options.failRemoteObservation=false;await h.snapshot({...snapshot,revision:3});
+  assert.equal(h.observed.length,2,'failed import retries despite unchanged observation bytes');
+  assert.equal(h.attention.sessions.length,1);assert.equal((await h.monitor().get()).error,'');
+  await h.snapshot({...snapshot,revision:4});assert.equal(h.observed.length,2,'accepted imports still deduplicate');
+  await h.monitor().disconnect();
+}
+
 // History and reused tab IDs must never transfer acknowledgements or snoozes
 // into a different conversation, document, or run.
 {
@@ -360,6 +382,30 @@ for(const browser of ['chrome','edge','opera_gx','firefox']){
   await h.monitor().disconnect();
 }
 
+// An open but unresponsive native pipe must not remain falsely connected. A
+// request deadline retires that port, releases all pending requests, marks
+// remote observations offline and schedules one bounded reconnect.
+{
+  const options={silentOperations:[]};const h=harness(options);await flush();await h.monitor().connect(true);
+  options.silentOperations.push('snapshot','focus');
+  const timedOut=h.monitor().request('snapshot');
+  const pendingFocus=h.monitor().request('focus',{sessionId:'firefox:work:session:7'});
+  const failures=Promise.all([assert.rejects(timedOut,/did not answer snapshot/),assert.rejects(pendingFocus,/did not answer snapshot/)]);
+  assert.equal(h.timers.size,2);
+  const first=[...h.timers.entries()][0];h.timers.delete(first[0]);first[1].fn();
+  await failures;await flush();
+  assert.equal(h.ports[0].disconnected,true);
+  assert.equal((await h.monitor().get()).connected,false);
+  assert.match((await h.monitor().get()).error,/did not answer snapshot/);
+  assert.equal(h.timers.size,0,'all requests on the hung transport release their deadlines');
+  assert.equal(h.alarms.size,1);assert.equal((await h.monitor().get()).retryAttempt,1);
+  options.silentOperations.length=0;await h.alarm();
+  assert.equal((await h.monitor().get()).connected,true);assert.equal(h.connectCount(),2);
+  h.ports[0].emit({v:1,kind:'snapshot',data:{revision:900,clientId:'stale',clients:[],sessions:[],incidents:[]}});await flush();
+  assert.notEqual((await h.monitor().get()).clientId,'stale');
+  await h.monitor().disconnect();
+}
+
 // Manual refresh probes the real Chromium sentinel first, falls back to the
 // Firefox sensor, and reports unavailable/suspended sources without fake success.
 {
@@ -372,11 +418,11 @@ for(const browser of ['chrome','edge','opera_gx','firefox']){
     {id:16,url:'https://chatgpt.com/c/changed'},
   ];
   const h=harness({tabs,sendTabMessage:async(id,message)=>{
-    if(id===11&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.22.0',chat:{id:'current-doc',url:tabs[0].url,title:'Current permission',status:'blocked-approval',healthState:'blocked-approval'},generation:{active:false},observedAt:1_800_000_000_000};
+    if(id===11&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.23.0',chat:{id:'current-doc',url:tabs[0].url,title:'Current permission',status:'blocked-approval',healthState:'blocked-approval'},generation:{active:false},observedAt:1_800_000_000_000};
     if(id===12&&message.type==='PC_MONITOR_RESCAN')return {ok:true};
     if(id===16&&message.type==='PC_GET_LIVE_SENTINEL_STATE'){
       h.tabs.set(16,{id:16,url:'https://chatgpt.com/c/reused'});
-      return {ok:true,source:'live-sentinel',version:'0.22.0',chat:{id:'changed-doc',url:tabs[5].url,status:'running'}};
+      return {ok:true,source:'live-sentinel',version:'0.23.0',chat:{id:'changed-doc',url:tabs[5].url,status:'running'}};
     }
     throw new Error('No current sensor');
   }});await flush();

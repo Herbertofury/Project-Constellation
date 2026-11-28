@@ -249,4 +249,81 @@ function edgeFixture(){
   assert.equal((await f.runtime.get()).incidents[0].reminders,1);assert.equal(f.deadlines.size,0);
   await f.runtime.setAudioOwner({enabled:false});await f.runtime.setAudioOwner({enabled:true});assert.equal(f.events.length,2,'ownership changes do not reset the repeat cap');
 }
-console.log('attention-service.test.mjs: PASS (restart, dedup, run episodes, mute/settings wake, absolute native state, snooze, priority, suspension, receipts, ownership, completion, retention)');
+{
+  const f=edgeFixture();await f.runtime.start();let audioAttempts=0;
+  f.hooks.sound=async()=>++audioAttempts===1?{ok:false,error:'Offscreen audio surface closed'}:{ok:true,started:true};
+  await f.observe();const first=(await f.runtime.get()).incidents[0];
+  assert.equal(first.delivery.audio,'failed');
+  assert.equal(f.deadlines.get(core.ALARM_NAME),f.now()+2000,'a failed first channel gets a bounded recovery deadline with reminders disabled');
+  assert.equal(first.delivery.attempt,1);
+  f.advance(1999);await f.runtime.reminders();assert.equal(audioAttempts,1);
+  f.advance(1);await f.runtime.reminders();
+  const repaired=(await f.runtime.get()).incidents[0];
+  assert.equal(audioAttempts,2);assert.equal(f.events.length,1,'successful notifications are not replayed while recovering audio');
+  assert.equal(repaired.delivery.notification,'accepted');assert.equal(repaired.delivery.audio,'started');
+  assert.equal(repaired.delivery.attempt,2);assert.equal(repaired.delivery.retryAt,0);assert.equal(f.deadlines.size,0);
+  assert.equal(repaired.reminders,0,'channel recovery does not consume or enable repeat reminders');
+  assert.equal((await f.runtime.get()).delivery.lastError,'');
+}
+{
+  const f=edgeFixture();await f.runtime.start();const write=f.hooks.write;let writes=0;
+  f.hooks.write=async(...args)=>{if(++writes===2)throw new Error('Storage rejected the delivery claim');return write(...args);};
+  await assert.rejects(f.observe(),/Storage rejected/);
+  assert.equal(f.events.length,0);assert.equal(f.audio.length,0);
+  assert.equal((await f.runtime.get()).incidents[0].notifiedAt,0,'a failed pre-delivery write cannot claim an untouched alert was announced');
+  await f.observe();assert.equal(f.events.length,1);assert.equal(f.audio.length,1);
+  assert.equal((await f.runtime.get()).incidents.length,1,'retrying persistence retains the same incident episode');
+}
+{
+  const f=edgeFixture();await f.runtime.start();const write=f.hooks.write;let writes=0;
+  f.hooks.write=async(...args)=>{if(++writes===3)throw new Error('Storage rejected the audio claim');return write(...args);};
+  await f.observe();assert.equal(f.events.length,1);assert.equal(f.audio.length,0);
+  const failed=(await f.runtime.get()).incidents[0];assert.equal(failed.delivery.notification,'accepted');assert.equal(failed.delivery.audio,'failed');
+  f.advance(2000);await f.runtime.reminders();assert.equal(f.events.length,1);assert.equal(f.audio.length,1,'a failed pre-audio claim recovers only audio without duplicating the accepted notification');
+}
+{
+  const f=edgeFixture();await f.runtime.start();let notificationAttempts=0;
+  f.hooks.notify=async(item)=>{f.events.push(structuredClone(item));return ++notificationAttempts===1?{ok:false,error:'OS notification temporarily unavailable'}:{ok:true};};
+  await f.observe();assert.equal(f.audio.length,1);
+  // A worker restart preserves failed-channel identity and the original retry
+  // budget, but fresh provider evidence is still required before delivery.
+  const restarted=core.createService(f.hooks);await restarted.start();
+  f.advance(2000);await restarted.reminders();assert.equal(notificationAttempts,1);assert.equal(f.deadlines.size,0);
+  await restarted.observe({tabId:1,url:'https://chatgpt.com/c/edge',status:'permission_required',runId:'run-1',observedAt:f.now()});
+  await restarted.reminders();
+  assert.equal(notificationAttempts,2);assert.equal(f.audio.length,1,'accepted audio is not replayed after a restart or toast-only retry');
+  assert.equal((await restarted.get()).incidents[0].delivery.attempt,2);assert.equal(f.deadlines.size,0);
+}
+{
+  const f=edgeFixture();await f.runtime.start();let audioAttempts=0,notificationAttempts=0;
+  f.hooks.notify=async()=>{notificationAttempts++;return {ok:false,error:'Notifications denied'};};
+  f.hooks.sound=async()=>{audioAttempts++;return {ok:false,error:'Audio is blocked'};};
+  await f.observe();
+  for(const delay of [2000,10000,30000]){assert.equal(f.deadlines.get(core.ALARM_NAME),f.now()+delay);f.advance(delay);await f.runtime.reminders();}
+  assert.equal(audioAttempts,4);assert.equal(notificationAttempts,4);assert.equal(f.deadlines.size,0,'permanent channel failure cannot cause an endless alarm loop');
+  let snap=await f.runtime.get();assert.equal(snap.incidents[0].delivery.retryExhausted,true);assert.equal(snap.incidents[0].delivery.retryAt,0);assert.match(snap.delivery.lastError,/retries are exhausted/);
+  f.advance(86400000);await f.runtime.reminders();await f.observe();assert.equal(audioAttempts,4,'unchanged evidence cannot reset an exhausted retry budget');
+}
+{
+  const f=edgeFixture();await f.runtime.start();let attempts=0;
+  f.hooks.sound=async()=>{attempts++;return {ok:false,error:'Audio transport failed'};};
+  await f.observe();const id=(await f.runtime.get()).incidents[0].id;
+  await f.runtime.settings({muteUntil:f.now()+10000});assert.equal(f.deadlines.get(core.ALARM_NAME),f.now()+10000);
+  await f.runtime.setAudioOwner({enabled:false});f.advance(10001);await f.runtime.reminders();assert.equal(attempts,1);
+  await f.runtime.setAudioOwner({enabled:true});assert.equal(attempts,2,'the new delivery owner resumes only the failed channel');assert.equal(f.events.length,1);
+  await f.runtime.snooze(id,1);f.advance(20000);await f.runtime.reminders();assert.equal(attempts,2,'an explicit snooze supersedes channel retry deadlines');
+  await f.runtime.acknowledge(id);f.advance(60000);await f.runtime.reminders();assert.equal(attempts,2);assert.equal(f.deadlines.size,0);
+}
+{
+  const f=edgeFixture();await f.runtime.start();const cleared=[];f.hooks.clearNotification=async(id)=>cleared.push(id);
+  await f.observe({documentId:'previous-document'});const old=(await f.runtime.get()).incidents[0];
+  const previousAt=f.now();f.advance(1000);
+  await f.observe({documentId:'new-document',url:'https://chatgpt.com/c/new',runId:'new-run'});
+  const before=await f.runtime.get();
+  assert.ok(cleared.includes(old.id),'navigation clears the old incident toast as well as its focus target');
+  const result=await f.observe({documentId:'previous-document',observedAt:previousAt,status:'running'});
+  assert.equal(result.ignored,'out-of-order','an old document cannot retire the current tab session');
+  const after=await f.runtime.get();assert.deepEqual(after.sessions,before.sessions);assert.deepEqual(after.incidents,before.incidents);
+  for(const tabId of [NaN,Infinity,'bad',Number.MAX_SAFE_INTEGER+1])assert.equal((await f.observe({tabId})).ok,false,'malformed tab IDs cannot enter durable state');
+}
+console.log('attention-service.test.mjs: PASS (restart, dedup, run episodes, mute/settings wake, absolute native state, bounded channel recovery, snooze, priority, suspension, receipts, ownership, navigation ordering, completion, retention)');

@@ -6,21 +6,74 @@ use crate::{
 };
 use serde_json::{Value, json};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, VecDeque},
     fs, io,
     net::{Ipv4Addr, Shutdown, SocketAddr, TcpListener, TcpStream},
     path::{Path, PathBuf},
-    sync::{
-        Arc, Mutex,
-        mpsc::{self, SyncSender},
-    },
+    sync::{Arc, Condvar, Mutex},
     thread,
     time::{Duration, Instant},
 };
 
+const MAX_DIRECT_MESSAGES: usize = 8;
+
+#[derive(Default)]
+struct OutboxState {
+    direct: VecDeque<Value>,
+    snapshot: Option<Value>,
+    closed: bool,
+}
+
+/// Broadcast snapshots supersede one another. Retaining every intermediate
+/// copy disconnected healthy readers after only four simultaneous tab updates.
+/// Keep one latest snapshot and a separately bounded queue for request replies
+/// and focus commands; those must never be dropped or replaced by a snapshot.
+#[derive(Default)]
+struct Outbox {
+    state: Mutex<OutboxState>,
+    ready: Condvar,
+}
+
+impl Outbox {
+    fn try_send(&self, value: Value) -> Result<(), ()> {
+        let mut state = self.state.lock().unwrap();
+        if state.closed {
+            return Err(());
+        }
+        if value.get("id").is_none() && value["kind"] == "snapshot" {
+            state.snapshot = Some(value);
+        } else {
+            if state.direct.len() >= MAX_DIRECT_MESSAGES {
+                return Err(());
+            }
+            state.direct.push_back(value);
+        }
+        self.ready.notify_one();
+        Ok(())
+    }
+
+    fn receive(&self) -> Option<Value> {
+        let mut state = self.state.lock().unwrap();
+        loop {
+            if let Some(value) = state.direct.pop_front().or_else(|| state.snapshot.take()) {
+                return Some(value);
+            }
+            if state.closed {
+                return None;
+            }
+            state = self.ready.wait(state).unwrap();
+        }
+    }
+
+    fn close(&self) {
+        self.state.lock().unwrap().closed = true;
+        self.ready.notify_one();
+    }
+}
+
 struct Peer {
     connection_id: u64,
-    sender: SyncSender<Value>,
+    sender: Arc<Outbox>,
     stream: TcpStream,
 }
 struct Hub {
@@ -310,13 +363,15 @@ fn connection(
         return Ok(());
     }
     let mut writer = stream.try_clone()?;
-    let (sender, receiver) = mpsc::sync_channel::<Value>(4);
+    let sender = Arc::new(Outbox::default());
+    let receiver = sender.clone();
     let writer_thread = thread::spawn(move || {
-        while let Ok(message) = receiver.recv() {
+        while let Some(message) = receiver.receive() {
             if write_frame(&mut writer, &message).is_err() {
                 break;
             }
         }
+        receiver.close();
         let _ = writer.shutdown(Shutdown::Both);
     });
     let mut client_id: Option<String> = None;
@@ -355,7 +410,7 @@ fn connection(
         // publish the latest state, without touching a replacement's identity.
         hub.broadcast(directory);
     }
-    drop(sender);
+    sender.close();
     let _ = stream.shutdown(Shutdown::Both);
     let _ = writer_thread.join();
     Ok(())
@@ -365,7 +420,7 @@ fn process_request(
     request: &Value,
     client_id: &mut Option<String>,
     stream: &TcpStream,
-    sender: &SyncSender<Value>,
+    sender: &Arc<Outbox>,
     directory: &Path,
     shared: &Arc<Mutex<Hub>>,
     connection_id: u64,
@@ -652,11 +707,62 @@ mod tests {
     use super::*;
 
     #[test]
+    fn burst_snapshots_coalesce_without_losing_replies_or_focus_requests() {
+        let outbox = Outbox::default();
+        outbox
+            .try_send(reply("ack-1", "ack", json!({"revision":1})))
+            .unwrap();
+        for revision in 1..=10_000 {
+            outbox
+                .try_send(json!({"v":1,"kind":"snapshot","data":{"revision":revision}}))
+                .unwrap();
+        }
+        let focus = json!({"v":1,"kind":"focus","data":{"sessionId":"firefox:work:session:42"}});
+        outbox.try_send(focus.clone()).unwrap();
+        outbox
+            .try_send(reply(
+                "snapshot-request",
+                "snapshot",
+                json!({"revision":10_000}),
+            ))
+            .unwrap();
+        outbox.close();
+        assert_eq!(outbox.receive().unwrap()["id"], "ack-1");
+        assert_eq!(outbox.receive().unwrap(), focus);
+        assert_eq!(outbox.receive().unwrap()["id"], "snapshot-request");
+        assert_eq!(outbox.receive().unwrap()["data"]["revision"], 10_000);
+        assert!(outbox.receive().is_none());
+        assert!(outbox.try_send(json!({"kind":"snapshot"})).is_err());
+    }
+
+    #[test]
+    fn direct_request_backpressure_stays_bounded_and_close_wakes_the_writer() {
+        let outbox = Arc::new(Outbox::default());
+        for index in 0..MAX_DIRECT_MESSAGES {
+            outbox
+                .try_send(reply(&index.to_string(), "ack", json!({})))
+                .unwrap();
+        }
+        assert!(
+            outbox
+                .try_send(reply("overflow", "ack", json!({})))
+                .is_err()
+        );
+        for index in 0..MAX_DIRECT_MESSAGES {
+            assert_eq!(outbox.receive().unwrap()["id"], index.to_string());
+        }
+        let receiver = outbox.clone();
+        let reader = thread::spawn(move || receiver.receive());
+        outbox.close();
+        assert!(reader.join().unwrap().is_none());
+    }
+
+    #[test]
     fn an_evicted_reader_cannot_disconnect_or_mutate_its_replacement() {
         let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
         let stream = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
         let (_other_end, _) = listener.accept().unwrap();
-        let (sender, _receiver) = mpsc::sync_channel(4);
+        let sender = Arc::new(Outbox::default());
         let mut hub = Hub {
             store: Store::default(),
             peers: BTreeMap::new(),

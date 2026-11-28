@@ -73,7 +73,7 @@ chrome.tabs.query=async(query)=>{assert.deepEqual(query,{});return [
 ];};
 chrome.tabs.sendMessage=async(id,message)=>{
   startupProbes.push({id,type:message.type});
-  if(id===22&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.22.0',chat:{status:'running'},generation:{active:true}};
+  if(id===22&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.23.0',chat:{status:'running'},generation:{active:true}};
   return undefined;
 };
 await import('../extension/src/attention-background.js?startup-reconcile');

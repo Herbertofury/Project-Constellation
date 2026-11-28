@@ -19,7 +19,7 @@ commands, or launch arbitrary URLs.
 
 ## Build and connect
 
-Rust 1.89 or newer is required; CI uses Rust 1.99.0 with the checked-in lockfile.
+Rust 1.89 or newer is required; CI uses Rust 1.100.1 with the checked-in lockfile.
 
 ```sh
 cargo build --release --locked

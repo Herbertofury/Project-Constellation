@@ -7,12 +7,16 @@ const html=fs.readFileSync(new URL('../extension/agent-monitor.html',import.meta
 // This fixture executes the actual dashboard. It proves routing/state behavior;
 // browser-rendered layout, audio playback and OS notification proof stay separate.
 class Element {
-  constructor(tag='div'){this.tagName=tag.toUpperCase();this.className='';this.children=[];this.ownText='';this.value='';this.hidden=false;this.disabled=false;this.listeners=new Map();this.attrs={};this.classList={toggle:(name,on)=>{const parts=new Set(this.className.split(' ').filter(Boolean));if(on)parts.add(name);else parts.delete(name);this.className=[...parts].join(' ');}};}
+  constructor(tag='div'){this.tagName=tag.toUpperCase();this.className='';this.children=[];this.parentNode=null;this.ownText='';this.value='';this.hidden=false;this.disabled=false;this.listeners=new Map();this.attrs={};this.classList={toggle:(name,on)=>{const parts=new Set(this.className.split(' ').filter(Boolean));if(on)parts.add(name);else parts.delete(name);this.className=[...parts].join(' ');}};}
   set textContent(value){this.ownText=String(value);this.children=[];}
   get textContent(){return this.ownText+this.children.map(x=>x.textContent).join(' ');}
-  append(...items){this.children.push(...items);}
-  prepend(...items){this.children.unshift(...items);}
-  replaceChildren(...items){this.ownText='';this.children=[...items];}
+  get firstChild(){return this.children[0]||null;}
+  get nextSibling(){if(!this.parentNode)return null;return this.parentNode.children[this.parentNode.children.indexOf(this)+1]||null;}
+  append(...items){for(const item of items)this.insertBefore(item,null);}
+  insertBefore(item,reference){if(item.parentNode)item.parentNode.removeChild(item);const at=reference?this.children.indexOf(reference):this.children.length;assert.ok(at>=0);this.children.splice(at,0,item);item.parentNode=this;return item;}
+  removeChild(item){const at=this.children.indexOf(item);assert.ok(at>=0);this.children.splice(at,1);item.parentNode=null;return item;}
+  prepend(...items){for(const item of items.reverse())this.insertBefore(item,this.firstChild);}
+  replaceChildren(...items){this.ownText='';for(const child of this.children)child.parentNode=null;this.children=[];this.append(...items);}
   setAttribute(key,value){this.attrs[key]=value;}
   addEventListener(type,fn){this.listeners.set(type,fn);}
   click(){return this.listeners.get('click')?.({});}
@@ -20,14 +24,16 @@ class Element {
 }
 const descendants=(root,predicate)=>root.children.flatMap(child=>[...(predicate(child)?[child]:[]),...descendants(child,predicate)]);
 const flush=async()=>{for(let i=0;i<12;i++)await new Promise(setImmediate);};
-async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectResult}={}){
+async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectResult,readErrors={},incompleteReads={}}={}){
   const elements=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   elements.get('browserFilter').value='all';elements.get('sortOrder').value='attention';
-  const calls=[];
+  const calls=[],events=[];
   const context={console,URL,Date,Blob,Promise,queueMicrotask,setTimeout:()=>0,clearTimeout:()=>{},
     document:{getElementById:id=>elements.get(id),createElement:tag=>new Element(tag),createTextNode:text=>{const el=new Element('#text');el.textContent=text;return el;},querySelectorAll:()=>[],addEventListener:()=>{},activeElement:null},
-    chrome:{runtime:{getManifest:()=>({version:'0.22.0'}),onMessage:{addListener:()=>{}},sendMessage:async message=>{
+    chrome:{runtime:{getManifest:()=>({version:'0.23.0'}),onMessage:{addListener:fn=>events.push(fn)},sendMessage:async message=>{
       calls.push(structuredClone(message));
+      if(readErrors[message.type])throw new Error(readErrors[message.type]);
+      if(incompleteReads[message.type])return {ok:true};
       if(message.type==='PC_ATTENTION_GET')return {ok:true,attention:structuredClone(fixture.attention)};
       if(message.type==='PC_MONITOR_GET')return {ok:true,monitor:structuredClone(fixture.monitor)};
       if(message.type==='PC_MONITOR_CONNECT')return connectResult??{ok:true,monitor:structuredClone(fixture.monitor)};
@@ -42,7 +48,7 @@ async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectRe
     context.chrome={runtime:{sendMessage:()=>{throw new Error('Firefox dashboard must use the promise-based browser API.');}}};
   }
   vm.runInNewContext(source,context,{filename:'agent-monitor.js'});await flush();
-  return {elements,calls};
+  return {elements,calls,events};
 }
 const now=Date.now();
 const own='chrome:work:session',foreign='edge:work:session',url='https://chatgpt.com/c/shared';
@@ -107,7 +113,7 @@ for(const changed of [{},{documentId:'chrome-doc-truncated'},{runId:'new-run'},{
 {
   const input=structuredClone(fixture);input.monitor.connected=false;input.monitor.config.browser='firefox';
   const h=await dashboard(input,{firefox:true});
-  assert.equal(h.elements.get('attentionCount').textContent,'1');
+  assert.equal(h.elements.get('attentionCount').textContent,'2','disconnected remote incidents remain visible with unavailable sources');
   await h.elements.get('connectNative').click();await flush();
   assert.ok(h.calls.some(x=>x.type==='permission-request'&&x.permissions.includes('nativeMessaging')));
   assert.ok(h.calls.some(x=>x.type==='PC_MONITOR_CONNECT'),'Firefox connects through the promise-based browser API');
@@ -214,4 +220,107 @@ for(const changed of [{},{documentId:'chrome-doc-truncated'},{runId:'new-run'},{
   assert.match(h.elements.get('sessionList').textContent,/Untitled chat/);
   assert.match(h.elements.get('sessionList').textContent,/unknown/);
 }
-console.log('agent-monitor-ui-logic.test.mjs: PASS (cross-browser/document/run identity, legacy history, focus routing, unavailable sources, Firefox API, shared follower and standalone alert settings)');
+
+{
+  const input=structuredClone(fixture),readErrors={};
+  const h=await dashboard(input,{readErrors});
+  readErrors.PC_ATTENTION_GET='Extension service worker did not answer.';
+  readErrors.PC_MONITOR_GET='Native bridge did not answer.';
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.equal(h.elements.get('totalCount').textContent,'1','failed reads retain the last known source inventory');
+  assert.equal(h.elements.get('attentionCount').textContent,'2','a failed read never erases unresolved work');
+  assert.match(h.elements.get('monitorState').textContent,/unavailable/);
+  assert.match(h.elements.get('nativeStatus').textContent,/status is unavailable/);
+  assert.match(h.elements.get('lastUpdated').textContent,/last known state/);
+  assert.equal(h.elements.get('coverageCount').textContent,'0 / 4','stale data cannot claim connected coverage');
+  assert.equal(h.elements.get('alertsEnabled').disabled,true,'unconfirmed shared ownership cannot silently route settings to local policy');
+  assert.ok(descendants(h.elements.get('sessionList'),x=>x.tagName==='BUTTON').every(x=>x.disabled));
+  assert.ok(descendants(h.elements.get('incidentList'),x=>x.tagName==='BUTTON').every(x=>x.disabled));
+  delete readErrors.PC_ATTENTION_GET;delete readErrors.PC_MONITOR_GET;
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.match(h.elements.get('monitorState').textContent,/hub connected/);
+  assert.equal(h.elements.get('alertsEnabled').disabled,false);
+  assert.equal(h.elements.get('coverageCount').textContent,'2 / 4');
+}
+{
+  const input=structuredClone(fixture),incompleteReads={PC_MONITOR_GET:true};
+  const h=await dashboard(input,{incompleteReads});
+  assert.match(h.elements.get('loadError').textContent,/incomplete status/,'an opaque GET success is not live connection evidence');
+  assert.equal(h.elements.get('loadError').hidden,false);
+  assert.match(h.elements.get('nativeStatus').textContent,/unavailable/);
+}
+{
+  const input=structuredClone(fixture);input.monitor.connected=false;
+  const h=await dashboard(input);
+  assert.equal(h.elements.get('totalCount').textContent,'1','remote source inventory survives hub disconnect');
+  assert.match(h.elements.get('sessionList').textContent,/Unavailable/);
+  assert.ok(descendants(h.elements.get('sessionList'),x=>x.tagName==='BUTTON').every(x=>x.disabled));
+  assert.match(h.elements.get('incidentList').textContent,/Source unavailable/);
+  assert.equal(h.elements.get('coverageCount').textContent,'1 / 4');
+}
+{
+  const input=structuredClone(fixture);input.attention.incidents=[];
+  input.monitor.snapshot.sessions=Array.from({length:121},(_,i)=>({...session,sessionId:foreign+':'+i,tabId:i,title:'Chat '+String(i).padStart(3,'0'),observedAt:now-i}));
+  input.monitor.snapshot.incidents=Array.from({length:61},(_,i)=>({...incident,incidentId:'issue-'+i,sessionId:foreign+':'+i,title:'Issue '+String(i).padStart(3,'0'),firstSeenAt:now-i}));
+  const h=await dashboard(input);
+  assert.equal(h.elements.get('totalCount').textContent,'121');assert.equal(h.elements.get('attentionCount').textContent,'61');
+  assert.equal(h.elements.get('sessionList').children.length,121,'every observed row is rendered; no cap or viewport culling');
+  assert.equal(h.elements.get('incidentList').children.length,61,'all incidents remain rendered');
+  const originalSessions=[...h.elements.get('sessionList').children],originalIncidents=[...h.elements.get('incidentList').children];
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.deepEqual(h.elements.get('sessionList').children,originalSessions,'unchanged events preserve all existing row nodes');
+  assert.deepEqual(h.elements.get('incidentList').children,originalIncidents,'unchanged events preserve incident nodes and focused actions');
+  input.monitor.snapshot.sessions[120].title='Changed last chat';
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.equal(h.elements.get('sessionList').children.length,121);
+  assert.equal(h.elements.get('sessionList').children[0],originalSessions[0]);
+  assert.notEqual(h.elements.get('sessionList').children[120],originalSessions[120]);
+  assert.match(h.elements.get('sessionList').children[120].textContent,/Changed last chat/);
+  input.monitor.snapshot.sessions[120].title='Chat 120';
+  h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  h.elements.get('searchAgents').value='Chat 120';h.elements.get('searchAgents').listeners.get('input')({});
+  assert.equal(h.elements.get('sessionList').children.length,1,'search spans all data, including the final rendered row');
+  assert.match(h.elements.get('sessionList').textContent,/Chat 120/);
+  assert.match(h.elements.get('incidentList').textContent,/No incidents match/);
+  assert.match(h.elements.get('activityHint').textContent,/1 of 121/);
+  h.elements.get('searchAgents').value='absent';h.elements.get('searchAgents').listeners.get('input')({});
+  assert.match(h.elements.get('activityHint').textContent,/0 of 121/,'empty search updates the count instead of retaining stale results');
+}
+{
+  const input=structuredClone(fixture);input.attention.incidents=[];
+  input.monitor.snapshot.incidents=[incident,{...incident,incidentId:'acknowledged',acknowledgedAt:now,title:'Handled issue'},
+    {...incident,incidentId:'snoozed',snoozedUntil:now+600000,title:'Quiet issue'}];
+  const h=await dashboard(input);
+  h.elements.get('inboxFilter').value='pending';h.elements.get('inboxFilter').listeners.get('change')({});
+  assert.equal(h.elements.get('incidentList').children.length,1);assert.match(h.elements.get('incidentList').textContent,/Edge request/);
+  h.elements.get('inboxFilter').value='acknowledged';h.elements.get('inboxFilter').listeners.get('change')({});
+  assert.equal(h.elements.get('incidentList').children.length,1);assert.match(h.elements.get('incidentList').textContent,/Handled issue/);
+  h.elements.get('inboxFilter').value='snoozed';h.elements.get('inboxFilter').listeners.get('change')({});
+  assert.equal(h.elements.get('incidentList').children.length,1);assert.match(h.elements.get('incidentList').textContent,/Quiet issue/);
+  assert.equal(h.elements.get('attentionCount').textContent,'3','triage views do not drop incidents from the total');
+}
+{
+  const input=structuredClone(fixture);
+  input.attention.incidents[0].resolvedAt=now-10;
+  Object.assign(input.monitor.snapshot.incidents[0],{clientId:own,sessionId:own+':7',documentId:local.documentId,runId:local.runId,resolvedAt:now});
+  const h=await dashboard(input);await h.elements.get('showResolved').click();
+  assert.equal(h.elements.get('incidentList').children.length,1,'resolved local and hub copies do not duplicate history because their clocks differ');
+}
+
+{
+  const input=structuredClone(fixture);
+  input.attention.incidents[0].resolvedAt=now-10;
+  input.attention.incidents.push({...input.attention.incidents[0],id:'second-local-episode',title:'A second failure',firstSeenAt:now+100,resolvedAt:now+150});
+  Object.assign(input.monitor.snapshot.incidents[0],{clientId:own,sessionId:own+':7',documentId:local.documentId,runId:local.runId,resolvedAt:now});
+  const h=await dashboard(input);await h.elements.get('showResolved').click();
+  assert.equal(h.elements.get('incidentList').children.length,2,'native/local reconciliation is one-to-one and preserves unmatched historical episodes');
+  assert.match(h.elements.get('incidentList').textContent,/A second failure/);
+}
+{
+  const input=structuredClone(fixture),readErrors={};input.attention.incidents=[];input.monitor.snapshot.sessions=[];
+  const h=await dashboard(input,{readErrors});
+  assert.ok(descendants(h.elements.get('incidentList'),x=>x.tagName==='BUTTON'&&x.textContent==='Acknowledge').some(x=>!x.disabled));
+  readErrors.PC_MONITOR_GET='Bridge unavailable';h.events[0]({type:'PC_MONITOR_CHANGED'});await flush();
+  assert.ok(descendants(h.elements.get('incidentList'),x=>x.tagName==='BUTTON').every(x=>x.disabled),'unavailable-source cards invalidate cached edit eligibility when the hub read fails');
+}
+console.log('agent-monitor-ui-logic.test.mjs: PASS (identity, focus, alert settings, stale-state recovery, complete incremental rendering, complete search and incident triage)');

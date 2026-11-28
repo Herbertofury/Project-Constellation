@@ -33,7 +33,14 @@ pub struct Payload<'a> {
 }
 
 pub fn hash(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let digest = Sha256::digest(bytes);
+    let mut encoded = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        encoded.push(char::from(HEX[usize::from(byte >> 4)]));
+        encoded.push(char::from(HEX[usize::from(byte & 0x0f)]));
+    }
+    encoded
 }
 
 /// Use a single portable path grammar for both the Linux build and Windows
@@ -171,5 +178,37 @@ impl<'a> Payload<'a> {
 
     pub fn contents(&self, record: &FileRecord) -> &[u8] {
         &self.data[record.offset as usize..(record.offset + record.bytes) as usize]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::hash;
+
+    #[test]
+    fn sha256_vectors_preserve_payload_and_receipt_digest_format() {
+        for (bytes, expected) in [
+            (
+                b"".as_slice(),
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ),
+            (
+                b"abc".as_slice(),
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            ),
+            (
+                b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".as_slice(),
+                "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+            ),
+        ] {
+            assert_eq!(hash(bytes), expected);
+        }
+        let binary: Vec<u8> = (0..=255).collect();
+        let encoded = hash(&binary);
+        assert_eq!(encoded.len(), 64);
+        assert_eq!(
+            encoded,
+            "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880"
+        );
     }
 }

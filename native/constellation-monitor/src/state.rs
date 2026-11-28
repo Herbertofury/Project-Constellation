@@ -475,12 +475,17 @@ impl Store {
             return Ok(self.remove(client_id, tab_id(input)?, now));
         }
         let session = Session::parse(client, input, now)?;
-        if let Some(previous) = self.sessions.get(&session.id) {
+        if let Some(previous) = self.sessions.get_mut(&session.id) {
             // Drop stale in-flight observations after a newer event from the same document.
             if session.observed_at < previous.observed_at {
                 return Ok(false);
             }
             if previous.same_evidence(&session) {
+                // A duplicate is not a new incident or a reason to broadcast,
+                // but it is newer evidence. Keep the ordering watermark so a
+                // delayed clearance cannot overwrite a more recent issue.
+                // The next durable mutation persists this metadata too.
+                previous.observed_at = session.observed_at;
                 return Ok(false);
             }
         } else if self.sessions.len() >= MAX_SESSIONS {
@@ -994,6 +999,49 @@ mod tests {
         store.observe(&client, &next, 1012).unwrap();
         assert_eq!(store.incidents.len(), 2);
         assert!(store.incidents[0].resolved_at.is_some());
+    }
+
+    #[test]
+    fn repeated_evidence_advances_ordering_without_reannouncing_the_incident() {
+        let mut store = Store::default();
+        let client = store.hello(&hello("chrome"), 1000).unwrap();
+        store.observe(&client, &event("error", 1010), 1010).unwrap();
+        store.acknowledge("incident-1", 1011).unwrap();
+        let revision = store.revision;
+        assert!(!store.observe(&client, &event("error", 1050), 1050).unwrap());
+        assert_eq!(
+            store.revision, revision,
+            "duplicates do not broadcast or re-alert"
+        );
+        assert_eq!(store.sessions[&format!("{client}:3")].observed_at, 1050);
+        assert!(
+            !store
+                .observe(&client, &event("running", 1030), 1060)
+                .unwrap()
+        );
+        assert_eq!(store.sessions[&format!("{client}:3")].status, "error");
+        assert_eq!(store.incidents.len(), 1);
+        assert_eq!(store.incidents[0].resolved_at, None);
+        assert_eq!(store.incidents[0].acknowledged_at, Some(1011));
+        // A later save retains the latest ordering metadata. Restore does not
+        // mistake either an older event or a restarted connection for recovery.
+        store
+            .set_alert_settings(&json!({"volume":0.25}), false, 1070)
+            .unwrap();
+        let mut restored = Store::restore(&store.snapshot(), 1080).unwrap();
+        restored.hello(&hello("chrome"), 1081).unwrap();
+        assert!(
+            !restored
+                .observe(&client, &event("running", 1040), 1082)
+                .unwrap()
+        );
+        assert_eq!(restored.incidents[0].resolved_at, None);
+        assert!(
+            restored
+                .observe(&client, &event("running", 1090), 1090)
+                .unwrap()
+        );
+        assert_eq!(restored.incidents[0].resolved_at, Some(1090));
     }
 
     #[test]

@@ -1,8 +1,8 @@
-# Project Constellation Desktop 0.22.0
+# Project Constellation Desktop 0.23.0
 
 Project Constellation is the unified desktop runtime and browser companion for authenticated ChatGPT work, project continuity, local computer tools, saved tasks, recovery, provider health, and durable project state. The normal ChatGPT experience uses the user's existing signed-in web session; it does **not** require a separate OpenAI API key.
 
-## 0.22.0 highlights
+## Included 0.22.0 foundation
 
 - **Native Computer Tools in Connections.** Inspect component availability, explicitly open or stop the migrated native owner application, and run a bounded real status-only MCP check. Installer/packaged payload receipts and executable hashes are verified before launch.
 - **Confirmed shutdown.** Stop waits for child-process exit; a delayed force-stop remains owned until completion. Quit does not report successful cleanup when managed native or terminal processes remain alive.
@@ -15,7 +15,7 @@ Project Constellation is the unified desktop runtime and browser companion for a
 - **Current ChatGPT recovery UI support.** Stream-recovery timeout/error surfaces, including `ChatGPT stream recovery polling timed out`, are classified semantically and trigger event-first recovery with bounded one-shot fallback checks.
 - **Draft/hold-safe recovery.** User drafts, approvals, authentication, rate limits, provider review, unavailable conversations, and capacity handoff states remain non-bypassable; reload fallback is fingerprinted and capped.
 - **Project Constellation identity everywhere.** Commander-era application IDs, data/config paths, CLI aliases, persistent ChatGPT partition, extension ID, and bridge contracts are retained where changing them would break upgrades or strand user state, but the product presented to the user is Project Constellation.
-- **Electron 44.4.4 stable.** Desktop runtime is pinned to Electron 44.4.4 and electron-builder 26.16.1.
+- **Pinned desktop runtime.** Desktop runtime is pinned to Electron 45.5.0 and electron-builder 26.18.1.
 - **Event-first runtime.** Browser/desktop route and status tracking use real state/route events with bounded one-shot fallbacks rather than permanent high-frequency polling.
 - **Provider Health.** Adapter capabilities can be scored independently so provider DOM/API drift is reported as a specific degraded capability instead of a vague failure.
 - **Incident Brain.** Verified failure fingerprints can retain the proven recovery recipe, invalidation conditions, and regression protection so repeat incidents do not require rediscovery.
@@ -27,7 +27,7 @@ Project Constellation is the unified desktop runtime and browser companion for a
 
 ### Portable Windows build
 
-Extract the complete `Project-Constellation-v0.22.0-Windows-Portable.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
+Extract the complete `Project-Constellation-v0.23.0-Windows-Portable.zip` into a new folder and run **Project Constellation.exe**. Keep the extracted folder together.
 
 Project Constellation intentionally reuses the existing Commander/Constellation application identity and persistent ChatGPT partition for upgrade continuity. Existing local settings, tasks, project state, and signed-in browser state are not intentionally reset by this upgrade.
 
@@ -87,7 +87,7 @@ The desktop retains the integrated update service. Stable updates are staged onl
 
 ## Verification contract
 
-The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.22.0 build must prove the exact source revision on Windows with:
+The authoritative Windows release gate is `../.github/workflows/windows-runtime.yml`. A release-ready 0.23.0 build must prove the exact source revision on Windows with:
 
 - root regression/contract checks;
 - desktop syntax + full regression/security tests;
@@ -97,9 +97,9 @@ The authoritative Windows release gate is `../.github/workflows/windows-runtime.
 - fresh extraction and launch of the produced portable application;
 - SHA-256/size receipt generation.
 
-Browser acceptance additionally includes the complete 42-workflow smoke inventory, the installed-extension and multi-tab recovery checks, and Chromium/Firefox sensor fixtures.
+Browser acceptance additionally includes the complete 43-workflow smoke inventory, the installed-extension and multi-tab recovery checks, and Chromium/Firefox sensor fixtures.
 
-See `../docs/MONITOR-VERIFICATION.md`, `../docs/v0.22.0-release-notes.md` and the published runtime receipts for the current release contract. `RELEASE-MANIFEST.json` preserves historical baseline evidence.
+See `../docs/MONITOR-VERIFICATION.md`, `../docs/v0.23.0-release-notes.md` and the published runtime receipts for the current release contract. `RELEASE-MANIFEST.json` preserves historical baseline evidence.
 
 ## Compatibility notes
 

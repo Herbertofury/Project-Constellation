@@ -1,6 +1,6 @@
 # Project Constellation Windows Setup
 
-`Constellation-0.22.0-Windows-Setup.exe` is a self-contained, current-user
+`Constellation-0.23.0-Windows-Setup.exe` is a self-contained, current-user
 Windows x64 installer for the browser hub, browser sensors, and the migrated
 Computer Tools executables. Double-click it, click **Install / Repair**, then
 choose the browsers you want to connect. The destination computer does not
@@ -115,12 +115,22 @@ inherits its original pre-Constellation baseline rather than creating a chain
 that could later restore a deleted installation. Apps & Features ownership is
 checked using the installation path and uninstall command as a group.
 
+If a browser or user writes a new or changed file while a failed update is
+being undone, recovery moves those bytes into a named
+`preserved-browsers-recovery-*` folder and restores the previous sensor tree.
+The recovery message includes that folder path. Changed files therefore remain
+available without trapping subsequent repairs in a directory-restore loop.
+
 An older local Setup candidate's shared Start Menu name is migrated after the
 new installation commits. Its previous desktop shortcut is restored only when
 the old link still matches Setup's recorded bytes; a desktop link installed
 later is preserved. Recovery retains that comparison and does not undo a later
 desktop installation. Rollback restores the previous browser hub and sensors
 while keeping the latest verified manager for Setup and uninstall.
+Verification includes that retained manager even when its release's browser
+payload is no longer active. If the manager is missing or changed, Install /
+Repair from a fresh copy of the downloaded setup EXE stages a verified
+replacement and preserves the changed original.
 
 **Roll back** selects the previous installed release and restores its native
 host registration and browser files. Settings and incident history remain in
@@ -152,18 +162,19 @@ and preserves an existing redirected output pipe. Setup commands, `verify`, and
 `doctor` emit JSON. Use `--quiet` to suppress result message boxes.
 
 ```powershell
-.\Constellation-0.22.0-Windows-Setup.exe install --quiet
-.\Constellation-0.22.0-Windows-Setup.exe manage
-.\Constellation-0.22.0-Windows-Setup.exe doctor --quiet
-.\Constellation-0.22.0-Windows-Setup.exe verify --quiet
-.\Constellation-0.22.0-Windows-Setup.exe rollback --quiet
-.\Constellation-0.22.0-Windows-Setup.exe uninstall --quiet
-.\Constellation-0.22.0-Windows-Setup.exe install --dir "D:\Apps\Constellation" --quiet
-.\Constellation-0.22.0-Windows-Setup.exe payload-info
+.\Constellation-0.23.0-Windows-Setup.exe install --quiet
+.\Constellation-0.23.0-Windows-Setup.exe manage
+.\Constellation-0.23.0-Windows-Setup.exe doctor --quiet
+.\Constellation-0.23.0-Windows-Setup.exe verify --quiet
+.\Constellation-0.23.0-Windows-Setup.exe rollback --quiet
+.\Constellation-0.23.0-Windows-Setup.exe uninstall --quiet
+.\Constellation-0.23.0-Windows-Setup.exe install --dir "D:\Apps\Constellation" --quiet
+.\Constellation-0.23.0-Windows-Setup.exe payload-info
 ```
 
-`verify` checks installed files; `doctor` also compares the native-host and
-Apps & Features registrations and Start Menu shortcut with the active receipt,
+`verify` checks active installed files and the retained setup manager and reports
+an incomplete recovery transaction as unhealthy; `doctor` also compares the
+native-host and Apps & Features registrations and Start Menu shortcut with the active receipt,
 then asks the verified hub executable for connection and saved-state diagnostics.
 Both commands exit unsuccessfully when their checks fail. A stopped hub with
 valid state is healthy because the next sensor call starts it. Invalid saved
@@ -216,7 +227,7 @@ icon, a Windows `asInvoker` manifest and version resources. Use `--prepare-only`
 to create the verified embedded payload without linking. A reduced monitor-only
 package is possible only with an explicit `--monitor-only` flag.
 
-Output: `build/monitor-artifacts/Constellation-0.22.0-Windows-Setup.exe`, its
+Output: `build/monitor-artifacts/Constellation-0.23.0-Windows-Setup.exe`, its
 `.sha256`, and `windows-setup-receipt.json`. The intermediate payload manifest
 records every embedded file. Build receipts truthfully record unsigned status,
 browser confirmation requirements, scoped source commit/dirty status and the
@@ -251,7 +262,7 @@ it never drives the user's mouse, browser profile, or permission prompts.
 ```sh
 python tools/build-windows-setup.py --require-clean-source --acceptance-fixture --output build/windows-setup-fixture-artifacts
 python tools/build-windows-setup.py --require-clean-source --output build/monitor-artifacts
-python tools/windows-setup-acceptance.py --setup build/monitor-artifacts/Constellation-0.22.0-Windows-Setup.exe --fixture build/windows-setup-fixture-artifacts/Constellation-0.22.0-Windows-Setup-Acceptance-Fixture.exe --allow-disposable-user-integration
+python tools/windows-setup-acceptance.py --setup build/monitor-artifacts/Constellation-0.23.0-Windows-Setup.exe --fixture build/windows-setup-fixture-artifacts/Constellation-0.23.0-Windows-Setup-Acceptance-Fixture.exe --allow-disposable-user-integration
 ```
 
 The labeled fixture is the same source revision with an extra marker file,

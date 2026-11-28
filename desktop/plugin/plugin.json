@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "constellation-commander",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "description": "Use an authorized computer through the integrated Constellation Commander Electron ChatGPT workspace; browser-extension and hosted MCP transports are optional fallbacks.",
   "author": {
     "name": "Herbertofury",

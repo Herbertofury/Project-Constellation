@@ -10,11 +10,11 @@ html='''<!doctype html><html><head><title>Fixture task</title></head><body><main
 <pre><code><button>Allow for this conversation</button></code></pre>
 <div id="current"></div></main><textarea>Preserve this user draft</textarea></body></html>'''
 mock='''(() => {
-window.__events=[];window.__listeners=[];window.__clicks=0;window.__network=0;
+window.__events=[];window.__listeners=[];window.__clicks=0;window.__network=0;window.__rejectedDeliveries=0;
 document.addEventListener('click',()=>__clicks++);
 window.fetch=()=>{__network++;throw new Error('Sensor must not use provider requests');};
 window.XMLHttpRequest=function(){__network++;throw new Error('Sensor must not use provider requests');};
-window.browser={runtime:{sendMessage:async(message)=>{__events.push(message.event);return {ok:true};},onMessage:{addListener:fn=>__listeners.push(fn),removeListener:fn=>{__listeners=__listeners.filter(x=>x!==fn);}}}};
+window.browser={runtime:{sendMessage:async(message)=>{__events.push(message.event);return __rejectedDeliveries-->0?{ok:false,error:'Transient observation storage failure'}:{ok:true};},onMessage:{addListener:fn=>__listeners.push(fn),removeListener:fn=>{__listeners=__listeners.filter(x=>x!==fn);}}}};
 window.__rescan=()=>Promise.all(__listeners.map(fn=>fn({type:'PC_MONITOR_RESCAN'})));
 })();'''
 results=[]
@@ -40,6 +40,8 @@ with sync_playwright() as p:
         page.evaluate('''() => {const card=document.createElement('section');card.id='permission';card.innerHTML='<h2>Allow access to github.com</h2><button>Allow</button><button>Deny</button>';document.querySelector('#current').appendChild(card);}''')
         state('permission_required');page.evaluate('Promise.all(__listeners.map(fn=>fn({type:"PC_ATTENTION_REVEAL_PERMISSION"})))')
         assert page.evaluate('__clicks')==0
+        page.evaluate('''() => {document.querySelector('main').insertAdjacentHTML('afterbegin','<div data-message-author-role="user">Loaded earlier history</div>');document.querySelector('main').insertAdjacentHTML('beforeend','<div data-message-author-role="user" hidden>Hydration placeholder</div>');}''')
+        page.evaluate('__rescan()');assert state('permission_required')['runId']==run, 'Earlier/hidden turns cannot replace the current generation'
         page.evaluate('document.querySelector("#permission").style.display="none"');state('running')
         page.evaluate('document.querySelector("#permission").remove()')
         page.evaluate('''() => {const alert=document.createElement('div');alert.id='error';alert.setAttribute('role','alert');alert.textContent='The conversation has reached the context limit. Start a new chat.';document.querySelector('#current').appendChild(alert);}''')
@@ -58,9 +60,22 @@ with sync_playwright() as p:
         page.evaluate('''() => {history.pushState({},'', '/c/two');document.querySelector('main').innerHTML='<div data-message-author-role="assistant">Another existing response</div>';}''')
         changed=state('idle');assert changed['url']=='https://chatgpt.com/c/two'
         before=page.evaluate('__events.length');page.evaluate('__rescan()');assert page.evaluate('__events.length')==before+1
+        before=page.evaluate('__events.length')
+        reply=page.evaluate('''async() => {__rejectedDeliveries=1;return await __rescan();}''')
+        assert reply[0]['ok'] is False, 'Rescan must report a rejected observation'
+        page.wait_for_function('window.__pcBrowserMonitorSensor.delivery.ok===true')
+        assert page.evaluate('__events.length')==before+2, 'One bounded retry restores the quiet observation'
+        before=page.evaluate('__events.length')
+        page.evaluate('''async() => {__rejectedDeliveries=100;await __rescan();}''')
+        page.wait_for_function('window.__pcBrowserMonitorSensor.delivery.attempts===4',timeout=7000)
+        page.wait_for_timeout(350)
+        assert page.evaluate('__events.length')==before+4, 'Persistent failure stops after its bounded budget'
+        assert page.evaluate('__pcBrowserMonitorSensor.delivery.ok') is False
+        page.evaluate('''async() => {__rejectedDeliveries=0;await __rescan();}''')
+        assert page.evaluate('__pcBrowserMonitorSensor.delivery.ok') is True
         assert page.evaluate('__network')==0 and page.evaluate('__clicks')==0
         assert page.input_value('textarea')=='Preserve this user draft'
         assert not errors,errors
-        results.append({'browser':name,'events':page.evaluate('__events.length'),'permission_clicks':0,'provider_requests':0,'draft_preserved':True,'errors':errors})
+        results.append({'browser':name,'events':page.evaluate('__events.length'),'stable_history_frontier':True,'bounded_delivery_recovery':True,'truthful_rescan':True,'permission_clicks':0,'provider_requests':0,'draft_preserved':True,'errors':errors})
         browser.close()
 print(json.dumps({'browser_sensor_acceptance':results}))

@@ -120,7 +120,7 @@ for (const name of names) {
 await fs.copyFile(path.join(root, 'computer-link/THIRD_PARTY_NOTICES.md'), path.join(output, 'THIRD_PARTY_NOTICES.md'));
 await fs.copyFile(path.join(root, 'computer-link/README.md'), path.join(output, 'README.md'));
 const manifest = {
-  schema: 1, product: 'project-constellation', version: '0.22.0', target: actualTarget,
+  schema: 1, product: 'project-constellation', version: '0.23.0', target: actualTarget,
   source: 'Herbertofury/Computer-Link', sourceCommit: '5a5798b41252a4027dfa97209d34819858752ec4',
   independentWorkerCommit: 'f55e056a7c0f20ce5e368b1cc82ddc7f2ea7b685',
   integration: 'Project Constellation Computer Tools; consult recovery/computer-link/SOURCE-MANIFEST.json',

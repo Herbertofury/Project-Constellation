@@ -1,18 +1,25 @@
-# Current continuation: Project Constellation 0.22.0
+# Current continuation: Project Constellation 0.23.0
 
-The root contains the verified original application, the Agent Monitor upgrade,
-Windows quick setup and the complete Computer-Link migration. Read
-`brain/v0.22.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
-`docs/MONITOR-VERIFICATION.md` and `docs/COMPUTER-LINK-MIGRATION.md` first.
-Do not unpack a historical carrier archive over current source. Historical
-continuation records below are provenance, not the current version authority.
+Read `brain/v0.23.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
+`docs/v0.23.0-release-notes.md`, `docs/MONITOR-VERIFICATION.md`, the optimization
+and stack receipts, and the matching published release receipt first.
 
-The owner explicitly requested a GitHub release at closeout. Publish only the
-accepted source and verified artifacts; use a clearly labelled prerelease when
-recorded distribution or account acceptance remains open. The release workflow
-requires all runtime gates and published-byte readback. Preserve Computer-Link
-until its migration and recovery artifacts have been verified remotely; this
-work does not authorize deleting that repository.
+The root preserves the original application, native Agent Monitor, repairable
+Windows setup and Computer Tools migration. Continue from accepted source;
+never unpack a historical carrier archive over it. The source candidate records
+local evidence; the matching GitHub tag, workflow and release receipts record
+final runtime and publication evidence. The owner requires a versioned GitHub
+release at upgrade closeout.
+
+Each monitored browser/profile still needs its sensor enabled. Permission
+choices remain direct user actions. Firefox's temporary sensor, publisher
+signing, actual speakers and account-specific acceptance remain documented.
+Preserve the Computer-Link repository and private history bundles.
+
+## Historical continuation records
+
+The following text preserves prior lineage and operating instructions. Its
+older version strings do not override the current checkpoint above.
 
 # Contributor and agent continuation
 
