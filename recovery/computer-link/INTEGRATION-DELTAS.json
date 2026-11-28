@@ -48,6 +48,12 @@
       "upstreamSha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
       "sha256": "511d8f55ad3bc5bbc4cd56cf513a9f79dd46819ba16cccdd2b119bf77c978de5",
       "reason": "Test-only Windows handle-inheritance oracle repair: compare the named canary object directly instead of assuming arbitrary reused handles support duplication; distinguish a reference allocated into a free slot, retain strict comparison errors, and verify same-event/different-event/different-type/invalid/vacant controls after the real candidate. Preserve timeout, exit/success marker and bounded failure diagnostics. Production process containment and explicit handle-list inheritance bytes are unchanged."
+    },
+    {
+      "path": "computer-link/windows-transport/src/lib.rs",
+      "upstreamSha256": "2530badaa9fa20d8eeeae6c1a845035a38f8fa7489f7997140c82ac971318f61",
+      "sha256": "46c5c23ae476f73bbc8ce6fbccb7d0b1bd1300d53e801d95911150a4b08719f5",
+      "reason": "Reassemble complete fixed-size byte-pipe authentication tokens and requests across legal short reads using one shared exact-read helper. Preserve absolute expiry, revocation, live-peer checks, one-shot selected data and the existing frame budgets. Add actual Windows pipe fragmentation, truncated/wrong-token refusal, expiry/revocation, and fragmented client token/header/payload regressions. Original imported bytes and history remain recoverable from recorded upstream refs."
     }
   ],
   "addedIntegration": [

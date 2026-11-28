@@ -79,7 +79,7 @@ sensor observations; it does not bypass browser isolation.
 
 ### Windows
 
-1. Run **Constellation-0.23.0-Windows-Setup.exe** from the matching GitHub release and choose **Install / Repair**.
+1. Run **Constellation-0.24.0-Windows-Setup.exe** from the matching GitHub release and choose **Install / Repair**.
 2. Use the button for Chrome, Edge or Opera GX. Setup opens its extension page and copies the sensor path. Enable Developer mode, choose **Load unpacked**, and select that folder.
 3. Open **Agent Monitor**, choose **Connect browser hub**, and approve the browser's native-messaging permission yourself.
 4. Repeat sensor setup in each browser/profile. Use a clear name such as `Chrome · Work` or `Edge · Testing`.
@@ -90,9 +90,11 @@ repair, rollback and uninstall. Its **Computer Tools** button opens the migrated
 native desktop application. See [Windows setup](Windows-Setup) for portable
 paths, updating, and which actions remain in the browser.
 
-The ZIP/CLI route remains available: extract the Browser Hub ZIP, run
-`constellation-monitor.exe install --browser all`, then `doctor`; load the
-separately packaged sensors. Keep the folder in place or register its new path.
+The Windows release packages the hub in Setup. For a standalone hub built from
+source, follow the [native CLI build instructions](https://github.com/Herbertofury/Project-Constellation/blob/main/native/constellation-monitor/README.md#build-and-connect),
+then run `constellation-monitor.exe install --browser all` and `doctor` from its
+permanent folder. Load the separately packaged sensors in each browser/profile.
+Keep the hub folder in place or register its new path after moving it.
 
 ### Firefox
 
@@ -205,15 +207,16 @@ converted to Rust.
 
 ## Account integration build configuration
 
-The provided monitoring kit does not embed Google/GitHub OAuth client IDs. Its
-manifest version name and artifact receipt report this explicitly. If an
-existing configured build provides working account backup integrations, retain
-its public client IDs and supply them to the normal production build before
-replacing that configured installation. The monitor and local browser hub work
-without account integrations. Do not put client secrets or tokens in source,
-installer scripts, or shared diagnostics.
+Production releases read the public Google/GitHub OAuth client IDs from the
+build environment. Check the matching artifact receipt for the actual provider
+configuration; a monitoring-only build can explicitly report unprovisioned
+accounts. Preserve working public client IDs when replacing a configured
+installation. The monitor and local browser hub also work without account
+integrations. A provisioned build is not proof of a signed-in account round
+trip. Never put client secrets or tokens in source, installer scripts or shared
+diagnostics.
 
-## 0.23 reliability and triage
+## Inbox and delivery recovery
 
 Use the shared search and browser filter above the inbox to find a chat or problem in both lists. The inbox can show all open incidents, only incidents that need you, acknowledged incidents, snoozed incidents, or unavailable sources. **Show resolved** includes retained history. Acknowledgement and snooze do not erase an incident; separate failures within one conversation remain separate history entries.
 
@@ -224,3 +227,26 @@ If an automatic alert channel fails, only that failed channel retries after 2, 1
 Sensors now require a successful persistence acknowledgement. A transient failure retries after 250 ms, 1 second and 3 seconds; a later explicit refresh can retry after exhaustion. Provider content, draft text and consent controls are never changed by these observation retries. Loading older conversation messages no longer creates a false new run. Late observations from an earlier document cannot replace the current tab's evidence.
 
 The native hub keeps direct responses and focus actions in order and combines redundant pending snapshots into the newest complete state. This prevents a burst of tab observations from expelling a healthy browser. A hung native request disconnects the stale port and uses the existing bounded reconnect sequence; a failed local import remains retryable.
+
+
+### Recovery across worker and browser restarts
+
+An observation is acknowledged only after its required state is durable. If a
+storage write fails, the same observation can retry instead of being accepted
+from an in-memory copy that was never saved. The native hub also persists
+advancing ordering watermarks before acknowledging them, so an abrupt restart
+cannot let older status evidence clear a newer problem. Exact duplicate retries
+remain no-ops. Delayed close/navigation events are scoped to the document and
+run that produced them.
+
+A sensor send has a bounded response deadline and retry budget. A document
+entering the browser's back/forward cache pauses observation until it resumes;
+it must not keep publishing stale state while hidden. Startup reconciliation
+uses the response's actual run, document and observation time.
+
+If a worker stops during alert delivery, stable notification IDs allow safe
+notification recovery. Audio that had not begun can retry. Audio whose playback
+was already claimed has an uncertain outcome and is recorded as **interrupted**,
+with a visible delivery error; it is not silently marked successful or replayed.
+Use **Test alert** to check audio explicitly. Physical sound and operating-system
+notification visibility still require checking on the destination computer.

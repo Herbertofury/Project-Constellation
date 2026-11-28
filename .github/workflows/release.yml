@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag, for example v0.23.0
+        description: Release tag, for example v0.24.0
         required: true
-        default: v0.23.0
+        default: v0.24.0
   push:
     tags: ['v*']
     branches: ['release/v*']
@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 env:
-  VERSION: 0.23.0
+  VERSION: 0.24.0
 
 jobs:
   verify-linux:
@@ -173,7 +173,7 @@ jobs:
           [[ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$PC_RELEASE_TAG" --jq .sha)" == "$GITHUB_SHA" ]]
           gh release create "$PC_RELEASE_TAG" "$PC_SOURCE_ROOT"/build/releases/v${VERSION}/* \
             --verify-tag --target "$GITHUB_SHA" --prerelease --latest=false \
-            --title "Project Constellation $PC_RELEASE_TAG — Reliable alerts and resilient agent monitoring" \
+            --title "Project Constellation $PC_RELEASE_TAG — Durable observations and reliable recovery" \
             --notes-file "$PC_SOURCE_ROOT/docs/v${VERSION}-release-notes.md"
           mkdir -p "$RUNNER_TEMP/release-readback"
           gh release download "$PC_RELEASE_TAG" --dir "$RUNNER_TEMP/release-readback"

@@ -17,6 +17,7 @@ type H=*mut c_void;
  fn WriteFile(h:H,b:*const c_void,n:u32,got:*mut u32,ov:*mut Ov)->i32;
  fn GetOverlappedResult(h:H,ov:*mut Ov,n:*mut u32,wait:i32)->i32;fn CancelIoEx(h:H,ov:*mut Ov)->i32;
 }
+
 #[link(name="advapi32")]unsafe extern "system"{
  fn OpenProcessToken(p:H,access:u32,t:*mut H)->i32;fn GetTokenInformation(t:H,class:u32,b:H,len:u32,need:*mut u32)->i32;
  fn ConvertSidToStringSidW(sid:H,s:*mut *mut u16)->i32;fn ConvertStringSecurityDescriptorToSecurityDescriptorW(s:*const u16,rev:u32,sd:*mut H,len:*mut u32)->i32;
@@ -82,6 +83,21 @@ impl Server{
   if Instant::now()>=self.end||unsafe{WaitForSingleObject(self.stop.0.0,0)}==0{return Err(io::Error::other("session stopped"))}
   p.bytes.truncate(got as usize);Ok(mem::take(&mut p.bytes))
  }
+ // Byte-read pipes may complete a successful read with only the bytes currently
+ // available. Keep one absolute session deadline across every fragment and
+ // never authenticate a partial token/request or invoke a selected read early.
+ fn read_exact(&self, length:usize, peer:Option<&Peer>)->io::Result<Vec<u8>>{
+  let mut bytes=Vec::with_capacity(length);
+  while bytes.len()<length{
+   if let Some(peer)=peer{peer.live()?}
+   let part=self.operation(1,vec![0;length-bytes.len()])?;
+   if part.is_empty(){return Err(io::Error::new(io::ErrorKind::UnexpectedEof,"truncated pipe frame"))}
+   bytes.extend(part);
+  }
+  if Instant::now()>=self.end||self.stop.stopped(){return Err(io::Error::other("session stopped"))}
+  if let Some(peer)=peer{peer.live()?}
+  Ok(bytes)
+ }
  /// Exactly one fixed-size authenticated status/revoke request, then close.
  /// Opcode0 status, opcode1 revoke. No root/file/desktop operations admitted.
  pub fn serve_selected_read(self,selected:computer_link_workspace_candidate::SelectedRead)->io::Result<bool>{self.serve_inner(Some(Box::new(move || { let mut selected=selected; selected.read() })))}
@@ -96,8 +112,8 @@ impl Server{
  let selected=bytes.map(|b|Box::new(move||Ok(b)) as Box<dyn FnOnce()->io::Result<Vec<u8>>>);self.request(selected,Some(peer))
  }
  fn serve_inner(self,selected:Option<Box<dyn FnOnce()->io::Result<Vec<u8>>>>)->io::Result<bool>{self.operation(0,vec![])?;self.request(selected,None)}
- fn request(self,selected:Option<Box<dyn FnOnce()->io::Result<Vec<u8>>>>,peer:Option<Peer>)->io::Result<bool>{let b=self.operation(1,vec![0;33])?;
-  if b.len()!=33{return Err(io::Error::other("frame refused"))}let diff=b[..32].iter().zip(self.token).fold(0u8,|a,(x,y)|a|(x^y));if diff!=0{return Err(io::Error::other("unauthorized"))}
+ fn request(self,selected:Option<Box<dyn FnOnce()->io::Result<Vec<u8>>>>,peer:Option<Peer>)->io::Result<bool>{let b=self.read_exact(33,peer.as_ref())?;
+  let diff=b[..32].iter().zip(self.token).fold(0u8,|a,(x,y)|a|(x^y));if diff!=0{return Err(io::Error::other("unauthorized"))}
   if Instant::now()>=self.end||unsafe{WaitForSingleObject(self.stop.0.0,0)}==0{return Err(io::Error::other("session stopped"))}
   if let Some(p)=&peer{p.live()?}
   match b[32]{2=>{let selected=selected.ok_or_else(||io::Error::other("capability not granted"))?;let data=selected()?;if data.len()>4096{return Err(io::Error::other("read bound refused"))}let mut frame=(data.len() as u32).to_be_bytes().to_vec();frame.extend(data);let expected=frame.len();if let Some(p)=&peer{p.live()?}if self.operation(2,frame)?.len()!=expected{return Err(io::Error::other("short response write"))}Ok(false)},0=>{if let Some(p)=&peer{p.live()?}if self.operation(2,vec![1])?.len()!=1{return Err(io::Error::other("short response write"))}Ok(false)},1=>{self.stop.revoke()?;Ok(true)},_=>Err(io::Error::other("capability refused"))}
@@ -111,9 +127,9 @@ pub fn paired_client(name:&str,owner_pid:u32,opcode:u8)->io::Result<Vec<u8>>{
  let pipe=owned(unsafe{CreateFileW(wide(name).as_ptr(),0xc0000000,0,ptr::null(),3,0x40110000,ptr::null_mut())})?;
  let peer=Peer::inspect(pipe.0,false)?;if peer.info.pid!=owner_pid{return Err(io::Error::other("unexpected owner process"))}
  let endpoint=Server{pipe,stop:Stop(event()?),name:name.to_owned(),token:[0;32],end:Instant::now()+Duration::from_secs(60)};
- let token=endpoint.operation(1,vec![0;32])?;if token.len()!=32{return Err(io::Error::other("pairing refused"))}peer.live()?;
+ let token=endpoint.read_exact(32,Some(&peer))?;
  let mut request=token;request.push(opcode);if endpoint.operation(2,request)?.len()!=33{return Err(io::Error::other("short request"))}
- let exact=|n:usize|->io::Result<Vec<u8>>{let mut bytes=Vec::with_capacity(n);while bytes.len()<n{peer.live()?;let part=endpoint.operation(1,vec![0;n-bytes.len()])?;if part.is_empty(){return Err(io::Error::other("truncated response"))}bytes.extend(part);}Ok(bytes)};
+ let exact=|n:usize|endpoint.read_exact(n,Some(&peer));
  if opcode==0{let bytes=exact(1)?;peer.live()?;if bytes!=[1]{return Err(io::Error::other("status refused"))}return Ok(bytes)}
  let header=exact(4)?;let len=u32::from_be_bytes(header.try_into().unwrap()) as usize;if len>4096{return Err(io::Error::other("response bound refused"))}let bytes=exact(len)?;peer.live()?;Ok(bytes)
 }
@@ -131,4 +147,171 @@ pub fn paired_client(name:&str,owner_pid:u32,opcode:u8)->io::Result<Vec<u8>>{
  #[test]fn owner_exit_cancels_pending_connection(){let s=Server::new(Duration::from_secs(3)).unwrap();let stop=s.stop();let start=Instant::now();let t=thread::spawn(move||s.serve_once());thread::sleep(Duration::from_millis(50));stop.revoke().unwrap();assert!(t.join().unwrap().is_err());assert!(start.elapsed()<Duration::from_secs(2));}
  #[test]fn lifetime_expires_without_client(){let s=Server::new(Duration::from_millis(100)).unwrap();let start=Instant::now();assert!(s.serve_once().is_err());assert!(start.elapsed()<Duration::from_secs(2));}
  #[test]fn peer_revoke_closes_session(){let s=Server::new(Duration::from_secs(3)).unwrap();let(name,token)=s.pairing();let t=thread::spawn(move||s.serve_once());let mut f=OpenOptions::new().read(true).write(true).open(&name).unwrap();let mut request=token.to_vec();request.push(1);f.write_all(&request).unwrap();assert!(t.join().unwrap().unwrap());drop(f);assert!(OpenOptions::new().read(true).write(true).open(name).is_err());}
+}
+
+#[cfg(test)]
+mod fragmented_frame_tests {
+    use super::*;
+    use std::{
+        fs::{File, OpenOptions},
+        io::{Read, Write},
+        sync::atomic::{AtomicUsize, Ordering},
+        thread,
+    };
+
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn PeekNamedPipe(
+            pipe: H,
+            buffer: H,
+            capacity: u32,
+            read: *mut u32,
+            available: *mut u32,
+            remaining: *mut u32,
+        ) -> i32;
+        fn FlushFileBuffers(pipe: H) -> i32;
+    }
+
+    // Retain the server handle while observing only the byte count. Waiting for
+    // consumption forces each write to become a separate native read rather
+    // than relying on arbitrary sleeps or the runner's scheduling speed.
+    fn consumed(pipe: &Owned) {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        loop {
+            let mut available = 0;
+            assert_ne!(unsafe {
+                PeekNamedPipe(pipe.0, ptr::null_mut(), 0, ptr::null_mut(),
+                    &mut available, ptr::null_mut())
+            }, 0, "pipe inspection failed: {}", io::Error::last_os_error());
+            if available == 0 { return; }
+            assert!(Instant::now() < deadline, "fragment was not consumed");
+            thread::sleep(Duration::from_millis(2));
+        }
+    }
+
+    fn client(name: &str) -> File {
+        OpenOptions::new().read(true).write(true).open(name).unwrap()
+    }
+
+    #[test]
+    fn fragmented_authenticated_request_reads_the_complete_selected_snapshot_once() {
+        let server = Server::new(Duration::from_secs(5)).unwrap();
+        let pipe = server.pipe.clone();
+        let (name, token) = server.pairing();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let invoked = calls.clone();
+        let expected = "selected snapshot 🙂\n".repeat(80).into_bytes();
+        let snapshot = expected.clone();
+        let worker = thread::spawn(move || server.serve_inner(Some(Box::new(move || {
+            invoked.fetch_add(1, Ordering::SeqCst);
+            Ok(snapshot)
+        }))));
+        let mut file = client(&name);
+        file.write_all(&token[..3]).unwrap();
+        consumed(&pipe);
+        assert_eq!(calls.load(Ordering::SeqCst), 0, "partial authentication invoked the capability");
+        let mut tail = token[3..].to_vec();
+        tail.push(2);
+        for fragment in tail.chunks(7) {
+            file.write_all(fragment).unwrap();
+            consumed(&pipe);
+        }
+        let mut header = [0; 4];
+        file.read_exact(&mut header).unwrap();
+        assert_eq!(u32::from_be_bytes(header) as usize, expected.len());
+        let mut actual = vec![0; expected.len()];
+        file.read_exact(&mut actual).unwrap();
+        assert_eq!(actual, expected);
+        assert!(!worker.join().unwrap().unwrap());
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn truncated_or_invalid_fragmented_authentication_never_invokes_the_capability() {
+        for prefix in [1, 31, 32, 33] {
+            let server = Server::new(Duration::from_secs(5)).unwrap();
+            let pipe = server.pipe.clone();
+            let (name, mut token) = server.pairing();
+            if prefix == 33 { token[0] ^= 1; }
+            let calls = Arc::new(AtomicUsize::new(0));
+            let invoked = calls.clone();
+            let worker = thread::spawn(move || server.serve_inner(Some(Box::new(move || {
+                invoked.fetch_add(1, Ordering::SeqCst);
+                Ok(b"must not be read".to_vec())
+            }))));
+            let mut file = client(&name);
+            let mut request = token.to_vec();
+            request.push(2);
+            file.write_all(&request[..1]).unwrap();
+            consumed(&pipe);
+            if prefix > 1 {
+                file.write_all(&request[1..prefix]).unwrap();
+                consumed(&pipe);
+            }
+            drop(file);
+            let error = worker.join().unwrap().unwrap_err();
+            if prefix == 33 { assert_eq!(error.to_string(), "unauthorized"); }
+            assert_eq!(calls.load(Ordering::SeqCst), 0);
+        }
+    }
+
+    #[test]
+    fn partial_authentication_keeps_the_absolute_deadline_and_revocation() {
+        for revoke in [false, true] {
+            let server = Server::new(Duration::from_millis(300)).unwrap();
+            let pipe = server.pipe.clone();
+            let stop = server.stop();
+            let (name, token) = server.pairing();
+            let calls = Arc::new(AtomicUsize::new(0));
+            let invoked = calls.clone();
+            let start = Instant::now();
+            let worker = thread::spawn(move || server.serve_inner(Some(Box::new(move || {
+                invoked.fetch_add(1, Ordering::SeqCst);
+                Ok(Vec::new())
+            }))));
+            let mut file = client(&name);
+            file.write_all(&token[..1]).unwrap();
+            consumed(&pipe);
+            if revoke { stop.revoke().unwrap(); }
+            assert!(worker.join().unwrap().is_err());
+            assert!(start.elapsed() < Duration::from_secs(2));
+            assert_eq!(calls.load(Ordering::SeqCst), 0);
+        }
+    }
+
+    fn fragmented_server_write(server: &Server, bytes: &[u8]) -> io::Result<()> {
+        let chunks: Vec<_> = bytes.chunks(3).collect();
+        for (index, chunk) in chunks.iter().enumerate() {
+            if server.operation(2, chunk.to_vec())?.len() != chunk.len() {
+                return Err(io::Error::other("fixture write was incomplete"));
+            }
+            // On the server end this waits until the client consumed the
+            // written fragment, forcing a partial byte-mode read. The final
+            // payload may legitimately close its client immediately after read.
+            if index + 1 < chunks.len() && unsafe { FlushFileBuffers(server.pipe.0) } == 0 {
+                return Err(io::Error::last_os_error());
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn paired_client_reassembles_fragmented_token_header_and_payload() {
+        let server = Server::new(Duration::from_secs(5)).unwrap();
+        let (name, token) = server.pairing();
+        let expected = "owner-selected 🙂 snapshot".as_bytes().to_vec();
+        let snapshot = expected.clone();
+        let worker = thread::spawn(move || -> io::Result<()> {
+            server.operation(0, Vec::new())?;
+            fragmented_server_write(&server, &token)?;
+            let request = server.read_exact(33, None)?;
+            assert!(request[..32] == token, "client changed the token identity");
+            assert_eq!(request[32], 2);
+            let mut response = (snapshot.len() as u32).to_be_bytes().to_vec();
+            response.extend(snapshot);
+            fragmented_server_write(&server, &response)
+        });
+        assert_eq!(paired_client(&name, std::process::id(), 2).unwrap(), expected);
+        worker.join().unwrap().unwrap();
+    }
 }

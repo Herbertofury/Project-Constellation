@@ -40,7 +40,8 @@ function harness(options={}) {
             if(value.op==='hello'){
               const client={...clone(value.client),clientId:`${value.client.browser}:${value.client.profileId}:${value.client.instanceId}`,connected:true,updatedAt:time};
               sharedSettings??=clone(value.alertSettings);
-              port.snapshot={protocolVersion:1,revision:1,updatedAt:time,clientId:client.clientId,clients:[client],sessions:[],incidents:[],alertSettings:clone(sharedSettings),capabilities:{sharedAlertSettings:!options.oldCompanion}};
+              const native=clone(options.nativeSnapshot||{clients:[],sessions:[],incidents:[]});
+              port.snapshot={protocolVersion:1,revision:1,updatedAt:time,clientId:client.clientId,clients:[client,...native.clients],sessions:native.sessions,incidents:native.incidents,alertSettings:clone(sharedSettings),capabilities:{sharedAlertSettings:!options.oldCompanion}};
               queueMicrotask(()=>port.emit({v:1,id:value.id,ok:true,kind:'snapshot',data:port.snapshot}));
             }else if(value.op==='snapshot')queueMicrotask(()=>port.emit({v:1,id:value.id,ok:true,kind:'snapshot',data:port.snapshot}));
             else if(value.op==='alert_settings'){
@@ -251,7 +252,103 @@ for(const browser of ['chrome','edge','opera_gx','firefox']){
   h.ports[0].emit({v:1,kind:'focus',data:{sessionId:`${client}:7`,tabId:7,documentId:wire.documentId}});await flush();
   assert.equal(h.focused.length,1,'reused tab identity cannot focus a different chat');
   h.api.tabs.onUpdated.emit(7,{url:'https://chatgpt.com/c/reused'});await flush();
-  assert.equal(h.sent.at(-1).op,'remove');
+  assert.equal(h.sent.at(-1).op,'observe');
+  assert.equal(h.sent.at(-1).event.status,'closed');
+  assert.equal(h.sent.at(-1).event.documentId,wire.documentId);
+  await h.monitor().disconnect();
+}
+
+// Document closures retain their source context. Delayed lifecycle work must
+// neither remove a newer native incident nor replace its local focus identity.
+{
+  const h=harness();await flush();await h.monitor().connect(true);
+  const original={sourceId:'local',tabId:7,documentId:'first-doc',runId:'first-run',
+    url:'https://chatgpt.com/c/first',status:'error',reason:'First issue',observedAt:h.now()};
+  h.tabs.set(7,{id:7,url:original.url,windowId:2});
+  await h.monitor().observe(original);
+  h.advance(10);
+  await h.monitor().observe({...original,status:'closed',observedAt:h.now()});
+  const closure=h.sent.at(-1);
+  assert.equal(closure.op,'observe');
+  assert.deepEqual(plain(closure.event),{tabId:7,documentId:'first-doc',runId:'first-run',
+    url:original.url,title:'',status:'closed',reason:'First issue',observedAt:h.now()});
+
+  const current={...original,documentId:'current-doc',runId:'current-run',url:'https://chatgpt.com/c/current',observedAt:h.now()+10};
+  h.advance(10);h.tabs.set(7,{id:7,url:current.url,windowId:2});
+  await h.monitor().observe(current);
+  const delivered=h.sent.length;
+  await h.monitor().observe({...original,status:'closed',observedAt:h.now()-1});
+  await h.monitor().observe({...original,status:'closed',observedAt:h.now()+1});
+  assert.equal(h.sent.length,delivered,'old-document closures do not replace current local/native evidence');
+  const client=(await h.monitor().get()).clientId;
+  h.ports[0].emit({v:1,kind:'focus',data:{sessionId:`${client}:7`,tabId:7,documentId:'current-doc'}});await flush();
+  assert.equal(h.focused.length,1,'current document remains focusable after delayed closure');
+
+  h.api.tabs.onUpdated.emit(7,{url:original.url});await flush();
+  assert.equal(h.sent.length,delivered,'a stale navigation URL cannot close the actual current tab');
+
+  let finishGet;const get=h.api.tabs.get;
+  h.api.tabs.get=()=>new Promise(resolve=>{finishGet=resolve;});
+  h.api.tabs.onUpdated.emit(7,{url:'https://chatgpt.com/c/next'});
+  const next={...current,documentId:'next-doc',url:'https://chatgpt.com/c/next',observedAt:h.now()+10};
+  h.advance(10);h.tabs.set(7,{id:7,url:next.url,windowId:2});
+  await h.monitor().observe(next);
+  const beforeCompletion=h.sent.length;
+  finishGet({id:7,url:next.url,windowId:2});await flush();h.api.tabs.get=get;
+  assert.equal(h.sent.length,beforeCompletion,'late navigation lookup cannot close newly observed document');
+
+  h.api.tabs.onUpdated.emit(7,{discarded:true});await flush();
+  assert.equal(h.sent.length,beforeCompletion,'stale discarded event cannot suspend a resumed tab');
+  h.api.tabs.get=()=>new Promise(resolve=>{finishGet=resolve;});
+  h.api.tabs.onUpdated.emit(7,{frozen:true});
+  h.advance(10);
+  const resumed={...next,documentId:'resumed-doc',observedAt:h.now()+500};
+  await h.monitor().observe(resumed);
+  const afterResume=h.sent.length;
+  finishGet({id:7,url:next.url,windowId:2,frozen:true});await flush();h.api.tabs.get=get;
+  assert.equal(h.sent.length,afterResume,'late availability lookup cannot suspend a newer observation');
+  h.tabs.set(7,{id:7,url:next.url,windowId:2,frozen:true});
+  h.api.tabs.onUpdated.emit(7,{frozen:true});await flush();
+  assert.equal(h.sent.at(-1).event.status,'suspended','a confirmed frozen current document is suspended');
+  assert.equal(h.sent.at(-1).event.documentId,'resumed-doc');
+  assert.equal(h.sent.at(-1).event.observedAt,resumed.observedAt,'valid source-clock skew cannot discard lifecycle evidence');
+  h.tabs.set(7,{id:7,url:'https://chatgpt.com/c/after-freeze',windowId:2});
+  h.api.tabs.onUpdated.emit(7,{url:'https://chatgpt.com/c/after-freeze'});await flush();
+  assert.equal(h.sent.at(-1).event.status,'closed');
+  assert.equal(h.sent.at(-1).event.observedAt,resumed.observedAt,'navigation closure preserves the accepted timestamp floor');
+
+  h.api.tabs.onRemoved.emit(7);await flush();
+  assert.equal(h.sent.at(-1).op,'remove','actual tab removal remains authoritative');
+  assert.equal(h.sent.at(-1).tabId,7);
+  await h.monitor().disconnect();
+}
+
+// Losing this transport is not new provider evidence. A quiet remote browser
+// which stayed connected must become available again from the reconnect hello;
+// a genuinely restarted hub still reports its restored session as disconnected.
+{
+  const remote={sessionId:'edge:work:remote:7',clientId:'edge:work:remote',browser:'edge',profileId:'work',
+    tabId:7,documentId:'quiet-doc',runId:'quiet-run',url:'https://chatgpt.com/c/quiet',title:'Quiet remote chat',
+    status:'error',reason:'Retained issue',observedAt:1_800_000_000_000,connected:true};
+  const nativeSnapshot={clients:[{clientId:remote.clientId,connected:true}],sessions:[remote],incidents:[]};
+  const h=harness({realAttention:true,nativeSnapshot,settings:{audioEnabled:false,notificationsEnabled:false}});
+  await flush();await h.monitor().connect(true);await flush();
+  const imported=()=>h.context.pcAttentionGet().then(value=>value.sessions.find(row=>row.sourceId==='native:'+remote.clientId));
+  assert.equal((await imported()).status,'error');
+  h.advance(1000);h.ports.at(-1).fail();await flush();
+  const offline=await imported();
+  assert.equal(offline.suspended,true);
+  assert.equal(offline.observedAt,remote.observedAt,'transport loss preserves the provider ordering watermark');
+  h.advance(1000);await h.monitor().connect(true);await flush();
+  const reconnected=await imported();
+  assert.equal(reconnected.status,'error','the unchanged still-connected remote document is restored');
+  assert.equal(reconnected.suspended,false);
+  assert.equal(reconnected.observedAt,remote.observedAt);
+  assert.equal((await h.context.pcAttentionGet()).incidents.length,1,'reconnect preserves the same incident');
+
+  h.ports.at(-1).fail();await flush();nativeSnapshot.sessions[0].connected=false;
+  await h.monitor().connect(true);await flush();
+  assert.equal((await imported()).suspended,true,'restored native history remains offline until its own browser reports fresh evidence');
   await h.monitor().disconnect();
 }
 
@@ -418,11 +515,11 @@ for(const failure of ['throw','response']){
     {id:16,url:'https://chatgpt.com/c/changed'},
   ];
   const h=harness({tabs,sendTabMessage:async(id,message)=>{
-    if(id===11&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.23.0',chat:{id:'current-doc',url:tabs[0].url,title:'Current permission',status:'blocked-approval',healthState:'blocked-approval'},generation:{active:false},observedAt:1_800_000_000_000};
+    if(id===11&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'current-doc',url:tabs[0].url,title:'Current permission',status:'blocked-approval',healthState:'blocked-approval'},generation:{active:false},observedAt:1_800_000_000_000};
     if(id===12&&message.type==='PC_MONITOR_RESCAN')return {ok:true};
     if(id===16&&message.type==='PC_GET_LIVE_SENTINEL_STATE'){
       h.tabs.set(16,{id:16,url:'https://chatgpt.com/c/reused'});
-      return {ok:true,source:'live-sentinel',version:'0.23.0',chat:{id:'changed-doc',url:tabs[5].url,status:'running'}};
+      return {ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'changed-doc',url:tabs[5].url,status:'running'}};
     }
     throw new Error('No current sensor');
   }});await flush();

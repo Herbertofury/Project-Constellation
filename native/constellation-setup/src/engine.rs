@@ -103,24 +103,25 @@ fn invalid(message: impl Into<String>) -> io::Error {
     io::Error::other(message.into())
 }
 
+fn linked_entry(metadata: &fs::Metadata) -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        metadata.file_type().is_symlink() || metadata.file_attributes() & 0x400 != 0
+    }
+    #[cfg(not(windows))]
+    {
+        metadata.file_type().is_symlink()
+    }
+}
+
 pub fn reject_links(path: &Path) -> io::Result<()> {
     // Check every existing ancestor; Windows junctions are reparse points but
     // are not necessarily reported by is_symlink().
     for ancestor in path.ancestors() {
         match fs::symlink_metadata(ancestor) {
             Ok(meta) => {
-                let linked = meta.file_type().is_symlink();
-                #[cfg(windows)]
-                {
-                    use std::os::windows::fs::MetadataExt;
-                    if meta.file_attributes() & 0x400 != 0 {
-                        return Err(invalid(format!(
-                            "Setup does not follow junctions: {}",
-                            ancestor.display()
-                        )));
-                    }
-                }
-                if linked {
+                if linked_entry(&meta) {
                     return Err(invalid(format!(
                         "Setup does not follow symbolic links or junctions: {}",
                         ancestor.display()
@@ -703,7 +704,38 @@ fn clean_backup(options: &Options, journal: &Journal, notes: &mut Vec<String>) -
         }
     }
     let backup = options.root.join(&journal.browser_backup);
-    if backup.exists() {
+    let backup_metadata = match fs::symlink_metadata(&backup) {
+        Ok(metadata) => Some(metadata),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => None,
+        Err(error) => return Err(error),
+    };
+    if let Some(metadata) = backup_metadata {
+        if linked_entry(&metadata) {
+            // Older setup versions could commit after moving a linked browser
+            // root here. Preserve the link entry itself, including dangling
+            // links; never inspect or remove anything inside its target.
+            let preserved = options.root.join(format!(
+                "preserved-browsers-link-{}-{}",
+                journal.id,
+                platform::random_hex(8)?
+            ));
+            reject_links(&preserved)?;
+            match fs::symlink_metadata(&preserved) {
+                Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                Err(error) => return Err(error),
+                Ok(_) => {
+                    return Err(invalid(
+                        "The browser-link preservation path already exists.",
+                    ));
+                }
+            }
+            fs::rename(&backup, &preserved)?;
+            notes.push(format!(
+                "Preserved browser link without following its target: {}",
+                preserved.display()
+            ));
+            return Ok(());
+        }
         if let Some(before) = &journal.before {
             let files: Vec<_> = before
                 .browser_files
@@ -925,6 +957,9 @@ fn activate(
     system: &mut dyn System,
     mut notes: Vec<String>,
 ) -> io::Result<Outcome> {
+    // Reject a relocated sensor root before a journal or global mutation. A
+    // committed backup containing that link would otherwise block cleanup.
+    reject_links(&options.root.join("browsers"))?;
     let id = platform::random_hex(8)?;
     let stage_name = format!(".browser-stage-{id}");
     let stage = options.root.join(&stage_name);

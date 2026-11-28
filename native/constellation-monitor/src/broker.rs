@@ -538,7 +538,11 @@ fn process_request(
             }
         }
     };
-    if changed && hub.persist(directory).is_err() {
+    let needs_persistence = changed
+        || before
+            .as_ref()
+            .is_some_and(|previous| hub.store.needs_persistence_since(previous));
+    if needs_persistence && hub.persist(directory).is_err() {
         if let Some(before) = before {
             hub.store = before;
         }

@@ -4,7 +4,7 @@
   const SOURCE = 'constellation-commander-page-hook';
   const CONTEXT_OPEN='[PROJECT CONSTELLATION LOCAL CONTEXT]', CONTEXT_CLOSE='[/PROJECT CONSTELLATION LOCAL CONTEXT]';
   const post = (type, extra = {}) => { try { window.postMessage({source:SOURCE,type,...extra},'*'); } catch {} };
-  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.23.0',receipts:true}); return; }
+  if (window.__constellationHookInstalled) { post('CC_PAGE_HOOK_READY_V2',{version:'0.24.0',receipts:true}); return; }
   window.__constellationHookInstalled = true;
   let pending = null;
   const normalize = value => String(value ?? '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
@@ -101,5 +101,5 @@
       return send.call(this,changed.body);
     };
   }
-  post('CC_PAGE_HOOK_READY_V2',{version:'0.23.0',receipts:true});
+  post('CC_PAGE_HOOK_READY_V2',{version:'0.24.0',receipts:true});
 })();

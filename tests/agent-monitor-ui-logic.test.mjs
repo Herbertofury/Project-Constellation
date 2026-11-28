@@ -30,7 +30,7 @@ async function dashboard(fixture,{firefox=false,sharedSettingsError='',connectRe
   const calls=[],events=[];
   const context={console,URL,Date,Blob,Promise,queueMicrotask,setTimeout:()=>0,clearTimeout:()=>{},
     document:{getElementById:id=>elements.get(id),createElement:tag=>new Element(tag),createTextNode:text=>{const el=new Element('#text');el.textContent=text;return el;},querySelectorAll:()=>[],addEventListener:()=>{},activeElement:null},
-    chrome:{runtime:{getManifest:()=>({version:'0.23.0'}),onMessage:{addListener:fn=>events.push(fn)},sendMessage:async message=>{
+    chrome:{runtime:{getManifest:()=>({version:'0.24.0'}),onMessage:{addListener:fn=>events.push(fn)},sendMessage:async message=>{
       calls.push(structuredClone(message));
       if(readErrors[message.type])throw new Error(readErrors[message.type]);
       if(incompleteReads[message.type])return {ok:true};

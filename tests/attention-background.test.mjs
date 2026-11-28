@@ -71,9 +71,10 @@ values.projectConstellationAttentionV1={sessions:[
 chrome.tabs.query=async(query)=>{assert.deepEqual(query,{});return [
   {id:21,url:startupUrl},{id:22,url:startupUrl},{id:23,url:startupUrl,frozen:true}
 ];};
+chrome.tabs.get=async(id)=>({id,url:startupUrl,frozen:id===23});
 chrome.tabs.sendMessage=async(id,message)=>{
   startupProbes.push({id,type:message.type});
-  if(id===22&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.23.0',chat:{status:'running'},generation:{active:true}};
+  if(id===22&&message.type==='PC_GET_LIVE_SENTINEL_STATE')return {ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'startup',url:startupUrl,status:'running'},generation:{active:true},observedAt:Date.now()};
   return undefined;
 };
 await import('../extension/src/attention-background.js?startup-reconcile');
@@ -82,6 +83,64 @@ assert.ok(startupProbes.some((row)=>row.id===21&&row.type==='PC_MONITOR_RESCAN')
 assert.equal(startupProbes.filter((row)=>row.type==='PC_MONITOR_RESCAN').length,1,'current full sensors do not receive redundant fallback probes');
 assert.ok(startupProbes.every((row)=>![23,24].includes(row.id)),'frozen and closed pages are never probed as if healthy');
 assert.equal((await globalThis.pcAttention.get()).sessions.find((row)=>row.tabId===24).status,'closed');
+
+// Use the real background adapter with controlled provider replies to exercise
+// worker restarts and lifecycle callbacks, including responses arriving out of order.
+const realNow=Date.now;let lifecycleClock=40_000_000;
+Date.now=()=>lifecycleClock;
+const settle=async()=>{for(let i=0;i<6;i++)await new Promise(setImmediate);};
+try {
+  const core=globalThis.ProjectConstellationAttentionService;
+  const lifecycleUrl='https://chatgpt.com/c/lifecycle';
+  const seed=async({acknowledged=false}={})=>{
+    const runtime=core.createService({now:()=>lifecycleClock,read:async()=>({}),write:async(key,value)=>{values[key]=structuredClone(value);},notify:async()=>({ok:true}),sound:async()=>({ok:true,started:true})});
+    await runtime.observe({sourceId:'local',tabId:30,url:lifecycleUrl,documentId:'lifecycle',runId:'old-run',status:'permission_required',observedAt:lifecycleClock});
+    if(acknowledged)await runtime.acknowledge((await runtime.get()).incidents[0].id);
+    lifecycleClock+=100;
+  };
+  chrome.tabs.query=async()=>[{id:30,url:lifecycleUrl}];
+  let actualTab={id:30,url:lifecycleUrl};chrome.tabs.get=async()=>({...actualTab});
+  await seed({acknowledged:true});
+  chrome.tabs.sendMessage=async()=>({ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'permission_required'},generation:{runId:'new-run'},observedAt:lifecycleClock});
+  await import('../extension/src/attention-background.js?startup-new-run');await settle();
+  let restored=await globalThis.pcAttention.get();
+  assert.equal(restored.sessions[0].runId,'new-run','startup uses the fresh generation identity instead of the old persisted run');
+  assert.equal(restored.incidents.length,2);assert.equal(restored.incidents.at(-1).acknowledgedAt,0,'an acknowledged earlier run cannot suppress a new current permission request');
+  assert.ok(restored.incidents[0].resolvedAt);
+
+  await seed();let answerProbe;const probeAt=lifecycleClock;
+  chrome.tabs.sendMessage=(_id,message)=>message.type==='PC_GET_LIVE_SENTINEL_STATE'?new Promise(resolve=>{answerProbe=resolve;}):Promise.resolve({ok:true});
+  await import('../extension/src/attention-background.js?startup-delayed-reply');await settle();assert.equal(typeof answerProbe,'function');
+  lifecycleClock+=100;
+  await globalThis.pcAttention.observe({sourceId:'local',tabId:30,url:lifecycleUrl,documentId:'lifecycle',runId:'current-run',status:'permission_required',observedAt:lifecycleClock});
+  lifecycleClock+=100;
+  answerProbe({ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'running'},generation:{runId:'old-run'},observedAt:probeAt});
+  await settle();restored=await globalThis.pcAttention.get();
+  assert.equal(restored.sessions[0].status,'permission_required');assert.equal(restored.sessions[0].runId,'current-run');
+  assert.equal(restored.counts.open,1,'a delayed startup response keeps its original evidence time and cannot clear the newer incident');
+
+  await seed();const mismatchProbes=[];
+  chrome.tabs.sendMessage=async(_id,message)=>{mismatchProbes.push(message.type);return message.type==='PC_GET_LIVE_SENTINEL_STATE'?{ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'other',url:'https://chatgpt.com/c/other',status:'idle'},observedAt:lifecycleClock}:{ok:true};};
+  await import('../extension/src/attention-background.js?startup-wrong-document');await settle();
+  assert.equal((await globalThis.pcAttention.get()).sessions[0].status,'sensor-offline','a reply about another conversation cannot claim restored coverage');
+  assert.ok(mismatchProbes.includes('PC_MONITOR_RESCAN'));
+
+  await seed();chrome.tabs.sendMessage=async()=>({ok:true,source:'live-sentinel',version:'0.24.0',chat:{id:'lifecycle',url:lifecycleUrl,status:'permission_required'},generation:{runId:'current-run'},observedAt:lifecycleClock});
+  await import('../extension/src/attention-background.js?lifecycle-stale-events');await settle();
+  const updated=tabUpdated.at(-1);
+  updated(30,{url:'https://chatgpt.com/c/obsolete'},{id:30,url:'https://chatgpt.com/c/obsolete'});await settle();
+  assert.equal((await globalThis.pcAttention.get()).sessions[0].status,'permission_required','late navigation callbacks cannot close a currently different live tab');
+  updated(30,{discarded:true},{id:30,url:lifecycleUrl,discarded:true});await settle();
+  assert.equal((await globalThis.pcAttention.get()).sessions[0].status,'permission_required','late discard callbacks cannot suspend a page which is active again');
+  actualTab.discarded=true;lifecycleClock+=100;updated(30,{discarded:true},actualTab);await settle();
+  assert.equal((await globalThis.pcAttention.get()).sessions[0].status,'suspended','a confirmed current discard still marks coverage unavailable');
+  actualTab.discarded=false;lifecycleClock+=100;
+  await globalThis.pcAttention.observe({sourceId:'local',tabId:30,url:lifecycleUrl,documentId:'lifecycle',runId:'current-run',status:'permission_required',observedAt:lifecycleClock+2000});
+  actualTab.frozen=true;updated(30,{frozen:true},actualTab);await settle();
+  const frozen=(await globalThis.pcAttention.get()).sessions[0];
+  assert.equal(frozen.status,'suspended','an accepted future-clock watermark cannot defeat authoritative freeze evidence');
+  assert.equal(frozen.observedAt,lifecycleClock+2000,'lifecycle suspension retains the accepted ordering watermark');
+} finally {Date.now=realNow;}
 
 // Exercise the actual shared WebAudio helper's lifecycle. Scheduling is reported
 // only for a running audio context, and oscillator nodes release after their tone.
@@ -103,4 +162,4 @@ oscillators.forEach((row)=>row.onended());assert.ok(oscillators.every((row)=>row
 audioContexts[0].state='suspended';sound=await globalThis.pcAttentionPlayAudio({volume:.5});assert.equal(sound.ok,false);assert.match(sound.error,/suspended/);
 audioContexts[0].state='closed';sound=await globalThis.pcAttentionPlayAudio({volume:.5});assert.equal(sound.ok,true);assert.equal(audioContexts.length,2);
 delete globalThis.AudioContext;
-console.log('attention-background.test.mjs: PASS (message boundary, offscreen retirement/race, strict audio receipt, exact-tab focus, Firefox restart, WebAudio lifecycle)');
+console.log('attention-background.test.mjs: PASS (message boundary, offscreen retirement/race, strict audio receipt, exact-tab focus, fresh startup identity and ordering, stale lifecycle callbacks, Firefox restart, WebAudio lifecycle)');

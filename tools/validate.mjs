@@ -31,7 +31,9 @@ for (const marker of ['project-constellation-506518', 'geljambmkfjkhodgkpjhnmfoj
   if (!oauthChecklist.includes(marker)) throw new Error(`OAuth provisioning checklist missing ${marker}`);
 }
 const updatingGuide = fs.readFileSync(path.join(repoRoot, 'wiki/Updating.md'), 'utf8');
-if (!updatingGuide.includes('Project-Constellation-vX.Y.Z-unpacked.zip')) throw new Error('Wiki update guide must name the generated unpacked release asset.');
+for (const asset of ['Project-Constellation-vX.Y.Z-Extension.zip', 'SHA256SUMS-vX.Y.Z.txt']) {
+  if (!updatingGuide.includes(asset)) throw new Error(`Wiki update guide must name the unified release asset ${asset}.`);
+}
 if (manifest.manifest_version !== 3) throw new Error('Manifest must be MV3');
 if (manifest.name !== 'Project Constellation') throw new Error('Branding must be Project Constellation');
 const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));

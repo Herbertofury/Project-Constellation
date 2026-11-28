@@ -1,0 +1,863 @@
+{
+  "assessment_utc": "2026-11-28T09:26:39.990738+00:00",
+  "candidate_version": "0.24.0",
+  "core_tools": {
+    "fast-anything": {
+      "binary_sha256": "cb5a5cc4bd42e85ff7c3273c871e64d2c27fc109bfe2180f71915fbc011b9763",
+      "commands": [
+        {
+          "command": [
+            "fast-anything",
+            "doctor",
+            "--json"
+          ],
+          "elapsed_seconds": 0.215342,
+          "exit_code": 0,
+          "label": "fast-doctor",
+          "log_sha256": "b9c3827040df9ac986e8fd8a5331cfefb827e1d8c1f15f82c4a7941e97c53b40",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-doctor.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-service.test.mjs"
+          ],
+          "elapsed_seconds": 0.314771,
+          "exit_code": 0,
+          "label": "fast-attention",
+          "log_sha256": "8bd51b6bc3cc189e5244ad519767dc480e213f775b40739c90b2a229a5bda263",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-attention.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-background.test.mjs"
+          ],
+          "elapsed_seconds": 0.214354,
+          "exit_code": 0,
+          "label": "fast-alert-runtime",
+          "log_sha256": "ffad0be4b315e551efe2e821a4a9590510b61647f408196cd50cf810493aaf4f",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-alert-runtime.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/native-monitor-bridge.test.mjs"
+          ],
+          "elapsed_seconds": 0.314751,
+          "exit_code": 0,
+          "label": "fast-bridge",
+          "log_sha256": "9e8abee1cf6abd072281f5e7c6925dea5b22cd4904fa867d1021032d07fb25f4",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-bridge.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/monitor-sensor.test.mjs"
+          ],
+          "elapsed_seconds": 0.264488,
+          "exit_code": 0,
+          "label": "fast-sensor",
+          "log_sha256": "63f37dcf14981d7c41837bf57312e985df632bf18126bcb0f4125719abfaebbc",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-sensor.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/agent-monitor-ui-logic.test.mjs"
+          ],
+          "elapsed_seconds": 0.26454,
+          "exit_code": 0,
+          "label": "fast-monitor-ui",
+          "log_sha256": "c50628b9c196d799d54f449d64cc4089275a2add33b1ba594e726a59813cbd33",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-monitor-ui.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "native/constellation-setup/tests",
+            "-p",
+            "test_*.py"
+          ],
+          "elapsed_seconds": 0.214364,
+          "exit_code": 0,
+          "label": "fast-setup-python",
+          "log_sha256": "6695b8ffe816eb0873387caab6f8e43acd30cf5ba593b6172679bc1d46b9defd",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-setup-python.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "--test",
+            "tests/external-scheduler-recovery.test.mjs"
+          ],
+          "elapsed_seconds": 0.264389,
+          "exit_code": 0,
+          "label": "fast-scheduler",
+          "log_sha256": "3cc3171dcce8d13ef931061f9b0d3e409326cac2d0c72f147a78a0b9542eee73",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-scheduler.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_external_scheduler_rescue.py"
+          ],
+          "elapsed_seconds": 0.266354,
+          "exit_code": 0,
+          "label": "fast-heartbeat",
+          "log_sha256": "2c539815951f3d02efaac023d54f2d01f97cb390c8155800cbc26359a208a346",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-heartbeat.log"
+        },
+        {
+          "command": [
+            "fast-anything",
+            "scan",
+            "--json",
+            "--",
+            "node",
+            "tests/release-artifacts.test.mjs"
+          ],
+          "elapsed_seconds": 0.772435,
+          "exit_code": 0,
+          "label": "fast-build-configuration",
+          "log_sha256": "994671db47c27e5916f3cf11a4bc6a2a9cc95b54e1d0e2568ba7f6d500700e23",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/fast-build-configuration.log"
+        }
+      ],
+      "findings": {
+        "decision": "No verified transparent native kernel is retained. Changed browser paths require WebExtension storage, lifecycle and delivery APIs; scheduler paths primarily perform guarded API/file operations. Bypassing durable persistence would remove correctness work, not optimize equivalent work.",
+        "limits": "API/VM fixtures exercise exact production control flow with synthetic adapters; they do not measure physical sound, owner profiles or live GitHub recovery. Full native/real browser and hosted acceptance remain separate.",
+        "profiled_workloads": {
+          "fast-alert-runtime": {
+            "hotspots": 18,
+            "notes": [
+              "only 10.0% of the run is in your own named functions; the rest went to node:internal 40%, top-level / anonymous code 11%, V8 / native 3%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 5% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-attention": {
+            "hotspots": 20,
+            "notes": [
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 43% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-bridge": {
+            "hotspots": 11,
+            "notes": [
+              "only 4.2% of the run is in your own named functions; the rest went to node:internal 22%, node:vm 14%, garbage collection 7%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 19% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-build-configuration": {
+            "hotspots": 9,
+            "notes": [
+              "only 1.0% of the run is in your own named functions; the rest went to node:internal 92%, V8 / native 2%, node:fs 1%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts"
+            ],
+            "portable_hotspots": 1,
+            "worth_porting": 0
+          },
+          "fast-heartbeat": {
+            "hotspots": 17,
+            "notes": [
+              "your biggest function takes only 9% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 2,
+            "worth_porting": 0
+          },
+          "fast-monitor-ui": {
+            "hotspots": 9,
+            "notes": [
+              "only 3.2% of the run is in your own named functions; the rest went to node:internal 13%, node:vm 12%, garbage collection 11%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 18% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-scheduler": {
+            "hotspots": 6,
+            "notes": [
+              "only 5.2% of the run is in your own named functions; the rest went to node:internal 54%, garbage collection 6%, V8 / native 4%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 11% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 1,
+            "worth_porting": 0
+          },
+          "fast-sensor": {
+            "hotspots": 11,
+            "notes": [
+              "only 10.3% of the run is in your own named functions; the rest went to top-level / anonymous code 24%, node:internal 21%, garbage collection 9%",
+              "this profiler samples the stack instead of counting calls, so there are no call counts",
+              "your biggest function takes only 33% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          },
+          "fast-setup-python": {
+            "hotspots": 17,
+            "notes": [
+              "your biggest function takes only 4% of the run: the rest is outside your functions (top-level code, the runtime, libraries, startup), which a port can't speed up"
+            ],
+            "portable_hotspots": 0,
+            "worth_porting": 0
+          }
+        }
+      },
+      "launcher_sha256": "754961f4cb78a72697cfd5a0b4c928098e37aa89e8a9f4573992767cf671b98b",
+      "license": "MIT",
+      "license_sha256": {
+        "LICENSE": "d81d0037e3a29a01ccfefaae420d5ba73e905cabf3995700e9075c7205c06cc5"
+      },
+      "npm_package_json_sha256": "4fda84290d53b8b5fa206f2828a0a2972a604150c48fbb9f9c9851b9b230acef",
+      "source_clean": true,
+      "source_commit": "e3d8635b6d11849f235f7d11447823a9aa604267",
+      "source_lock_sha256": "7a4d2bbe7a1c8b0500cbd65dde91d691734f9c92579102ec6b0e52468fa77000",
+      "status": "no_safe_win",
+      "tool_version": "0.9.0",
+      "upstream": "https://github.com/EL4CTEO/fast-anything",
+      "version": "0.9.0"
+    },
+    "google-migrate-to-rust": {
+      "evidence": {
+        "browser": "Changed JavaScript is WebExtension storage, lifecycle, notification and DOM orchestration. It must use host browser APIs; no independently portable compute kernel was identified. The reviewed upstream legacy languages do not include a WebExtension host-API replacement.",
+        "decision": "No supported material legacy port is under evaluation. No foreign code execution, telemetry helper, generated port, global installation or provider transfer was performed. This scoped inapplicability does not replace the three completed executable tool assessments.",
+        "native": "Hub state/broker, installer transaction engine and Windows pipe framing already execute in Rust. There is no legacy-to-Rust boundary in these changes.",
+        "packaging": "The OAuth repair changes one build-time placeholder assignment and verifies generated configuration. It is a correctness/assembly boundary, not a compute kernel for a Rust pilot.",
+        "scheduler": "The changed Python evaluator reads one committed JSON audit, parses its timestamp and threshold, and emits a small result. Node recovery code is GitHub API orchestration. There is no material CPU workload or meaningful migration boundary; cross-process/packaging changes would add work without an evidenced optimization opportunity."
+      },
+      "review_mode": "read-only-scope-applicability",
+      "skill_sha256": "efebb12db9b64816c96d5813a288100c256d3a1d68094cb93ea4e603a8a513ec",
+      "source_commit": "10c799ee69bcdb10b82836403d1531bfcc3d9d24",
+      "status": "not_applicable",
+      "tool_version": "1.0.0",
+      "upstream": "https://github.com/google/skills/tree/10c799ee69bcdb10b82836403d1531bfcc3d9d24/skills/developers/migrate-to-rust"
+    },
+    "rust-anything": {
+      "binary_sha256": "a9210243b30877b06d3fe4ed0ed60be58ca8fe3fbcf1b7005aab44f751ccc097",
+      "commands": [
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/release-artifacts.test.mjs"
+          ],
+          "elapsed_seconds": 1.122224,
+          "exit_code": 0,
+          "label": "rust-profile-build-configuration",
+          "log_sha256": "d50542966345ed9e50103aff71c12e20a7ec35382f7322b70222ddc4f3524b3e",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-build-configuration.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "--test",
+            "tests/external-scheduler-recovery.test.mjs"
+          ],
+          "elapsed_seconds": 0.519034,
+          "exit_code": 0,
+          "label": "rust-profile-scheduler",
+          "log_sha256": "9e86d66df02ba5a4029fa38d861ac17172c3c0768a69ecf3b6fe4e475ef051a7",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-scheduler.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "python",
+            "--json",
+            "--",
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_external_scheduler_rescue.py"
+          ],
+          "elapsed_seconds": 0.315621,
+          "exit_code": 0,
+          "label": "rust-profile-heartbeat",
+          "log_sha256": "b36924f267586326264169fb28c4c6a9d5ea922f375fa0005b6d026137c2ccce",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-heartbeat.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "analyze",
+            ".",
+            "--lang",
+            "ts",
+            "--json"
+          ],
+          "elapsed_seconds": 0.216202,
+          "exit_code": 0,
+          "label": "rust-analyze-ts",
+          "log_sha256": "12a40b7ed77423e9695a894f6e073bcd5918355388f9d2447b795d51c6a16b1f",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-analyze-ts.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "analyze",
+            ".",
+            "--lang",
+            "python",
+            "--json"
+          ],
+          "elapsed_seconds": 0.167104,
+          "exit_code": 0,
+          "label": "rust-analyze-python",
+          "log_sha256": "30a15c1010f3c96ab9c9cd58996e9e7afcfc3b6fe0ea5ab53ee1b38d15c0eb69",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-analyze-python.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/attention-service.test.mjs"
+          ],
+          "elapsed_seconds": 0.467728,
+          "exit_code": 0,
+          "label": "rust-profile-attention",
+          "log_sha256": "ffeb47301bdbc50ebcb02b31e3c2d433ec358c822f66b8bfc42fc9b48cd7c49a",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-attention.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/native-monitor-bridge.test.mjs"
+          ],
+          "elapsed_seconds": 0.415174,
+          "exit_code": 0,
+          "label": "rust-profile-bridge",
+          "log_sha256": "3d9071704a486b13ccb5ba679c8b02a634e8d66746f0c44fcb986cba350cdc65",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-bridge.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "ts",
+            "--json",
+            "--",
+            "node",
+            "tests/agent-monitor-ui-logic.test.mjs"
+          ],
+          "elapsed_seconds": 0.571925,
+          "exit_code": 0,
+          "label": "rust-profile-monitor-ui",
+          "log_sha256": "c7bcea7e4502844fc7a6e7f08e5d827be18b6832b98c36b26b663d7d676b2fd0",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-monitor-ui.log"
+        },
+        {
+          "command": [
+            "rust-anything",
+            "profile",
+            ".",
+            "--lang",
+            "python",
+            "--json",
+            "--",
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "native/constellation-setup/tests",
+            "-p",
+            "test_*.py"
+          ],
+          "elapsed_seconds": 0.416403,
+          "exit_code": 0,
+          "label": "rust-profile-setup-python",
+          "log_sha256": "456169796eab7a5dedcfdbed13835579b3269706e379d0bce6ccdba9442898c8",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/rust-profile-setup-python.log"
+        }
+      ],
+      "findings": {
+        "decision": "Static readiness alone is not end-to-end equivalence. No browser/API/transaction orchestration port demonstrated a gain without changing ownership, persistence, diagnostics or host behavior. No forced rewrite retained.",
+        "native_applicability": "The changed hub state/broker, installer transaction engine and Windows byte-pipe transport already execute in Rust. A Rust-to-Rust conversion is inapplicable; strict native checks and actual Windows acceptance remain required.",
+        "profiles": {
+          "rust-profile-attention": {
+            "command": [
+              "node",
+              "tests/attention-service.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 48.83720930232558,
+            "total_ms": 93.036
+          },
+          "rust-profile-bridge": {
+            "command": [
+              "node",
+              "tests/native-monitor-bridge.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 8.75,
+            "total_ms": 98.68
+          },
+          "rust-profile-build-configuration": {
+            "command": [
+              "node",
+              "tests/release-artifacts.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 0.5496678874563579,
+            "total_ms": 1234.93
+          },
+          "rust-profile-heartbeat": {
+            "command": [
+              "python3",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_external_scheduler_rescue.py"
+            ],
+            "language": "python",
+            "repo_pct": 0.9035685063207602,
+            "total_ms": 75.583865
+          },
+          "rust-profile-monitor-ui": {
+            "command": [
+              "node",
+              "tests/agent-monitor-ui-logic.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 8.791208791208792,
+            "total_ms": 109.533
+          },
+          "rust-profile-scheduler": {
+            "command": [
+              "node",
+              "--test",
+              "tests/external-scheduler-recovery.test.mjs"
+            ],
+            "language": "ts",
+            "repo_pct": 13.461538461538463,
+            "total_ms": 65.455
+          },
+          "rust-profile-setup-python": {
+            "command": [
+              "python3",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "native/constellation-setup/tests",
+              "-p",
+              "test_*.py"
+            ],
+            "language": "python",
+            "repo_pct": 0.3384130442990967,
+            "total_ms": 155.700263
+          }
+        },
+        "python_analysis": {
+          "blocked": 0,
+          "caution": 1,
+          "keep": 0,
+          "loc": 1718,
+          "packages": 1,
+          "parse_errors": 0,
+          "ready": 4,
+          "source_files": 10,
+          "test_files": 51,
+          "ui_files": 0,
+          "units": 5
+        },
+        "typescript_analysis": {
+          "blocked": 1,
+          "caution": 12,
+          "keep": 0,
+          "loc": 38247,
+          "packages": 3,
+          "parse_errors": 0,
+          "ready": 23,
+          "source_files": 141,
+          "test_files": 79,
+          "ui_files": 0,
+          "units": 36
+        }
+      },
+      "launcher_sha256": "994278bb3653dd492c25903435c493a5ad57e20ed90fa7766a98351595267afa",
+      "license": "MIT OR Apache-2.0",
+      "license_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "f7c6d76768cf5bdcd8fbc9f4df6b040789ed9802707e49987dd8357a6bd92759"
+      },
+      "npm_package_json_sha256": "358cc82dc6e68bf51f389b442b3d73ce9d0ac90b1dc15ea10e8b0922eda624f7",
+      "source_clean": true,
+      "source_commit": "a1e9509b31bd89e0cbf039e86a39ca338d2c67fe",
+      "source_lock_sha256": "4970b2b134519066e27eaa70b2aeed5fb62fad6be45e1351748cfee25618f517",
+      "status": "no_safe_win",
+      "tool_version": "5.0.1",
+      "upstream": "https://github.com/erkamyaman/rust-anything",
+      "version": "5.0.1"
+    },
+    "shrink-anything": {
+      "binary_sha256": "a9f4607fc8c3f001e6877bc13b71ebc3ef07a557e1bafc7c63a5d7a48f4e3a55",
+      "commands": [
+        {
+          "command": [
+            "shrink-anything",
+            "doctor"
+          ],
+          "elapsed_seconds": 0.064167,
+          "exit_code": 0,
+          "label": "shrink-doctor",
+          "log_sha256": "f4100abaa9cbb4aca4f8a5c21a6223e5df370af3cfd7481f9d376daaa477b984",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/shrink-doctor.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "scan",
+            "--json"
+          ],
+          "elapsed_seconds": 0.214439,
+          "exit_code": 0,
+          "label": "shrink-scan",
+          "log_sha256": "3a5e9dc06746e14ff2023fda3f54b4025c6eea1d3d846f5b6fa36f8c076dd8d8",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/shrink-scan.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "weigh",
+            "build/unpacked",
+            "build/firefox-sensor"
+          ],
+          "elapsed_seconds": 0.06412,
+          "exit_code": 0,
+          "label": "shrink-weigh",
+          "log_sha256": "00353093224559c91173f66b8b159a657a3c2495a9aec4f4090421008c821508",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/shrink-weigh.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "verify",
+            "--",
+            "npm",
+            "test"
+          ],
+          "elapsed_seconds": 3.134643,
+          "exit_code": 0,
+          "label": "shrink-verify",
+          "log_sha256": "7afda81d0cb76f8525026b3525bf3dc740afae476f84128a4e74f4b7324dad9d",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/shrink-verify.log"
+        },
+        {
+          "command": [
+            "shrink-anything",
+            "report"
+          ],
+          "elapsed_seconds": 0.031847,
+          "exit_code": 1,
+          "label": "shrink-report",
+          "log_sha256": "b50c41e9f0031f6f977b62dbcc39a400759c519d19806e90848c707e339766c0",
+          "raw_log": "logs/release-0.24.0/optimization/candidate-001-logs/shrink-report.log"
+        }
+      ],
+      "findings": {
+        "artifact_inventory": {
+          "build/firefox-sensor": {
+            "bytes": 200250,
+            "files": 17,
+            "manifest_sha256": "77f1e7f7b4a8af0393626621781e81fe0db7edb5c874652c999ffaa05d6e0847"
+          },
+          "build/unpacked": {
+            "bytes": 1955536,
+            "files": 84,
+            "manifest_sha256": "e14485297b4655d5223ae101211cdba81b26373557759f18f0cbf0394e095a28"
+          }
+        },
+        "candidate_count": 8,
+        "cut_only_report": "The upstream report command exits 1 because it requires a destructive cut first. Read-only scan, artifact weighing and full npm-test verification completed. This refusal is recorded, not called a passing report.",
+        "decision": "Retain all source, feature routes, assets, independent browser packages, tests and historical evidence. Lexical unused/duplicate suggestions do not establish that dynamically loaded browser/Electron routes can be removed. No destructive cut, deletion or cleanup ran.",
+        "duplicate_groups": 196,
+        "metrics": {
+          "asset_bytes": 3727690,
+          "assets": 19,
+          "bytes": 4576703,
+          "code_lines": 60272,
+          "deps": 15,
+          "files": 340,
+          "lines": 66957
+        },
+        "size_scope": "Complete uncompressed local production-mode extension and Firefox sensor directories. Explicitly unprovisioned local build; not the provisioned hosted release or a final ZIP size claim."
+      },
+      "launcher_sha256": "c72f6eb244bf09ebcc783aae5e0eb0c4730bcd384314ae48acec306c4bf7bbae",
+      "license": "MIT",
+      "license_sha256": {
+        "LICENSE": "d81d0037e3a29a01ccfefaae420d5ba73e905cabf3995700e9075c7205c06cc5"
+      },
+      "npm_package_json_sha256": "18655ad19e578e69c060c7bd33e761668139dd70415d3c00ce87619fd118aef8",
+      "source_clean": true,
+      "source_commit": "ea0c07e9f33611adaf03a5c47142c31a200d3ac2",
+      "source_lock_sha256": "ea0303312b0737468db6e9b4e804ba58d4932a8d4ee467f8d83c9c8e02cfdcdd",
+      "status": "no_safe_win",
+      "tool_version": "0.1.1",
+      "upstream": "https://github.com/EL4CTEO/shrink-anything",
+      "version": "0.1.1"
+    }
+  },
+  "correctness_workload_cost": {
+    "complete_workload": {
+      "advancingDuplicates": 384,
+      "exactRetries": 384,
+      "incidents": 192,
+      "sessions": 96
+    },
+    "decision": "No speedup claim. New durable ordering requires synchronous persistence; baseline acknowledgements omitted it. Exact retry and process startup results are reported separately without hidden work or content loss.",
+    "evidence": "docs/NATIVE-ACK-PERFORMANCE-0.24.0.json",
+    "independent_review": "Root verified exact Rust source hashes, final product version, binary digest, full workload assertions, durable saved watermarks, no duplicate broadcasts and no exact-retry rewrite. Browser/native reviewers independently reproduced and checked the underlying failures.",
+    "limits": "Five alternating baseline/candidate runs, each with 384 sequential advancing duplicate ACKs and 384 exact retries after constructing all 96 sessions and 192 incidents. Per-run percentiles and full-completion duration retained. Shared Linux execution environment; not a claim about Windows disk latency or physical cold cache.",
+    "sha256": "a2e79402d52fddd1417b91f9d0b9c60281b53d94ee69576ca3d8d34a5ad9a060",
+    "status": "measured-final-version-native-implementation",
+    "summary": {
+      "baseline": {
+        "allRequiredWatermarksDurable": false,
+        "allStatePreserved": true,
+        "duplicateBroadcasts": 0,
+        "exactRetryRewrites": 0,
+        "medianComplete384AckMs": 83.067801,
+        "medianExactRetryP50Ms": 0.149786,
+        "medianOfRunP50AckMs": 0.1587765,
+        "medianOfRunP95AckMs": 0.257701,
+        "medianOfRunP99AckMs": 0.495741,
+        "medianProcessToHelloMs": 53.451903,
+        "runs": 5,
+        "worstRunP99AckMs": 1.509726
+      },
+      "candidate": {
+        "allRequiredWatermarksDurable": true,
+        "allStatePreserved": true,
+        "duplicateBroadcasts": 0,
+        "exactRetryRewrites": 0,
+        "medianComplete384AckMs": 569.888481,
+        "medianExactRetryP50Ms": 0.154867,
+        "medianOfRunP50AckMs": 1.296672,
+        "medianOfRunP95AckMs": 1.933326,
+        "medianOfRunP99AckMs": 4.035491,
+        "medianProcessToHelloMs": 53.316905,
+        "runs": 5,
+        "worstRunP99AckMs": 4.519966
+      }
+    }
+  },
+  "execution": {
+    "assessment_command_count": 26,
+    "assessment_elapsed_seconds": 11.00497,
+    "assessor_script_sha256": "3d0988a60b8a74e5837490393ed7d420f06d6daf2abc1a6294fd081ac9c01165",
+    "environment": {
+      "node": "v24.22.3",
+      "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "python": "3.12.14"
+    },
+    "isolation": "Complete disposable source copy; hashes checked before/after; no destructive cut, source mutation, external agent, global installation, port or hidden work.",
+    "npm_runtime_lock_sha256": "27ffc9b4b410086013d53a16bef354ea060ba767090d5b99fcb41d89b7a4c26b",
+    "preparation_commands": [
+      {
+        "argv": [
+          "node",
+          "tools/build.mjs",
+          "--mode=production",
+          "--allow-unprovisioned-oauth"
+        ],
+        "cwd": "candidate-001",
+        "elapsed_seconds": 0.11435,
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "label": "build-production-extension",
+        "log": "candidate-001-logs/build-production-extension.log",
+        "log_sha256": "8e7e3c7de91973a8504e8f0a7a0afbb893d25e6f9894bd9163e0772d708939dc"
+      },
+      {
+        "argv": [
+          "node",
+          "tools/build-browser-sensors.mjs"
+        ],
+        "cwd": "candidate-001",
+        "elapsed_seconds": 0.064201,
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "label": "build-browser-sensors",
+        "log": "candidate-001-logs/build-browser-sensors.log",
+        "log_sha256": "79c5c76ad8611d247f6ee89c4ac81a86306a4c20813e66032dacb6ce17e04e49"
+      }
+    ],
+    "provenance": "Exact previously reviewed pinned tool distributions rehashed; clean upstream commits, executable/launcher hashes, versions and lockfiles match the accepted identities.",
+    "raw_reports": "Local ignored logs/release-0.24.0/optimization; public receipt contains sanitized summaries and log hashes."
+  },
+  "lane": "high-risk",
+  "policy": {
+    "current_main_commit_verified": true,
+    "sha256": "e6236826cba3a7c077283899791daf33e9d0138dbb635fcb4869cf6ef32173d3",
+    "url": "https://github.com/Herbertofury/Athena/blob/e6e567a87441109eabf2fe9ef4ea00d67fb9cfe3/guidance/PRE_RELEASE_OPTIMIZATION.md"
+  },
+  "preservation": {
+    "coverage_reduced": false,
+    "destructive_operations": 0,
+    "full_npm_test_via_shrink_verify": "passed",
+    "rendering": "Existing indexed incremental dashboard remains unchanged; every matching record/row renders, without new culling, pagination or caps.",
+    "source_files_deleted": 0,
+    "source_mutations_by_tools": 0
+  },
+  "release_boundaries": [
+    "Not proof of final GitHub publication or owner-account acceptance.",
+    "Full installed-browser, actual Windows native/installer/pipe/Electron and artifact acceptance remain mandatory hosted gates.",
+    "Public release commit/tree, live Wiki and artifact hashes belong to the separate final closeout receipt."
+  ],
+  "retained_baseline_performance": {
+    "captured_source_sha256": {
+      "css": "23968bbfc6bd4e83218143e57a75f65ab0b4a1d703b54413c6135b0ba858ed33",
+      "html": "6e302d2c890193405f3a25cfc053d11bda625b451b3ca917d6d48182fb3d934a",
+      "js": "a6faa0ec3fc35ba9198808501040e3cc1f3a27173f31cedf99dc5bfbd730ceab"
+    },
+    "evidence": "docs/AGENT-MONITOR-PERFORMANCE-0.23.0.json",
+    "note": "The three exact dashboard source hashes are unchanged. This is retained v0.23 behavior and historical measurement, not a newly measured v0.24 speedup.",
+    "sha256": "5c066977f1581a4150972c02993e9ac92167996930cb24792e34aa2d3b902c93",
+    "status": "exact-implementation-evidence-reused"
+  },
+  "retained_optimization": false,
+  "retained_tool_optimization": false,
+  "schema": "project-constellation/optimization-assessment@2",
+  "scope": {
+    "baseline_commit": "7fe2bf40e1f207b8980c8bd68f2a24b647667f6b",
+    "component_manifests": {
+      ".github/": {
+        "files": 14,
+        "manifest_sha256": "40151897a09de90de4ba4154391fa7b8e9894655683b9093d3a1d75f427492fc"
+      },
+      "computer-link/": {
+        "files": 127,
+        "manifest_sha256": "e11c5f2056a409092c9153353a6a66f31a7d6a0bb02f960d559f6ec82d35988c"
+      },
+      "desktop/": {
+        "files": 92,
+        "manifest_sha256": "83868988ec94b1b3bf06b47ad09740d468bab993a1b9464342ce38289e0b8131"
+      },
+      "extension/": {
+        "files": 84,
+        "manifest_sha256": "9c822c58e4201708dabd3b7a429cfdb1860702c65241d49a772864a28bc51566"
+      },
+      "native/": {
+        "files": 30,
+        "manifest_sha256": "5a73849d2272a2b56c9cb95d1688f1c87d371162726ff180ff4e7abc5d146fe7"
+      },
+      "tests/": {
+        "files": 96,
+        "manifest_sha256": "5a38f06a71856c638b0100c03fff91341f00fce65312b4fe08098ce1638b6027"
+      },
+      "tools/": {
+        "files": 31,
+        "manifest_sha256": "71724d0949b41528e21fd0d8765dc956fe834a3b8a8fb95c056aa10d78cba561"
+      },
+      "watchdog/": {
+        "files": 8,
+        "manifest_sha256": "e7196872d547f54b8e234863e719d0731e8f2cb2b566bb31441ae6a02c79610c"
+      }
+    },
+    "final_source_drift": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    },
+    "inventory": "All sorted tracked and nonignored source including full tests, documentation, recovery and historical release evidence. Ignored generated output and this self-referential receipt excluded.",
+    "manifest_format": "UTF-8 JSON, sorted keys, indent 2, one newline; repository-relative path to {bytes, sha256}.",
+    "snapshot": "candidate-001",
+    "source_bytes": 15004363,
+    "source_files": 943,
+    "source_manifest_sha256": "c676125d0a509364d52fd1089d44195eb8ee38431845f88312854761ad510612",
+    "source_unchanged_by_tools": true
+  },
+  "status": "completed-assessments-source-matched"
+}

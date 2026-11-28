@@ -2,7 +2,7 @@
 
 Open **Project Constellation Setup** from the Windows Start menu to return to the native installer and repair controls. The full desktop app keeps its separate **Project Constellation** entry.
 
-Download **Constellation-0.23.0-Windows-Setup.exe** and its checksum from the
+Download **Constellation-0.24.0-Windows-Setup.exe** and its checksum from the
 matching Project Constellation GitHub release. This compact installer contains
 the Rust browser hub, Chromium extension, Firefox sensor and native Computer
 Tools. It installs without a compiler, Python or an additional payload download.
@@ -95,3 +95,13 @@ Rollback may retain a newer setup manager while restoring an earlier application
 If a failed upgrade encounters new or changed files in the newly activated browser directory, recovery moves those bytes into a `preserved-browsers-recovery-*` folder and restores the previous browser directory. The result and any later rollback failure include that preservation location. Review the preserved folder before deleting anything. A pending recovery journal always makes Verify unhealthy until recovery finishes.
 
 The Windows release gate executes install, repair, diagnostics, rollback, retained-manager corruption and repair, setup/owner UI, uninstall and restoration of native registrations and shortcuts. Compiler success alone does not prove these workflows.
+
+
+If the active `browsers` path is a symbolic link or Windows junction, Setup
+rejects installation, repair or rollback before changing registrations or
+committing a transaction. Replace that link entry with an ordinary folder
+before repairing; do not delete the external target's files. If an older Setup
+already committed such a link into its transaction backup, recovery moves the
+link itself into a named `preserved-browsers-link-*` location and reports the
+path without following its target. Live and dangling links are preserved, and
+cleanup can finish so later repair and uninstall remain usable.

@@ -1,0 +1,50 @@
+{
+  "version": "0.24.0",
+  "status": "source-candidate-requires-matching-hosted-release-receipts",
+  "publicationAuthorized": true,
+  "publicationInstruction": "Owner grants full approval to continue improving and fixing; completed upgrades end with a versioned GitHub release and verified closeout.",
+  "branch": "review/constellation-v0.24.0",
+  "baselineCommit": "7fe2bf40e1f207b8980c8bd68f2a24b647667f6b",
+  "baselineRelease": "https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.23.0",
+  "baselineCloseout": {
+    "githubAssetsVerified": 15,
+    "wikiPagesVerified": 23,
+    "driveMirrorComplete": true,
+    "driveFolderId": "1zg-8im9iKeOV-X39ElnXS8kfnGxZmAdS",
+    "activeCheckpointUpdated": true,
+    "priorParagraphsPreserved": 420
+  },
+  "rootTestScripts": 51,
+  "uiMessageContracts": 94,
+  "releaseWorkflow": ".github/workflows/release.yml",
+  "requiredWindowsSetupChecks": [
+    "install",
+    "repair",
+    "diagnostics",
+    "rollback",
+    "rollback-manager-repair",
+    "uninstall",
+    "setup-gui",
+    "owner-gui",
+    "integrations-restored"
+  ],
+  "acceptanceRemaining": [
+    "Physical audio and operating-system notification visibility",
+    "Owner Chrome/Edge/Opera GX/Firefox profile enrollment",
+    "Permanent Firefox signing",
+    "Windows publisher signing",
+    "Signed-in account backup and restore round trips"
+  ],
+  "evidence": [
+    "docs/MONITOR-VERIFICATION.md",
+    "docs/RELEASE-OPTIMIZATION-0.24.0.json",
+    "docs/RELEASE-STACK-0.24.0.json",
+    "docs/v0.24.0-release-notes.md",
+    "docs/NATIVE-ACK-PERFORMANCE-0.24.0.json"
+  ],
+  "note": "Committed source evidence is a candidate checkpoint. The matching tag, completed workflows and published receipts establish executed release acceptance. No runtime or account success is inferred from prepared tests.",
+  "historicalBundlePublication": {
+    "publicUploadAuthorized": false,
+    "instruction": "Preserve private Computer-Link historical bundles and upstream repository; no public historical bundle upload or deletion in this task."
+  }
+}

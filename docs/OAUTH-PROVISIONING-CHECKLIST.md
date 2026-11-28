@@ -1,10 +1,46 @@
 # OAuth provisioning and production acceptance checklist
 
+## Current release configuration — v0.24.0
+
+Configured release builds retain the existing Google Chrome Extension client and
+GitHub OAuth App client. Users open **Accounts & Connections** and sign in through
+the provider's own prompts; they do not create new OAuth applications or supply
+client secrets. Preserve the stable extension ID `geljambmkfjkhodgkpjhnmfojkpcamig`
+and its manifest `key`.
+
+The [published v0.23.0 receipt](https://github.com/Herbertofury/Project-Constellation/releases/download/v0.23.0/RELEASE-RECEIPT-v0.23.0.json)
+records a production extension build with both `oauth.google` and `oauth.github`
+set to `true`. Retain those provisioned product client IDs for v0.24.0. Inspect the
+matching v0.24.0 release receipt and `build-info.json` for the actual new artifact;
+a prior receipt does not establish the configuration of a later build.
+
+Release maintainers reuse `PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID` and
+`PROJECT_CONSTELLATION_GITHUB_CLIENT_ID` from the existing build environment.
+Use the current [OAuth guide](OAUTH.md) and [release runbook](RELEASING.md) for
+build commands, packaging and publication. Any explicitly unprovisioned monitoring
+build must disclose its missing providers in the receipt and cannot claim working
+account backup.
+
+Provisioning is separate from signed-in acceptance. Record actual Google Drive
+account verification, backup/readback/restore, GitHub device-flow sign-in and sync,
+restart/token-refresh behavior, revoked authorization recovery and the absence of
+tokens in exported artifacts before claiming those capabilities have passed for
+the target account. Isolated fixtures and configured public IDs do not establish
+those results.
+
+## Historical v0.14.0 provisioning handoff
+
+The following material preserves the state, setup steps and commands recorded for
+v0.14.0. Its pending-client statement, old package names and tag commands are
+historical evidence. Use the current guidance above for retained clients and new
+releases; do not recreate an existing client or repeat these historical publish
+commands during an ordinary upgrade.
+
 This is the exact production handoff for Project Constellation v0.14.0. The extension source, stable ID, build injection, token refresh logic, failure states, and mocked regression coverage are already in place. The Google Chrome Extension client is provisioned and stored in GitHub Actions; a final production package still requires the GitHub OAuth App client ID plus real signed-in acceptance tests.
 
 Do not put a client secret, access token, refresh token, password, recovery code, or browser profile in this repository. The two client IDs below are public application identifiers.
 
-## Known-good product identity
+### Known-good product identity
 
 | Setting | Required value |
 | --- | --- |
@@ -20,7 +56,7 @@ Do not put a client secret, access token, refresh token, password, recovery code
 
 The manifest `key` is already fixed to the extension ID above. Do not regenerate or remove it.
 
-## Google: finish the existing setup
+### Google: finish the existing setup
 
 Already completed on 2026-08-24:
 
@@ -35,7 +71,7 @@ Already completed on 2026-08-24:
 
 Continue at [Google Auth Platform](https://console.cloud.google.com/auth/overview?project=project-constellation-506518).
 
-### 1. Configure Data Access
+#### 1. Configure Data Access
 
 1. Open **Data Access**.
 2. Choose **Add or remove scopes**.
@@ -46,7 +82,7 @@ Continue at [Google Auth Platform](https://console.cloud.google.com/auth/overvie
 
 `drive.file` is Google's recommended non-sensitive Drive scope. It limits Constellation to files it creates or files the user explicitly opens with it.
 
-### 2. Configure Audience
+#### 2. Configure Audience
 
 1. Open **Audience**.
 2. While the app is in Testing, add `herbertofury@gmail.com` as a test user.
@@ -56,7 +92,7 @@ If Branding asks for a privacy-policy URL, use the public policy listed in the i
 
 Testing is useful for the first acceptance run, but Testing authorizations can expire after seven days. Production status avoids that development-only expiry behavior. Because this app requests only the non-sensitive `drive.file` scope, sensitive/restricted-scope security assessment is not required. If Google later requires brand verification for public-facing links or a verified domain, treat that as a separate branding gate—do not broaden scopes to work around it.
 
-### 3. Create the Chrome Extension client
+#### 3. Create the Chrome Extension client
 
 1. Open **Clients**.
 2. Choose **Create client**.
@@ -69,7 +105,7 @@ Testing is useful for the first acceptance run, but Testing authorizations can e
 
 Record the public ID as `PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID` in GitHub Actions and in the local release shell only.
 
-## GitHub: create the device-flow OAuth App
+### GitHub: create the device-flow OAuth App
 
 Open [GitHub Developer settings / OAuth Apps](https://github.com/settings/developers), choose **OAuth Apps**, then **New OAuth App**.
 
@@ -91,7 +127,7 @@ After registration:
 
 The extension requests `repo read:user offline_access`, honors GitHub's polling interval and `slow_down`, stores the pending device code in session storage, rotates refresh tokens, verifies `/user`, retries once after a 401, and removes token state on disconnect.
 
-## Add the public IDs to GitHub Actions
+### Add the public IDs to GitHub Actions
 
 In the repository, open **Settings → Secrets and variables → Actions → New repository secret** and add:
 
@@ -109,7 +145,7 @@ $googleClientId | gh secret set PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID --repo He
 $githubClientId | gh secret set PROJECT_CONSTELLATION_GITHUB_CLIENT_ID --repo Herbertofury/Project-Constellation
 ```
 
-## Build and package locally
+### Build and package locally
 
 Set the public IDs only for the current PowerShell process:
 
@@ -126,7 +162,7 @@ Get-Content releases/v0.14.0/SHA256SUMS.txt
 
 `build/build-info.json` must report `"mode": "production"`, both OAuth values as `true`, and `extensionIdStable` as `true`. `npm run package` refuses a development build or a dirty tracked source tree.
 
-## Real acceptance test—required before release
+### Real acceptance test—required before release
 
 1. Extract the production unpacked ZIP to a permanent test directory.
 2. Load it from `chrome://extensions` and confirm ID `geljambmkfjkhodgkpjhnmfojkpcamig`.
@@ -141,7 +177,7 @@ Get-Content releases/v0.14.0/SHA256SUMS.txt
 
 Do not publish v0.14.0 as production until all ten checks are recorded as real signed-in results rather than mocked smoke results.
 
-## Publish the release
+### Publish the release
 
 After the two repository secrets and real acceptance results are in place:
 

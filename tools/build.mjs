@@ -53,7 +53,12 @@ manifest.version_name = production ? `${manifest.version} production${validGoogl
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 
 const backgroundPath = path.join(unpacked, 'background.js');
-const background = fs.readFileSync(backgroundPath, 'utf8').replaceAll('PROJECT_CONSTELLATION_GITHUB_CLIENT_ID', validGithubClient ? githubClientId : '');
+const backgroundSource = fs.readFileSync(backgroundPath, 'utf8');
+const githubClientDeclaration = "const BUILT_GITHUB_CLIENT_ID = 'PROJECT_CONSTELLATION_GITHUB_CLIENT_ID';";
+if (backgroundSource.split(githubClientDeclaration).length !== 2) throw new Error('Expected exactly one GitHub OAuth build declaration.');
+// Only inject the configured value. The runtime also contains the placeholder
+// text in its rejection guard; rewriting that guard makes it reject the real ID.
+const background = backgroundSource.replace(githubClientDeclaration, `const BUILT_GITHUB_CLIENT_ID = ${JSON.stringify(validGithubClient ? githubClientId : '')};`);
 fs.writeFileSync(backgroundPath, background);
 
 // Fail the build if any shipped relative ESM import points at a file that was not copied.

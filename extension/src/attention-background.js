@@ -110,13 +110,28 @@ import './attention-audio.js';
   chrome.alarms.onAlarm.addListener((alarm)=>{
     if(alarm.name===core.ALARM_NAME) void service.reminders().catch((error)=>console.warn('Constellation reminders:',String(error?.message||error)));
   });
-  chrome.tabs?.onRemoved?.addListener((id)=>{void service.closeTab(id);});
-  chrome.tabs?.onUpdated?.addListener((id,change,tab)=>{
-    if(change.url)void service.get().then((snapshot)=>{if(snapshot.sessions.some((row)=>row.sourceId==='local'&&row.tabId===id&&row.status!=='closed'&&row.url!==core.canonicalUrl(change.url)))return service.closeTab(id);});
-    if(change.discarded===true||change.frozen===true) void service.get().then((snapshot)=>{
-      const previous=snapshot.sessions.find((x)=>x.tabId===id&&x.sourceId==='local'&&x.status!=='closed');
-      if(previous) return service.observe({...previous,url:tab.url||previous.url,discarded:change.discarded,frozen:change.frozen,observedAt:Date.now()});
-    });
+  const lifecycleError=(error)=>console.warn('Constellation attention lifecycle:',String(error?.message||error));
+  chrome.tabs?.onRemoved?.addListener((id)=>{void service.closeTab(id).catch(lifecycleError);});
+  async function reconcileTabChange(id,change) {
+    const at=Date.now(),snapshot=await service.get();
+    const rows=snapshot.sessions.filter(row=>row.sourceId==='local'&&row.tabId===id&&row.status!=='closed');
+    if(!rows.length)return;
+    const current=await chrome.tabs.get(id).catch(()=>null);
+    if(!current)return;
+    const currentUrl=core.canonicalUrl(current.url);
+    // Event delivery and the preceding storage read can straddle another
+    // navigation. Check both the live tab and the captured journal row.
+    if(change.url){
+      if(currentUrl!==core.canonicalUrl(change.url))return;
+      for(const row of rows)if(row.url!==currentUrl)await service.closeTab(id,'local',row);
+    }
+    if((change.discarded===true||change.frozen===true)&&(current.discarded||current.frozen)){
+      for(const row of rows)if(row.url===currentUrl)await service.observe({...row,status:'suspended',healthState:'',
+        discarded:current.discarded,frozen:current.frozen,observedAt:Math.max(at,Number(row.observedAt||0))},row);
+    }
+  }
+  chrome.tabs?.onUpdated?.addListener((id,change)=>{
+    if(change.url||change.discarded===true||change.frozen===true)void reconcileTabChange(id,change).catch(lifecycleError);
   });
   chrome.notifications?.onClicked?.addListener((id)=>{if(String(id).startsWith('pc-attention:'))void service.focus(id);});
   chrome.notifications?.onButtonClicked?.addListener((id,index)=>{if(!String(id).startsWith('pc-attention:'))return;if(index===0)void service.focus(id);if(index===1)void service.snooze(id,10);});
@@ -126,17 +141,27 @@ import './attention-audio.js';
     const tabs=await chrome.tabs.query({});
     const byId=new Map(tabs.map((tab)=>[tab.id,tab]));
     const local=snapshot.sessions.filter((row)=>row.sourceId==='local'&&row.status!=='closed');
+    const ask=async(id,type)=>{
+      let timer;
+      try{return await Promise.race([chrome.tabs.sendMessage(id,{type},{frameId:0}),new Promise(resolve=>{timer=setTimeout(()=>resolve(null),2500);})]);}
+      catch{return null;}finally{if(timer)clearTimeout(timer);}
+    };
     await Promise.allSettled(local.map(async(row)=>{
       const tab=byId.get(row.tabId);
-      if(!tab||core.canonicalUrl(tab.url)!==row.url){await service.closeTab(row.tabId);return;}
-      if(tab.discarded||tab.frozen){await service.observe({...row,status:'suspended',observedAt:Date.now()});return;}
-      const state=await chrome.tabs.sendMessage(tab.id,{type:'PC_GET_LIVE_SENTINEL_STATE'}).catch(()=>null);
-      if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.23.0'&&typeof state?.chat?.status==='string'&&state.chat.status)await service.observe({
-        ...row,status:state.chat?.status||'idle',healthState:state.chat?.healthState||'',
-        generation:state.generation,health:state.health,failure:state.failure,source:state.source,
-        authoritative:true,suspended:false,observedAt:Date.now()
-      });
-      else await chrome.tabs.sendMessage(tab.id,{type:'PC_MONITOR_RESCAN'}).catch(()=>null);
+      if(!tab||core.canonicalUrl(tab.url)!==row.url){await service.closeTab(row.tabId,'local',row);return;}
+      if(tab.discarded||tab.frozen){await service.observe({...row,status:'suspended',healthState:'',observedAt:Math.max(Date.now(),Number(row.observedAt||0))},row);return;}
+      const requestedAt=Date.now(),state=await ask(tab.id,'PC_GET_LIVE_SENTINEL_STATE');
+      if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.24.0'&&typeof state?.chat?.status==='string'&&state.chat.status&&core.canonicalUrl(state.chat.url)===row.url){
+        const current=await chrome.tabs.get(tab.id).catch(()=>null);
+        if(!current||current.discarded||current.frozen||core.canonicalUrl(current.url)!==row.url)return;
+        await service.observe({sourceId:'local',tabId:tab.id,documentId:state.chat.id||row.url,
+          runId:state.generation?.runId||'',url:row.url,title:state.chat.title||current.title||row.title,
+          browser:row.browser,providerId:state.provider?.id||row.providerId,
+          status:state.chat.status,healthState:state.chat.healthState||'',
+          generation:state.generation,health:state.health,failure:state.failure,source:state.source,
+          authoritative:true,suspended:false,observedAt:Number(state.observedAt)||requestedAt
+        });
+      } else await ask(tab.id,'PC_MONITOR_RESCAN');
       // Missing/unresponsive sensors remain explicitly offline until their next
       // genuine event. Firefox's minimal sensor publishes on the explicit rescan;
       // the full extension bootstrap owns hot reinjection. Neither needs polling.

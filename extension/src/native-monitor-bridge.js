@@ -106,11 +106,16 @@
   async function observe(row) {
     if(row.sourceId && row.sourceId!=='local')return;
     const documentId=wireText(row.documentId||row.key,80);
-    localRows.set(Number(row.tabId),{...row,wireDocumentId:documentId});
-    if(!status.connected)return;
     const event={tabId:Number(row.tabId),documentId,runId:wireText(row.runId,80),
       url:canonical(row.url),title:wireText(row.title,180),status:nativeStatus(row),reason:wireText(row.reason,240),observedAt:Number(row.observedAt)||Date.now()};
-    try{await request(event.status==='closed'?'remove':'observe',event.status==='closed'?{tabId:event.tabId}:{event});}
+    const previous=localRows.get(event.tabId);
+    if(previous && (event.observedAt<Number(previous.observedAt)||
+      (event.status==='closed' && (documentId!==previous.wireDocumentId || event.runId!==wireText(previous.runId,80) || event.url!==canonical(previous.url)))))return;
+    localRows.set(event.tabId,{...row,observedAt:event.observedAt,wireDocumentId:documentId});
+    if(!status.connected)return;
+    // Document closure is ordered evidence. Keep its context on the wire;
+    // only the browser's authoritative tab-removed event uses unscoped remove.
+    try{await request('observe',{event});}
     catch(error){status.error=text(error.message);announce();}
   }
   async function syncRemote(snapshot,sourcePort=port) {
@@ -231,7 +236,10 @@
     if(port)return;
     for(const row of local.sessions.filter(x=>x.sourceId.startsWith('native:')&&!x.suspended)){
       if(port)return;
-      await globalThis.pcAttentionObserve({...row,status:'sensor-offline',healthState:'',observedAt:Date.now(),authoritative:false});
+      // Transport loss changes availability, not the source observation time.
+      // Advancing that watermark here would reject the unchanged live row on
+      // reconnect and cache the ignored import as if coverage were restored.
+      await globalThis.pcAttentionObserve({...row,status:'sensor-offline',healthState:'',authoritative:false});
     }
     if(port)return;
     await setDeliveryOwner(!status.waitingForWindow,status.waitingForWindow?'browser-windows-closed':'standalone-fallback');
@@ -357,7 +365,7 @@
       try{
         if(tab.discarded||tab.frozen){result.suspended++;return;}
         const state=await ask(tab.id,'PC_GET_LIVE_SENTINEL_STATE');
-        if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.23.0'&&canonical(state.chat?.url)===canonical(tab.url)){
+        if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.24.0'&&canonical(state.chat?.url)===canonical(tab.url)){
           const current=await api.tabs.get(tab.id);
           if(current.discarded||current.frozen){result.suspended++;return;}
           if(canonical(current.url)!==canonical(tab.url)){result.unavailable++;return;}
@@ -403,9 +411,23 @@
   api.tabs.onRemoved.addListener(id=>{localRows.delete(id);if(status.connected)void request('remove',{tabId:id}).catch(()=>{});});
   api.tabs.onUpdated.addListener((id,change)=>{
     const row=localRows.get(id);
-    if(change.url && row && canonical(change.url)!==canonical(row.url)){
-      localRows.delete(id);if(status.connected)void request('remove',{tabId:id}).catch(()=>{});
-    }else if(row&&(change.discarded===true||change.frozen===true))void observe({...row,status:'suspended',suspended:true,observedAt:Date.now()});
+    if(!row)return;
+    const navigation=change.url&&canonical(change.url)!==canonical(row.url);
+    const unavailable=change.discarded===true||change.frozen===true;
+    if(!navigation&&!unavailable)return;
+    // Browser lifecycle callbacks and the tab lookup may both arrive after
+    // a newer observation. Verify the actual tab and captured row before
+    // closing or suspending that exact document.
+    void api.tabs.get(id).then(current=>{
+      if(localRows.get(id)!==row)return;
+      const observedAt=Math.max(Date.now(),Number(row.observedAt)||0);
+      if(navigation){
+        if(canonical(current.url)!==canonical(change.url))return;
+        return observe({...row,status:'closed',observedAt});
+      }
+      if(canonical(current.url)!==canonical(row.url)||(!current.discarded&&!current.frozen))return;
+      return observe({...row,status:'suspended',suspended:true,observedAt});
+    }).catch(()=>{});
   });
   void load().then(()=>connect()).catch(error=>{status.error=text(error.message);announce();});
 })();

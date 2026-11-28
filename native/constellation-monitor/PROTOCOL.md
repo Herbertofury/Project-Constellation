@@ -29,8 +29,11 @@ until a profile supplies preferences.
 
 Statuses: `running`, `idle`, `completed`, `permission_required`, `error`,
 `rate_limited`, `context_limit`, `waiting_for_user`, `no_visible_progress`,
-`suspended`, `closed`. `closed` is equivalent to `remove`. `reason` is short status
-metadata, not the chat transcript. URLs are restricted to known chat origins and
+`suspended`, `closed`. A `closed` observation retires its document only when its
+timestamp is current and any supplied document, run and URL identity still
+matches the session. A delayed closure cannot retire a newer document. The
+separate `remove` operation is authoritative tab removal and requires only the
+tab ID. `reason` is short status metadata, not the chat transcript. URLs are restricted to known chat origins and
 normalized to exclude query, fragment, and credentials.
 
 Other requests:
@@ -51,6 +54,15 @@ Replies contain `v`, the original `id`, `ok`, `kind`, and `data`; errors contain
 after a state change, including changes from other browsers. These pushes have
 no `id`. They contain the complete bounded state and a monotonically increasing
 `revision`, so clients may drop an older snapshot safely.
+
+An observation acknowledgement covers its durable ordering timestamp, even if
+the status and incident are otherwise unchanged. Advancing only that timestamp
+does not increment the public revision, broadcast a new snapshot or repeat an
+alert. An exact retry of already saved evidence performs no additional write.
+Storage failures reject the acknowledgement and restore the previous timestamp,
+so the same observation can be retried after storage becomes available. A
+provided `observedAt` must be an unsigned integer inside the accepted clock
+range; omitting it retains the legacy arrival-time behavior.
 
 ```json
 {

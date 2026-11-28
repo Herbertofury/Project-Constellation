@@ -18,8 +18,9 @@ Keep root, extension, desktop, native payload and release versions aligned.
 Preserve the stable manifest key and extension ID
 `geljambmkfjkhodgkpjhnmfojkpcamig`. Update README, changelog, current notes,
 installation docs, wiki and continuation together. Complete the pinned Athena
-shrink-anything, fast-anything and rust-anything assessments in isolation and
-retain only demonstrated zero-loss improvements.
+shrink-anything, fast-anything and rust-anything assessments in isolation. Review
+Google migrate-to-rust for any material supported legacy port boundary, or record
+its specific inapplicability. Retain only demonstrated zero-loss improvements.
 
 Run `npm run verify`, the native Rust/Computer Tools checks and the desktop
 checks. Record any local environment restriction. A restricted local renderer
@@ -99,7 +100,7 @@ so it cannot be confused with the compact native installer.
 
 1. Merge the accepted review branch with its exact expected head SHA.
 2. Start the release workflow on that commit using the matching release branch
-   or tag. The workflow creates a GitHub prerelease for 0.23.0 because Firefox
+   or tag. The workflow creates a GitHub prerelease for 0.24.0 because Firefox
    signing, Windows publisher signing and target-account acceptance remain open.
 3. The workflow refuses to overwrite an existing release. Download the release
    assets and verify all hashes again; do not equate upload completion with

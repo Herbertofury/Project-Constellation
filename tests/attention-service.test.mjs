@@ -324,6 +324,128 @@ function edgeFixture(){
   const result=await f.observe({documentId:'previous-document',observedAt:previousAt,status:'running'});
   assert.equal(result.ignored,'out-of-order','an old document cannot retire the current tab session');
   const after=await f.runtime.get();assert.deepEqual(after.sessions,before.sessions);assert.deepEqual(after.incidents,before.incidents);
-  for(const tabId of [NaN,Infinity,'bad',Number.MAX_SAFE_INTEGER+1])assert.equal((await f.observe({tabId})).ok,false,'malformed tab IDs cannot enter durable state');
+  for(const tabId of [NaN,Infinity,'bad',1.5,Number.MAX_SAFE_INTEGER+1])assert.equal((await f.observe({tabId})).ok,false,'malformed tab IDs cannot enter durable state');
 }
-console.log('attention-service.test.mjs: PASS (restart, dedup, run episodes, mute/settings wake, absolute native state, bounded channel recovery, snooze, priority, suspension, receipts, ownership, navigation ordering, completion, retention)');
+// A rejected journal write must not make a duplicate look durably accepted.
+{
+  const f=edgeFixture();await f.runtime.start();const write=f.hooks.write;let fail=true;
+  f.hooks.write=async(...args)=>{if(fail){fail=false;throw new Error('Journal unavailable');}return write(...args);};
+  await assert.rejects(f.observe({status:'running'}),/Journal unavailable/);
+  assert.equal((await f.hooks.read()).sessions,undefined);
+  f.advance(10);assert.equal((await f.observe({status:'running'})).ok,true);
+  const stored=await f.hooks.read();assert.equal(stored.sessions[0].status,'running');assert.equal(stored.sessions[0].observedAt,f.now());
+  assert.equal((await core.createService(f.hooks).get()).sessions[0].observedAt,f.now(),'the successful retry survives a fresh service instance');
+  await f.observe({status:'permission_required'});f.advance(100);fail=true;
+  await assert.rejects(f.observe({status:'running'}),/Journal unavailable/);
+  f.advance(10);await f.observe({status:'running'});
+  assert.ok((await f.hooks.read()).incidents[0].resolvedAt,'retrying the same clear state persists the resolution after an earlier failed write');
+}
+{
+  const f=edgeFixture();await f.runtime.start();await f.runtime.settings({audioEnabled:false,notificationsEnabled:false});
+  const write=f.hooks.write;let writes=0;f.hooks.write=async(...args)=>{writes++;return write(...args);};
+  await f.observe({status:'error'});const announced=f.events.length;
+  f.advance(50);await f.observe({status:'error'});
+  assert.equal((await f.hooks.read()).sessions[0].observedAt,f.now(),'an acknowledged advancing watermark must survive worker termination without a later mutation');
+  const savedWrites=writes;await f.observe({status:'error'});
+  assert.equal(writes,savedWrites,'an exact already-durable duplicate does not repeat the storage write');
+  assert.equal(f.events.length,announced,'ordering-only persistence cannot create another alert');
+  const restarted=core.createService(f.hooks);await restarted.start();f.advance(10);
+  const reply=await restarted.observe({tabId:1,url:'https://chatgpt.com/c/edge',title:'Edge case',status:'running',runId:'run-1',observedAt:f.now()-30});
+  assert.equal(reply.ignored,'out-of-order');
+  assert.equal((await restarted.get()).incidents[0].resolvedAt,0,'an older clearance cannot resolve the newly acknowledged issue after restart');
+}
+{
+  const f=edgeFixture();await f.runtime.start();await f.runtime.settings({audioEnabled:false,notificationsEnabled:false});
+  await f.observe({status:'error'});f.advance(10);
+  await f.observe({status:'running',authoritative:false});
+  assert.equal((await f.hooks.read()).incidents[0].resolvedAt,0,'uncorroborated clear evidence cannot resolve the issue');
+  await f.observe({status:'running',authoritative:true});
+  const saved=await f.hooks.read();
+  assert.equal(saved.sessions[0].authoritative,true,'a same-timestamp authority change is a durable observation change');
+  assert.equal(saved.incidents[0].resolvedAt,f.now(),'the resulting same-timestamp resolution survives restart');
+}
+for(const action of ['acknowledge','snooze']){
+  const f=edgeFixture();await f.runtime.start();await f.observe();
+  const id=(await f.runtime.get()).incidents[0].id;f.advance(50);
+  const patch=action==='acknowledge'?{acknowledgedAt:f.now(),snoozedUntil:0}:{acknowledgedAt:0,snoozedUntil:f.now()+5000};
+  const write=f.hooks.write;let fail=true,writes=0;
+  f.hooks.write=async(...args)=>{if(fail){fail=false;throw new Error('Mirrored-state journal unavailable');}writes++;return write(...args);};
+  await assert.rejects(f.runtime.applyIncidentState(id,patch),/Mirrored-state journal unavailable/);
+  assert.equal((await f.hooks.read()).incidents[0].mirroredState,undefined);
+  assert.equal((await f.runtime.applyIncidentState(id,patch)).ok,true);
+  const saved=(await f.hooks.read()).incidents[0];assert.deepEqual(saved.mirroredState,patch,'an identical retry must save the native suppression state before claiming success');
+  assert.equal(saved.acknowledgedAt,patch.acknowledgedAt);assert.equal(saved.snoozedUntil,patch.snoozedUntil);
+  assert.equal(f.deadlines.get(core.ALARM_NAME),patch.snoozedUntil||undefined,'a recovered mirrored write also establishes its correct alarm');
+  const savedWrites=writes;await f.runtime.applyIncidentState(id,patch);assert.equal(writes,savedWrites,'an already-durable mirrored token remains idempotent');
+}
+// Lifecycle work is scoped to the row which was inspected, and close establishes
+// an ordering tombstone so a delayed message cannot reopen a removed document.
+{
+  const f=edgeFixture();await f.runtime.start();await f.observe({documentId:'document-a',status:'running'});
+  const captured=(await f.runtime.get()).sessions[0];f.advance(50);
+  await f.observe({documentId:'document-a',runId:'run-2'});
+  assert.equal((await f.runtime.closeTab(1,'local',captured)).ignored,'session-changed');
+  assert.equal((await f.runtime.observe({...captured,status:'suspended',observedAt:f.now()},captured)).ignored,'session-changed');
+  assert.equal((await f.runtime.get()).sessions[0].status,'permission_required');
+  f.advance(100);await f.runtime.closeTab(1);const closed=(await f.runtime.get()).sessions[0];
+  assert.equal(closed.observedAt,f.now());assert.equal(closed.closedAt,f.now());
+  const announced=f.events.length;
+  assert.ok((await f.observe({documentId:'document-a',runId:'run-2',observedAt:f.now()-1})).ignored);
+  assert.ok((await f.observe({documentId:'document-a',runId:'run-2',observedAt:f.now()})).ignored);
+  assert.equal((await f.runtime.get()).sessions[0].status,'closed');assert.equal(f.events.length,announced);
+  f.advance(1);await f.observe({documentId:'document-b',runId:'run-3'});
+  const before=await f.runtime.get();f.advance(20);
+  assert.equal((await f.observe({documentId:'document-a',runId:'run-2',status:'closed'})).ignored,'stale-close');
+  assert.deepEqual((await f.runtime.get()).sessions,before.sessions,'a newer timestamp cannot turn an obsolete-document close into authority over the new document');
+}
+{
+  const f=edgeFixture();await f.runtime.start();
+  await f.observe({documentId:'previous-document'});
+  await f.observe({documentId:'current-document',url:'https://chatgpt.com/c/current'});
+  const current=(await f.runtime.get()).sessions.find(row=>row.documentId==='current-document');
+  const result=await f.runtime.observe({...current,status:'suspended'},current);
+  assert.equal(result.ignored,undefined,'equal-millisecond navigation selects the most recently accepted document for scoped lifecycle work');
+  assert.equal(result.session.status,'suspended');
+}
+// Simulate termination after the durable delivery claim, before either channel
+// confirms success. Recovery waits for fresh evidence, keeps the same toast ID,
+// and resumes only the channels which have not started.
+{
+  const f=edgeFixture();await f.runtime.start();const notify=f.hooks.notify;let awaitingNotification=false;
+  f.hooks.notify=()=>{awaitingNotification=true;return new Promise(()=>{});};
+  void f.observe({documentId:'interrupted'});
+  for(let i=0;i<20&&!awaitingNotification;i++)await new Promise(setImmediate);
+  assert.equal(awaitingNotification,true);const interrupted=await f.hooks.read();
+  assert.equal(interrupted.incidents[0].delivery.notification,'pending');assert.equal(interrupted.incidents[0].delivery.audio,'pending');
+  f.hooks.notify=notify;f.advance(2000);const restarted=core.createService(f.hooks);await restarted.start();
+  assert.equal(f.deadlines.size,0,'recovered journal data remains offline until fresh provider evidence');
+  await restarted.observe({...interrupted.sessions[0],observedAt:f.now()});await restarted.reminders();
+  const recovered=(await restarted.get()).incidents[0];
+  assert.equal(f.events.length,1);assert.equal(f.audio.length,1);assert.equal(f.events[0].id,interrupted.incidents[0].id);
+  assert.equal(recovered.delivery.attempt,2);assert.equal(recovered.delivery.notification,'accepted');assert.equal(recovered.delivery.audio,'started');
+  assert.equal(f.deadlines.size,0);
+}
+// A claimed sound may already have played before the worker vanished. Preserve
+// uncertainty instead of ringing again or reporting an invented successful receipt.
+for(const legacyPendingClaim of [false,true]) {
+  const f=edgeFixture();await f.runtime.start();const sound=f.hooks.sound;let audioCalls=0;
+  f.hooks.sound=()=>{audioCalls++;return new Promise(()=>{});};void f.observe({documentId:'audio-interrupted'});
+  for(let i=0;i<20&&!audioCalls;i++)await new Promise(setImmediate);
+  assert.equal(audioCalls,1);const interrupted=await f.hooks.read();assert.equal(interrupted.incidents[0].delivery.audio,'claimed');
+  if(legacyPendingClaim){interrupted.incidents[0].delivery.audio='pending';await f.hooks.write(core.STORAGE_KEY,interrupted);}
+  f.hooks.sound=sound;f.advance(3000);const restarted=core.createService(f.hooks);await restarted.start();
+  await restarted.observe({...interrupted.sessions[0],observedAt:f.now()});await restarted.reminders();
+  const recovered=await restarted.get();assert.equal(recovered.incidents[0].delivery.audio,'interrupted');
+  assert.match(recovered.delivery.lastError,/interrupted after its playback claim/);assert.equal(f.events.length,1);assert.equal(f.audio.length,0);
+  assert.equal(f.deadlines.size,0,'uncertain sound is neither automatically replayed nor reported as started');
+  const diagnostic=await restarted.test();assert.equal(diagnostic.audio.started,true);assert.equal(f.audio.length,1,'an explicit diagnostic still tests real delivery');
+  assert.equal((await restarted.get()).incidents[0].delivery.audio,'interrupted','a later diagnostic does not rewrite the historical uncertain receipt');
+}
+{
+  const f=edgeFixture();await f.runtime.start();await f.observe();const stored=await f.hooks.read();
+  stored.incidents[0].delivery.notification='pending';stored.incidents[0].delivery.attempt=4;await f.hooks.write(core.STORAGE_KEY,stored);
+  const restarted=core.createService(f.hooks);await restarted.start();f.advance(5000);
+  await restarted.observe({...stored.sessions[0],observedAt:f.now()});await restarted.reminders();
+  assert.equal(f.events.length,1);assert.equal((await restarted.get()).incidents[0].delivery.retryExhausted,true,'worker termination cannot reset an exhausted delivery budget');
+}
+console.log('attention-service.test.mjs: PASS (restart, dedup, run episodes, durable write recovery, interrupted channel receipts, scoped lifecycle ordering, mute/settings wake, absolute native state, bounded channel recovery, snooze, priority, suspension, ownership, navigation, completion, retention)');

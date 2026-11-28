@@ -1,7 +1,7 @@
 // Minimal cross-browser DOM adapter; no transcript capture and no provider requests.
 (() => {
   'use strict';
-  const VERSION='0.23.0';
+  const VERSION='0.24.0';
   if(globalThis.__pcBrowserMonitorSensor?.version===VERSION)return;
   globalThis.__pcBrowserMonitorSensor?.dispose?.();
   const api=globalThis.browser||globalThis.chrome;
@@ -12,8 +12,10 @@
   const OWNED='[data-pc-monitor],[data-project-constellation-owned],[id^="projectConstellation"]';
   const CODE='pre,code,textarea,[contenteditable="true"]';
   const DELIVERY_RETRY_MS=[250,1000,3000];
+  const DELIVERY_TIMEOUT_MS=4000;
   const userNodes=new WeakMap();
-  let timer=null,deliveryTimer=null,deliverySequence=0,userSequence=0,lastSignature='',lastStatus='idle',wasRunning=false,lastUrl='',lastUserKey='',runId='',destroyed=false,observer,completionAt=0;
+  const pendingDeliveries=new Set();
+  let timer=null,deliveryTimer=null,deliverySequence=0,userSequence=0,lastSignature='',lastStatus='idle',wasRunning=false,lastUrl='',lastUserKey='',runId='',destroyed=false,paused=false,observer,completionAt=0;
   let lastDelivery={ok:false,attempts:0,error:'No observation has been accepted yet.'};
   const clean=(value,max=180)=>String(value||'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
   const hash=value=>{let out=2166136261;for(const ch of value){out^=ch.charCodeAt(0);out=Math.imul(out,16777619);}return (out>>>0).toString(36);};
@@ -104,8 +106,24 @@
     const event={documentId,runId,url:canonical,title:clean(document.title)||'Agent chat',status,reason,observedAt:Date.now(),authoritative:true};
     return {event,signature:JSON.stringify([event.url,event.title,event.runId,event.status,event.reason,status==='running'?progressKey(edge):''])};
   }
+  function sendObservation(event){
+    return new Promise(resolve=>{
+      let settled=false,timeout;
+      const finish=result=>{
+        if(settled)return;settled=true;
+        if(timeout)clearTimeout(timeout);pendingDeliveries.delete(cancel);
+        resolve(result);
+      };
+      const cancel=()=>finish({ok:false,error:'The sensor document is unavailable.'});
+      pendingDeliveries.add(cancel);
+      timeout=setTimeout(()=>finish({ok:false,error:'The monitor did not acknowledge this observation within four seconds.'}),DELIVERY_TIMEOUT_MS);
+      try {
+        Promise.resolve(api.runtime.sendMessage({type:'PC_SENSOR_OBSERVE',event})).then(finish,error=>finish({ok:false,error:clean(error?.message||error,240)}));
+      }catch(error){finish({ok:false,error:clean(error?.message||error,240)});}
+    });
+  }
   async function sample(force=false,retryAttempt=0){
-    if(timer)clearTimeout(timer);timer=null;if(destroyed||!document.body)return {ok:false,error:'The sensor document is unavailable.'};
+    if(timer)clearTimeout(timer);timer=null;if(destroyed||paused||!document.body)return {ok:false,error:'The sensor document is unavailable.'};
     const {event,signature}=read();if(!force&&signature===lastSignature)return {ok:true,unchanged:true};
     if(signature!==lastSignature)retryAttempt=0;
     lastSignature=signature;
@@ -113,12 +131,12 @@
     const sequence=++deliverySequence;
     let result;
     try {
-      result=await api.runtime.sendMessage({type:'PC_SENSOR_OBSERVE',event});
+      result=await sendObservation(event);
       if(result?.ok!==true)result={ok:false,error:clean(result?.error||'The monitor did not accept this observation.',240)};
     }catch(error){result={ok:false,error:clean(error?.message||error,240)};}
     // A late failure from an older snapshot cannot invalidate a newer delivery or
     // enqueue obsolete evidence after navigation. Retries always resample the DOM.
-    if(!destroyed&&sequence===deliverySequence){
+    if(!destroyed&&!paused&&sequence===deliverySequence){
       lastDelivery={ok:result.ok===true,attempts:retryAttempt+1,error:result.ok===true?'':result.error};
       if(result.ok!==true&&retryAttempt<DELIVERY_RETRY_MS.length)deliveryTimer=setTimeout(()=>{
         deliveryTimer=null;void sample(true,retryAttempt+1);
@@ -126,11 +144,12 @@
     }
     return result;
   }
-  function schedule(delay=180){if(timer||destroyed)return;timer=setTimeout(()=>sample(),delay);}
+  function schedule(delay=180){if(timer||destroyed||paused)return;timer=setTimeout(()=>sample(),delay);}
   function start(){
-    observer=new MutationObserver(records=>{if(records.some(record=>!(record.target?.closest?.(OWNED)||record.target?.parentElement?.closest?.(OWNED))))schedule();});
+    if(destroyed||paused||!document.body)return;
+    if(!observer)observer=new MutationObserver(records=>{if(records.some(record=>!(record.target?.closest?.(OWNED)||record.target?.parentElement?.closest?.(OWNED))))schedule();});
     observer.observe(document.documentElement||document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','aria-hidden','aria-disabled','aria-busy','data-is-streaming','data-state','data-testid','hidden','disabled','style','class']});
-    sample(true);
+    return sample(true);
   }
   const listener=message=>{
     if(message?.type==='PC_MONITOR_RESCAN')return sample(true);
@@ -142,8 +161,17 @@
   };
   api.runtime.onMessage.addListener(listener);
   const forceSample=()=>sample(true);
-  document.addEventListener('visibilitychange',forceSample);window.addEventListener('pageshow',forceSample);window.addEventListener('popstate',forceSample);window.addEventListener('hashchange',forceSample);
-  const pagehide=()=>{if(timer)clearTimeout(timer);timer=null;if(deliveryTimer)clearTimeout(deliveryTimer);deliveryTimer=null;deliverySequence++;};window.addEventListener('pagehide',pagehide);
-  globalThis.__pcBrowserMonitorSensor={version:VERSION,rescan:forceSample,get delivery(){return {...lastDelivery};},dispose(){destroyed=true;pagehide();observer?.disconnect();api.runtime.onMessage.removeListener?.(listener);document.removeEventListener('visibilitychange',forceSample);for(const name of ['pageshow','popstate','hashchange'])window.removeEventListener(name,forceSample);window.removeEventListener('pagehide',pagehide);}};
+  const pageshow=()=>{if(destroyed)return;paused=false;return start();};
+  document.addEventListener('visibilitychange',forceSample);window.addEventListener('pageshow',pageshow);window.addEventListener('popstate',forceSample);window.addEventListener('hashchange',forceSample);
+  const pagehide=()=>{
+    paused=true;if(timer)clearTimeout(timer);timer=null;if(deliveryTimer)clearTimeout(deliveryTimer);deliveryTimer=null;deliverySequence++;
+    observer?.disconnect();for(const cancel of [...pendingDeliveries])cancel();
+  };window.addEventListener('pagehide',pagehide);
+  const sensor={version:VERSION,rescan:forceSample,get delivery(){return {...lastDelivery};},dispose(){
+    destroyed=true;pagehide();api.runtime.onMessage.removeListener?.(listener);document.removeEventListener('DOMContentLoaded',start);document.removeEventListener('visibilitychange',forceSample);
+    window.removeEventListener('pageshow',pageshow);for(const name of ['popstate','hashchange'])window.removeEventListener(name,forceSample);window.removeEventListener('pagehide',pagehide);
+    if(globalThis.__pcBrowserMonitorSensor===sensor)delete globalThis.__pcBrowserMonitorSensor;
+  }};
+  globalThis.__pcBrowserMonitorSensor=sensor;
   if(document.body)start();else document.addEventListener('DOMContentLoaded',start,{once:true});
 })();
