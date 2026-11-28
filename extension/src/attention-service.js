@@ -1,0 +1,378 @@
+(() => {
+  'use strict';
+
+  // This is the browser delivery/persistence adapter. Health classification is supplied
+  // by the existing provider sensors; it never infers a stalled agent from elapsed time.
+  const STORAGE_KEY = 'projectConstellationAttentionV1';
+  const ALARM_NAME = 'project-constellation-attention-reminder';
+  const DEFAULTS = Object.freeze({ enabled:true, audioEnabled:true, notificationsEnabled:true,
+    volume:0.45, reminderMinutes:0, maxReminders:3, muteUntil:0, completionEnabled:false });
+  const STATES = Object.freeze({
+    'blocked-approval':['permission_required','Approval needed','critical'],
+    permission_required:['permission_required','Approval needed','critical'],
+    'provider-review':['waiting_for_user','Review needed','warning'],
+    'waiting-user':['waiting_for_user','Your input is needed','warning'],
+    waiting_for_user:['waiting_for_user','Your input is needed','warning'],
+    no_visible_progress:['no_visible_progress','No visible progress','warning'],
+    'auth-required':['auth_required','Sign-in needed','critical'],
+    'rate-limited':['rate_limited','Provider rate limit','warning'],
+    rate_limited:['rate_limited','Provider rate limit','warning'],
+    'capacity-watch':['context_limit','Conversation capacity warning','warning'],
+    'capacity-handoff':['context_limit','Secure a conversation handoff','critical'],
+    'capacity-reached':['context_limit','Conversation limit reached','critical'],
+    context_limit:['context_limit','Conversation limit reached','critical'],
+    'delivery-timeout':['error','Message delivery timed out','critical'],
+    'connection-interrupted':['error','Connection interrupted','critical'],
+    'response-interrupted':['error','Response interrupted','critical'],
+    'send-failed':['error','Message was not sent','critical'],
+    'refresh-required':['error','Chat needs a refresh','critical'],
+    errored:['error','Provider error','critical'], error:['error','Provider error','critical'],
+    unavailable:['error','Conversation unavailable','critical'],
+    dead:['error','Chat needs attention','critical'],
+    'tool-dead':['error','Tool stopped responding','critical'],
+    stalled:['error','Chat may be stalled','warning'],
+    'request-stalled':['error','Request may be stalled','warning'],
+    'tool-stalled':['error','Tool may be stalled','warning']
+  });
+  const QUIET_STATES = new Set(['quiet-working','uncertain-working','tool-quiet']);
+  const SETTLED_STATES = new Set(['idle','healthy','completed','working','running','tool-running']);
+  const SUSPENDED_STATES = new Set(['suspended','discarded','frozen','closed','reconnecting','sensor-offline']);
+  const text = (value, max = 240) => String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+  const clamp = (value, min, max, fallback) => Number.isFinite(Number(value)) ? Math.max(min, Math.min(max, Number(value))) : fallback;
+  const copy = (value) => JSON.parse(JSON.stringify(value));
+  function canonicalUrl(value) {
+    try { const url = new URL(String(value || '')); return url.protocol === 'https:' ? `${url.origin}${url.pathname}`.slice(0, 1000) : ''; }
+    catch (_) { return ''; }
+  }
+  function hash(value) { let out = 2166136261; for (const ch of value) { out ^= ch.charCodeAt(0); out = Math.imul(out, 16777619); } return (out >>> 0).toString(36); }
+  function normalizeSettings(value = {}) {
+    return { enabled:value.enabled !== false, audioEnabled:value.audioEnabled !== false,
+      notificationsEnabled:value.notificationsEnabled !== false, completionEnabled:value.completionEnabled === true,
+      volume:clamp(value.volume, 0, 1, DEFAULTS.volume),
+      reminderMinutes:clamp(value.reminderMinutes, 0, 120, DEFAULTS.reminderMinutes),
+      maxReminders:Math.floor(clamp(value.maxReminders, 0, 10, DEFAULTS.maxReminders)),
+      muteUntil:clamp(value.muteUntil, 0, Number.MAX_SAFE_INTEGER, 0) };
+  }
+  function observation(input = {}, at = Date.now()) {
+    const tabId = Math.trunc(Number(input.tabId || 0));
+    if (tabId < 1) return null;
+    const url = canonicalUrl(input.url || input.chat?.url);
+    if (!url) return null;
+    const candidates=[input.status,input.chat?.status,input.healthState,input.chat?.healthState].filter(Boolean);
+    const suspended=input.discarded||input.frozen||candidates.some((value)=>SUSPENDED_STATES.has(value));
+    const permission=input.permission?.active||input.chat?.permission?.active||candidates.some((value)=>['blocked-approval','permission_required'].includes(value));
+    const status = text(suspended ? (candidates.includes('closed')?'closed':'suspended') : permission ? 'permission_required' : input.healthState || input.chat?.healthState || input.status || input.chat?.status || 'idle', 64);
+    const sourceId = text(input.sourceId || 'local', 160);
+    const documentId = text(input.documentId || input.chatId || input.chat?.id || url, 180);
+    const key = `${sourceId}:${tabId}:${hash(documentId + ':' + url)}`;
+    let incident = STATES[status] || null;
+    // Existing sensors carry corroborated health evidence. A raw stale status label
+    // without current-turn evidence is not enough to ring an alarm.
+    if (/stalled|dead/.test(status) && !input.failure?.active && !input.corroborated &&
+        !input.generation?.active && !input.generation?.stopControl && !input.generation?.assistantBusy &&
+        !(Number(input.network?.pending || 0) > 0) && !input.health?.corroborated && !(input.health?.proof?.sources?.length >= 2)) incident = null;
+    return { key, sourceId, tabId, documentId, runId:text(input.runId || input.generation?.runId || '', 120), url,
+      title:text(input.title || input.chat?.title || input.providerName || 'Agent chat'),
+      providerId:text(input.providerId || '', 60), browser:text(input.browser || 'This browser', 80),
+      status, kind:incident?.[0] || (SUSPENDED_STATES.has(status) ? 'suspended' : QUIET_STATES.has(status) ? 'running' : status === 'healthy' ? 'idle' : status),
+      label:incident?.[1] || '', severity:incident?.[2] || '',
+      reason:text(input.reason || input.failure?.title || input.health?.detail || input.statusDetail || (incident?.[0] === 'permission_required' ? 'Open this chat and review the permission request.' : ''), 300),
+      observedAt:clamp(input.observedAt, 0, at + 5000, at),
+      authoritative:input.authoritative !== false && input.source !== 'scripting-dom-probe' && !input.reconnecting,
+      incident:Boolean(incident), suspended:SUSPENDED_STATES.has(status) };
+  }
+
+  function createService(io = {}) {
+    const now = () => io.now?.() ?? Date.now();
+    let state = null;
+    let loading = null;
+    let queue = Promise.resolve();
+    let owner = { enabled:true, reason:'standalone' };
+    let scheduledAt;
+    let started=false;
+    const listeners = new Set();
+    const enqueue = (work) => { const task = queue.then(work); queue = task.catch(() => {}); return task; };
+    async function load() {
+      if (state) return state;
+      if (!loading) loading = (async () => {
+        const stored = await io.read?.(STORAGE_KEY) || {};
+        state = { schema:1, sequence:Number(stored.sequence || 0), settings:normalizeSettings(stored.settings),
+          sessions:Array.isArray(stored.sessions) ? stored.sessions : [],
+          incidents:Array.isArray(stored.incidents) ? stored.incidents : [],
+          delivery:stored.delivery && typeof stored.delivery === 'object' ? stored.delivery : {}, updatedAt:Number(stored.updatedAt || 0) };
+        return state;
+      })().finally(() => { loading = null; });
+      return loading;
+    }
+    function snapshot() {
+      return copy({ ...state, audioOwner:owner, counts:{
+        open:state.incidents.filter((x) => !x.resolvedAt && !x.acknowledgedAt).length,
+        acknowledged:state.incidents.filter((x) => !x.resolvedAt && x.acknowledgedAt).length,
+        suspended:state.sessions.filter((x) => x.suspended).length,
+        sessions:state.sessions.length } });
+    }
+    async function persist(event = null) {
+      state.updatedAt = now();
+      if (state.incidents.length > 500) {
+        const open = state.incidents.filter((x) => !x.resolvedAt);
+        const resolved = state.incidents.filter((x) => x.resolvedAt);
+        state.incidents = [...resolved.slice(-500), ...open];
+      }
+      state.sessions = [...state.sessions.filter((x) => x.status === 'closed').slice(-500), ...state.sessions.filter((x) => x.status !== 'closed')];
+      await io.write?.(STORAGE_KEY, state);
+      if (event) {
+        for (const listener of listeners) { try { listener(copy(event)); } catch (_) {} }
+        io.changed?.({ type:event.type, id:event.incident?.id || '', session:event.session ? copy(event.session) : null });
+      }
+    }
+    function channelsEnabled() {
+      return state.settings.notificationsEnabled || (state.settings.audioEnabled && state.settings.volume > 0);
+    }
+    function dueAt(item) {
+      if(item.resolvedAt||item.acknowledgedAt||item.suspended||item.sourceClosed)return 0;
+      // A first alert deferred by mute/ownership/settings, and an explicit snooze,
+      // are delivery deadlines even when automatic repeat reminders are disabled.
+      let due=!item.notifiedAt ? Number(item.firstSeenAt||item.lastSeenAt||state.updatedAt||1) : item.snoozedUntil>0 ? item.snoozedUntil :
+        item.reminders<state.settings.maxReminders ? Number(item.nextReminderAt||0) : 0;
+      return due>0 ? Math.max(due,Number(item.snoozedUntil||0),Number(state.settings.muteUntil||0)) : 0;
+    }
+    async function schedule() {
+      const cfg = state.settings;
+      const due = state.incidents.map(dueAt).filter((x) => x > 0);
+      if (!cfg.enabled || !owner.enabled || !channelsEnabled() || !due.length) {
+        if (scheduledAt !== 0) await io.clearAlarm?.(ALARM_NAME); scheduledAt=0;
+      } else {
+        const target=Math.min(...due),deadline=Math.max(now(),target);
+        // Keep an already-due alarm in place. Frequent snapshots must not keep
+        // pushing its wake time forward; future native snoozes stay exact too.
+        if(scheduledAt>0&&scheduledAt<=deadline&&target<=scheduledAt)return;
+        if (deadline!==scheduledAt) {await io.alarm?.(ALARM_NAME,deadline);scheduledAt=deadline;}
+      }
+    }
+    function eligible(item) {
+      return state.settings.enabled && owner.enabled && channelsEnabled() && now() >= state.settings.muteUntil && !item.acknowledgedAt &&
+        !item.resolvedAt && !item.suspended && !item.sourceClosed && now() >= Number(item.snoozedUntil || 0);
+    }
+    async function clearToast(id) {
+      try {await io.clearNotification?.(id);}
+      catch(error){state.delivery.lastCleanupError=text(error?.message||error);}
+    }
+    async function deliver(item, reason = 'new') {
+      if (!eligible(item)) return { ok:false, skipped:true };
+      const at = now();
+      item.notifiedAt = at;
+      item.snoozedUntil = 0;
+      item.nextReminderAt = state.settings.reminderMinutes > 0 ? at + state.settings.reminderMinutes * 60000 : 0;
+      item.delivery = { at, reason, notification:'pending', audio:'pending' };
+      // Persist the episode before contacting the OS. Stable notification identifiers
+      // let a retry replace the toast instead of multiplying it.
+      await persist();
+      let notification = { ok:true, skipped:true };
+      let audio = { ok:true, skipped:true };
+      if (state.settings.notificationsEnabled) {
+        try { notification = await io.notify?.(copy(item)) || {ok:false,error:'Notifications are unavailable.'}; }
+        catch (error) { notification = {ok:false,error:text(error?.message || error)}; }
+      }
+      if (state.settings.audioEnabled && state.settings.volume > 0) {
+        const lastSound = Number(state.delivery.lastAudioAt || 0);
+        if (at - lastSound >= 1500 || lastSound === 0) {
+          // Commit the sound claim before playback: worker restarts must not create
+          // overlapping alarms for an already-announced episode.
+          state.delivery.lastAudioAt = at;
+          await persist();
+          try { audio = await io.sound?.({kind:item.kind,severity:item.severity,volume:state.settings.volume}) || {ok:false,error:'Audio is unavailable.'}; }
+          catch (error) { audio = {ok:false,error:text(error?.message || error)}; }
+          if(audio.ok!==true)state.delivery.lastAudioAt=lastSound;
+        } else audio = {ok:true,skipped:true,reason:'Grouped with another recent alert.'};
+      }
+      item.delivery = {at,reason,notification:notification.skipped ? 'disabled' : notification.ok ? 'accepted' : 'failed',
+        audio:audio.skipped ? 'grouped-or-disabled' : audio.ok ? 'started' : 'failed',
+        notificationError:text(notification.error || ''),audioError:text(audio.error || '')};
+      state.delivery.lastResult = copy(item.delivery);
+      state.delivery.lastError = [item.delivery.notificationError,item.delivery.audioError].filter(Boolean).join(' ');
+      state.delivery.lastErrorAt = state.delivery.lastError ? at : 0;
+      await persist({type:'delivery',incident:item});
+      return {ok:notification.ok && audio.ok,notification,audio};
+    }
+    async function observe(input) {
+      return enqueue(async () => {
+        await load();
+        const row = observation(input, now());
+        if (!row) return {ok:false,error:'A valid open HTTPS chat tab is required.'};
+        const previous = state.sessions.find((x) => x.key === row.key);
+        if (previous && row.observedAt < previous.observedAt) return {ok:true,ignored:'out-of-order'};
+        // A tab's document may navigate. Old unresolved incidents retain evidence,
+        // but cannot keep ringing or focus the newly opened conversation.
+        for (const prior of state.sessions) {
+          if (prior.sourceId === row.sourceId && prior.tabId === row.tabId && prior.key !== row.key) {
+            prior.suspended = true; prior.status = 'closed';
+            for (const item of state.incidents.filter((x) => x.sessionKey === prior.key && !x.resolvedAt)) item.sourceClosed = true;
+          }
+        }
+        state.sessions = state.sessions.filter((x) => x.key !== row.key);
+        state.sessions.push(row);
+        const active = state.incidents.filter((x) => x.sessionKey === row.key && !x.resolvedAt);
+        let created = null;
+        let unannounced = null;
+        if (row.suspended) for (const item of active) item.suspended = true;
+        else if (row.incident) {
+          const recordedRun=previous?.runId||active.find((item)=>item.runId)?.runId||'';
+          const newRun=Boolean(row.authoritative&&row.runId&&recordedRun&&row.runId!==recordedRun);
+          const same = !newRun && active.find((x) => x.kind === row.kind && x.status === row.status);
+          for (const item of active) {
+            item.suspended = false;
+            if (item !== same) { item.resolvedAt=now(); item.resolution=newRun?'superseded-by-new-run':'state-changed'; await clearToast(item.id); }
+          }
+          if (same) { same.lastSeenAt=row.observedAt; same.title=row.title; same.reason=row.reason; same.runId=row.runId||same.runId||''; same.sourceClosed=false; if(!same.notifiedAt)unannounced=same; }
+          else {
+            state.sequence += 1;
+            created = {id:`pc-attention:${hash(row.key)}:${state.sequence}`,sessionKey:row.key,
+              sourceId:row.sourceId,tabId:row.tabId,documentId:row.documentId,runId:row.runId,url:row.url,title:row.title,
+              browser:row.browser,kind:row.kind,status:row.status,label:row.label,severity:row.severity,reason:row.reason,
+              firstSeenAt:now(),lastSeenAt:row.observedAt,resolvedAt:0,acknowledgedAt:0,snoozedUntil:0,
+              notifiedAt:0,nextReminderAt:state.settings.reminderMinutes > 0 ? now()+state.settings.reminderMinutes*60000 : 0,reminders:0,suspended:false,sourceClosed:false};
+            state.incidents.push(created);
+          }
+        } else if (row.authoritative && (SETTLED_STATES.has(row.status) || QUIET_STATES.has(row.status))) {
+          for (const item of active) { item.resolvedAt=now(); item.resolution='provider-state-cleared'; await clearToast(item.id); }
+        }
+        const changed = !previous || previous.status !== row.status || previous.runId !== row.runId || previous.title !== row.title || previous.reason !== row.reason;
+        if (!created && state.settings.completionEnabled && previous && /^(running|working|tool-running|quiet-working|tool-quiet|uncertain-working)$/.test(previous.status) && /^(idle|healthy|completed)$/.test(row.status) && row.authoritative) {
+          state.sequence+=1;created={id:`pc-attention:${hash(row.key)}:${state.sequence}`,sessionKey:row.key,sourceId:row.sourceId,tabId:row.tabId,documentId:row.documentId,url:row.url,title:row.title,browser:row.browser,kind:'completed',status:'completed',label:'Chat completed',severity:'info',reason:'The response is ready to review.',firstSeenAt:now(),lastSeenAt:now(),resolvedAt:0,acknowledgedAt:0,snoozedUntil:0,nextReminderAt:0,reminders:0};state.incidents.push(created);
+        }
+        const event={type:created ? 'incident' : 'observation',session:row,incident:created};
+        if (changed || created || now()-Number(state.updatedAt || 0)>30000) await persist(event);
+        else for (const listener of listeners) {try {listener(copy(event));} catch (_) {}}
+        if (unannounced) await deliver(unannounced);
+        if (created) {await deliver(created);if (created.kind==='completed') {created.resolvedAt=now();created.resolution='completion-notice';created.nextReminderAt=0;await persist({type:'completed',incident:created});}}
+        await schedule();
+        return {ok:true,session:copy(row),incident:created ? copy(created) : null};
+      });
+    }
+    async function changeIncident(id, action, minutes=10) {
+      return enqueue(async () => {
+        await load();
+        const item = state.incidents.find((x) => x.id === id);
+        if (!item) return {ok:false,error:'This incident is no longer available.'};
+        if (action === 'acknowledge') { item.acknowledgedAt=now(); item.snoozedUntil=0; }
+        if (action === 'snooze') { item.acknowledgedAt=0; item.snoozedUntil=now()+clamp(minutes,1,1440,10)*60000; item.nextReminderAt=item.snoozedUntil; item.reminders=0; }
+        await clearToast(item.id);
+        await persist({type:action,incident:item});
+        await schedule();
+        return {ok:true,incident:copy(item)};
+      });
+    }
+    async function deliverDue(reasonOverride='') {
+      for(const item of state.incidents) {
+        const due=dueAt(item);
+        if(due>0&&eligible(item)&&now()>=due) {
+          const reason=!item.notifiedAt?'deferred-first-alert':item.snoozedUntil?'snooze-ended':'reminder';
+          if(reason==='reminder')item.reminders+=1;
+          await deliver(item,reasonOverride||reason);
+        }
+      }
+    }
+    function applyIncidentState(id, patch) {
+      return enqueue(async()=>{
+        await load();
+        // Only the trusted native bridge calls this internal API after matching
+        // incident/document/run identity. It has no provider or UI message route.
+        const fields=['acknowledgedAt','snoozedUntil'];
+        if(typeof id!=='string'||!id||!patch||typeof patch!=='object'||Array.isArray(patch)||
+          !fields.some((field)=>Object.hasOwn(patch,field))||Object.keys(patch).some((field)=>!fields.includes(field)))return {ok:false,error:'Absolute incident state is required.'};
+        const at=now();
+        for(const field of fields)if(Object.hasOwn(patch,field)) {
+          const value=patch[field],limit=at+(field==='snoozedUntil'?7*86400000:5*60000);
+          if(typeof value!=='number'||!Number.isSafeInteger(value)||value<0||value>limit)return {ok:false,error:'Incident timestamps must be bounded nonnegative safe integers.'};
+        }
+        if(patch.acknowledgedAt>0&&patch.snoozedUntil>0)return {ok:false,error:'An incident cannot be acknowledged and snoozed simultaneously.'};
+        const item=state.incidents.find((entry)=>entry.id===id);
+        if(!item)return {ok:false,error:'This incident is no longer available.'};
+        let acknowledgedAt=Object.hasOwn(patch,'acknowledgedAt')?patch.acknowledgedAt:Number(item.acknowledgedAt||0);
+        let snoozedUntil=Object.hasOwn(patch,'snoozedUntil')?patch.snoozedUntil:Number(item.snoozedUntil||0);
+        if(patch.acknowledgedAt>0)snoozedUntil=0;
+        if(patch.snoozedUntil>0)acknowledgedAt=0;
+        const mirrored={acknowledgedAt,snoozedUntil};
+        // Preserve the source token even after local snooze delivery clears its
+        // active deadline. Reconnecting to the same expired native snooze cannot
+        // replay it after worker/browser restarts.
+        if(item.mirroredState?.acknowledgedAt===acknowledgedAt&&item.mirroredState?.snoozedUntil===snoozedUntil)return {ok:true,unchanged:true,incident:copy(item)};
+        const wasSnoozed=Number(item.snoozedUntil||0)>0;
+        item.acknowledgedAt=acknowledgedAt;item.snoozedUntil=snoozedUntil;item.mirroredState=mirrored;
+        if(acknowledgedAt)item.nextReminderAt=0;
+        else if(snoozedUntil){item.nextReminderAt=snoozedUntil;item.reminders=0;}
+        else if(wasSnoozed)item.nextReminderAt=state.settings.reminderMinutes>0?at+state.settings.reminderMinutes*60000:0;
+        if(acknowledgedAt||snoozedUntil)await clearToast(item.id);
+        await persist({type:'incident-state-mirrored',incident:item});
+        await deliverDue();
+        await schedule();
+        return {ok:true,incident:copy(item)};
+      });
+    }
+    async function reminders() {
+      return enqueue(async () => {
+        await load();
+        scheduledAt=undefined;
+        await deliverDue();
+        await schedule();
+        return {ok:true};
+      });
+    }
+    async function focus(id) {
+      await load();
+      const item=state.incidents.find((x)=>x.id===id) || state.sessions.find((x)=>x.key===id);
+      if (!item || item.sourceClosed || item.status==='closed') return {ok:false,error:'This chat is no longer open.'};
+      return io.focus?.(copy(item)) || {ok:false,error:'Tab focus is unavailable.'};
+    }
+    return Object.freeze({
+      observe,
+      get:async()=>{await queue;await load();return snapshot();},
+      start:()=>enqueue(async()=>{
+        await load();
+        if(!started){
+          started=true;
+          // Storage is history, not proof that a browser tab is still alive. Fresh
+          // provider observations or the one-shot startup reconcile restore coverage.
+          for(const row of state.sessions){if(row.status==='closed')continue;row.lastKnownStatus=row.status;row.status='sensor-offline';row.kind='suspended';row.suspended=true;row.authoritative=false;for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt))item.suspended=true;}
+          if(state.sessions.length)await persist({type:'reconnecting'});
+        }
+        await schedule();return snapshot();
+      }),
+      acknowledge:(id)=>changeIncident(id,'acknowledge'),snooze:(id,minutes)=>changeIncident(id,'snooze',minutes),
+      focus,reminders,applyIncidentState,
+      subscribe:(fn)=>{listeners.add(fn);return ()=>listeners.delete(fn);},
+      settings:(patch)=>enqueue(async()=>{
+        await load();const previous=state.settings;state.settings=normalizeSettings({...previous,...patch});
+        if(previous.reminderMinutes!==state.settings.reminderMinutes)for(const item of state.incidents){
+          if(item.resolvedAt||item.acknowledgedAt||item.snoozedUntil>now())continue;
+          item.nextReminderAt=state.settings.reminderMinutes>0?now()+state.settings.reminderMinutes*60000:0;
+        }
+        await persist({type:'settings'});
+        for(const item of state.incidents)if(!item.notifiedAt&&eligible(item))await deliver(item,'settings-enabled');
+        await schedule();return snapshot();
+      }),
+      setAudioOwner:(value)=>enqueue(async()=>{
+        await load();const wasEnabled=owner.enabled;owner={enabled:value?.enabled!==false,reason:text(value?.reason||'standalone')};
+        if(!wasEnabled&&owner.enabled)await deliverDue('ownership-transfer');
+        await schedule();return copy(owner);
+      }),
+      closeTab:(tabId,sourceId='local')=>enqueue(async()=>{await load();for(const row of state.sessions.filter((x)=>x.tabId===Number(tabId)&&x.sourceId===sourceId)){row.suspended=true;row.status='closed';for(const item of state.incidents.filter((x)=>x.sessionKey===row.key&&!x.resolvedAt)){item.sourceClosed=true;await clearToast(item.id);}}await persist({type:'closed'});await schedule();return {ok:true};}),
+      test:()=>enqueue(async()=>{
+        await load();let sound,notification;
+        try{sound=await io.sound?.({kind:'test',severity:'warning',volume:state.settings.volume})||{ok:false,error:'Audio is unavailable.'};}catch(error){sound={ok:false,error:text(error?.message||error)};}
+        try{notification=await io.notify?.({id:'pc-attention:test',kind:'test',label:'Constellation test alert',title:'Agent Monitor',reason:'Notification delivery was accepted. Confirm that you hear the sound and see this notification.',severity:'info',browser:'This browser'})||{ok:false,error:'Notifications are unavailable.'};}catch(error){notification={ok:false,error:text(error?.message||error)};}
+        const limitations=[];
+        if(!state.settings.enabled)limitations.push('automatic alerts are disabled');
+        if(state.settings.muteUntil>now())limitations.push('automatic alerts are muted');
+        if(!state.settings.audioEnabled)limitations.push('automatic sound is off');
+        if(state.settings.volume===0)limitations.push('sound volume is zero');
+        if(!state.settings.notificationsEnabled)limitations.push('automatic notifications are off');
+        if(!owner.enabled)limitations.push('another browser owns shared alerts');
+        const settingsNotice='This explicit diagnostic tests both channels independently of automatic-alert switches and mute.'+(limitations.length?' Current settings: '+limitations.join('; ')+'.':'');
+        const result={ok:Boolean(sound.ok&&notification.ok),mode:'explicit-diagnostic',settingsNotice,audio:sound,notification,error:[sound.error,notification.error].filter(Boolean).join(' ')};
+        state.delivery.lastTest={...result,at:now()};await persist({type:'test'});return result;
+      })
+    });
+  }
+  globalThis.ProjectConstellationAttentionService=Object.freeze({STORAGE_KEY,ALARM_NAME,DEFAULTS,normalizeSettings,observation,canonicalUrl,createService});
+})();

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const manifest=JSON.parse(fs.readFileSync(new URL('../extension/manifest.json', import.meta.url),'utf8'));
+const scripts=manifest.content_scripts.flatMap(row=>row.js||[]);
+assert.ok(scripts.includes('src/provider-health-core.js'));
+const content=fs.readFileSync(new URL('../extension/src/content.js', import.meta.url),'utf8');
+const bg=fs.readFileSync(new URL('../extension/background.js', import.meta.url),'utf8');
+const home=fs.readFileSync(new URL('../extension/home.js', import.meta.url),'utf8');
+assert.match(content,/PC_PROVIDER_CAPABILITY_REPORT/);
+assert.match(bg,/PC_PROVIDER_HEALTH_SUMMARY/);
+assert.match(home,/providerHealth/i);
+console.log('provider health runtime static PASS');

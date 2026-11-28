@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+await import('../extension/src/state-event-bus-core.js');
+const core=globalThis.ProjectConstellationStateEventBusCore;
+assert(core);
+const event=core.envelope('live.chat.changed',{chatId:'x'},{source:'test'});
+assert.equal(event.schema,'pc-state-event-v1');
+assert.equal(event.topic,'live.chat.changed');
+assert.equal(event.source,'test');
+assert(core.isStateEvent(event));
+console.log('state-event-bus-core.test.mjs: PASS');

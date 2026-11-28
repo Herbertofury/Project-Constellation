@@ -1,0 +1,48 @@
+{
+  "project": "Project Constellation",
+  "version": "0.20.1",
+  "runtime": {
+    "electron": "44.4.4",
+    "electron_builder": "26.16.1",
+    "api_key_required": false,
+    "official_ChatGPT_app": false,
+    "stable_extension_id": "geljambmkfjkhodgkpjhnmfojkpcamig"
+  },
+  "architecture": {
+    "state_bus": true,
+    "provider_health": true,
+    "incident_brain": true,
+    "brain_db_version": 11,
+    "update_center": true,
+    "chat_guardian": true,
+    "all_open_chatgpt_tabs": true,
+    "event_first_guardian": true,
+    "one_shot_guardian_fallback": true,
+    "fixed_polling_reduced": true,
+    "broad_permissions_preserved": true
+  },
+  "verification": {
+    "root_regressions": "PASS",
+    "root_validation": "PASS",
+    "development_build": "PASS",
+    "chat_guardian_browser_dom_smoke": "PASS",
+    "chat_guardian_background_integration": "PASS",
+    "desktop_static_and_reliability": "PASS",
+    "full_browser_smoke_suite": "PASS: 35/35",
+    "native_windows": "REQUIRES_PASSING_WINDOWS_RUNTIME_RECEIPT_FOR_RELEASE",
+    "authenticated_user_chatgpt": "USER_RUNTIME_ACCEPTANCE"
+  },
+  "preserved": [
+    "immutable 0.20.0 release bytes and source lineage",
+    "ChatGPT persistent partition",
+    "existing local tool definitions",
+    "Commander-era state/config paths for upgrade compatibility",
+    "stable browser extension identity and local bridge protocol",
+    "provider/approval/auth/rate-limit/user-draft safety holds"
+  ],
+  "delivery": "0.20.0 exact source + deterministic 0.20.1 delta + browser extension + Windows portable/setup + checksums + release receipt after exact-source Linux/Windows gates",
+  "remaining_release_gates": [
+    "A passing 0.20.1 WINDOWS-RUNTIME-RECEIPT.json is required before final publication",
+    "User authenticated ChatGPT acceptance after delivery"
+  ]
+}

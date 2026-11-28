@@ -1,0 +1,28 @@
+name: Windows setup source-test acceptance
+on:
+  push:
+    branches: [review/windows-setup]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - shell: pwsh
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # Bounded fresh-process repetition, not an automatic retry of a failure.
+          # Every iteration exercises deny/allow/wrong-op/late-yes/peer-exit.
+          for ($round = 1; $round -le 10; $round++) {
+            Write-Host "Consent regression iteration $round of 10"
+            cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml --test gui actual_gui_authorizes_separate_client_and_invalidates_late_consent -- --exact --test-threads=1
+            if ($LASTEXITCODE -ne 0) { throw "Consent regression failed at iteration $round; stopping without retry" }
+          }
+          & ./windows-owner/setup/accept-setup.ps1

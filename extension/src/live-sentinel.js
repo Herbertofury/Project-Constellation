@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.12';
+  const VERSION = '0.22.0';
   const existing = globalThis.ProjectConstellationLiveSentinel;
   if (existing?.version === VERSION) return;
   try { existing?.dispose?.(); } catch (_) {}
@@ -33,6 +33,7 @@
   const BUSY_SELECTOR = '[aria-busy="true"],[data-state="loading" i],[data-state="pending" i],[data-loading="true"]';
   const OWNED_SELECTOR = '[id^="projectConstellation"],[data-project-constellation-owned="1"]';
   const ALERT_SELECTOR = '[role="alert"],[aria-live="assertive"],[data-testid*="error" i],[data-testid*="warning" i],[data-testid*="notice" i]';
+  const REVIEW_HOLD_SELECTOR = `${ALERT_SELECTOR},[role="status"],[aria-live="polite"],${WEAK_PROGRESS_SELECTOR}`;
 
   const IDLE_SETTLE_MS = 2200;
   const ASSISTANT_GROWTH_GRACE_MS = 1400;
@@ -41,7 +42,7 @@
   const CHATGPT_TRANSCRIPT_RUNNING_POLL_MS = 4500;
   const CHATGPT_TRANSCRIPT_IDLE_POLL_MS = 15000;
   const CHATGPT_PAGE_PROBE_RESPONSE_SOURCE = 'project-constellation-chatgpt-page-probe';
-  const HEALTH_CORE_VERSION = '10';
+  const HEALTH_CORE_VERSION = '12';
   const BRAIN_SETTINGS_KEY = 'projectConstellationBrainSettings';
   const STATE_EVENT = 'project-constellation:live-sentinel-state';
   const FAILURE_PRIMARY_STATES = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed']);
@@ -395,6 +396,14 @@
     return clean(node.getAttribute?.('data-message-id') || node.getAttribute?.('data-testid') || node.textContent || '', 300);
   }
 
+  function opaqueRunId(frontier) {
+    const key=nodeKey(frontier.latestUser);
+    if(!key)return '';
+    let value=2166136261;
+    for(const char of key){value^=char.charCodeAt(0);value=Math.imul(value,16777619);}
+    return `turn-${(value>>>0).toString(36)}`;
+  }
+
   function toolProgressSignature(rows = []) {
     return rows.slice(-12).map((row) => `${clean(row.label || '', 180)}|${row.phase || ''}|${row.activeLabel ? 1 : 0}|${row.busy ? 1 : 0}|${row.finishedLabel ? 1 : 0}`).join('||');
   }
@@ -440,17 +449,74 @@
     }
   }
 
-  function statusSurfaceText() {
+  function statusSurfaceText(frontier = conversationFrontier()) {
     const values = [];
     for (const node of [...document.querySelectorAll(ALERT_SELECTOR)].slice(-60)) {
       if (isOwnedNode(node) || !isUsable(node)) continue;
       const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 600);
       if (text) values.push(text);
     }
+    const terminal = terminalStatusSurfaceText(frontier);
+    if (terminal) values.push(terminal);
     return values.join(' | ').slice(-12000);
   }
 
-  const FAILURE_RECOVERY_CONTROL_PATTERN = /^(?:retry|try again|regenerate(?: response)?|resend(?: message)?|reconnect)$/i;
+  const FAILURE_RECOVERY_CONTROL_PATTERN = /^(?:retry(?: response| message| request)?|try again|regenerate(?: response)?|resend(?: message)?|reconnect)$/i;
+  const TERMINAL_FALLBACK_SELECTOR = 'div,section,p,span';
+  const TERMINAL_CONTROL_PATTERN = /^(?:retry(?: response| message| request)?|try again|regenerate(?: response)?|resend(?: message)?|reconnect|start new chat|new chat|branch(?: & continue)?|continue in a new chat)$/i;
+
+  function terminalTextClassification(text = '', hints = {}) {
+    const core = healthCore();
+    const raw = clean(text, 2200);
+    if (!raw || !core) return { terminal:false, failure:null, capacity:null };
+    const failure = core.classifyProviderFailure?.(raw, hints || {}) || null;
+    const capacity = core.classifyProviderCapacity?.(raw) || null;
+    return { terminal:Boolean(failure?.active || capacity?.explicitLimitSignal || capacity?.nearLimitSignal), failure, capacity };
+  }
+
+  function terminalSurfaceCandidates(frontier = conversationFrontier()) {
+    const out = [];
+    const seen = new Set();
+    const add = (node, hints = {}) => {
+      const element = elementFor(node);
+      if (!element || seen.has(element) || isOwnedNode(element) || !isUsable(element) || !isCurrentFrontierNode(element, frontier)) return;
+      const owner = turnOwner(element);
+      const text = clean(element.getAttribute?.('aria-label') || element.textContent || '', 2200);
+      if (!text) return;
+      const classification = terminalTextClassification(text, hints);
+      if (!classification.terminal) return;
+      // Plain assistant prose may quote an error while discussing it. Only accept a
+      // terminal phrase inside an assistant turn when the provider gave that node
+      // explicit status/error semantics. Unowned post-turn surfaces remain eligible.
+      if (owner && roleForTurn(owner) === 'assistant' && !element.matches?.(ALERT_SELECTOR) && !element.closest?.(ALERT_SELECTOR)) return;
+      seen.add(element); out.push({ node:element, text, classification });
+    };
+
+    for (const node of [...document.querySelectorAll(ALERT_SELECTOR)].slice(-100).reverse()) add(node);
+
+    // Current ChatGPT timeout cards are not guaranteed to expose role=alert. Anchor on
+    // the native recovery button and inspect only a few nearby ancestors.
+    for (const control of [...document.querySelectorAll('button,[role="button"]')].slice(-120).reverse()) {
+      if (!isUsable(control) || isOwnedNode(control) || !TERMINAL_CONTROL_PATTERN.test(failureControlLabel(control))) continue;
+      const retryLabel = failureControlLabel(control);
+      const hints = { retryAvailable:true, retryLabel, observedAfterUser:Boolean(frontier?.latestUser) };
+      let cursor = control.parentElement;
+      for (let depth = 0; cursor && cursor !== document.body && depth < 6; depth += 1, cursor = cursor.parentElement) add(cursor, hints);
+    }
+
+    // Capacity banners sometimes render as a plain low-emphasis div with no ARIA role
+    // and no button. Inspect only the tail of the current main surface and require an
+    // exact known provider terminal phrase, excluding ordinary assistant prose above.
+    const root = mainRoot();
+    for (const node of [...root.querySelectorAll(TERMINAL_FALLBACK_SELECTOR)].slice(-260).reverse()) add(node);
+    return out;
+  }
+
+  function terminalStatusSurfaceText(frontier = conversationFrontier()) {
+    const values = terminalSurfaceCandidates(frontier).slice(0, 12).map((row) => row.text);
+    return values.join(' | ').slice(-12000);
+  }
+
 
   function failureControlLabel(node) {
     return clean(node?.getAttribute?.('aria-label') || node?.getAttribute?.('title') || node?.textContent || '', 120);
@@ -468,13 +534,37 @@
     return null;
   }
 
+  function reviewHoldSurfaceEvidence(frontier = null) {
+    const core = healthCore();
+    if (providerInfo().id !== 'chatgpt' || !core?.classifyProviderHold) return { active:false };
+    const inspect = (node) => {
+      if (!node || isOwnedNode(node) || !isUsable(node) || !isCurrentFrontierNode(node, frontier)) return null;
+      const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 1800);
+      if (!text) return null;
+      const hold = core.classifyProviderHold(text);
+      return hold?.active ? hold : null;
+    };
+    const nodes = [...document.querySelectorAll(REVIEW_HOLD_SELECTOR)].slice(-120).reverse();
+    for (const node of nodes) { const hold = inspect(node); if (hold) return hold; }
+
+    // ChatGPT has rendered this hold copy as an ordinary low-emphasis block in some
+    // variants rather than an aria/status surface. Inspect only a bounded set of
+    // siblings after the latest user turn so long chats never require a full-page text scan.
+    let sibling = frontier?.latestUser?.nextElementSibling || null;
+    for (let i = 0; sibling && i < 14; i += 1, sibling = sibling.nextElementSibling) {
+      const hold = inspect(sibling);
+      if (hold) return hold;
+    }
+    return { active:false };
+  }
+
   function failureSurfaceEvidence(frontier = null, rows = [], transcript = null) {
     const core = healthCore();
     if (!core?.classifyProviderFailure) return { active:false };
-    const nodes = [...document.querySelectorAll(ALERT_SELECTOR)].slice(-80).reverse();
-    for (const node of nodes) {
-      if (isOwnedNode(node) || !isUsable(node) || !isCurrentFrontierNode(node, frontier)) continue;
-      const text = clean(node.getAttribute?.('aria-label') || node.textContent || '', 1600);
+    const candidates = terminalSurfaceCandidates(frontier);
+    for (const candidate of candidates) {
+      const node = candidate.node;
+      const text = clean(candidate.text || node.getAttribute?.('aria-label') || node.textContent || '', 1600);
       if (!text) continue;
       const control = recoveryControlNear(node);
       const retryLabel = failureControlLabel(control);
@@ -510,6 +600,30 @@
       failureRetryAttempts = 0;
     }
     return { active:false, clearedAt:Number(lastFailureClearedAt || 0) };
+  }
+
+  function permissionSurfaceEvidence(frontier = conversationFrontier()) {
+    // Inspect actual visible provider controls, not quoted assistant text. A permission
+    // prompt can coexist with the stale Stop button and must outrank "running".
+    const exact = /^(?:allow(?:(?: [a-z0-9 ._-]{1,80})? for this (?:conversation|chat))?|allow once|always allow|approve(?: for this (?:conversation|chat))?)$/i;
+    const controls = [...document.querySelectorAll('button,[role="button"],[role="menuitem"]')].slice(-160);
+    for (const control of controls.reverse()) {
+      if (!isUsable(control) || isOwnedNode(control) || control.closest?.('pre,code,textarea,[contenteditable="true"]')) continue;
+      const label = failureControlLabel(control);
+      if (!exact.test(label)) continue;
+      const dialog = control.closest?.('[role="dialog"],[role="alertdialog"],[role="menu"]');
+      if (!dialog && !isCurrentFrontierNode(control, frontier)) continue;
+      let scope = dialog || control.parentElement;
+      for (let depth = 0; scope && scope !== document.body && depth < 4; depth += 1, scope = scope.parentElement) {
+        const nearby = [...scope.querySelectorAll('button,[role="button"],[role="menuitem"]')].slice(0, 30).filter(isUsable);
+        const deny = nearby.some((node) => /^(deny|reject|decline|cancel|not now)$/i.test(failureControlLabel(node)));
+        const copy = clean(scope.textContent || '', 1400);
+        if ((deny && /permission|approv|connect|access|use|allow|conversation|app|tool/i.test(copy)) || /for this (conversation|chat)$/i.test(label)) {
+          return {active:true,scope:'user-review',label:clean(label,100),action:'review-in-provider'};
+        }
+      }
+    }
+    return {active:false};
   }
 
   function nonRunningStatus(text) {
@@ -550,15 +664,14 @@
     }).catch(() => {});
   }
 
-  function explicitCapacitySignal() {
-    const text = statusSurfaceText();
-    const hard = text.match(/(?:you(?:'|’)?ve reached the maximum length for this conversation|maximum length for this conversation|maximum conversation length(?:.{0,40}(?:reached|exceeded))?|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|keep talking by starting a new chat|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
-    const near = hard ? null : text.match(/(?:(?:approaching|close to|near|nearing|almost at).{0,80}(?:conversation|context).{0,40}(?:limit|maximum)|(?:conversation|context).{0,50}(?:approaching|nearing|close to).{0,40}(?:limit|maximum)|start a new chat soon|consider starting a new chat)/i);
+  function explicitCapacitySignal(frontier = conversationFrontier()) {
+    const text = statusSurfaceText(frontier);
+    const classified = healthCore()?.classifyProviderCapacity?.(text) || {};
     return {
-      explicitLimitSignal:Boolean(hard),
-      explicitLimitText:hard ? clean(hard[0], 220) : '',
-      nearLimitSignal:Boolean(near),
-      nearLimitText:near ? clean(near[0], 220) : ''
+      explicitLimitSignal:Boolean(classified.explicitLimitSignal),
+      explicitLimitText:clean(classified.explicitLimitText || '', 220),
+      nearLimitSignal:Boolean(classified.nearLimitSignal),
+      nearLimitText:clean(classified.nearLimitText || '', 220)
     };
   }
 
@@ -566,7 +679,7 @@
     const core = healthCore();
     const settings = normalizedHealthSettings();
     if (!core || !settings || settings.enabled === false) return null;
-    const explicit = explicitCapacitySignal();
+    const explicit = explicitCapacitySignal(frontier);
     const transcriptTurns = Math.max(0, Number(transcript?.visibleTurnCount || 0));
     const capacityInput = {
       storedTurns:0,
@@ -703,14 +816,16 @@
     const transcript = freshTranscript(frontier, at);
     const transcriptFinal = Boolean(transcript?.final && transcript?.transcriptStatus === 'finished');
     const transcriptRunning = Boolean(transcript?.running && transcript?.transcriptStatus === 'running');
-    const failure = failureSurfaceEvidence(frontier, rows, transcript);
+    const permission = permissionSurfaceEvidence(frontier);
+    const failure = permission.active ? {active:false} : failureSurfaceEvidence(frontier, rows, transcript);
+    const reviewHold = failure.active ? { active:false } : reviewHoldSurfaceEvidence(frontier);
     const domActive = Boolean(stopControl || streamingNode || assistantBusyEvidence || progressiveTool || toolBusyEvidence || assistantGrowing || awaitingResponse);
-    const rawActive = failure.active ? false : transcriptFinal ? false : transcriptRunning ? true : domActive;
+    const rawActive = permission.active || failure.active || reviewHold.active ? false : transcriptFinal ? false : transcriptRunning ? true : domActive;
 
     if (providerInfo().id === 'chatgpt') requestTranscript(rawActive && !transcript);
-    const inactiveStatus = failure.active ? String(failure.status || failure.state || 'errored') : nonRunningStatus(statusSurfaceText());
+    const inactiveStatus = permission.active ? 'blocked-approval' : failure.active ? String(failure.status || failure.state || 'errored') : reviewHold.active ? 'provider-review' : nonRunningStatus(statusSurfaceText(frontier));
     let resolved;
-    if (failure.active) {
+    if (permission.active || failure.active || reviewHold.active) {
       idleCandidateSince = 0;
       setStableStatus(inactiveStatus, at);
       resolved = { status:inactiveStatus, settling:false };
@@ -737,11 +852,12 @@
     // stale `tool-stalled` data attribute self-latch even after real progress resumed.
     // Keep the richer content-script HUD only for capacity pressure that standalone
     // Sentinel cannot always reconstruct from persisted IndexedDB evidence.
-    const healthState = WATCHDOG_PRIMARY_STATES.has(fallbackHealthState)
+    const healthState = permission.active ? 'blocked-approval' : WATCHDOG_PRIMARY_STATES.has(fallbackHealthState)
       ? fallbackHealthState
       : watchdogState || fallbackHealthState || (status === 'running' ? (progressiveTool || toolBusy ? 'tool-running' : 'working') : status === 'idle' ? 'healthy' : status);
-    const stale = WATCHDOG_PRIMARY_STATES.has(healthState) || (status !== 'running' && status !== 'idle');
-    const source = failure.active ? 'provider-failure-surface'
+    const stale = WATCHDOG_PRIMARY_STATES.has(healthState) || (status !== 'running' && status !== 'idle' && status !== 'provider-review');
+    const source = permission.active ? 'provider-permission-surface' : failure.active ? 'provider-failure-surface'
+      : reviewHold.active ? 'provider-review-surface'
       : transcriptFinal ? 'chatgpt-transcript-finished'
       : transcriptRunning ? 'chatgpt-transcript-running'
       : stopControl ? 'stop-control'
@@ -755,6 +871,7 @@
       : 'settled';
 
     const generation = {
+      runId:opaqueRunId(frontier),
       active:status === 'running',
       rawActive,
       settling:Boolean(resolved.settling),
@@ -769,7 +886,7 @@
       awaitingResponse,
       toolLabel,
       toolPhase,
-      phase:failure.active ? 'interrupted' : transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
+      phase:failure.active ? 'interrupted' : reviewHold.active ? 'review-hold' : transcript?.phase || (currentActive || currentBusy || informative)?.phase || (status === 'running' ? 'thinking' : 'complete'),
       modelSlug:clean(transcript?.modelSlug || '', 100),
       progressPercent:Number.isFinite(Number(transcript?.progressPercent)) ? Number(transcript.progressPercent) : null,
       transcriptStatus:transcript?.transcriptStatus || 'unavailable',
@@ -859,6 +976,7 @@
         toolActivitySeen:Boolean(failure.toolActivitySeen)
       } : null,
       generation,
+      permission,
       health:fallbackHealth ? { state:String(fallbackHealth.state || ''), level:String(fallbackHealth.level || ''), title:clean(fallbackHealth.title || '', 180), detail:clean(fallbackHealth.detail || '', 360), recommendedAction:String(fallbackHealth.recommendedAction || ''), progressAgeMs:Math.max(0, Number(fallbackHealth.progressAgeMs || 0)), capacity:fallbackHealth.capacity || null, proof:fallbackHealth.proof || null } : null,
       tool:{
         present:Boolean(informative || currentActive || currentBusy),
@@ -871,6 +989,7 @@
         entryCount:rows.length
       },
       healthActive:status === 'running' && !stale,
+      healthHold:status === 'provider-review',
       healthStale:stale,
       observedAt:at,
       hidden:document.hidden,
@@ -879,12 +998,212 @@
 
     initialized = true;
     lastState = state;
-    const signature = `${status}|${healthState}|${source}|${toolLabel}|${generation.finalControls ? 1 : 0}|${frontier.turns.length}`;
+    const signature = `${status}|${healthState}|${source}|${toolLabel}|${generation.finalControls ? 1 : 0}|${frontier.turns.length}|${generation.runId}`;
     patchLegacyHud(state);
     maybePush(state, signature);
     schedulePulse(status === 'running' ? (document.hidden ? 1500 : 900) : (document.hidden ? 10000 : 5000));
     if (provider.id === 'chatgpt') scheduleTranscript(status === 'running' ? CHATGPT_TRANSCRIPT_RUNNING_POLL_MS : CHATGPT_TRANSCRIPT_IDLE_POLL_MS);
     return state;
+  }
+
+  let guardianContinueBusy = false;
+
+  function guardianComposer() {
+    const selectors = [
+      '#prompt-textarea.ProseMirror[contenteditable="true"]',
+      '#prompt-textarea[contenteditable="true"]',
+      'div.ProseMirror[contenteditable="true"][role="textbox"]',
+      '[contenteditable="true"][role="textbox"][aria-label*="Chat" i]',
+      'textarea[name="prompt-textarea"]',
+      'textarea[placeholder]'
+    ];
+    for (const selector of selectors) {
+      for (const node of document.querySelectorAll(selector)) {
+        if (!(node instanceof HTMLElement) || node.getAttribute('aria-disabled') === 'true') continue;
+        if (!isUsable(node)) continue;
+        return node;
+      }
+    }
+    return null;
+  }
+
+  function guardianComposerText(node) {
+    if (node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement) return node.value || '';
+    return node?.innerText || node?.textContent || '';
+  }
+
+  function guardianComposerContains(node, value) {
+    const normalize = (text) => String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+    const actual = normalize(guardianComposerText(node));
+    const expected = normalize(value);
+    return expected ? actual.includes(expected.slice(0, Math.min(48, expected.length))) : !actual;
+  }
+
+  function guardianSetComposerText(node, text) {
+    if (!node) return false;
+    const value = String(text || '');
+    node.focus();
+    if (node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement) {
+      const proto = node instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+      if (setter) setter.call(node, value); else node.value = value;
+      try { node.dispatchEvent(new InputEvent('input', { bubbles:true, composed:true, inputType:'insertText', data:value })); }
+      catch (_) { node.dispatchEvent(new Event('input', { bubbles:true })); }
+      node.dispatchEvent(new Event('change', { bubbles:true }));
+      return guardianComposerContains(node, value);
+    }
+    let inserted = false;
+    try {
+      const selection = window.getSelection?.();
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      selection?.removeAllRanges?.();
+      selection?.addRange?.(range);
+      inserted = Boolean(document.execCommand?.('insertText', false, value));
+    } catch (_) {}
+    if (!inserted || !guardianComposerContains(node, value)) {
+      try {
+        const selection = window.getSelection?.();
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        selection?.removeAllRanges?.();
+        selection?.addRange?.(range);
+        const transfer = new DataTransfer();
+        transfer.setData('text/plain', value);
+        node.dispatchEvent(new ClipboardEvent('paste', { bubbles:true, cancelable:true, composed:true, clipboardData:transfer }));
+      } catch (_) {}
+    }
+    if (!guardianComposerContains(node, value)) {
+      const fragment = document.createDocumentFragment();
+      for (const line of value.split('\n')) {
+        const paragraph = document.createElement('p');
+        if (line) paragraph.textContent = line; else paragraph.appendChild(document.createElement('br'));
+        fragment.appendChild(paragraph);
+      }
+      node.replaceChildren(fragment);
+      try { node.dispatchEvent(new InputEvent('input', { bubbles:true, composed:true, inputType:'insertText', data:value })); }
+      catch (_) { node.dispatchEvent(new Event('input', { bubbles:true })); }
+    }
+    node.dispatchEvent(new Event('change', { bubbles:true }));
+    return guardianComposerContains(node, value);
+  }
+
+  function guardianSendButton(composer) {
+    const scope = composer?.closest?.('form') || composer?.parentElement?.parentElement || document;
+    const selector = '#composer-submit-button,[data-testid="send-button"],button[aria-label*="send" i],button[data-testid*="send" i],button[type="submit"]';
+    return [...(scope.querySelectorAll?.(selector) || [])].find((button) => isUsable(button) && !button.disabled && button.getAttribute('aria-disabled') !== 'true' && !/stop|cancel/i.test(`${button.getAttribute('aria-label') || ''} ${button.textContent || ''}`)) || null;
+  }
+
+  async function continueUnfinishedTask(message = {}) {
+    if (guardianContinueBusy) return { ok:false, action:'busy', error:'Chat Guardian continuation is already in progress.' };
+    if (providerInfo().id !== 'chatgpt') return { ok:false, action:'non-chatgpt' };
+    const expectedChatId = clean(message.expectedChatId || '', 220);
+    const currentId = chatgptConversationId();
+    const currentPath = String(location.pathname || '');
+    if (expectedChatId && expectedChatId !== currentId && expectedChatId !== `chatgpt:${currentId}`) return { ok:false, action:'chat-moved', chatId:currentId };
+
+    guardianContinueBusy = true;
+    try {
+      const state = scan(true);
+      const frontier = conversationFrontier();
+      const failure = state?.failure?.active ? state.failure : state?.chat?.failure?.active ? state.chat.failure : null;
+      const healthState = String(state?.chat?.healthState || '');
+      const status = String(state?.chat?.status || '');
+      const recoveryState = String(message.reason || failure?.state || failure?.status || healthState || status || '');
+      const holds = new Set(['provider-review','blocked-approval','rate-limited','auth-required','unavailable','capacity-watch','capacity-handoff','capacity-reached']);
+      const recoverable = new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','paused','refresh-required','dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled']);
+      if ([status, healthState, recoveryState].some((value) => holds.has(String(value)))) return { ok:false, action:'blocked-hold', state:recoveryState || healthState || status };
+      if (!frontier.latestUser) return { ok:false, action:'no-user-turn' };
+      if (!failure?.active && !recoverable.has(recoveryState) && !recoverable.has(healthState) && !recoverable.has(status)) return { ok:false, action:'not-unfinished', state:healthState || status };
+      if (!failure?.active && state?.generation?.finalControls && !['paused','refresh-required'].includes(recoveryState)) return { ok:false, action:'already-complete', state:healthState || status };
+      if (!failure?.active && state?.generation?.active && !['dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled'].includes(recoveryState)) return { ok:false, action:'still-running', state:healthState || status };
+
+      const userMessageId = turnMessageId(frontier.latestUser);
+      // Composer and Send hydration can take several seconds. Revalidate after
+      // each wait, before any write/click or reload-eligible timeout response.
+      const continuationBlock = () => {
+        const latest = scan(true);
+        const latestFrontier = conversationFrontier();
+        const latestId = chatgptConversationId();
+        if (providerInfo().id !== 'chatgpt' || latestId !== currentId || String(location.pathname || '') !== currentPath) {
+          return { ok:false, action:'chat-moved', chatId:latestId };
+        }
+        const latestStatus = String(latest?.chat?.status || '');
+        const latestHealth = String(latest?.chat?.healthState || '');
+        // A newly visible review hold is authoritative even while the provider
+        // has left its old failure card mounted beside it.
+        const review = reviewHoldSurfaceEvidence(latestFrontier);
+        if (latest?.permission?.active || review.active || holds.has(latestStatus) || holds.has(latestHealth)) {
+          return { ok:false, action:'blocked-hold', state:latest?.permission?.active ? 'blocked-approval' : review.active ? 'provider-review' : holds.has(latestStatus) ? latestStatus : latestHealth };
+        }
+        if (!latestFrontier.latestUser || (userMessageId ? turnMessageId(latestFrontier.latestUser) !== userMessageId : latestFrontier.latestUser !== frontier.latestUser)) {
+          return { ok:false, action:'chat-moved', chatId:latestId, reason:'turn-changed' };
+        }
+        const latestFailure = latest?.failure?.active || latest?.chat?.failure?.active;
+        const latestRecovery = recoverable.has(latestHealth) ? latestHealth : latestStatus;
+        if (!latestFailure && latest?.generation?.finalControls && !['paused','refresh-required'].includes(latestRecovery)) {
+          return { ok:false, action:'already-complete', state:latestHealth || latestStatus };
+        }
+        if (!latestFailure && latest?.generation?.active && !['dead','tool-dead','request-dead','stalled','tool-stalled','request-stalled'].includes(latestRecovery)) {
+          return { ok:false, action:'still-running', state:latestHealth || latestStatus };
+        }
+        if (!latestFailure && !recoverable.has(latestHealth) && !recoverable.has(latestStatus)) {
+          return { ok:false, action:'not-unfinished', state:latestHealth || latestStatus };
+        }
+        return null;
+      };
+
+      const fingerprint = clean(message.fingerprint || `${currentId}|${recoveryState}|${failure?.rawText || failure?.title || ''}`, 900);
+      const dedupeKey = `pc-chat-guardian:${currentId || location.pathname}:${fingerprint}`;
+      let lastSentAt = 0;
+      try { lastSentAt = Number(sessionStorage.getItem(dedupeKey) || 0); } catch (_) {}
+      if (lastSentAt && Date.now() - lastSentAt < 30_000) return { ok:false, action:'deduped', sentAt:lastSentAt };
+
+      const prompt = clean(message.prompt || 'Continue the unfinished task.', 160) || 'Continue the unfinished task.';
+      const deadline = Date.now() + 8000;
+      let composer = null;
+      while (Date.now() < deadline && !composer) {
+        composer = guardianComposer();
+        if (!composer) await new Promise((resolve) => setTimeout(resolve, 120));
+      }
+      const beforeStage = continuationBlock();
+      if (beforeStage) return beforeStage;
+      if (!composer) return { ok:false, action:'composer-unavailable', state:recoveryState };
+      if (!composer.isConnected || guardianComposer() !== composer) return { ok:false, action:'composer-busy', state:recoveryState };
+      if (guardianComposerText(composer).trim()) return { ok:false, action:'composer-busy', state:recoveryState };
+      const staged = guardianSetComposerText(composer, prompt);
+      const stagedText = guardianComposerText(composer);
+      if (!staged || clean(stagedText, prompt.length + 1) !== prompt) {
+        return { ok:false, action:stagedText.trim() ? 'composer-busy' : 'stage-failed', state:recoveryState };
+      }
+
+      let send = null;
+      const sendDeadline = Date.now() + 6000;
+      while (Date.now() < sendDeadline && !send) {
+        send = guardianSendButton(composer);
+        if (!send) await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      const beforeSend = continuationBlock();
+      if (beforeSend) return { ...beforeSend, staged:true };
+      if (!composer.isConnected || guardianComposer() !== composer || guardianComposerText(composer) !== stagedText) {
+        return { ok:false, action:'composer-busy', state:recoveryState, staged:true };
+      }
+      if (!send) return { ok:false, action:'send-unavailable', state:recoveryState, staged:true };
+      if (!send.isConnected || guardianSendButton(composer) !== send) return { ok:false, action:'composer-busy', state:recoveryState, staged:true };
+      // Do not yield between the final checks and the click: user edits and
+      // provider navigation must be observed before this turn can be sent.
+      send.click();
+      try { sessionStorage.setItem(dedupeKey, String(Date.now())); } catch (_) {}
+      lastActivityAt = now();
+      lastProgressAt = lastActivityAt;
+      scheduleScan(100);
+      if (providerInfo().id === 'chatgpt') setTimeout(() => requestTranscript(true), 250);
+      return { ok:true, action:'sent-continue', chatId:currentId, state:recoveryState, prompt };
+    } catch (error) {
+      return { ok:false, action:'failed', error:String(error?.message || error || 'Chat Guardian continuation failed.').slice(0, 320) };
+    } finally {
+      guardianContinueBusy = false;
+    }
   }
 
   function retryCurrentFailure() {
@@ -1092,11 +1411,23 @@
     if (isOwnedNode(mutation.target)) return false;
     if (mutation.type === 'characterData') {
       if (currentTurnMutation(mutation.target)) return true;
-      const text = clean(mutation.target?.parentElement?.textContent || mutation.target?.textContent || '', 280);
+      const text = clean(mutation.target?.parentElement?.textContent || mutation.target?.textContent || '', 700);
+      if (text && healthCore()?.classifyProviderHold?.(text)?.active) return true;
+      if (text && terminalTextClassification(text).terminal) return true;
       return Boolean(text && (ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_PROGRESS_LINE_PATTERN.test(text) || GENERIC_TOOL_PATTERN.test(text)));
     }
     if (mutation.type === 'attributes') {
-      return /^(aria-busy|aria-label|data-state|data-is-streaming|data-loading|data-testid|class)$/.test(String(mutation.attributeName || ''));
+      const attribute = String(mutation.attributeName || '');
+      if (!/^(aria-busy|aria-label|data-state|data-is-streaming|data-loading|data-testid|class)$/.test(attribute)) return false;
+      const element = elementFor(mutation.target);
+      if (!element || isOwnedNode(element)) return false;
+      if (currentTurnMutation(element)) return true;
+      if (element.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR},${ALERT_SELECTOR}`)) return true;
+      if (element.closest?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR},${ALERT_SELECTOR}`)) return true;
+      const text = clean(element.textContent || '', 700);
+      if (text && healthCore()?.classifyProviderHold?.(text)?.active) return true;
+      if (text && terminalTextClassification(text).terminal) return true;
+      return Boolean(text && (ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_PROGRESS_LINE_PATTERN.test(text) || GENERIC_TOOL_PATTERN.test(text)));
     }
     if (mutation.type === 'childList') {
       const nodes = [...(mutation.addedNodes || []), ...(mutation.removedNodes || [])];
@@ -1107,7 +1438,9 @@
         if (currentTurnMutation(element)) return true;
         if (element.matches?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR},${ALERT_SELECTOR}`)) return true;
         if (element.querySelector?.(`${STOP_SELECTOR},${STREAMING_SELECTOR},${BUSY_SELECTOR},${FAST_TOOL_SELECTOR},${ALERT_SELECTOR}`)) return true;
-        const text = clean(element.textContent || '', 320);
+        const text = clean(element.textContent || '', 900);
+        if (text && healthCore()?.classifyProviderHold?.(text)?.active) return true;
+        if (text && terminalTextClassification(text).terminal) return true;
         if (text && (ACTIVE_PROGRESS_LINE_PATTERN.test(text) || FINISHED_PROGRESS_LINE_PATTERN.test(text) || GENERIC_TOOL_PATTERN.test(text))) return true;
       }
     }
@@ -1173,6 +1506,10 @@
       sendResponse(retryCurrentFailure());
       return false;
     }
+    if (message?.type === 'PC_LIVE_SENTINEL_CONTINUE_UNFINISHED') {
+      void continueUnfinishedTask(message).then(sendResponse).catch((error) => sendResponse({ ok:false, action:'failed', error:String(error?.message || error || 'Chat Guardian continuation failed.') }));
+      return true;
+    }
     if (message?.type !== 'PC_GET_LIVE_SENTINEL_STATE') return false;
     sendResponse(scan(true));
     return false;
@@ -1196,6 +1533,7 @@
     rescan:() => scan(true),
     diagnostics:() => ({ scanCount, transitionCount, stableStatus, stableSince, idleCandidateSince, lastProgressAt, lastActivityAt, responseStartedAt, lastResponseDurationMs, lastResponseCompletedAt, lastToolProgressSignature, lastTranscriptProgressSignature, lastFailureFingerprint, failureDetectedAt, lastFailureClearedAt, failureRetryAttempts, transcriptState, transcriptPending, transcriptRequestedAt, transcriptBackoffUntil }),
     retryFailure:() => retryCurrentFailure(),
+    continueUnfinished:(message = {}) => continueUnfinishedTask(message),
     dispose:() => {
       pageObserver?.disconnect(); pageObserver = null;
       hudHostObserver?.disconnect(); hudHostObserver = null;

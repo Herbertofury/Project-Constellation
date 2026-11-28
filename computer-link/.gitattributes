@@ -1,0 +1,4 @@
+# Preserve imported source bytes for the Git-blob/SHA-256 recovery contract.
+# In particular, inherited Windows PowerShell CRLF checkout rules must not
+# rewrite Computer-Link's original LF files on a Windows acceptance runner.
+* -text

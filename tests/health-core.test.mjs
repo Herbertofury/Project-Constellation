@@ -107,8 +107,22 @@ assert.equal(row.recommendedAction,'refresh');
 assert.equal(row.capacity.recommendedAction,'handoff');
 
 
+const holdBanner = 'Our systems are thinking a bit more about this request before responding. You can retry with a faster model for a quick response, though it may be less capable of handling complex requests. Learn more';
+const hold = core.classifyProviderHold(holdBanner);
+assert.equal(hold.active, true);
+assert.equal(hold.state, 'provider-review');
+assert.match(hold.title, /On hold/i);
+row = core.deriveHealth({ now, chatStatus:'provider-review', lastTurnProgressAt:now-180000, network:{pending:0}, settings:{softStallMs:30000,hardStallMs:90000,deadStallMs:240000} });
+assert.equal(row.state, 'provider-review', 'provider review hold must not be misclassified as a stall');
+assert.equal(row.level, 'info');
+assert.equal(row.recommendedAction, '');
+assert.equal(core.classifyProviderHold('The model is thinking about this request.').active, false, 'ordinary thinking copy is not a review hold');
+
 for (const [text, state, title] of [
   ['Message delivery timed out. Please try again.','delivery-timeout','Message delivery timed out'],
+  ['ChatGPT stream recovery polling timed out','response-interrupted','Response stream timed out'],
+  ['Response stream timed out while recovering. Retry','response-interrupted','Response stream timed out'],
+  ['The generation stream ended unexpectedly. Try again','response-interrupted','Response interrupted'],
   ['A network error occurred. Please check your connection and try again.','connection-interrupted','Connection interrupted'],
   ['There was an error generating a response.','response-interrupted','Response interrupted'],
   ['Message was not sent.','send-failed','Message was not sent']
@@ -117,11 +131,30 @@ for (const [text, state, title] of [
   assert.equal(failure.active, true); assert.equal(failure.state, state); assert.equal(failure.retryAvailable, true);
   const failureRow = core.deriveHealth({ now, chatStatus:'running', running:true, lastTurnProgressAt:now-500, failure, capacity:{storedTurns:260}, settings:{capacityWarningTurns:180,capacityHandoffTurns:260} });
   assert.equal(failureRow.state, state, `${state} must outrank stale running/capacity evidence`);
-  assert.equal(failureRow.level, 'danger'); assert.equal(failureRow.title, title); assert.equal(failureRow.recommendedAction, 'retry');
+  assert.equal(failureRow.level, 'critical'); assert.equal(failureRow.title, title); assert.equal(failureRow.recommendedAction, 'retry');
   assert.ok(failureRow.chips.includes('45 partial chars preserved'));
 }
+assert.equal(core.classifyProviderFailure('We discussed request timeout handling in the architecture.', {}).active, false, 'ordinary prose about timeout handling is not a provider failure');
+assert.equal(core.classifyProviderFailure('We hit a snag while restoring this answer. Please try again.', { retryAvailable:true, retryLabel:'Try again', observedAfterUser:true }).state, 'response-interrupted', 'new provider wording remains recoverable when a native current-turn recovery control anchors the surface');
+assert.equal(core.classifyProviderFailure('We hit a snag while restoring this answer. Please try again.', { retryAvailable:false, observedAfterUser:true }).active, false, 'broad fallback wording alone must not classify ordinary prose without a recovery affordance');
+assert.equal(core.classifyProviderFailure('The stream failed after the latest prompt.', { observedAfterUser:true }).state, 'response-interrupted', 'semantically equivalent current-turn failures remain recoverable across provider copy changes');
+
 const noRetryFailure = core.classifyProviderFailure('Message delivery timed out. Please try again.', {});
 assert.equal(noRetryFailure.recommendedAction, 'refresh');
 assert.equal(core.deriveHealth({ now, chatStatus:'delivery-timeout', failure:noRetryFailure }).state, 'delivery-timeout');
+
+const hardCapacityText = "You've reached the maximum length for this conversation, but you can keep talking by starting a new chat.";
+const hardCapacitySignal = core.classifyProviderCapacity(hardCapacityText);
+assert.equal(hardCapacitySignal.state, 'reached');
+assert.equal(hardCapacitySignal.explicitLimitSignal, true);
+assert.match(hardCapacitySignal.explicitLimitText, /maximum length/i);
+const hardCapacityRow = core.deriveHealth({
+  now, chatStatus:'running', running:true, lastTurnProgressAt:now-500,
+  network:{pending:1,oldestPendingAt:now-900,lastStartAt:now-900,lastResponseAt:now-200},
+  capacity:{storedTurns:40, ...hardCapacitySignal}
+});
+assert.equal(hardCapacityRow.state, 'capacity-reached', 'an explicit provider maximum must outrank stale running/network evidence');
+assert.equal(hardCapacityRow.level, 'critical');
+assert.equal(hardCapacityRow.recommendedAction, 'handoff');
 
 console.log('health-core.test.mjs: PASS');

@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Project Constellation Electron Acceptance Fixture</title><style>body{font:16px system-ui;padding:24px}#prompt-textarea{border:1px solid gray;min-height:80px;width:700px;padding:12px}article{margin:12px 0}button{padding:10px}</style></head>
+<body><main id="conversation"></main><form id="composer-form"><div id="prompt-textarea" class="ProseMirror" role="textbox" contenteditable="true" aria-label="Chat prompt"><p>take control of my computer in full</p></div><button id="composer-submit-button" data-testid="send-button" type="submit">Send</button></form>
+<script>
+(() => {
+  const conversation=document.getElementById('conversation'),composer=document.getElementById('prompt-textarea'),form=document.getElementById('composer-form');
+  window.fixture={status:200,resultStatus:200,delay:0,stream:0,tool:'ping',args:{},count:0,requests:[],results:[],fenced:false};
+  function text(){return composer.innerText||composer.textContent||'';}
+  function clear(){composer.innerHTML='<p><br></p>';composer.dispatchEvent(new Event('input',{bubbles:true}));}
+  function turn(role,value,fenced=false){const el=document.createElement('article');el.dataset.turn=role;el.dataset.messageAuthorRole=role;el.dataset.messageId=crypto.randomUUID();const p=document.createElement('div');p.className='markdown';if(fenced){const pre=document.createElement('pre'),code=document.createElement('code');code.textContent=value;pre.append(code);p.append(pre);const copy=document.createElement('button');copy.textContent='Copy code';p.append(copy);}else p.textContent=value;el.appendChild(p);conversation.appendChild(el);return el;}
+  window.fixtureTurn=turn;
+  window.fetch=async (_input,init={})=>{
+    const f=window.fixture,body=JSON.parse(String(init.body||'{}')),value=String(body?.messages?.at(-1)?.content||'');
+    f.requests.push(value);const isResult=value.includes('[PC BUDDY TOOL RESULT]');const status=isResult?f.resultStatus:f.status;
+    if(f.delay)await new Promise(r=>setTimeout(r,f.delay));
+    if(status>=400)return new Response('{}',{status,headers:{'content-type':'application/json'}});
+    if(value.includes('[PROJECT CONSTELLATION LOCAL CONTEXT]')){
+      const context=JSON.parse(value.split('[PROJECT CONSTELLATION LOCAL CONTEXT]')[1].split('[/PROJECT CONSTELLATION LOCAL CONTEXT]')[0]);
+      f.nonce=context.nonce;const id='fixture-'+(++f.count);f.lastId=id;
+      setTimeout(()=>{
+        if(f.stream){const stop=document.createElement('button');stop.dataset.testid='stop-button';stop.id='fixture-stop';stop.textContent='Stop generating';document.body.append(stop);document.getElementById('composer-submit-button').disabled=true;setTimeout(()=>{stop.remove();document.getElementById('composer-submit-button').disabled=false;},f.stream);}
+        turn('assistant','[PC_BUDDY_CALL]'+JSON.stringify({id,nonce:context.nonce,tool:f.tool,arguments:f.args})+'[/PC_BUDDY_CALL]',f.fenced);
+      },f.responseDelay||20);
+    }else if(isResult){f.results.push(JSON.parse(value.split('[PC BUDDY TOOL RESULT]')[1].split('[/PC BUDDY TOOL RESULT]')[0]));setTimeout(()=>turn('assistant','Project Constellation Electron smoke complete.'),20);}
+    return new Response('{"ok":true}',{status,headers:{'content-type':'application/json'}});
+  };
+  form.addEventListener('submit',event=>{event.preventDefault();const value=text();turn('user',value);void fetch('https://chatgpt.com/backend-api/conversation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:value}]})}).catch(()=>{});clear();});
+})();
+</script></body></html>

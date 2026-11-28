@@ -2,6 +2,7 @@
   'use strict';
   const brain = globalThis.ProjectConstellationBrainCore;
   const providers = globalThis.ProjectConstellationProviders;
+  const scheduledGuardian = globalThis.ProjectConstellationScheduledTaskGuardianCore;
   const norm = (v, n=50000) => brain.normalizeText(v, n);
   const abs = (href, base) => { try { return new URL(href, base).toString(); } catch (_) { return ''; } };
 
@@ -72,12 +73,59 @@
     return { ok: true, providerId: provider.id, url, title, authRequired, chats, turns, files, textLength: textSample.length };
   }
 
+  let guardianFrame = null;
+  let guardianFrameReady = false;
+  let guardianLastFrameReadyAt = 0;
+  let guardianLastStartedAt = 0;
+
+  function guardianSnapshot() {
+    return {
+      ok:true, frameReady:Boolean(guardianFrameReady && guardianFrame?.isConnected),
+      framePresent:Boolean(guardianFrame?.isConnected), lastFrameReadyAt:guardianLastFrameReadyAt, lastStartedAt:guardianLastStartedAt,
+      url:scheduledGuardian.normalizeScheduleUrl(guardianFrame?.src || scheduledGuardian.SCHEDULE_URL)
+    };
+  }
+
+  function stopGuardianFrame() {
+    if (guardianFrame?.isConnected) guardianFrame.remove();
+    guardianFrame = null; guardianFrameReady = false;
+    return guardianSnapshot();
+  }
+
+  function startGuardianFrame(payload = {}) {
+    const url = scheduledGuardian.normalizeScheduleUrl(payload.url);
+    if (payload.force) stopGuardianFrame();
+    if (guardianFrame?.isConnected && scheduledGuardian.normalizeScheduleUrl(guardianFrame.src) === url) return guardianSnapshot();
+    stopGuardianFrame();
+    const frame=document.createElement('iframe');
+    frame.id='project-constellation-scheduled-task-guardian';
+    frame.src=url;
+    frame.referrerPolicy='strict-origin-when-cross-origin';
+    frame.setAttribute('aria-hidden','true');
+    frame.tabIndex=-1;
+    frame.style.cssText='position:fixed!important;left:-10000px!important;top:-10000px!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;border:0!important;';
+    guardianFrameReady=false; guardianLastStartedAt=Date.now();
+    frame.addEventListener('load',()=>{guardianFrameReady=true;guardianLastFrameReadyAt=Date.now();},{once:true});
+    frame.addEventListener('error',()=>{guardianFrameReady=false;},{once:true});
+    guardianFrame=frame; document.body.appendChild(frame);
+    return guardianSnapshot();
+  }
+
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.target !== 'pc-offscreen-parser') return false;
+    if (message?.target === 'pc-offscreen-parser') {
+      try {
+        if (message.type === 'PC_OFFSCREEN_PARSE_HTML') sendResponse(parseHtml(message.payload || {}));
+        else sendResponse({ ok: false, error: 'Unknown offscreen parser message' });
+      } catch (error) { sendResponse({ ok: false, error: String(error?.message || error) }); }
+      return false;
+    }
+    if (message?.target !== 'pc-scheduled-task-guardian') return false;
     try {
-      if (message.type === 'PC_OFFSCREEN_PARSE_HTML') sendResponse(parseHtml(message.payload || {}));
-      else sendResponse({ ok: false, error: 'Unknown offscreen parser message' });
-    } catch (error) { sendResponse({ ok: false, error: String(error?.message || error) }); }
+      if (message.type === 'PC_SCHEDULE_GUARDIAN_START') sendResponse(startGuardianFrame(message.payload || {}));
+      else if (message.type === 'PC_SCHEDULE_GUARDIAN_STOP') sendResponse({ ok:true, ...stopGuardianFrame() });
+      else if (message.type === 'PC_SCHEDULE_GUARDIAN_PING') sendResponse(guardianSnapshot());
+      else sendResponse({ ok:false, error:'Unknown Scheduled Task Guardian message' });
+    } catch (error) { sendResponse({ ok:false, error:String(error?.message || error) }); }
     return false;
   });
 })();

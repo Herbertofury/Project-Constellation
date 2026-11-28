@@ -1,0 +1,12 @@
+[
+  {
+    "file": "gcc-14-copyright.txt",
+    "sha256": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79",
+    "description": "Distribution copyright/license text for GNU14 runtime and MinGW-w64 12.0.0; executable import tables require Windows system DLLs only."
+  },
+  {
+    "file": "mingw-w64-12.0.0-copyright.txt",
+    "sha256": "50e5bb66d222c7d4692c2d13670ddcd3664779358e389a026b69a0e0e18e7be5",
+    "description": "Distribution copyright/license text for GNU14 runtime and MinGW-w64 12.0.0; executable import tables require Windows system DLLs only."
+  }
+]

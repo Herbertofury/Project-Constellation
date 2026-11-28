@@ -8,6 +8,7 @@
   const countPhrase = (n, singular, plural=`${singular}s`) => `${fmt(n)} ${Number(n)===1?singular:plural}`;
   const ago = (ms) => { const d=Date.now()-Number(ms||0); if(!ms)return 'never'; if(d<60000)return 'now'; if(d<3600000)return `${Math.floor(d/60000)}m`; if(d<86400000)return `${Math.floor(d/3600000)}h`; if(d<604800000)return `${Math.floor(d/86400000)}d`; return new Date(ms).toLocaleDateString(); };
   const link = (file) => safeUrl(file?.externalUrl || file?.href || '');
+  const projectIdentity=globalThis.ProjectConstellationProjectIdentity||{DEFAULT_ICON:'✦',DEFAULT_COLOR:'#7d92ff',EMOJIS:['✦'],COLORS:['#7d92ff'],normalizeIcon:(v)=>String(v||'✦').slice(0,16),normalizeColor:(v,fallback='#7d92ff')=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v).toLowerCase():fallback};
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const constrainedDevice=Number(navigator.hardwareConcurrency||8)<=4||Number(navigator.deviceMemory||8)<=4;
   document.body.dataset.atmosphere=reducedMotion?'off':constrainedDevice?'static':'animated';
@@ -47,6 +48,8 @@
   let home = null;
   let providers = [];
   let connections = null;
+  let scheduleRecoveryState = null;
+  let desktopRuntimeStatus = null;
   let githubPollTimer = 0;
   let githubVerificationUrl = 'https://github.com/login/device';
   let chatOffset = 0;
@@ -59,7 +62,7 @@
   let searchTimer = 0;
   let searchSerial = 0;
   let fullCapturePoll = 0;
-  let approvalRecoveryPoll = 0;
+  let stateRefreshTimer = 0;
   let settingsSaveQueue = Promise.resolve();
   let orgChatRows = [];
   let organization = {groups:[],projects:[],providerProjects:[],smartCollections:[],tags:[],pinnedChats:[],favoriteChats:[],unassignedCount:0};
@@ -70,6 +73,8 @@
   const storedOrgGroupMode=safeLocalGet('pcOrgGroupMode');
   let orgGroupMode = ['project-state','state','flat'].includes(storedOrgGroupMode) ? storedOrgGroupMode : 'project-state';
   let projectBrain = null;
+  let projectRouteRows = [];
+  let projectContextReviewState = null;
 
   const VIEW_META = {
     overview:{label:'Home',icon:'i-home'}, search:{label:'Search',icon:'i-search'}, knowledge:{label:'Knowledge Vault',icon:'i-knowledge'}, projects:{label:'Projects',icon:'i-project'},
@@ -164,7 +169,7 @@
   }
   function renderSidebarWorkspace(){
     const pinned=(organization.projects||[]).filter((p)=>p.pinned&&!p.archived).slice(0,14);
-    $('sidebarPinnedProjects').innerHTML=pinned.length?pinned.map((p)=>`<button data-sidebar-project="${esc(p.id)}"><span>${esc(p.icon||'✦')}</span><span>${esc(p.name||'Untitled project')}</span><b>${fmt(p.chatCount)}</b></button>`).join(''):'<div class="sidebar-empty">Pinned projects appear here</div>';
+    $('sidebarPinnedProjects').innerHTML=pinned.length?pinned.map((p)=>`<button data-sidebar-project="${esc(p.id)}" style="--project-color:${esc(projectIdentity.normalizeColor(p.color))}"><span class="sidebar-project-icon">${esc(projectIdentity.normalizeIcon(p.icon))}</span><span>${esc(p.name||'Untitled project')}</span><b>${fmt(p.chatCount)}</b></button>`).join(''):'<div class="sidebar-empty">Pinned projects appear here</div>';
     const smart=(organization.smartCollections||[]).filter((c)=>c.pinned).slice(0,12);
     $('sidebarSmartCollections').innerHTML=smart.length?smart.map((c)=>`<button data-sidebar-smart="${esc(c.id)}"><span>⌕</span><span>${esc(c.name||'Saved search')}</span></button>`).join(''):'<div class="sidebar-empty">Pin saved searches to keep them here</div>';
   }
@@ -217,6 +222,8 @@
       ['Home','Open Constellation Home','Ctrl+1',()=>switchView('overview')],['Search everything','Open universal search','Ctrl+K',()=>switchView('search')],['Knowledge Vault','Browse recommendations, links, code, repos, decisions, and follow-ups','',()=>switchView('knowledge')],['Projects & Groups','Open cross-provider organizer','',()=>switchView('projects')],['Chats','Open chat library','',()=>switchView('chats')],['Artifacts','Open file library','',()=>switchView('files')],['Project Integrity','Open version drift, regression, conflict, and follow-up findings','',()=>switchView('integrity')],['Recovery queue','Open chats needing attention','',()=>switchView('attention')],['Accounts & Connections','Sign in to Google, GitHub, and AI provider sessions','',()=>switchView('connections')],['Sources & Import','Open capture and import controls','',()=>switchView('sources')],['Durability','Open Drive/GitHub durability','',()=>switchView('durability')],
       ['Toggle Explorer','Show or hide the primary sidebar','Ctrl+B',()=>{workbenchState.primary=!workbenchState.primary;workbenchState.focus=false;applyWorkbenchState({persist:true});}],['Toggle Inspector','Show or hide the secondary inspector','Ctrl+Alt+B',()=>{workbenchState.inspector=!workbenchState.inspector;workbenchState.focus=false;applyWorkbenchState({persist:true});}],['Toggle Operations Panel','Show or hide bottom panel','Ctrl+J',()=>{workbenchState.panel=!workbenchState.panel;workbenchState.focus=false;applyWorkbenchState({persist:true});}],['Focus Mode','Hide chrome around the active workspace','',()=>{workbenchState.focus=!workbenchState.focus;applyWorkbenchState({persist:true});}],['Balanced Layout','Apply balanced workspace preset','',()=>applyLayoutPreset('balanced')],['Research Layout','Apply research workspace preset','',()=>applyLayoutPreset('research')],['Operations Layout','Apply operations workspace preset','',()=>applyLayoutPreset('operations')],['Refresh','Refresh catalog summary','',()=>loadHome()],['Sync + verify Drive','Create a verified Drive checkpoint','',()=>$('homeDriveSync').click()],['Capture all chats','Start explicit one-window Full Capture','',()=>{$('startFullCapture').click();switchView('sources');}]
     ];
+    const selectedProject=orgScope.workspaceProjectId?orgProject(orgScope.workspaceProjectId):null;
+    if(selectedProject){defs.unshift([`Search ${selectedProject.name}`,`Search only this Project Room`, '',()=>{switchView('projects');setTimeout(()=>document.getElementById('projectRoomSearch')?.focus(),0);}],[`Open ${selectedProject.name} Project Room`,'Return to live project context, coordination, decisions, and next actions','',()=>switchView('projects')]);}
     let rows=defs.map(([title,detail,shortcut,action],index)=>({id:`cmd-${index}`,title,detail,shortcut,action}));
     if(q)rows=rows.filter((row)=>`${row.title} ${row.detail}`.toLowerCase().includes(q));
     if(q.length>1)rows.unshift({id:'search-now',title:`Search Constellation for “${query}”`,detail:'Chats, recommendations, code, projects, files and links',shortcut:'Enter',action:()=>runSearch(query)});
@@ -308,6 +315,12 @@
   function renderOverview(){
     const c=home?.counts||{};
     $('homeMetrics').innerHTML=[['Projects',c.projects],['Chats',c.chats],['Turns',c.turns],['Files',c.files],['Knowledge',c.knowledge],['Providers',c.providers]].map(([label,value])=>`<div class="metric"><small>${label}</small><strong>${fmt(value)}</strong></div>`).join('');
+    const ph=home?.providerHealth||{counts:{},providers:[]}; const incidents=home?.incidents||{open:0,resolved:0,recent:[]};
+    const healthy=Number(ph.counts?.healthy||0), degraded=Number(ph.counts?.degraded||0)+Number(ph.counts?.broken||0)+Number(ph.counts?.unavailable||0), warming=Number(ph.counts?.warming||0);
+    if($('systemHealthMeta'))$('systemHealthMeta').textContent=`${fmt(healthy)} healthy · ${fmt(degraded)} degraded · ${fmt(incidents.resolved||0)} learned recoveries`;
+    if($('systemHealthCards'))$('systemHealthCards').innerHTML=`
+      <article class="library-card"><div class="work-head"><h3>Provider adapters</h3><span class="status ${degraded?'waiting-user':'running'}">${degraded?'ATTENTION':'HEALTHY'}</span></div><p class="snippet">${healthy?`${fmt(healthy)} provider${healthy===1?'':'s'} reporting healthy capabilities.`:'Open supported providers to establish live capability baselines.'}${warming?` ${fmt(warming)} warming up.`:''}</p><div class="meta">Composer, send control, message surface, route, streaming and project context are checked without intercepting provider traffic.</div></article>
+      <article class="library-card"><div class="work-head"><h3>Incident Brain</h3><span class="status ${Number(incidents.open||0)?'paused':'running'}">${Number(incidents.open||0)?`${fmt(incidents.open)} OPEN`:'READY'}</span></div><p class="snippet">${fmt(incidents.resolved||0)} verified recovery recipe${Number(incidents.resolved||0)===1?'':'s'} retained so recurring failures can reuse proven fixes instead of rediscovering them.</p><div class="meta">Only verified resolutions become reusable recipes.</div></article>`;
     const att=(home?.attention||[]); $('attentionPill').textContent=fmt(att.length); $('activityAttentionDot').textContent=fmt(att.length); $('activityAttentionDot').hidden=att.length===0;
     if($('integrityPill')) $('integrityPill').textContent=fmt(home?.integrity?.total||0);
     const live=home?.live||[];
@@ -347,6 +360,7 @@
     $('attentionBrowser').innerHTML=rows.length?rows.map((chat)=>`<article class="library-card attention-row"><div class="work-head"><h3>${esc(chat.title||'Untitled chat')}</h3>${statusBadge(chatHealthStatus(chat))}</div><div class="meta">${esc(providerName(chat.providerId))} · ${esc(chat.projectName||'Inbox')} · ${ago(chat.updatedAt)}${chat.approvalConnector?` · ${esc(chat.approvalConnector)}`:''}</div><p class="snippet">${esc(chatHealthDetail(chat)||chat.lastExcerpt||'This chat needs attention.')}</p><div class="actions">${chat.url?`<button class="primary-link" data-open-url="${esc(chat.url)}">Resolve in chat</button>`:''}<button data-search-query="${esc(chat.title||'')}">Find project context</button></div></article>`).join(''):'<div class="empty">No blocked, stalled, errored, authentication-required, or unavailable chats.</div>';
     const cfg=home?.approvalAutopilot||{};const state=home?.approvalRecovery||{};
     const healthCfg=home?.liveHealth||{};
+    const guardianCfg=home?.scheduledTaskGuardian||{};const guardianState=guardianCfg.runtime||{};
     $('liveHealthEnabled').checked=healthCfg.enabled!==false;
     $('liveHealthShowHealthy').checked=healthCfg.showHealthy!==false;
     $('liveHealthToolWatchdog').checked=healthCfg.toolWatchdogEnabled!==false;
@@ -359,26 +373,53 @@
     $('liveHealthCapacityWarning').value=String(healthCfg.capacityWarningTurns||120);
     $('liveHealthCapacityHandoff').value=String(healthCfg.capacityHandoffTurns||180);
     if($('liveHealthSettingsStatus').dataset.state==='ready'){$('liveHealthSettingsStatus').dataset.state='saved';$('liveHealthSettingsStatus').textContent=healthCfg.enabled===false?'Saved automatically · Live Chat Health is off.':`Saved automatically · Execution Pulse on · Watchdog ${healthCfg.toolWatchdogEnabled===false?'off':'on'} · Capacity Guard ${healthCfg.capacityGuardEnabled===false?'off':'on'}.`;}
-    $('approvalRiskAcknowledged').checked=Boolean(cfg.acknowledged);
-    $('approvalAutopilotEnabled').checked=Boolean(cfg.enabled);
-    $('approvalFallbackAllowOnce').checked=cfg.fallbackAllowOnce!==false;
+    const guardianTelemetry=guardianCfg.telemetry||{};const guardianCounts=guardianTelemetry.counts||{};
+    $('scheduleGuardianEnabled').checked=Boolean(guardianCfg.enabled);
+    $('scheduleGuardianObserve').checked=guardianCfg.observeTaskState!==false;
+    $('scheduleGuardianNotifications').checked=guardianCfg.desktopNotifications!==false;
+    $('scheduleGuardianRunAlerts').checked=guardianCfg.notifyRunCompleted!==false;
+    $('scheduleGuardianStateAlerts').checked=guardianCfg.notifyStateChanges!==false;
+    $('scheduleGuardianEmbedded').checked=guardianCfg.keepEmbeddedWorkspace!==false;
+    $('scheduleGuardianAutoRepair').checked=guardianCfg.autoRepair!==false;
+    $('scheduleGuardianCadence').value=String(guardianCfg.cadenceMinutes||30);
+    const guardianStatus=String(guardianState.status|| (guardianCfg.enabled?'starting':'disabled'));
+    const guardianHealthy=['embedded','heartbeat','reachable'].includes(guardianStatus);
+    $('scheduleGuardianBadge').textContent=`PREMIUM · ${guardianCfg.enabled?(guardianHealthy?'ON':guardianStatus.replace(/-/g,' ').toUpperCase()):'OFF'}`;
+    $('scheduleGuardianBadge').classList.toggle('heavy',Boolean(guardianCfg.enabled));
+    $('scheduleGuardianRepair').disabled=!guardianCfg.enabled;
+    $('scheduleGuardianTest').disabled=!guardianCfg.enabled||guardianCfg.desktopNotifications===false;
+    $('scheduleGuardianMute').disabled=!guardianCfg.enabled||guardianCfg.desktopNotifications===false;
+    $('scheduleGuardianMetrics').innerHTML=[['Observed',guardianCounts.total||0],['Active',guardianCounts.active||0],['Paused',guardianCounts.paused||0],['Needs attention',guardianCounts.attention||0]].map(([label,value])=>`<div class="metric"><small>${esc(label)}</small><strong>${fmt(value)}</strong></div>`).join('');
+    const recovery=scheduleRecoveryState||{};const recoveryCounts=recovery.counts||{};const recoverySessions=Object.values(recovery.sessions||{});
+    $('scheduleRecoveryEnabled').checked=recovery.config?.enabled!==false;
+    $('scheduleRecoveryCheck').disabled=recovery.config?.enabled===false;
+    $('scheduleRecoveryMetrics').innerHTML=[['Recovery sessions',recoveryCounts.recoverySessions??recoverySessions.length],['Waiting approval',recoveryCounts.waitingApproval??recoverySessions.filter(x=>x.status==='SECURITY_APPROVAL_REQUIRED').length],['Attention',recoveryCounts.attention??0],['Desktop',desktopRuntimeStatus?.connected?'ON':'OFF']].map(([label,value])=>`<div class="metric"><small>${esc(label)}</small><strong>${typeof value==='number'?fmt(value):esc(value)}</strong></div>`).join('');
+    $('scheduleRecoveryStatus').textContent=recovery.config?.enabled===false?'Self-healing is off.':`Self-healing ${String(recovery.status||'ready').replace(/_/g,' ').toLowerCase()} · last inspection ${recovery.lastInspection?ago(Date.parse(recovery.lastInspection)):'never'}${desktopRuntimeStatus?.connected?' · Project Constellation Desktop connected':' · desktop runtime offline (browser recovery still works)'}.`;
+    const recoveryTasks=Array.isArray(recovery.lastTasks)?recovery.lastTasks:[];
+    $('scheduleRecoveryTasks').innerHTML=recoveryTasks.length?recoveryTasks.slice(0,20).map(t=>`<article class="library-card"><div class="work-head"><h3>${esc(t.title||'Scheduled task')}</h3><span class="status ${t.attention?'waiting-user':t.paused?'paused':'running'}">${t.attention?'needs attention':t.paused?'paused':'observed'}</span></div><p class="snippet">${t.runId?`Run ${esc(t.runId)}`:'Run identity will appear when ChatGPT exposes it.'}</p></article>`).join(''):'<div class="empty">No scheduled tasks inspected yet.</div>';
+    const mutedUntil=Number(guardianTelemetry.mutedUntil||0);const muted=mutedUntil>Date.now();
+    $('scheduleGuardianStatus').textContent=guardianCfg.enabled
+      ? `${guardianState.title||'Guardian starting'} · ${guardianState.detail||'Preparing Scheduled.'}${guardianState.lastCheckedAt?` · checked ${ago(guardianState.lastCheckedAt)}`:''}${guardianState.httpStatus?` · HTTP ${guardianState.httpStatus}`:''}${muted?` · popups muted until ${new Date(mutedUntil).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:''}`
+      : 'Guardian is off. Enabling it uses the existing offscreen document and never creates an inactive/minimized ChatGPT tab.';
+    $('scheduleGuardianSync').textContent=guardianTelemetry.syncedAt?`Task state ${ago(guardianTelemetry.syncedAt)} · ${esc(guardianTelemetry.source||'observed')}`:'No task state observed yet. Open Scheduled once if ChatGPT has not exposed task state in this session.';
+    const guardianEvents=Array.isArray(guardianTelemetry.events)?guardianTelemetry.events.slice(0,8):[];
+    $('scheduleGuardianActivity').innerHTML=guardianEvents.length?guardianEvents.map((event)=>`<article class="library-card"><div class="work-head"><h3>${esc(event.title||'Scheduled Task Guardian')}</h3><span class="status ${event.level==='danger'?'errored':event.level==='warning'?'waiting-user':event.level==='success'?'running':'paused'}">${esc((event.type||'event').replace(/-/g,' '))}</span></div><div class="meta">${ago(event.at)}</div><p class="snippet">${esc(event.message||'Scheduled state changed.')}</p></article>`).join(''):'<div class="empty">No Scheduled state transitions recorded yet. Guardian will not fabricate activity from timers.</div>';
     $('approvalAutoRecoverPaused').checked=cfg.autoRecoverPaused!==false;
-    $('approvalAutopilotBadge').textContent=cfg.enabled?'ON':'OFF';
-    $('approvalAutopilotBadge').classList.toggle('heavy',Boolean(cfg.enabled));
-    if($('approvalSettingsStatus').dataset.state==='ready'){$('approvalSettingsStatus').dataset.state='saved';$('approvalSettingsStatus').textContent=`Saved automatically · Approval Autopilot ${cfg.enabled?'on':'off'} · fallback ${cfg.fallbackAllowOnce===false?'off':'on'} · paused-chat recovery ${cfg.autoRecoverPaused===false?'off':'on'}.`;}
+    $('approvalAutopilotBadge').textContent='MANUAL';
+    $('approvalAutopilotBadge').classList.remove('heavy');
+    if($('approvalSettingsStatus').dataset.state==='ready'){$('approvalSettingsStatus').dataset.state='saved';$('approvalSettingsStatus').textContent=`Saved automatically · Permission review is manual · resume during scans ${cfg.autoRecoverPaused===false?'off':'on'}.`;}
     const running=state.status==='running';const total=Math.max(0,Number(state.total||0));const scanned=Math.max(0,Number(state.scanned||0));
     $('approvalRecoveryBar').style.width=`${total?Math.min(100,(scanned/total)*100):state.status==='completed'?100:0}%`;
     document.querySelector('.approval-autopilot-card')?.setAttribute('data-running',running?'1':'0');
     $('stopApprovalRecovery').disabled=!running;
-    $('fixAllBlockedChats').disabled=running||!cfg.enabled||!cfg.acknowledged;
-    $('fixDetectedChats').disabled=running||!cfg.enabled||!cfg.acknowledged;
+    $('fixAllBlockedChats').disabled=running;
+    $('fixDetectedChats').disabled=running;
     const last=state.lastResult;
     $('approvalRecoveryStatus').textContent=running
-      ? `Open-tab recovery · ${fmt(scanned)} / ${fmt(total)} scanned · ${fmt(state.recovered)} recovered · ${fmt(state.alwaysAllowed)} persistent · ${fmt(state.refreshed||0)} browser-refresh fixed · ${fmt(state.failed)} failed${state.currentChatId?` · ${state.currentChatId}`:''}`
+      ? `Open-tab scan · ${fmt(scanned)} / ${fmt(total)} scanned · ${fmt(state.manualReview||0)} need permission review · ${fmt(state.resumed)} resumed · ${fmt(state.failed)} failed`
       : state.status==='completed'&&state.startedAt
-        ? `Last sweep completed · ${fmt(state.scanned)} scanned · ${fmt(state.recovered)} recovered · ${fmt(state.alwaysAllowed)} Always Allow · ${fmt(state.allowedOnce)} Allow once · ${fmt(state.resumed)} resumed · ${fmt(state.refreshed||0)} refreshed${last?.title?` · last: ${last.title}`:''}`
-        : cfg.enabled?'Autopilot armed. New approval cards are handled immediately; detected stale chats are checked in the background.':'Autopilot is off.';
-    if(approvalRecoveryPoll){clearTimeout(approvalRecoveryPoll);approvalRecoveryPoll=0;}if(running)approvalRecoveryPoll=setTimeout(()=>loadHome().catch(()=>{}),1100);
+        ? `Last scan · ${fmt(state.scanned)} scanned · ${fmt(state.manualReview||0)} need permission review · ${fmt(state.resumed)} resumed${last?.title?` · last: ${last.title}`:''}`
+        : 'Permission decisions stay with you. Start a scan to inspect open chats.';
   }
 
   function connectionStateClass(state) { return state === 'connected' ? 'connected' : state === 'guest' ? 'guest' : state === 'login-required' || state === 'setup-required' ? 'required' : state === 'error' ? 'error' : ''; }
@@ -451,7 +492,7 @@
     const connectionMap=new Map((connections?.providers||[]).map((row)=>[row.providerId,row]));
     $('fullCaptureProviders').innerHTML=providers.map((p)=>{const status=connectionMap.get(p.id)?.state||'unknown';return `<label title="${esc(status)}"><input type="checkbox" data-full-provider="${esc(p.id)}" ${status!=='login-required'?'checked':''}>${esc(p.name)} <span>· ${esc(status)}</span></label>`;}).join('');
     const catalog=home?.catalog;
-    $('catalogHomeStatus').textContent=catalog?`${catalog.status} · ${fmt(catalog.discovered)} discovered · ${fmt(catalog.captured)} fetched · ${fmt(catalog.turnsCaptured)} turns · ${fmt(catalog.metadataOnly)} metadata-only · ${fmt(catalog.skippedFresh||0)} fresh chats skipped · ${fmt(catalog.notModified||0)} unchanged`:'Ready. Zero-tab catalog opens no crawler tabs; Approval Autopilot works only inside already-open ChatGPT tabs and never launches ChatGPT in the background.';
+    $('catalogHomeStatus').textContent=catalog?`${catalog.status} · ${fmt(catalog.discovered)} discovered · ${fmt(catalog.captured)} fetched · ${fmt(catalog.turnsCaptured)} turns · ${fmt(catalog.metadataOnly)} metadata-only · ${fmt(catalog.skippedFresh||0)} fresh chats skipped · ${fmt(catalog.notModified||0)} unchanged`:'Ready. Zero-tab catalog opens no crawler tabs; Permission review scans inspect already-open ChatGPT tabs.';
     const gov=home?.requestGovernor||{}; const waiting=Object.values(gov.providers||{}).filter((row)=>Number(row.waitMs||0)>0).length;
     if($('sourceRequestGovernor')) $('sourceRequestGovernor').textContent=`Request governor · ${fmt(gov.totalRequests||0)} provider requests · ${fmt(gov.totalFreshSkips||0)} fresh-chat fetches avoided · ${fmt(gov.totalNotModified||0)} conditional 304s · ${fmt(gov.totalThrottles||0)} throttles${waiting?` · ${waiting} provider${waiting===1?'':'s'} cooling down`:''}.`;
     $('enableHistory').textContent=home?.discovery?.browserHistoryGranted?'Browser history discovery enabled':'Enable history discovery';
@@ -488,7 +529,6 @@
     $('fullCaptureStatus').textContent=parts.join(' · ');
     const running=state.status==='running', paused=state.status==='paused';
     start.disabled=running||paused;pause.disabled=!running;resume.disabled=!paused;stop.disabled=!running&&!paused;
-    if(running)fullCapturePoll=setTimeout(()=>loadHome().catch(()=>{}),900);
   }
 
   function renderDurability(){
@@ -500,11 +540,14 @@
   }
 
   async function loadHome(){
-    const [summary, providerResponse, connectionResponse]=await Promise.all([
+    const [summary, providerResponse, connectionResponse, recoveryResponse, desktopResponse]=await Promise.all([
       call({type:'PC_HOME_SUMMARY'}).catch((error)=>({ok:false,error:String(error?.message||error)})),
       call({type:'PC_PROVIDER_LIST'}).catch(()=>({ok:false,providers:[]})),
-      call({type:'PC_CONNECTIONS_STATUS'}).catch(()=>({ok:false}))
+      call({type:'PC_CONNECTIONS_STATUS'}).catch(()=>({ok:false})),
+      call({type:'PC_SCHEDULE_RECOVERY_STATE'}).catch(()=>null),
+      call({type:'PC_LOCAL_DESKTOP_STATUS'}).catch(()=>null)
     ]);
+    scheduleRecoveryState=recoveryResponse||scheduleRecoveryState;desktopRuntimeStatus=desktopResponse||desktopRuntimeStatus;
     if(!summary?.ok){
       const [persisted,countResponse]=await Promise.all([
         call({type:'PC_BRAIN_SETTINGS_GET'}).catch(()=>({ok:false})),
@@ -512,7 +555,7 @@
       ]);
       providers=providerResponse?.providers||providers;connections=connectionResponse?.ok?connectionResponse:connections;
       if(persisted?.ok){
-        home={...(home||{}),counts:countResponse?.ok?countResponse.counts:(home?.counts||null),attention:home?.attention||[],liveHealth:persisted.settings?.liveHealth||home?.liveHealth||{},approvalAutopilot:persisted.settings?.approvalAutopilot||home?.approvalAutopilot||{},approvalRecovery:home?.approvalRecovery||null};
+        home={...(home||{}),counts:countResponse?.ok?countResponse.counts:(home?.counts||null),attention:home?.attention||[],liveHealth:persisted.settings?.liveHealth||home?.liveHealth||{},scheduledTaskGuardian:{...(persisted.settings?.scheduledTaskGuardian||home?.scheduledTaskGuardian||{}),runtime:persisted.scheduledTaskGuardian||home?.scheduledTaskGuardian?.runtime||{}},approvalAutopilot:persisted.settings?.approvalAutopilot||home?.approvalAutopilot||{},approvalRecovery:home?.approvalRecovery||null};
         renderAttention();if(connections)renderConnections();
         if(countResponse?.ok)renderWorkbenchStatus();
         else{$('sidebarChatCount').textContent='—';$('sidebarFileCount').textContent='—';if($('sidebarKnowledgeCount'))$('sidebarKnowledgeCount').textContent='—';$('statusCountsText').textContent='Local counts available after extension reload';}
@@ -531,23 +574,26 @@
     catch(error){const detail=String(error?.message||error);$('railSub').textContent=`${label} completed · dashboard refresh pending: ${detail}`;toast(`${label} completed; refresh pending.`);return false;}
   }
 
-  async function runSearch(query){
+  async function runSearch(query, scope={}){
     const q=String(query||'').trim(); if(!q)return;
+    const workspaceProjectId=String(scope?.projectId||''); const scopeProject=workspaceProjectId?orgProject(workspaceProjectId):null;
     $('globalSearch').value=q; switchView('search');
     const serial=++searchSerial;
-    $('searchSummary').textContent=`Searching the local Constellation index for “${q}”…`;
-    $('searchResults').innerHTML='<div class="empty">Searching chats, recommendations, links, code, projects, and files…</div>';
-    const response=await call({type:'PC_HOME_SEARCH',query:q,limit:50});
+    $('searchSummary').textContent=`Searching ${scopeProject?`${scopeProject.name} `:''}for “${q}”…`;
+    $('searchResults').innerHTML='<div class="empty">Searching chats, source turns, knowledge, projects, files, and artifacts…</div>';
+    const response=await call({type:'PC_HOME_SEARCH',query:q,limit:60,workspaceProjectId});
     if(serial!==searchSerial)return;
     if(!response?.ok){$('searchSummary').textContent=response?.error||'Search failed';return;}
     const data=response.result||{};
-    $('searchSummary').textContent=`${fmt(data.totalHits)} indexed matches grouped into ${fmt(data.groups?.length)} conversations.`;
-    $('searchResults').innerHTML=(data.groups||[]).length?data.groups.map((group)=>{
+    $('searchSummary').textContent=`${fmt(data.totalHits)} indexed matches${scopeProject?` inside ${scopeProject.name}`:''}, grouped into ${fmt(data.groups?.length)} conversations.`;
+    const grouped=(data.groups||[]).map((group)=>{
       const chat=group.chat||{};
-      const matches=(group.matches||[]).map((m)=>`<div class="match"><strong>${esc(m.entityType==='knowledge'?(m.kind||'knowledge'):m.entityType)}</strong> · ${esc(m.excerpt||m.title||'')}</div>`).join('');
-      const files=(group.files||[]).filter((f)=>link(f)).map((f)=>`<a href="${esc(link(f))}" target="_blank" rel="noreferrer">${esc(f.name||f.externalProvider||'file')}</a>`).join('');
-      return `<article class="search-card"><div class="work-head"><div><h3>${esc(chat.title||'Untitled chat')}</h3><div class="meta">${esc(providerName(chat.providerId))} · ${esc(chat.projectName||chat.projectId||'Inbox')} · ${ago(chat.updatedAt)}</div></div><div class="badge-row">${coverageBadge(chat.coverage)}${statusBadge(chatHealthStatus(chat))}</div></div><div class="match-stack">${matches}</div>${files?`<div class="related-files">${files}</div>`:''}<div class="actions">${chat.url?`<button class="primary-link" data-open-url="${esc(chat.url)}">Open exact chat</button>`:''}${(group.files||[]).length?`<button data-search-query="${esc(q)}">${fmt(group.files.length)} related files</button>`:''}</div></article>`;
-    }).join(''):'<div class="empty">No indexed conversations matched that search.</div>';
+      const matches=(group.matches||[]).map((m)=>`<div class="match"><strong>${esc(m.entityType==='knowledge'?(m.kind||'knowledge'):m.entityType)}</strong><span>${esc(m.title||'')}</span><p>${esc(m.excerpt||'')}</p>${m.url?`<button data-open-url="${esc(m.url)}">Open matched source</button>`:''}</div>`).join('');
+      const files=(group.files||[]).filter((f)=>link(f)).map((f)=>`<button data-open-url="${esc(link(f))}">${esc(f.name||f.externalProvider||'file')}</button>`).join('');
+      return `<article class="search-card"><div class="work-head"><div><h3>${esc(chat.title||'Untitled chat')}</h3><div class="meta">${esc(providerName(chat.providerId))} · ${esc(chat.workspaceProjectName||chat.projectName||chat.projectId||'Inbox')} · ${ago(chat.updatedAt)}</div></div><div class="badge-row">${coverageBadge(chat.coverage)}${statusBadge(chatHealthStatus(chat))}</div></div><div class="match-stack">${matches}</div>${files?`<div class="related-files">${files}</div>`:''}<div class="actions">${chat.url?`<button class="primary-link" data-open-url="${esc(chat.url)}">Open exact chat</button>`:''}${workspaceProjectId?`<button data-org-project="${esc(workspaceProjectId)}">Back to Project Room</button>`:''}</div></article>`;
+    }).join('');
+    const standalone=(data.standalone||[]).map((hit)=>`<article class="search-card standalone"><div class="work-head"><div><h3>${esc(hit.title||hit.entityType)}</h3><div class="meta">${esc(hit.entityType||'result')} · ${ago(hit.updatedAt)}</div></div></div><p class="snippet">${esc(hit.excerpt||'')}</p><div class="actions">${hit.url?`<button class="primary-link" data-open-url="${esc(hit.url)}">Open result</button>`:''}</div></article>`).join('');
+    $('searchResults').innerHTML=grouped+standalone||'<div class="empty">No indexed project evidence matched that search.</div>';
   }
 
   function toast(message){
@@ -588,10 +634,40 @@
     const lanes=['active','attention','completed','archived'];
     if(orgGroupMode==='state'||orgScope.workspaceProjectId)return lanes.map((lane)=>laneSection(lane,rows.filter((chat)=>orgChatLane(chat)===lane))).join('');
     const byProject=new Map();for(const chat of rows){const key=chat.workspaceProjectId||'__unassigned__';const list=byProject.get(key)||[];list.push(chat);byProject.set(key,list);}
-    return [...byProject.entries()].map(([id,list])=>{const project=id==='__unassigned__'?null:orgProject(id);const name=project?.name||'Unassigned';return `<section class="org-project-cluster"><div class="org-project-cluster-head"><strong>${esc(project?.icon||'◇')} ${esc(name)}</strong><span>${fmt(list.length)} chats</span></div>${lanes.map((lane)=>laneSection(lane,list.filter((chat)=>orgChatLane(chat)===lane))).join('')}</section>`;}).join('');
+    return [...byProject.entries()].map(([id,list])=>{const project=id==='__unassigned__'?null:orgProject(id);const name=project?.name||'Unassigned';return `<section class="org-project-cluster" style="--project-color:${esc(projectIdentity.normalizeColor(project?.color||'#7d92ff'))}"><div class="org-project-cluster-head"><strong><span class="cluster-project-icon">${esc(projectIdentity.normalizeIcon(project?.icon||'◇'))}</span> ${esc(name)}</strong><span>${fmt(list.length)} chats</span></div>${lanes.map((lane)=>laneSection(lane,list.filter((chat)=>orgChatLane(chat)===lane))).join('')}</section>`;}).join('');
   }
   function memoryCard(item){const inactive=item.disposition&&item.disposition!=='active';return `<article class="brain-memory${inactive?' inactive':''}"><div><strong>${esc(item.title||item.text||item.kind)}</strong><small>${esc(item.kind||'memory')} · ${Math.round(Number(item.confidence||0)*100)}% confidence${inactive?` · ${esc(item.disposition)}`:''}${item.source?.chatTitle?` · ${esc(item.source.chatTitle)}`:''}</small></div><div class="brain-memory-actions">${item.source?.chatUrl?`<button data-open-url="${esc(item.source.chatUrl)}">Source</button>`:''}${inactive?`<button data-memory-action="restore" data-memory-id="${esc(item.id)}">Restore</button>`:`<button data-memory-action="${item.pinned?'unpin':'pin'}" data-memory-id="${esc(item.id)}">${item.pinned?'Unpin':'Pin'}</button><button data-memory-action="ignore" data-memory-id="${esc(item.id)}">Ignore</button>`}</div></article>`;}
-  function renderProjectBrain(){const host=$('orgProjectBrain');const brain=projectBrain?.compiledBrain;if(!orgScope.workspaceProjectId||!brain){host.classList.add('hidden');host.innerHTML='';return;}host.classList.remove('hidden');const working=brain.workingSet||[];const active=brain.activeChats||[];const history=brain.history||[];host.innerHTML=`<div class="project-brain-head"><div><p>PROJECT BRAIN</p><h2>Working context · ${esc(brain.projectName||'Project')}</h2><span>Curated from source-backed project history; full evidence stays in the vault.</span></div><div class="brain-coverage"><b>${fmt(brain.coverage?.knowledgeItems||0)} memories</b><span>${fmt(brain.coverage?.sourceChats||0)} source chats · ${fmt(brain.coverage?.files||0)} files</span></div></div><div class="brain-grid"><div><div class="brain-section-title">Working set <span>${working.length}</span></div>${working.length?working.map(memoryCard).join(''):'<div class="empty">No compiled project memory yet. Keep working normally; Constellation will build this from captured evidence.</div>'}</div><div><div class="brain-section-title">Live project work <span>${active.length}</span></div>${active.length?active.map((chat)=>`<article class="brain-chat ${chat.bucket}"><div><strong>${esc(chat.title)}</strong><small>${esc(chat.bucket)} · ${ago(chat.updatedAt)}</small></div>${chat.url?`<button data-open-url="${esc(chat.url)}">Open</button>`:''}</article>`).join(''):'<div class="empty">No active or attention chats.</div>'}<div class="brain-section-title compact">Memory history</div><div class="brain-history"><span>${fmt(brain.coverage?.ignored||0)} ignored</span><span>${fmt(brain.coverage?.superseded||0)} superseded</span><span>${fmt(brain.coverage?.pinned||0)} pinned</span></div>${history.length?`<div class="brain-history-list">${history.slice(0,5).map(memoryCard).join('')}</div>`:''}</div></div>`;}
+  function routeSuggestionCard(row){const c=row.candidate||{};return `<article class="router-suggestion"><div class="router-copy"><div class="router-kicker"><span>${esc(String(c.confidence||'review').toUpperCase())} MATCH</span><b>${Math.round(Number(c.score||0)*100)}%</b></div><strong>${esc(row.chatTitle||'Untitled chat')}</strong><p>Likely belongs in <b>${esc(c.projectName||'Project')}</b>${(c.sharedTerms||[]).length?` · shared: ${(c.sharedTerms||[]).map(esc).join(', ')}`:''}</p></div><div class="router-actions">${row.chatUrl?`<button data-open-url="${esc(row.chatUrl)}">Open chat</button>`:''}<button data-route-action="dismiss" data-route-chat="${esc(row.chatId)}" data-route-project="${esc(c.projectId||'')}" data-route-fingerprint="${esc(c.fingerprint||'')}">Not this project</button><button class="primary" data-route-action="confirm" data-route-chat="${esc(row.chatId)}" data-route-project="${esc(c.projectId||'')}" data-route-fingerprint="${esc(c.fingerprint||'')}">Confirm project</button></div></article>`;}
+  function renderRouteSuggestions(){const host=$('orgRouterQueue');const rows=projectRouteRows||[];if(!rows.length){host.classList.add('hidden');host.innerHTML='';return;}const selected=orgScope.workspaceProjectId?orgProject(orgScope.workspaceProjectId):null;host.classList.remove('hidden');host.innerHTML=`<div class="router-head"><div><p>PROJECT ROUTER · CONFIRMATION REQUIRED</p><h2>${selected?`Possible chats for ${esc(selected.name)}`:'Suggested project matches'}</h2><span>Constellation can recognize likely homes, but it will never force a chat into a project. You decide every assignment.</span></div><span class="mode-pill">LOCAL · BOUNDED</span></div><div class="router-list">${rows.map(routeSuggestionCard).join('')}</div>`;}
+  async function loadRouteSuggestions(){const r=await call({type:'PC_PROJECT_ROUTE_SUGGESTIONS',projectId:orgScope.workspaceProjectId||'',limit:orgScope.workspaceProjectId?12:10});projectRouteRows=r?.ok?(r.items||[]):[];renderRouteSuggestions();}
+  function compactMemories(items,empty){return (items||[]).length?(items||[]).slice(0,6).map(memoryCard).join(''):`<div class="empty">${esc(empty)}</div>`;}
+  function coordinationCard(pair){const terms=(pair.sharedTerms||[]).map((term)=>`<span>${esc(term)}</span>`).join('');return `<article class="coord-card"><div class="coord-score">${Math.round(Number(pair.score||0)*100)}%</div><div><strong>${esc(pair.kind==='parallel-overlap'?'Parallel work overlap':'Coordination watch')}</strong><p>${esc(pair.left?.title||'Chat')} ↔ ${esc(pair.right?.title||'Chat')}</p>${terms?`<div class="coord-terms">${terms}</div>`:''}</div><div class="coord-actions">${pair.left?.url?`<button data-open-url="${esc(pair.left.url)}">Open A</button>`:''}${pair.right?.url?`<button data-open-url="${esc(pair.right.url)}">Open B</button>`:''}</div></article>`;}
+  function versionRows(intel){const families=intel?.versions?.families||[];if(!families.length)return '<div class="empty">No comparable versions observed yet.</div>';return families.slice(0,6).map((family)=>`<article class="version-row"><header><strong>${esc(family.label||'Project')}</strong><span class="version-current">${esc(family.current?.versionText||'observed')}</span></header>${(family.entries||[]).slice(1,4).map((entry)=>`<small class="version-old">${esc(entry.versionText)} · older observed · ${ago(entry.updatedAt)}</small>`).join('')||'<small>No older observed versions in this family.</small>'}</article>`).join('');}
+  function changeRows(intel){const changes=intel?.changes?.items||[];if(!changes.length)return '<div class="empty">Nothing new since your last Project Room checkpoint.</div>';return changes.slice(0,10).map((row)=>`<article class="change-row"><header><strong>${esc(row.label||row.kind)}</strong><small>${esc(row.kind)} · ${ago(row.updatedAt)}</small></header>${row.detail?`<small>${esc(row.detail)}</small>`:''}<div class="change-actions">${row.url?`<button data-open-url="${esc(row.url)}">Open source</button>`:''}</div></article>`).join('');}
+  function handoffRows(intel){const rows=intel?.handoffs||[];if(!rows.length)return '<div class="empty">No source-backed cross-chat handoffs are waiting.</div>';return rows.slice(0,6).map((row)=>`<article class="handoff-row"><header><strong>${esc(row.source?.title||'Source chat')} → ${esc(row.target?.title||'Target chat')}</strong><small>${Math.round(Number(row.score||0)*100)}% relevance</small></header><small>${(row.evidence||[]).map((e)=>esc(e.label)).join(' · ')}</small><div class="handoff-actions">${row.source?.url?`<button data-open-url="${esc(row.source.url)}">Source</button>`:''}${row.target?.url?`<button data-open-url="${esc(row.target.url)}">Target</button>`:''}<button data-context-chat="${esc(row.target?.id||'')}">Review target context</button></div></article>`).join('');}
+  function duplicateRows(intel){const rows=intel?.duplicates||[];if(!rows.length)return '<div class="empty">No strong active-work duplication signals.</div>';return rows.slice(0,6).map((row)=>`<article class="duplicate-row"><header><strong>Possible duplicate work</strong><small>${Math.round(Number(row.score||0)*100)}% overlap</small></header><small>${esc(row.left?.title||'Chat A')} ↔ ${esc(row.right?.title||'Chat B')}${row.sharedTerms?.length?` · ${(row.sharedTerms||[]).map(esc).join(', ')}`:''}</small><div class="duplicate-actions">${row.left?.url?`<button data-open-url="${esc(row.left.url)}">Open A</button>`:''}${row.right?.url?`<button data-open-url="${esc(row.right.url)}">Open B</button>`:''}</div></article>`).join('');}
+  function dependencyRows(intel){const stale=intel?.dependencies?.stale||[],edges=intel?.dependencies?.edges||[];if(!stale.length&&!edges.length)return '<div class="empty">Dependency graph is still gathering source-backed relationships.</div>';return `${stale.slice(0,5).map((row)=>`<article class="dependency-row"><strong>${esc(row.label||'Project evidence')}</strong><small>${esc(row.status)} · ${esc(row.reason||'Review dependency')}</small></article>`).join('')}${edges.slice(0,5).map((edge)=>`<div class="dependency-edge"><b>${esc(edge.relation)}</b><span>${Math.round(Number(edge.confidence||0)*100)}%${edge.sharedTerms?.length?` · ${(edge.sharedTerms||[]).map(esc).join(', ')}`:''}</span></div>`).join('')}`;}
+  function autopilotRows(intel){const rows=intel?.autopilot?.proposals||[];if(!rows.length)return '<div class="empty">Guarded Autopilot has no current proposals.</div>';return rows.slice(0,10).map((row)=>`<article class="autopilot-row" data-status="${esc(row.status||'pending')}"><header><strong>${esc(row.summary||row.type)}</strong><small>${esc((row.status||'pending').toUpperCase())} · ${Math.round(Number(row.priority||0)*100)} priority</small></header><small>${esc(row.reason||'')}</small>${row.preview?`<div class="autopilot-preview">${esc(row.preview)}</div>`:''}<div class="autopilot-actions">${row.targetChatUrl?`<button data-open-url="${esc(row.targetChatUrl)}">Open target</button>`:''}${row.providerWrite?`<button data-autopilot-review="${esc(row.fingerprint)}" data-autopilot-chat="${esc(row.targetChatId||'')}">${row.status==='approved'?'Review approved text':'Review / edit'}</button>`:`<button data-autopilot-action="approve" data-autopilot-fingerprint="${esc(row.fingerprint)}">Acknowledge</button>`}${row.status==='approved'&&row.providerWrite?`<button class="primary" data-autopilot-stage="${esc(row.fingerprint)}" data-autopilot-chat="${esc(row.targetChatId||'')}">Stage in open chat</button>`:''}<button data-autopilot-action="deny" data-autopilot-fingerprint="${esc(row.fingerprint)}">Deny</button></div></article>`).join('');}
+  function renderProjectBrain(){
+    const host=$('orgProjectBrain');const brain=projectBrain?.compiledBrain;const intel=projectBrain?.compiledIntelligence;const project=orgScope.workspaceProjectId?orgProject(orgScope.workspaceProjectId):null;
+    if(!project||!brain){host.classList.add('hidden');host.innerHTML='';return;}
+    host.classList.remove('hidden');const working=brain.workingSet||[];const active=brain.activeChats||[];const history=brain.history||[];const coord=brain.coordination||{pairs:[],sharedFocus:[]};const next=brain.sections?.nextActions||[];const decisions=brain.sections?.decisions||[];const autopilot=intel?.autopilot||{proposals:[],pending:0,approved:0};const staleCount=intel?.dependencies?.stale?.length||0;const versionCount=intel?.versions?.families?.length||0;const changeCount=intel?.changes?.items?.length||0;
+    host.style.setProperty('--project-color',projectIdentity.normalizeColor(project.color));host.innerHTML=`<div class="project-room-head"><div><p>PROJECT ROOM · DEPENDENCY BRAIN</p><h2><span class="room-project-icon">${esc(projectIdentity.normalizeIcon(project.icon))}</span> ${esc(project.name||brain.projectName||'Project')}</h2><span>${esc(project.description||project.notes||'A living workspace compiled from source-backed project evidence.')}</span></div><div class="room-health"><b>${fmt(brain.counts?.active||0)} active · ${fmt(brain.counts?.attention||0)} attention</b><span>${fmt(brain.coverage?.knowledgeItems||0)} compiled memories · ${fmt(brain.coverage?.files||0)} files</span></div></div>
+      <div class="room-safety-banner"><div><strong>Provider-chat safety lock</strong><span>Project Brain keeps learning internally, but context, handoffs, and Autopilot text never enter ChatGPT or another provider without your explicit review and approval.</span></div><span class="mode-pill">NO AUTO-SEND</span></div>
+      <div class="intelligence-strip"><div class="intelligence-chip"><b>${fmt(versionCount)}</b><span>version families</span></div><div class="intelligence-chip${staleCount?' warn':''}"><b>${fmt(staleCount)}</b><span>dependency warnings</span></div><div class="intelligence-chip"><b>${fmt(intel?.duplicates?.length||0)}</b><span>duplicate-work signals</span></div><div class="intelligence-chip${autopilot.pending?' warn':''}"><b>${fmt(autopilot.pending||0)}</b><span>Autopilot reviews</span></div></div>
+      <div class="project-room-search"><div class="searchbox"><svg><use href="#i-search"/></svg><input id="projectRoomSearch" autocomplete="off" spellcheck="false" placeholder="Search only ${esc(project.name)}…"></div><button class="primary" id="projectRoomSearchButton">Search project</button></div>
+      <div class="room-grid room-grid-primary"><section class="room-panel"><div class="brain-section-title">Next actions <span>${next.length}</span></div>${compactMemories(next,'No extracted next actions yet.')}</section><section class="room-panel"><div class="brain-section-title">Decisions <span>${decisions.length}</span></div>${compactMemories(decisions,'No project decisions extracted yet.')}</section></div>
+      <div class="room-grid"><section class="room-panel"><div class="brain-section-title">Live project work <span>${active.length}</span></div>${active.length?active.map((chat)=>`<article class="brain-chat ${chat.bucket}"><div><strong>${esc(chat.title)}</strong><small>${esc(chat.bucket)} · ${ago(chat.updatedAt)}</small></div><div class="brain-chat-actions"><button data-context-chat="${esc(chat.id)}">Review context</button>${chat.url?`<button data-open-url="${esc(chat.url)}">Open</button>`:''}</div></article>`).join(''):'<div class="empty">No active or attention chats.</div>'}</section><section class="room-panel"><div class="brain-section-title">Version awareness <span>${versionCount}</span></div>${versionRows(intel)}</section></div>
+      <div class="room-grid"><section class="room-panel"><div class="brain-section-title">Dependency Brain <span>${fmt(intel?.dependencies?.edges?.length||0)} edges</span></div>${dependencyRows(intel)}</section><section class="room-panel"><div class="brain-section-title">Duplicate-work prevention <span>${fmt(intel?.duplicates?.length||0)}</span></div>${duplicateRows(intel)}</section></div>
+      <div class="room-grid"><section class="room-panel"><div class="brain-section-title">Cross-chat handoffs <span>${fmt(intel?.handoffs?.length||0)}</span></div>${handoffRows(intel)}</section><section class="room-panel"><div class="brain-section-title">Multi-chat coordination <span>${coord.pairs?.length||0}</span></div>${(coord.pairs||[]).length?(coord.pairs||[]).slice(0,5).map(coordinationCard).join(''):'<div class="empty">No meaningful overlap detected among active project chats.</div>'}</section></div>
+      <div class="room-grid"><section class="room-panel wide"><div class="brain-section-title">What changed <span>${fmt(changeCount)}</span></div>${changeRows(intel)}<div class="change-actions"><button data-project-changes-ack="1" ${changeCount?'':'disabled'}>Mark caught up</button></div></section></div>
+      <div class="room-grid"><section class="room-panel wide"><div class="brain-section-title">Guarded Project Autopilot <span>${fmt(autopilot.proposals?.length||0)}</span></div><div class="context-safety">Autopilot may detect, prepare, and propose. It cannot send provider messages, stop chats, overwrite a composer, or silently inject context. Provider-writing proposals require review, approval, then a separate Stage click; Send remains yours.</div>${autopilotRows(intel)}</section></div>
+      <div class="room-grid"><section class="room-panel"><div class="brain-section-title">Curated working set <span>${working.length}</span></div>${compactMemories(working,'No compiled project memory yet. Captured project chats still contribute to the larger Knowledge Vault and Project Brain.')}</section><section class="room-panel"><div class="brain-section-title">Project evidence</div><div class="brain-history"><span>${fmt(brain.coverage?.sourceChats||0)} source chats</span><span>${fmt(brain.coverage?.pinned||0)} pinned</span><span>${fmt(brain.coverage?.ignored||0)} ignored</span><span>${fmt(brain.coverage?.superseded||0)} superseded</span></div>${brain.latestArtifact?`<article class="latest-artifact"><strong>${esc(brain.latestArtifact.name||'Latest artifact')}</strong><span>${ago(brain.latestArtifact.updatedAt)}</span>${brain.latestArtifact.url?`<button data-open-url="${esc(brain.latestArtifact.url)}">Open artifact</button>`:''}</article>`:''}${history.length?`<div class="brain-history-list">${history.slice(0,4).map(memoryCard).join('')}</div>`:''}</section></div>`;
+    const input=host.querySelector('#projectRoomSearch');const button=host.querySelector('#projectRoomSearchButton');const go=()=>{const q=input?.value.trim();if(q)runSearch(q,{projectId:project.id});};button?.addEventListener('click',go);input?.addEventListener('keydown',(event)=>{if(event.key==='Enter')go();});
+  }
+  function setProjectContextDialogState({projectId='',chatId='',fingerprint='',source='context',title='Review context',text='',approved=false,status='pending'}={}){projectContextReviewState={projectId,chatId,fingerprint,source,approvedText:approved?text:'',status};$('projectContextProject').value=projectId;$('projectContextChat').value=chatId;$('projectContextFingerprint').value=fingerprint;$('projectContextSource').value=source;$('projectContextTitle').textContent=title;$('projectContextDraft').value=text;$('projectContextApprove').textContent=approved?'Re-approve exact text':'Approve exact text';$('projectContextStage').disabled=!approved;const safety=$('projectContextSafety');safety.className=`context-safety${approved?' approved':status==='denied'?' denied':''}`;safety.textContent=approved?'Approved exactly as shown. Stage is now available, but Constellation will still never press Send.':status==='denied'?'Denied. This text will not be staged unless you explicitly approve it later.':'Review every line. Approve stores the exact text you reviewed; Stage only fills an already-open composer and never presses Send.';}
+  async function openProjectContextDialog(chatId,{source='context',fingerprint=''}={}){const projectId=orgScope.workspaceProjectId;if(!projectId||!chatId)return;if(source==='autopilot'){const proposal=projectBrain?.compiledIntelligence?.autopilot?.proposals?.find((row)=>row.fingerprint===fingerprint);if(!proposal){toast('That Autopilot proposal changed. Refresh the Project Room.');return;}setProjectContextDialogState({projectId,chatId,fingerprint,source,title:`Autopilot · ${proposal.summary}`,text:proposal.preview||'',approved:proposal.status==='approved',status:proposal.status||'pending'});$('projectContextDialog').showModal();return;}const r=await call({type:'PC_PROJECT_CHAT_CONTEXT_GET',projectId,chatId});if(!r?.ok){toast(r?.error||'Chat context could not be prepared.');return;}const approval=r.approval||null;setProjectContextDialogState({projectId,chatId,fingerprint:r.packet?.fingerprint||'',source:'context',title:`Context · ${r.packet?.chatTitle||'Chat'}`,text:approval?.status==='approved'&&approval.editedText?approval.editedText:(r.markdown||''),approved:approval?.status==='approved',status:approval?.status||'pending'});$('projectContextMeta').textContent=`${r.packet?.projectName||'Project'} · ${r.packet?.relevant?.length||0} relevant memories · ${r.packet?.generalLessons?.length||0} reusable project-wide lessons`; $('projectContextDialog').showModal();}
+
   async function loadProjectBrain(){projectBrain=null;if(!orgScope.workspaceProjectId){renderProjectBrain();return;}const r=await call({type:'PC_PROJECT_BRAIN_GET',projectId:orgScope.workspaceProjectId});if(r?.ok)projectBrain=r.continuity||null;renderProjectBrain();}
 
   function renderOrganizationChrome(){
@@ -617,7 +693,7 @@
 
   async function loadOrganizerChats(){
     const filters={limit:180,mode:orgScope.mode,sort:orgScope.sort}; if(orgScope.workspaceProjectId)filters.workspaceProjectId=orgScope.workspaceProjectId;if(orgScope.groupId)filters.groupId=orgScope.groupId;if(orgScope.tag)filters.tag=orgScope.tag;
-    const [r]=await Promise.all([call({type:'PC_ORG_CHATS',filters}),loadProjectBrain()]); const rows=r?.items||[]; orgChatRows=rows;
+    const [r]=await Promise.all([call({type:'PC_ORG_CHATS',filters}),loadProjectBrain(),loadRouteSuggestions()]); const rows=r?.items||[]; orgChatRows=rows;
     $('orgChatList').innerHTML=rows.length?renderGroupedOrgChats(rows):'<div class="empty">No chats match this workspace view.</div>'; renderBulkBar();
   }
 
@@ -633,12 +709,20 @@
   }
 
   function fieldVisible(id,visible){$(id).classList.toggle('org-field-hidden',!visible);}
+  function renderOrgIdentity(){
+    const icon=projectIdentity.normalizeIcon($('orgIcon').value),color=projectIdentity.normalizeColor($('orgColor').value),name=$('orgName').value.trim()||'New project';
+    $('orgIcon').value=icon;$('orgColor').value=color;$('orgColorText').value=color;$('orgIdentityPreviewIcon').textContent=icon;$('orgIdentityPreviewName').textContent=name;$('orgIdentityPreview').style.setProperty('--project-color',color);
+  }
+  function buildOrgIdentityControls(){
+    $('orgEmojiPalette').innerHTML=projectIdentity.EMOJIS.map((emoji)=>`<button type="button" data-org-emoji="${esc(emoji)}" title="Use ${esc(emoji)}">${esc(emoji)}</button>`).join('');
+    $('orgColorPresets').innerHTML=projectIdentity.COLORS.map((color)=>`<button type="button" data-org-color="${esc(color)}" style="--swatch:${esc(color)}" title="Use ${esc(color)}" aria-label="Use project color ${esc(color)}"></button>`).join('');
+  }
   function openOrgDialog(mode,id=''){
     const dialog=$('orgDialog'); const project=mode.includes('project')?orgProject(id):null;const group=mode.includes('group')?orgGroup(id):null;const smart=mode.includes('smart')?(organization.smartCollections||[]).find((c)=>c.id===id):null;const chat=orgChatRows.find((c)=>c.id===id)||(home?.recentChats||[]).find((c)=>c.id===id)||null;const rec=project||group||smart;
     $('orgDialogMode').value=mode;$('orgDialogId').value=id;$('orgDialogTitle').textContent=mode==='new-group'?'Create group':mode==='new-project'?'Create project':mode==='new-smart'?'Create smart collection':mode==='tag-chat'?'Edit chat tags':mode==='move-chat'?'Move chat':`Edit ${mode.replace('edit-','')}`;
-    $('orgName').value=rec?.name||'';$('orgIcon').value=rec?.icon||(mode.includes('group')?'◇':mode.includes('smart')?'⌕':'✦');$('orgColor').value=rec?.color||'#7d92ff';$('orgDescription').value=rec?.description||rec?.notes||'';$('orgQuery').value=smart?.query||'';$('orgTags').value=(chat?.tags||[]).join(', ');
+    $('orgName').value=rec?.name||'';$('orgIcon').value=projectIdentity.normalizeIcon(rec?.icon||(mode.includes('group')?'◇':mode.includes('smart')?'⌕':'✦'));$('orgColor').value=projectIdentity.normalizeColor(rec?.color||'#7d92ff');$('orgColorText').value=$('orgColor').value;$('orgDescription').value=rec?.description||rec?.notes||'';$('orgQuery').value=smart?.query||'';$('orgTags').value=(chat?.tags||[]).join(', ');$('orgEmojiPalette').hidden=true;renderOrgIdentity();
     fillParentOptions(mode,id);$('orgParent').value=mode==='move-chat'?(chat?.workspaceProjectId||''):(rec?.groupId||rec?.parentId||'');
-    const tagMode=mode==='tag-chat',moveMode=mode==='move-chat',smartMode=mode.includes('smart');fieldVisible('orgNameField',!tagMode&&!moveMode);fieldVisible('orgIconField',!tagMode&&!moveMode);fieldVisible('orgColorField',mode.includes('project')||mode.includes('group'));fieldVisible('orgParentField',!tagMode);fieldVisible('orgQueryField',smartMode);fieldVisible('orgTagsField',tagMode);fieldVisible('orgDescriptionField',!tagMode&&!moveMode);
+    const tagMode=mode==='tag-chat',moveMode=mode==='move-chat',smartMode=mode.includes('smart');fieldVisible('orgNameField',!tagMode&&!moveMode);fieldVisible('orgIconField',!tagMode&&!moveMode);fieldVisible('orgColorField',mode.includes('project')||mode.includes('group'));fieldVisible('orgIdentityPreview',mode.includes('project')||mode.includes('group'));fieldVisible('orgParentField',!tagMode);fieldVisible('orgQueryField',smartMode);fieldVisible('orgTagsField',tagMode);fieldVisible('orgDescriptionField',!tagMode&&!moveMode);
     $('orgDialogDelete').classList.toggle('hidden',mode.startsWith('new-')||mode==='tag-chat'||mode==='move-chat'); dialog.showModal(); setTimeout(()=>{const target=tagMode?$('orgTags'):moveMode?$('orgParent'):$('orgName');target.focus();},0);
   }
 
@@ -647,7 +731,7 @@
     if(mode==='tag-chat') response=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[id],patch:{tags:$('orgTags').value}});
     else if(mode==='move-chat') response=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[id],patch:{workspaceProjectId:$('orgParent').value}});
     else {
-      const input={name:$('orgName').value.trim(),icon:$('orgIcon').value.trim(),color:$('orgColor').value,description:$('orgDescription').value.trim()};
+      const input={name:$('orgName').value.trim(),icon:projectIdentity.normalizeIcon($('orgIcon').value),color:projectIdentity.normalizeColor($('orgColor').value),description:$('orgDescription').value.trim()};
       if(mode.includes('group'))input.parentId=$('orgParent').value;else input.groupId=$('orgParent').value;if(mode.includes('smart'))input.query=$('orgQuery').value.trim();
       if(mode==='new-group')response=await call({type:'PC_ORG_GROUP_CREATE',input});else if(mode==='new-project')response=await call({type:'PC_ORG_PROJECT_CREATE',input});else if(mode==='new-smart')response=await call({type:'PC_ORG_SMART_CREATE',input});else response=await call({type:'PC_ORG_ENTITY_UPDATE',kind:mode.replace('edit-',''),id,patch:input});
     }
@@ -756,6 +840,12 @@
     const editSmart=event.target.closest?.('[data-org-edit-smart]')?.dataset.orgEditSmart;if(editSmart){openOrgDialog('edit-smart',editSmart);return;}
     const pinProject=event.target.closest?.('[data-org-project-pin]')?.dataset.orgProjectPin;if(pinProject){const p=orgProject(pinProject);const r=await call({type:'PC_ORG_ENTITY_UPDATE',kind:'project',id:pinProject,patch:{pinned:!p?.pinned}});if(!r?.ok){toast(r?.error||'Project pin could not be saved.');return;}await loadProjects(true);return;}
     const memoryAction=event.target.closest?.('[data-memory-action]')?.dataset.memoryAction;const memoryId=event.target.closest?.('[data-memory-action]')?.dataset.memoryId;if(memoryAction&&memoryId){const r=await call({type:'PC_PROJECT_MEMORY_GATE',itemId:memoryId,action:memoryAction});if(!r?.ok){toast(r?.error||'Project memory update failed.');return;}await loadProjectBrain();toast(memoryAction==='ignore'?'Memory hidden from working context':memoryAction==='pin'?'Memory pinned':'Project memory updated');return;}
+    const routeAction=event.target.closest?.('[data-route-action]')?.dataset.routeAction;if(routeAction){const node=event.target.closest('[data-route-action]');const r=await call({type:'PC_PROJECT_ROUTE_REVIEW',action:routeAction,chatId:node.dataset.routeChat||'',projectId:node.dataset.routeProject||'',fingerprint:node.dataset.routeFingerprint||''});if(!r?.ok){toast(r?.error||'Project Router review failed.');return;}if(routeAction==='confirm'){toast('Project confirmed');await loadProjects(true);}else{toast('Suggestion dismissed');await loadRouteSuggestions();}return;}
+    const contextChat=event.target.closest?.('[data-context-chat]')?.dataset.contextChat;if(contextChat){await openProjectContextDialog(contextChat);return;}
+    const autopilotReview=event.target.closest?.('[data-autopilot-review]');if(autopilotReview){await openProjectContextDialog(autopilotReview.dataset.autopilotChat||'',{source:'autopilot',fingerprint:autopilotReview.dataset.autopilotReview||''});return;}
+    const autopilotAction=event.target.closest?.('[data-autopilot-action]');if(autopilotAction){const action=autopilotAction.dataset.autopilotAction||'',fingerprint=autopilotAction.dataset.autopilotFingerprint||'';const r=await call({type:'PC_PROJECT_AUTOPILOT_REVIEW',projectId:orgScope.workspaceProjectId,fingerprint,action});if(!r?.ok){toast(r?.error||'Autopilot review failed.');return;}await loadProjectBrain();toast(action==='deny'?'Autopilot proposal denied':'Autopilot proposal acknowledged');return;}
+    const autopilotStage=event.target.closest?.('[data-autopilot-stage]');if(autopilotStage){const r=await call({type:'PC_PROJECT_CONTEXT_STAGE',projectId:orgScope.workspaceProjectId,chatId:autopilotStage.dataset.autopilotChat||'',fingerprint:autopilotStage.dataset.autopilotStage||'',source:'autopilot'});if(!r?.ok){toast(r?.message||r?.error||'Approved context could not be staged.');return;}toast('Approved context staged. Nothing was sent.');return;}
+    const changesAck=event.target.closest?.('[data-project-changes-ack]');if(changesAck){const r=await call({type:'PC_PROJECT_CHANGES_ACK',projectId:orgScope.workspaceProjectId});if(!r?.ok){toast(r?.error||'Could not mark project changes caught up.');return;}await loadProjectBrain();toast('Project changes marked caught up');return;}
     const chatAction=event.target.closest?.('[data-org-chat-action]')?.dataset.orgChatAction;const actionChat=event.target.closest?.('[data-org-chat-action]')?.dataset.chatId;if(chatAction&&actionChat){const rows=[...document.querySelectorAll('[data-drag-chat]')];const row=rows.find((n)=>n.dataset.dragChat===actionChat);const pin=row?.querySelector('[data-org-chat-action="pin"]')?.classList.contains('on');const fav=row?.querySelector('[data-org-chat-action="favorite"]')?.classList.contains('on');const archived=row?.querySelector('[data-org-chat-action="archive"]')?.classList.contains('on');if(chatAction==='tag'){openOrgDialog('tag-chat',actionChat);return;}if(chatAction==='move'){openOrgDialog('move-chat',actionChat);return;}const patch=chatAction==='pin'?{pinned:!pin}:chatAction==='favorite'?{favorite:!fav}:{organizedArchived:!archived};const r=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[actionChat],patch});if(!r?.ok){toast(r?.error||'Chat update could not be saved.');return;}await loadProjects(true);return;}
     const jump=event.target.closest?.('[data-jump]')?.dataset.jump;if(jump){switchView(jump);return;}
     const url=event.target.closest?.('[data-open-url]')?.dataset.openUrl;if(url){openUrl(url);return;}
@@ -840,9 +930,34 @@
     settingsSaveQueue=pending;
     return pending;
   }
-  async function saveApprovalAutopilot(patch){return queueSettingsSave('approvalAutopilot',patch,'Could not save Approval Autopilot settings.');}
+  async function saveScheduledGuardian(patch){
+    const current=home?.scheduledTaskGuardian||{};
+    const settings={enabled:Boolean(current.enabled),observeTaskState:current.observeTaskState!==false,desktopNotifications:current.desktopNotifications!==false,notifyRunCompleted:current.notifyRunCompleted!==false,notifyStateChanges:current.notifyStateChanges!==false,keepEmbeddedWorkspace:current.keepEmbeddedWorkspace!==false,autoRepair:current.autoRepair!==false,cadenceMinutes:Number(current.cadenceMinutes||30),...patch};
+    const response=await call({type:'PC_BRAIN_SETTINGS_SET',settings:{scheduledTaskGuardian:settings}});
+    if(!response?.ok)throw new Error(response?.error||'Could not save Scheduled Task Guardian settings.');
+    home={...(home||{}),scheduledTaskGuardian:{...response.settings.scheduledTaskGuardian,runtime:home?.scheduledTaskGuardian?.runtime||{},telemetry:home?.scheduledTaskGuardian?.telemetry||{}}};
+    renderAttention();
+    return response;
+  }
+  async function updateScheduledGuardian(patch){try{await saveScheduledGuardian(patch);setTimeout(()=>loadHome().catch(()=>{}),350);}catch(e){toast(e.message);}}
+  async function saveApprovalAutopilot(patch){return queueSettingsSave('approvalAutopilot',{...patch,enabled:false,acknowledged:false,alwaysAllow:false,fallbackAllowOnce:false,backgroundRecovery:false},'Could not save permission review settings.');}
   async function saveLiveHealth(patch){return queueSettingsSave('liveHealth',patch,'Could not save Live Chat Health settings.');}
   async function updateLiveHealthSetting(patch){try{await saveLiveHealth(patch);}catch(e){toast(e.message);}}
+  $('scheduleGuardianEnabled').addEventListener('change',()=>updateScheduledGuardian({enabled:$('scheduleGuardianEnabled').checked}));
+  $('scheduleGuardianObserve').addEventListener('change',()=>updateScheduledGuardian({observeTaskState:$('scheduleGuardianObserve').checked}));
+  $('scheduleGuardianNotifications').addEventListener('change',()=>updateScheduledGuardian({desktopNotifications:$('scheduleGuardianNotifications').checked}));
+  $('scheduleGuardianRunAlerts').addEventListener('change',()=>updateScheduledGuardian({notifyRunCompleted:$('scheduleGuardianRunAlerts').checked}));
+  $('scheduleGuardianStateAlerts').addEventListener('change',()=>updateScheduledGuardian({notifyStateChanges:$('scheduleGuardianStateAlerts').checked}));
+  $('scheduleGuardianEmbedded').addEventListener('change',()=>updateScheduledGuardian({keepEmbeddedWorkspace:$('scheduleGuardianEmbedded').checked}));
+  $('scheduleGuardianAutoRepair').addEventListener('change',()=>updateScheduledGuardian({autoRepair:$('scheduleGuardianAutoRepair').checked}));
+  $('scheduleRecoveryEnabled').addEventListener('change',async()=>{scheduleRecoveryState=await call({type:'PC_SCHEDULE_RECOVERY_CONFIG',config:{enabled:$('scheduleRecoveryEnabled').checked}});scheduleRecoveryState=await call({type:'PC_SCHEDULE_RECOVERY_STATE'});renderAttention();});
+  $('scheduleRecoveryCheck').addEventListener('click',async()=>{try{$('scheduleRecoveryCheck').disabled=true;$('scheduleRecoveryStatus').textContent='Inspecting Scheduled and continuing safe same-run work…';scheduleRecoveryState=await call({type:'PC_SCHEDULE_RECOVERY_CHECK'});renderAttention();}finally{$('scheduleRecoveryCheck').disabled=scheduleRecoveryState?.config?.enabled===false;}});
+  $('scheduleGuardianCadence').addEventListener('change',()=>updateScheduledGuardian({cadenceMinutes:Number($('scheduleGuardianCadence').value)}));
+  $('scheduleGuardianRepair').addEventListener('click',async()=>{try{$('scheduleGuardianRepair').disabled=true;$('scheduleGuardianStatus').textContent='Repairing the offscreen Scheduled workspace and verifying reachability…';const r=await call({type:'PC_SCHEDULE_GUARDIAN_REPAIR'});if(!r?.ok)throw new Error(r?.error||'Guardian repair failed.');home={...(home||{}),scheduledTaskGuardian:{...(home?.scheduledTaskGuardian||{}),runtime:r.state||{}}};renderAttention();toast('Scheduled Task Guardian repaired');}catch(e){$('scheduleGuardianStatus').textContent=e.message;}finally{$('scheduleGuardianRepair').disabled=!home?.scheduledTaskGuardian?.enabled;}});
+  $('scheduleGuardianOpen').addEventListener('click',async()=>{const r=await call({type:'PC_SCHEDULE_GUARDIAN_OPEN'});if(!r?.ok)toast(r?.error||'Could not open ChatGPT Scheduled.');});
+  $('scheduleGuardianTest').addEventListener('click',async()=>{const r=await call({type:'PC_SCHEDULE_GUARDIAN_TEST_NOTIFICATION'});toast(r?.ok?'Scheduled Guardian test popup sent':r?.error||'Test popup failed.');});
+  $('scheduleGuardianMute').addEventListener('click',async()=>{const r=await call({type:'PC_SCHEDULE_GUARDIAN_MUTE',minutes:60});if(r?.ok){home={...(home||{}),scheduledTaskGuardian:{...(home?.scheduledTaskGuardian||{}),telemetry:r.telemetry||{}}};renderAttention();toast('Scheduled Guardian popups muted for 1 hour');}else toast(r?.error||'Could not mute alerts.');});
+  $('scheduleGuardianClear').addEventListener('click',async()=>{const r=await call({type:'PC_SCHEDULE_GUARDIAN_CLEAR_EVENTS'});if(r?.ok){home={...(home||{}),scheduledTaskGuardian:{...(home?.scheduledTaskGuardian||{}),telemetry:r.telemetry||{}}};renderAttention();toast('Scheduled Guardian activity cleared');}else toast(r?.error||'Could not clear activity.');});
   $('liveHealthEnabled').addEventListener('change',()=>updateLiveHealthSetting({enabled:$('liveHealthEnabled').checked}));
   $('liveHealthShowHealthy').addEventListener('change',()=>updateLiveHealthSetting({showHealthy:$('liveHealthShowHealthy').checked}));
   $('liveHealthToolWatchdog').addEventListener('change',()=>updateLiveHealthSetting({toolWatchdogEnabled:$('liveHealthToolWatchdog').checked}));
@@ -855,11 +970,8 @@
   $('liveHealthCapacityWarning').addEventListener('change',()=>updateLiveHealthSetting({capacityWarningTurns:Number($('liveHealthCapacityWarning').value)}));
   $('liveHealthCapacityHandoff').addEventListener('change',()=>updateLiveHealthSetting({capacityHandoffTurns:Number($('liveHealthCapacityHandoff').value)}));
   $('saveLiveHealthSettings').addEventListener('click',async()=>{try{await saveLiveHealth({enabled:$('liveHealthEnabled').checked,showHealthy:$('liveHealthShowHealthy').checked,toolWatchdogEnabled:$('liveHealthToolWatchdog').checked,capacityGuardEnabled:$('liveHealthCapacityGuard').checked,corner:$('liveHealthCorner').value,density:$('liveHealthDensity').value,softStallMs:Number($('liveHealthSoftStall').value),hardStallMs:Number($('liveHealthHardStall').value),deadStallMs:Number($('liveHealthDeadStall').value),capacityWarningTurns:Number($('liveHealthCapacityWarning').value),capacityHandoffTurns:Number($('liveHealthCapacityHandoff').value)});toast('Live Chat Health settings saved');}catch(e){toast(e.message);}});
-  $('saveApprovalSettings').addEventListener('click',async()=>{const acknowledged=$('approvalRiskAcknowledged').checked;const enabled=$('approvalAutopilotEnabled').checked;if(enabled&&!acknowledged){showSettingsSaveState('approvalAutopilot','error','Acknowledge Always Allow before enabling Autopilot.');toast('Acknowledge the Always Allow behavior first.');return;}try{await saveApprovalAutopilot({acknowledged,enabled,fallbackAllowOnce:$('approvalFallbackAllowOnce').checked,autoRecoverPaused:$('approvalAutoRecoverPaused').checked});toast('Approval Autopilot settings saved');}catch(e){toast(e.message);}});
-  $('approvalRiskAcknowledged').addEventListener('change',async()=>{const acknowledged=$('approvalRiskAcknowledged').checked;try{await saveApprovalAutopilot({acknowledged,enabled:acknowledged?Boolean(home?.approvalAutopilot?.enabled):false});}catch(e){toast(e.message);}});
+  $('saveApprovalSettings').addEventListener('click',async()=>{try{await saveApprovalAutopilot({autoRecoverPaused:$('approvalAutoRecoverPaused').checked});toast('Permission review settings saved');}catch(e){toast(e.message);}});
   $('runIntegrityScan').addEventListener('click',async()=>{try{$('runIntegrityScan').disabled=true;$('integrityStatus').textContent='Scanning changed project baselines locally…';const r=await call({type:'PC_INTEGRITY_SCAN',force:true});if(!r?.ok)throw new Error(r?.error||'Project integrity scan failed.');await loadHome();toast(`Integrity scan: ${fmt(r.scanned)} projects · ${fmt(r.findings)} findings`);}catch(e){$('integrityStatus').textContent=e.message;}finally{$('runIntegrityScan').disabled=false;}});
-  $('approvalAutopilotEnabled').addEventListener('change',async()=>{const enabled=$('approvalAutopilotEnabled').checked;const acknowledged=$('approvalRiskAcknowledged').checked;try{if(enabled&&!acknowledged){$('approvalAutopilotEnabled').checked=false;toast('Acknowledge the Always Allow behavior first.');return;}await saveApprovalAutopilot({enabled,acknowledged,backgroundRecovery:false});$('approvalRecoveryStatus').textContent=enabled?'Autopilot enabled · watching already-open ChatGPT tabs only. Closed chats are never launched automatically.':'Approval Autopilot disabled.';}catch(e){toast(e.message);}});
-  $('approvalFallbackAllowOnce').addEventListener('change',async()=>{const fallbackAllowOnce=$('approvalFallbackAllowOnce').checked;try{await saveApprovalAutopilot({fallbackAllowOnce});}catch(e){toast(e.message);}});
   $('approvalAutoRecoverPaused').addEventListener('change',async()=>{const autoRecoverPaused=$('approvalAutoRecoverPaused').checked;try{await saveApprovalAutopilot({autoRecoverPaused});}catch(e){toast(e.message);}});
   $('fixDetectedChats').addEventListener('click',async()=>{try{$('fixDetectedChats').disabled=true;$('approvalRecoveryStatus').textContent='Scanning open blocked/paused ChatGPT tabs…';const r=await call({type:'PC_APPROVAL_RECOVERY_START',mode:'attention'});if(!r?.ok)throw new Error(r?.error||'Recovery could not start.');home.approvalRecovery=r.state||home.approvalRecovery;renderAttention();await refreshHomeAfterCompletedAction('Recovery start');}catch(e){$('approvalRecoveryStatus').textContent=e.message;}finally{if(home?.approvalRecovery?.status!=='running')$('fixDetectedChats').disabled=false;}});
   $('fixAllBlockedChats').addEventListener('click',async()=>{try{$('fixAllBlockedChats').disabled=true;$('approvalRecoveryStatus').textContent='Scanning all currently open ChatGPT chats · closed chats will not be opened…';const r=await call({type:'PC_APPROVAL_RECOVERY_START',mode:'all-known'});if(!r?.ok)throw new Error(r?.error||'Fix All could not start.');home.approvalRecovery=r.state||home.approvalRecovery;renderAttention();await refreshHomeAfterCompletedAction('Full recovery start');}catch(e){$('approvalRecoveryStatus').textContent=e.message;}finally{if(home?.approvalRecovery?.status!=='running')$('fixAllBlockedChats').disabled=false;}});
@@ -884,7 +996,21 @@
   $('homeDriveSync').addEventListener('click',async()=>{try{if(!await requestDriveOrigin())throw new Error('Google Drive permission not granted.');$('durabilityStatus').textContent='Creating and verifying remote checkpoint…';const r=await call({type:'PC_DRIVE_SYNC',interactive:true,forceRoundtrip:true});if(!r?.ok)throw new Error(r?.error||'Drive sync failed');$('durabilityStatus').textContent=`Drive verified · ${fmt(r.size)} bytes · SHA-256 ${r.sha256.slice(0,16)}…`;await loadHome();}catch(e){$('durabilityStatus').textContent=e.message;}});
   $('homeDriveRestore').addEventListener('click',async()=>{try{if(!await requestDriveOrigin())throw new Error('Google Drive permission not granted.');$('durabilityStatus').textContent='Downloading, verifying, merging, and rebuilding index…';const r=await call({type:'PC_DRIVE_RESTORE',interactive:true});if(!r?.ok)throw new Error(r?.error||'Restore failed');$('durabilityStatus').textContent=`Drive recovery merged successfully · ${fmt(r.size)} bytes verified.`;await loadHome();}catch(e){$('durabilityStatus').textContent=e.message;}});
 
+  $('projectContextClose').addEventListener('click',()=>$('projectContextDialog').close());
+  $('projectContextDraft').addEventListener('input',()=>{if(!projectContextReviewState)return;const exact=$('projectContextDraft').value===projectContextReviewState.approvedText&&projectContextReviewState.status==='approved';$('projectContextStage').disabled=!exact;const safety=$('projectContextSafety');if(!exact&&projectContextReviewState.status==='approved'){safety.className='context-safety';safety.textContent='Text changed after approval. Approve this exact revision again before Stage becomes available.';}});
+  $('projectContextApprove').addEventListener('click',async()=>{if(!projectContextReviewState)return;const state=projectContextReviewState,text=$('projectContextDraft').value;const type=state.source==='autopilot'?'PC_PROJECT_AUTOPILOT_REVIEW':'PC_PROJECT_CONTEXT_REVIEW';const message=state.source==='autopilot'?{type,projectId:state.projectId,fingerprint:state.fingerprint,action:'approve',editedText:text}:{type,projectId:state.projectId,chatId:state.chatId,fingerprint:state.fingerprint,action:'approve',editedText:text};const r=await call(message);if(!r?.ok){toast(r?.error||'Approval could not be saved.');return;}projectContextReviewState={...state,approvedText:text,status:'approved'};$('projectContextStage').disabled=false;$('projectContextApprove').textContent='Re-approve exact text';$('projectContextSafety').className='context-safety approved';$('projectContextSafety').textContent='Approved exactly as shown. Stage is now available, but Constellation will still never press Send.';if(state.source==='autopilot')await loadProjectBrain();toast('Exact context approved');});
+  $('projectContextDeny').addEventListener('click',async()=>{if(!projectContextReviewState)return;const state=projectContextReviewState;const type=state.source==='autopilot'?'PC_PROJECT_AUTOPILOT_REVIEW':'PC_PROJECT_CONTEXT_REVIEW';const message=state.source==='autopilot'?{type,projectId:state.projectId,fingerprint:state.fingerprint,action:'deny'}:{type,projectId:state.projectId,chatId:state.chatId,fingerprint:state.fingerprint,action:'deny'};const r=await call(message);if(!r?.ok){toast(r?.error||'Denial could not be saved.');return;}projectContextReviewState={...state,approvedText:'',status:'denied'};$('projectContextStage').disabled=true;$('projectContextSafety').className='context-safety denied';$('projectContextSafety').textContent='Denied. This text will not be staged unless you explicitly approve it later.';if(state.source==='autopilot')await loadProjectBrain();toast('Context denied');});
+  $('projectContextStage').addEventListener('click',async()=>{if(!projectContextReviewState||projectContextReviewState.status!=='approved'||$('projectContextDraft').value!==projectContextReviewState.approvedText){toast('Approve this exact text before staging it.');return;}const state=projectContextReviewState;const r=await call({type:'PC_PROJECT_CONTEXT_STAGE',projectId:state.projectId,chatId:state.chatId,fingerprint:state.fingerprint,source:state.source});if(!r?.ok){toast(r?.message||r?.error||'Approved text could not be staged.');return;}toast('Approved text staged in the open composer. Nothing was sent.');});
+
   document.querySelectorAll('[data-dialog-close]').forEach((button)=>button.addEventListener('click',()=>$('orgDialog').close()));
+  buildOrgIdentityControls();
+  $('orgName').addEventListener('input',renderOrgIdentity);
+  $('orgIcon').addEventListener('input',renderOrgIdentity);
+  $('orgEmojiToggle').addEventListener('click',()=>{$('orgEmojiPalette').hidden=!$('orgEmojiPalette').hidden;});
+  $('orgEmojiPalette').addEventListener('click',(event)=>{const emoji=event.target?.closest?.('[data-org-emoji]')?.dataset.orgEmoji;if(!emoji)return;$('orgIcon').value=projectIdentity.normalizeIcon(emoji);$('orgEmojiPalette').hidden=true;renderOrgIdentity();});
+  $('orgColor').addEventListener('input',()=>{$('orgColorText').value=$('orgColor').value;renderOrgIdentity();});
+  $('orgColorText').addEventListener('change',()=>{const color=projectIdentity.normalizeColor($('orgColorText').value,$('orgColor').value);$('orgColor').value=color;$('orgColorText').value=color;renderOrgIdentity();});
+  $('orgColorPresets').addEventListener('click',(event)=>{const color=event.target?.closest?.('[data-org-color]')?.dataset.orgColor;if(!color)return;$('orgColor').value=projectIdentity.normalizeColor(color);renderOrgIdentity();});
   $('orgDialogDelete').addEventListener('click',async()=>{const mode=$('orgDialogMode').value,id=$('orgDialogId').value,kind=mode.replace('edit-','');if(!['group','project','smart'].includes(kind)||!id)return;if(!confirm(`Remove this ${kind} from Constellation organization? Chats and files are preserved.`))return;const r=await call({type:'PC_ORG_ENTITY_DELETE',kind,id});if(!r?.ok){toast(r?.error||'Remove failed');return;}$('orgDialog').close();orgScope={workspaceProjectId:'',groupId:'',tag:'',mode:'all',sort:orgScope.sort};await loadProjects(true);toast('Organizer item removed');});
   $('newGroup').addEventListener('click',()=>openOrgDialog('new-group'));
   $('newProject').addEventListener('click',()=>openOrgDialog('new-project'));
@@ -898,11 +1024,42 @@
   $('orgBulkMove').addEventListener('click',async()=>{if(!selectedOrgChats.size)return;const r=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[...selectedOrgChats],patch:{workspaceProjectId:$('orgBulkProject').value}});if(!r?.ok){toast(r?.error||'Chats could not be moved.');return;}selectedOrgChats.clear();await loadProjects(true);toast('Chats moved');});
   $('orgBulkPin').addEventListener('click',async()=>{if(!selectedOrgChats.size)return;const r=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[...selectedOrgChats],patch:{pinned:true}});if(!r?.ok){toast(r?.error||'Chats could not be pinned.');return;}selectedOrgChats.clear();await loadProjects(true);toast('Chats pinned');});
   $('orgBulkArchive').addEventListener('click',async()=>{if(!selectedOrgChats.size)return;const r=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[...selectedOrgChats],patch:{organizedArchived:true}});if(!r?.ok){toast(r?.error||'Chats could not be archived.');return;}selectedOrgChats.clear();await loadProjects(true);toast('Chats archived');});
-  document.addEventListener('dragstart',(event)=>{const chat=event.target.closest?.('[data-drag-chat]');const project=event.target.closest?.('[data-org-project]');if(chat){event.dataTransfer.setData('application/x-project-constellation-chat',chat.dataset.dragChat);event.dataTransfer.effectAllowed='move';}else if(project){event.dataTransfer.setData('application/x-project-constellation-project',project.dataset.orgProject);event.dataTransfer.effectAllowed='move';}});
+  document.addEventListener('dragstart',(event)=>{const chat=event.target.closest?.('[data-drag-chat]');const project=event.target.closest?.('[data-org-project]');if(chat){event.dataTransfer.setData('application/x-project-constellation-chat',chat.dataset.dragChat);event.dataTransfer.setData('text/plain',`chat:${chat.dataset.dragChat}`);event.dataTransfer.effectAllowed='move';}else if(project){event.dataTransfer.setData('application/x-project-constellation-project',project.dataset.orgProject);event.dataTransfer.setData('text/plain',`project:${project.dataset.orgProject}`);event.dataTransfer.effectAllowed='move';}});
   document.addEventListener('dragover',(event)=>{const target=event.target.closest?.('[data-project-drop],[data-group-drop]');if(target){event.preventDefault();event.dataTransfer.dropEffect='move';target.classList.add('dragover');}});
   document.addEventListener('dragleave',(event)=>event.target.closest?.('[data-project-drop],[data-group-drop]')?.classList.remove('dragover'));
-  document.addEventListener('drop',async(event)=>{const target=event.target.closest?.('[data-project-drop],[data-group-drop]');if(!target)return;event.preventDefault();target.classList.remove('dragover');const chatId=event.dataTransfer.getData('application/x-project-constellation-chat');const draggedProject=event.dataTransfer.getData('application/x-project-constellation-project');if(chatId&&target.dataset.projectDrop){const r=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[chatId],patch:{workspaceProjectId:target.dataset.projectDrop}});if(!r?.ok){toast(r?.error||'Chat could not be moved.');return;}await loadProjects(true);toast('Chat moved');return;}if(draggedProject&&target.dataset.groupDrop){const r=await call({type:'PC_ORG_ENTITY_UPDATE',kind:'project',id:draggedProject,patch:{groupId:target.dataset.groupDrop}});if(!r?.ok){toast(r?.error||'Project could not be moved.');return;}await loadProjects(true);toast('Project moved');}});
+  document.addEventListener('drop',async(event)=>{const target=event.target.closest?.('[data-project-drop],[data-group-drop]');if(!target)return;event.preventDefault();target.classList.remove('dragover');const plain=event.dataTransfer.getData('text/plain')||'';const chatId=event.dataTransfer.getData('application/x-project-constellation-chat')||(plain.startsWith('chat:')?plain.slice(5):'');const draggedProject=event.dataTransfer.getData('application/x-project-constellation-project')||(plain.startsWith('project:')?plain.slice(8):'');if(chatId&&target.dataset.projectDrop){const r=await call({type:'PC_ORG_CHAT_PATCH',chatIds:[chatId],patch:{workspaceProjectId:target.dataset.projectDrop}});if(!r?.ok){toast(r?.error||'Chat could not be moved.');return;}await loadProjects(true);toast('Chat moved');return;}if(draggedProject&&target.dataset.groupDrop){const r=await call({type:'PC_ORG_ENTITY_UPDATE',kind:'project',id:draggedProject,patch:{groupId:target.dataset.groupDrop}});if(!r?.ok){toast(r?.error||'Project could not be moved.');return;}await loadProjects(true);toast('Project moved');}});
+
+
+  let recoveryUiFrame=0;
+  chrome.storage?.onChanged?.addListener?.((changes,areaName)=>{
+    if(areaName!=='local')return;
+    let changed=false;
+    if(Object.prototype.hasOwnProperty.call(changes,'projectConstellationApprovalRecoveryState')){
+      home={...(home||{}),approvalRecovery:changes.projectConstellationApprovalRecoveryState.newValue||null};
+      changed=true;
+    }
+    if(Object.prototype.hasOwnProperty.call(changes,'pcx.scheduleRecovery.v2')){
+      scheduleRecoveryState=changes['pcx.scheduleRecovery.v2'].newValue||scheduleRecoveryState;
+      changed=true;
+    }
+    if(!changed)return;
+    if(recoveryUiFrame)cancelAnimationFrame(recoveryUiFrame);
+    recoveryUiFrame=requestAnimationFrame(()=>{recoveryUiFrame=0;renderAttention();});
+  });
 
   window.addEventListener('pagehide',()=>{if(githubPollTimer)clearTimeout(githubPollTimer);},{once:true});
+  function scheduleHomeStateRefresh(delay=100){
+    if(document.visibilityState!=='visible')return;
+    if(stateRefreshTimer)clearTimeout(stateRefreshTimer);
+    stateRefreshTimer=setTimeout(()=>{stateRefreshTimer=0;loadHome().catch(()=>{});},Math.max(40,Number(delay||0)));
+  }
+  chrome.runtime?.onMessage?.addListener?.((message)=>{
+    if(message?.type!=='PC_STATE_EVENT')return;
+    const topic=String(message?.event?.topic||'');
+    if(['capture.changed','catalog.changed','provider.health.changed','incident.changed','desktop.status.changed','live.chat.changed','settings.changed'].includes(topic))scheduleHomeStateRefresh(100);
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scheduleHomeStateRefresh(0);},{passive:true});
+  window.addEventListener('focus',()=>scheduleHomeStateRefresh(0),{passive:true});
+
   loadWorkbenchState().then(()=>{const url=new URL(location.href);const requested=url.searchParams.get('view');switchView(VIEW_META[requested]?requested:(workbenchState.activeView||'overview'));return loadHome().then(()=>{if(url.searchParams.get('focus')==='live-health')requestAnimationFrame(()=>$('liveHealthSettingsCard')?.scrollIntoView({block:'center'}));});}).catch((error)=>{$('railSub').textContent=error.message;});
 })();

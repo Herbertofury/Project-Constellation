@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 import pathlib, json, os
 
 root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation'))
-core=(root/'src/core.js').read_text(); brain=(root/'src/brain-core.js').read_text(); health=(root/'src/health-core.js').read_text(); content=(root/'src/content.js').read_text(); css=(root/'src/styles.css').read_text()
+core=(root/'src/core.js').read_text(); brain=(root/'src/brain-core.js').read_text(); health=(root/'src/health-core.js').read_text(); provider_health=(root/'src/provider-health-core.js').read_text(); content=(root/'src/content.js').read_text(); css=(root/'src/styles.css').read_text()
 page_html='''<!doctype html><html><head><style>html,body{background:#090b16;color:#eef;margin:0}main{max-width:780px;margin:80px auto}form{display:flex;gap:8px}.composer{min-height:80px;flex:1;border:1px solid #465078;padding:12px;white-space:pre-wrap}button{padding:8px 14px}</style></head><body><main><h1>Fresh ChatGPT chat</h1><form><div id="prompt-textarea" class="composer" contenteditable="true" role="textbox" aria-label="Chat with ChatGPT"></div><button data-testid="send-button" type="button" aria-label="Send message">Send</button></form></main></body></html>'''
 mock=r'''(() => {
   window.__brain=[]; window.__completeCalls=[]; window.__lineageCalls=[]; window.__sentPrompt=''; window.__newChatId=''; let claimed=false;
@@ -14,14 +14,18 @@ mock=r'''(() => {
 
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None)); page=browser.new_page(viewport={'width':1280,'height':800}); errors=[]; page.on('pageerror',lambda exc:errors.append(str(exc)))
-    page.set_content(page_html,wait_until='domcontentloaded'); page.evaluate(mock); page.add_style_tag(content=css); page.add_script_tag(content=core); page.add_script_tag(content=brain); page.add_script_tag(content=health); page.add_script_tag(content=content)
+    page.set_content(page_html,wait_until='domcontentloaded'); page.evaluate(mock); page.add_style_tag(content=css); page.add_script_tag(content=core); page.add_script_tag(content=brain); page.add_script_tag(content=health); page.add_script_tag(content=provider_health); page.add_script_tag(content=content)
     page.wait_for_timeout(2200)
     before=page.evaluate('''() => ({sentPrompt:window.__sentPrompt,completeCalls:window.__completeCalls,composerText:document.getElementById('prompt-textarea').innerText,armed:document.getElementById('prompt-textarea').dataset.projectConstellationBranchReady||'',toast:!!document.getElementById('projectConstellationBranchToast')})''')
     assert not before['sentPrompt'] and 'Project Constellation Safe Handoff' in before['composerText'] and 'direct continuation' in before['composerText']
     assert before['completeCalls'] and before['completeCalls'][-1]['status']=='prefilled' and before['armed']=='1' and before['toast']
-    page.locator('#prompt-textarea').press('End'); page.keyboard.insert_text('\nUser edit before send.'); page.locator('#prompt-textarea').press('Enter'); page.wait_for_timeout(450)
+    page.locator('#prompt-textarea').press('End'); page.keyboard.insert_text('\nUser edit before send.'); page.locator('#prompt-textarea').press('Enter'); page.wait_for_timeout(250)
+    staged=page.evaluate('''() => ({sentPrompt:window.__sentPrompt,newChatId:window.__newChatId,composerText:document.getElementById('prompt-textarea').innerText})''')
+    assert staged['sentPrompt']=='' and staged['newChatId']==''
+    assert 'Project Constellation Safe Handoff' in staged['composerText'] and 'User edit before send.' in staged['composerText']
+    page.locator('[data-testid="send-button"]').click(); page.wait_for_timeout(120)
     result=page.evaluate('''() => ({sentPrompt:window.__sentPrompt,completeCalls:window.__completeCalls,lineageCalls:window.__lineageCalls,newChatId:window.__newChatId,composerText:document.getElementById('prompt-textarea').innerText,nativeForm:!!document.querySelector('form')})''')
-    print(json.dumps({'before':before,'result':result,'errors':errors},sort_keys=True))
+    print(json.dumps({'before':before,'staged':staged,'result':result,'errors':errors},sort_keys=True))
     assert 'Project Constellation Safe Handoff' in result['sentPrompt'] and 'User edit before send.' in result['sentPrompt']
     assert result['newChatId']=='chatgpt:continued' and result['composerText']=='' and result['nativeForm']
     assert not errors

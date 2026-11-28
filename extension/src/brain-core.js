@@ -35,6 +35,34 @@
     const base = toolHeavy ? Math.round(text.length * 0.42) : text.length;
     return Math.max(0, Math.round(base + links * 700 + assets * 1400 + code.length * 420 + codeCharacters * 0.72));
   }
+  const TRANSIENT_OUTPUT_LINE = /^(?:thinking(?:\.{0,3})?|reasoning(?:\.{0,3})?|analyzing(?: image)?(?:\.{0,3})?|called tool|calling tool|tool call|used .{1,80} skill|using .{1,80} skill|search(?:ed|ing)(?: files?| the web| websites?)?(?: for)? .{0,220}|inspect(?:ed|ing) .{0,220}|read(?:ing)? .{0,220}|brows(?:ed|ing) .{0,220}|fetch(?:ed|ing) .{0,220}|run(?:ning)? .{0,220}|execut(?:ed|ing) .{0,220}|check(?:ed|ing) .{0,220}|review(?:ed|ing) .{0,220}|verif(?:ied|ying) .{0,220}|test(?:ed|ing) .{0,220}|build(?:ing|t) .{0,220}|packag(?:ed|ing) .{0,220}|patch(?:ed|ing) .{0,220}|updat(?:ed|ing) .{0,220}|upload(?:ed|ing) .{0,220}|download(?:ed|ing) .{0,220}|implement(?:ed|ing) .{0,220}|fix(?:ed|ing) .{0,220}|creat(?:ed|ing) .{0,220}|persist(?:ed|ing) .{0,220}|compar(?:ed|ing) .{0,220})$/i;
+  function transientOutputLine(value = '') {
+    const line = String(value || '').replace(/^[\s>*#`~_-]+|[\s`~_-]+$/g, '').trim();
+    if (!line || line.length > 260) return false;
+    if (/^(?:thinking|reasoning|analyzing(?: image)?|called tool|calling tool|tool call)$/i.test(line)) return true;
+    if (/[.!?][\s"')\]]*$/.test(line)) return false;
+    return TRANSIENT_OUTPUT_LINE.test(line);
+  }
+  function outputIntegrityText(record = {}) {
+    const raw = String(record.formattedText || record.text || '').replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ');
+    if (String(record.role || '') !== 'assistant') return raw.trim();
+    const lines = raw.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return '';
+    const kept = lines.filter((line) => !transientOutputLine(line));
+    return kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function outputIntegrityProjection(record = {}) {
+    const role = String(record.role || '');
+    const links = Array.isArray(record.links) ? record.links : [];
+    const assets = Array.isArray(record.assets) ? record.assets : [];
+    const codeBlocks = Array.isArray(record.codeBlocks) ? record.codeBlocks : [];
+    const text = outputIntegrityText(record);
+    const projected = { role, text, links, assets, codeBlocks };
+    const rich = links.length + assets.length + codeBlocks.length;
+    const transientOnly = role === 'assistant' && !text && rich === 0 && Boolean(String(record.formattedText || record.text || '').trim());
+    const substantive = rich > 0 || text.length >= (role === 'assistant' ? 40 : 1);
+    return { text, fingerprint:turnFingerprint(projected), score:turnRichnessScore(projected), transientOnly, substantive, richResources:rich };
+  }
   function outputObservationFingerprint(turns = []) {
     const payload = (Array.isArray(turns) ? turns : []).map((turn) => `${turn?.id || ''}:${turn?.fingerprint || turnFingerprint(turn)}:${Number(turn?.ordinal || 0)}`).join('|');
     return `${hashString(`tail:v1:${payload}`)}-${hashString(`${payload}:saved`)}-${payload.length.toString(36)}`;
@@ -66,7 +94,7 @@
       syncReceipts: [...syncReceipts].sort(sortByUpdated).slice(0, 2000), catalogRuns: [...catalogRuns].sort(sortByUpdated).slice(0, 200)
     };
   }
-  const api = Object.freeze({ VERSION, CHAT_STATUSES, normalizeText, hashString, searchTerms, safeId, turnKey, fileKey, mergeRecord, turnFingerprint, turnRichnessScore, outputObservationFingerprint, classifyChatStatus, makeSnapshot });
+  const api = Object.freeze({ VERSION, CHAT_STATUSES, normalizeText, hashString, searchTerms, safeId, turnKey, fileKey, mergeRecord, turnFingerprint, turnRichnessScore, transientOutputLine, outputIntegrityText, outputIntegrityProjection, outputObservationFingerprint, classifyChatStatus, makeSnapshot });
   globalThis.ProjectConstellationBrainCore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

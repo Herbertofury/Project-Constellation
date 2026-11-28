@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+await import('../extension/src/provider-health-core.js');
+const core=globalThis.ProjectConstellationProviderHealthCore;
+assert(core);
+const healthy=core.evaluate({providerId:'chatgpt',ageMs:10000,chatExpected:true,capabilities:{providerDetected:true,routeDetected:true,chatDetected:true,composerDetected:true,sendControlDetected:true,messageSurfaceDetected:true,streamingSignalObserved:false,projectContextDetected:true}});
+assert.equal(healthy.status,'healthy');
+const warming=core.evaluate({providerId:'chatgpt',ageMs:1000,chatExpected:true,capabilities:{providerDetected:true,routeDetected:true,chatDetected:true,composerDetected:false,sendControlDetected:false,messageSurfaceDetected:true}});
+assert.equal(warming.status,'warming');
+const degraded=core.evaluate({providerId:'chatgpt',ageMs:10000,chatExpected:true,capabilities:{providerDetected:true,routeDetected:true,chatDetected:true,composerDetected:false,sendControlDetected:false,messageSurfaceDetected:true}});
+assert(['degraded','broken'].includes(degraded.status));
+assert(core.transition(healthy,degraded).degraded);
+assert(core.transition(degraded,healthy).recovered);
+console.log('provider-health-core.test.mjs: PASS');

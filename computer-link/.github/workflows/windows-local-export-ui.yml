@@ -1,0 +1,32 @@
+name: Windows owner local export UI acceptance
+on:
+  push:
+    branches: [review/windows-local-export-ui]
+    paths: ['local-export/**', 'windows-owner/**', 'mcp-session/**', '.github/workflows/windows-local-export-ui.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic-owner-ui:
+    runs-on: windows-2025
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - shell: pwsh
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "computer-link-export-ui-target"
+          cargo +1.99.1 test --locked --manifest-path local-export/Cargo.toml -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 build --locked --manifest-path mcp-session/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 test --locked --manifest-path mcp-session/Cargo.toml -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml --test probe_gui -- --ignored --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+# Source-only, disposable synthetic files/UI. No secrets, artifact uploads,
+# owner-machine installation, service registration, remote endpoint or release.

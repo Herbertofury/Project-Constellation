@@ -21,7 +21,8 @@ assert.equal(policy.hasConnectionEvidence({ lastStatus:'syncing' }), false, 'orp
 assert.equal(policy.hasConnectionEvidence({ lastStatus:'restoring' }), false, 'orphaned restore state alone is not proof of a prior Drive connection');
 assert.equal(policy.hasConnectionEvidence({ lastStatus:'', lastSyncAt:456 }), true);
 
-const worker = fs.readFileSync(new URL('../extension/service-worker.js', import.meta.url), 'utf8');
+const manifest = JSON.parse(fs.readFileSync(new URL('../extension/manifest.json', import.meta.url), 'utf8'));
+const worker = fs.readFileSync(new URL(`../extension/${manifest.background.service_worker}`, import.meta.url), 'utf8');
 const guard = fs.readFileSync(new URL('../extension/src/drive-sync-guard.js', import.meta.url), 'utf8');
 const policyImport = worker.indexOf("import './src/drive-sync-policy.js'");
 const guardImport = worker.indexOf("import './src/drive-sync-guard.js'");

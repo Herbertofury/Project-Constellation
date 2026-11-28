@@ -5,6 +5,7 @@ root = pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT', '/mnt/data/proj
 core = (root / 'src/core.js').read_text()
 brain = (root / 'src/brain-core.js').read_text()
 health = (root / 'src/health-core.js').read_text()
+provider_health = (root / 'src/provider-health-core.js').read_text()
 content = (root / 'src/content.js').read_text()
 
 cases = [
@@ -56,7 +57,7 @@ with sync_playwright() as p:
           }};
           window.chrome={{storage:{{local:{{get:async()=>({{projectConstellationPerformanceSettings:{{enabled:true,responsiveScrolling:true,adaptiveMotionRelief:false}},projectConstellationBrainSettings:{{liveHealth:{{enabled:false}}}}}}),set:async()=>{{}}}},onChanged:{{addListener:()=>{{}}}}}},runtime:{{sendMessage:async(msg)=>{{if(msg.type==='PC_BRAIN_INGEST_BATCH')window.__brain.push(...(msg.payload||[]));return {{ok:true}};}},onMessage:{{addListener:(fn)=>window.__listener=fn}}}}}};
         }}''')
-        page.add_script_tag(content=core); page.add_script_tag(content=brain); page.add_script_tag(content=health); page.add_script_tag(content=content)
+        page.add_script_tag(content=core); page.add_script_tag(content=brain); page.add_script_tag(content=health); page.add_script_tag(content=provider_health); page.add_script_tag(content=content)
         page.wait_for_timeout(800)
         auth = page.evaluate("() => new Promise(resolve=>window.__listener({type:'PC_AUTH_STATUS'},null,resolve))")
         result = page.evaluate("""() => {const turns=window.__brain.filter(row=>row.type==='TURN_UPSERT');return {roles:turns.map(row=>row.data.role),chatIds:[...new Set(turns.map(row=>row.data.chatId))],turns:turns.length};}""")

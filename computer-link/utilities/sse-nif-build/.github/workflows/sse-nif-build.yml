@@ -1,0 +1,22 @@
+name: SSE NIF Optimizer 3.2.2 Windows build
+on:
+  push:
+    branches: [build/sse-nif-optimizer-3.2.2]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - shell: pwsh
+        run: ./build.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: SSE-NIF-Optimizer-3.2.2-Windows-x64
+          path: deliverable/*
+          if-no-files-found: error
+          retention-days: 7

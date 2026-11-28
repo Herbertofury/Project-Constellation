@@ -1,0 +1,133 @@
+name: Windows Setup
+
+on:
+  workflow_call:
+    secrets:
+      PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID:
+        required: false
+      PROJECT_CONSTELLATION_GITHUB_CLIENT_ID:
+        required: false
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'native/constellation-setup/**'
+      - 'native/constellation-monitor/**'
+      - 'computer-link/**'
+      - 'extension/**'
+      - 'tools/build-windows-setup.py'
+      - 'tools/windows-setup-acceptance.py'
+      - 'tools/computer-link/**'
+      - 'tools/build.mjs'
+      - 'tools/build-browser-sensors.mjs'
+      - 'package.json'
+      - '.github/workflows/windows-setup.yml'
+  push:
+    branches: [main, 'upgrade/**']
+    paths:
+      - 'native/constellation-setup/**'
+      - 'native/constellation-monitor/**'
+      - 'computer-link/**'
+      - 'extension/**'
+      - 'tools/build-windows-setup.py'
+      - 'tools/windows-setup-acceptance.py'
+      - 'tools/computer-link/**'
+      - 'package.json'
+      - '.github/workflows/windows-setup.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  transaction-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.12'}
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+          rustup override set 1.99.0
+      - run: cargo fmt --manifest-path native/constellation-setup/Cargo.toml --check
+      - run: cargo clippy --locked --all-targets --manifest-path native/constellation-setup/Cargo.toml -- -D warnings
+      - run: cargo test --locked --all-targets --manifest-path native/constellation-setup/Cargo.toml
+      - run: python -m unittest discover -s native/constellation-setup/tests -p 'test_*.py'
+
+  windows-acceptance:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      RUSTFLAGS: '-C target-feature=+crt-static'
+      PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GOOGLE_CLIENT_ID }}
+      PROJECT_CONSTELLATION_GITHUB_CLIENT_ID: ${{ secrets.PROJECT_CONSTELLATION_GITHUB_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v7
+        with: {node-version: 24}
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.12'}
+      - name: Install pinned native Windows Rust toolchain
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+          rustup override set 1.99.0
+      - name: Windows transaction tests and platform static analysis
+        run: |
+          cargo fmt --manifest-path native/constellation-setup/Cargo.toml --check
+          cargo clippy --locked --all-targets --manifest-path native/constellation-setup/Cargo.toml -- -D warnings
+          cargo test --locked --all-targets --manifest-path native/constellation-setup/Cargo.toml
+          python -m unittest discover -s native/constellation-setup/tests -p 'test_*.py'
+      - name: Real native monitor transport and shutdown tests
+        run: cargo test --locked --all-targets --manifest-path native/constellation-monitor/Cargo.toml
+      - name: Source-build and exercise all Computer Tools native capabilities
+        run: node tools/computer-link/build.mjs --test
+      - name: Native owner stability gate
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/build/computer-link/target
+        run: |
+          # Reproduce the observed intermittent child-handle assertion with its
+          # bounded diagnostics. Every sweep must pass; stop on the first failure.
+          # Match build.mjs: Windows GUI fixtures share the foreground desktop.
+          for iteration in {1..12}; do
+            echo "Native owner stability sweep $iteration/12"
+            cargo test --locked --manifest-path computer-link/windows-owner/Cargo.toml --lib -- --test-threads=1
+          done
+      - name: Build labeled rollback fixture from exact clean source
+        run: python tools/build-windows-setup.py --require-clean-source --acceptance-fixture --output build/windows-setup-fixture-artifacts
+      - name: Build final self-contained Windows setup
+        run: python tools/build-windows-setup.py --require-clean-source --output build/monitor-artifacts
+      - name: Real setup, owner GUI, installed hub lifecycle and reversible integration acceptance
+        run: |
+          version=$(node -p "require('./package.json').version")
+          python tools/windows-setup-acceptance.py \
+            --setup "build/monitor-artifacts/Constellation-${version}-Windows-Setup.exe" \
+            --fixture "build/windows-setup-fixture-artifacts/Constellation-${version}-Windows-Setup-Acceptance-Fixture.exe" \
+            --output build/monitor-artifacts \
+            --allow-disposable-user-integration
+      - name: Upload only the runtime-accepted final setup
+        uses: actions/upload-artifact@v7
+        with:
+          name: Constellation-Windows-Setup
+          path: |
+            build/monitor-artifacts/Constellation-*-Windows-Setup.exe
+            build/monitor-artifacts/Constellation-*-Windows-Setup.exe.sha256
+            build/monitor-artifacts/windows-setup-receipt.json
+            build/monitor-artifacts/windows-setup-acceptance.json
+            build/monitor-artifacts/windows-setup-acceptance-commands.json
+            build/monitor-artifacts/*window*.png
+          if-no-files-found: error
+      - name: Preserve failed acceptance evidence without a publishable installer artifact
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: constellation-windows-setup-failure-evidence
+          path: |
+            build/monitor-artifacts/*.json
+            build/monitor-artifacts/*.png
+            build/windows-setup/build-receipt.json
+          if-no-files-found: warn

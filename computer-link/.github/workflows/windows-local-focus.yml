@@ -1,0 +1,28 @@
+name: Windows experimental local foreground acceptance
+on:
+  push:
+    branches: [review/windows-owned-focus]
+permissions:
+  contents: read
+jobs:
+  synthetic-local:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - shell: pwsh
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "computer-link-local-focus-target"
+          cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml --lib window_focus::tests -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml --test focus_gui -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 test --locked --manifest-path windows-owner/Cargo.toml --test gui -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo +1.99.1 build --locked --manifest-path windows-owner/Cargo.toml --bin local-window-focus
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+# Source only. Disposable test windows. No artifacts, secrets, install or host grant.

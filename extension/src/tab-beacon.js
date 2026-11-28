@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.4';
+  const VERSION = '0.17.6';
   const OWNED = 'projectConstellationTabBeaconFavicon';
   const prior = globalThis.ProjectConstellationTabBeacon;
   if (prior?.version === VERSION) return;
@@ -14,6 +14,10 @@
   let headObserver = null;
   let messageListener = null;
   let applying = false;
+  let titleObservedNode = null;
+  let titleRepairQueued = false;
+  let faviconRepairQueued = false;
+  const faviconCache = new Map();
 
   const clean = (value, max = 120) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
   const validColor = (value) => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? String(value) : '#8b5cf6';
@@ -27,7 +31,7 @@
     const value = String(title || '');
     const owned = prefix();
     if (owned && value.startsWith(owned)) return value.slice(owned.length);
-    return value.replace(/^\s*(?:🔥|📌|💡|🧪|✅|🟣|🟢|🟡|🔴|⚠️|🔵|🟠|🟤|⚪|⭐|✨)(?:\s+(?:🔥|📌|💡|🧪|✅|🟣|🟢|🟡|🔴|⚠️|🔵|🟠|🟤|⚪|⭐|✨))*\s+/u, '');
+    return value.replace(/^\s*(?:🔥|📌|💡|🧪|✅|🟣|🟢|🟡|🔴|⚠️|🔵|🛡️|🟠|🟤|⚪|⭐|✨)(?:\s+(?:🔥|📌|💡|🧪|✅|🟣|🟢|🟡|🔴|⚠️|🔵|🛡️|🟠|🟤|⚪|⭐|✨))*\s+/u, '');
   }
 
   function applyTitle() {
@@ -45,10 +49,17 @@
     } finally { applying = false; }
   }
 
-  function faviconDataUri(color) {
+  function faviconDataUri(color, emoji = '') {
     const safe = validColor(color);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="${safe}"/><circle cx="32" cy="32" r="19" fill="none" stroke="white" stroke-opacity=".92" stroke-width="4"/><circle cx="32" cy="32" r="5" fill="white"/></svg>`;
-    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    const isShield = clean(emoji, 12).includes('🛡️');
+    const cacheKey = `${safe}|${isShield ? 'shield' : 'circle'}`;
+    if (faviconCache.has(cacheKey)) return faviconCache.get(cacheKey);
+    const svg = isShield
+      ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M32 4 54 12v17c0 14-8.8 25.1-22 31C18.8 54.1 10 43 10 29V12L32 4Z" fill="${safe}"/><path d="M32 11 47 16.4V29c0 10.1-5.7 18.3-15 23.3C22.7 47.3 17 39.1 17 29V16.4L32 11Z" fill="none" stroke="white" stroke-opacity=".94" stroke-width="3.6"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="${safe}"/><circle cx="32" cy="32" r="19" fill="none" stroke="white" stroke-opacity=".92" stroke-width="4"/><circle cx="32" cy="32" r="5" fill="white"/></svg>`;
+    const href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    faviconCache.set(cacheKey, href);
+    return href;
   }
 
   function removeOwnedFavicon() {
@@ -66,14 +77,19 @@
       link.dataset.projectConstellationOwned = '1';
       (document.head || document.documentElement).appendChild(link);
     }
-    const href = faviconDataUri(current.color);
-    if (link.href !== href) link.href = href;
+    const href = faviconDataUri(current.color, current.emoji);
+    if (link.getAttribute('href') !== href) link.setAttribute('href', href);
   }
 
   function apply(next = {}) {
     const oldApplied = appliedTitle;
-    if (oldApplied && document.title === oldApplied) document.title = baseTitle;
-    else if (document.title && document.title !== oldApplied) baseTitle = stripOwnedPrefix(document.title);
+    // A repeated presentation must be a true no-op. The old implementation briefly
+    // restored baseTitle and then reapplied the same prefix on every background state
+    // push, generating two tab-title mutations per push and feeding Chrome's tab/update
+    // machinery even when nothing visible changed.
+    if (!(oldApplied && document.title === oldApplied) && document.title && document.title !== oldApplied) {
+      baseTitle = stripOwnedPrefix(document.title);
+    }
     current = {
       enabled:next.enabled !== false,
       titleEnabled:next.titleEnabled !== false,
@@ -87,21 +103,48 @@
     return { ...current, baseTitle };
   }
 
+  function scheduleTitleRepair() {
+    if (titleRepairQueued) return;
+    titleRepairQueued = true;
+    queueMicrotask(() => { titleRepairQueued = false; applyTitle(); });
+  }
+
+  function bindTitleObserver() {
+    titleObserver?.disconnect();
+    const titleNode = document.querySelector('title');
+    titleObservedNode = titleNode || null;
+    if (titleNode) {
+      titleObserver.observe(titleNode, { childList:true, characterData:true, subtree:true });
+      return;
+    }
+    // document_start frequently runs before <title> exists. Observe only the head
+    // construction path until it appears instead of subscribing to the entire chat DOM.
+    const root = document.head || document.documentElement;
+    if (root) titleObserver.observe(root, { childList:true, subtree:Boolean(document.head) });
+  }
+
   titleObserver = new MutationObserver(() => {
     if (applying) return;
+    const currentTitleNode = document.querySelector('title');
+    if (currentTitleNode !== titleObservedNode) bindTitleObserver();
     const observed = document.title || '';
     if (observed && observed !== appliedTitle) {
       baseTitle = stripOwnedPrefix(observed);
-      queueMicrotask(applyTitle);
+      scheduleTitleRepair();
     }
   });
-  const titleNode = document.querySelector('title');
-  if (titleNode) titleObserver.observe(titleNode, { childList:true, characterData:true, subtree:true });
-  else titleObserver.observe(document.documentElement, { childList:true, subtree:true });
+  bindTitleObserver();
+  document.addEventListener('DOMContentLoaded', bindTitleObserver, { once:true });
+
+  function scheduleFaviconRepair() {
+    if (faviconRepairQueued) return;
+    faviconRepairQueued = true;
+    queueMicrotask(() => { faviconRepairQueued = false; applyFavicon(); });
+  }
 
   headObserver = new MutationObserver((mutations) => {
     if (!current.enabled || !current.faviconEnabled) return;
-    if (mutations.some((mutation) => [...mutation.removedNodes].some((node) => node?.id === OWNED))) queueMicrotask(applyFavicon);
+    if (mutations.some((mutation) => [...mutation.removedNodes].some((node) => node?.id === OWNED))) scheduleFaviconRepair();
   });
   if (document.head) headObserver.observe(document.head, { childList:true });
 

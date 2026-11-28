@@ -1,5 +1,11 @@
 * text=auto eol=lf
 *.ps1 text eol=crlf
+# These legacy blobs contain CRLF or mixed endings in Git. Preserve their exact
+# committed bytes so a fresh checkout is clean without rewriting their source.
+tools/chatgpt-ui-rescue/bootstrap-existing-chrome.ps1 -text
+tools/chatgpt-ui-rescue/install-local-agent.ps1 -text
+tools/chatgpt-ui-rescue/status-local-agent.ps1 -text
+tools/chatgpt-ui-rescue/uninstall-local-agent.ps1 -text
 *.png binary
 *.jpg binary
 *.jpeg binary

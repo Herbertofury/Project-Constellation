@@ -1,0 +1,12 @@
+[package]
+name = "computer-link-mcp-session"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[dependencies]
+serde_json = "1"
+serde = "1"
+[target.'cfg(windows)'.dependencies]
+computer-link-local-transport = { path = "../windows-transport" }
+[target.'cfg(windows)'.dev-dependencies]
+computer-link-owner-proof = { path = "../windows-owner" }

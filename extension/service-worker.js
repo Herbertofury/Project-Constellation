@@ -1,5 +1,3 @@
-import './src/drive-sync-policy.js';
-import './src/drive-sync-guard.js';
-import './background.js';
-import './src/tab-supervisor-background.js';
-import './src/approval-supervisor-background.js';
+// Compatibility entry for original-main installations. The canonical composition
+// preserves Drive guards and owns one guardian; legacy approval executors stay retired.
+import './background-entry.js';

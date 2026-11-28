@@ -1,0 +1,65 @@
+{
+  "version": "0.22.0",
+  "status": "release-candidate-awaiting-hosted-runtime-gates",
+  "publicationAuthorized": true,
+  "publicationInstruction": "Owner explicitly requests a GitHub release at closeout.",
+  "branch": "upgrade/constellation-agent-monitor",
+  "rootTestScripts": 50,
+  "uiMessageContracts": 94,
+  "nativeMonitorTests": {
+    "unit": 18,
+    "integration": 11,
+    "total": 29
+  },
+  "computerLinkMigration": {
+    "branchTrees": 26,
+    "commits": 92,
+    "importedFiles": 123
+  },
+  "originalConstellation": {
+    "sourceFilesPreserved": 323,
+    "historicalTestFilesPreserved": 46
+  },
+  "localWindowsStatus": "Cross-build only; actual Windows workflow receipts required for publication.",
+  "installedExtensionStatus": "Local restricted renderer cannot execute MV3; full hosted browser gate required.",
+  "acceptanceRemaining": [
+    "Physical audio and operating-system notifications",
+    "Owner browser/profile enrollment",
+    "Permanent Firefox signing",
+    "Windows publisher signing",
+    "Signed-in account round trips"
+  ],
+  "releaseWorkflow": ".github/workflows/release.yml",
+  "evidence": [
+    "docs/MONITOR-VERIFICATION.md",
+    "docs/COMPUTER-LINK-MIGRATION.md",
+    "docs/RELEASE-OPTIMIZATION-0.22.0.json"
+  ],
+  "note": "Source checkpoint records pre-publication state. Published release receipts and matching GitHub run record the exact final commit and executed gates.",
+  "historicalBundlePublication": {
+    "status": "blocked-by-automatic-approval-review",
+    "privateArchivePreserved": true,
+    "privateArchiveSha256": "b68067e47225b63c23713c6effa7b35fd9095731181ea9abb3022a0a4708df2f",
+    "publicSourceVerification": "Use local bundles when available, otherwise verify exact recorded public upstream refs; no validation skip."
+  },
+  "desktop": {
+    "taskTests": 22,
+    "combinedTests": 81,
+    "portableScripts": 13,
+    "renderedWorkflows": 27
+  },
+  "initialHostedEvidence": {
+    "reviewPullRequest": 49,
+    "sourceCommit": "d3eeb62f402c7cdfdef959944e3e2ef4b4dcf3eb",
+    "passed": [
+      "Computer Tools source/native/MCP checks on Windows and Linux",
+      "Chromium and Firefox monitor fixtures",
+      "Actual installed extension startup and Drive guard",
+      "Windows Electron and computer-use regression"
+    ],
+    "issuesBeingCorrected": [
+      "Hub startup denied under restrictive Windows Job",
+      "Multitab visibility acceptance needs isolated headful browser"
+    ]
+  }
+}

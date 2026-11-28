@@ -11,7 +11,7 @@ summary={
  'discovery':{'browserHistoryGranted':False,'mode':'zero-tab-default','hiddenTabs':False,'manualFullCapture':True},
  'organization':{'projects':[]},
  'sync':{'drive':{'lastStatus':'not-connected','lastSyncAt':0,'oauthProvisioned':False},'github':{'configured':False,'lastSyncAt':0}},
- 'approvalAutopilot':{'enabled':False,'acknowledged':False,'alwaysAllow':True,'fallbackAllowOnce':True,'autoRecoverPaused':True,'backgroundRecovery':True},
+ 'approvalAutopilot':{'enabled':True,'acknowledged':True,'alwaysAllow':True,'fallbackAllowOnce':True,'autoRecoverPaused':True,'backgroundRecovery':True},
  'liveHealth':{'enabled':True,'showHealthy':True,'toolWatchdogEnabled':True,'capacityGuardEnabled':True,'corner':'bottom-right','density':'compact','softStallMs':45000,'hardStallMs':120000,'deadStallMs':240000,'capacityWarningTurns':180,'capacityHandoffTurns':260},
  'approvalRecovery':{'status':'idle','mode':'attention','total':0,'scanned':0,'recovered':0,'alwaysAllowed':0,'allowedOnce':0,'resumed':0,'failed':0,'startedAt':0}
 }
@@ -40,22 +40,21 @@ with sync_playwright() as p:
     rendered=html.replace('<link rel="stylesheet" href="home.css">',f'<style>{css}</style>').replace('<script src="home.js"></script>','')
     page.set_content(rendered); page.add_script_tag(content=mock); page.add_script_tag(content=js); page.wait_for_timeout(160)
     page.locator('[data-view="attention"]').first.click(); page.wait_for_timeout(80)
-    assert page.locator('#approvalAutopilotEnabled').is_visible()
+    assert page.locator('#approvalAutopilotBadge').text_content()=='MANUAL'
+    assert page.locator('#approvalAutopilotEnabled,#approvalRiskAcknowledged,#approvalFallbackAllowOnce').count()==0
+    assert page.locator('.approval-autopilot-card a[href="agent-monitor.html"]').count()==1
     page.locator('#liveHealthShowHealthy').uncheck()
     page.locator('#liveHealthToolWatchdog').uncheck()
-    page.locator('#approvalRiskAcknowledged').check(); page.wait_for_timeout(80)
-    page.locator('#approvalFallbackAllowOnce').uncheck()
     page.locator('#approvalAutoRecoverPaused').uncheck()
-    page.locator('#approvalAutopilotEnabled').check(); page.wait_for_timeout(400)
+    page.wait_for_timeout(400)
     persisted=page.evaluate("()=>({approval:{...__summary.approvalAutopilot},liveHealth:{...__summary.liveHealth}})")
-    assert persisted['approval']['enabled'] is True and persisted['approval']['acknowledged'] is True
+    assert persisted['approval']['enabled'] is False and persisted['approval']['acknowledged'] is False
     assert persisted['approval']['fallbackAllowOnce'] is False and persisted['approval']['autoRecoverPaused'] is False
     assert persisted['liveHealth']['showHealthy'] is False and persisted['liveHealth']['toolWatchdogEnabled'] is False
-    assert page.locator('#approvalFallbackAllowOnce').is_checked() is False
     assert page.locator('#approvalAutoRecoverPaused').is_checked() is False
     assert page.locator('#liveHealthShowHealthy').is_checked() is False
     assert page.locator('#liveHealthToolWatchdog').is_checked() is False
-    assert page.locator('input[role="switch"] + .toggle-switch').count()==8
+    assert page.locator('input[role="switch"] + .toggle-switch').count()==13
     page.locator('#saveLiveHealthSettings').click(); page.locator('#saveApprovalSettings').click(); page.wait_for_timeout(220)
     assert 'Saved at' in page.locator('#liveHealthSettingsStatus').text_content()
     assert 'Saved at' in page.locator('#approvalSettingsStatus').text_content()
@@ -69,27 +68,24 @@ with sync_playwright() as p:
     msgs=page.evaluate("()=>__messages.map(m=>({type:m.type,mode:m.mode,settings:m.settings}))")
     starts=[m for m in msgs if m['type']=='PC_APPROVAL_RECOVERY_START']
     assert starts and starts[-1]['mode']=='all-known'
-    assert page.locator('#approvalAutopilotBadge').text_content()=='ON'
+    assert page.locator('#approvalAutopilotBadge').text_content()=='MANUAL'
     status=page.locator('#approvalRecoveryStatus').text_content()
-    assert ('Open-tab recovery' in status) or ('Scanning all currently open ChatGPT chats' in status)
+    assert ('Open-tab scan' in status) or ('Scanning all currently open ChatGPT chats' in status)
     reload_summary={**summary,'approvalAutopilot':persisted['approval'],'liveHealth':persisted['liveHealth']}
     reload_mock=mock.replace(f"const summary={json.dumps(summary)};",f"const summary={json.dumps(reload_summary)};",1)
     reload_mock=reload_mock.replace("if(m.type==='PC_HOME_SUMMARY')return {ok:true,home:summary};","if(m.type==='PC_HOME_SUMMARY')return {ok:false,error:'Failed to execute only on IDBKeyRange: invalid key'};",1)
     reloaded=browser.new_page(viewport={'width':1440,'height':1000}); reload_errors=[]; reloaded.on('pageerror',lambda exc:reload_errors.append(str(exc)))
     reloaded.set_content(rendered); reloaded.add_script_tag(content=reload_mock); reloaded.add_script_tag(content=js); reloaded.wait_for_timeout(180)
     reloaded.locator('[data-view="attention"]').first.click(); reloaded.wait_for_timeout(80)
-    assert reloaded.locator('#approvalAutopilotEnabled').is_checked() is True
-    assert reloaded.locator('#approvalRiskAcknowledged').is_checked() is True
-    assert reloaded.locator('#approvalFallbackAllowOnce').is_checked() is False
+    assert reloaded.locator('#approvalAutopilotBadge').text_content()=='MANUAL'
+    assert reloaded.locator('#approvalAutopilotEnabled,#approvalRiskAcknowledged,#approvalFallbackAllowOnce').count()==0
     assert reloaded.locator('#approvalAutoRecoverPaused').is_checked() is False
     assert reloaded.locator('#liveHealthShowHealthy').is_checked() is False
     assert reloaded.locator('#liveHealthToolWatchdog').is_checked() is False
     assert reloaded.locator('#liveHealthSettingsStatus').text_content()=='Saved settings loaded.'
     assert reloaded.locator('#approvalSettingsStatus').text_content()=='Saved settings loaded.'
     assert reloaded.locator('#statusCountsText').text_content()=='3 indexed chats · 1 file · 0 knowledge'
-    assert reloaded.evaluate("()=>getComputedStyle(document.querySelector('#approvalAutopilotEnabled + .toggle-switch'),'::after').content")==f'"ON"'
-    assert reloaded.evaluate("()=>getComputedStyle(document.querySelector('#approvalFallbackAllowOnce + .toggle-switch'),'::after').content")==f'"OFF"'
-    shot=os.environ.get('PROJECT_CONSTELLATION_APPROVAL_SCREENSHOT','/mnt/data/project-constellation-v090-work/dist/approval-autopilot-v090.png')
+    shot=os.environ.get('PROJECT_CONSTELLATION_APPROVAL_SCREENSHOT',str(root.parent/'logs'/'permission-review.png'))
     pathlib.Path(shot).parent.mkdir(parents=True,exist_ok=True); reloaded.screenshot(path=shot,full_page=True)
     print(json.dumps({'status':status,'start':starts[-1],'messages':[m['type'] for m in msgs],'errors':errors,'reloadErrors':reload_errors},sort_keys=True))
     assert not errors and not reload_errors

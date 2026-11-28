@@ -1,7 +1,8 @@
 from playwright.sync_api import sync_playwright
 import pathlib, json, re, os
 root=pathlib.Path(os.environ.get('PROJECT_CONSTELLATION_ROOT','/mnt/data/project-constellation-v090-work'))
-manifest=json.loads((root/'manifest.json').read_text());brain=(root/'src/brain-core.js').read_text();providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); health=(root/'src/health-core.js').read_text();bg=(root/'background.js').read_text();bg=re.sub(r"^import ['\"]\./src/(?:brain-core|provider-core|integrity-core|knowledge-core|project-memory-core|health-core)\.js['\"];\s*",'',bg,flags=re.M)
+manifest=json.loads((root/'manifest.json').read_text());brain=(root/'src/brain-core.js').read_text();providers=(root/'src/provider-core.js').read_text(); integrity=(root/'src/integrity-core.js').read_text(); knowledge=(root/'src/knowledge-core.js').read_text(); memory=(root/'src/project-memory-core.js').read_text(); router=(root/'src/project-router-core.js').read_text(); intelligence=(root/'src/project-intelligence-core.js').read_text(); health=(root/'src/health-core.js').read_text(); guardian=(root/'src/scheduled-task-guardian-core.js').read_text(); chat_guardian=(root/'src/chat-guardian-core.js').read_text();bg=(root/'background.js').read_text();bg=re.sub(r"^import ['\"]\./src/[^'\"]+['\"];\s*",'',bg,flags=re.M)
+state_bus=(root/'src/state-event-bus-core.js').read_text(); provider_health=(root/'src/provider-health-core.js').read_text(); incident_brain=(root/'src/incident-brain-core.js').read_text(); brain_db=(root/'src/brain-db-core.js').read_text(); message_router=(root/'src/background-message-router-core.js').read_text()
 mock=f"""
 (() => {{
  const bag={{}},listeners={{}},dbStores=new Map();
@@ -21,7 +22,7 @@ mock=f"""
   storage:{{local:{{get:async(k)=>getBag(k),set:async(o)=>Object.assign(bag,o),remove:async(k)=>{{for(const x of(Array.isArray(k)?k:[k]))delete bag[x];}}}}}},
   alarms:{{create:async()=>{{}},clear:async()=>true,onAlarm:{{addListener:(fn)=>listeners.alarm=fn}}}},sidePanel:{{setPanelBehavior:async()=>{{}}}},action:{{setBadgeText:async()=>{{}},setTitle:async()=>{{}}}},identity:{{getAuthToken:async()=>({{token:'x'}}),clearAllCachedAuthTokens:async()=>{{}}}},idle:{{queryState:async()=> 'idle'}},permissions:{{contains:async()=>false}},history:{{search:async()=>[]}},offscreen:{{createDocument:async()=>{{}}}},downloads:{{}},
   windows:{{create:async(o)=>{{stats.windowsCreated++;stats.createOptions.push(o);return{{id:999,...o,tabs:[]}};}},get:async()=>win,remove:async()=>{{stats.windowsRemoved++;}}}},
-  tabs:{{get:async(id)=>{{const t=openTabs.find(x=>x.id===id);if(!t)throw new Error('missing tab');return{{...t}};}},query:async()=>openTabs.map(x=>({{...x}})),update:async(id,o)=>{{const t=openTabs.find(x=>x.id===id);if(!t)throw new Error('missing tab');Object.assign(t,o);if(o.url)stats.tabUpdates.push(o.url);return{{...t}};}},reload:async(id,o)=>{{const t=openTabs.find(x=>x.id===id);stats.tabReloads.push(t?.url||'');}},sendMessage:async(id,m)=>{{stats.messages.push(m.type);const t=openTabs.find(x=>x.id===id)||{{url:''}};if(m.type==='PC_APPROVAL_RECOVERY_SCAN'){{if(t.url.endsWith('/blocked'))return{{ok:true,action:'always-allow',connector:'GitHub',strategy:'dropdown-persistent'}};if(t.url.endsWith('/paused'))return{{ok:true,action:'resume',strategy:'resume-control'}};if(t.url.endsWith('/refresh'))return{{ok:true,action:'refresh-required',strategy:'browser-refresh',retryForbidden:true,reason:'Message delivery timed out. Please try again. Retry'}};if(t.url.endsWith('/rate-limit'))return{{ok:true,action:'rate-limited',strategy:'provider-cooldown',retryForbidden:true,waitMs:120000,reason:'Too many requests. Try again in 2 minutes. Retry'}};return{{ok:true,action:'none',reason:'clear'}};}}return{{ok:true}};}},onUpdated:{{addListener:()=>{{}},removeListener:()=>{{}}}}}}
+  tabs:{{get:async(id)=>{{const t=openTabs.find(x=>x.id===id);if(!t)throw new Error('missing tab');return{{...t}};}},query:async()=>openTabs.map(x=>({{...x}})),update:async(id,o)=>{{const t=openTabs.find(x=>x.id===id);if(!t)throw new Error('missing tab');Object.assign(t,o);if(o.url)stats.tabUpdates.push(o.url);return{{...t}};}},reload:async(id,o)=>{{const t=openTabs.find(x=>x.id===id);stats.tabReloads.push(t?.url||'');}},sendMessage:async(id,m)=>{{stats.messages.push(m.type);const t=openTabs.find(x=>x.id===id)||{{url:''}};if(m.type==='PC_APPROVAL_RECOVERY_SCAN'){{if(t.url.endsWith('/blocked'))return{{ok:true,action:'manual-review',connector:'GitHub',strategy:'review-in-provider',retryForbidden:true,automaticRetryForbidden:true}};if(t.url.endsWith('/paused'))return{{ok:true,action:'resume',strategy:'resume-control'}};if(t.url.endsWith('/refresh'))return{{ok:true,action:'refresh-required',strategy:'browser-refresh',retryForbidden:true,reason:'Message delivery timed out. Please try again. Retry'}};if(t.url.endsWith('/rate-limit'))return{{ok:true,action:'rate-limited',strategy:'provider-cooldown',retryForbidden:true,waitMs:120000,reason:'Too many requests. Try again in 2 minutes. Retry'}};return{{ok:true,action:'none',reason:'clear'}};}}return{{ok:true}};}},onUpdated:{{addListener:()=>{{}},removeListener:()=>{{}}}}}}
  }};
  globalThis.fetch=async(url)=>({{ok:true,status:200,url:String(url),headers:{{get:()=> 'text/html'}},text:async()=>'<html></html>'}});
  globalThis.__pcListeners=listeners;globalThis.__pcStats=stats;globalThis.__pcSend=(m)=>new Promise((resolve,reject)=>{{try{{listeners.message(m,{{}},resolve);}}catch(e){{reject(e);}}}});globalThis.__pcSendFromTab=(m,tabInfo)=>new Promise((resolve,reject)=>{{try{{listeners.message(m,{{tab:tabInfo}},resolve);}}catch(e){{reject(e);}}}});
@@ -29,7 +30,7 @@ mock=f"""
 """
 with sync_playwright() as p:
   browser=p.chromium.launch(headless=True,args=['--no-sandbox'],executable_path=(os.environ.get('PROJECT_CONSTELLATION_CHROMIUM') or None));page=browser.new_page();errors=[];page.on('pageerror',lambda exc:errors.append(str(exc)))
-  page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=health);page.add_script_tag(content=bg);page.wait_for_timeout(100)
+  page.set_content('<!doctype html><html><body></body></html>');page.add_script_tag(content=mock);page.add_script_tag(content=brain);page.add_script_tag(content=providers);page.add_script_tag(content=integrity);page.add_script_tag(content=knowledge);page.add_script_tag(content=memory);page.add_script_tag(content=router);page.add_script_tag(content=intelligence);page.add_script_tag(content=health);page.add_script_tag(content=guardian);page.add_script_tag(content=chat_guardian);page.add_script_tag(content=state_bus);page.add_script_tag(content=provider_health);page.add_script_tag(content=incident_brain);page.add_script_tag(content=brain_db);page.add_script_tag(content=message_router);page.add_script_tag(content=bg);page.wait_for_timeout(100)
   result=page.evaluate("""async()=>{
     const now=Date.now();
     await __pcSend({type:'PC_BRAIN_INGEST_BATCH',payload:[
@@ -38,7 +39,7 @@ with sync_playwright() as p:
       {type:'CHAT_UPSERT',data:{id:'chatgpt:refresh',providerId:'chatgpt',title:'Refresh',url:'https://chatgpt.com/c/refresh',status:'refresh-required',statusDetail:'Message delivery timed out. Please try again.',recoveryKind:'browser-refresh',retryForbidden:true,lastActivityAt:now-5000,updatedAt:now}},
       {type:'CHAT_UPSERT',data:{id:'chatgpt:idle',providerId:'chatgpt',title:'Idle',url:'https://chatgpt.com/c/idle',status:'idle',lastActivityAt:now-5000,updatedAt:now}}
     ]});
-    await __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{approvalAutopilot:{enabled:true,acknowledged:true,alwaysAllow:true,fallbackAllowOnce:true,autoRecoverPaused:true,backgroundRecovery:true}}});
+    await __pcSend({type:'PC_BRAIN_SETTINGS_SET',settings:{approvalAutopilot:{enabled:false,acknowledged:false,alwaysAllow:false,fallbackAllowOnce:false,autoRecoverPaused:true,backgroundRecovery:false}}});
     const start=await __pcSend({type:'PC_APPROVAL_RECOVERY_START',mode:'all-known'});let state=start.state;
     for(let i=0;i<16&&state.status==='running';i++){__pcListeners.alarm({name:'project-constellation-approval-recovery-step'});await new Promise(r=>setTimeout(r,60));state=(await __pcSend({type:'PC_APPROVAL_RECOVERY_GET'})).state;}
     const dash1=(await __pcSend({type:'PC_BRAIN_DASHBOARD'})).dashboard;
@@ -62,7 +63,7 @@ with sync_playwright() as p:
   }""")
   print(json.dumps({'result':result,'errors':errors},sort_keys=True))
   st=result['state'];stats=result['stats'];
-  assert st['status']=='completed' and st['scanned']==4 and st['recovered']==2 and st['alwaysAllowed']==1 and st['resumed']==1 and st['refreshed']==0
+  assert st['status']=='completed' and st['scanned']==4 and st['recovered']==1 and st['alwaysAllowed']==0 and st['manualReview']==1 and st['resumed']==1 and st['refreshed']==0
   assert stats['windowsCreated']==0 and stats['windowsRemoved']==0
   assert 'PC_APPROVAL_RECOVERY_SCAN' in stats['messages'] and len(stats['tabReloads'])==0 and len(stats['tabUpdates'])==0
   assert result['liveRefresh']['attentionOnly'] is True and result['liveRefresh']['refreshed'] is False and result['liveRefreshDup']['attentionOnly'] is True
@@ -71,7 +72,7 @@ with sync_playwright() as p:
   assert result['governor']['providers']['chatgpt']['waitMs']>100000 and result['governor']['providers']['chatgpt']['lastStatus']==429
   assert result['rateStats']['windowsCreated']==0 and result['rateStats']['windowsRemoved']==0
   assert len(result['rateStats']['tabUpdates'])==0
-  chats={c['id']:c for c in result['dash1']['chats']}; assert chats['chatgpt:blocked']['status']=='idle' and chats['chatgpt:paused']['status']=='idle' and chats['chatgpt:refresh']['status']=='refresh-required'
+  chats={c['id']:c for c in result['dash1']['chats']}; assert chats['chatgpt:blocked']['status']=='blocked-approval' and chats['chatgpt:paused']['status']=='idle' and chats['chatgpt:refresh']['status']=='refresh-required'
   chats2={c['id']:c for c in result['dash2']['chats']}; assert chats2['chatgpt:stale']['status']=='stalled'
   assert not errors
   browser.close()

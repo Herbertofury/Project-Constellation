@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html data-theme="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self';" http-equiv="Content-Security-Policy"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Project Constellation</title>
+<link href="./shell.css" rel="stylesheet"/>
+</head>
+<body data-view="chat">
+<nav aria-label="Project Constellation navigation" class="rail"><button aria-label="Chat" aria-pressed="true" class="rail-button" data-view="chat" title="Chat"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"></path></svg><span>Chat</span></button><button aria-label="Files" aria-pressed="false" class="rail-button" data-view="workspace" title="Files"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 6h7l2 3h9v12H3Z"></path></svg><span>Files</span></button><button aria-label="Terminal" aria-pressed="false" class="rail-button" data-view="terminal" title="Terminal"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m5 7 5 5-5 5m8 0h6"></path></svg><span>Terminal</span></button><button aria-label="Desktop" aria-pressed="false" class="rail-button" data-view="desktop" title="Desktop"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 4h18v13H3Zm9 13v4m-5 0h10"></path></svg><span>Desktop</span></button><button aria-label="Activity" aria-pressed="false" class="rail-button" data-view="activity" title="Activity"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><span>Activity</span></button><button aria-label="Connect" aria-pressed="false" class="rail-button" data-view="connections" title="Connect"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m9 15-3 3a4 4 0 0 1-5-5l5-5a4 4 0 0 1 6 0m0 1 3-3a4 4 0 0 1 5 5l-5 5a4 4 0 0 1-6 0"></path></svg><span>Connect</span></button><button aria-label="Settings" aria-pressed="false" class="rail-button" data-view="settings" title="Settings"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"></path></svg><span>Settings</span></button><div class="rail-bottom"><span class="avatar">PC</span><span>This PC</span></div></nav><header class="topbar"><div class="brand"><span class="brand-mark">C</span><strong>Project Constellation</strong><span class="version" id="version">0.22.0</span></div><div class="top-nav"><button aria-label="Back in ChatGPT" class="icon-button" id="chat-back" title="Back in ChatGPT"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button><button aria-label="New ChatGPT chat" class="icon-button" id="home" title="New ChatGPT chat"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></button><button aria-label="Reload ChatGPT" class="icon-button" id="reload" title="Reload ChatGPT"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M20 5v6h-6M4 19v-6h6m-5-5a8 8 0 0 1 13-3m1 11a8 8 0 0 1-13 3"></path></svg></button><span class="divider"></span><strong id="view-title">ChatGPT</strong><span class="online-label">WEB</span></div><div class="top-actions"><span class="top-status"><span class="dot dot-warn" id="chat-dot"></span><span id="chat-state">Connecting</span></span><button aria-label="Quick actions (Ctrl+Shift+P)" class="icon-button" id="command-palette" title="Quick actions (Ctrl+Shift+P)"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6"></path></svg></button><button aria-label="Keep window on top" class="icon-button" id="pin-window" title="Keep window on top"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="m16 3 5 5-4 3v5l-3-1-4 4-5-5 4-4-1-3h5Zm-9 14-4 4"></path></svg></button><button class="ghost" id="workspace-toggle">Workspace</button><button class="pill" id="controls">Computer access</button><button class="danger" id="stop-all">Stop</button></div></header>
+<aside class="sidebar"><div class="inspector-heading"><h2>Computer access</h2><span class="badge">LOCAL</span></div>
+<section class="hero-card">
+<div class="eyebrow">THIS COMPUTER</div>
+<div class="hero-line"><span class="dot dot-warn" id="agent-dot"></span><strong id="agent-state">Connecting</strong></div>
+<div class="small muted" id="agent-detail">Waiting for the Project Constellation bridge.</div>
+<div class="device-line"><span id="device-name">This PC</span><span class="muted" id="runtime-platform"></span></div></section>
+<section>
+<div class="section-title">Local tools</div>
+<label class="field-label" for="local-mode">When Project Constellation should arm</label>
+<select id="local-mode">
+<option value="auto">Auto — local tasks only</option>
+<option value="always">Always — every message</option>
+<option value="off">Off — normal ChatGPT only</option>
+</select>
+<button class="wide ghost" id="arm-next">Use computer for next message</button>
+<div class="toggle-row">
+<span>GUI / computer control</span>
+<label class="switch"><input id="gui-toggle" type="checkbox"/><span></span></label>
+</div>
+<div class="toggle-row">
+<span>Shell / terminal</span>
+<label class="switch"><input id="shell-toggle" type="checkbox"/><span></span></label>
+</div>
+</section>
+<section>
+<div class="section-title row-between"><span>Filesystem access</span><span class="badge" id="access-badge">—</span></div>
+<div class="root-list" id="root-list"></div>
+<div class="button-grid">
+<button id="add-root">Add folder</button>
+<button class="ghost" id="full-access">Full PC</button>
+</div>
+</section>
+<section>
+<div class="section-title">Safety &amp; startup</div>
+<button class="danger wide" id="emergency">EMERGENCY LOCK</button>
+
+</section>
+
+
+
+<section class="hidden" id="outbox-panel">
+<div class="section-title">Saved tool results</div>
+<div class="small muted">Retry sends the saved result; it does not run the action again.</div>
+<div id="pending-results"></div>
+</section>
+
+
+
+
+</aside>
+<main aria-label="Workspace editor and terminal" class="hidden" id="workspace-view"><header class="page-heading"><div><div class="eyebrow">YOUR COMPUTER</div><h1 id="page-title">Workspace</h1><p id="page-description">Your files and commands, alongside your conversation.</p></div><button class="pill" id="return-chat">Back to ChatGPT</button></header><div id="screen-host"><section class="surface" id="workspace-panel">
+<div class="section-title">Workspace files</div>
+<label class="field-label" for="workspace-path">Folder or file path</label>
+<input autocomplete="off" id="workspace-path" placeholder="Choose a folder above, or enter a path"/>
+<div class="file-actions"><button id="workspace-browse">Browse folder</button><button class="ghost" id="workspace-open">Open file</button><button class="ghost" id="workspace-up" title="Open parent folder">Up</button><button class="ghost" id="workspace-reveal">Open in system</button></div>
+<input aria-label="Filter folder entries" id="file-filter" placeholder="Filter this folder" type="search"/><div class="file-list" id="workspace-list"></div>
+<label class="field-label" for="workspace-editor">Text editor</label>
+<div class="editor-tab"><span id="editor-filename">No file open</span><span class="badge hidden" id="editor-dirty">Unsaved</span><kbd>Ctrl+S to save</kbd></div><textarea id="workspace-editor" placeholder="Open a text file to start editing." spellcheck="false"></textarea>
+<button class="wide" disabled="" id="workspace-save">Save file</button>
+<div class="small muted" id="workspace-status" role="status">Existing files are preserved on save conflicts.</div>
+</section><section class="surface" id="terminal-panel">
+<div class="section-title">Terminal</div>
+<label class="field-label" for="terminal-cwd">Working folder</label>
+<input id="terminal-cwd" placeholder="Selected workspace"/>
+<label class="field-label" for="terminal-command">Command</label>
+<textarea id="terminal-command" placeholder="Enter a command" spellcheck="false"></textarea>
+<div class="button-grid"><button class="ghost" id="terminal-task" title="Save command and completion result in Activity">Run as saved task</button><button id="terminal-run">Run command</button><button class="danger" disabled="" id="terminal-stop">Stop process</button></div>
+<label class="field-label" for="terminal-session">Sessions (output survives restart)</label>
+<select id="terminal-session"><option value="">No session selected</option></select>
+<pre aria-label="Command output" id="terminal-output" tabindex="0"></pre>
+<div class="terminal-input-row"><input aria-label="Process input" id="terminal-stdin" placeholder="Send input to a running process"/><button id="terminal-send">Send input</button><button class="ghost" id="terminal-copy">Copy output</button></div><div class="small muted" id="terminal-status" role="status">Ready.</div>
+</section><section class="surface" id="desktop-panel">
+<div class="section-title row-between"><span>Quick control</span><span class="badge" id="desktop-badge">Not observed</span></div>
+<div class="button-grid">
+<button id="observe-desktop">Observe desktop</button>
+<button class="ghost" id="refresh-windows">Windows</button>
+</div>
+<img alt="Live desktop preview" class="desktop-preview hidden" id="desktop-preview"/>
+<div class="window-list" id="window-list"><div class="small muted">Observe the desktop or refresh windows to inspect the live machine.</div></div>
+</section><section class="surface" id="activity-panel">
+<div class="section-title row-between"><span>Live activity</span><span class="muted small" id="call-count">0 calls</span></div>
+<div class="active-call hidden" id="active-call"></div>
+<section id="task-board"><div class="section-title row-between"><span>Saved tasks</span><button class="ghost" id="tasks-refresh">Refresh</button></div><p class="small muted">Completed steps stay saved. Cancel stops before the next step; it does not undo completed changes.</p><div id="task-list" aria-live="polite"></div><details id="task-builder"><summary>Create a multi-step task</summary><label class="field-label" for="task-title">Task title</label><input id="task-title" placeholder="Inspect and verify my workspace"><label class="field-label" for="task-plan">Tool steps (JSON array)</label><textarea id="task-plan" rows="8" spellcheck="false" aria-label="Task steps">[]</textarea><div class="button-grid"><button id="task-run">Run saved task</button><button class="ghost" id="task-example">Use workspace example</button></div><p id="task-message" class="small muted" role="status"></p></details></section><div class="activity" id="activity"></div>
+<div id="downloads-panel"><h3>Downloads from ChatGPT</h3><div id="downloads-list"><p class="small muted">No downloads in this session.</p></div></div></section><section class="surface" id="tools-panel">
+<div class="section-title row-between"><span>Direct tools</span><span class="badge" id="direct-tool-count">Loading…</span></div>
+<div class="small muted tool-note">Run Project Constellation tools directly when you want deterministic local control or when the ChatGPT bridge needs debugging.</div>
+<input autocomplete="off" class="tool-filter" id="tool-filter" placeholder="Filter tools…" type="search"/>
+<select aria-label="Project Constellation tool" id="direct-tool"></select>
+<div class="small muted tool-help" id="direct-tool-help"></div>
+<div class="field-label">Tool inputs</div>
+<div class="tool-fields" id="tool-fields"></div><details class="subtle-details" id="json-arguments"><summary>Advanced JSON arguments</summary><textarea aria-label="Tool JSON arguments" id="direct-args" spellcheck="false">{}</textarea></details>
+<div class="button-grid">
+<button id="direct-run">Run tool</button>
+<button class="ghost" id="direct-reset">Reset args</button>
+</div>
+<div class="small muted direct-status" id="direct-status">Ready.</div>
+<img alt="Direct tool image result" class="desktop-preview hidden" id="direct-preview"/>
+<pre class="direct-result" id="direct-result">No direct tool result yet.</pre>
+</section><section class="surface" id="settings-panel"><h2>Settings</h2><div class="settings-row"><div><h3>Appearance</h3><p>Choose a calm, familiar workspace.</p></div><select aria-label="Appearance" id="theme"><option value="system">System</option><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="settings-row"><div><h3>Chat zoom</h3><p>Scale ChatGPT without changing your conversations.</p></div><select aria-label="Chat zoom" id="chat-zoom"><option value="0.8">80%</option><option value="0.9">90%</option><option value="1">100%</option><option value="1.1">110%</option><option value="1.25">125%</option><option value="1.5">150%</option></select></div><div class="settings-row" id="startup-row"><label class="check-row"><input id="startup-toggle" type="checkbox"/><span>Start with Windows</span></label></div><div class="settings-row" id="update-row"><div><h3>Updates</h3><p id="update-status">Stable channel · check when you want, install only after SHA-256 verification.</p></div><div><span class="badge" id="update-badge">READY</span><div class="button-grid"><button id="update-check">Check</button><button class="ghost" id="update-download">Download</button><button class="ghost" id="update-install">Install &amp; restart</button><button class="ghost hidden" id="update-rollback">Rollback</button></div></div></div><div id="diagnostics-slot"><section>
+<div class="section-title row-between"><span>Diagnostics</span><span class="badge" id="health-badge">Not run</span></div>
+<button class="wide" id="health">Run real control test</button>
+<div class="small muted" id="health-detail">Tests the live local runtime, not a mock.</div>
+</section></div><div id="settings-footer"><footer>
+<button class="ghost wide" id="data-folder">Open Project Constellation data folder</button>
+<button class="ghost wide" id="devtools">Open ChatGPT DevTools</button>
+</footer></div><button class="ghost" id="export-diagnostics">Export diagnostics</button><details class="subtle-details"><summary>Keyboard shortcuts</summary><p>Quick actions: Ctrl+Shift+P<br/>Files: Ctrl+Shift+E<br/>Terminal: Ctrl+Shift+T<br/>Chat: Ctrl+Shift+H<br/>Settings: Ctrl+,<br/>Save: Ctrl+S<br/>Run command: Ctrl+Enter</p></details><p class="small muted">Project Constellation is an independent companion, not the official OpenAI application. Account features and limits remain with ChatGPT.</p></section><section class="surface" id="connections-panel"><h2>Connections</h2>
+<section class="native-tools-card" aria-labelledby="native-tools-heading">
+<div class="section-title row-between"><h3 id="native-tools-heading">Native computer tools</h3><span class="badge" id="native-tools-badge">Not checked</span></div>
+<p class="small muted">Computer Link is now part of Constellation. Open its native window to select files or folders, inspect windows, export new files, and manage local sessions.</p>
+<div class="button-grid native-tools-actions"><button id="native-tools-open" disabled>Open native tools</button><button id="native-tools-stop" class="ghost" disabled>Close native tools</button><button id="native-tools-refresh" class="ghost">Check components</button></div>
+<p id="native-tools-status" class="small muted" role="status" aria-live="polite">Components are checked when you open Connections. No desktop access starts automatically.</p>
+<ul id="native-tools-capabilities" class="native-capability-list" aria-label="Native computer capabilities"></ul>
+<details class="subtle-details"><summary>Local connector diagnostics</summary><p class="small muted">Test the bundled MCP status connection without capturing computer content. File and window snapshots remain controlled by the native owner's selection and approval.</p><button id="native-tools-test" class="ghost" disabled>Test local status connection</button><pre id="native-tools-diagnostic" class="direct-result" tabindex="0">No test run yet.</pre><p class="small muted">Local MCP launch settings for a compatible local client:</p><button id="native-tools-copy" class="ghost" disabled>Copy local connector settings</button><pre id="native-tools-command" class="direct-result" tabindex="0">Components have not been checked.</pre></details>
+</section><div class="connection-card"><span class="connection-icon">C</span><div><h3>ChatGPT online</h3><p>Your real ChatGPT account, models, history and conversations. Your existing Project Constellation sign-in is preserved.</p><span class="badge" id="connection-chat">Checking page</span></div><div class="button-grid"><button id="connection-test">Test chat access</button><button id="connection-open-chat" class="ghost">Open ChatGPT</button></div></div><div class="connection-card"><span class="connection-icon">PC</span><div><h3>This computer</h3><p>Files, terminal and desktop tools share the same permission-enforced local runtime.</p><span class="badge" id="connection-local">Checking runtime</span></div><button id="connection-access">Manage access</button></div><div class="connection-card"><span class="connection-icon">MCP</span><div><h3>Other chats and devices</h3><p>Use Test chat access to verify the integrated bridge inside Project Constellation. An authenticated, hosted Remote MCP connection is required to expose this computer outside the app. This build does not automatically register a hosted plugin.</p><span class="badge">Separate connection required</span></div></div><div class="remote-setup"><h3>Connect your Remote MCP relay</h3><label class="field-label" for="relay-url">HTTPS relay address</label><input id="relay-url" type="url" placeholder="https://your-relay.example.com" autocomplete="off"><div class="button-grid"><button id="relay-connect">Connect device</button><button id="relay-disconnect" class="ghost">Disconnect</button></div><p id="relay-status" class="small muted" role="status">Disconnected. Nothing is exposed to other chats.</p><p class="small muted">This connects to a relay you already operate. Pairing opens inside Project Constellation. Add that relay's MCP endpoint to your authorized ChatGPT plugin separately. No public relay or account credentials are bundled.</p></div><div class="notice">Local runtime, ChatGPT sign-in, and chat bridge readiness are different states. A local test is not proof of a live-account connection.</div></section></div></main>
+<main class="chat-underlay"><div class="underlay-card"><div class="loading-orbit"></div><h2>Opening ChatGPT</h2><p>Your conversations stay in your account.</p><p class="small muted">Files and terminal are available while the page loads.</p></div></main>
+<script src="./shell.js"></script>
+<script src="./workspace.js"></script>
+<footer class="statusbar"><span><span class="dot dot-good" id="runtime-dot"></span><span id="runtime-status">Starting local runtime</span></span><span id="bridge-status">Chat bridge: checking</span><button class="status-link" data-view="tools">Tools</button><span class="status-spacer"></span><span id="status-access">Scoped access</span><button class="status-link" id="status-downloads">Downloads</button></footer><dialog id="quick-actions"><div class="palette-header"><input aria-label="Find an action" autocomplete="off" id="action-query" placeholder="What would you like to do?"/><button class="ghost" id="palette-close">Esc</button></div><div id="action-list"></div><div class="palette-footer">Switch tools without losing your conversation.</div></dialog><div aria-live="polite" class="toast hidden" id="toast" role="status"></div><script src="./computer-link.js"></script><script src="./chrome.js"></script><script src="./tasks.js"></script></body>
+</html>

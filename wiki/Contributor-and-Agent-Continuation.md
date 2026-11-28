@@ -1,3 +1,19 @@
+# Current continuation: Project Constellation 0.22.0
+
+The root contains the verified original application, the Agent Monitor upgrade,
+Windows quick setup and the complete Computer-Link migration. Read
+`brain/v0.22.0/COMPASS.json`, `STATUS.json`, `HANDOFF.md`,
+`docs/MONITOR-VERIFICATION.md` and `docs/COMPUTER-LINK-MIGRATION.md` first.
+Do not unpack a historical carrier archive over current source. Historical
+continuation records below are provenance, not the current version authority.
+
+The owner explicitly requested a GitHub release at closeout. Publish only the
+accepted source and verified artifacts; use a clearly labelled prerelease when
+recorded distribution or account acceptance remains open. The release workflow
+requires all runtime gates and published-byte readback. Preserve Computer-Link
+until its migration and recovery artifacts have been verified remotely; this
+work does not authorize deleting that repository.
+
 # Contributor and agent continuation
 
 ## Canonical state
@@ -5,13 +21,13 @@
 - Local: `C:\Users\Owner\Desktop\Project Constellation`
 - GitHub: `Herbertofury/Project-Constellation`
 - Drive: the Project Constellation folder and ACTIVE CHECKPOINT identified in the latest release receipt
-- Base lineage: v0.13.0; current line: v0.14.x
+- Base lineage: v0.13.0; current verified development line: v0.17.6 (Drive-backed v0.17.x; canonical GitHub catch-up remains pending)
 
 ProjectDump is historical input only. Do not write Project Constellation changes back into it. Preserve unrelated ProjectDump content.
 
 ## Start-of-work checklist
 
-1. Read `AGENTS.md`, this document, latest `CHANGELOG.md`, release receipt, and `brain/v0.13.0` state.
+1. Read `AGENTS.md`, this document, latest `CHANGELOG.md`, release receipt, and the highest-versioned `brain/` state present. Never hardcode an older brain version as the continuation authority.
 2. Run `git status`, inspect remote/tag/release state, and compare Drive checkpoint metadata before assuming currentness.
 3. Run `npm run verify` to establish the local baseline.
 4. Treat generated `build/` and `logs/` as disposable; never infer release success from stale output.
@@ -35,3 +51,12 @@ ProjectDump is historical input only. Do not write Project Constellation changes
 4. Load/test the actual built extension in Chrome and exercise signed-in Google, GitHub, ChatGPT, storage, service-worker restart, restore, and failure states.
 5. Package, checksum, sign/tag/commit, publish release/wiki, upload Drive artifacts, verify all remotes, and append the ACTIVE CHECKPOINT.
 6. Record unresolved external acceptance explicitly; never translate “code path tested” into “account integration verified.”
+
+
+## v0.17.6 continuation checkpoint
+
+- Treat explicit provider terminal UI as authoritative: delivery timeout/interrupted send failures and provider-declared maximum conversation length are red Critical even if stale network/tool evidence looks active.
+- Current ChatGPT terminal cards may be plain styled DOM. Use the bounded current-frontier fallback in Live Sentinel/content health; do not regress to ARIA-only detection.
+- Keep historical/quoted error text out of current-state detection. Long-chat status collection must favor the newest bounded controls.
+- Pulse/Popup bucketing must use `healthState` as well as `status`, especially `capacity-reached` with an otherwise idle provider status.
+- Never auto-click provider Retry or auto-branch on a hard limit; recovery remains explicit user action.

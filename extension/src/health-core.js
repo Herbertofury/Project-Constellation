@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 10;
+  const VERSION = 12;
   const DEFAULTS = Object.freeze({
     enabled: true,
     showHealthy: true,
@@ -38,6 +38,24 @@
     'response-interrupted',
     'send-failed'
   ]);
+  const HOLD_STATES = Object.freeze(['provider-review']);
+
+  function classifyProviderHold(text = '') {
+    const raw = String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+    const lower = raw.toLowerCase();
+    const reviewPhrase = /our systems are thinking a bit more about this request before responding/.test(lower);
+    const fasterModelPhrase = /retry with a faster model/.test(lower);
+    if (!reviewPhrase || !fasterModelPhrase) return { active:false, state:'', status:'', title:'', detail:'', rawText:'', fingerprint:'' };
+    return {
+      active:true,
+      state:'provider-review',
+      status:'provider-review',
+      title:'🛡️ On hold · provider review',
+      detail:'The provider is holding this response for additional review. Constellation treats this as On Hold, not as a stall, and will alert you when the hold clears.',
+      rawText:raw.slice(0, 700),
+      fingerprint:`provider-review:${raw.slice(0, 500).toLowerCase()}`
+    };
+  }
 
   function classifyProviderFailure(text = '', hints = {}) {
     const raw = String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
@@ -54,10 +72,15 @@
       partialAssistantChars, toolActivitySeen, observedAfterUser
     });
 
+    if (/(?:chatgpt\s+)?stream recovery(?:\s+polling)?\s+(?:timed out|timeout)|(?:response|generation|stream(?:ing)?)(?:\s+recovery)?(?:\s+polling)?[^.!?]{0,80}(?:timed out|timeout)|(?:timed out|timeout)[^.!?]{0,80}(?:response|generation|stream(?:ing)?)/.test(lower)) {
+      return common('response-interrupted','Response stream timed out', retryAvailable
+        ? 'ChatGPT stopped the current response stream and exposes a native Retry control. Constellation preserves that control while Chat Guardian can continue unfinished work with a new continuation turn.'
+        : 'ChatGPT stopped the current response stream. Constellation records the interruption so Chat Guardian can continue unfinished work without repeating the provider Retry action.');
+    }
     if (/message delivery timed out|delivery timed out/.test(lower)) {
       return common('delivery-timeout','Message delivery timed out', retryAvailable
-        ? 'ChatGPT stopped the current turn with an explicit delivery timeout. A native Retry control is available; Constellation will only use it when you click Retry.'
-        : 'ChatGPT stopped the current turn with an explicit delivery timeout. Constellation preserved the interruption as Needs Attention and will not retry or refresh automatically.');
+        ? 'ChatGPT stopped the current turn with an explicit delivery timeout. A native Retry control is available; Constellation preserves it while Chat Guardian can continue unfinished work with a new continuation turn.'
+        : 'ChatGPT stopped the current turn with an explicit delivery timeout. Constellation records the interruption so Chat Guardian can continue unfinished work without replaying an uncertain provider request.');
     }
     if (/connection interrupted|connection (?:was )?lost|network connection (?:was )?lost|reconnect(?:ion)? failed|a network error occurred|network error occurred|error occurred while connecting to the websocket|websocket (?:connection )?(?:error|failed|closed)/.test(lower)) {
       return common('connection-interrupted','Connection interrupted', retryAvailable
@@ -71,8 +94,26 @@
     }
     if (/there was an error generating (?:a )?response|error generating (?:a )?response|failed to (?:generate|respond)|response generation failed|generation (?:was )?interrupted|response (?:was )?interrupted|something went wrong(?: while generating)?/.test(lower)) {
       return common('response-interrupted','Response interrupted', retryAvailable
-        ? 'The provider ended the response with an explicit generation error. A native Retry/Regenerate control is available; Constellation leaves it manual to avoid duplicating side effects from tool calls.'
-        : 'The provider ended the response with an explicit generation error. Constellation records the interruption and does not silently retry tool or model work.');
+        ? 'The provider ended the response with an explicit generation error. Constellation keeps native Retry untouched while Chat Guardian can continue the unfinished conversation in a new turn.'
+        : 'The provider ended the response with an explicit generation error. Constellation records the interruption so unfinished work can continue without silently replaying tool side effects.');
+    }
+    const genericTerminalFailure = /(?:response|generation|stream(?:ing)?|request|message|connection|network|websocket)[^.!?]{0,100}(?:timed out|failed|interrupted|disconnected|closed unexpectedly|ended unexpectedly|recovery failed)|(?:timed out|failed|interrupted|disconnected)[^.!?]{0,100}(?:response|generation|stream(?:ing)?|request|message|connection|network|websocket)/.test(lower);
+    if (genericTerminalFailure) {
+      const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
+      return common(responseSide ? 'response-interrupted' : 'connection-interrupted', responseSide ? 'Response interrupted' : 'Connection interrupted', retryAvailable
+        ? 'The provider exposed a current-turn terminal error with a recovery control. Constellation preserves native Retry and can continue unfinished work as a separate continuation turn.'
+        : 'The provider exposed a current-turn terminal error. Constellation records it so unfinished work can be continued without guessing that the failed request completed.');
+    }
+    // ChatGPT changes terminal-card copy more often than it changes the recovery affordance.
+    // When a current-turn provider surface is anchored by a native Retry/Try again control,
+    // accept broader failure language without depending on one exact English sentence.
+    // This remains intentionally gated by `retryAvailable` + `observedAfterUser` so ordinary
+    // assistant prose discussing an error never becomes an automatic recovery incident.
+    const retryAnchoredTerminalFailure = retryAvailable && observedAfterUser && /(?:error|problem|issue|snag|unable|could(?:n['’]t| not)|stopp(?:ed|ing)|abort(?:ed|ing)?|cancel(?:led|ed|ing)|fail(?:ed|ure|ing)?|timed?\s*out|timeout|interrupt(?:ed|ion)?|disconnect(?:ed|ion)?|connection\s+lost|closed|ended|recover(?:y|ing)?|restor(?:e|ing)|respond(?:ing)?|response|stream(?:ing)?|generation)/.test(lower);
+    if (retryAnchoredTerminalFailure) {
+      const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
+      return common(responseSide ? 'response-interrupted' : 'connection-interrupted', responseSide ? 'Response interrupted' : 'Connection interrupted',
+        'The provider exposed a current-turn recovery control next to failure-like status text. Constellation treats this as an unfinished interruption even when the provider wording is new, preserves native Retry, and lets Chat Guardian continue in a separate turn.');
     }
     if (/failed to deliver message/.test(lower)) {
       const responseSide = observedAfterUser || toolActivitySeen || partialAssistantChars > 0;
@@ -81,6 +122,20 @@
         : 'The provider reports a delivery failure. Constellation records it without guessing whether a retry is safe.');
     }
     return { active:false, state:'', status:'', title:'', detail:'', rawText:'', fingerprint:'', retryAvailable:false, retryLabel:'', recommendedAction:'', partialAssistantChars, toolActivitySeen, observedAfterUser };
+  }
+
+  function classifyProviderCapacity(text = '') {
+    const raw = String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+    const hard = raw.match(/(?:you(?:'|’)?ve reached the maximum length for this conversation|maximum length for this conversation|maximum conversation length(?:.{0,40}(?:reached|exceeded))?|conversation (?:is )?too long|this conversation has reached.{0,80}limit|start a new chat to continue|keep talking by starting a new chat|context length (?:is )?(?:exceeded|too long)|maximum context length|conversation limit (?:reached|exceeded)|message is too long for this conversation|conversation has become too long)/i);
+    const near = hard ? null : raw.match(/(?:(?:approaching|close to|near|nearing|almost at).{0,80}(?:conversation|context).{0,40}(?:limit|maximum)|(?:conversation|context).{0,50}(?:approaching|nearing|close to).{0,40}(?:limit|maximum)|start a new chat soon|consider starting a new chat)/i);
+    return {
+      state:hard ? 'reached' : near ? 'handoff' : 'clear',
+      explicitLimitSignal:Boolean(hard),
+      explicitLimitText:hard ? shortLabel(hard[0], 220) : '',
+      nearLimitSignal:Boolean(near),
+      nearLimitText:near ? shortLabel(near[0], 220) : '',
+      rawText:raw
+    };
   }
 
   function normalizeSettings(input = {}) {
@@ -290,8 +345,14 @@
         partial ? (partial < 1000 ? `${partial} partial chars preserved` : `${Math.round(partial / 100) / 10}k partial chars preserved`) : '',
         providerFailure.toolActivitySeen ? 'tool activity preceded failure' : ''
       ];
-      return emit(result(state,'danger', providerFailure.title || titles[state] || 'Provider interruption', providerFailure.detail || 'The provider explicitly interrupted the current turn. Constellation recorded the failure and left recovery under user control.', {
+      return emit(result(state,'critical', providerFailure.title || titles[state] || 'Provider interruption', providerFailure.detail || 'The provider explicitly interrupted the current turn. Constellation recorded the failure and left recovery under user control.', {
         recommendedAction:providerFailure.recommendedAction || (retryAvailable ? 'retry' : 'refresh'), chips:failureChips, pageRisk:true, rawStatus:state, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity
+      }));
+    }
+
+    if (capacity.state === 'reached') {
+      return emit(result('capacity-reached','critical',capacity.title || 'Conversation maximum reached',capacity.detail || 'The provider says this conversation has reached its maximum length. Branch now; Constellation will not navigate or submit anything without your explicit action.',{
+        recommendedAction:'handoff', chips:[...chips,'provider hard limit'], pageRisk:true, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity
       }));
     }
 
@@ -323,6 +384,8 @@
     const regression = first(findings, (row) => row?.type === 'feature-regression-signal');
     const conflict = first(findings, (row) => row?.type === 'artifact-hash-conflict' || row?.type === 'artifact-size-conflict');
     const projectRisk = Boolean(oldVersion || regression || conflict);
+
+    if (rawStatus === 'provider-review') return emit(result('provider-review','info','🛡️ On hold · provider review','The provider is holding this response for additional review. This is not a stall signal; Constellation will watch for the hold surface to disappear and then alert you.',{ chips:[...chips,'review hold'], rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
 
     if (running || networkActive) {
       if (cfg.toolWatchdogEnabled && toolActive) {
@@ -381,7 +444,7 @@
 
     return emit(result('healthy','healthy','Chat healthy','The rendered conversation, provider activity, and catalogued project state look consistent.',{ chips, rawStatus, progressAgeMs, networkProgressAgeMs, pendingAgeMs, activity:toolActivity }));
   }
-  const api = Object.freeze({ VERSION, DEFAULTS, FAILURE_STATES, classifyProviderFailure, normalizeSettings, deriveCapacity, deriveHealth });
+  const api = Object.freeze({ VERSION, DEFAULTS, FAILURE_STATES, HOLD_STATES, classifyProviderHold, classifyProviderFailure, classifyProviderCapacity, normalizeSettings, deriveCapacity, deriveHealth });
   globalThis.ProjectConstellationHealthCore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

@@ -1,6 +1,7 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Constellation</title><link rel="stylesheet" href="sidepanel.css"></head>
-<body><main class="shell">
+<body>
+<a href="agent-monitor.html" target="_blank" style="display:block;background:#20192c;color:#ddcfff;padding:8px 16px;font:12px system-ui;text-decoration:none;border-bottom:1px solid #41344f">✦ Agent Monitor · trouble alerts, sound and browser coverage ↗</a><main class="shell">
 <header class="topbar">
   <div class="side-brand"><div class="side-brand-line"><span class="brand-mark">✦</span><p class="eyebrow">PROJECT CONSTELLATION</p></div><h1>Command Center</h1><p id="subtitle">Continuity, recovery, status intelligence, and performance</p></div>
   <div class="top-actions"><button id="openHome" title="Open full Constellation Home">Home</button><button id="openConnections" title="Open account connections">Accounts</button><button id="refresh" class="icon" title="Refresh">↻</button></div>
@@ -19,6 +20,16 @@
     <article class="hero-card"><span>Continuity</span><strong id="health">Loading catalog…</strong><small id="durability">Checking remote durability…</small></article>
     <article class="hero-card"><span>Catalog engine</span><strong id="catalogHeadline">Idle</strong><small id="catalogDetail">Ready to sweep supported AI history.</small></article>
   </div>
+  <article id="currentChatProjectCard" class="card current-chat-project-card" data-state="loading">
+    <div class="current-chat-project-copy">
+      <div class="current-chat-project-kicker"><span class="brand-mark">✦</span><span>CURRENT CHAT</span><span id="currentChatProvider" class="system-badge">DETECTING</span></div>
+      <strong id="currentChatTitle">Checking the active AI chat…</strong>
+      <span id="currentChatProject">Constellation will only change project membership when you choose it here.</span>
+    </div>
+    <div class="current-chat-project-actions">
+      <button id="currentChatProjectAction" class="primary" disabled>Add to Project</button>
+    </div>
+  </article>
   <div class="section-head"><h2>Live work</h2><span id="liveCount">0</span></div>
   <div id="liveList" class="list"></div>
   <div class="section-head"><h2>Needs attention</h2><span id="attentionCount">0</span></div>
@@ -43,14 +54,31 @@
     <div class="actions four"><button id="panelStartFullCapture" class="primary">Capture</button><button id="panelShowFullCapture">Show</button><button id="panelPauseFullCapture">Pause</button><button id="panelStopFullCapture">Cancel</button></div>
     <div class="progress"><div id="panelFullCaptureBar"></div></div><p id="panelFullCaptureStatus" class="status">Idle.</p>
   </article>
+  <article class="card scheduled-task-guardian-card">
+    <div class="card-title"><div><h2>Scheduled Task Command Center</h2><p>Premium run-complete and attention alerts backed by observed Scheduled state — never timer guesses or hidden tabs.</p></div><span id="panelScheduleGuardianBadge" class="system-badge">PREMIUM · OFF</span></div>
+    <label class="switch-row"><span><strong>Enable Guardian</strong><small>Restores automatically after Chrome startup.</small></span><input id="panelScheduleGuardianEnabled" type="checkbox"></label>
+    <label class="switch-row"><span><strong>Observe task state</strong><small>Bounded health metadata only; no prompts or run output.</small></span><input id="panelScheduleGuardianObserve" type="checkbox"></label>
+    <label class="switch-row"><span><strong>Desktop popups</strong><small>Native alerts with Open Scheduled + Mute actions.</small></span><input id="panelScheduleGuardianNotifications" type="checkbox"></label>
+    <label class="switch-row"><span><strong>Run-complete alerts</strong><small>Only when a new successful run is actually observed.</small></span><input id="panelScheduleGuardianRunAlerts" type="checkbox"></label>
+    <label class="switch-row"><span><strong>State-change alerts</strong><small>Paused, failed, needs attention, approval/action required, and resumed.</small></span><input id="panelScheduleGuardianStateAlerts" type="checkbox"></label>
+    <label class="switch-row"><span><strong>Keep Scheduled workspace warm</strong><small>Uses the existing offscreen document; blocked framing falls back automatically.</small></span><input id="panelScheduleGuardianEmbedded" type="checkbox"></label>
+    <label class="switch-row"><span><strong>Auto-repair</strong><small>Checks the supervisor on a bounded cadence without aggressive polling.</small></span><input id="panelScheduleGuardianAutoRepair" type="checkbox"></label>
+    <label class="switch-row"><span><strong>Self-heal interrupted runs</strong><small>Follow-up/Resume the same scheduled run; never auto-approve permissions or security prompts.</small></span><input id="panelScheduleRecoveryEnabled" type="checkbox"></label>
+    <label>Guardian cadence<select id="panelScheduleGuardianCadence"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="180">3 hours</option></select></label>
+    <div id="panelScheduleGuardianMetrics" class="guardian-panel-metrics"></div>
+    <div id="panelScheduleRecoveryMetrics" class="guardian-panel-metrics"></div>
+    <div class="actions"><button id="panelScheduleGuardianRepair">Repair Guardian</button><button id="panelScheduleRecoveryCheck" class="primary">Check & self-heal</button><button id="panelScheduleGuardianOpen">Open Scheduled</button><button id="panelScheduleGuardianTest">Test popup</button><button id="panelScheduleGuardianMute">Mute 1h</button></div>
+    <p id="panelScheduleGuardianStatus" class="status">Guardian is off.</p>
+    <p id="panelScheduleRecoveryStatus" class="status">Scheduled run recovery is loading.</p>
+    <div id="panelScheduleRecoveryTasks" class="guardian-panel-activity"></div>
+    <div id="panelScheduleGuardianActivity" class="guardian-panel-activity"></div>
+  </article>
   <article class="card approval-recovery-card">
-    <div class="card-title"><div><h2>Approval Autopilot</h2><p>Keep ChatGPT connector approvals from getting stranded in chats that are already open. Never launches, focuses, or navigates ChatGPT in the background.</p></div><span id="panelApprovalBadge" class="system-badge">OFF</span></div>
-    <label class="switch-row"><span><strong>I acknowledge Always Allow behavior</strong><small>Connected apps may act without another ChatGPT confirmation.</small></span><input id="panelApprovalAck" type="checkbox"></label>
-    <label class="switch-row"><span><strong>Always allow all connector prompts</strong><small>Select persistent Always allow / Never ask when available.</small></span><input id="panelApprovalEnabled" type="checkbox"></label>
-    <label class="switch-row"><span><strong>Fallback to Allow once</strong><small>Unblock current action when persistent permission is unavailable.</small></span><input id="panelApprovalFallback" type="checkbox"></label>
-    <label class="switch-row"><span><strong>Resume paused chats</strong><small>Press safe Continue/Resume controls during recovery sweeps.</small></span><input id="panelApprovalResume" type="checkbox"></label>
+    <div class="card-title"><div><h2>Permission review</h2><p>Find blocked chats, then review each permission request directly in the provider.</p></div><span id="panelApprovalBadge" class="system-badge">MANUAL</span></div>
+    <p><a href="agent-monitor.html" target="_blank" rel="noopener">Open Agent Monitor for alerts and review →</a></p>
+    <label class="switch-row"><span><strong>Resume paused responses during a scan</strong><small>Your scan may use visible Continue/Resume controls. Permission prompts wait for you.</small></span><input id="panelApprovalResume" type="checkbox"></label>
     <div class="actions"><button id="panelFixDetected" class="primary">Scan detected open tabs</button><button id="panelFixAll">Scan all open chats</button><button id="panelStopApproval">Stop</button></div>
-    <div class="progress"><div id="panelApprovalBar"></div></div><p id="panelApprovalStatus" class="status">Autopilot is off.</p>
+    <div class="progress"><div id="panelApprovalBar"></div></div><p id="panelApprovalStatus" class="status">Permission decisions stay with you.</p>
   </article>
 </section>
 
@@ -93,4 +121,26 @@
   <article class="card"><h2>Portable recovery checkpoint</h2><p>Export a complete machine-readable snapshot containing providers, projects, chats, turns, files, status history, catalog runs, and remote receipts.</p><button id="exportBrain">Export Project-Constellation.json</button></article>
   <article class="card danger"><h2>Reset local catalog</h2><p>Clears this browser's local continuity database. Remote Drive/GitHub checkpoints are untouched.</p><button id="clearBrain">Clear local catalog</button></article>
 </section>
-</main><script src="sidepanel.js"></script></body></html>
+<dialog id="quickProjectDialog" class="quick-project-dialog">
+  <form id="quickProjectForm" method="dialog">
+    <div class="quick-project-head"><div><p class="eyebrow">CURRENT CHAT · PROJECT</p><h2 id="quickProjectTitle">Add chat to a project</h2><p id="quickProjectMeta">Nothing changes until you choose a project.</p></div><button type="button" id="quickProjectClose" class="icon" aria-label="Close">×</button></div>
+    <label class="quick-project-filter-label">Find one of your projects<input id="quickProjectFilter" autocomplete="off" placeholder="Search projects…"></label>
+    <div id="quickProjectChoices" class="quick-project-choices"></div>
+    <div class="quick-project-create">
+      <div><strong>Create a new project</strong><span>Creates the project and adds this exact chat in one confirmed action.</span></div>
+      <div class="quick-project-create-row"><input id="quickProjectName" maxlength="160" autocomplete="off" placeholder="New project name"><button type="button" id="quickProjectCreate" class="primary">Create + add</button></div>
+      <div class="quick-project-identity-editor">
+        <div id="quickProjectIdentityPreview" class="project-identity-preview" style="--project-color:#7d92ff"><span id="quickProjectIdentityPreviewIcon">✦</span><strong id="quickProjectIdentityPreviewName">New project</strong></div>
+        <label><span>Custom emoji</span><div class="quick-project-identity-input"><input id="quickProjectIcon" maxlength="16" value="" placeholder="Optional emoji" aria-label="Project custom emoji"><button type="button" id="quickProjectEmojiToggle">Emoji</button></div></label>
+        <input id="quickProjectVectorIcon" type="hidden" value="pc:folder">
+        <div id="quickProjectVectorPalette" class="project-vector-palette" aria-label="Project-style icon choices"></div>
+        <div id="quickProjectEmojiPalette" class="project-emoji-palette" hidden></div>
+        <label><span>Project color</span><div class="quick-project-color-row"><input id="quickProjectColor" type="color" value="#7d92ff" aria-label="Project color wheel"><input id="quickProjectColorText" maxlength="7" value="#7d92ff" aria-label="Project color hex"></div></label>
+        <div id="quickProjectColorPresets" class="project-color-presets" aria-label="Project color presets"></div>
+      </div>
+    </div>
+    <div class="quick-project-foot"><button type="button" id="quickProjectRemove" class="danger-button" hidden>Remove from project</button><span></span><button type="button" id="quickProjectCancel">Cancel</button></div>
+    <p id="quickProjectStatus" class="status"></p>
+  </form>
+</dialog>
+</main><script src="src/project-identity-core.js"></script><script src="sidepanel.js"></script></body></html>

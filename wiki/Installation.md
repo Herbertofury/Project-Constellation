@@ -1,12 +1,17 @@
 # Installation
 
+## Windows 0.22.0 quick setup
+
+Use the self-contained Windows Setup executable from the matching GitHub release. It stages sensors, registers the Rust hub and includes Computer Tools. Browser enablement remains one step per profile. See [Windows setup](https://github.com/Herbertofury/Project-Constellation/blob/main/docs/WINDOWS-SETUP.md) for the complete install, repair, rollback and lifecycle guide.
+
+
 ## Release install
 
-1. Download the unpacked ZIP and `SHA256SUMS.txt` from the matching GitHub Release.
+1. Download `Project-Constellation-v0.22.0-Extension.zip` and `SHA256SUMS-v0.22.0.txt` from the matching GitHub Release.
 2. Verify SHA-256 in PowerShell:
 
    ```powershell
-   Get-FileHash .\Project-Constellation-v0.14.0-unpacked.zip -Algorithm SHA256
+   Get-FileHash .\Project-Constellation-v0.22.0-Extension.zip -Algorithm SHA256
    ```
 
 3. Extract the ZIP to a permanent directory. Chrome expects that directory to remain available.
@@ -20,7 +25,7 @@ Do not load the source repository root; load `build/unpacked` during development
 
 ## Upgrade from v0.13.0
 
-The stable manifest key and storage schema preserve the extension identity and local browser data. Extract v0.14.0 to a new permanent folder, open the existing extension’s details in `chrome://extensions`, and reload it from the new unpacked folder. Do not remove the old extension first unless you already exported or remotely verified the local brain; removing an extension can delete its browser storage.
+The stable manifest key and storage schema preserve the extension identity and local browser data. Extract v0.22.0 to a new permanent folder, open the existing extension’s details in `chrome://extensions`, and reload it from the new unpacked folder. Do not remove the old extension first unless you already exported or remotely verified the local brain; removing an extension can delete its browser storage.
 
 After reload:
 

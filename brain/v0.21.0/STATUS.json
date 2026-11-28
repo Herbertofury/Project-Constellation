@@ -1,0 +1,23 @@
+{
+  "version": "0.21.0",
+  "status": "local-candidate-awaiting-publication-approval",
+  "publication": "blocked by automatic approval review: explicit public source publication approval required",
+  "branch": "upgrade/constellation-agent-monitor",
+  "unitTestScripts": 49,
+  "nativeRustTests": {
+    "unit": 15,
+    "integration": 5,
+    "total": 20
+  },
+  "desktopNodeTests": 74,
+  "chromiumSmokeWorkflows": {
+    "passed": 39,
+    "installedExtensionBlocked": 3,
+    "total": 42
+  },
+  "windowsExecutable": "cross-built x64; not run on Windows",
+  "liveUserBrowserAcceptance": "not performed",
+  "firefoxSigning": "unsigned temporary development sensor",
+  "evidence": "docs/MONITOR-VERIFICATION.md",
+  "uiMessageContracts": 94
+}

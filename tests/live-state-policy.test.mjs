@@ -27,19 +27,39 @@ function functionSource(name) {
 
 const bucketSource = functionSource('livePulseBucket');
 const sandbox = {
-  LIVE_STALE_STATUSES:new Set(['paused','waiting-user','blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','errored','stalled','auth-required','unavailable']),
-  LIVE_STALE_HEALTH_STATES:new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','rate-limited','blocked-approval','auth-required','unavailable','stalled','dead','request-stalled','tool-stalled','tool-dead','degraded','stale-page']),
+  LIVE_CRITICAL_STATUSES:new Set(['blocked-approval','delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required']),
+  LIVE_HOLD_STATUSES:new Set(['provider-review']),
+  LIVE_CRITICAL_HEALTH_STATES:new Set(['delivery-timeout','connection-interrupted','response-interrupted','send-failed','refresh-required','blocked-approval','dead','tool-dead','capacity-reached','degraded','stale-page']),
+  LIVE_HOLD_HEALTH_STATES:new Set(['provider-review']),
+  LIVE_STALE_STATUSES:new Set(['paused','waiting-user','rate-limited','errored','stalled','auth-required','unavailable']),
+  LIVE_STALE_HEALTH_STATES:new Set(['rate-limited','auth-required','unavailable','stalled','request-stalled','tool-stalled','capacity-watch','capacity-handoff']),
   LIVE_ACTIVE_HEALTH_STATES:new Set(['working','tool-running','tool-quiet','quiet-working'])
 };
 vm.createContext(sandbox);
 vm.runInContext(`${bucketSource}; globalThis.__bucket=livePulseBucket;`, sandbox);
 assert.equal(sandbox.__bucket({chat:{status:'idle',healthState:'healthy'},generation:{active:false}}, {pending:9,streamLikely:true}), 'completed', 'background provider traffic cannot resurrect a completed chat');
 assert.equal(sandbox.__bucket({chat:{status:'running',healthState:'working'},generation:{active:true}}, {pending:0}), 'active');
+assert.equal(sandbox.__bucket({chat:{status:'provider-review',healthState:'provider-review'},generation:{active:false}}, {pending:2}), 'hold', 'provider review is a dedicated On Hold state, not a stall');
 assert.equal(sandbox.__bucket({chat:{status:'rate-limited',healthState:'rate-limited'}}, {pending:4}), 'stale');
-assert.equal(sandbox.__bucket({chat:{status:'delivery-timeout',healthState:'delivery-timeout'},failure:{active:true,retryAvailable:true}}, {pending:4}), 'stale', 'explicit provider failure stays Needs Attention even with pending network');
+assert.equal(sandbox.__bucket({chat:{status:'delivery-timeout',healthState:'delivery-timeout'},failure:{active:true,retryAvailable:true}}, {pending:4}), 'critical', 'explicit provider delivery failure becomes Critical even with pending network');
+assert.equal(sandbox.__bucket({chat:{status:'idle',healthState:'capacity-reached'}}, {pending:0}), 'critical', 'conversation maximum/capacity reached is Critical');
+assert.equal(sandbox.__bucket({chat:{status:'running',healthState:'capacity-handoff'}}, {pending:0}), 'stale', 'proactive handoff remains Needs Attention until the hard limit is reached');
+
+const normalizePulseSource = functionSource('normalizePulseUx');
+const pulseSandbox = {
+  TAB_BEACON_DEFAULTS:{completionNotificationsEnabled:true,criticalNotificationsEnabled:true,reviewReleaseNotificationsEnabled:true,attentionNotificationsEnabled:true,branchReviewBeforeSend:true,tabBeaconsEnabled:true,tabTitleStatusEnabled:true,tabFaviconStatusEnabled:true,tabGroupingEnabled:true,tabGroupingMode:'project-status',criticalEmoji:'🔴',holdEmoji:'🛡️',activeEmoji:'🟣',staleEmoji:'⚠️',completedEmoji:'✅',criticalColor:'#ff5c64',holdColor:'#4fa3ff',activeColor:'#8b5cf6',staleColor:'#e0a458',completedColor:'#45bd8c',criticalGroupColor:'red',holdGroupColor:'blue',activeGroupColor:'purple',staleGroupColor:'orange',completedGroupColor:'green'},
+  NATIVE_GROUP_COLORS:new Set(['grey','blue','red','yellow','green','pink','purple','cyan','orange']),
+  normalizeHexColor:(value,fallback)=>/^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):fallback
+};
+vm.createContext(pulseSandbox); vm.runInContext(`${normalizePulseSource}; globalThis.__normalizePulseUx=normalizePulseUx;`, pulseSandbox);
+assert.equal(pulseSandbox.__normalizePulseUx({holdEmoji:'🔵'}).holdEmoji, '🛡️', 'legacy default blue-circle hold marker migrates to shield');
+assert.equal(pulseSandbox.__normalizePulseUx({holdEmoji:'🧿'}).holdEmoji, '🧿', 'non-default custom hold marker remains user-owned');
+
 const managedGroupSource = functionSource('managedGroupBucket');
 const groupSandbox = { TAB_GROUP_PREFIX:'PC ✦' }; vm.createContext(groupSandbox); vm.runInContext(`${managedGroupSource}; globalThis.__groupBucket=managedGroupBucket;`, groupSandbox);
 assert.equal(groupSandbox.__groupBucket('My Research'), '', 'user-created tab group is never treated as Constellation-owned');
+assert.equal(groupSandbox.__groupBucket('PC ✦ 🔴 Critical'), 'critical');
+assert.equal(groupSandbox.__groupBucket('PC ✦ 🛡️ On hold'), 'hold');
 assert.equal(groupSandbox.__groupBucket('PC ✦ 🟣 Active'), 'active');
 assert.equal(groupSandbox.__groupBucket('PC ✦ ⚠️ Needs attention'), 'stale');
 assert.equal(groupSandbox.__groupBucket('PC ✦ ✅ Completed'), 'completed');
@@ -89,7 +109,9 @@ assert.equal(reconciled.state,'capacity-watch','Sentinel idle cannot hide a capa
 const sentinelSource = fs.readFileSync(new URL('../extension/src/live-sentinel.js', import.meta.url), 'utf8');
 const transcriptProbeSource = fs.readFileSync(new URL('../extension/src/chatgpt-page-probe.js', import.meta.url), 'utf8');
 const tabBeaconSource = fs.readFileSync(new URL('../extension/src/tab-beacon.js', import.meta.url), 'utf8');
-assert.match(sentinelSource, /const rawActive = failure\.active \? false : transcriptFinal \? false : transcriptRunning \? true : domActive/, 'fresh transcript finality outranks stale DOM while unfinished transcript outranks settled DOM');
+assert.match(sentinelSource, /const rawActive = permission\.active \|\| failure\.active \|\| reviewHold\.active \? false : transcriptFinal \? false : transcriptRunning \? true : domActive/, 'fresh transcript finality outranks stale DOM while unfinished transcript outranks settled DOM');
+assert.match(sentinelSource, /classifyProviderHold/, 'Sentinel detects the explicit ChatGPT review-hold surface');
+assert.match(sentinelSource, /provider-review-surface/, 'Sentinel publishes provider review as its own source');
 assert.match(sentinelSource, /PC_LIVE_SENTINEL_REFRESH_TRANSCRIPT/, 'authoritative transport completion can request an event-driven transcript refresh');
 assert.doesNotMatch(sentinelSource, /if \(state\.running\) \{ lastActivityAt = now\(\); lastProgressAt = now\(\); \}/, 'transcript polling alone never refreshes the progress clock');
 assert.match(sentinelSource, /return state\.startsWith\('capacity-'\) \? state : ''/, 'Sentinel never reads its own rendered stall state back as a watchdog heartbeat');

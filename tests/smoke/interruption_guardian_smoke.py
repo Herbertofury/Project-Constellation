@@ -59,7 +59,7 @@ with sync_playwright() as p:
     assert timed['failure']['active'] is True and timed['failure']['retryAvailable'] is True
     assert timed['generation']['interrupted'] is True and timed['generation']['phase']=='interrupted'
     assert timed['failure']['partialAssistantChars'] >= 45, timed['failure']
-    assert hud['state']=='delivery-timeout' and hud['level']=='danger', hud
+    assert hud['state']=='delivery-timeout' and hud['level']=='critical', hud
     assert hud['retryHidden'] is False and hud['retryText']=='Retry', hud
     assert hud['refreshHidden'] is True and hud['clicks']==0, hud
     assert 'partial chars preserved' in hud['detail'] and 'Retry available' in hud['detail'], hud

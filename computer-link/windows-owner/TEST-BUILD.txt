@@ -1,0 +1,26 @@
+Computer-Link experimental local Windows test build
+NOT an installer, remote desktop tool or direct ChatGPT/dot connection.
+
+These are the debug binaries from the same Cargo build exercised by the run's
+Windows tests. IDENTITY.json pins their hashes and the source commit. Unsigned;
+not a security-reviewed production release. No setup, autostart or service.
+
+For a disposable local test only: launch computer-link-owner-proof.exe.
+Use its native menu to prepare status, then a separate client connects using:
+local-client.exe OWNER_PID PIPE_NAME status
+The owner window shows the random public pipe name. Use the owner's actual PID.
+Approve only the expected test client when the second permission dialog appears.
+A selected UTF-8 text snapshot is limited to 4096 bytes; no write/delete/admin,
+browser or app-control grant exists. The client prints only response byte count.
+Do not test with secrets or important files. Bearers are not supplied on argv.
+
+Disconnect revokes the one-use session. Exit or window close exits the owner;
+uncertain cleanup forces this process to terminate. No unrelated browser is closed.
+The window title can become stale after completion/expiry; it is not live evidence.
+No real tray-pointer/pixel/accessibility or owner-machine acceptance is claimed.
+
+Known holds: same-user process compromise, PID lookup/open races and duplicated
+handles, filesystem ancestor/attribute/ACL races, synchronous file capture and
+non-preemptible filesystem work. No remote endpoint is created. This build cannot
+manage your ChatGPT chats or grant this dot access. Review actual run logs for exact
+test outcomes; test success is not a production security guarantee.

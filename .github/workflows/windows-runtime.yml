@@ -5,8 +5,10 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - '.gitattributes'
       - 'desktop/**'
       - 'extension/**'
+      - 'computer-link/**'
       - 'tests/**'
       - 'tools/**'
       - 'package.json'
@@ -14,8 +16,16 @@ on:
       - 'releases/v0.20.1/SOURCE-MANIFEST.json'
       - '.github/workflows/windows-runtime.yml'
   push:
-    branches: ['release/**']
+    branches: ['release/**', 'upgrade/**']
     paths:
+      - '.gitattributes'
+      - 'desktop/**'
+      - 'extension/**'
+      - 'computer-link/**'
+      - 'tools/computer-link/**'
+      - 'native/**'
+      - 'tests/**'
+      - 'package.json'
       - 'releases/v0.20.1/0.20.0-to-0.20.1.patch'
       - 'releases/v0.20.1/SOURCE-MANIFEST.json'
       - '.github/workflows/windows-runtime.yml'
@@ -35,6 +45,15 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
+          if (Test-Path 'native/constellation-monitor/Cargo.toml') {
+            "PC_SOURCE_ROOT=$env:GITHUB_WORKSPACE" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            "PC_SOURCE_COMMIT=$env:GITHUB_SHA" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            "PC_SOURCE_TREE=$(git rev-parse 'HEAD^{tree}')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            $version = (Get-Content 'package.json' -Raw | ConvertFrom-Json).version
+            "PC_SOURCE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            Write-Host "Testing current canonical root source $env:GITHUB_SHA"
+            exit 0
+          }
           $manifest = Get-Content 'releases/v0.20.1/SOURCE-MANIFEST.json' -Raw | ConvertFrom-Json
           if ($manifest.version -ne '0.20.1') { throw "Unexpected source manifest version: $($manifest.version)" }
           $baseline = [string]$manifest.baseline.artifact
@@ -64,6 +83,7 @@ jobs:
           if ($version -ne [string]$manifest.version) { throw "Reconstructed package version mismatch: $version" }
           $actualTree = (git write-tree).Trim()
           if ($actualTree -ne [string]$manifest.sourceTree) { throw "Reconstructed source tree mismatch: $actualTree" }
+          git commit -q -m 'Project Constellation verified reconstructed source'
           Set-Location '..'
           $root = (Resolve-Path 'pc-source').Path
           "PC_SOURCE_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -76,6 +96,19 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+
+      - name: Build source-bound native Computer Tools for desktop resources
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          Set-Location $env:PC_SOURCE_ROOT
+          if (Test-Path 'computer-link/windows-owner/Cargo.toml') {
+            rustup toolchain install 1.99.0 --profile minimal
+            rustup override set 1.99.0
+            node tools/computer-link/build.mjs
+            "CONSTELLATION_REQUIRE_NATIVE_TOOLS=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          }
 
       - name: Root regression and contracts
         shell: pwsh
@@ -94,7 +127,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
-          npm install --no-audit --no-fund
+          # This desktop package intentionally has no committed lockfile.
+          npm install --no-package-lock --no-audit --no-fund
           $actual = (& .\node_modules\.bin\electron.cmd --version | Select-Object -Last 1).ToString().Trim()
           if ($actual -ne 'v44.4.4') { throw "Electron mismatch: $actual" }
           Write-Host "electron_runtime=$actual"
@@ -122,7 +156,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
+          $actualTree = (git -C $env:PC_SOURCE_ROOT rev-parse 'HEAD^{tree}').Trim()
+          if ($actualTree -ne $env:PC_SOURCE_TREE) { throw 'Desktop source tree changed before packaging.' }
+          $dirtySource = @(git -C $env:PC_SOURCE_ROOT status --porcelain --untracked-files=all)
+          if ($dirtySource.Count -ne 0) { throw "Desktop packaging requires clean source: $($dirtySource -join '; ')" }
           Set-Location (Join-Path $env:PC_SOURCE_ROOT 'desktop')
+          if (Test-Path 'dist-electron') { Remove-Item 'dist-electron' -Recurse -Force }
           npm run build:win
 
       - name: Fresh portable launch and hash receipt
@@ -132,15 +171,20 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           $desktop = Join-Path $env:PC_SOURCE_ROOT 'desktop'
           Set-Location $desktop
-          $zip = Get-ChildItem 'dist-electron' -Filter '*.zip' | Sort-Object Length -Descending | Select-Object -First 1
-          $setup = Get-ChildItem 'dist-electron' -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Sort-Object Length -Descending | Select-Object -First 1
+          $artifact = "Project-Constellation-Desktop-$($env:PC_SOURCE_VERSION)-x64"
+          $zip = Get-Item "dist-electron/$artifact.zip"
+          $setup = Get-Item "dist-electron/$artifact.exe"
           if (-not $zip) { throw 'Portable ZIP not produced.' }
           if (-not $setup) { throw 'Windows setup not produced.' }
 
           $fresh = Join-Path $env:RUNNER_TEMP 'pc-portable-fresh'
+          if (Test-Path $fresh) { Remove-Item $fresh -Recurse -Force }
           Expand-Archive $zip.FullName $fresh -Force
           $exe = Get-ChildItem $fresh -Filter 'Project Constellation.exe' -Recurse | Select-Object -First 1
           if (-not $exe) { throw 'Project Constellation.exe missing from portable build.' }
+          if ($env:CONSTELLATION_REQUIRE_NATIVE_TOOLS -eq '1') {
+            node scripts/verify-native-resources.cjs (Join-Path $exe.DirectoryName 'resources/computer-link')
+          }
           $output = Join-Path $env:RUNNER_TEMP 'pc-packaged-smoke.json'
           Remove-Item $output -Force -ErrorAction SilentlyContinue
           $env:CONSTELLATION_ELECTRON_SMOKE = '1'
@@ -156,18 +200,37 @@ jobs:
           if ($proof.ok -ne $true -or $proof.detail.ok -ne $true -or $proof.detail.pong -ne $true -or $proof.detail.visibleLeak -ne $false) {
             throw "Packaged smoke failed: $(Get-Content $output -Raw)"
           }
-          try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch {}
+          if ($env:CONSTELLATION_REQUIRE_NATIVE_TOOLS -eq '1' -and ($proof.detail.shellRuntime.nativeTools.ok -ne $true -or $proof.detail.shellRuntime.nativeTools.ownerRunning -ne $false)) {
+            throw 'Packaged Computer Tools native handshake failed or unexpectedly activated owner access.'
+          }
+          if ($env:CONSTELLATION_REQUIRE_NATIVE_TOOLS -eq '1') {
+            $expectedNative = [System.IO.Path]::GetFullPath((Join-Path $exe.DirectoryName 'resources/computer-link/computer-link-mcp-session.exe'))
+            if ($proof.detail.shellRuntime.nativeTools.command -ne $expectedNative) { throw 'Packaged native tool discovery selected a different installation.' }
+          }
+          if (-not $proc.WaitForExit(10000)) {
+            try { Stop-Process -Id $proc.Id -Force } catch {}
+            throw 'Packaged portable produced a result but did not confirm graceful application shutdown.'
+          }
+          if ($proc.ExitCode -ne 0) { throw "Packaged portable exited with code $($proc.ExitCode)." }
 
+          $actualTree = (git -C $env:PC_SOURCE_ROOT rev-parse 'HEAD^{tree}').Trim()
+          if ($actualTree -ne $env:PC_SOURCE_TREE) { throw 'Desktop source tree changed during packaging.' }
+          $dirtySource = @(git -C $env:PC_SOURCE_ROOT status --porcelain --untracked-files=all)
+          if ($dirtySource.Count -ne 0) { throw "Desktop receipt requires clean source: $($dirtySource -join '; ')" }
           $receipt = [ordered]@{
             schema='project-constellation-windows-runtime-v1'
             product='Project Constellation'
             version=$env:PC_SOURCE_VERSION
             sourceCommit=$env:PC_SOURCE_COMMIT
+            sourceTree=$actualTree
+            sourceDirty=$false
             platform='windows-latest'
             electron='44.4.4'
             nativeComputerUse='PASS'
             integratedElectron='PASS'
             packagedPortable='PASS'
+            gracefulShutdown='PASS'
+            nativeComputerTools=if ($env:CONSTELLATION_REQUIRE_NATIVE_TOOLS -eq '1') { 'PASS' } else { 'NOT_APPLICABLE_HISTORICAL_SOURCE' }
             portableFile=$zip.Name
             portableSize=$zip.Length
             portableSha256=(Get-FileHash $zip.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -184,14 +247,15 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           $source = Join-Path $env:PC_SOURCE_ROOT 'desktop\dist-electron'
           New-Item -ItemType Directory -Force 'windows-dist' | Out-Null
-          Copy-Item (Join-Path $source '*.zip') 'windows-dist' -Force
-          Copy-Item (Join-Path $source '*.exe') 'windows-dist' -Force
+          $artifact = "Project-Constellation-Desktop-$($env:PC_SOURCE_VERSION)-x64"
+          Copy-Item (Join-Path $source "$artifact.zip") 'windows-dist' -Force
+          Copy-Item (Join-Path $source "$artifact.exe") 'windows-dist' -Force
           Copy-Item (Join-Path $source 'WINDOWS-RUNTIME-RECEIPT.json') 'windows-dist' -Force
           Get-ChildItem 'windows-dist' | Select-Object Name,Length | Format-Table
 
       - uses: actions/upload-artifact@v7
         with:
-          name: Project-Constellation-v0.20.1-Windows
+          name: Project-Constellation-Windows
           path: windows-dist/*
           if-no-files-found: error
           retention-days: 30

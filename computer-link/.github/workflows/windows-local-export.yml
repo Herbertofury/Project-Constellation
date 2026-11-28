@@ -1,0 +1,24 @@
+name: Windows synthetic new-file export acceptance
+on:
+  push:
+    branches: [review/windows-local-export]
+    paths: ['local-export/**', '.github/workflows/windows-local-export.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic-local-ntfs:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - shell: pwsh
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "computer-link-export-target"
+          cargo +1.99.1 test --locked --manifest-path local-export/Cargo.toml -- --test-threads=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+# Only source/tests and disposable temp fixtures. No artifacts, secrets, services,
+# owner installation, endpoint, UI wiring, forwarding, or persistent access.

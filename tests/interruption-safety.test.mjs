@@ -21,7 +21,7 @@ for (const state of states) {
 assert.match(health, /function classifyProviderFailure\(/, 'provider failures have a dedicated classifier');
 assert.match(sentinel, /function failureSurfaceEvidence\(/, 'Sentinel has current-turn failure evidence');
 assert.match(sentinel, /!isCurrentFrontierNode\(node, frontier\)/, 'historical failure banners cannot poison a newer turn');
-assert.match(sentinel, /const rawActive = failure\.active \? false : transcriptFinal \? false : transcriptRunning \? true : domActive/, 'explicit current failure outranks stale running evidence');
+assert.match(sentinel, /const rawActive = permission\.active \|\| failure\.active \|\| reviewHold\.active \? false : transcriptFinal \? false : transcriptRunning \? true : domActive/, 'explicit permission/failure surfaces outrank stale running evidence');
 assert.match(sentinel, /function retryCurrentFailure\([\s\S]*?failure\.control\.click\(\)/, 'manual retry delegates to the provider control');
 assert.equal((sentinel.match(/failure\.control\.click\(\)/g) || []).length, 1, 'there is exactly one provider failure click site');
 assert.match(sentinel, /PC_LIVE_SENTINEL_RETRY_FAILURE/, 'Sentinel exposes an explicit retry message');
@@ -43,4 +43,5 @@ assert.ok(popupRetryStart >= 0);
 assert.doesNotMatch(popup.slice(popupRetryStart, popupRetryStart + 700), /PC_FOCUS_LIVE_CHAT|window\.close\(/, 'retry action does not focus/navigate/close the popup as a side effect');
 assert.match(integrity, /Constellation never retries automatically/, 'Integrity explains interruption recovery truthfully');
 
+assert.doesNotMatch(content, /clickApprovalPersistentOption|controls\.mainAllow\.click\(/, 'no permission click executor survives legacy settings');
 console.log('interruption-safety.test.mjs: PASS');

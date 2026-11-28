@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = process.env.PROJECT_CONSTELLATION_ROOT ? path.resolve(process.env.PROJECT_CONSTELLATION_ROOT) : path.join(repoRoot, 'extension');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
-const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/chatgpt-page-probe.js','src/live-sentinel.js','src/tab-beacon.js','src/content.js','src/styles.css'];
+const required = ['manifest.json','background.js','popup.html','popup.css','popup.js','sidepanel.html','sidepanel.css','sidepanel.js','home.html','home.css','home.js','offscreen.html','offscreen.js','src/core.js','src/brain-core.js','src/provider-core.js','src/integrity-core.js','src/knowledge-core.js','src/health-core.js','src/scheduled-task-guardian-core.js','src/scheduled-task-page-probe.js','src/scheduled-task-observer.js','src/chatgpt-page-probe.js','src/live-sentinel.js','src/tab-beacon.js','src/content.js','src/styles.css','agent-monitor.html','agent-monitor.css','agent-monitor.js','src/attention-service.js','src/attention-background.js','src/attention-audio.js','src/native-monitor-bridge.js'];
 for (const file of required) if (!fs.existsSync(path.join(root, file))) throw new Error(`Missing ${file}`);
 const releaseSupportFiles = [
   'config/oauth/.env.release.example',
@@ -34,7 +34,10 @@ const updatingGuide = fs.readFileSync(path.join(repoRoot, 'wiki/Updating.md'), '
 if (!updatingGuide.includes('Project-Constellation-vX.Y.Z-unpacked.zip')) throw new Error('Wiki update guide must name the generated unpacked release asset.');
 if (manifest.manifest_version !== 3) throw new Error('Manifest must be MV3');
 if (manifest.name !== 'Project Constellation') throw new Error('Branding must be Project Constellation');
-if (manifest.version !== JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version) throw new Error('Manifest and package versions must match.');
+const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+const packageLock = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package-lock.json'), 'utf8'));
+if (manifest.version !== packageJson.version) throw new Error('Manifest and package versions must match.');
+if (packageLock.version !== packageJson.version || packageLock.packages?.['']?.version !== packageJson.version) throw new Error('package-lock root version must match package.json.');
 if (!manifest.side_panel?.default_path) throw new Error('Side panel missing');
 if (!manifest.background?.service_worker) throw new Error('Service worker missing');
 if (!manifest.permissions?.includes('identity') || !manifest.permissions?.includes('alarms') || !manifest.permissions?.includes('offscreen') || !manifest.permissions?.includes('webRequest')) throw new Error('Identity, alarms, offscreen, and passive webRequest health telemetry are required.');
@@ -53,7 +56,8 @@ if (!manifest.permissions?.includes('tabGroups') || !manifest.permissions?.inclu
 const mainProbeEntry = (manifest.content_scripts || []).find((row) => row.world === 'MAIN' && (row.js || []).includes('src/chatgpt-page-probe.js'));
 if (!mainProbeEntry || !(mainProbeEntry.matches || []).includes('https://chatgpt.com/*')) throw new Error('ChatGPT transcript probe must load in MAIN world on chatgpt.com.');
 for (const marker of ['/backend-api/conversation/','finished_successfully','end_turn','chatgpt_sdk.widget_state','transcriptStatus','latestUserMessageId']) if (!pageProbe.includes(marker)) throw new Error(`ChatGPT transcript proof missing: ${marker}`);
-if (!pageProbe.includes('window.postMessage({ source:RESPONSE_SOURCE') || !pageProbe.includes("state }, location.origin === 'null' ? '*' : location.origin)")) throw new Error('ChatGPT MAIN-world probe must return only its sanitized state envelope.');
+if (!pageProbe.includes('postSelf({ source:RESPONSE_SOURCE, kind:RESPONSE_KIND') || !pageProbe.includes('conversationId:requestedId, state });')) throw new Error('ChatGPT MAIN-world probe must return only its sanitized state envelope.');
+if (!pageProbe.includes("window.postMessage(payload, '*')") || /postMessage\([^\n]+location\.origin/.test(pageProbe)) throw new Error('ChatGPT MAIN-world probe self-messaging must be opaque-origin safe.');
 for (const marker of ['PC_TAB_BEACON_APPLY','projectConstellationTabBeaconFavicon','faviconDataUri','baseTitle']) if (!tabBeacon.includes(marker)) throw new Error(`Tab Beacon content workflow missing: ${marker}`);
 for (const marker of ['chrome.tabs.group','chrome.tabGroups.update','PC_TAB_TAG_SET','contextMenus','syncTabPresentation','renderActionBadge']) if (!background.includes(marker)) throw new Error(`Tab Beacon backend missing: ${marker}`);
 if (!content.includes('rate-limited') || !background.includes('noteProviderRateLimit')) throw new Error('Rate-limit governor/recovery state is missing.');
@@ -67,19 +71,39 @@ const fullCaptureEnd = background.indexOf('async function waitForTabComplete', f
 const fullCaptureBlock = fullCaptureStart >= 0 && fullCaptureEnd > fullCaptureStart ? background.slice(fullCaptureStart, fullCaptureEnd) : '';
 if (fullCaptureBlock.includes("state: 'minimized'") || fullCaptureBlock.includes('state:"minimized"')) throw new Error('Full Capture must not use minimized windows; hidden-page throttling breaks reliability.');
 if (!background.includes('APPROVAL_RECOVERY_STATE_KEY') || !background.includes('openRecoveryTabForItem') || background.includes("chrome.windows.create({ url: item.url")) throw new Error('Approval Recovery must be open-tabs-only and must never create a ChatGPT recovery window.');
-if (background.includes('chrome.tabs.reload(')) throw new Error('Passive recovery must never reload an AI tab automatically.');
+const automaticReloadOffsets = [...background.matchAll(/chrome\.tabs\.reload\(/g)].map((match) => match.index);
+const chatGuardianStart = background.indexOf('async function keepChatGptTabResident');
+const chatGuardianEnd = background.indexOf('function fallbackLiveRow', chatGuardianStart);
+for (const offset of automaticReloadOffsets) {
+  if (chatGuardianStart < 0 || chatGuardianEnd <= chatGuardianStart || offset < chatGuardianStart || offset >= chatGuardianEnd) throw new Error('Only the bounded Chat Guardian recovery lane may reload an AI tab automatically.');
+}
+if (automaticReloadOffsets.length && (!background.includes("safeReloadActions = new Set(['composer-unavailable','send-unavailable','stage-failed'])") || !background.includes('reloads < 1') || !background.includes("'composer-busy'"))) throw new Error('Chat Guardian reload fallback must remain one-shot and must never reload over a user draft.');
 if (background.includes('chrome.tabs.create({ url:requestedUrl')) throw new Error('Pulse focus must never recreate a missing AI chat URL.');
 for (const marker of ['PC_GITHUB_OAUTH_START','PC_GITHUB_OAUTH_POLL','PC_DRIVE_CONNECT','PC_PROVIDER_SESSION_STATUS','PC_CONNECTIONS_STATUS','PC_FULL_CAPTURE_RUNNER_DONE','PC_APPROVAL_RECOVERY_START','PC_APPROVAL_RECOVERY_STOP','PC_REFRESH_RECOVERY_REQUEST','PC_INTEGRITY_SCAN','PC_REQUEST_GOVERNOR_STATUS','PC_KNOWLEDGE_SUMMARY','PC_KNOWLEDGE_LIST','PC_KNOWLEDGE_REINDEX','knowledgeItems','projectContinuity','watchForStalls','updateAttentionBadge']) if (!background.includes(marker)) throw new Error(`Readiness backend missing: ${marker}`);
 if (!background.includes('onMessage.addListener((message, sender, sendResponse)')) throw new Error('Capture runner sender identity must be preserved.');
 const homeHtml = fs.readFileSync(path.join(root, 'home.html'), 'utf8');
 const homeJs = fs.readFileSync(path.join(root, 'home.js'), 'utf8');
 if (!homeHtml.includes('Capture all chats')) throw new Error('Home must expose the explicit Capture all chats control.');
-for (const marker of ['Connections','Sign in with Google','Sign in with GitHub','Capture all chats','Always allow all connected-app prompts','Scan all open ChatGPT chats']) if (!homeHtml.includes(marker)) throw new Error(`Premium readiness control missing: ${marker}`);
+for (const marker of ['Connections','Sign in with Google','Sign in with GitHub','Capture all chats','PERMISSION REVIEW','Scan all open ChatGPT chats']) if (!homeHtml.includes(marker)) throw new Error(`Premium readiness control missing: ${marker}`);
 for (const marker of ['Projects & Groups','+ Group','+ Smart collection','+ Project','orgProjectGrid','orgBulkBar']) if (!homeHtml.includes(marker)) throw new Error(`Organization Home control missing: ${marker}`);
 for (const marker of ['PC_ORG_SUMMARY','PC_ORG_CHATS','PC_ORG_PROJECT_CREATE','PC_ORG_CHAT_PATCH','application/x-project-constellation-chat','application/x-project-constellation-project']) if (!homeJs.includes(marker) && !background.includes(marker)) throw new Error(`Organization workflow missing: ${marker}`);
 for (const marker of ['groups:', 'smartCollections:', 'workspaceProjectStatus', 'workspaceProjectId']) if (!background.includes(marker)) throw new Error(`Organization database index missing: ${marker}`);
 for (const marker of ['structuredTurnLinks','structuredCodeBlocks','structuredTurnFormattedText','structuredTurnAssets','queueEmbeddedMediaCapture']) if (!content.includes(marker)) throw new Error(`Structured output capture missing: ${marker}`);
 for (const marker of ['Knowledge Vault','knowledgeBrowser','continuityShelf','rebuildKnowledge']) if (!homeHtml.includes(marker)) throw new Error(`Knowledge Vault UI missing: ${marker}`);
+
+const guardianCore = fs.readFileSync(path.join(root, 'src/scheduled-task-guardian-core.js'), 'utf8');
+const scheduledTaskProbe = fs.readFileSync(path.join(root, 'src/scheduled-task-page-probe.js'), 'utf8');
+const scheduledTaskObserver = fs.readFileSync(path.join(root, 'src/scheduled-task-observer.js'), 'utf8');
+for (const marker of ['SCHEDULE_URL','https://chatgpt.com/schedules','normalizeSettings','frameBlockReason','deriveRuntime','deriveTaskEvents','eventPresentation']) if (!guardianCore.includes(marker)) throw new Error(`Scheduled Task Guardian core missing: ${marker}`);
+for (const marker of ['SCHEDULE_GUARDIAN_ALARM','PC_SCHEDULE_GUARDIAN_STATUS','PC_SCHEDULE_GUARDIAN_REPAIR','PC_SCHEDULE_GUARDIAN_OPEN','PC_SCHEDULE_GUARDIAN_TASK_SNAPSHOT','PC_SCHEDULE_GUARDIAN_MUTE','PC_SCHEDULE_GUARDIAN_TEST_NOTIFICATION','notifyScheduledGuardianEvent','scheduleGuardianReachabilityProbe']) if (!background.includes(marker)) throw new Error(`Scheduled Task Guardian backend missing: ${marker}`);
+for (const marker of ['SCHEDULED TASK COMMAND CENTER','scheduleGuardianEnabled','scheduleGuardianObserve','scheduleGuardianNotifications','scheduleGuardianRunAlerts','scheduleGuardianStateAlerts','scheduleGuardianRepair','scheduleGuardianOpen','scheduleGuardianTest','scheduleGuardianMute','scheduleGuardianMetrics','scheduleGuardianActivity']) if (!homeHtml.includes(marker)) throw new Error(`Scheduled Task Command Center Home UI missing: ${marker}`);
+for (const marker of ['PerformanceObserver','BLOCKED_CHILD_KEY','scheduled-task-refresh-request','session-token-missing','collectTasks']) if (!scheduledTaskProbe.includes(marker)) throw new Error(`Scheduled task observation probe missing: ${marker}`);
+if (scheduledTaskProbe.includes('window.fetch=')) throw new Error('Scheduled task observer must not monkeypatch provider fetch.');
+for (const marker of ['PC_SCHEDULE_GUARDIAN_TASK_SNAPSHOT','PC_SCHEDULE_GUARDIAN_REFRESH_FROM_PAGE','scheduled-task-refresh-result']) if (!scheduledTaskObserver.includes(marker)) throw new Error(`Scheduled task isolated bridge missing: ${marker}`);
+if (!manifest.permissions?.includes('notifications')) throw new Error('Scheduled Guardian native alerts require notifications permission.');
+const scheduledMainEntry = (manifest.content_scripts || []).find((row) => row.world === 'MAIN' && (row.js || []).includes('src/scheduled-task-page-probe.js'));
+const scheduledBridgeEntry = (manifest.content_scripts || []).find((row) => row.world !== 'MAIN' && (row.js || []).includes('src/scheduled-task-observer.js'));
+if (!scheduledMainEntry?.all_frames || !scheduledBridgeEntry?.all_frames) throw new Error('Scheduled task observers must cover the offscreen Scheduled subframe.');
 
 const healthCore = fs.readFileSync(path.join(root, 'src/health-core.js'), 'utf8');
 for (const marker of ['deriveHealth','classifyProviderFailure','delivery-timeout','connection-interrupted','response-interrupted','send-failed','stale-page','output-regressed','tool-running','tool-stalled','tool-dead','request-stalled','dead','refresh-required','old-project-version']) if (!healthCore.includes(marker)) throw new Error(`Live Chat Health core missing: ${marker}`);
@@ -91,7 +115,7 @@ for (const marker of ['PC_LIVE_HEALTH_CONTEXT','liveNetworkByTab','oldestPending
 for (const marker of ['LIVE CHAT HEALTH','liveHealthEnabled','liveHealthToolWatchdog','liveHealthDeadStall','liveHealthCorner','liveHealthDensity']) if (!homeHtml.includes(marker)) throw new Error(`Live Chat Health settings UI missing: ${marker}`);
 
 for (const marker of ['PC_KNOWLEDGE_LIST','PC_KNOWLEDGE_REINDEX','loadKnowledge','knowledgeCard','continuityCard']) if (!homeJs.includes(marker)) throw new Error(`Knowledge Vault workflow missing: ${marker}`);
-if (!background.includes("reasons: ['DOM_PARSER']")) throw new Error('True offscreen DOM parser path is missing.');
+if (!/reasons:\s*\[[^\]]*['"]DOM_PARSER['"]/m.test(background)) throw new Error('True offscreen DOM parser path is missing.');
 for (const banned of ['chatgpt-bliss','GPT_BLISS','gptBliss','GptBliss','Bliss Constellation','CHATGPT BLISS']) {
   const files = required.map((file) => fs.readFileSync(path.join(root, file), 'utf8')).join('\n');
   if (files.includes(banned)) throw new Error(`Legacy branding remains: ${banned}`);

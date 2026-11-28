@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "computer-link/README.md",
+      "upstreamSha256": "4f6241d405ddc193d2684440c34bbcf6885a44ebf395392fd7695154a0276c70",
+      "sha256": "edbf93140ed234d960b8341a70cda3596359d77f590d9f8cf8b099e33725fc87",
+      "reason": "Integrated Constellation entrypoint, capability/CLI and private-history publication boundary documentation; original exact bytes retained as UPSTREAM-README.md and in private all-history bundle."
+    },
+    {
+      "path": "computer-link/windows-owner/src/main.rs",
+      "upstreamSha256": "49c98d01c5f03caea989d90e041e0c32c3a984d61ad58f7db7939fada6eab645",
+      "sha256": "2099a65ec00fe18f47701fe70eca5d3f8663ec92dabd3e2374f1953be0839215",
+      "reason": "Present native owner as Constellation Computer Tools; update exact UI caption fixtures; retain binary filenames, window class and MCP protocol identifiers."
+    },
+    {
+      "path": "computer-link/windows-owner/tests/focus_gui.rs",
+      "upstreamSha256": "15b832e06b0c241a011d9aa46743c1c7b695507d1eb7131253fa5b6d6813677d",
+      "sha256": "c4fc7a2c550fce23da0128f4f87c382651c53db99daa09f3ba8f32ac34f64979",
+      "reason": "Present native owner as Constellation Computer Tools; update exact UI caption fixtures; retain binary filenames, window class and MCP protocol identifiers."
+    },
+    {
+      "path": "computer-link/windows-owner/tests/gui.rs",
+      "upstreamSha256": "e874fb90846e2b760f6f163ea5c67273c46211f23c607134add06a61d6cbb080",
+      "sha256": "12fb6cf541ff989f584e94718f05d2a51187110343f092bcf10169da86f2fef4",
+      "reason": "Present native owner as Constellation Computer Tools with exact UI caption fixtures; wait for the existing inventory preview title, ready owned response button and complete declared payload before reading it. Preserve direct marker/capacity checks, exact paired-read bytes, deny/keep/revoke/replay assertions and the original production inventory capture."
+    },
+    {
+      "path": "computer-link/windows-owner/tests/probe_gui.rs",
+      "upstreamSha256": "27d554c275e8fe4eb46b94d3be5a3a1bf3d43591ed7c50425103eac86479ab6d",
+      "sha256": "d5d97e896274b7f5fb526bbafb9eaa4225378d94b61fab02909db1a5e5f37efa",
+      "reason": "Present native owner as Constellation Computer Tools; update exact UI caption fixtures; retain binary filenames, window class and MCP protocol identifiers."
+    },
+    {
+      "path": "computer-link/windows-owner/tests/selection.rs",
+      "upstreamSha256": "009ca1d30d737c65fb9b67ace58a53d7ceb1279043af20f2d3298a09c1df7e30",
+      "sha256": "83bf2ae9970e59c8024afcdbce3a5f54e6a1ea03521d3eb55e1bc3dbda3b37ac",
+      "reason": "Present native owner as Constellation Computer Tools; update exact UI caption fixtures; retain binary filenames, window class and MCP protocol identifiers."
+    },
+    {
+      "path": "computer-link/windows-backend/src/windows.rs",
+      "upstreamSha256": "1348b0ffbbf7b84f4e45ff396d0a590a8931b2eb67f8ef0b39cf6129ef81840f",
+      "sha256": "635edb8b39e1650884bf135ad38a6964dad55b2db4e7f584612232ad982f25b2",
+      "reason": "Add event-driven Process.wait API used by installed owned-worker CLI; original backend lifecycle/environment/creation-time containment unchanged."
+    },
+    {
+      "path": "computer-link/windows-owner/src/owned_worker.rs",
+      "upstreamSha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
+      "sha256": "511d8f55ad3bc5bbc4cd56cf513a9f79dd46819ba16cccdd2b119bf77c978de5",
+      "reason": "Test-only Windows handle-inheritance oracle repair: compare the named canary object directly instead of assuming arbitrary reused handles support duplication; distinguish a reference allocated into a free slot, retain strict comparison errors, and verify same-event/different-event/different-type/invalid/vacant controls after the real candidate. Preserve timeout, exit/success marker and bounded failure diagnostics. Production process containment and explicit handle-list inheritance bytes are unchanged."
+    }
+  ],
+  "addedIntegration": [
+    "desktop/src/computer-link.mjs",
+    "desktop/tests/computer-link.test.mjs",
+    "tools/computer-link",
+    "computer-link/windows-backend/src/bin/owned-worker.rs",
+    "computer-link/windows-backend/tests/worker_cli.rs",
+    "computer-link/THIRD_PARTY_NOTICES.md"
+  ],
+  "preservation": "Original versions remain in privately preserved full Git bundles and are also verified through recorded public upstream refs; no original behavior/test removed. Full history publication remains pending specific approval."
+}
