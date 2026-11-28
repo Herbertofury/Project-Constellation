@@ -36,7 +36,7 @@
     ],
     "excluded_self_reference": "docs/RELEASE-OPTIMIZATION-0.22.0.json",
     "source_file_count": 915,
-    "source_manifest_sha256": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
+    "source_manifest_sha256": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
     "source_file_sha256": {
       ".editorconfig": "8e1c9a78d4dedcde12bb3cd6279ce83942819d1cd178f1d9d731ef3a62606ac7",
       ".gitattributes": "9d2194cce6b4c0df4776369b5924824e59fd1613debab8217a579000114c9014",
@@ -53,7 +53,7 @@
       ".github/workflows/native-monitor.yml": "bdce7d842e92846c9c5b2f772c838bf9b881c9a3b4d83912baef1a2b5e94e22d",
       ".github/workflows/release.yml": "24da5e48edd8d20baaf7473d7a9b1a6ca19819b22d952831e2b5019138ac8c1f",
       ".github/workflows/windows-runtime.yml": "e573ed7d5be933830466689f2daed6e71a21632fa2e5acbed245fea19ce43bcc",
-      ".github/workflows/windows-setup.yml": "b8bdf778f739d3e861549d7104b6bd08b852014e9b4183a1ecfcd158144c2676",
+      ".github/workflows/windows-setup.yml": "28e6be246e289b7cb44a452d366a223675e384cf84fd66d7ab0ada3fe756f557",
       ".gitignore": "64638320c3ab14fb8ae3aca51a894c6c646db31d120cb15d89b23a49f7d7333d",
       "AGENTS.md": "fb328c4c6ab685e63c40453a51e42fa9cd9a14864ec55f335a4b94a6d8dfd95c",
       "CHANGELOG.md": "d1286027091a386212b80d3e62f5d28cd0ecfe75a56c135ea98e65296351b50c",
@@ -964,7 +964,7 @@
       "sha256": "71a25374be55d4b21e2d65a2611aba038011c43a35ace437c06c0e373c97b868"
     },
     "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
-    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source."
+    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source. The final one-workflow amendment matches the existing serial Windows foreground-GUI contract; its exact argument/fail-first checks do not change any performance binding or assert hosted acceptance."
   },
   "tools": {
     "shrink-anything": {
@@ -2631,7 +2631,9 @@
     "v022-checkout-amendment.diff": "2fa2464409da83c69d3777d17c3bb22ccde15e336d21ce202c2e02759b63a571",
     "v022-checkout-amendment-validation.json": "93d0e689c554f0af83d4572b14c087d42025839a66fe4d494ec12255b84ffd68",
     "v022-worker-diagnostic-amendment-input-sha256.json": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
-    "v022-worker-diagnostic-amendment.diff": "09f0ca604867b400e85bef3b66c716cea41044eacc0fbd9d376a36c1df35be40"
+    "v022-worker-diagnostic-amendment.diff": "09f0ca604867b400e85bef3b66c716cea41044eacc0fbd9d376a36c1df35be40",
+    "v022-serial-gate-amendment-input-sha256.json": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
+    "v022-serial-gate-amendment.diff": "a6517fe21a4a89bd5ec0b221bf0ca87a2eb864f124867a48bd32f02878d32b99"
   },
   "gate_limits": [
     "This is an optimization/preservation annex, not a release-wide or installation acceptance pass. Hosted CI, Windows setup/uninstall/upgrade, actual Windows native UI, installed browser/nativeMessaging, speaker output and user-account workflows have separate gates.",
@@ -2646,7 +2648,8 @@
     "The final post-CI amendment changes only canonical-path expectations in one Rust test file. Alias inputs and exact equality assertions are retained; production code and performance evidence are unchanged. Actual Windows installer/GUI acceptance remains a separate hosted gate.",
     "The final 15-path amendment records exact source/fixture/workflow/documentation inputs and refreshed static analysis with focused syntax/contracts. Original measured timings remain evidence only for their named baseline and unchanged workloads. Final installed-browser, Windows setup/GUI and publication acceptance remain distinct hosted gates.",
     "The last two-path amendment preserves exact legacy Git bytes through path-specific -text attributes and triggers Windows runtime CI for attribute changes. Independent attribute/YAML/diff checks passed; the fresh-checkout proof is attributed and hosted Windows acceptance remains a separate gate.",
-    "The final Windows owned-worker change adds bounded test diagnostics and a success marker while preserving all exclusion checks. It does not claim resolution of the failing hosted child. Production code is byte-identical, but whole-file build-input fingerprints require fresh target payloads; prior timings retain their original baseline identity."
+    "The final Windows owned-worker change adds bounded test diagnostics and a success marker while preserving all exclusion checks. It does not claim resolution of the failing hosted child. Production code is byte-identical, but whole-file build-input fingerprints require fresh target payloads; prior timings retain their original baseline identity.",
+    "The twelve owner stability sweeps now use the same --test-threads=1 contract as the existing Windows native test runner because foreground GUI fixtures share a desktop. Every complete sweep remains required and stops on first failure. The original serial handle-isolation failure remains a real diagnostic gate; it is not declared fixed by this workflow correction."
   ],
   "validation_commands_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
   "final_source_amendment": {
@@ -3813,6 +3816,90 @@
       "diff_hygiene": "Scoped coordinated edits pass. Previously recorded original-import/license whitespace exceptions remain unchanged, without an unconditional whole-repository PASS.",
       "unified_diff_sha256": "09f0ca604867b400e85bef3b66c716cea41044eacc0fbd9d376a36c1df35be40",
       "script_sha256": "3bc05e7ed11651df421a75a1d276b09b9166bb2f1a46702e85bb46bcc2f66f8f",
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      }
+    }
+  ],
+  "post_ci_serial_gate_amendments": [
+    {
+      "reason": "Actual Windows execution exposed foreground-window collisions when the newly added complete-suite sweeps used default parallel test threads. Align only this repetition gate with the existing Windows GUI test contract in tools/computer-link/build.mjs.",
+      "prior_receipt_sha256": "45e108318a08542e5fb5a669662804735c4d0b820864f605e24c02c0dd442b18",
+      "previous_source_manifest_sha256": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
+      "final_source_manifest_sha256": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
+      "path": ".github/workflows/windows-setup.yml",
+      "previous_sha256": "b8bdf778f739d3e861549d7104b6bd08b852014e9b4183a1ecfcd158144c2676",
+      "final_sha256": "28e6be246e289b7cb44a452d366a223675e384cf84fd66d7ab0ada3fe756f557",
+      "source_file_count": 915,
+      "unchanged_source_files": 914,
+      "added_paths": [],
+      "removed_paths": [],
+      "reviewed_change": "Rename the gate/echo, document the shared foreground desktop, and append -- --test-threads=1 to each complete owner library sweep. No suite filters, skips, production changes, fixture changes, timeout changes or assertion weakening.",
+      "existing_contract": {
+        "path": "tools/computer-link/build.mjs",
+        "sha256": "f05f3d60ac34e23579fe8395a5472faec22ed9d79a5b358c50d193d878615f52",
+        "windows_setting": "if (process.platform === 'win32') testArgs.push('--', '--test-threads=1');"
+      },
+      "supersedes": "Only the immediately preceding amendment's description of default-concurrent repetition. The original source diagnostic review, strict inheritance checks and exact source identity remain valid for their recorded snapshot.",
+      "independent_validation": {
+        "yaml_parse": "passed",
+        "only_gate_semantics_changed": true,
+        "bash_n_exit_code": 0,
+        "exact_cargo_args": "test --locked --manifest-path computer-link/windows-owner/Cargo.toml --lib -- --test-threads=1",
+        "runner_style_shell": [
+          "bash",
+          "--noprofile",
+          "--norc",
+          "-e",
+          "-o",
+          "pipefail"
+        ],
+        "control_flow_probes": [
+          {
+            "injected_failure_at": null,
+            "exit_code": 0,
+            "exact_argument_checks_passed": 12,
+            "cargo_stub_calls": 12
+          },
+          {
+            "injected_failure_at": 3,
+            "exit_code": 42,
+            "exact_argument_checks_passed": 3,
+            "cargo_stub_calls": 3
+          }
+        ],
+        "probe_limit": "The injected cargo function checks exact arguments and fail-first shell behavior only. It does not execute native tests or constitute Windows acceptance.",
+        "scoped_diff": {
+          "argv": [
+            "git",
+            "diff",
+            "--check",
+            "--",
+            ".github/workflows/windows-setup.yml"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "reported_hosted_evidence": {
+        "source": "Coordinator's actual hosted-run report; not independently rebuilt or rerun by this amendment audit",
+        "regular_computer_tools_jobs": "Both passed after the test-only diagnostic change",
+        "reported_native_source_fingerprint": "1487f2389d3b8d13d4d67dee3508a62b24190a99d61eee0300b0fb5ef9700910",
+        "failure_distinction": "The new parallel repetition collided on foreground GUI tests. The original child handle exit-101 failure occurred under the existing serial baseline, so twelve serial complete-suite sweeps still exercise its diagnostic and cannot be treated as its resolution.",
+        "next_gate": "All twelve consecutive sweeps must pass; first failure stops the workflow. Actual updated Windows stability and final setup acceptance remain pending."
+      },
+      "optimizer_and_performance": {
+        "rerun": false,
+        "retained_optimization": false,
+        "assessed_runtime_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "reason": "Only workflow test-thread selection, labels and a comment changed. All production code, dependencies, Rust diagnostic fixtures and measured workload inputs are identical. No optimizer/profile or timing rerun applies, and no old timing/binary receipt is relabelled."
+      },
+      "diff_hygiene": "This workflow edit passes the scoped check. Prior original-import/license whitespace qualifications remain unchanged.",
+      "unified_diff_sha256": "a6517fe21a4a89bd5ec0b221bf0ca87a2eb864f124867a48bd32f02878d32b99",
+      "script_sha256": "956cb2fe0952ce72d43137f5ff03b7af2f103eac42fd369c4de2ff2fea45033b",
       "final_drift": {
         "added": [],
         "removed": [],
