@@ -254,7 +254,18 @@ differences are explained by the corresponding receipts rather than concealed.
 | `native/constellation-monitor/src/broker.rs` | `b63a05166cd1e0be65f66533c508b44c058faec78f68c2d8df1ae39c717235d2` |
 | `native/constellation-setup/src/engine.rs` | `cc5c87f6b214b0baf7b94440d75555588e2639ccb1e32449d06681c7b4366805` |
 | `tools/chatgpt-ui-rescue/local-agent.mjs` | `4940fb764858f3b3e9b32fee515f6d15ce09565722a436fd0643d27f2960f9e6` |
-| `tools/chatgpt-ui-rescue/install-local-agent.ps1` | `3822390db38ffe9323f0db8cdfb95d3b13c8199a728db1c7e1e56279fc211a6c` |
+| `tools/chatgpt-ui-rescue/install-local-agent.ps1` | `aab862c71624fea4e7f712d0f4e35313ea5e281ddc55cacd8868f63087dd4553` |
+
+Hosted preparation corrected the portable OAuth checklist validator and the
+installer's missing-payload preflight. The launcher regression also now reads
+the actual global native-process exit status. The
+[executed recovery run for PR head `d7523d8`](https://github.com/Herbertofury/Project-Constellation/actions/runs/46143450799)
+passed Windows PowerShell 5.1 literal-path and exit-7/exit-0 checks, rejection
+of incomplete payloads, Linux/Windows CDP, and disposable installation/removal with
+all three installed payload hashes verified. Earlier local receipts retain
+their original source hashes. Final release acceptance still requires a
+successful unified workflow and matching published receipts for the release
+commit.
 
 Raw source-bound reviews and failure reproductions are retained under
 `logs/release-0.25.0/browser`, `logs/release-0.25.0/native` and
