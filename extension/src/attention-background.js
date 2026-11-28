@@ -131,7 +131,7 @@ import './attention-audio.js';
       if(!tab||core.canonicalUrl(tab.url)!==row.url){await service.closeTab(row.tabId);return;}
       if(tab.discarded||tab.frozen){await service.observe({...row,status:'suspended',observedAt:Date.now()});return;}
       const state=await chrome.tabs.sendMessage(tab.id,{type:'PC_GET_LIVE_SENTINEL_STATE'}).catch(()=>null);
-      if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.22.0'&&typeof state?.chat?.status==='string'&&state.chat.status)await service.observe({
+      if(state?.ok&&state.source==='live-sentinel'&&state.version==='0.23.0'&&typeof state?.chat?.status==='string'&&state.chat.status)await service.observe({
         ...row,status:state.chat?.status||'idle',healthState:state.chat?.healthState||'',
         generation:state.generation,health:state.health,failure:state.failure,source:state.source,
         authoritative:true,suspended:false,observedAt:Date.now()

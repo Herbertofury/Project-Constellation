@@ -1,0 +1,300 @@
+{
+  "schema": "constellation-release-stack-review-v1",
+  "version": "0.23.0",
+  "checkedAt": "2026-11-28T07:11:04Z",
+  "scope": "Current shipping desktop, native hub/setup and required release workflows; historical archive workflows and preserved Computer-Link source are not rewritten as a side effect.",
+  "status": "Dependency choices and official source review; exact release runtime acceptance is recorded by executed hosted release receipts, not this document.",
+  "components": [
+    {
+      "name": "electron",
+      "previous": "44.4.4",
+      "selected": "45.5.0",
+      "releasedAt": "2026-11-24T20:33:46Z",
+      "decision": "adopt-in-release-candidate",
+      "sources": [
+        "https://api.github.com/repos/electron/electron/releases/tags/v45.5.0",
+        "https://github.com/electron/electron/releases/tag/v45.5.0"
+      ],
+      "reason": "Use the current stable desktop runtime, including upstream renderer/audio and scripted-editor crash fixes.",
+      "validation": "Exact-version Electron startup, integrated desktop workflows and packaged Windows launch must pass on the release source. Cached older local Electron is not acceptance for 45.5.0."
+    },
+    {
+      "name": "electron-builder",
+      "previous": "26.16.1",
+      "selected": "26.18.1",
+      "releasedAt": "2026-10-26T12:33:27Z",
+      "decision": "adopt-in-release-candidate",
+      "sources": [
+        "https://api.github.com/repos/electron-userland/electron-builder/releases?per_page=25",
+        "https://github.com/electron-userland/electron-builder/releases/tag/electron-builder@26.18.1",
+        "https://github.com/electron-userland/electron-builder/releases/tag/electron-builder@26.18.0"
+      ],
+      "reason": "Select the highest stable electron-builder product tag. The repository also releases electron-updater; its /latest result is not the builder version. The intervening stable line includes NSIS extraction and packaging fixes.",
+      "validation": "Rebuild both Windows NSIS and portable artifacts and execute the extracted portable app. Do not adopt the 27 alpha schema migration."
+    },
+    {
+      "name": "Node.js build runtime",
+      "previous": "24 (local evidence: 24.22.3)",
+      "selected": "26.13.1",
+      "releasedAt": "2026-11-11T16:44:25Z",
+      "decision": "adopt-in-current-release-workflows",
+      "sources": [
+        "https://github.com/nodejs/node/releases/tag/v26.13.1",
+        "https://github.com/nodejs/node/releases/tag/v26.13.0",
+        "https://github.com/nodejs/node/releases/tag/v24.22.3"
+      ],
+      "reason": "26.13.1 is the current stable LTS security release. Node 26 entered LTS on October 28. The local 24.22.3 runtime also contains the November security release but remains supplementary compatibility evidence.",
+      "validation": "Current root, desktop, native build tooling and release assembly jobs must run on pinned 26.13.1. Node 25+ Linux binaries need libatomic. Electron's embedded Node version is separate."
+    },
+    {
+      "name": "Rust toolchain",
+      "previous": "1.99.0",
+      "selected": "1.100.1",
+      "releasedAt": "2026-11-27T19:31:41Z",
+      "decision": "adopt-in-current-release-workflows",
+      "sources": [
+        "https://api.github.com/repos/rust-lang/rust/releases/latest",
+        "https://github.com/rust-lang/rust/releases/tag/1.100.1"
+      ],
+      "reason": "Current stable 1.100.1 fixes a regression in Iterator trait inference. Use the patch release rather than 1.100.0.",
+      "validation": "Exact-version formatting, strict Clippy, native transport, installer transactions, Windows acceptance and release builds must pass. Local cached 1.99.0 checks are supplementary and do not establish 1.100.1 runtime acceptance."
+    },
+    {
+      "name": "Playwright Python",
+      "previous": ">=1.60,<2",
+      "selected": "1.65.2",
+      "releasedAt": "2026-11-14T00:23:33Z",
+      "decision": "pin-existing-allowed-range",
+      "sources": [
+        "https://api.github.com/repos/microsoft/playwright-python/releases/tags/v1.65.2",
+        "https://github.com/microsoft/playwright-python/releases/tag/v1.65.2"
+      ],
+      "reason": "Pin the selected current release for reproducible browser fixtures. Upstream 1.65.2 rolls Chromium to 159.0.8154.6.",
+      "validation": "Install the matching Chromium and Firefox distributions. Real installed-extension, hidden-tab and browser smoke gates remain mandatory; a content-script fixture alone is not browser enrollment proof."
+    },
+    {
+      "name": "serde",
+      "previous": "1.0.229",
+      "selected": "1.0.229",
+      "releasedAt": "2026-07-18T23:05:36Z",
+      "decision": "retain-current",
+      "sources": [
+        "https://api.github.com/repos/serde-rs/serde/releases/latest",
+        "https://github.com/serde-rs/serde/releases/tag/v1.0.229"
+      ],
+      "reason": "Existing exact dependency already matches the latest published stable release."
+    },
+    {
+      "name": "serde_json",
+      "previous": "1.0.154",
+      "selected": "1.0.154",
+      "releasedAt": "2026-10-11T15:32:13Z",
+      "decision": "retain-current",
+      "sources": [
+        "https://api.github.com/repos/serde-rs/json/releases/latest",
+        "https://github.com/serde-rs/json/releases/tag/v1.0.154"
+      ],
+      "reason": "Existing exact dependency already matches the latest published stable release."
+    },
+    {
+      "name": "windows",
+      "previous": "0.62.2",
+      "selected": "0.62.2",
+      "releasedAt": "2025-10-06",
+      "decision": "retain-current-published-crate",
+      "sources": [
+        "https://docs.rs/crate/windows/0.62.2",
+        "https://docs.rs/crate/windows/latest"
+      ],
+      "reason": "The published windows crate remains 0.62.2. Neither the windows-rs repository release label 74 nor an unpublished master Cargo version identifies a replacement crates.io release."
+    },
+    {
+      "name": "url",
+      "previous": "2.5.8",
+      "selected": "2.5.9",
+      "latestPublished": "2.5.9",
+      "releasedAt": "2026-11-20",
+      "decision": "adopted-after-isolated-locked-tests",
+      "sources": [
+        "https://docs.rs/crate/url/2.5.9",
+        "https://raw.githubusercontent.com/servo/rust-url/main/url/Cargo.toml"
+      ],
+      "reason": "A newer published patch requires form_urlencoded 1.2.3. The GitHub /releases/latest endpoint is stale at 2.5.7, so package metadata is authoritative.",
+      "validation": "Both native lockfiles were resolved normally by Cargo. The candidate passed 21 monitor unit/state/wire tests, 12 actual native process/transport tests, all 26 installer transactions, and strict Clippy for Linux and Windows-GNU. Exact hosted release toolchain/runtime acceptance remains separate."
+    },
+    {
+      "name": "sha2",
+      "previous": "0.10.9",
+      "selected": "0.11.2",
+      "latestPublished": "0.11.2",
+      "releasedAt": "2026-11-25",
+      "decision": "adopted-after-isolated-locked-tests-and-api-repair",
+      "sources": [
+        "https://docs.rs/crate/sha2/0.11.2",
+        "https://raw.githubusercontent.com/RustCrypto/hashes/master/sha2/Cargo.toml",
+        "https://raw.githubusercontent.com/RustCrypto/hashes/master/sha2/CHANGELOG.md"
+      ],
+      "reason": "0.11.2 is published; it adopts digest 0.11, cpufeatures 0.3 and a Rust 1.88 minimum. Constellation uses SHA-256 for installed/payload byte integrity, so changed digest types and exact lowercase digest output need validation.",
+      "validation": "The first locked compile failed because digest 0.11 output no longer implements LowerHex. Explicit bytewise lowercase hex formatting restores the exact 64-character representation. Standard empty/abc/multiblock and binary vectors pass, including binary equivalence against the old sha2 0.10.9 helper and Python hashlib; all 26 install/repair/rollback tests pass. Upstream SHA-512 speed notes do not establish a Constellation SHA-256 speedup."
+    }
+  ],
+  "actions": [
+    {
+      "name": "actions/checkout",
+      "selected": "v7",
+      "latestPublished": "v7.0.1",
+      "releasedAt": "2026-07-20T15:10:05Z",
+      "decision": "current-major-already-selected",
+      "source": "https://github.com/actions/checkout/releases/tag/v7.0.1"
+    },
+    {
+      "name": "actions/setup-node",
+      "selected": "v7",
+      "latestPublished": "v7.1.0",
+      "releasedAt": "2026-10-08T02:52:34Z",
+      "decision": "current-major-already-selected",
+      "source": "https://github.com/actions/setup-node/releases/tag/v7.1.0"
+    },
+    {
+      "name": "actions/setup-python",
+      "selected": "v7",
+      "latestPublished": "v7.1.0",
+      "releasedAt": "2026-10-22T02:56:04Z",
+      "decision": "current-major-already-selected",
+      "source": "https://github.com/actions/setup-python/releases/tag/v7.1.0"
+    },
+    {
+      "name": "actions/upload-artifact",
+      "selected": "v7",
+      "latestPublished": "v7.0.2",
+      "releasedAt": "2026-10-07T10:08:14Z",
+      "decision": "current-major-already-selected",
+      "source": "https://github.com/actions/upload-artifact/releases/tag/v7.0.2"
+    },
+    {
+      "name": "actions/download-artifact",
+      "selected": "v8",
+      "latestPublished": "v8.0.2",
+      "releasedAt": "2026-10-07T10:09:51Z",
+      "decision": "current-major-already-selected",
+      "source": "https://github.com/actions/download-artifact/releases/tag/v8.0.2"
+    }
+  ],
+  "computerToolsCheckout": {
+    "previous": "fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+    "previousLine": "releases-v5",
+    "verifiedCurrentTag": "v7.0.1",
+    "verifiedCurrentSha": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "decision": "adopted-verified-current-commit",
+    "sources": [
+      "https://api.github.com/repos/actions/checkout/commits/fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+      "https://api.github.com/repos/actions/checkout/git/ref/tags/v7.0.1"
+    ]
+  },
+  "nativeIdentity": {
+    "previousCrateVersion": "0.1.0",
+    "selectedCrateVersion": "0.23.0",
+    "wireProtocol": 1,
+    "reason": "Align --version with the released application while retaining protocol compatibility."
+  },
+  "archiveHandling": {
+    "rustZipCratePresent": false,
+    "nativeSetup": "Existing bounded manifest and payload format with byte-count and SHA-256 verification.",
+    "packaging": "Python standard-library zipfile and existing desktop/PowerShell archive paths. No unrelated Rust zip dependency introduced."
+  },
+  "evidenceBoundaries": [
+    "Public package/release metadata verifies freshness, not compatibility, speed or runtime acceptance.",
+    "No signing, physical sound, user browser enrollment or signed-in account success is inferred from dependency updates.",
+    "Keep exact artifact source/version/hash gates and independent Windows runtime checks unchanged."
+  ],
+  "localNativeDependencyValidation": {
+    "environment": "Linux, cached Rust 1.99.0; isolated candidate copied from the shared release source before mutation.",
+    "resolution": "Normal Cargo crates.io access resolved and downloaded packages; checksums and transitive lock changes were produced by Cargo, not edited by hand.",
+    "initialFailure": "sha2 0.11.2 with unchanged payload.rs failed E0277: the digest output no longer implements LowerHex.",
+    "repair": "payload::hash explicitly encodes each digest byte as two lowercase hex characters; payload framing and recorded digest length remain unchanged.",
+    "commands": [
+      "cargo update --manifest-path native/constellation-setup/Cargo.toml -p url -p sha2",
+      "cargo update --manifest-path native/constellation-monitor/Cargo.toml -p url --precise 2.5.9",
+      "cargo test --manifest-path native/constellation-monitor/Cargo.toml --locked --offline --all-targets",
+      "cargo test --manifest-path native/constellation-setup/Cargo.toml --locked --offline --all-targets",
+      "cargo clippy --manifest-path <each native crate>/Cargo.toml --locked --offline --all-targets -- -D warnings",
+      "cargo clippy --manifest-path <each native crate>/Cargo.toml --locked --offline --all-targets --target x86_64-pc-windows-gnu -- -D warnings",
+      "cargo fmt --manifest-path <each native crate>/Cargo.toml --all --check"
+    ],
+    "results": {
+      "monitorUnit": 21,
+      "monitorRealProcessAndTransport": 12,
+      "setupHashVectors": 1,
+      "setupInstallationTransactions": 26,
+      "strictLinuxClippy": "both crates passed",
+      "strictWindowsGnuClippy": "both crates passed; compile/lint evidence, not Windows execution",
+      "format": "both crates passed"
+    },
+    "binaryDigestEquivalence": {
+      "input": "Every byte value from 0 through 255, in order",
+      "inputBytes": 256,
+      "encodedDigestBytes": 64,
+      "sha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+      "references": [
+        "old sha2 0.10.9 LowerHex helper executed in a separate crate",
+        "Python hashlib.sha256",
+        "new sha2 0.11.2 helper regression test"
+      ],
+      "result": "identical lowercase output"
+    },
+    "transitiveChanges": {
+      "form_urlencoded": "1.2.2 -> 1.2.3 in monitor lock; already 1.2.3 in setup lock",
+      "block-buffer": "0.10.4 -> 0.12.1",
+      "cpufeatures": "0.2.17 -> 0.3.1",
+      "crypto-common": "0.1.7 -> 0.2.2",
+      "digest": "0.10.7 -> 0.11.3",
+      "const-oid": "added 0.10.3",
+      "hybrid-array": "added 0.4.15",
+      "generic-array": "removed 0.14.7",
+      "version_check": "removed 0.9.5"
+    },
+    "promotedFileSha256": {
+      "native/constellation-monitor/Cargo.toml": "d723099d7351d977625e8ca080018d01525831ff4fe2754a16c7092ed72a934a",
+      "native/constellation-monitor/Cargo.lock": "0e423bcb9da5a8448fad30b5c5f85d62d6767bf2a0108d286ce744fc0f1269b0",
+      "native/constellation-setup/Cargo.toml": "b0c9b5c1af719fb3fc285b2dfd2b7594b648263dd6b6373654922bc58d272212",
+      "native/constellation-setup/Cargo.lock": "071db45b15194dc0c05d684ca10b84cdb9807e2fa5f00551f7844f3111e4c9ed",
+      "native/constellation-setup/src/payload.rs": "77cc3d88e787267c0fd4dc59b331b86b0fd389bffd8bc71d486b674e6b1f78c4"
+    },
+    "dependencyHolds": [],
+    "runtimeBoundary": "Local Rust 1.99.0 tests and Windows-GNU compilation do not replace the exact pinned Rust 1.100.1 hosted release/runtime gates."
+  },
+  "workflowPinAudit": {
+    "nodePins": {
+      ".github/workflows/ci.yml": "26.13.1",
+      ".github/workflows/native-monitor.yml": "26.13.1",
+      ".github/workflows/windows-runtime.yml": "26.13.1",
+      ".github/workflows/windows-setup.yml": "26.13.1",
+      ".github/workflows/computer-tools.yml": "26.13.1",
+      ".github/workflows/release.yml": "26.13.1"
+    },
+    "rustPin": "1.100.1 in native-monitor, windows-runtime, windows-setup and computer-tools",
+    "playwrightPin": "requirements-dev.txt selects exactly 1.65.2 for the browser workflows",
+    "correctedGap": "computer-tools previously used the hosted image Node; it now installs Node 26.13.1 after the pinned checkout while retaining persist-credentials:false on checkout.",
+    "yaml": "All six current workflow files parsed successfully with duplicate mapping keys rejected.",
+    "electronReadback": "windows-runtime reads desktop/package.json after changing into the desktop directory and requires the installed Electron --version to equal v plus the exact dependency pin; its receipt field uses that same source-bound pin.",
+    "powershellReview": "The parenthesized pipeline/member-access expression is valid as an ordered-hashtable value. This is source review against Microsoft documentation, not a local PowerShell execution result.",
+    "powershellSyntaxSources": [
+      "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_hash_tables",
+      "https://learn.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-07"
+    ],
+    "setupAcceptanceChecks": [
+      "install",
+      "repair",
+      "diagnostics",
+      "rollback",
+      "rollback-manager-repair",
+      "uninstall",
+      "setup-gui",
+      "owner-gui",
+      "integrations-restored"
+    ],
+    "focusedRegression": "node tests/release-artifacts.test.mjs passed, including individual omission of each of the nine required setup acceptance checks.",
+    "sourceProvenance": "Reusable release jobs run on the same candidate source; same-run downloads must match version, source commit, file size and SHA-256 before staging. Clean-tree guards and post-publication tag/hash readback remain enabled.",
+    "status": "Source configuration reviewed; matching hosted run and attached release receipts establish executed acceptance."
+  }
+}

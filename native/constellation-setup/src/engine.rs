@@ -539,6 +539,26 @@ pub fn verified_executable(options: &Options, relative: &str) -> io::Result<Path
     verified_release_executable(options, &receipt, relative)
 }
 
+fn management_file(receipt: &Receipt) -> io::Result<(&Release, &OwnedFile)> {
+    // Payload rollback intentionally keeps the newest installed manager. Its
+    // bytes remain part of a working installation even when its runtime is idle.
+    let release = receipt
+        .releases
+        .last()
+        .ok_or_else(|| invalid("No installed management release was recorded."))?;
+    let file = release
+        .files
+        .iter()
+        .find(|file| file.path == "Constellation-Setup.exe")
+        .ok_or_else(|| invalid("The latest installed release has no management executable."))?;
+    Ok((release, file))
+}
+
+fn verify_management_file(options: &Options, receipt: &Receipt) -> io::Result<()> {
+    let (release, file) = management_file(receipt)?;
+    verified_bytes(&options.root.join(&release.directory), file).map(|_| ())
+}
+
 fn slot<'a>(entries: &'a [RegistryEntry], key: &str, name: &str) -> Option<&'a RegistryEntry> {
     entries
         .iter()
@@ -770,6 +790,28 @@ fn undo(options: &Options, journal: &Journal, system: &mut dyn System) -> io::Re
         if let Err(error) = remove_owned(&browser, &files, &mut notes) {
             failures.push(format!("Browser rollback cleanup: {error}"));
         }
+        // A browser or user can write into the new sensor tree before a later
+        // installation step fails. Keep those exact bytes outside the active
+        // path so they do not block restoration of the previous directory.
+        // Never overwrite a preservation folder left by an interrupted retry.
+        if backup.exists() && browser.exists() {
+            let preserved = options.root.join(format!(
+                "preserved-browsers-recovery-{}-{}",
+                journal.id,
+                platform::random_hex(4)?
+            ));
+            if let Err(error) = reject_links(&browser)
+                .and_then(|()| reject_links(&preserved))
+                .and_then(|()| fs::rename(&browser, &preserved))
+            {
+                failures.push(format!("Browser recovery preservation: {error}"));
+            } else {
+                notes.push(format!(
+                    "Preserved browser files changed during the failed installation: {}",
+                    preserved.display()
+                ));
+            }
+        }
         if backup.exists()
             && let Err(error) = fs::rename(&backup, &browser)
         {
@@ -810,6 +852,9 @@ fn undo(options: &Options, journal: &Journal, system: &mut dyn System) -> io::Re
         fs::remove_file(options.root.join(JOURNAL))?;
         Ok(notes)
     } else {
+        // Successful preservation still matters when a different rollback step
+        // needs a retry; that retry may no longer encounter the preserved tree.
+        failures.extend(notes);
         Err(invalid(format!(
             "{}\nRecovery journal retained. Run Install / Repair again to retry recovery.",
             failures.join("\n")
@@ -1054,9 +1099,16 @@ fn activate(
     })();
     if let Err(error) = result {
         return match undo(options, &journal, system) {
-            Ok(_) => Err(invalid(format!(
-                "Setup failed and restored the previous installation: {error}"
-            ))),
+            Ok(notes) => {
+                let detail = if notes.is_empty() {
+                    String::new()
+                } else {
+                    format!("\n{}", notes.join("\n"))
+                };
+                Err(invalid(format!(
+                    "Setup failed and restored the previous installation: {error}{detail}"
+                )))
+            }
             Err(rollback) => Err(invalid(format!("Setup failed: {error}\n{rollback}"))),
         };
     }
@@ -1128,6 +1180,11 @@ pub fn install(
                 .files
                 .iter()
                 .all(|f| verified_bytes(&options.root.join(&current.directory), f).is_ok())
+            && (previous
+                .releases
+                .last()
+                .is_some_and(|manager| manager.directory == current.directory)
+                || verify_management_file(&options, previous).is_ok())
         {
             let mut outcome = activate(
                 &options,
@@ -1324,6 +1381,7 @@ pub fn verify(options: &Options) -> io::Result<serde_json::Value> {
         .find(|r| r.directory == receipt.active)
         .unwrap();
     let mut changed = Vec::new();
+    let mut checked_files = release.files.len() + receipt.browser_files.len();
     for file in &release.files {
         if let Err(error) = verified_bytes(&options.root.join(&release.directory), file) {
             changed.push(error.to_string());
@@ -1334,7 +1392,25 @@ pub fn verify(options: &Options) -> io::Result<serde_json::Value> {
             changed.push(error.to_string());
         }
     }
+    let management_release = match management_file(&receipt) {
+        Ok((manager, file)) => {
+            if manager.directory != release.directory {
+                checked_files += 1;
+                if let Err(error) = verified_bytes(&options.root.join(&manager.directory), file) {
+                    changed.push(format!(
+                        "Installed management executable needs repair: {error}"
+                    ));
+                }
+            }
+            Some(&manager.directory)
+        }
+        Err(error) => {
+            changed.push(error.to_string());
+            None
+        }
+    };
+    let transaction_pending = options.root.join(JOURNAL).exists();
     Ok(
-        json!({"ok":changed.is_empty(),"version":receipt.version,"active":receipt.active,"root":options.root,"checkedFiles":release.files.len()+receipt.browser_files.len(),"changed":changed,"transactionPending":options.root.join(JOURNAL).exists(),"browserConfirmationRequired":true}),
+        json!({"ok":changed.is_empty() && !transaction_pending,"version":receipt.version,"active":receipt.active,"managementRelease":management_release,"root":options.root,"checkedFiles":checked_files,"changed":changed,"transactionPending":transaction_pending,"browserConfirmationRequired":true}),
     )
 }

@@ -48,12 +48,16 @@ fixture = {"attention": {"sessions": [], "incidents": [], "settings": {"audioEna
                        "snapshot": {"revision": 9, "clients": clients, "sessions": sessions, "incidents": incidents}}}
 mock = """(() => {
 const fixture = FIXTURE;
-window.__monitorCalls=[]; window.__monitorEvents=[];
-window.chrome={runtime:{id:'monitor-test',getManifest:()=>({version:'0.22.0'}),
+window.__monitorCalls=[]; window.__monitorEvents=[]; window.__monitorFixture=fixture;window.__monitorReadErrors={};
+// The UI clock is fixed so unchanged nodes are tested independently of labels
+// legitimately changing from e.g. 17s to 18s during a slow hosted run.
+Date.now=()=>FIXTURE_NOW;
+window.chrome={runtime:{id:'monitor-test',getManifest:()=>({version:'0.23.0'}),
 onMessage:{addListener:fn=>__monitorEvents.push(fn)},sendMessage:async m=>{
   __monitorCalls.push(m);
-  if(m.type==='PC_ATTENTION_GET')return {ok:true,attention:fixture.attention};
-  if(m.type==='PC_MONITOR_GET')return {ok:true,monitor:fixture.monitor};
+  if(__monitorReadErrors[m.type])throw new Error(__monitorReadErrors[m.type]);
+  if(m.type==='PC_ATTENTION_GET')return {ok:true,attention:structuredClone(fixture.attention)};
+  if(m.type==='PC_MONITOR_GET')return {ok:true,monitor:structuredClone(fixture.monitor)};
   if(m.type==='PC_ATTENTION_SETTINGS'||m.type==='PC_MONITOR_ALERT_SETTINGS'){Object.assign(fixture.attention.settings,m.settings);return {ok:true,attention:fixture.attention};}
   if(m.type==='PC_MONITOR_SETTINGS'){Object.assign(fixture.monitor.config,m.settings);return {ok:true,monitor:fixture.monitor};}
   if(m.type==='PC_MONITOR_ACK')fixture.monitor.snapshot.incidents.find(x=>x.incidentId===m.id).acknowledgedAt=Date.now();
@@ -61,7 +65,7 @@ onMessage:{addListener:fn=>__monitorEvents.push(fn)},sendMessage:async m=>{
   if(m.type==='PC_ATTENTION_TEST'){fixture.attention.delivery.lastTest={ok:true,at:Date.now(),audio:{ok:true},notification:{ok:true}};return {ok:true,audio:{ok:true},notification:{ok:true}};}
   return {ok:true,monitor:fixture.monitor};
 }},permissions:{request:async()=>true}};
-})();""".replace("FIXTURE", json.dumps(fixture))
+})();""".replace("FIXTURE_NOW", str(now)).replace("FIXTURE", json.dumps(fixture))
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, args=["--no-sandbox"], executable_path=os.environ.get("PROJECT_CONSTELLATION_CHROMIUM") or None)
@@ -75,10 +79,26 @@ with sync_playwright() as p:
     assert page.locator("#runningCount").inner_text() == "3"
     assert page.locator("#coverageCount").inner_text() == "4 / 4"
     assert page.locator("#sessionList .session").count() == 8
+    def refresh_state():
+        page.evaluate('''async() => {__monitorEvents.forEach(fn=>fn({type:'PC_MONITOR_CHANGED'}));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));}''')
+    # A changed early row must not detach later, unchanged actions or their
+    # keyboard focus. Genuine sort movements keep the same focused action too.
+    page.locator("#sessionList .session").filter(has_text="ModHunter").locator("button").focus()
+    page.evaluate('''() => {window.__keptSession=document.activeElement.closest('.session');window.__keptFocus=document.activeElement;__monitorFixture.monitor.snapshot.sessions[0].title+=' · updated';}''')
+    refresh_state()
+    assert page.evaluate('__keptSession.isConnected && __keptSession.querySelector("button")===__keptFocus && document.activeElement===__keptFocus'), 'Changing an earlier row must preserve unchanged action nodes and focus'
+    page.select_option("#sortOrder", "title")
+    page.locator("#sessionList .session").filter(has_text="ModHunter").locator("button").focus()
+    page.evaluate('''() => {window.__keptFocus=document.activeElement;__monitorFixture.monitor.snapshot.sessions[0].title='ZZZ · reordered INTA';}''')
+    refresh_state()
+    assert page.evaluate('document.activeElement===__keptFocus'), 'A genuine row reorder preserves focused retained actions'
+    page.evaluate('''() => {__monitorFixture.monitor.snapshot.sessions[0].title='INTA · tool library redesign';}''')
+    refresh_state();page.select_option("#sortOrder", "attention")
     page.evaluate("document.querySelector('#previewBanner').hidden=false")
     page.screenshot(path=str(OUT / "agent-monitor-desktop.png"), full_page=True)
     page.fill("#searchAgents", "noxviola")
     assert page.locator("#sessionList .session").count() == 1
+    assert page.locator("#incidentList .incident").count() == 0, "Search applies to the entire inbox as well as activity"
     page.fill("#searchAgents", "")
     page.select_option("#browserFilter", "firefox")
     assert page.locator("#sessionList .session").count() == 2
@@ -94,6 +114,46 @@ with sync_playwright() as p:
     page.wait_for_function("document.querySelector('#incidentList').textContent.includes('Acknowledged')")
     page.locator("#incidentList .incident").filter(has_text="Athena").get_by_role("button", name="Snooze").click()
     page.wait_for_function("document.querySelector('#incidentList').textContent.includes('Snoozed until')")
+    page.select_option("#inboxFilter", "pending")
+    assert page.locator("#incidentList .incident").count() == 1
+    assert "Constellation" in page.locator("#incidentList .incident").inner_text()
+    page.select_option("#inboxFilter", "acknowledged")
+    assert page.locator("#incidentList .incident").count() == 1
+    assert "INTA" in page.locator("#incidentList .incident").inner_text()
+    page.select_option("#inboxFilter", "snoozed")
+    assert page.locator("#incidentList .incident").count() == 1
+    assert "Athena" in page.locator("#incidentList .incident").inner_text()
+    page.select_option("#inboxFilter", "all")
+    # An already-unavailable incident still permits acknowledgment through a live
+    # hub. Losing the hub read must disable that unchanged card's edit controls.
+    page.evaluate('''() => {const row=__monitorFixture.monitor.snapshot.sessions[7];__monitorFixture.monitor.snapshot.incidents.push({incidentId:'unavailable-fixture',sessionId:row.sessionId,clientId:row.clientId,documentId:row.documentId,runId:row.runId,title:row.title,url:row.url,kind:'error',reason:'Last known issue before suspension',firstSeenAt:Date.now(),updatedAt:Date.now(),acknowledgedAt:null,snoozedUntil:null,resolvedAt:null});}''')
+    refresh_state()
+    offline=page.locator("#incidentList .incident").filter(has_text="Enderloom")
+    assert offline.get_by_role("button",name="Acknowledge").is_enabled()
+    assert offline.get_by_role("button",name="Open chat").is_disabled()
+    page.evaluate('''() => {__monitorReadErrors.PC_ATTENTION_GET='Attention status unavailable';__monitorReadErrors.PC_MONITOR_GET='Hub status unavailable';}''')
+    refresh_state()
+    assert page.locator("#sessionList .session").count() == 8
+    assert page.locator("#attentionCount").inner_text() == "4"
+    assert page.locator("#coverageCount").inner_text() == "0 / 4"
+    assert offline.get_by_role("button",name="Acknowledge").is_disabled(), 'Retained unavailable cards cannot keep stale enabled edit buttons'
+    assert offline.get_by_role("button",name="Snooze").is_disabled()
+    assert page.locator("#alertsEnabled").is_disabled()
+    assert page.locator("#loadError").is_visible()
+    page.evaluate('''() => {__monitorReadErrors={};}''');refresh_state()
+    assert offline.get_by_role("button",name="Acknowledge").is_enabled()
+    assert page.locator("#alertsEnabled").is_enabled()
+    assert page.locator("#loadError").is_hidden()
+    page.select_option("#inboxFilter", "unavailable")
+    assert page.locator("#incidentList .incident").count() == 1
+    page.select_option("#inboxFilter", "all")
+    page.evaluate('''() => {__monitorFixture.monitor.snapshot.incidents.pop();__monitorFixture.monitor.connected=false;}''');refresh_state()
+    assert page.locator("#sessionList .session").count() == 8, 'Disconnected source inventory stays reviewable'
+    assert page.locator("#attentionCount").inner_text() == "3"
+    assert page.locator("#sessionList .open-session:enabled").count() == 0
+    assert page.locator("#coverageCount").inner_text() == "1 / 4"
+    page.evaluate('''() => {__monitorFixture.monitor.connected=true;}''');refresh_state()
+    assert page.locator("#coverageCount").inner_text() == "4 / 4"
     page.get_by_role("button", name="Test alert").click()
     page.wait_for_function("__monitorCalls.some(m=>m.type==='PC_ATTENTION_TEST')")
     page.select_option("#reminderMinutes", "15")
@@ -113,5 +173,5 @@ with sync_playwright() as p:
     page.screenshot(path=str(OUT / "agent-monitor-mobile.png"), full_page=True)
     assert not errors, errors
     print(json.dumps({"rendered": "built extension monitor", "viewports": [1512, 390], "sessions": 8, "incidents": 3,
-                      "controls": ["search", "browser filter", "status filter", "cross-browser focus", "acknowledge", "snooze", "test alert", "reminders", "mute", "keyboard search"], "pageErrors": errors}))
+                      "controls": ["search", "browser filter", "status filter", "inbox triage", "cross-browser focus", "acknowledge", "snooze", "test alert", "reminders", "mute", "keyboard search"], "regressions":["unchanged DOM reuse", "focus across row updates and reordering", "unavailable-source action disablement", "failed-read inventory retention", "disconnect/reconnect retention"], "pageErrors": errors}))
     browser.close()

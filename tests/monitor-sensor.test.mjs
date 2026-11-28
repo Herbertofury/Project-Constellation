@@ -49,6 +49,10 @@ const stop=el('button',{'data-testid':'stop-button'},'Stop');main.append(stop);m
 const currentRun=last().runId;
 const staleAlert=el('div',{role:'alert'},'Something went wrong');oldAnswer.append(staleAlert);await rescan();assert.equal(last().status,'running','historic inline alerts cannot override current work');
 const card=el('section').append(el('h2',{},'Allow ChatGPT to use GitHub?'),el('button',{},'Allow'),el('button',{},'Deny'));main.append(card);mutate();assert.equal(last().status,'permission_required');assert.equal(last().runId,currentRun);
+const loadedHistory=el('div',{'data-message-author-role':'user'},'Earlier loaded request');loadedHistory.parentElement=main;main.children.unshift(loadedHistory);
+await rescan();assert.equal(last().runId,currentRun,'loading earlier history cannot restart the current run or invalidate its acknowledgment');
+const hiddenFuture=el('div',{'data-message-author-role':'user',hidden:''},'Hidden hydration placeholder');main.append(hiddenFuture);
+await rescan();assert.equal(last().runId,currentRun,'hidden hydration turns cannot replace the current user frontier');hiddenFuture.remove();
 const allow=card.children[1];await listeners[0]({type:'PC_ATTENTION_REVEAL_PERMISSION'});assert.equal(allow.clicked,0);assert.equal(allow.focused,1);assert.equal(allow.scrolled,1);
 card.style.display='none';mutate();assert.equal(last().status,'running','hidden consent is not live evidence');card.remove();
 const warning=el('div',{role:'alert'},'This conversation has reached the maximum context limit. Start a new chat.');main.append(warning);mutate();assert.equal(last().status,'context_limit','conversation limit is not mistaken for rate limiting');
@@ -61,8 +65,31 @@ const countBefore=sent.length;answer.ownText+='More real output';mutate();assert
 const stableCount=sent.length;mutate();assert.equal(sent.length,stableCount,'unchanged DOM state does not send a background heartbeat');
 assert.ok(!JSON.stringify(sent).includes('More real output'),'response text never leaves the content world');
 answer.append(el('button',{'data-testid':'copy-turn-action-button'},'Copy'));stop.remove();mutate();assert.equal(last().status,'completed');assert.equal(last().runId,currentRun);
+const repeatedPrompt=el('div',{'data-message-author-role':'user'},'Current request');main.append(repeatedPrompt,stop);await rescan();
+assert.equal(last().status,'running');assert.notEqual(last().runId,currentRun,'a later identical prompt remains a distinct generation');stop.remove();
 context.location.href='https://chatgpt.com/c/two';windowEvents.get('popstate')();assert.equal(last().status,'idle','navigation clears the preceding chat generation history');
 const priorCount=sent.length;await rescan();assert.equal(sent.length,priorCount+1,'user refresh produces a fresh explicit observation');
 assert.equal(requests,0);assert.equal(oldPermission.clicked,0);assert.equal(allow.clicked,0);assert.equal(timers.size,0,'settled sensor has no repeating timer');
+const originalSend=context.browser.runtime.sendMessage;
+let failures=0;
+context.browser.runtime.sendMessage=async(message)=>{sent.push(structuredClone(message));return ++failures===1?{ok:false,error:'Storage is briefly unavailable'}:{ok:true};};
+let response=await rescan();assert.equal(response.ok,false,'a rescan reports rejected persistence instead of an optimistic ACK');
+assert.equal(timers.size,1);assert.equal(context.__pcBrowserMonitorSensor.delivery.ok,false);
+async function fireNext(){const next=[...timers.entries()].sort((a,b)=>a[1].at-b[1].at)[0];assert.ok(next);time=next[1].at;timers.delete(next[0]);next[1].fn();await new Promise(setImmediate);}
+await fireNext();assert.equal(failures,2);assert.equal(timers.size,0);assert.equal(context.__pcBrowserMonitorSensor.delivery.ok,true);
+context.browser.runtime.sendMessage=async(message)=>{sent.push(structuredClone(message));failures++;throw new Error('Worker transport is unavailable');};
+failures=0;await rescan();
+for(const delay of [250,1000,3000]){assert.equal([...timers.values()][0].at,time+delay);await fireNext();}
+assert.equal(failures,4);assert.equal(timers.size,0,'exhausted observation recovery stops rather than polling');
+assert.equal(context.__pcBrowserMonitorSensor.delivery.attempts,4);
+const beforeDuplicate=failures;mutate();await new Promise(setImmediate);assert.equal(failures,beforeDuplicate,'unchanged DOM noise cannot restart exhausted delivery');
+// A delayed failure cannot create a retry after a newer accepted rescan.
+let rejectOld;context.browser.runtime.sendMessage=()=>new Promise((_,reject)=>{rejectOld=reject;});
+const oldPending=rescan();context.browser.runtime.sendMessage=originalSend;response=await rescan();assert.equal(response.ok,true);
+rejectOld(new Error('An older send failed late'));await oldPending;
+assert.equal(timers.size,0);assert.equal(context.__pcBrowserMonitorSensor.delivery.ok,true);
+context.browser.runtime.sendMessage=async()=>({ok:false,error:'Unavailable'});await rescan();assert.equal(timers.size,1);
+windowEvents.get('pagehide')();assert.equal(timers.size,0,'a departing document cancels pending retries');
+context.browser.runtime.sendMessage=originalSend;
 context.__pcBrowserMonitorSensor.dispose();assert.equal(listeners.length,0);
-console.log('monitor-sensor.test.mjs: PASS (permission evidence, history/quotes, hidden state, failures, progress, completion, SPA, rescan, no network/clicks)');
+console.log('monitor-sensor.test.mjs: PASS (permission evidence, stable frontier, history/quotes, hidden state, failures, progress, completion, SPA, truthful rescan, bounded delivery recovery, no network/clicks)');

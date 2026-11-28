@@ -65,6 +65,7 @@ struct FakeSystem {
     writes: usize,
     fail_at: Option<usize>,
     fail_after: Option<usize>,
+    file_on_failure: Option<(PathBuf, Vec<u8>)>,
     stops: usize,
 }
 impl System for FakeSystem {
@@ -75,6 +76,9 @@ impl System for FakeSystem {
         self.writes += 1;
         if self.fail_at == Some(self.writes) {
             self.fail_at = None;
+            if let Some((path, bytes)) = self.file_on_failure.take() {
+                fs::write(path, bytes)?;
+            }
             return Err(io::Error::other("injected registry failure"));
         }
         if self.fail_after.is_some_and(|n| self.writes >= n) {
@@ -95,6 +99,33 @@ impl System for FakeSystem {
         self.stops += 1;
         Ok(())
     }
+}
+
+fn assert_preserved_recovery_location(error: &io::Error, preserved: &Path) {
+    let message = error.to_string();
+    let locations: Vec<_> = message
+        .lines()
+        .filter_map(|line| {
+            line.strip_prefix("Preserved browser files changed during the failed installation: ")
+        })
+        .collect();
+    assert_eq!(
+        locations.len(),
+        1,
+        "Recovery must report the exact preserved directory once: {message}"
+    );
+    let reported = Path::new(locations[0]);
+    assert!(
+        reported.is_absolute() && reported.is_dir(),
+        "The reported recovery location must be an existing absolute directory: {message}"
+    );
+    // Windows TEMP may use an 8.3 alias while recovery reports its canonical
+    // long path. Resolve both spellings, retaining the exact-directory check.
+    assert_eq!(
+        reported.canonicalize().unwrap(),
+        preserved.canonicalize().unwrap(),
+        "Recovery must locate the actual preserved directory: {message}"
+    );
 }
 
 fn payload(version: &str, files: &[(&str, &[u8])]) -> Vec<u8> {
@@ -313,6 +344,13 @@ fn interrupted_failed_rollback_is_recovered_before_next_install() {
             .join(".constellation-transaction.json")
             .exists()
     );
+    let pending = engine::verify(&f.options).unwrap();
+    assert_eq!(pending["transactionPending"], true);
+    assert_eq!(pending["changed"], json!([]));
+    assert_eq!(
+        pending["ok"], false,
+        "An incomplete recovery is not healthy even after its file rollback succeeded."
+    );
     s.fail_after = None;
     let result = engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap();
     assert!(result.notes.iter().any(|n| n.contains("Recovered")));
@@ -323,6 +361,181 @@ fn interrupted_failed_rollback_is_recovered_before_next_install() {
             .exists()
     );
     assert!(engine::verify(&f.options).unwrap()["ok"].as_bool().unwrap());
+}
+
+#[test]
+fn failed_update_preserves_new_browser_edits_without_blocking_recovery() {
+    for path in ["chromium/user-note.txt", "chromium/manifest.json"] {
+        let f = Fixture::new();
+        let mut s = FakeSystem::default();
+        let a = f.payload("0.22.0");
+        engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+        let original_receipt = fs::read(f.options.root.join(RECEIPT)).unwrap();
+        let original_registry = s.values.clone();
+        let original_manifest =
+            fs::read(f.options.root.join("browsers/chromium/manifest.json")).unwrap();
+        let user_bytes = b"User content written while the new browser directory is active";
+        s.file_on_failure = Some((
+            f.options.root.join("browsers").join(path),
+            user_bytes.to_vec(),
+        ));
+        s.fail_at = Some(s.writes + 3);
+        let b = f.payload("0.23.0");
+        let error = engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("restored the previous installation"),
+            "{error}"
+        );
+        assert!(
+            !f.options
+                .root
+                .join(".constellation-transaction.json")
+                .exists(),
+            "Preserving unknown bytes must not trap future repairs in a recovery loop."
+        );
+        assert_eq!(
+            fs::read(f.options.root.join(RECEIPT)).unwrap(),
+            original_receipt
+        );
+        assert_eq!(s.values, original_registry);
+        assert_eq!(
+            fs::read(f.options.root.join("browsers/chromium/manifest.json")).unwrap(),
+            original_manifest
+        );
+        let preserved = fs::read_dir(&f.options.root)
+            .unwrap()
+            .filter_map(Result::ok)
+            .find(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("preserved-browsers-recovery-")
+            })
+            .expect("Recovery must retain the user's exact changed/unknown bytes")
+            .path();
+        assert_eq!(fs::read(preserved.join(path)).unwrap(), user_bytes);
+        assert_preserved_recovery_location(&error, &preserved);
+        assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
+        engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap();
+        assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
+        assert_eq!(fs::read(preserved.join(path)).unwrap(), user_bytes);
+    }
+}
+
+#[test]
+fn verification_checks_the_retained_manager_after_payload_rollback() {
+    for missing in [false, true] {
+        let f = Fixture::new();
+        let mut s = FakeSystem::default();
+        let a = f.payload("0.22.0");
+        let b = f.payload("0.23.0");
+        engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+        engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap();
+        let manager = f
+            .options
+            .root
+            .join(engine::read_receipt(&f.options).unwrap().unwrap().active)
+            .join("Constellation-Setup.exe");
+        engine::rollback(&f.options, &mut s).unwrap();
+        assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
+        if missing {
+            fs::remove_file(&manager).unwrap();
+        } else {
+            fs::write(&manager, b"changed manager bytes").unwrap();
+        }
+        let report = engine::verify(&f.options).unwrap();
+        assert_eq!(
+            report["ok"], false,
+            "The Start Menu/uninstall manager is separate from the rolled-back payload and must be verified."
+        );
+        assert!(
+            report["changed"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value.as_str().unwrap().contains("management executable"))
+        );
+    }
+}
+
+#[test]
+fn failed_update_reports_preserved_bytes_when_registry_recovery_is_pending() {
+    let f = Fixture::new();
+    let mut s = FakeSystem::default();
+    let a = f.payload("0.22.0");
+    let b = f.payload("0.23.0");
+    engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+    let note = "chromium/user-note.txt";
+    s.file_on_failure = Some((
+        f.options.root.join("browsers").join(note),
+        b"retain through interrupted undo".to_vec(),
+    ));
+    s.fail_at = Some(s.writes + 3);
+    s.fail_after = s.fail_at;
+    let error = engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap_err();
+    let preserved = fs::read_dir(&f.options.root)
+        .unwrap()
+        .filter_map(Result::ok)
+        .find(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("preserved-browsers-recovery-")
+        })
+        .expect("Changed bytes must be preserved even when registry recovery cannot finish")
+        .path();
+    assert_preserved_recovery_location(&error, &preserved);
+    assert!(
+        f.options
+            .root
+            .join(".constellation-transaction.json")
+            .exists()
+    );
+    assert_eq!(engine::verify(&f.options).unwrap()["ok"], false);
+    s.fail_after = None;
+    engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+    assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
+    assert_eq!(
+        fs::read(preserved.join(note)).unwrap(),
+        b"retain through interrupted undo"
+    );
+}
+
+#[test]
+fn repair_recovers_a_broken_retained_manager_after_rollback() {
+    let f = Fixture::new();
+    let mut s = FakeSystem::default();
+    let a = f.payload("0.22.0");
+    let b = f.payload("0.23.0");
+    engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+    engine::install(&f.options, &Payload::parse(&b).unwrap(), &mut s).unwrap();
+    let manager = f
+        .options
+        .root
+        .join(engine::read_receipt(&f.options).unwrap().unwrap().active)
+        .join("Constellation-Setup.exe");
+    engine::rollback(&f.options, &mut s).unwrap();
+    fs::write(&manager, b"preserve this changed manager").unwrap();
+    let repaired = engine::install(&f.options, &Payload::parse(&a).unwrap(), &mut s).unwrap();
+    assert_eq!(repaired.version.as_deref(), Some("0.22.0"));
+    assert_eq!(engine::verify(&f.options).unwrap()["ok"], true);
+    assert_eq!(
+        fs::read(&manager).unwrap(),
+        b"preserve this changed manager"
+    );
+    let current = engine::read_receipt(&f.options).unwrap().unwrap();
+    let new_manager = f
+        .options
+        .root
+        .join(&current.releases.last().unwrap().directory)
+        .join("Constellation-Setup.exe");
+    assert_ne!(new_manager, manager);
+    assert_eq!(
+        fs::read(new_manager).unwrap(),
+        fs::read(&f.options.setup_exe).unwrap()
+    );
 }
 
 #[test]

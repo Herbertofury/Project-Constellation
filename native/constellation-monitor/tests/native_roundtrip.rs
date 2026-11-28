@@ -363,6 +363,86 @@ fn two_native_hosts_share_incidents_route_focus_and_persist_disconnects() {
 }
 
 #[test]
+fn burst_observations_keep_a_paused_sensor_connected_and_preserve_incidents() {
+    let runtime = Runtime::new();
+    let mut publisher = Sensor::new(&runtime);
+    publisher.hello("chrome");
+    // Authenticate a real second transport, then briefly pause its reads while
+    // the first browser reports many tabs. Bound the pause below the genuine
+    // slow-reader deadline, even when durable saves are slow on a Windows host.
+    let mut reader = broker::connect(&runtime.directory, false).unwrap();
+    reader
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    write_frame(
+        &mut reader,
+        &json!({"v":1,"id":"reader-hello","op":"hello",
+        "client":{"browser":"firefox","profileId":"work","instanceId":"session"}}),
+    )
+    .unwrap();
+    loop {
+        let response = read_frame(&mut reader).unwrap().unwrap();
+        if response["id"] == "reader-hello" {
+            assert_eq!(response["ok"], true);
+            break;
+        }
+    }
+    let mut read_stream = reader.try_clone().unwrap();
+    let (sender, messages) = mpsc::channel();
+    let reading = thread::spawn(move || {
+        thread::sleep(Duration::from_millis(100));
+        while let Ok(Some(value)) = read_frame(&mut read_stream) {
+            if sender.send(value).is_err() {
+                break;
+            }
+        }
+    });
+    let observed = now_ms();
+    for tab in 0..96 {
+        publisher.send(json!({"v":1,"id":"burst","op":"observe","event":{
+            "tabId":tab,"documentId":format!("doc-{tab}"),"runId":"run",
+            "url":format!("https://chatgpt.com/c/burst-{tab}"),"title":"Burst test",
+            "status":"error","reason":"A concurrent tab needs attention","observedAt":observed}}));
+        assert_eq!(publisher.response("burst")["ok"], true);
+    }
+    let final_snapshot = publisher.snapshot();
+    assert_eq!(final_snapshot["health"]["connectedBrowsers"], 2);
+    assert_eq!(final_snapshot["sessions"].as_array().unwrap().len(), 96);
+    assert_eq!(final_snapshot["incidents"].as_array().unwrap().len(), 96);
+    let revision = final_snapshot["revision"].as_u64().unwrap();
+    loop {
+        let message = messages
+            .recv_timeout(Duration::from_secs(3))
+            .expect("paused sensor was disconnected");
+        if message["kind"] == "snapshot" && message["data"]["revision"].as_u64() == Some(revision) {
+            assert_eq!(message["data"]["incidents"].as_array().unwrap().len(), 96);
+            break;
+        }
+    }
+    write_frame(
+        &mut reader,
+        &json!({"v":1,"id":"reader-ack","op":"ack","incidentId":"incident-96"}),
+    )
+    .unwrap();
+    loop {
+        let message = messages.recv_timeout(Duration::from_secs(3)).unwrap();
+        if message["id"] == "reader-ack" {
+            assert_eq!(message["ok"], true);
+            break;
+        }
+    }
+    let current = publisher.snapshot();
+    assert!(
+        current["incidents"][95]["acknowledgedAt"]
+            .as_u64()
+            .is_some()
+    );
+    assert_eq!(current["health"]["connectedBrowsers"], 2);
+    reader.shutdown(std::net::Shutdown::Both).unwrap();
+    reading.join().unwrap();
+}
+
+#[test]
 fn unauthenticated_socket_and_malformed_native_input_are_rejected() {
     let runtime = Runtime::new();
     let mut sensor = Sensor::new(&runtime);

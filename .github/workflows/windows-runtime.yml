@@ -95,7 +95,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: '26.13.1'
 
       - name: Build source-bound native Computer Tools for desktop resources
         shell: pwsh
@@ -104,8 +104,8 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           Set-Location $env:PC_SOURCE_ROOT
           if (Test-Path 'computer-link/windows-owner/Cargo.toml') {
-            rustup toolchain install 1.99.0 --profile minimal
-            rustup override set 1.99.0
+            rustup toolchain install 1.100.1 --profile minimal
+            rustup override set 1.100.1
             node tools/computer-link/build.mjs
             "CONSTELLATION_REQUIRE_NATIVE_TOOLS=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           }
@@ -130,7 +130,8 @@ jobs:
           # This desktop package intentionally has no committed lockfile.
           npm install --no-package-lock --no-audit --no-fund
           $actual = (& .\node_modules\.bin\electron.cmd --version | Select-Object -Last 1).ToString().Trim()
-          if ($actual -ne 'v44.4.4') { throw "Electron mismatch: $actual" }
+          $expectedElectron = (Get-Content package.json -Raw | ConvertFrom-Json).devDependencies.electron
+          if ($actual -ne "v$expectedElectron") { throw "Electron mismatch: $actual" }
           Write-Host "electron_runtime=$actual"
 
       - name: Desktop full regression and native Windows computer use
@@ -225,7 +226,7 @@ jobs:
             sourceTree=$actualTree
             sourceDirty=$false
             platform='windows-latest'
-            electron='44.4.4'
+            electron=(Get-Content package.json -Raw | ConvertFrom-Json).devDependencies.electron
             nativeComputerUse='PASS'
             integratedElectron='PASS'
             packagedPortable='PASS'

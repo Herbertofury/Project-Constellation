@@ -33,14 +33,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '26.13.1'
       - name: Use pinned Rust and available host tools
         shell: bash
         run: |
-          rustup toolchain install 1.99.0 --profile minimal
-          rustup override set 1.99.0
+          rustup toolchain install 1.100.1 --profile minimal
+          rustup override set 1.100.1
           node --version
           python --version
       - name: Verify exact original source through read-only public refs
@@ -54,4 +57,4 @@ jobs:
 
 # Disposable hosted fixtures only. No public artifact/release upload, signing,
 # machine enrollment, persistent grants, endpoint, browser profile or owner-PC UI.
-# This gate has not been run remotely for the local 0.22.0 candidate.
+# The release workflow executes this gate against the exact candidate commit.

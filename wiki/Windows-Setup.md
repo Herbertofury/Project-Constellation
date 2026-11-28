@@ -2,7 +2,7 @@
 
 Open **Project Constellation Setup** from the Windows Start menu to return to the native installer and repair controls. The full desktop app keeps its separate **Project Constellation** entry.
 
-Download **Constellation-0.22.0-Windows-Setup.exe** and its checksum from the
+Download **Constellation-0.23.0-Windows-Setup.exe** and its checksum from the
 matching Project Constellation GitHub release. This compact installer contains
 the Rust browser hub, Chromium extension, Firefox sensor and native Computer
 Tools. It installs without a compiler, Python or an additional payload download.
@@ -87,3 +87,11 @@ Executables are unsigned. Google/GitHub account backup needs configured public
 OAuth client IDs; inspect `build-info.json` and the release receipt before
 replacing a build with working account configuration. Source, receipts, hashes
 and exact remaining acceptance are linked in the matching GitHub release.
+
+## Repair after rollback or interrupted upgrade
+
+Rollback may retain a newer setup manager while restoring an earlier application payload. **Verify** now checks both components. If the retained manager is missing or corrupt, run **Install / Repair** from the matching downloaded setup executable; the verified manager is restored and the changed original is preserved.
+
+If a failed upgrade encounters new or changed files in the newly activated browser directory, recovery moves those bytes into a `preserved-browsers-recovery-*` folder and restores the previous browser directory. The result and any later rollback failure include that preservation location. Review the preserved folder before deleting anything. A pending recovery journal always makes Verify unhealthy until recovery finishes.
+
+The Windows release gate executes install, repair, diagnostics, rollback, retained-manager corruption and repair, setup/owner UI, uninstall and restoration of native registrations and shortcuts. Compiler success alone does not prove these workflows.

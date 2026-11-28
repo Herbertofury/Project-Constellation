@@ -1,6 +1,6 @@
 [package]
 name = "constellation-setup"
-version = "0.22.0"
+version = "0.23.0"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT"
@@ -10,7 +10,7 @@ description = "Current-user Windows installer for Project Constellation"
 constellation-monitor = { path = "../constellation-monitor" }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.154"
-sha2 = "=0.10.9"
+sha2 = "=0.11.2"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "=0.62.2", features = [

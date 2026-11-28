@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.23.0 — Reliable Alerts and Resilient Monitoring
+
+- Retry failed sound/notification channels independently at bounded deadlines, preserving successful delivery, acknowledgement, snooze, mute, ownership and restart state.
+- Require observation acknowledgements, retry transient persistence failures, and keep run identity stable when earlier conversation history or hidden hydration nodes mount.
+- Reject delayed previous-document observations; advance ordering watermarks without broadcasting duplicate observations or incorrectly clearing newer incidents.
+- Coalesce pending hub snapshots while retaining direct replies and focus commands, recover hung native ports, and retry failed remote imports.
+- Keep disconnected chats and incidents visible as unavailable; fail incomplete/timed-out status reads honestly and disable stale actions.
+- Add pending/acknowledged/snoozed/unavailable inbox views and shared search. Reconcile local/native history one-to-one and retain all rendered rows with incremental DOM updates and stable keyboard focus.
+- Recover failed upgrades despite later browser-folder edits, verify/repair the retained setup manager after rollback, and flag pending recovery journals as unhealthy.
+- Upgrade Electron to 45.5.0, electron-builder to 26.18.1, release Node to 26.13.1, release Rust to 1.100.1 and Playwright to 1.65.2; align the native hub version with the product.
+- Require diagnostics and retained-manager repair in exact-source Windows release acceptance. Keep current source, live Wiki, artifacts, checksums and receipts together.
+
+
 ## 0.22.0 — Windows Setup and Computer Tools
 
 - Add a self-contained Rust Windows installer with current-user registration, native setup controls, repair, rollback, recovery journals and ownership-aware uninstall.

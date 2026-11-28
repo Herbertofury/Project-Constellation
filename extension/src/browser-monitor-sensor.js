@@ -1,7 +1,7 @@
 // Minimal cross-browser DOM adapter; no transcript capture and no provider requests.
 (() => {
   'use strict';
-  const VERSION='0.22.0';
+  const VERSION='0.23.0';
   if(globalThis.__pcBrowserMonitorSensor?.version===VERSION)return;
   globalThis.__pcBrowserMonitorSensor?.dispose?.();
   const api=globalThis.browser||globalThis.chrome;
@@ -11,7 +11,10 @@
   const TURN=`${USER},${ASSISTANT},[data-testid^="conversation-turn-"]`;
   const OWNED='[data-pc-monitor],[data-project-constellation-owned],[id^="projectConstellation"]';
   const CODE='pre,code,textarea,[contenteditable="true"]';
-  let timer=null,lastSignature='',lastStatus='idle',wasRunning=false,lastUrl='',lastUserKey='',runId='',destroyed=false,observer,completionAt=0;
+  const DELIVERY_RETRY_MS=[250,1000,3000];
+  const userNodes=new WeakMap();
+  let timer=null,deliveryTimer=null,deliverySequence=0,userSequence=0,lastSignature='',lastStatus='idle',wasRunning=false,lastUrl='',lastUserKey='',runId='',destroyed=false,observer,completionAt=0;
+  let lastDelivery={ok:false,attempts:0,error:'No observation has been accepted yet.'};
   const clean=(value,max=180)=>String(value||'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
   const hash=value=>{let out=2166136261;for(const ch of value){out^=ch.charCodeAt(0);out=Math.imul(out,16777619);}return (out>>>0).toString(36);};
   const visible=el=>{
@@ -24,11 +27,11 @@
   const label=el=>clean(el.getAttribute('aria-label')||el.textContent,160);
   const follows=(node,boundary)=>Boolean(node&&boundary&&!boundary.contains(node)&&(boundary.compareDocumentPosition(node)&Node.DOCUMENT_POSITION_FOLLOWING));
   function frontier(){
-    const users=[...document.querySelectorAll(USER)].filter(el=>!el.closest(CODE));
-    const assistants=[...document.querySelectorAll(ASSISTANT)].filter(el=>!el.closest(CODE));
+    const users=[...document.querySelectorAll(USER)].filter(el=>!el.closest(CODE)&&visible(el));
+    const assistants=[...document.querySelectorAll(ASSISTANT)].filter(el=>!el.closest(CODE)&&visible(el));
     const user=users.at(-1)||null;
     const assistant=user?[...assistants].reverse().find(el=>follows(el,user))||null:assistants.at(-1)||null;
-    return {user,assistant,userCount:users.length};
+    return {user,assistant};
   }
   function current(el,edge){
     if(!el||el.closest(CODE)||el.closest(OWNED)||edge.user?.contains(el))return false;
@@ -67,7 +70,11 @@
     const url=new URL(location.href);url.search='';url.hash='';const canonical=url.toString();
     const edge=frontier();
     const userValue=String(edge.user?.textContent||'');
-    const userKey=edge.user?`${edge.userCount}:${edge.user.getAttribute('data-message-id')||''}:${userValue.length}:${hash(userValue.slice(-100))}`:'';
+    if(edge.user&&!userNodes.has(edge.user))userNodes.set(edge.user,++userSequence);
+    // Loading/virtualizing earlier turns cannot create a new current run. A stable
+    // provider message ID (or this node's local identity) identifies the frontier.
+    // Repeated identical prompts in separate nodes still start separate runs.
+    const userKey=edge.user?`${edge.user.getAttribute('data-message-id')||'node-'+userNodes.get(edge.user)}:${userValue.length}:${hash(userValue.slice(-100))}`:'';
     if(canonical!==lastUrl){lastUrl=canonical;wasRunning=false;lastStatus='idle';lastUserKey='';runId='';completionAt=0;}
     if(userKey!==lastUserKey){lastUserKey=userKey;wasRunning=false;lastStatus='idle';runId=crypto.randomUUID();completionAt=0;}
     const buttons=[...document.querySelectorAll('button,[role="button"]')].slice(-180);
@@ -97,10 +104,27 @@
     const event={documentId,runId,url:canonical,title:clean(document.title)||'Agent chat',status,reason,observedAt:Date.now(),authoritative:true};
     return {event,signature:JSON.stringify([event.url,event.title,event.runId,event.status,event.reason,status==='running'?progressKey(edge):''])};
   }
-  function sample(force=false){
-    if(timer)clearTimeout(timer);timer=null;if(destroyed||!document.body)return;
-    const {event,signature}=read();if(!force&&signature===lastSignature)return;lastSignature=signature;
-    Promise.resolve(api.runtime.sendMessage({type:'PC_SENSOR_OBSERVE',event})).catch(()=>{lastSignature='';});
+  async function sample(force=false,retryAttempt=0){
+    if(timer)clearTimeout(timer);timer=null;if(destroyed||!document.body)return {ok:false,error:'The sensor document is unavailable.'};
+    const {event,signature}=read();if(!force&&signature===lastSignature)return {ok:true,unchanged:true};
+    if(signature!==lastSignature)retryAttempt=0;
+    lastSignature=signature;
+    if(deliveryTimer)clearTimeout(deliveryTimer);deliveryTimer=null;
+    const sequence=++deliverySequence;
+    let result;
+    try {
+      result=await api.runtime.sendMessage({type:'PC_SENSOR_OBSERVE',event});
+      if(result?.ok!==true)result={ok:false,error:clean(result?.error||'The monitor did not accept this observation.',240)};
+    }catch(error){result={ok:false,error:clean(error?.message||error,240)};}
+    // A late failure from an older snapshot cannot invalidate a newer delivery or
+    // enqueue obsolete evidence after navigation. Retries always resample the DOM.
+    if(!destroyed&&sequence===deliverySequence){
+      lastDelivery={ok:result.ok===true,attempts:retryAttempt+1,error:result.ok===true?'':result.error};
+      if(result.ok!==true&&retryAttempt<DELIVERY_RETRY_MS.length)deliveryTimer=setTimeout(()=>{
+        deliveryTimer=null;void sample(true,retryAttempt+1);
+      },DELIVERY_RETRY_MS[retryAttempt]);
+    }
+    return result;
   }
   function schedule(delay=180){if(timer||destroyed)return;timer=setTimeout(()=>sample(),delay);}
   function start(){
@@ -109,7 +133,7 @@
     sample(true);
   }
   const listener=message=>{
-    if(message?.type==='PC_MONITOR_RESCAN'){sample(true);return Promise.resolve({ok:true});}
+    if(message?.type==='PC_MONITOR_RESCAN')return sample(true);
     if(message?.type==='PC_ATTENTION_REVEAL_PERMISSION'){
       const control=permissionButton();if(control){control.scrollIntoView({block:'center',behavior:'instant'});control.focus({preventScroll:true});}
       return Promise.resolve({ok:Boolean(control),manualReview:true});
@@ -119,7 +143,7 @@
   api.runtime.onMessage.addListener(listener);
   const forceSample=()=>sample(true);
   document.addEventListener('visibilitychange',forceSample);window.addEventListener('pageshow',forceSample);window.addEventListener('popstate',forceSample);window.addEventListener('hashchange',forceSample);
-  const pagehide=()=>{if(timer)clearTimeout(timer);timer=null;};window.addEventListener('pagehide',pagehide);
-  globalThis.__pcBrowserMonitorSensor={version:VERSION,rescan:forceSample,dispose(){destroyed=true;pagehide();observer?.disconnect();api.runtime.onMessage.removeListener?.(listener);document.removeEventListener('visibilitychange',forceSample);for(const name of ['pageshow','popstate','hashchange'])window.removeEventListener(name,forceSample);window.removeEventListener('pagehide',pagehide);}};
+  const pagehide=()=>{if(timer)clearTimeout(timer);timer=null;if(deliveryTimer)clearTimeout(deliveryTimer);deliveryTimer=null;deliverySequence++;};window.addEventListener('pagehide',pagehide);
+  globalThis.__pcBrowserMonitorSensor={version:VERSION,rescan:forceSample,get delivery(){return {...lastDelivery};},dispose(){destroyed=true;pagehide();observer?.disconnect();api.runtime.onMessage.removeListener?.(listener);document.removeEventListener('visibilitychange',forceSample);for(const name of ['pageshow','popstate','hashchange'])window.removeEventListener(name,forceSample);window.removeEventListener('pagehide',pagehide);}};
   if(document.body)start();else document.addEventListener('DOMContentLoaded',start,{once:true});
 })();

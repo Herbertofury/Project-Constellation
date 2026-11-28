@@ -79,7 +79,7 @@ sensor observations; it does not bypass browser isolation.
 
 ### Windows
 
-1. Run **Constellation-0.22.0-Windows-Setup.exe** from the matching GitHub release and choose **Install / Repair**.
+1. Run **Constellation-0.23.0-Windows-Setup.exe** from the matching GitHub release and choose **Install / Repair**.
 2. Use the button for Chrome, Edge or Opera GX. Setup opens its extension page and copies the sensor path. Enable Developer mode, choose **Load unpacked**, and select that folder.
 3. Open **Agent Monitor**, choose **Connect browser hub**, and approve the browser's native-messaging permission yourself.
 4. Repeat sensor setup in each browser/profile. Use a clear name such as `Chrome · Work` or `Edge · Testing`.
@@ -212,3 +212,15 @@ its public client IDs and supply them to the normal production build before
 replacing that configured installation. The monitor and local browser hub work
 without account integrations. Do not put client secrets or tokens in source,
 installer scripts, or shared diagnostics.
+
+## 0.23 reliability and triage
+
+Use the shared search and browser filter above the inbox to find a chat or problem in both lists. The inbox can show all open incidents, only incidents that need you, acknowledged incidents, snoozed incidents, or unavailable sources. **Show resolved** includes retained history. Acknowledgement and snooze do not erase an incident; separate failures within one conversation remain separate history entries.
+
+Every matching chat and incident remains rendered. Live updates reuse unchanged rows, preserving keyboard focus. There is no pagination limit, viewport culling or background refresh loop. When a source disconnects, its last known chats stay visible with **Unavailable** status. A failed, incomplete or timed-out status read cannot claim connected coverage. Refresh or a fresh event restores controls after a valid response.
+
+If an automatic alert channel fails, only that failed channel retries after 2, 10 and 30 seconds. A sound or notification already accepted is not replayed by those retries. Mute, snooze, acknowledgement, source availability and shared alert ownership still apply. Exhausted retries remain visible in alert-delivery diagnostics. **Test alert** remains an explicit way to check the browser's channels; physical speaker playback and operating-system suppression still require checking on your own PC.
+
+Sensors now require a successful persistence acknowledgement. A transient failure retries after 250 ms, 1 second and 3 seconds; a later explicit refresh can retry after exhaustion. Provider content, draft text and consent controls are never changed by these observation retries. Loading older conversation messages no longer creates a false new run. Late observations from an earlier document cannot replace the current tab's evidence.
+
+The native hub keeps direct responses and focus actions in order and combines redundant pending snapshots into the newest complete state. This prevents a burst of tab observations from expelling a healthy browser. A hung native request disconnects the stale port and uses the existing bounded reconnect sequence; a failed local import remains retryable.

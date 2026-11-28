@@ -48,8 +48,8 @@ jobs:
         with: {python-version: '3.12'}
       - name: Install pinned Rust toolchain
         run: |
-          rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
-          rustup override set 1.99.0
+          rustup toolchain install 1.100.1 --profile minimal --component rustfmt --component clippy
+          rustup override set 1.100.1
       - run: cargo fmt --manifest-path native/constellation-setup/Cargo.toml --check
       - run: cargo clippy --locked --all-targets --manifest-path native/constellation-setup/Cargo.toml -- -D warnings
       - run: cargo test --locked --all-targets --manifest-path native/constellation-setup/Cargo.toml
@@ -69,13 +69,13 @@ jobs:
       - uses: actions/checkout@v7
         with: {persist-credentials: false}
       - uses: actions/setup-node@v7
-        with: {node-version: 24}
+        with: {node-version: '26.13.1'}
       - uses: actions/setup-python@v7
         with: {python-version: '3.12'}
       - name: Install pinned native Windows Rust toolchain
         run: |
-          rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
-          rustup override set 1.99.0
+          rustup toolchain install 1.100.1 --profile minimal --component rustfmt --component clippy
+          rustup override set 1.100.1
       - name: Windows transaction tests and platform static analysis
         run: |
           cargo fmt --manifest-path native/constellation-setup/Cargo.toml --check

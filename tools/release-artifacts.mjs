@@ -77,7 +77,7 @@ export function verifyWindowsSetup(directory, {version, sourceCommit}) {
   const setup = verifyArtifact(directory, receipt.artifact, `Constellation-${version}-Windows-Setup.exe`);
   requireValue(acceptance.platform === 'win32' && acceptance.passed === true, 'Real Windows setup acceptance did not pass');
   verifyArtifact(directory, acceptance.artifact, path.basename(setup));
-  const required = ['install', 'repair', 'rollback', 'uninstall', 'setup-gui', 'owner-gui', 'integrations-restored'];
+  const required = ['install', 'repair', 'diagnostics', 'rollback', 'rollback-manager-repair', 'uninstall', 'setup-gui', 'owner-gui', 'integrations-restored'];
   requireValue(Array.isArray(acceptance.checks) && acceptance.checks.length > 0
     && acceptance.checks.every(check => check && check.passed === true), 'Windows acceptance contains failed or invalid checks');
   for (const name of required) requireValue(acceptance.checks.some(check => check.name === name), `Missing Windows acceptance: ${name}`);

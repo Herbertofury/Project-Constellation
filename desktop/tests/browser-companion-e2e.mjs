@@ -144,7 +144,7 @@ try {
   await call('Runtime.enable');
   await call('Runtime.addBinding', { name: '__ccBridgeBinding' });
 
-  const hello = await bridgeFetch('/v1/companion/hello', { method: 'POST', body: { version: '0.22.0', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' } });
+  const hello = await bridgeFetch('/v1/companion/hello', { method: 'POST', body: { version: '0.23.0', extensionId: 'geljambmkfjkhodgkpjhnmfojkpcamig' } });
   assert.equal(hello.ok, true, JSON.stringify(hello));
 
   const pageHtml = `

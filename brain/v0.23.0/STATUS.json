@@ -1,0 +1,48 @@
+{
+  "version": "0.23.0",
+  "status": "source-candidate-requires-matching-hosted-release-receipts",
+  "publicationAuthorized": true,
+  "publicationInstruction": "Owner requests a versioned GitHub release at the end of completed upgrade work.",
+  "branch": "review/constellation-v0.23.0",
+  "baselineCommit": "4fe8980f8caad979eb42dd47d64fa33190d25a2b",
+  "baselineRelease": "https://github.com/Herbertofury/Project-Constellation/releases/tag/v0.22.0",
+  "rootTestScripts": 50,
+  "uiMessageContracts": 94,
+  "nativeMonitorTests": {
+    "unit": 21,
+    "integration": 12
+  },
+  "nativeSetupTransactionTests": 26,
+  "nativeSetupBuilderTests": 7,
+  "releaseWorkflow": ".github/workflows/release.yml",
+  "requiredWindowsSetupChecks": [
+    "install",
+    "repair",
+    "diagnostics",
+    "rollback",
+    "rollback-manager-repair",
+    "uninstall",
+    "setup-gui",
+    "owner-gui",
+    "integrations-restored"
+  ],
+  "acceptanceRemaining": [
+    "Physical audio and operating-system notification visibility",
+    "Owner Chrome/Edge/Opera GX/Firefox profile enrollment",
+    "Permanent Firefox signing",
+    "Windows publisher signing",
+    "Signed-in account backup and restore round trips"
+  ],
+  "evidence": [
+    "docs/MONITOR-VERIFICATION.md",
+    "docs/RELEASE-OPTIMIZATION-0.23.0.json",
+    "docs/RELEASE-STACK-0.23.0.json",
+    "docs/v0.23.0-release-notes.md",
+    "docs/AGENT-MONITOR-PERFORMANCE-0.23.0.json"
+  ],
+  "note": "This committed source records candidate evidence. The matching published release receipt, tag, source tree and completed workflow establish publication and executed target-platform acceptance.",
+  "historicalBundlePublication": {
+    "publicUploadAuthorized": false,
+    "instruction": "Preserve private Computer-Link historical bundles and upstream repository; no public historical bundle upload or deletion in this task."
+  }
+}

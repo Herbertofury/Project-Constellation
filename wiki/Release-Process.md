@@ -63,7 +63,7 @@ All of these reusable workflows must pass before publication:
 | --- | --- |
 | `ci.yml` | Root tests, 94 UI message contracts, complete real-browser smoke inventory, desktop tests |
 | `windows-runtime.yml` | Native Windows computer use, integrated Electron, native payload inclusion, actual packaged portable launch |
-| `windows-setup.yml` | Actual EXE install/repair/rollback/uninstall, setup and owner GUI checks, restored registry and shortcut integrations |
+| `windows-setup.yml` | Actual EXE install/repair/diagnostics/rollback, corrupt retained-manager repair, uninstall, setup/owner GUI, restored registry and shortcut integrations |
 | `native-monitor.yml` | Linux and Windows Rust tests; Chromium and Firefox detector and rendering fixtures |
 | `computer-tools.yml` | Source/bundle verification, native tests and status-only MCP handshakes |
 
@@ -72,7 +72,7 @@ them from the same workflow run and validates version, commit, file size and
 SHA-256. Desktop packaging verifies the clean expected Git tree before and
 after building and records that evidence; missing clean-source evidence is a
 publication failure. The Windows setup receipt must explicitly reject acceptance-fixture
-status and carry all seven mandatory real-Windows checks. Compiler success
+status and carry all nine mandatory real-Windows checks. Compiler success
 alone is insufficient. No artifact is selected through a loose version glob.
 
 ## Artifact assembly
@@ -99,7 +99,7 @@ so it cannot be confused with the compact native installer.
 
 1. Merge the accepted review branch with its exact expected head SHA.
 2. Start the release workflow on that commit using the matching release branch
-   or tag. The workflow creates a GitHub prerelease for 0.22.0 because Firefox
+   or tag. The workflow creates a GitHub prerelease for 0.23.0 because Firefox
    signing, Windows publisher signing and target-account acceptance remain open.
 3. The workflow refuses to overwrite an existing release. Download the release
    assets and verify all hashes again; do not equate upload completion with
