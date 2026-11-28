@@ -130,6 +130,8 @@ fn quote(s:&std::ffi::OsStr)->io::Result<Vec<u16>> {
 }
 #[cfg(test)] mod tests {
  use super::*;
+ #[repr(C)]struct Security{size:u32,descriptor:*mut c_void,inherit:i32}
+ unsafe extern "system"{fn CreateEventW(attrs:*const Security,manual:i32,initial:i32,name:*const u16)->H;}
  #[test] fn worker_argument_quoting_and_rejection(){
   let q=|s:&str|String::from_utf16(&quote(std::ffi::OsStr::new(s)).unwrap()).unwrap();
   assert_eq!(q(""),"\"\"");assert_eq!(q("a b"),"\"a b\"");assert_eq!(q("a\\"),"\"a\\\\\"");assert_eq!(q("a\"b"),"\"a\\\"b\"");assert!(quote(std::ffi::OsStr::new("a\0b")).is_err());
@@ -160,8 +162,6 @@ fn quote(s:&std::ffi::OsStr)->io::Result<Vec<u16>> {
  }
  #[test] fn stdio_handle_list_excludes_unrelated_inheritable_handle(){
   use std::io::Write;
-  #[repr(C)]struct Security{size:u32,descriptor:*mut c_void,inherit:i32}
-  unsafe extern "system"{fn CreateEventW(attrs:*const Security,manual:i32,initial:i32,name:*const u16)->H;}
   let attrs=Security{size:mem::size_of::<Security>() as u32,descriptor:ptr::null_mut(),inherit:1};
   let name=format!("Local\\computer-link-handle-test-{}-{}",std::process::id(),std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
   let name_wide=wide(std::ffi::OsStr::new(&name)).unwrap();
@@ -212,25 +212,46 @@ fn quote(s:&std::ffi::OsStr)->io::Result<Vec<u16>> {
   let mut value=String::new();std::io::stdin().read_line(&mut value).expect("read parent event handle");
   let handle=value.trim().parse::<usize>().expect("parse parent event handle") as H;
   let mut name=String::new();std::io::stdin().read_line(&mut name).expect("read parent event name");
-  unsafe extern "system"{fn OpenEventW(access:u32,inherit:i32,name:*const u16)->H;fn GetCurrentProcess()->H;fn DuplicateHandle(source:H,handle:H,target:H,result:*mut H,access:u32,inherit:i32,options:u32)->i32;}
-  unsafe extern "system"{fn GetModuleHandleW(name:*const u16)->H;fn GetProcAddress(module:H,name:*const u8)->*mut c_void;}
+  // Inspect the actual inherited slot before a positive control can open the
+  // canary into that otherwise-free slot and create a false inheritance report.
+  assert!(!handle_refers_to_named_event(handle,name.trim()).expect("compare candidate event identity"),"unrelated inheritable event leaked");
+  unsafe extern "system"{fn OpenEventW(access:u32,inherit:i32,name:*const u16)->H;fn GetCurrentProcess()->H;}
+  let named=wide(std::ffi::OsStr::new(name.trim())).unwrap();
+  let canary=Handle(unsafe{OpenEventW(0x100000,0,named.as_ptr())});assert!(!canary.0.is_null());
+  // The same oracle must identify a real same-event handle. A different event,
+  // a different object type, and an invalid handle must not match the canary.
+  assert!(handle_refers_to_named_event(canary.0,name.trim()).unwrap(),"identity oracle missed the actual canary");
+  let different=Handle(unsafe{CreateEventW(ptr::null(),1,0,ptr::null())});assert!(!different.0.is_null());
+  assert!(!handle_refers_to_named_event(different.0,name.trim()).unwrap(),"identity oracle matched a different event");
+  assert!(!handle_refers_to_named_event(unsafe{GetCurrentProcess()},name.trim()).unwrap(),"identity oracle matched a process");
+  assert!(!handle_refers_to_named_event(ptr::null_mut(),name.trim()).unwrap(),"identity oracle matched an invalid handle");
+  let vacant=different.0;drop(different);
+  assert!(!handle_refers_to_named_event(vacant,name.trim()).unwrap(),"identity oracle confused an opened reference with an inherited handle");
+ }
+ fn handle_refers_to_named_event(candidate:H,name:&str)->io::Result<bool>{
+  unsafe extern "system"{fn OpenEventW(access:u32,inherit:i32,name:*const u16)->H;fn GetModuleHandleW(name:*const u16)->H;fn GetProcAddress(module:H,name:*const u8)->*mut c_void;fn SetLastError(code:u32);}
   // The documented export exists on supported Windows, but SDKs need not ship
   // kernelbase.lib. Resolve only this already-loaded system module; no loading.
-  let module_name=wide(std::ffi::OsStr::new("kernelbase.dll")).unwrap();
-  let module=unsafe{GetModuleHandleW(module_name.as_ptr())};assert!(!module.is_null(),"resolve loaded kernelbase.dll: {}",io::Error::last_os_error());
-  let address=unsafe{GetProcAddress(module,b"CompareObjectHandles\0".as_ptr())};assert!(!address.is_null(),"resolve CompareObjectHandles: {}",io::Error::last_os_error());
+  let module_name=wide(std::ffi::OsStr::new("kernelbase.dll"))?;
+  let module=unsafe{GetModuleHandleW(module_name.as_ptr())};if module.is_null(){return Err(io::Error::last_os_error())}
+  let address=unsafe{GetProcAddress(module,b"CompareObjectHandles\0".as_ptr())};if address.is_null(){return Err(io::Error::last_os_error())}
   let compare:unsafe extern "system" fn(H,H)->i32=unsafe{mem::transmute(address)};
-  let mut observed=ptr::null_mut();
-  let me=unsafe{GetCurrentProcess()};
-  if unsafe{DuplicateHandle(me,handle,me,&mut observed,0,0,2)}==0 {
-   let error=io::Error::last_os_error();
-   assert_eq!(error.raw_os_error(),Some(6),"duplicate child handle {handle:p}: {error}");return;
+  let name=wide(std::ffi::OsStr::new(name))?;
+  let known=Handle(unsafe{OpenEventW(0x100000,0,name.as_ptr())});if known.0.is_null(){return Err(io::Error::last_os_error())}
+  // OpenEvent cannot replace a live handle. If it allocated the probed number,
+  // that slot was free; this newly opened reference is not an inherited leak.
+  if known.0==candidate{return Ok(false)}
+  // Startup can reuse the old number for an object that cannot be duplicated
+  // (observed ERROR_NOT_SUPPORTED). Compare identity directly without requiring
+  // object-specific access or assuming arbitrary handle types support duplication.
+  unsafe{SetLastError(0)};
+  let same=unsafe{compare(candidate,known.0)};
+  let error=io::Error::last_os_error();
+  if same!=0{return Ok(true)}
+  match error.raw_os_error(){
+   Some(6|1656)=>Ok(false), // ERROR_INVALID_HANDLE or ERROR_NOT_SAME_OBJECT
+   _=>Err(io::Error::other(format!("CompareObjectHandles failed for {candidate:p}: {error}"))),
   }
-  let observed=Handle(observed);
-  let name=wide(std::ffi::OsStr::new(name.trim())).unwrap();
-  let known=Handle(unsafe{OpenEventW(0x100000,0,name.as_ptr())});assert!(!known.0.is_null(),"open parent event for identity comparison: {}",io::Error::last_os_error());
-  // Compare identity, not numeric validity: startup may recycle the old number.
-  assert_eq!(unsafe{compare(observed.0,known.0)},0,"unrelated inheritable event leaked");
  }
  #[test] #[ignore] fn branch_fixture(){
   let mut child=std::process::Command::new(std::env::current_exe().unwrap()).args(["--exact","owned_worker::tests::sleep_fixture","--ignored"]).spawn().unwrap();

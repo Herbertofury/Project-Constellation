@@ -36,7 +36,7 @@
     ],
     "excluded_self_reference": "docs/RELEASE-OPTIMIZATION-0.22.0.json",
     "source_file_count": 915,
-    "source_manifest_sha256": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
+    "source_manifest_sha256": "2bbeafd47561b1443d1a1d41c7c56ec6f360361d4dd197b434e4a4d0ebc69ca4",
     "source_file_sha256": {
       ".editorconfig": "8e1c9a78d4dedcde12bb3cd6279ce83942819d1cd178f1d9d731ef3a62606ac7",
       ".gitattributes": "9d2194cce6b4c0df4776369b5924824e59fd1613debab8217a579000114c9014",
@@ -206,7 +206,7 @@
       "computer-link/windows-owner/src/local_export_preview.rs": "ef869566c225303b10198c12ed9f06733cb10be7a3a975c3ccfb4f63ca6acaf5",
       "computer-link/windows-owner/src/local_export_ui.rs": "7c30ed3b967c03c2e7dff34eddc6113b69d43e1a99309cf406e0b4eb571cac0c",
       "computer-link/windows-owner/src/main.rs": "2099a65ec00fe18f47701fe70eca5d3f8663ec92dabd3e2374f1953be0839215",
-      "computer-link/windows-owner/src/owned_worker.rs": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
+      "computer-link/windows-owner/src/owned_worker.rs": "511d8f55ad3bc5bbc4cd56cf513a9f79dd46819ba16cccdd2b119bf77c978de5",
       "computer-link/windows-owner/src/status_protocol.rs": "7d5555027b497340a749695910121774ce53b807557cc9ce27131e81548d69fd",
       "computer-link/windows-owner/src/stdio_pipe.rs": "2c38e022987c4e479859c880d63f0bbc99aff94c5c793302b59d550e960c47b7",
       "computer-link/windows-owner/src/window_focus.rs": "0f23266109cd3e4668659a1f0b568a723f4f4b04fa7e9bb89230594846d53779",
@@ -509,7 +509,7 @@
       "recovery/README.md": "2be70d34c947f0608ba3785adde3284f87401762ca1793bc1cfb44c8031626be",
       "recovery/computer-link/GITHUB-METADATA.json": "5a4c9da6e4649c6cc4b7ec1d04dc806bd0a188a8d78915e5e0a12ab4a706e218",
       "recovery/computer-link/IMPORT-HYGIENE.json": "03496ea6e80f7b007b7fb81a5afcdae2bc6eff0f64026e1822740fcef9d25cf9",
-      "recovery/computer-link/INTEGRATION-DELTAS.json": "8a7b7a2ed896567767055b6f3afcb7619c382b2be5006b723fdfc9cbe81b307e",
+      "recovery/computer-link/INTEGRATION-DELTAS.json": "f1f52af15363780aabf786c976b6f6116795e7fda5ea0fac707d6698f893fcfd",
       "recovery/computer-link/INTEGRATION-RECEIPT.json": "0c7679f5b1a90cf0f00853c87dd24616e660396338d83e1a63c525183bc27202",
       "recovery/computer-link/SOURCE-MANIFEST.json": "829698f74c8afbcd703f373424a54971d659b097ca5a9648c2e24e93b515033e",
       "recovery/computer-link/main-snapshot/README.md": "4f6241d405ddc193d2684440c34bbcf6885a44ebf395392fd7695154a0276c70",
@@ -964,7 +964,7 @@
       "sha256": "71a25374be55d4b21e2d65a2611aba038011c43a35ace437c06c0e373c97b868"
     },
     "original_assessed_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
-    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source. The final one-workflow amendment matches the existing serial Windows foreground-GUI contract; its exact argument/fail-first checks do not change any performance binding or assert hosted acceptance."
+    "evidence_binding": "The final inventory incorporates explicitly recorded installer, Windows-test, release-provenance, browser-fixture and continuation amendments. Original profiles, validations and runtime measurements retain their original 3a70f10c baseline; every later static assessment records its own exact input hash. No prior timing is silently relabelled as evidence for later browser/installer/CI behavior. The final two-path checkout-policy amendment below has its own input fingerprint and attribute/trigger verification; it does not change any timing or profile binding. The final worker diagnostic amendment adds an explicitly hash-verified eighth import delta inside cfg(test); old compiled-source fingerprints and measured binaries remain baseline evidence and are not assigned to the amended source. The final one-workflow amendment matches the existing serial Windows foreground-GUI contract; its exact argument/fail-first checks do not change any performance binding or assert hosted acceptance. The final two-file test-oracle amendment preserves the 9,091-byte production prefix and all prior runtime/profile bindings; final target fingerprints and hosted stability acceptance remain separate evidence."
   },
   "tools": {
     "shrink-anything": {
@@ -2633,7 +2633,9 @@
     "v022-worker-diagnostic-amendment-input-sha256.json": "bb2d01eb8afb190fbdf728f98d7dbc15afdfdea6ef35fa2ec145244e0e382d8b",
     "v022-worker-diagnostic-amendment.diff": "09f0ca604867b400e85bef3b66c716cea41044eacc0fbd9d376a36c1df35be40",
     "v022-serial-gate-amendment-input-sha256.json": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
-    "v022-serial-gate-amendment.diff": "a6517fe21a4a89bd5ec0b221bf0ca87a2eb864f124867a48bd32f02878d32b99"
+    "v022-serial-gate-amendment.diff": "a6517fe21a4a89bd5ec0b221bf0ca87a2eb864f124867a48bd32f02878d32b99",
+    "v022-oracle-amendment-input-sha256.json": "2bbeafd47561b1443d1a1d41c7c56ec6f360361d4dd197b434e4a4d0ebc69ca4",
+    "v022-oracle-amendment.diff": "d5af6c0fe40fdb2e0bb88e81bd5cf6c0944e73c08b6feae2ccb4666663015f3f"
   },
   "gate_limits": [
     "This is an optimization/preservation annex, not a release-wide or installation acceptance pass. Hosted CI, Windows setup/uninstall/upgrade, actual Windows native UI, installed browser/nativeMessaging, speaker output and user-account workflows have separate gates.",
@@ -2649,7 +2651,8 @@
     "The final 15-path amendment records exact source/fixture/workflow/documentation inputs and refreshed static analysis with focused syntax/contracts. Original measured timings remain evidence only for their named baseline and unchanged workloads. Final installed-browser, Windows setup/GUI and publication acceptance remain distinct hosted gates.",
     "The last two-path amendment preserves exact legacy Git bytes through path-specific -text attributes and triggers Windows runtime CI for attribute changes. Independent attribute/YAML/diff checks passed; the fresh-checkout proof is attributed and hosted Windows acceptance remains a separate gate.",
     "The final Windows owned-worker change adds bounded test diagnostics and a success marker while preserving all exclusion checks. It does not claim resolution of the failing hosted child. Production code is byte-identical, but whole-file build-input fingerprints require fresh target payloads; prior timings retain their original baseline identity.",
-    "The twelve owner stability sweeps now use the same --test-threads=1 contract as the existing Windows native test runner because foreground GUI fixtures share a desktop. Every complete sweep remains required and stops on first failure. The original serial handle-isolation failure remains a real diagnostic gate; it is not declared fixed by this workflow correction."
+    "The twelve owner stability sweeps now use the same --test-threads=1 contract as the existing Windows native test runner because foreground GUI fixtures share a desktop. Every complete sweep remains required and stops on first failure. The original serial handle-isolation failure remains a real diagnostic gate; it is not declared fixed by this workflow correction.",
+    "The final test-only oracle repair checks actual named-event identity and positive/negative controls without assuming arbitrary reused handles support DuplicateHandle or whitelisting error 50. It preserves all timeout/exit/diagnostic safeguards. Actual twelve-sweep serial Windows validation remains required; prior timings and target binaries are not relabelled."
   ],
   "validation_commands_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
   "final_source_amendment": {
@@ -3900,6 +3903,113 @@
       "diff_hygiene": "This workflow edit passes the scoped check. Prior original-import/license whitespace qualifications remain unchanged.",
       "unified_diff_sha256": "a6517fe21a4a89bd5ec0b221bf0ca87a2eb864f124867a48bd32f02878d32b99",
       "script_sha256": "956cb2fe0952ce72d43137f5ff03b7af2f103eac42fd369c4de2ff2fea45033b",
+      "final_drift": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      }
+    }
+  ],
+  "post_ci_oracle_amendments": [
+    {
+      "reason": "Actual serial Windows diagnostics reproduced the existing fixture's false assumption that any reused non-inherited handle either duplicates successfully or returns only ERROR_INVALID_HANDLE. Unrelated reused objects returned ERROR_NOT_SUPPORTED (50); repair the test oracle by checking object identity directly, retaining strict failure behavior and controls.",
+      "prior_receipt_sha256": "1583c1ddede80368ac8a2fc007147ac7687fff37f26918d390f768d2cd1ed331",
+      "previous_source_manifest_sha256": "a744753d4557c487d8ac76b03ce7b2768274fe794405280ea58deac079c9fe03",
+      "final_source_manifest_sha256": "2bbeafd47561b1443d1a1d41c7c56ec6f360361d4dd197b434e4a4d0ebc69ca4",
+      "changed_paths": [
+        {
+          "path": "computer-link/windows-owner/src/owned_worker.rs",
+          "previous_sha256": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
+          "final_sha256": "511d8f55ad3bc5bbc4cd56cf513a9f79dd46819ba16cccdd2b119bf77c978de5",
+          "previous_bytes": 17184,
+          "final_bytes": 18820
+        },
+        {
+          "path": "recovery/computer-link/INTEGRATION-DELTAS.json",
+          "previous_sha256": "8a7b7a2ed896567767055b6f3afcb7619c382b2be5006b723fdfc9cbe81b307e",
+          "final_sha256": "f1f52af15363780aabf786c976b6f6116795e7fda5ea0fac707d6698f893fcfd",
+          "previous_bytes": 4136,
+          "final_bytes": 4334
+        }
+      ],
+      "source_file_count": 915,
+      "unchanged_source_files": 913,
+      "added_paths": [],
+      "removed_paths": [],
+      "independent_review": {
+        "scope": "Both edits are confined to the existing cfg(test) module and its recorded integration-delta hash/reason. No production containment or explicit inheritance-list code changed.",
+        "production_prefix_bytes": 9091,
+        "production_prefix_sha256": "7b9d695f8d92b0c7c142cfd5d40882997fc375012458aa70cd4533ac0355340c",
+        "test_inventory_unchanged": [
+          "worker_argument_quoting_and_rejection",
+          "owned_worker_stops_and_drop_kills",
+          "descendants_stop_but_unrelated_worker_survives",
+          "stdio_handle_list_excludes_unrelated_inheritable_handle",
+          "handle_list_fixture",
+          "branch_fixture",
+          "sleep_fixture"
+        ],
+        "actual_candidate_first": "The child checks the actual candidate before opening positive/negative control handles, preventing its own canary reference from manufacturing a false inheritance observation.",
+        "direct_identity": "The helper opens the named event and compares the candidate with that known object through CompareObjectHandles. If OpenEvent allocated the otherwise vacant candidate slot, that newly opened reference is explicitly treated as a non-inherited handle.",
+        "strict_error_handling": "The comparison resets last-error, accepts a true identity match, and treats only ERROR_INVALID_HANDLE (6) or ERROR_NOT_SAME_OBJECT (1656) as negative. Unexpected comparison errors remain errors; ERROR_NOT_SUPPORTED (50) is not whitelisted.",
+        "controls": [
+          "Same named canary must match",
+          "Different event must not match",
+          "Process handle must not match",
+          "Null/invalid handle must not match",
+          "Vacant slot must not be mistaken for an inherited handle after opening its reference"
+        ],
+        "retained_guards": [
+          "Five-second child wait",
+          "Zero child exit code",
+          "Explicit HANDLE_LIST_FIXTURE_OK marker",
+          "At most 8 KiB already-available stdout",
+          "Diagnostic child panic resumes unwinding"
+        ]
+      },
+      "preservation": {
+        "original_source_manifest_changed": false,
+        "documented_import_deltas": 8,
+        "documented_delta": {
+          "path": "computer-link/windows-owner/src/owned_worker.rs",
+          "upstreamSha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
+          "sha256": "511d8f55ad3bc5bbc4cd56cf513a9f79dd46819ba16cccdd2b119bf77c978de5",
+          "reason": "Test-only Windows handle-inheritance oracle repair: compare the named canary object directly instead of assuming arbitrary reused handles support duplication; distinguish a reference allocated into a free slot, retain strict comparison errors, and verify same-event/different-event/different-type/invalid/vacant controls after the real candidate. Preserve timeout, exit/success marker and bounded failure diagnostics. Production process containment and explicit handle-list inheritance bytes are unchanged."
+        },
+        "all_eight_final_hashes_verified": true,
+        "other_seven_deltas_unchanged": true,
+        "source_history_licenses_and_test_inventory_unchanged": true
+      },
+      "independent_diff_check": {
+        "argv": [
+          "git",
+          "diff",
+          "--check",
+          "--",
+          "computer-link/windows-owner/src/owned_worker.rs",
+          "recovery/computer-link/INTEGRATION-DELTAS.json"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reported_validation": {
+        "source": "Final migration-agent report and coordinator/browser-review reports; no Windows execution performed by this receipt amendment",
+        "windows_gnu_target": "cargo check --locked --tests passed without warnings",
+        "import_verifier": "passed: 123 files, 26 trees, 92 commits, 2 wiki commits, 8 documented deltas",
+        "independent_browser_review": "No blocker; independently confirmed the unchanged production prefix and retained acceptance guards",
+        "prior_failure": "The serial push sweep 10 and PR sweep 6 reproduced DuplicateHandle error 50 for reused candidates; the same-event leak assertion was not the failing assertion.",
+        "next_gate": "The repaired oracle and all twelve serial Windows complete-suite sweeps still require actual hosted execution. No final stability or release acceptance is inferred from a Linux cross-target compile or source review."
+      },
+      "optimizer_and_performance": {
+        "rerun": false,
+        "retained_optimization": false,
+        "assessed_runtime_source_manifest_sha256": "3a70f10c6018be54a665ea336fa7fe3577179db1d7c3a7817982fda7a6c776b9",
+        "reason": "Only native Rust test-oracle code and its preservation metadata changed. Rust-to-Rust porting is inapplicable, and no production workload was altered. Existing measured timings and compiled binaries retain their named baseline identities. Complete target build-input fingerprints may change because the modified file contains tests; final payloads must be rebuilt against current inputs."
+      },
+      "diff_hygiene": "These two coordinated edits pass their scoped diff check. Prior original-import/license whitespace qualifications remain intact; no all-files whitespace PASS is inferred.",
+      "unified_diff_sha256": "d5af6c0fe40fdb2e0bb88e81bd5cf6c0944e73c08b6feae2ccb4666663015f3f",
+      "script_sha256": "1f3974cb23c10306af42c07b122a8e44f69718ba6d0d15b76cd485e69bb28f70",
       "final_drift": {
         "added": [],
         "removed": [],

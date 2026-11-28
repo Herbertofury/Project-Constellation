@@ -46,8 +46,8 @@
     {
       "path": "computer-link/windows-owner/src/owned_worker.rs",
       "upstreamSha256": "4f6446c9a8b5ac3ba07bff0d0ee8b35d4915df3d5ec37c36f9f5967e416018bf",
-      "sha256": "a96e65d4001d9fd4d12737cfc30638c87cab68d3011d145ecbf003570c15b327",
-      "reason": "Test-only bounded child stdout diagnostics for Windows handle-inheritance acceptance; retain the original timeout, exit-code and object-identity exclusion assertions, and require an explicit successful child assertion marker. Production process containment and explicit handle-list inheritance are unchanged."
+      "sha256": "511d8f55ad3bc5bbc4cd56cf513a9f79dd46819ba16cccdd2b119bf77c978de5",
+      "reason": "Test-only Windows handle-inheritance oracle repair: compare the named canary object directly instead of assuming arbitrary reused handles support duplication; distinguish a reference allocated into a free slot, retain strict comparison errors, and verify same-event/different-event/different-type/invalid/vacant controls after the real candidate. Preserve timeout, exit/success marker and bounded failure diagnostics. Production process containment and explicit handle-list inheritance bytes are unchanged."
     }
   ],
   "addedIntegration": [
